@@ -185,7 +185,7 @@ The ccxt library currently supports the following 125 cryptocurrency exchange ma
 +------------------------+----------------------+----------------------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------+
 | |coinone|              | coinone              | `CoinOne <https://coinone.co.kr>`__                                                          | 2     | `API <https://doc.coinone.co.kr>`__                                                               |                    |
 +------------------------+----------------------+----------------------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------+
-| |coinsbit|             | coinsbit             | `Coinsbit <https://coinsbit.io/>`__                                                          | \*    | `API <https://www.notion.so/API-COINSBIT-WS-API-COINSBIT-cf1044cff30646d49a0bab0e28f27a87>`__     |                    |
+| |coinsbit|             | coinsbit             | `Coinsbit <https://coinsbit.io/>`__                                                          | 1     | `API <https://www.notion.so/API-COINSBIT-WS-API-COINSBIT-cf1044cff30646d49a0bab0e28f27a87>`__     |                    |
 +------------------------+----------------------+----------------------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------+
 | |coinspot|             | coinspot             | `CoinSpot <https://www.coinspot.com.au/register?code=PJURCU>`__                              | \*    | `API <https://www.coinspot.com.au/api>`__                                                         |                    |
 +------------------------+----------------------+----------------------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------+
@@ -703,7 +703,7 @@ For business inquiries: info@ccxt.trade
    :target: https://www.npmjs.com/package/ccxt
 .. |Gitter| image:: https://badges.gitter.im/ccxt-dev/ccxt.svg
    :target: https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
-.. |Supported Exchanges| image:: https://img.shields.io/badge/exchanges-124-blue.svg
+.. |Supported Exchanges| image:: https://img.shields.io/badge/exchanges-125-blue.svg
    :target: https://github.com/ccxt/ccxt/wiki/Exchange-Markets
 .. |Open Collective| image:: https://opencollective.com/ccxt/backers/badge.svg
    :target: https://opencollective.com/ccxt

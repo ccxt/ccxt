@@ -13,19 +13,24 @@ class coinsbit extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'coinsbit',
             'name' => 'Coinsbit',
-            'countries' => ['BR'],
+            'countries' => ['EE'],
+            'version' => 'v1',
             'rateLimit' => 1000,
             'has' => array (
                 'createMarketOrder' => false,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
-                'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
+                'fetchCurrencies' => false,
+                'fetchTicker' => false,
+                'fetchTickers' => false,
+                'fetchOHLCV' => false,
+                'fetchTrades' => false,
             ),
             'urls' => array (
                 'api' => array (
-                    'public' => 'http://coinsbit.io',
-                    'private' => 'http://coinsbit.io',
+                    'public' => 'https://coinsbit.io/api/v1/public',
+                    'private' => 'https://coinsbit.io/api/v1',
+                    'wapi' => 'wss://coinsbit.io/api/v1/trade_ws',
                 ),
                 'www' => 'https://coinsbit.io/',
                 'doc' => array (
@@ -34,60 +39,71 @@ class coinsbit extends Exchange {
                 'fees' => 'https://coinsbit.io/fee-schedule',
             ),
             'api' => array (
-                'market' => array (
-                    'get' => array (
-                        'history/kline', // 获取K线数据
-                        'detail/merged', // 获取聚合行情(Ticker)
-                        'depth', // 获取 Market Depth 数据
-                        'trade', // 获取 Trade Detail 数据
-                        'history/trade', // 批量获取最近的交易记录
-                        'detail', // 获取 Market Detail 24小时成交量数据
-                        'tickers',
-                    ),
-                ),
                 'public' => array (
                     'get' => array (
-                        'common/symbols', // 查询系统支持的所有交易对
-                        'common/currencys', // 查询系统支持的所有币种
-                        'common/timestamp', // 查询系统当前时间
-                        'common/exchange', // order limits
-                        'settings/currencys', // ?language=en-US
+                        'markets',
+                        'tickers',
+                        'ticker',
+                        'book',
+                        'history',
+                        'symbols',
+                        'depth/result',
+                    ),
+                    'post' => array (
+                        'order/new',
+                        'order/cancel',
+                        'orders',
+                        'account/balances',
+                        'account/balance',
+                        'account/order',
+                        'account/order_history',
                     ),
                 ),
                 'private' => array (
                     'get' => array (
-                        'account/accounts', // 查询当前用户的所有账户(即account-id)
-                        'account/accounts/{id}/balance', // 查询指定账户的余额
-                        'order/openOrders',
-                        'order/orders',
-                        'order/orders/{id}', // 查询某个订单详情
-                        'order/orders/{id}/matchresults', // 查询某个订单的成交明细
-                        'order/history', // 查询当前委托、历史委托
-                        'order/matchresults', // 查询当前成交、历史成交
-                        'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
-                        'query/deposit-withdraw',
-                        'margin/loan-orders', // 借贷订单
-                        'margin/accounts/balance', // 借贷账户详情
-                        'points/actions',
-                        'points/orders',
-                        'subuser/aggregate-balance',
+                        'markets',
+                        'tickers',
+                        'ticker',
+                        'book',
+                        'history',
+                        'symbols',
+                        'depth/result',
                     ),
                     'post' => array (
-                        'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
-                        'order/orders', // 创建一个新的订单请求 （仅创建订单，不执行下单）
-                        'order/orders/{id}/place', // 执行一个订单 （仅执行已创建的订单）
-                        'order/orders/{id}/submitcancel', // 申请撤销一个订单请求
-                        'order/orders/batchcancel', // 批量撤销订单
-                        'dw/balance/transfer', // 资产划转
-                        'dw/withdraw/api/create', // 申请提现虚拟币
-                        'dw/withdraw-virtual/create', // 申请提现虚拟币
-                        'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现
-                        'dw/withdraw-virtual/{id}/cancel', // 申请取消提现虚拟币
-                        'dw/transfer-in/margin', // 现货账户划入至借贷账户
-                        'dw/transfer-out/margin', // 借贷账户划出至现货账户
-                        'margin/orders', // 申请借贷
-                        'margin/orders/{id}/repay', // 归还借贷
-                        'subuser/transfer',
+                        'order/new',
+                        'order/cancel',
+                        'orders',
+                        'account/balances',
+                        'account/balance',
+                        'account/order',
+                        'account/order_history',
+                    ),
+                ),
+                'wapi' => array (
+                    'server' => array (
+                        'ping',
+                        'time',
+                    ),
+                    'kline' => array (
+                        'subscribe',
+                        'unsubscribe',
+                    ),
+                    'price' => array (
+                        'subscribe',
+                        'unsubscribe',
+                    ),
+                    'state' => array (
+                        'query',
+                        'subscribe',
+                        'unsubscribe',
+                    ),
+                    'deals' => array (
+                        'subscribe',
+                        'unsubscribe',
+                    ),
+                    'depth' => array (
+                        'subscribe',
+                        'unsubscribe',
                     ),
                 ),
             ),
@@ -108,32 +124,26 @@ class coinsbit extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $method = $this->options['fetchMarketsMethod'];
-        $response = $this->$method ($params);
-        $markets = $this->safe_value($response, 'data');
+        $response = $this->publicGetMarkets ($params);
+        $markets = $this->safe_value($response, 'result');
         $numMarkets = is_array ($markets) ? count ($markets) : 0;
         if ($numMarkets < 1) {
-            throw new ExchangeError($this->id . ' publicGetCommonSymbols returned empty $response => ' . $this->json ($markets));
+            throw new ExchangeError($this->id . ' publicGetMarkets returned empty $response => ' . $this->json ($markets));
         }
         $result = array();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
-            $baseId = $this->safe_string($market, 'base-currency');
-            $quoteId = $this->safe_string($market, 'quote-currency');
-            $id = $baseId . $quoteId;
+            $baseId = $this->safe_string($market, 'stock');
+            $quoteId = $this->safe_string($market, 'money');
+            $id = $baseId . '_' . $quoteId;
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
-                'amount' => $market['amount-precision'],
-                'price' => $market['price-precision'],
+                'amount' => $market['stockPrec'],
+                'price' => $market['moneyPrec'],
             );
-            $maker = ($base === 'OMG') ? 0 : 0.2 / 100;
-            $taker = ($base === 'OMG') ? 0 : 0.2 / 100;
-            $minAmount = $this->safe_float($market, 'min-order-amt', pow(10, -$precision['amount']));
-            $minCost = $this->safe_float($market, 'min-order-value', 0);
-            $state = $this->safe_string($market, 'state');
-            $active = ($state === 'online');
+            $minAmount = $this->safe_float($market, 'minAmount', 0);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -141,10 +151,8 @@ class coinsbit extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'active' => $active,
+                'active' => true,
                 'precision' => $precision,
-                'taker' => $taker,
-                'maker' => $maker,
                 'limits' => array (
                     'amount' => array (
                         'min' => $minAmount,
@@ -155,7 +163,7 @@ class coinsbit extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array (
-                        'min' => $minCost,
+                        'min' => -1 * log10 ($precision['amount']),
                         'max' => null,
                     ),
                 ),
@@ -163,5 +171,154 @@ class coinsbit extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $method = 'privatePostOrderNew';
+        $request = array (
+            'pair' => $market['id'],
+            'amount' => $this->amount_to_precision($symbol, $amount),
+            'price' => $this->price_to_precision($symbol, $price),
+        );
+        $response = $this->$method (array_merge ($request, $params));
+        $order = $this->parse_order($response, $market);
+        return array_merge ($order, array (
+            'type' => $type,
+        ));
+    }
+
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $request = array (
+            'market' => $this->market_id($symbol),
+            'order_id' => intval ($id),
+        );
+        return $this->privatePostOrderCancel (array_merge ($request, $params));
+    }
+
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrders requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'symbol' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->privatePostOrders (array_merge ($request, $params));
+        $result = $response->result;
+        return $this->parse_orders($result, $market, $since, $limit);
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $orderIdField = $this->get_order_id_field ();
+        $request = array();
+        $request[$orderIdField] = $id;
+        $response = $this->privatePostAccountOrder (array_merge ($request, $params));
+        if (strlen ($response['result']) === 0) {
+            throw new OrderNotFound($this->id . ' order ' . $id . ' not found');
+        }
+        return $this->parse_order($response['result']['records']);
+    }
+
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array (
+            'market' => $this->market_id($symbol),
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->publicGetDepthResult (array_merge ($request, $params));
+        return $this->parse_order_book($response, null, 'bids', 'asks');
+    }
+
+    public function fetch_balance ($params = array ()) {
+        $this->load_markets();
+        $query = $this->omit ($params, 'type');
+        $response = $this->privatePostAccountBalances ($query);
+        $balances = $this->safe_value($response, 'result');
+        $symbols = is_array($balances) ? array_keys($balances) : array();
+        $result = array( 'info' => $balances );
+        for ($i = 0; $i < count ($symbols); $i++) {
+            $currencyId = $symbols[$i];
+            $code = $this->safe_currency_code($currencyId);
+            $balance = $balances[$code];
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'available');
+            $account['total'] = $this->safe_float($balance, 'available') . $this->safe_float($balance, 'freeze');
+            $result[$code] = $account;
+        }
+        return $this->parse_balance($result);
+    }
+
+    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
+        $query = $this->omit ($params, $this->extract_params($path));
+        if ($api === 'public') {
+            if ($query) {
+                $url .= '?' . $this->urlencode ($query);
+            }
+        } else {
+            $this->check_required_credentials();
+            $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
+            $nonce = (string) $this->nonce ();
+            $query = array_merge (array (
+                'nonce' => (string) $nonce,
+                'request' => $request,
+            ), $query);
+            $body = $this->json ($query);
+            $query = $this->encode ($body);
+            $payload = base64_encode ($query);
+            $secret = $this->encode ($this->secret);
+            $signature = $this->hmac ($payload, $secret, 'sha512');
+            $headers = array (
+                'Content-type' => 'application/json',
+                'X-TXC-APIKEY' => $this->apiKey,
+                'X-TXC-PAYLOAD' => $payload,
+                'X-TXC-SIGNATURE' => $signature,
+            );
+        }
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function parse_order ($order, $market = null) {
+        $marketName = $this->safe_string($order, 'market');
+        $market = $market || $this->find_market($marketName);
+        $symbol = $this->safe_string($market, 'symbol');
+        $timestamp = $this->safe_string($order, 'time');
+        if ($timestamp !== null) {
+            $timestamp = intval ($timestamp) * 1000;
+        }
+        $amount = $this->safe_float($order, 'amount');
+        $fillAmount = $this->safe_float($order, 'dealStock', $amount);
+        $remaining = $amount - $fillAmount;
+        return array (
+            'id' => $this->safe_string($order, 'id'),
+            'datetime' => $this->iso8601 ($timestamp),
+            'timestamp' => $timestamp,
+            'lastTradeTimestamp' => null,
+            'status' => null,
+            'symbol' => $symbol,
+            'type' => $this->safe_string($order, 'type'),
+            'side' => $this->safe_string($order, 'side'),
+            'price' => $this->safe_float($order, 'price'),
+            'cost' => $this->safe_float($order, 'dealFee', 0.0) . $this->safe_float($order, 'takerFee', 0.0),
+            'amount' => $amount,
+            'filled' => $fillAmount,
+            'remaining' => $remaining,
+            'fee' => $this->safe_float($order, 'fee'),
+            'info' => $order,
+        );
+    }
+
+    public function get_order_id_field () {
+        return 'orderId';
     }
 }

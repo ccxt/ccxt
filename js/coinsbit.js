@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ module.exports = class coinsbit extends Exchange {
                         'book',
                         'history',
                         'symbols',
-                        'depth/result'
+                        'depth/result',
                     ],
                     'post': [
                         'order/new',
@@ -55,8 +55,8 @@ module.exports = class coinsbit extends Exchange {
                         'account/balances',
                         'account/balance',
                         'account/order',
-                        'account/order_history'
-                    ]
+                        'account/order_history',
+                    ],
                 },
                 'private': {
                     'get': [
@@ -66,7 +66,7 @@ module.exports = class coinsbit extends Exchange {
                         'book',
                         'history',
                         'symbols',
-                        'depth/result'
+                        'depth/result',
                     ],
                     'post': [
                         'order/new',
@@ -75,8 +75,8 @@ module.exports = class coinsbit extends Exchange {
                         'account/balances',
                         'account/balance',
                         'account/order',
-                        'account/order_history'
-                    ]
+                        'account/order_history',
+                    ],
                 },
                 'wapi': {
                     'server': [
@@ -175,7 +175,7 @@ module.exports = class coinsbit extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = 'privatePostOrderNew';
+        const method = 'privatePostOrderNew';
         const request = {
             'pair': market['id'],
             'amount': this.amountToPrecision (symbol, amount),
@@ -188,7 +188,7 @@ module.exports = class coinsbit extends Exchange {
         });
     }
 
-    async cancelOrder (id, symbol, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'market': this.marketId (symbol),
@@ -220,7 +220,7 @@ module.exports = class coinsbit extends Exchange {
         const request = {};
         request[orderIdField] = id;
         const response = await this.privatePostAccountOrder (this.extend (request, params));
-        if (response['result'].length == 0) {
+        if (response['result'].length === 0) {
             throw new OrderNotFound (this.id + ' order ' + id + ' not found');
         }
         return this.parseOrder (response['result']['records']);
@@ -245,7 +245,7 @@ module.exports = class coinsbit extends Exchange {
         const balances = this.safeValue (response, 'result');
         const symbols = Object.keys (balances);
         const result = { 'info': balances };
-        for (let i = 0; i < symbols.length; i ++) {
+        for (let i = 0; i < symbols.length; i++) {
             const currencyId = symbols[i];
             const code = this.safeCurrencyCode (currencyId);
             const balance = balances[code];
@@ -260,7 +260,6 @@ module.exports = class coinsbit extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-
         if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
@@ -282,16 +281,16 @@ module.exports = class coinsbit extends Exchange {
                 'Content-type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
                 'X-TXC-PAYLOAD': payload,
-                'X-TXC-SIGNATURE': signature
+                'X-TXC-SIGNATURE': signature,
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     parseOrder (order, market = undefined) {
-        let marketName = this.safeString (order, 'market');
-        market = market || this.findMarket(marketName);
-        let symbol = this.safeString (market, 'symbol');
+        const marketName = this.safeString (order, 'market');
+        market = market || this.findMarket (marketName);
+        const symbol = this.safeString (market, 'symbol');
         let timestamp = this.safeString (order, 'time');
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp) * 1000;
@@ -299,7 +298,6 @@ module.exports = class coinsbit extends Exchange {
         const amount = this.safeFloat (order, 'amount');
         const fillAmount = this.safeFloat (order, 'dealStock', amount);
         const remaining = amount - fillAmount;
-
         return {
             'id': this.safeString (order, 'id'),
             'datetime': this.iso8601 (timestamp),
