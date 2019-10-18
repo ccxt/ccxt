@@ -19,6 +19,11 @@ module.exports = class coinsbit extends Exchange {
                 'createMarketOrder': false,
                 'fetchOrder': true,
                 'fetchOrders': true,
+                'fetchCurrencies': false,
+                'fetchTicker': false,
+                'fetchTickers': false,
+                'fetchOHLCV': false,
+                'fetchTrades': false,
             },
             'urls': {
                 'api': {
