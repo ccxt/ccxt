@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, BadRequest } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -101,6 +101,12 @@ module.exports = class ftx extends Exchange {
                         'orders/by_client_id/{client_order_id}',
                         'orders',
                     ],
+                },
+            },
+            'exceptions': {
+                'exact': {},
+                'broad': {
+                    'Invalid parameter': BadRequest, // {"error":"Invalid parameter start_time","success":false}
                 },
             },
         });
@@ -744,12 +750,23 @@ module.exports = class ftx extends Exchange {
         if (response === undefined) {
             return; // fallback to the default error handler
         }
+        //
+        //     {"error":"Invalid parameter start_time","success":false}
+        //
         const success = this.safeValue (response, 'success');
         if (!success) {
-            if (body[0] === '{') {
-                const feedback = this.id + ' ' + this.json (response);
-                throw new ExchangeError (feedback);
+            const feedback = this.id + ' ' + this.json (response);
+            const error = this.safeString (response, 'error');
+            const exact = this.exceptions['exact'];
+            if (error in exact) {
+                throw new exact[error] (feedback);
             }
+            const broad = this.exceptions['broad'];
+            const broadKey = this.findBroadlyMatchedKey (broad, error);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
+            }
+            throw new ExchangeError (feedback); // unknown message
         }
     }
 };
