@@ -392,15 +392,31 @@ module.exports = class ftx extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetWalletBalances (params);
-        const balance = {};
-        const result = this.safeValue (response, 'result', []);
-        for (let i = 0; i < result.length; i++) {
-            const code = this.safeCurrencyCode (result[i]['coin']);
-            balance[code] = {};
-            balance[code]['free'] = this.safeFloat (result[i]['free']);
-            balance[code]['total'] = this.safeFloat (result[i]['total']);
+        //
+        //     {
+        //         "success": true,
+        //         "result": [
+        //             {
+        //                 "coin": "USDTBEAR",
+        //                 "free": 2320.2,
+        //                 "total": 2340.2
+        //             },
+        //         ],
+        //     }
+        //
+        const result = {
+            'info': response,
+        };
+        const balances = this.safeValue (response, 'result', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const code = this.safeCurrencyCode (this.safeString (balance, 'coin'));
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'free');
+            account['total'] = this.safeFloat (balance, 'total');
+            result[code] = account;
         }
-        return this.parseBalance (balance);
+        return this.parseBalance (result);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
