@@ -161,6 +161,7 @@ module.exports = class bitz extends Exchange {
                 'BOX': 'BOX Token',
                 'XRB': 'NANO',
                 'PXC': 'Pixiecoin',
+                'VTC': 'VoteCoin',
             },
             'exceptions': {
                 // '200': Success
