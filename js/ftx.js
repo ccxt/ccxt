@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { NotSupported, ExchangeError, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -56,36 +56,105 @@ module.exports = class ftx extends Exchange {
                 'public': {
                     'get': [
                         'markets',
-                        'futures/{market}/mark_candles',
-                        'markets/{market}/candles',
-                        'markets/{market}/orderbook',
-                        'markets/{market}/trades',
-                        'coins',
-                        'futures/{market}',
-                        'futures/{market}/stats',
+                        'markets/{market_name}',
+                        'markets/{market_name}/orderbook', // ?depth={depth}
+                        'markets/{market_name}/trades', // ?limit={limit}&start_time={start_time}&end_time={end_time}
+                        'markets/{market_name}/candles', // ?resolution={resolution}&limit={limit}&start_time={start_time}&end_time={end_time}
+                        'futures',
+                        'futures/{future_name}',
+                        'futures/{future_name}/stats',
+                        'funding_rates',
+                        'lt/tokens',
+                        'lt/{token_name}',
                     ],
                 },
                 'private': {
                     'get': [
+                        'account',
+                        'positions',
+                        'wallet/coins',
                         'wallet/balances',
-                        'orders',
-                        'orders/{id}',
                         'wallet/deposit_address/{coin}',
                         'wallet/deposits',
                         'wallet/withdrawals',
+                        'orders', // ?market={market}
+                        'orders/history', // ?market={market}
+                        'orders/{order_id}',
+                        'orders/by_client_id/{client_order_id}',
+                        'fills', // ?market={market}
+                        'funding_payments',
+                        'lt/balances',
+                        'lt/creations',
+                        'lt/redemptions',
                     ],
                     'post': [
+                        'account/leverage',
+                        'wallet/withdrawals',
                         'orders',
                         'conditional_orders',
-                        'wallet/withdrawals',
+                        'lt/{token_name}/create',
+                        'lt/{token_name}/redeem',
                     ],
                     'delete': [
+                        'orders/{order_id}',
+                        'orders/by_client_id/{client_order_id}',
                         'orders',
-                        'orders/{id}',
                     ],
                 },
             },
         });
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCoins (params);
+        const currencies = this.safeValue (response, 'result', []);
+        //
+        //     {
+        //         "success":true,
+        //         "result": [
+        //             {"id":"BTC","name":"Bitcoin"},
+        //             {"id":"ETH","name":"Ethereum"},
+        //             {"id":"ETHMOON","name":"10X Long Ethereum Token","underlying":"ETH"},
+        //             {"id":"EOSBULL","name":"3X Long EOS Token","underlying":"EOS"},
+        //         ],
+        //     }
+        //
+        const result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
+            const id = this.safeString (currency, 'id');
+            const code = this.safeCurrencyCode (id);
+            const name = this.safeString (currency, 'name');
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'type': undefined,
+                'name': name,
+                'active': undefined,
+                'fee': undefined,
+                'precision': undefined,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {
@@ -217,11 +286,8 @@ module.exports = class ftx extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const marketType = this.safeString (market, 'type');
-        if (marketType !== 'future') {
-            throw new NotSupported (this.id + ' fetchTicker() supports futures markets only, see exchange.markets[symbol]["type"] for details');
-        }
-        const response = await this.publicGetFuturesMarket (this.extend (request, params));
+        const method = (market['type'] === 'future') ? 'publicGetFuturesMarket' : 'publicGetMarkets';
+        const response = await this[method] (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         return this.parseTicker (result, market);
     }
@@ -235,58 +301,6 @@ module.exports = class ftx extends Exchange {
         const response = await this.publicGetMarketsMarketOrderbook (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         return this.parseOrderBook (result);
-    }
-
-    async fetchCurrencies (params = {}) {
-        const response = await this.publicGetCoins (params);
-        const currencies = this.safeValue (response, 'result', []);
-        //
-        //     {
-        //         "success":true,
-        //         "result": [
-        //             {"id":"BTC","name":"Bitcoin"},
-        //             {"id":"ETH","name":"Ethereum"},
-        //             {"id":"ETHMOON","name":"10X Long Ethereum Token","underlying":"ETH"},
-        //             {"id":"EOSBULL","name":"3X Long EOS Token","underlying":"EOS"},
-        //         ],
-        //     }
-        //
-        const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const id = this.safeString (currency, 'id');
-            const code = this.safeCurrencyCode (id);
-            const name = this.safeString (currency, 'name');
-            result[code] = {
-                'id': id,
-                'code': code,
-                'info': currency,
-                'type': undefined,
-                'name': name,
-                'active': undefined,
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
-        }
-        return result;
     }
 
     async fetchBalance (params = {}) {
