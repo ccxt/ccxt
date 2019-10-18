@@ -316,7 +316,7 @@ module.exports = class binance extends Exchange {
             const quoteId = market['quoteAsset'];
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = (marketType === 'futures') ? id : base + '/' + quote;
+            const symbol = base + '/' + quote;
             const filters = this.indexBy (market['filters'], 'filterType');
             const precision = {
                 'base': market['baseAssetPrecision'],
