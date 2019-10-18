@@ -34,7 +34,7 @@ use kornrunner\Keccak;
 use kornrunner\Solidity;
 use Elliptic\EC;
 
-$version = '1.18.1288';
+$version = '1.18.1299';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -53,7 +53,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.1288';
+    const VERSION = '1.18.1299';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -446,14 +446,11 @@ class Exchange {
     }
 
     public function filter_by($array, $key, $value = null) {
-        if ($value) {
-            $grouped = static::group_by($array, $key);
-            if (is_array($grouped) && array_key_exists($value, $grouped)) {
-                return $grouped[$value];
-            }
-            return array();
+        $grouped = static::group_by($array, $key);
+        if (is_array($grouped) && array_key_exists($value, $grouped)) {
+            return $grouped[$value];
         }
-        return $array;
+        return array();
     }
 
     public static function group_by($array, $key) {
