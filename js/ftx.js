@@ -11,17 +11,14 @@ module.exports = class ftx extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'ftx',
-            'name': 'Ftx',
+            'name': 'FTX',
             'countries': [ 'HK' ],
             'rateLimit': 100,
             'certified': false,
             'urls': {
                 'logo': 'https://theme.zdassets.com/theme_assets/9179536/d48e830d666da07d0a1fcdb74e5ed665d4d4a069.png',
                 'www': 'https://ftx.com',
-                'api': {
-                    'public': 'https://ftx.com/api',
-                    'private': 'https://ftx.com/api',
-                },
+                'api': 'https://ftx.com/api',
                 'doc': 'https://github.com/ftexchange/ftx',
             },
             'version': 'v1',
@@ -520,7 +517,7 @@ module.exports = class ftx extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'][api] + request;
+        let url = this.urls['api'] + request;
         if (method === 'GET') {
             if (Object.keys (query).length) {
                 const suffix = '?' + this.urlencode (query);
