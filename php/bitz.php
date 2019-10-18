@@ -163,6 +163,7 @@ class bitz extends Exchange {
                 'XRB' => 'NANO',
                 'PXC' => 'Pixiecoin',
                 'VTC' => 'VoteCoin',
+                'TTC' => 'TimesChain',
             ),
             'exceptions' => array (
                 // '200' => Success
