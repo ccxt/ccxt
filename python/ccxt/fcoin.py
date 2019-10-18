@@ -10,6 +10,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
@@ -125,8 +126,8 @@ class fcoin (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.001,
-                    'taker': 0.001,
+                    'maker': -0.0002,
+                    'taker': 0.0003,
                 },
             },
             'limits': {
@@ -162,6 +163,7 @@ class fcoin (Exchange):
                 '3008': InvalidOrder,
                 '6004': InvalidNonce,
                 '6005': AuthenticationError,  # Illegal API Signature
+                '40003': BadSymbol,
             },
             'commonCurrencies': {
                 'DAG': 'DAGX',
@@ -459,7 +461,7 @@ class fcoin (Exchange):
             'side': side,
             'type': orderType,
         }
-        if type == 'limit':
+        if (type == 'limit') or (type == 'ioc') or (type == 'fok'):
             request['price'] = self.price_to_precision(symbol, price)
         response = self.privatePostOrders(self.extend(request, params))
         return {

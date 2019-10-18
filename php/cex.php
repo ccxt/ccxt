@@ -399,7 +399,7 @@ class cex extends Exchange {
             $since = $this->milliseconds () - 86400000; // yesterday
         } else {
             if ($this->options['fetchOHLCVWarning']) {
-                throw new ExchangeError($this->id . " fetchOHLCV warning => CEX can return historical candles for a certain date only, this might produce an empty or null reply. Set exchange.options['fetchOHLCVWarning'] = false or add (array( 'options' => array ( 'fetchOHLCVWarning' => false ))) to constructor $params to suppress this warning message.");
+                throw new ExchangeError($this->id . " fetchOHLCV warning => CEX can return historical candles for a certain date only, this might produce an empty or null reply. Set exchange.options['fetchOHLCVWarning'] = false or add (array( 'options' => array( 'fetchOHLCVWarning' => false ))) to constructor $params to suppress this warning message.");
             }
         }
         $ymd = $this->ymd ($since);
@@ -776,7 +776,7 @@ class cex extends Exchange {
                 $tradeAmount = $this->safe_float($item, 'amount');
                 $tradePrice = $this->safe_float($item, 'price');
                 $feeCost = $this->safe_float($item, 'fee_amount');
-                $absTradeAmount = $tradeAmount < 0 ? -$tradeAmount : $tradeAmount;
+                $absTradeAmount = ($tradeAmount < 0) ? -$tradeAmount : $tradeAmount;
                 $tradeCost = null;
                 if ($tradeSide === 'sell') {
                     $tradeCost = $absTradeAmount;

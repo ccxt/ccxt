@@ -46,6 +46,7 @@ class stronghold (Exchange):
                 'fetchCurrencies': True,
                 'fetchOrderBook': True,
                 'fetchOpenOrders': True,
+                'fetchTime': True,
                 'fetchTrades': True,
                 'fetchMyTrades': True,
                 'fetchDepositAddress': False,
@@ -140,7 +141,7 @@ class stronghold (Exchange):
     async def get_active_account(self):
         if self.options['accountId'] is not None:
             return self.options['accountId']
-        await self.loadAccounts()
+        await self.load_accounts()
         numAccounts = len(self.accounts)
         if numAccounts > 0:
             return self.accounts[0]['id']
@@ -413,7 +414,7 @@ class stronghold (Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        return self.parseTransactions(response['result'], currency, since, limit)
+        return self.parse_transactions(response['result'], currency, since, limit)
 
     def parse_transaction_status(self, status):
         statuses = {

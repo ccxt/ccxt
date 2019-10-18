@@ -835,7 +835,7 @@ class therock (Exchange):
         transactions = self.safe_value(response, 'transactions', [])
         transactionTypes = ['withdraw', 'atm_payment']
         depositsAndWithdrawals = self.filter_by_array(transactions, 'type', transactionTypes, False)
-        return self.parseTransactions(depositsAndWithdrawals, currency, since, limit)
+        return self.parse_transactions(depositsAndWithdrawals, currency, since, limit)
 
     def parse_order_status(self, status):
         statuses = {

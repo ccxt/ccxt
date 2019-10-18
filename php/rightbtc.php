@@ -38,8 +38,7 @@ class rightbtc extends Exchange {
                 'api' => 'https://www.rightbtc.com/api',
                 'www' => 'https://www.rightbtc.com',
                 'doc' => array (
-                    'https://52.53.159.206/api/trader/',
-                    'https://support.rightbtc.com/hc/en-us/articles/360012809412',
+                    'https://docs.rightbtc.com/api/',
                 ),
                 // eslint-disable-next-line no-useless-escape
                 // 'fees' => 'https://www.rightbtc.com/\#\!/support/fee',
@@ -88,7 +87,7 @@ class rightbtc extends Exchange {
                     // 0.01 ETP
                     // 0.001 ETH
                     // 0.1 BITCNY
-                    'maker' => 0.2 / 100,
+                    'maker' => 0.1 / 100,
                     'taker' => 0.2 / 100,
                 ),
                 'funding' => array (
@@ -111,11 +110,11 @@ class rightbtc extends Exchange {
                         // 'BitCNY' => n => 0.1 . n * (1 / 100),
                         // 'MTX' => n => 1 . n * (1 / 100),
                         'ETP' => 0.01,
-                        'BTC' => 0.001,
-                        'ETH' => 0.01,
+                        'BTC' => 0.0005,
+                        'ETH' => 0.005,
                         'ETC' => 0.01,
                         'STORJ' => 3,
-                        'LTC' => 0.001,
+                        'LTC' => 0.01,
                         'ZEC' => 0.001,
                         'BCC' => 0.001,
                         'XRB' => 0,
@@ -751,7 +750,7 @@ class rightbtc extends Exchange {
         $status = $this->safe_value($response, 'status');
         if ($status !== null) {
             //
-            //     array("$status":{"$success":0,"$message":"ERR_USERTOKEN_NOT_FOUND")}
+            //     array("$status":array("$success":0,"$message":"ERR_USERTOKEN_NOT_FOUND"))
             //
             $success = $this->safe_string($status, 'success');
             if ($success !== '1') {

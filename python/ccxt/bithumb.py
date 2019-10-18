@@ -35,6 +35,7 @@ class bithumb (Exchange):
                 },
                 'www': 'https://www.bithumb.com',
                 'doc': 'https://apidocs.bithumb.com',
+                'fees': 'https://en.bithumb.com/customer_support/info_fee',
             },
             'api': {
                 'public': {
@@ -68,8 +69,8 @@ class bithumb (Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.15 / 100,
-                    'taker': 0.15 / 100,
+                    'maker': 0.25 / 100,
+                    'taker': 0.25 / 100,
                 },
             },
             'exceptions': {
@@ -184,11 +185,11 @@ class bithumb (Exchange):
             if open > 0:
                 percentage = change / open * 100
             average = self.sum(open, close) / 2
-        vwap = self.safe_float(ticker, 'average_price')
-        baseVolume = self.safe_float(ticker, 'volume_1day')
-        quoteVolume = None
-        if vwap is not None and baseVolume is not None:
-            quoteVolume = baseVolume * vwap
+        baseVolume = self.safe_float(ticker, 'units_traded_24H')
+        quoteVolume = self.safe_float(ticker, 'acc_trade_value_24H')
+        vwap = None
+        if quoteVolume is not None and baseVolume is not None:
+            vwap = quoteVolume / baseVolume
         return {
             'symbol': symbol,
             'timestamp': timestamp,

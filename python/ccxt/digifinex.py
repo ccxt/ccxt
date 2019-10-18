@@ -510,7 +510,7 @@ class digifinex (Exchange):
         #
         id = self.safe_string(trade, 'id')
         orderId = self.safe_string(trade, 'order_id')
-        timestamp = self.safe_timestamp(trade, 'date', 'timestamp')
+        timestamp = self.safe_timestamp_2(trade, 'date', 'timestamp')
         side = self.safe_string_2(trade, 'type', 'side')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')

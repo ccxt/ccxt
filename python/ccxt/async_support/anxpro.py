@@ -216,7 +216,7 @@ class anxpro (Exchange):
         transactions = self.safe_value(response, 'transactions', [])
         grouped = self.group_by(transactions, 'transactionType', [])
         depositsAndWithdrawals = self.array_concat(self.safe_value(grouped, 'DEPOSIT', []), self.safe_value(grouped, 'WITHDRAWAL', []))
-        return self.parseTransactions(depositsAndWithdrawals, currency, since, limit)
+        return self.parse_transactions(depositsAndWithdrawals, currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
         #
@@ -917,7 +917,7 @@ class anxpro (Exchange):
         settlementCurrency = self.safe_string(order, 'settlementCurrency')
         symbol = self.find_symbol(tradedCurrency + '/' + settlementCurrency)
         buyTradedCurrency = self.safe_string(order, 'buyTradedCurrency')
-        side = buyTradedCurrency == 'buy' if 'true' else 'sell'
+        side = 'buy' if (buyTradedCurrency == 'true') else 'sell'
         timestamp = self.safe_integer(order, 'timestamp')
         lastTradeTimestamp = None
         trades = []
@@ -933,7 +933,7 @@ class anxpro (Exchange):
             filled = self.sum(filled, parsedTrade['amount'])
         price = self.safe_float(order, 'limitPriceInSettlementCurrency')
         executedAverageRate = self.safe_float(order, 'executedAverageRate')
-        remaining = type == 0 if 'market' else self.safe_float(order, 'tradedCurrencyAmountOutstanding')
+        remaining = 0 if (type == 'market') else self.safe_float(order, 'tradedCurrencyAmountOutstanding')
         amount = self.safe_float(order, 'tradedCurrencyAmount')
         if not amount:
             settlementCurrencyAmount = self.safe_float(order, 'settlementCurrencyAmount')
@@ -1107,6 +1107,7 @@ class anxpro (Exchange):
         return {
             'currency': code,
             'address': address,
+            'tag': None,
             'info': response,
         }
 

@@ -233,7 +233,7 @@ class coinmate (Exchange):
             request['currency'] = self.currencyId(code)
         response = await self.privatePostTransferHistory(self.extend(request, params))
         items = response['data']
-        return self.parseTransactions(items, None, since, limit)
+        return self.parse_transactions(items, None, since, limit)
 
     def parse_transaction_status(self, status):
         statuses = {

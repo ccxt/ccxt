@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1144'
+__version__ = '1.18.1294'
 
 # -----------------------------------------------------------------------------
 
@@ -17,6 +17,7 @@ from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 
 # -----------------------------------------------------------------------------
 
@@ -35,7 +36,7 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 # -----------------------------------------------------------------------------
 
 # ecdsa signing
-from static_dependencies import ecdsa
+from ccxt.static_dependencies import ecdsa
 
 # -----------------------------------------------------------------------------
 
@@ -766,12 +767,7 @@ class Exchange(object):
 
     @staticmethod
     def filter_by(array, key, value=None):
-        if value:
-            grouped = Exchange.group_by(array, key)
-            if value in grouped:
-                return grouped[value]
-            return []
-        return array
+        return list(filter(lambda x: x[key] == value, array))
 
     @staticmethod
     def filterBy(array, key, value=None):
@@ -1677,7 +1673,7 @@ class Exchange(object):
             raise ExchangeError('Markets not loaded')
         if isinstance(symbol, basestring) and (symbol in self.markets):
             return self.markets[symbol]
-        raise ExchangeError('No market symbol ' + str(symbol))
+        raise BadSymbol('{} does not have market symbol {}'.format(self.id, symbol))
 
     def market_ids(self, symbols):
         return [self.market_id(symbol) for symbol in symbols]
@@ -1831,7 +1827,7 @@ class Exchange(object):
         return ['address' if self.web3.isAddress(value) else 'uint256' for value in array]
 
     def solidityValues(self, array):
-        return [self.web3.toChecksumAddress(value) if self.web3.isAddress(value) else int(value) for value in array]
+        return [self.web3.toChecksumAddress(value) if self.web3.isAddress(value) else (int(value, 16) if str(value)[:2] == '0x' else int(value)) for value in array]
 
     def getZeroExOrderHash2(self, order):
         return self.soliditySha3([

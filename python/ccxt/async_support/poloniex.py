@@ -1094,8 +1094,8 @@ class poloniex (Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        withdrawals = self.parseTransactions(response['withdrawals'], currency, since, limit)
-        deposits = self.parseTransactions(response['deposits'], currency, since, limit)
+        withdrawals = self.parse_transactions(response['withdrawals'], currency, since, limit)
+        deposits = self.parse_transactions(response['deposits'], currency, since, limit)
         transactions = self.array_concat(deposits, withdrawals)
         return self.filterByCurrencySinceLimit(self.sort_by(transactions, 'timestamp'), code, since, limit)
 
@@ -1106,7 +1106,7 @@ class poloniex (Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        withdrawals = self.parseTransactions(response['withdrawals'], currency, since, limit)
+        withdrawals = self.parse_transactions(response['withdrawals'], currency, since, limit)
         return self.filterByCurrencySinceLimit(withdrawals, code, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
@@ -1116,7 +1116,7 @@ class poloniex (Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        deposits = self.parseTransactions(response['deposits'], currency, since, limit)
+        deposits = self.parse_transactions(response['deposits'], currency, since, limit)
         return self.filterByCurrencySinceLimit(deposits, code, since, limit)
 
     def parse_transaction_status(self, status):

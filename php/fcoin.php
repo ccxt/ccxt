@@ -114,8 +114,8 @@ class fcoin extends Exchange {
                 'trading' => array (
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.001,
-                    'taker' => 0.001,
+                    'maker' => -0.0002,
+                    'taker' => 0.0003,
                 ),
             ),
             'limits' => array (
@@ -125,19 +125,19 @@ class fcoin extends Exchange {
                 'createMarketBuyOrderRequiresPrice' => true,
                 'fetchMarketsMethod' => 'fetch_markets_from_open_api', // or 'fetch_markets_from_api'
                 'limits' => array (
-                    'BTM/USDT' => array( 'amount' => array ( 'min' => 0.1, 'max' => 10000000 )),
-                    'ETC/USDT' => array( 'amount' => array ( 'min' => 0.001, 'max' => 400000 )),
-                    'ETH/USDT' => array( 'amount' => array ( 'min' => 0.001, 'max' => 10000 )),
-                    'LTC/USDT' => array( 'amount' => array ( 'min' => 0.001, 'max' => 40000 )),
-                    'BCH/USDT' => array( 'amount' => array ( 'min' => 0.001, 'max' => 5000 )),
-                    'BTC/USDT' => array( 'amount' => array ( 'min' => 0.001, 'max' => 1000 )),
-                    'ICX/ETH' => array( 'amount' => array ( 'min' => 0.01, 'max' => 3000000 )),
-                    'OMG/ETH' => array( 'amount' => array ( 'min' => 0.01, 'max' => 500000 )),
-                    'FT/USDT' => array( 'amount' => array ( 'min' => 1, 'max' => 10000000 )),
-                    'ZIL/ETH' => array( 'amount' => array ( 'min' => 1, 'max' => 10000000 )),
-                    'ZIP/ETH' => array( 'amount' => array ( 'min' => 1, 'max' => 10000000 )),
-                    'FT/BTC' => array( 'amount' => array ( 'min' => 1, 'max' => 10000000 )),
-                    'FT/ETH' => array( 'amount' => array ( 'min' => 1, 'max' => 10000000 )),
+                    'BTM/USDT' => array( 'amount' => array( 'min' => 0.1, 'max' => 10000000 )),
+                    'ETC/USDT' => array( 'amount' => array( 'min' => 0.001, 'max' => 400000 )),
+                    'ETH/USDT' => array( 'amount' => array( 'min' => 0.001, 'max' => 10000 )),
+                    'LTC/USDT' => array( 'amount' => array( 'min' => 0.001, 'max' => 40000 )),
+                    'BCH/USDT' => array( 'amount' => array( 'min' => 0.001, 'max' => 5000 )),
+                    'BTC/USDT' => array( 'amount' => array( 'min' => 0.001, 'max' => 1000 )),
+                    'ICX/ETH' => array( 'amount' => array( 'min' => 0.01, 'max' => 3000000 )),
+                    'OMG/ETH' => array( 'amount' => array( 'min' => 0.01, 'max' => 500000 )),
+                    'FT/USDT' => array( 'amount' => array( 'min' => 1, 'max' => 10000000 )),
+                    'ZIL/ETH' => array( 'amount' => array( 'min' => 1, 'max' => 10000000 )),
+                    'ZIP/ETH' => array( 'amount' => array( 'min' => 1, 'max' => 10000000 )),
+                    'FT/BTC' => array( 'amount' => array( 'min' => 1, 'max' => 10000000 )),
+                    'FT/ETH' => array( 'amount' => array( 'min' => 1, 'max' => 10000000 )),
                 ),
             ),
             'exceptions' => array (
@@ -151,6 +151,7 @@ class fcoin extends Exchange {
                 '3008' => '\\ccxt\\InvalidOrder',
                 '6004' => '\\ccxt\\InvalidNonce',
                 '6005' => '\\ccxt\\AuthenticationError', // Illegal API Signature
+                '40003' => '\\ccxt\\BadSymbol',
             ),
             'commonCurrencies' => array (
                 'DAG' => 'DAGX',
@@ -478,7 +479,7 @@ class fcoin extends Exchange {
             'side' => $side,
             'type' => $orderType,
         );
-        if ($type === 'limit') {
+        if (($type === 'limit') || ($type === 'ioc') || ($type === 'fok')) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $response = $this->privatePostOrders (array_merge ($request, $params));

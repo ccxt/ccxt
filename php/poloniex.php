@@ -1191,8 +1191,8 @@ class poloniex extends Exchange {
         if ($code !== null) {
             $currency = $this->currency ($code);
         }
-        $withdrawals = $this->parseTransactions ($response['withdrawals'], $currency, $since, $limit);
-        $deposits = $this->parseTransactions ($response['deposits'], $currency, $since, $limit);
+        $withdrawals = $this->parse_transactions($response['withdrawals'], $currency, $since, $limit);
+        $deposits = $this->parse_transactions($response['deposits'], $currency, $since, $limit);
         $transactions = $this->array_concat($deposits, $withdrawals);
         return $this->filterByCurrencySinceLimit ($this->sort_by($transactions, 'timestamp'), $code, $since, $limit);
     }
@@ -1206,7 +1206,7 @@ class poloniex extends Exchange {
         if ($code !== null) {
             $currency = $this->currency ($code);
         }
-        $withdrawals = $this->parseTransactions ($response['withdrawals'], $currency, $since, $limit);
+        $withdrawals = $this->parse_transactions($response['withdrawals'], $currency, $since, $limit);
         return $this->filterByCurrencySinceLimit ($withdrawals, $code, $since, $limit);
     }
 
@@ -1219,7 +1219,7 @@ class poloniex extends Exchange {
         if ($code !== null) {
             $currency = $this->currency ($code);
         }
-        $deposits = $this->parseTransactions ($response['deposits'], $currency, $since, $limit);
+        $deposits = $this->parse_transactions($response['deposits'], $currency, $since, $limit);
         return $this->filterByCurrencySinceLimit ($deposits, $code, $since, $limit);
     }
 

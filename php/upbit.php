@@ -955,7 +955,7 @@ class upbit extends Exchange {
         //         ...,
         //     )
         //
-        return $this->parseTransactions ($response, $currency, $since, $limit);
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -989,7 +989,7 @@ class upbit extends Exchange {
         //         ...,
         //     )
         //
-        return $this->parseTransactions ($response, $currency, $since, $limit);
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function parse_transaction_status ($status) {
@@ -1457,7 +1457,7 @@ class upbit extends Exchange {
         //         "krw_amount" => "80420.0"
         //     }
         //
-        return $this->parse_transaction ($response);
+        return $this->parse_transaction($response);
     }
 
     public function nonce () {
@@ -1499,15 +1499,15 @@ class upbit extends Exchange {
             return; // fallback to default $error handler
         }
         //
-        //   array( 'error' => array ( 'message' => "Missing request parameter $error-> Check the required parameters!", 'name' =>  400 ) ),
-        //   array( 'error' => array ( 'message' => "side is missing, side does not have a valid value", 'name' => "validation_error" ) ),
-        //   array( 'error' => array ( 'message' => "개인정보 제 3자 제공 동의가 필요합니다.", 'name' => "thirdparty_agreement_required" ) ),
-        //   array( 'error' => array ( 'message' => "권한이 부족합니다.", 'name' => "out_of_scope" ) ),
-        //   array( 'error' => array ( 'message' => "주문을 찾지 못했습니다.", 'name' => "order_not_found" ) ),
-        //   array( 'error' => array ( 'message' => "주문가능한 금액(ETH)이 부족합니다.", 'name' => "insufficient_funds_ask" ) ),
-        //   array( 'error' => array ( 'message' => "주문가능한 금액(BTC)이 부족합니다.", 'name' => "insufficient_funds_bid" ) ),
-        //   array( 'error' => array ( 'message' => "잘못된 엑세스 키입니다.", 'name' => "invalid_access_key" ) ),
-        //   array( 'error' => { 'message' => "Jwt 토큰 검증에 실패했습니다.", 'name' => "jwt_verification" ) }
+        //   array( 'error' => array( 'message' => "Missing request parameter $error-> Check the required parameters!", 'name' =>  400 ) ),
+        //   array( 'error' => array( 'message' => "side is missing, side does not have a valid value", 'name' => "validation_error" ) ),
+        //   array( 'error' => array( 'message' => "개인정보 제 3자 제공 동의가 필요합니다.", 'name' => "thirdparty_agreement_required" ) ),
+        //   array( 'error' => array( 'message' => "권한이 부족합니다.", 'name' => "out_of_scope" ) ),
+        //   array( 'error' => array( 'message' => "주문을 찾지 못했습니다.", 'name' => "order_not_found" ) ),
+        //   array( 'error' => array( 'message' => "주문가능한 금액(ETH)이 부족합니다.", 'name' => "insufficient_funds_ask" ) ),
+        //   array( 'error' => array( 'message' => "주문가능한 금액(BTC)이 부족합니다.", 'name' => "insufficient_funds_bid" ) ),
+        //   array( 'error' => array( 'message' => "잘못된 엑세스 키입니다.", 'name' => "invalid_access_key" ) ),
+        //   array( 'error' => array( 'message' => "Jwt 토큰 검증에 실패했습니다.", 'name' => "jwt_verification" ) )
         //
         $error = $this->safe_value($response, 'error');
         if ($error !== null) {

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending } = require ('./base/errors');
+const { BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -219,6 +219,8 @@ module.exports = class bittrex extends Exchange {
                 'RATE_NOT_PROVIDED': InvalidOrder, // createLimitBuyOrder ('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
                 'DUST_TRADE_DISALLOWED_MIN_VALUE': InvalidOrder,
+                'RESTRICTED_MARKET': BadSymbol,
+                'We are down for scheduled maintenance, but we\u2019ll be back up shortly.': OnMaintenance, // {"success":false,"message":"We are down for scheduled maintenance, but we\u2019ll be back up shortly.","result":null,"explanation":null}
             },
             'options': {
                 'parseOrderStatus': false,
@@ -378,48 +380,6 @@ module.exports = class bittrex extends Exchange {
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
-    parseTicker (ticker, market = undefined) {
-        const timestamp = this.parse8601 (this.safeString (ticker, 'TimeStamp'));
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        const previous = this.safeFloat (ticker, 'PrevDay');
-        const last = this.safeFloat (ticker, 'Last');
-        let change = undefined;
-        let percentage = undefined;
-        if (last !== undefined) {
-            if (previous !== undefined) {
-                change = last - previous;
-                if (previous > 0) {
-                    percentage = (change / previous) * 100;
-                }
-            }
-        }
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'High'),
-            'low': this.safeFloat (ticker, 'Low'),
-            'bid': this.safeFloat (ticker, 'Bid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'Ask'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': previous,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'Volume'),
-            'quoteVolume': this.safeFloat (ticker, 'BaseVolume'),
-            'info': ticker,
-        };
-    }
-
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetCurrencies (params);
         //
@@ -467,11 +427,11 @@ module.exports = class bittrex extends Exchange {
                 'limits': {
                     'amount': {
                         'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'max': undefined,
                     },
                     'price': {
                         'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'max': undefined,
                     },
                     'cost': {
                         'min': undefined,
@@ -479,7 +439,7 @@ module.exports = class bittrex extends Exchange {
                     },
                     'withdraw': {
                         'min': fee,
-                        'max': Math.pow (10, precision),
+                        'max': undefined,
                     },
                 },
             };
@@ -487,25 +447,83 @@ module.exports = class bittrex extends Exchange {
         return result;
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        const response = await this.publicGetMarketsummaries (params);
-        const tickers = this.safeValue (response, 'result');
-        const result = {};
-        for (let t = 0; t < tickers.length; t++) {
-            const ticker = tickers[t];
-            const marketId = this.safeString (ticker, 'MarketName');
-            let market = undefined;
-            let symbol = marketId;
+    parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "MarketName":"BTC-ETH",
+        //         "High":0.02127099,
+        //         "Low":0.02035064,
+        //         "Volume":10288.40271571,
+        //         "Last":0.02070510,
+        //         "BaseVolume":214.64663206,
+        //         "TimeStamp":"2019-09-18T21:03:59.897",
+        //         "Bid":0.02070509,
+        //         "Ask":0.02070510,
+        //         "OpenBuyOrders":1228,
+        //         "OpenSellOrders":5899,
+        //         "PrevDay":0.02082823,
+        //         "Created":"2015-08-14T09:02:24.817"
+        //     }
+        //
+        const timestamp = this.parse8601 (this.safeString (ticker, 'TimeStamp'));
+        let symbol = undefined;
+        const marketId = this.safeString (ticker, 'MarketName');
+        if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
             } else {
                 symbol = this.parseSymbol (marketId);
             }
-            result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const previous = this.safeFloat (ticker, 'PrevDay');
+        const last = this.safeFloat (ticker, 'Last');
+        let change = undefined;
+        let percentage = undefined;
+        if (last !== undefined) {
+            if (previous !== undefined) {
+                change = last - previous;
+                if (previous > 0) {
+                    percentage = (change / previous) * 100;
+                }
+            }
+        }
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'High'),
+            'low': this.safeFloat (ticker, 'Low'),
+            'bid': this.safeFloat (ticker, 'Bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'Ask'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': previous,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': undefined,
+            'baseVolume': this.safeFloat (ticker, 'Volume'),
+            'quoteVolume': this.safeFloat (ticker, 'BaseVolume'),
+            'info': ticker,
+        };
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetMarketsummaries (params);
+        const result = this.safeValue (response, 'result');
+        const tickers = [];
+        for (let i = 0; i < result.length; i++) {
+            const ticker = this.parseTicker (result[i]);
+            tickers.push (ticker);
+        }
+        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -515,6 +533,29 @@ module.exports = class bittrex extends Exchange {
             'market': market['id'],
         };
         const response = await this.publicGetMarketsummary (this.extend (request, params));
+        //
+        //     {
+        //         "success":true,
+        //         "message":"",
+        //         "result":[
+        //             {
+        //                 "MarketName":"BTC-ETH",
+        //                 "High":0.02127099,
+        //                 "Low":0.02035064,
+        //                 "Volume":10288.40271571,
+        //                 "Last":0.02070510,
+        //                 "BaseVolume":214.64663206,
+        //                 "TimeStamp":"2019-09-18T21:03:59.897",
+        //                 "Bid":0.02070509,
+        //                 "Ask":0.02070510,
+        //                 "OpenBuyOrders":1228,
+        //                 "OpenSellOrders":5899,
+        //                 "PrevDay":0.02082823,
+        //                 "Created":"2015-08-14T09:02:24.817"
+        //             }
+        //         ]
+        //     }
+        //
         const ticker = response['result'][0];
         return this.parseTicker (ticker, market);
     }
