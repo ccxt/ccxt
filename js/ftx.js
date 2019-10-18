@@ -999,22 +999,39 @@ module.exports = class ftx extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         this.checkAddress (address);
-        const name = this.currency (code);
+        const currency = this.currency (code);
         const request = {
-            'coin': name,
+            'coin': currency['id'],
             'size': amount,
             'address': address,
+            // 'password': 'string', // optional withdrawal password if it is required for your account
+            // 'code': '192837', // optional 2fa code if it is required for your account
         };
         if (tag !== undefined) {
             request['tag'] = tag;
         }
         const response = await this.privatePostWalletWithdrawals (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "result": {
+        //             "coin": "USDTBEAR",
+        //             "address": "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
+        //             "tag": "null",
+        //             "fee": 0,
+        //             "id": 1,
+        //             "size": "20.2",
+        //             "status": "requested",
+        //             "time": "2019-03-05T09:56:55.728933+00:00",
+        //             "txid": "null"
+        //         }
+        //     }
+        //
         const result = this.safeValue (response, 'result', {});
-        return this.parseTransaction (result);
+        return this.parseTransaction (result, currency);
     }
 
     async fetchDepositAddress (code, params = {}) {
