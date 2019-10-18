@@ -47,7 +47,6 @@
     "fcoin":         { "skip": true },
     "flowbtc":       { "skip": true },
     "foxbit":        { "skip": true },
-    "ftx":           { "skip": true },
     "fybse":         { "skip": true },
     "gateio":        { "skip": true },
     "gemini":        { "skip": true },
