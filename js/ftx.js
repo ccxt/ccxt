@@ -29,7 +29,7 @@ module.exports = class ftx extends Exchange {
                 'fetchOHLCV': true,
                 'fetchCurrencies': true,
                 'fetchOrder': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': false,
                 'fetchMyTrades': false,
@@ -621,7 +621,7 @@ module.exports = class ftx extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // createOrder ("limit", "market")
+        // fetchOrder, fetchOrders, fetchOpenOrders, createOrder ("limit", "market")
         //
         //     {
         //         "createdAt": "2019-03-05T09:56:55.728933+00:00",
@@ -864,13 +864,83 @@ module.exports = class ftx extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
+            market = this.market (symbol);
             request['market'] = market['id'];
         }
         const response = await this.privateGetOrders (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "result": [
+        //             {
+        //                 "createdAt": "2019-03-05T09:56:55.728933+00:00",
+        //                 "filledSize": 10,
+        //                 "future": "XRP-PERP",
+        //                 "id": 9596912,
+        //                 "market": "XRP-PERP",
+        //                 "price": 0.306525,
+        //                 "avgFillPrice": 0.306526,
+        //                 "remainingSize": 31421,
+        //                 "side": "sell",
+        //                 "size": 31431,
+        //                 "status": "open",
+        //                 "type": "limit",
+        //                 "reduceOnly": false,
+        //                 "ioc": false,
+        //                 "postOnly": false,
+        //                 "clientId": null
+        //             }
+        //         ]
+        //     }
+        //
         const result = this.safeValue (response, 'result', []);
-        return this.parseOrders (result);
+        return this.parseOrders (result, market, since, limit);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 100
+        }
+        if (since !== undefined) {
+            request['start_time'] = parseInt (since / 1000);
+        }
+        const response = await this.privateGetOrdersHistory (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "result": [
+        //             {
+        //                 "createdAt": "2019-03-05T09:56:55.728933+00:00",
+        //                 "filledSize": 10,
+        //                 "future": "XRP-PERP",
+        //                 "id": 9596912,
+        //                 "market": "XRP-PERP",
+        //                 "price": 0.306525,
+        //                 "avgFillPrice": 0.306526,
+        //                 "remainingSize": 31421,
+        //                 "side": "sell",
+        //                 "size": 31431,
+        //                 "status": "open",
+        //                 "type": "limit",
+        //                 "reduceOnly": false,
+        //                 "ioc": false,
+        //                 "postOnly": false,
+        //                 "clientId": null
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        return this.parseOrders (result, market, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
