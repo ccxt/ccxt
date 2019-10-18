@@ -21,6 +21,7 @@ module.exports = class coinsbit extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': false,
             },
             'urls': {
                 'api': {
@@ -183,6 +184,15 @@ module.exports = class coinsbit extends Exchange {
         return this.extend (order, {
             'type': type,
         });
+    }
+
+    async cancelOrder (id, symbol, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'market': this.marketId (symbol),
+            'order_id': parseInt (id),
+        };
+        return await this.privatePostOrderCancel (this.extend (request, params));
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
