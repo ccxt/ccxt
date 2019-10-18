@@ -95,6 +95,7 @@ module.exports = class yobit extends Exchange {
                 'CPC': 'Capricoin',
                 'CS': 'CryptoSpots',
                 'DCT': 'Discount',
+                'DFT': 'DraftCoin',
                 'DGD': 'DarkGoldCoin',
                 'DIRT': 'DIRTY',
                 'DROP': 'FaucetCoin',
