@@ -24,7 +24,7 @@ module.exports = class ftx extends Exchange {
             'version': 'v1',
             'has': {
                 'fetchDepositAddress': true,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTicker': true,
                 'fetchOHLCV': true,
                 'fetchCurrencies': true,
@@ -359,6 +359,47 @@ module.exports = class ftx extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         return this.parseTicker (result, market);
+    }
+
+    parseTickers (tickers, symbols = undefined) {
+        const result = [];
+        for (let i = 0; i < tickers.length; i++) {
+            result.push (this.parseTicker (tickers[i]));
+        }
+        return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetMarkets (params);
+        //
+        //     {
+        //         'success': true,
+        //         "result": [
+        //             {
+        //                 "ask":170.44,
+        //                 "baseCurrency":"ETH",
+        //                 "bid":170.41,
+        //                 "change1h":-0.018485459257126403,
+        //                 "change24h":-0.023825887743413515,
+        //                 "changeBod":-0.037605872388481086,
+        //                 "enabled":true,
+        //                 "last":172.72,
+        //                 "name":"ETH/USD",
+        //                 "price":170.44,
+        //                 "priceIncrement":0.01,
+        //                 "quoteCurrency":"USD",
+        //                 "quoteVolume24h":382802.0252,
+        //                 "sizeIncrement":0.001,
+        //                 "type":"spot",
+        //                 "underlying":null,
+        //                 "volumeUsd24h":382802.0252
+        //             },
+        //         ],
+        //     }
+        //
+        const tickers = this.safeValue (response, 'result', []);
+        return this.parseTickers (tickers, symbols);
     }
 
     async fetchOrderBook (symbol, params = {}) {
