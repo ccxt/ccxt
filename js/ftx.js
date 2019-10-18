@@ -240,15 +240,50 @@ module.exports = class ftx extends Exchange {
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetCoins (params);
         const currencies = this.safeValue (response, 'result', []);
+        //
+        //     {
+        //         "success":true,
+        //         "result": [
+        //             {"id":"BTC","name":"Bitcoin"},
+        //             {"id":"ETH","name":"Ethereum"},
+        //             {"id":"ETHMOON","name":"10X Long Ethereum Token","underlying":"ETH"},
+        //             {"id":"EOSBULL","name":"3X Long EOS Token","underlying":"EOS"},
+        //         ],
+        //     }
+        //
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'id');
             const code = this.safeCurrencyCode (id);
+            const name = this.safeString (currency, 'name');
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
+                'type': undefined,
+                'name': name,
+                'active': undefined,
+                'fee': undefined,
+                'precision': undefined,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
             };
         }
         return result;
