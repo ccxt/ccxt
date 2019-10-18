@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -32,7 +32,7 @@ module.exports = class ftx extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'withdraw': true,
                 'fetchFundingFees': false,
                 'fetchDeposits': true,
@@ -107,6 +107,7 @@ module.exports = class ftx extends Exchange {
                 },
                 'broad': {
                     'Invalid parameter': BadRequest, // {"error":"Invalid parameter start_time","success":false}
+                    'The requested URL was not found on the server': OrderNotFound,
                 },
             },
         });
@@ -538,9 +539,24 @@ module.exports = class ftx extends Exchange {
         //         "time":"2019-10-18T12:59:54.288166+00:00"
         //     }
         //
-        // fetchMyTrades
+        // fetchMyTrades (private)
         //
-        //     ...
+        //     {
+        //         "fee": 20.1374935,
+        //         "feeRate": 0.0005,
+        //         "future": "EOS-0329",
+        //         "id": 11215,
+        //         "liquidity": "taker",
+        //         "market": "EOS-0329",
+        //         "baseCurrency": null,
+        //         "quoteCurrency": null,
+        //         "orderId": 8436981,
+        //         "price": 4.201,
+        //         "side": "buy",
+        //         "size": 9587,
+        //         "time": "2019-03-27T19:15:10.204619+00:00",
+        //         "type": "order"
+        //     }
         //
         const id = this.safeString (trade, 'id');
         const timestamp = this.parse8601 (this.safeString (trade, 'time'));
@@ -942,6 +958,47 @@ module.exports = class ftx extends Exchange {
         const result = this.safeValue (response, 'result', []);
         return this.parseOrders (result, market, since, limit);
     }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['start_time'] = parseInt (since / 1000);
+        }
+        const response = await this.privateGetFills (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "result": [
+        //             {
+        //                 "fee": 20.1374935,
+        //                 "feeRate": 0.0005,
+        //                 "future": "EOS-0329",
+        //                 "id": 11215,
+        //                 "liquidity": "taker",
+        //                 "market": "EOS-0329",
+        //                 "baseCurrency": null,
+        //                 "quoteCurrency": null,
+        //                 "orderId": 8436981,
+        //                 "price": 4.201,
+        //                 "side": "buy",
+        //                 "size": 9587,
+        //                 "time": "2019-03-27T19:15:10.204619+00:00",
+        //                 "type": "order"
+        //             }
+        //         ]
+        //     }
+        //
+        const trades = this.safeValue (response, 'result', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
