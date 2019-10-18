@@ -90,24 +90,68 @@ module.exports = class ftx extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetMarkets (params);
+        //
+        //     {
+        //         'success': true,
+        //         "result": [
+        //             {
+        //                 "ask":170.37,
+        //                 "baseCurrency":null,
+        //                 "bid":170.31,
+        //                 "change1h":-0.019001554672655036,
+        //                 "change24h":-0.024841165359738997,
+        //                 "changeBod":-0.03816406029469881,
+        //                 "enabled":true,
+        //                 "last":170.37,
+        //                 "name":"ETH-PERP",
+        //                 "price":170.37,
+        //                 "priceIncrement":0.01,
+        //                 "quoteCurrency":null,
+        //                 "quoteVolume24h":7742164.59889,
+        //                 "sizeIncrement":0.001,
+        //                 "type":"future",
+        //                 "underlying":"ETH",
+        //                 "volumeUsd24h":7742164.59889
+        //             },
+        //             {
+        //                 "ask":170.44,
+        //                 "baseCurrency":"ETH",
+        //                 "bid":170.41,
+        //                 "change1h":-0.018485459257126403,
+        //                 "change24h":-0.023825887743413515,
+        //                 "changeBod":-0.037605872388481086,
+        //                 "enabled":true,
+        //                 "last":172.72,
+        //                 "name":"ETH/USD",
+        //                 "price":170.44,
+        //                 "priceIncrement":0.01,
+        //                 "quoteCurrency":"USD",
+        //                 "quoteVolume24h":382802.0252,
+        //                 "sizeIncrement":0.001,
+        //                 "type":"spot",
+        //                 "underlying":null,
+        //                 "volumeUsd24h":382802.0252
+        //             },
+        //         ],
+        //     }
+        //
         const result = [];
         const markets = this.safeValue (response, 'result', []);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'name');
-            const baseId = this.safeString (market, 'baseCurrency');
-            const quoteId = this.safeString (market, 'quoteCurrency');
+            const baseId = this.safeString2 (market, 'baseCurrency', 'underlying');
+            const quoteId = this.safeString (market, 'quoteCurrency', 'USD');
             const type = this.safeString (market, 'type');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            let symbol = undefined;
             // check if a market is a spot or future market
-            if (type === 'future') {
-                symbol = this.safeString (market, 'name');
-            } else {
-                symbol = base + '/' + quote;
-            }
+            const symbol = (type === 'future') ? this.safeString (market, 'name') : (base + '/' + quote);
             const active = this.safeValue (market, 'enabled');
+            const precision = {
+                'amount': this.precisionFromString (this.safeString (market, 'sizeIncrement')),
+                'price': this.precisionFromString (this.safeString (market, 'priceIncrement')),
+            };
             const entry = {
                 'id': id,
                 'symbol': symbol,
@@ -116,19 +160,17 @@ module.exports = class ftx extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'type': type,
+                'future': (type === 'future'),
+                'spot': (type === 'spot'),
                 'active': active,
-                'precision': {
-                    'amount': undefined,
-                    'price': undefined,
-                    'cost': undefined,
-                },
+                'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': undefined,
+                        'min': this.safeFloat (market, 'sizeIncrement'),
                         'max': undefined,
                     },
                     'price': {
-                        'min': undefined,
+                        'min': this.safeFloat (market, 'priceIncrement'),
                         'max': undefined,
                     },
                     'cost': {
