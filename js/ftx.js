@@ -794,7 +794,7 @@ module.exports = class ftx extends Exchange {
         const request = {
             'id': parseInt (id),
         };
-        const response = await this.privateDeleteOrdersId (this.extend (request, params));
+        const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -833,7 +833,7 @@ module.exports = class ftx extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await this.privateGetOrdersId (this.extend (request, params));
+        const response = await this.privateGetOrdersOrderId (this.extend (request, params));
         //
         //     {
         //         "success": true,
