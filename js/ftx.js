@@ -365,9 +365,26 @@ module.exports = class ftx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'market': market['id'],
+            'market_name': market['id'],
         };
-        const response = await this.publicGetMarketsMarketOrderbook (this.extend (request, params));
+        const response = await this.publicGetMarketsMarketNameOrderbook (this.extend (request, params));
+        //
+        //     {
+        //         "success":true,
+        //         "result":{
+        //             "asks":[
+        //                 [171.95,279.865],
+        //                 [171.98,102.42],
+        //                 [171.99,124.11],
+        //             ],
+        //             "bids":[
+        //                 [171.93,69.749],
+        //                 [171.9,288.325],
+        //                 [171.88,87.47],
+        //             ],
+        //         }
+        //     }
+        //
         const result = this.safeValue (response, 'result', {});
         return this.parseOrderBook (result);
     }
