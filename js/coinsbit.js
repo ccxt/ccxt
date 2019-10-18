@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -19,9 +19,6 @@ module.exports = class coinsbit extends Exchange {
                 'createMarketOrder': false,
                 'fetchOrder': true,
                 'fetchOrders': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchCurrencies': false,
             },
             'urls': {
                 'api': {
@@ -212,6 +209,18 @@ module.exports = class coinsbit extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const orderIdField = this.getOrderIdField ();
+        const request = {};
+        request[orderIdField] = id;
+        const response = await this.privatePostAccountOrder (this.extend (request, params));
+        if (response['result'].length == 0) {
+            throw new OrderNotFound (this.id + ' order ' + id + ' not found');
+        }
+        return this.parseOrder (response['result']['records']);
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -275,26 +284,37 @@ module.exports = class coinsbit extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        const id = this.safeString (order, 'id');
-        let side = this.safeString (order, 'type');
+        let marketName = this.safeString (order, 'market');
+        market = market || this.findMarket(marketName);
+        let symbol = this.safeString (market, 'symbol');
+        let timestamp = this.safeString (order, 'time');
+        if (timestamp !== undefined) {
+            timestamp = parseInt (timestamp) * 1000;
+        }
+        const amount = this.safeFloat (order, 'amount');
+        const fillAmount = this.safeFloat (order, 'dealStock', amount);
+        const remaining = amount - fillAmount;
 
         return {
-            'id': id,
+            'id': this.safeString (order, 'id'),
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'status': status,
+            'lastTradeTimestamp': undefined,
+            'status': undefined,
             'symbol': symbol,
-            'type': undefined,
-            'side': side,
-            'price': price,
-            'cost': cost,
+            'type': this.safeString (order, 'type'),
+            'side': this.safeString (order, 'side'),
+            'price': this.safeFloat (order, 'price'),
+            'cost': this.safeFloat (order, 'dealFee', 0.0) + this.safeFloat (order, 'takerFee', 0.0),
             'amount': amount,
-            'filled': filled,
+            'filled': fillAmount,
             'remaining': remaining,
-            'trades': trades,
-            'fee': fee,
+            'fee': this.safeFloat (order, 'fee'),
             'info': order,
         };
+    }
+
+    getOrderIdField () {
+        return 'orderId';
     }
 };
