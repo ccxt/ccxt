@@ -131,7 +131,7 @@ module.exports = class coinsbit extends Exchange {
             const market = markets[i];
             const baseId = this.safeString (market, 'stock');
             const quoteId = this.safeString (market, 'money');
-            const id = baseId + quoteId;
+            const id = baseId + '_' + quoteId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
@@ -185,6 +185,18 @@ module.exports = class coinsbit extends Exchange {
         });
     }
 
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'market': this.marketId (symbol),
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetDepthResult (this.extend (request, params));
+        return this.parseOrderBook (response, undefined, 'bids', 'asks');
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const query = this.omit (params, 'type');
@@ -196,7 +208,6 @@ module.exports = class coinsbit extends Exchange {
             const currencyId = symbols[i];
             const code = this.safeCurrencyCode (currencyId);
             const balance = balances[code];
-
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'available');
             account['total'] = this.safeFloat (balance, 'available') + this.safeFloat (balance, 'freeze');
