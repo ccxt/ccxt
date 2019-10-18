@@ -32,16 +32,14 @@ module.exports = class ftx extends Exchange {
                 'fetchOrders': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': false,
-                'fetchL2OrderBook': false,
                 'fetchMyTrades': false,
                 'withdraw': true,
                 'fetchFundingFees': false,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
-                'fetchTransactions': false,
-                'fetchStatus': false,
                 'fetchTrades': true,
                 'fetchOrderBook': true,
+                'cancelAllOrders': true,
             },
             'timeframes': {
                 '15s': '15',
@@ -747,14 +745,36 @@ module.exports = class ftx extends Exchange {
             'id': parseInt (id),
         };
         const response = await this.privateDeleteOrdersId (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "result": "Order queued for cancelation"
+        //     }
+        //
         const result = this.safeValue (response, 'result', {});
         return result;
     }
 
-    async cancelAllOrders (params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateDeleteOrders (params);
+        const request = {
+            // 'market': market['id'], // optional
+            'conditionalOrdersOnly': false, // cancel conditional orders only
+            'limitOrdersOnly': false, // cancel existing limit orders (non-conditional orders) only
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        const response = await this.privateDeleteOrders (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
+        //
+        //     {
+        //         "success": true,
+        //         "result": "Orders queued for cancelation"
+        //     }
+        //
         return result;
     }
 
@@ -764,6 +784,29 @@ module.exports = class ftx extends Exchange {
             'id': id,
         };
         const response = await this.privateGetOrdersId (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "result": {
+        //             "createdAt": "2019-03-05T09:56:55.728933+00:00",
+        //             "filledSize": 10,
+        //             "future": "XRP-PERP",
+        //             "id": 9596912,
+        //             "market": "XRP-PERP",
+        //             "price": 0.306525,
+        //             "avgFillPrice": 0.306526,
+        //             "remainingSize": 31421,
+        //             "side": "sell",
+        //             "size": 31431,
+        //             "status": "open",
+        //             "type": "limit",
+        //             "reduceOnly": false,
+        //             "ioc": false,
+        //             "postOnly": false,
+        //             "clientId": null
+        //         }
+        //     }
+        //
         const result = this.safeValue (response, 'result', {});
         return this.parseOrder (result);
     }
