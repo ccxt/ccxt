@@ -492,7 +492,7 @@ class bitmart extends Exchange {
             'symbol' => $market['id'],
             // 'offset' => 0, // current page, starts from 0
         );
-        if ($limit === null) {
+        if ($limit !== null) {
             $request['limit'] = $limit; // default 500, max 1000
         }
         $response = $this->privateGetTrades (array_merge ($request, $params));
