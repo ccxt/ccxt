@@ -569,6 +569,15 @@ module.exports = class ftx extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'new': 'open',
+            'open': 'open',
+            'closed': 'closed', // filled or canceled
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
         //
         // createOrder ("limit", "market")
@@ -616,7 +625,7 @@ module.exports = class ftx extends Exchange {
         const filled = this.safeFloat (order, 'filledSize');
         const remaining = this.safeFloat (order, 'remainingSize');
         const symbol = this.findSymbol (this.safeString (order, 'market'));
-        const status = this.safeString (order, 'status');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'type');
         const amount = this.safeFloat (order, 'size');
