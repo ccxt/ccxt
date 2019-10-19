@@ -815,8 +815,14 @@ class bibox extends Exchange {
             ), $params),
         );
         $response = $this->privatePostTransfer ($request);
-        $address = $this->safe_string($response, 'result');
-        $tag = null; // todo => figure this out
+        //
+        //     {
+        //         "$result":"array(\"account\":\"PERSONALLY OMITTED\",\"memo\":\"PERSONALLY OMITTED\")","cmd":"transfer/transferIn"
+        //     }
+        //
+        $result = json_decode($this->safe_string($response, 'result', $as_associative_array = true));
+        $address = $this->safe_string($result, 'account');
+        $tag = $this->safe_string($result, 'memo');
         return array (
             'currency' => $code,
             'address' => $address,
