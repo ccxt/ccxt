@@ -135,12 +135,16 @@ module.exports = class ftx extends Exchange {
             'exceptions': {
                 'exact': {
                     'Not enough balances': InsufficientFunds, // {"error":"Not enough balances","success":false}
+                    'InvalidPrice': InvalidOrder, // {"error":"Invalid price","success":false}
+                    'Size too small': InvalidOrder, // {"error":"Size too small","success":false}
+                    'Missing parameter price': InvalidOrder, // {"error":"Missing parameter price","success":false}
                 },
                 'broad': {
                     'Invalid parameter': BadRequest, // {"error":"Invalid parameter start_time","success":false}
                     'The requested URL was not found on the server': OrderNotFound,
                     'No such coin': BadRequest,
                     'No such market': BadRequest,
+                    'An unexpected error occurred': ExchangeError, // {"error":"An unexpected error occurred, please try again later (58BC21C795).","success":false}
                 },
             },
         });
@@ -842,11 +846,17 @@ module.exports = class ftx extends Exchange {
             // 'postOnly': false, // optional, default is false, limit or market orders only
             // 'clientId': 'abcdef0123456789', // string, optional, client order id, limit or market orders only
         };
-        const priceToPrecision = parseFloat (this.priceToPrecision (symbol, price));
+        let priceToPrecision = undefined;
+        if (price !== undefined) {
+            priceToPrecision = parseFloat (this.priceToPrecision (symbol, price));
+        }
         let method = 'privatePostConditionalOrders';
-        if ((type === 'limit') || (type === 'market')) {
+        if (type === 'limit') {
             method = 'privatePostOrders';
             request['price'] = priceToPrecision;
+        } else if (type === 'market') {
+            method = 'privatePostOrders';
+            request['price'] = null;
         } else if ((type === 'stop') || (type === 'takeProfit')) {
             request['triggerPrice'] = priceToPrecision;
             // request['orderPrice'] = number; // optional, order type is limit if this is specified, otherwise market
@@ -953,7 +963,7 @@ module.exports = class ftx extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'id': id,
+            'order_id': id,
         };
         const response = await this.privateGetOrdersOrderId (this.extend (request, params));
         //
