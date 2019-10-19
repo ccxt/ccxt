@@ -658,7 +658,7 @@ module.exports = class ftx extends Exchange {
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostSummary (params);
+        const response = await this.privateGetAccount (params);
         //
         //     {
         //         "success": true,
