@@ -814,8 +814,16 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostTransfer (request);
-        const address = this.safeString (response, 'result');
-        const tag = undefined; // todo: figure this out
+        //
+        //     {
+        //         "result":"{\"account\":\"PERSONALLY OMITTED\",\"memo\":\"PERSONALLY OMITTED\"}","cmd":"transfer/transferIn"
+        //     }
+        //
+        // https://github.com/ccxt/ccxt/issues/6004
+        const json = this.safeString (response, 'result');
+        const result = JSON.parse (json);
+        const address = this.safeString (result, 'account');
+        const tag = this.safeString (result, 'memo');
         return {
             'currency': code,
             'address': address,
