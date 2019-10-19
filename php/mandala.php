@@ -193,8 +193,8 @@ class mandala extends Exchange {
                 'trading' => array (
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.005,
-                    'taker' => 0.005,
+                    'maker' => 0.00,
+                    'taker' => 0.001,
                 ),
             ),
             'exceptions' => array (

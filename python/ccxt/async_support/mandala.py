@@ -202,8 +202,8 @@ class mandala (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.005,
-                    'taker': 0.005,
+                    'maker': 0.00,
+                    'taker': 0.001,
                 },
             },
             'exceptions': {
