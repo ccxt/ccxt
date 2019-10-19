@@ -16,10 +16,12 @@ module.exports = class ftx extends Exchange {
             'rateLimit': 100,
             'certified': false,
             'urls': {
-                'logo': 'https://theme.zdassets.com/theme_assets/9179536/d48e830d666da07d0a1fcdb74e5ed665d4d4a069.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg',
                 'www': 'https://ftx.com',
                 'api': 'https://ftx.com',
                 'doc': 'https://github.com/ftexchange/ftx',
+                'fees': 'https://ftexchange.zendesk.com/hc/en-us/articles/360024479432-Fees',
+                'referral': 'https://ftx.com/#a=1623029',
             },
             'has': {
                 'cancelAllOrders': true,
@@ -99,6 +101,35 @@ module.exports = class ftx extends Exchange {
                         'orders/by_client_id/{client_order_id}',
                         'orders',
                     ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': 0.02 / 100,
+                    'taker': 0.07 / 100,
+                    'tiers': {
+                        'taker': [
+                            [0, 0.07 / 100],
+                            [1000000, 0.06 / 100],
+                            [5000000, 0.055 / 100],
+                            [10000000, 0.05 / 100],
+                            [15000000, 0.045 / 100],
+                            [35000000, 0.04 / 100],
+                        ],
+                        'maker': [
+                            [0, 0.02 / 100],
+                            [1000000, 0.02 / 100],
+                            [5000000, 0.015 / 100],
+                            [10000000, 0.015 / 100],
+                            [15000000, 0.01 / 100],
+                            [35000000, 0.01 / 100],
+                        ],
+                    },
+                },
+                'funding': {
+                    'withdraw': {},
                 },
             },
             'exceptions': {
