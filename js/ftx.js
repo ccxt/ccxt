@@ -138,10 +138,11 @@ module.exports = class ftx extends Exchange {
                     'InvalidPrice': InvalidOrder, // {"error":"Invalid price","success":false}
                     'Size too small': InvalidOrder, // {"error":"Size too small","success":false}
                     'Missing parameter price': InvalidOrder, // {"error":"Missing parameter price","success":false}
+                    'Order not found': OrderNotFound, // {"error":"Order not found","success":false}
                 },
                 'broad': {
                     'Invalid parameter': BadRequest, // {"error":"Invalid parameter start_time","success":false}
-                    'The requested URL was not found on the server': OrderNotFound,
+                    'The requested URL was not found on the server': BadRequest,
                     'No such coin': BadRequest,
                     'No such market': BadRequest,
                     'An unexpected error occurred': ExchangeError, // {"error":"An unexpected error occurred, please try again later (58BC21C795).","success":false}
@@ -924,7 +925,7 @@ module.exports = class ftx extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'id': parseInt (id),
+            'order_id': parseInt (id),
         };
         const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
         //
@@ -1303,7 +1304,7 @@ module.exports = class ftx extends Exchange {
         let request = '/api/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + request;
-        if (method === 'GET') {
+        if (method !== 'POST') {
             if (Object.keys (query).length) {
                 const suffix = '?' + this.urlencode (query);
                 url += suffix;
