@@ -819,9 +819,7 @@ module.exports = class bibox extends Exchange {
         //         "result":"{\"account\":\"PERSONALLY OMITTED\",\"memo\":\"PERSONALLY OMITTED\"}","cmd":"transfer/transferIn"
         //     }
         //
-        // https://github.com/ccxt/ccxt/issues/6004
-        const json = this.safeString (response, 'result');
-        const result = JSON.parse (json);
+        const result = JSON.parse (this.safeString (response, 'result'));
         const address = this.safeString (result, 'account');
         const tag = this.safeString (result, 'memo');
         return {
