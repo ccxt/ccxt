@@ -18,7 +18,7 @@ module.exports = class ftx extends Exchange {
             'urls': {
                 'logo': 'https://theme.zdassets.com/theme_assets/9179536/d48e830d666da07d0a1fcdb74e5ed665d4d4a069.png',
                 'www': 'https://ftx.com',
-                'api': 'https://ftx.com/api',
+                'api': 'https://ftx.com',
                 'doc': 'https://github.com/ftexchange/ftx',
             },
             'has': {
@@ -1210,7 +1210,7 @@ module.exports = class ftx extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + this.implodeParams (path, params);
+        let request = '/api/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + request;
         if (method === 'GET') {
@@ -1221,33 +1221,20 @@ module.exports = class ftx extends Exchange {
             }
         }
         if (api === 'private') {
+            this.checkRequiredCredentials ();
+            const timestamp = this.milliseconds ().toString ();
+            let auth = timestamp + method + request;
+            headers = {
+                'FTX-KEY': this.apiKey,
+                'FTX-TS': timestamp,
+            };
             if (method === 'POST') {
                 body = this.json (query);
-                this.checkRequiredCredentials ();
-                request = '/api' + request;
-                const tx = this.milliseconds ();
-                const hmacString = this.encode (tx + method + request + body);
-                const secret = this.encode (this.secret);
-                const signature = this.hmac (hmacString, secret, 'sha256');
-                headers = {
-                    'FTX-KEY': this.apiKey,
-                    'FTX-TS': tx,
-                    'FTX-SIGN': signature,
-                    'content-type': 'application/json',
-                };
-            } else {
-                this.checkRequiredCredentials ();
-                request = '/api' + request;
-                const tx = this.milliseconds ();
-                const hmacString = tx + method + request;
-                const secret = this.encode (this.secret);
-                const signature = this.hmac (hmacString, secret, 'sha256');
-                headers = {
-                    'FTX-KEY': this.apiKey,
-                    'FTX-TS': tx,
-                    'FTX-SIGN': signature,
-                };
+                auth += body;
+                headers['Content-Type'] = 'application/json';
             }
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
+            headers['FTX-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
