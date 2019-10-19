@@ -21,7 +21,6 @@ module.exports = class ftx extends Exchange {
                 'api': 'https://ftx.com/api',
                 'doc': 'https://github.com/ftexchange/ftx',
             },
-            'version': 'v1',
             'has': {
                 'fetchDepositAddress': true,
                 'fetchTickers': true,
@@ -559,25 +558,52 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         const id = this.safeString (trade, 'id');
+        const takerOrMaker = this.safeString (trade, 'liquidity');
+        const marketId = this.safeString (trade, 'market');
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id;
+                symbol = market['symbol'];
+            } else {
+                const base = this.safeCurrencyCode (this.safeString (trade, 'baseCurrency'));
+                const quote = this.safeCurrencyCode (this.safeString (trade, 'quoteCurrency'));
+                if ((base !== undefined) && (quote !== undefined)) {
+                    symbol = base + '/' + quote;
+                } else {
+                    symbol = marketId;
+                }
+            }
+        }
         const timestamp = this.parse8601 (this.safeString (trade, 'time'));
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'size');
-        const symbol = this.safeString (market, 'symbol');
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         const side = this.safeString (trade, 'side');
         let cost = undefined;
         if (price !== undefined && amount !== undefined) {
             cost = price * amount;
         }
-        const fee = undefined;
+        let fee = undefined;
+        const feeCost = this.safeFloat (trade, 'fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'rate': this.safeFloat (trade, 'feeRate'),
+            };
+        }
+        const orderId = this.safeString (trade, 'orderId');
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id,
-            'order': undefined,
+            'order': orderId,
             'type': undefined,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'amount': amount,
