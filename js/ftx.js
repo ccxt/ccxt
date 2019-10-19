@@ -703,11 +703,18 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'id');
-        const datetime = this.safeString (order, 'createdAt');
-        const timestamp = this.parse8601 (datetime);
+        const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
         const filled = this.safeFloat (order, 'filledSize');
         const remaining = this.safeFloat (order, 'remainingSize');
-        const symbol = this.findSymbol (this.safeString (order, 'market'));
+        let symbol = undefined;
+        const marketId = this.safeString (order, 'market');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'type');
@@ -716,19 +723,14 @@ module.exports = class ftx extends Exchange {
         if (filled !== undefined && amount !== undefined) {
             cost = filled * amount;
         }
-        let price = 0;
-        // determine if its a stop-loss order
-        if (type === 'stop') {
-            price = this.safeFloat (order, 'triggerPrice');
-        } else {
-            price = this.safeFloat (order, 'price');
-        }
+        const price = this.safeFloat2 (order, 'price', 'triggerPrice');
+        const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'triggeredAt'));
         return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': datetime,
-            'lastTradeTimestamp': undefined,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
             'side': side,
@@ -739,11 +741,7 @@ module.exports = class ftx extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': {
-                'currency': undefined,
-                'cost': undefined,
-                'rate': undefined,
-            },
+            'fee': undefined,
             'trades': undefined,
         };
     }
