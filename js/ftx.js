@@ -22,23 +22,24 @@ module.exports = class ftx extends Exchange {
                 'doc': 'https://github.com/ftexchange/ftx',
             },
             'has': {
-                'fetchDepositAddress': true,
-                'fetchTickers': true,
-                'fetchTicker': true,
-                'fetchOHLCV': true,
-                'fetchCurrencies': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': false,
-                'fetchMyTrades': true,
-                'withdraw': true,
-                'fetchFundingFees': false,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
-                'fetchTrades': true,
-                'fetchOrderBook': true,
                 'cancelAllOrders': true,
+                'fetchClosedOrders': false,
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchFundingFees': false,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
+                'fetchTradingFees': true,
+                'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '15s': '15',
@@ -432,36 +433,6 @@ module.exports = class ftx extends Exchange {
         return this.parseOrderBook (result);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetWalletBalances (params);
-        //
-        //     {
-        //         "success": true,
-        //         "result": [
-        //             {
-        //                 "coin": "USDTBEAR",
-        //                 "free": 2320.2,
-        //                 "total": 2340.2
-        //             },
-        //         ],
-        //     }
-        //
-        const result = {
-            'info': response,
-        };
-        const balances = this.safeValue (response, 'result', []);
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const code = this.safeCurrencyCode (this.safeString (balance, 'coin'));
-            const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'free');
-            account['total'] = this.safeFloat (balance, 'total');
-            result[code] = account;
-        }
-        return this.parseBalance (result);
-    }
-
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         //
         //     {
@@ -652,6 +623,84 @@ module.exports = class ftx extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         return this.parseTrades (result, market, since, limit);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostSummary (params);
+        //
+        //     {
+        //         "success": true,
+        //         "result": {
+        //             "backstopProvider": true,
+        //             "collateral": 3568181.02691129,
+        //             "freeCollateral": 1786071.456884368,
+        //             "initialMarginRequirement": 0.12222384240257728,
+        //             "liquidating": false,
+        //             "maintenanceMarginRequirement": 0.07177992558058484,
+        //             "makerFee": 0.0002,
+        //             "marginFraction": 0.5588433331419503,
+        //             "openMarginFraction": 0.2447194090423075,
+        //             "takerFee": 0.0005,
+        //             "totalAccountValue": 3568180.98341129,
+        //             "totalPositionSize": 6384939.6992,
+        //             "username": "user@domain.com",
+        //             "positions": [
+        //                 {
+        //                     "cost": -31.7906,
+        //                     "entryPrice": 138.22,
+        //                     "future": "ETH-PERP",
+        //                     "initialMarginRequirement": 0.1,
+        //                     "longOrderSize": 1744.55,
+        //                     "maintenanceMarginRequirement": 0.04,
+        //                     "netSize": -0.23,
+        //                     "openSize": 1744.32,
+        //                     "realizedPnl": 3.39441714,
+        //                     "shortOrderSize": 1732.09,
+        //                     "side": "sell",
+        //                     "size": 0.23,
+        //                     "unrealizedPnl": 0,
+        //                 },
+        //             ],
+        //         },
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return {
+            'info': response,
+            'maker': this.safeFloat (result, 'makerFee'),
+            'taker': this.safeFloat (result, 'takerFee'),
+        };
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetWalletBalances (params);
+        //
+        //     {
+        //         "success": true,
+        //         "result": [
+        //             {
+        //                 "coin": "USDTBEAR",
+        //                 "free": 2320.2,
+        //                 "total": 2340.2
+        //             },
+        //         ],
+        //     }
+        //
+        const result = {
+            'info': response,
+        };
+        const balances = this.safeValue (response, 'result', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const code = this.safeCurrencyCode (this.safeString (balance, 'coin'));
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'free');
+            account['total'] = this.safeFloat (balance, 'total');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
     }
 
     parseOrderStatus (status) {
