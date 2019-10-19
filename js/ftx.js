@@ -107,6 +107,8 @@ module.exports = class ftx extends Exchange {
                 'broad': {
                     'Invalid parameter': BadRequest, // {"error":"Invalid parameter start_time","success":false}
                     'The requested URL was not found on the server': OrderNotFound,
+                    'No such coin': BadRequest,
+                    'No such market': BadRequest,
                 },
             },
         });
@@ -1065,6 +1067,15 @@ module.exports = class ftx extends Exchange {
             'coin': currency['id'],
         };
         const response = await this.privateGetWalletDepositAddressCoin (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "result": {
+        //             "address": "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
+        //             "tag": "null"
+        //         }
+        //     }
+        //
         const result = this.safeValue (response, 'result', {});
         const address = this.safeString (result, 'address');
         const tag = this.safeString (result, 'tag');
@@ -1073,19 +1084,55 @@ module.exports = class ftx extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'info': result,
+            'info': response,
         };
     }
 
+    parseTransactionStatus (status) {
+        const statuses = {
+            // what are other statuses here?
+            'confirmed': 'ok', // deposits
+            'complete': 'ok', // withdrawals
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseTransaction (transaction) {
-        const currency = this.safeString (transaction, 'coin');
-        const code = this.safeCurrencyCode (currency);
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         "coin": "TUSD",
+        //         "confirmations": 64,
+        //         "confirmedTime": "2019-03-05T09:56:55.728933+00:00",
+        //         "fee": 0,
+        //         "id": 1,
+        //         "sentTime": "2019-03-05T09:56:55.735929+00:00",
+        //         "size": "99.0",
+        //         "status": "confirmed",
+        //         "time": "2019-03-05T09:56:55.728933+00:00",
+        //         "txid": "0x8078356ae4b06a036d64747546c274af19581f1c78c510b60505798a7ffcaf1"
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "coin": "TUSD",
+        //         "address": "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
+        //         "tag": "null",
+        //         "fee": 0,
+        //         "id": 1,
+        //         "size": "99.0",
+        //         "status": "complete",
+        //         "time": "2019-03-05T09:56:55.728933+00:00",
+        //         "txid": "0x8078356ae4b06a036d64747546c274af19581f1c78c510b60505798a7ffcaf1"
+        //     }
+        //
+        const code = this.safeCurrencyCode (this.safeString (transaction, 'coin'));
         const id = this.safeInteger (transaction, 'id');
-        const comment = this.safeString (transaction, 'notes');
         const amount = this.safeFloat (transaction, 'size');
-        const status = this.safeString (transaction, 'status');
-        const datetime = this.safeString (transaction, 'time');
-        const timestamp = this.parse8601 (datetime);
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const timestamp = this.parse8601 (this.safeString (transaction, 'time'));
         const txid = this.safeString (transaction, 'txid');
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'tag');
@@ -1095,7 +1142,7 @@ module.exports = class ftx extends Exchange {
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'addressFrom': undefined,
             'address': undefined,
             'addressTo': address,
@@ -1107,7 +1154,6 @@ module.exports = class ftx extends Exchange {
             'currency': code,
             'status': status,
             'updated': undefined,
-            'comment': comment,
             'fee': {
                 'currency': code,
                 'cost': fee,
@@ -1118,16 +1164,47 @@ module.exports = class ftx extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
-        const response = await this.privateGetWalletDeposits (this.extend (request, params));
+        const response = await this.privateGetWalletDeposits (params);
+        //
+        //     {
+        //         "success": true,
+        //         "result": {
+        //             "coin": "TUSD",
+        //             "confirmations": 64,
+        //             "confirmedTime": "2019-03-05T09:56:55.728933+00:00",
+        //             "fee": 0,
+        //             "id": 1,
+        //             "sentTime": "2019-03-05T09:56:55.735929+00:00",
+        //             "size": "99.0",
+        //             "status": "confirmed",
+        //             "time": "2019-03-05T09:56:55.728933+00:00",
+        //             "txid": "0x8078356ae4b06a036d64747546c274af19581f1c78c510b60505798a7ffcaf1"
+        //         }
+        //     }
+        //
         const result = this.safeValue (response, 'result', []);
         return this.parseTransactions (result);
     }
 
     async fetchWithdrawals (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
-        const response = await this.privateGetWalletWithdrawals (this.extend (request, params));
+        const response = await this.privateGetWalletWithdrawals (params);
+        //
+        //     {
+        //         "success": true,
+        //         "result": {
+        //             "coin": "TUSD",
+        //             "address": "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
+        //             "tag": "null",
+        //             "fee": 0,
+        //             "id": 1,
+        //             "size": "99.0",
+        //             "status": "complete",
+        //             "time": "2019-03-05T09:56:55.728933+00:00",
+        //             "txid": "0x8078356ae4b06a036d64747546c274af19581f1c78c510b60505798a7ffcaf1"
+        //         }
+        //     }
+        //
         const result = this.safeValue (response, 'result', []);
         return this.parseTransactions (result);
     }
