@@ -262,13 +262,15 @@ module.exports = class zb extends Exchange {
         };
     }
 
-    async fetchOrderBook (symbol, limit = 50, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketFieldName = this.getMarketFieldName ();
         const request = {};
         request[marketFieldName] = market['id'];
-        request['size'] = limit;
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
         const response = await this.publicGetDepth (this.extend (request, params));
         return this.parseOrderBook (response);
     }
