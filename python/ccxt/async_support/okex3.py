@@ -116,6 +116,7 @@ class okex3 (Exchange):
                         'orders/{order_id}',
                         'orders/{client_oid}',
                         'fills',
+                        'algo',
                         # public
                         'instruments',
                         'instruments/{instrument_id}/book',
@@ -125,10 +126,12 @@ class okex3 (Exchange):
                         'instruments/{instrument_id}/candles',
                     ],
                     'post': [
+                        'order_algo',
                         'orders',
                         'batch_orders',
                         'cancel_orders/{order_id}',
                         'cancel_orders/{client_oid}',
+                        'cancel_batch_algos',
                         'cancel_batch_orders',
                     ],
                 },
