@@ -304,7 +304,8 @@ module.exports = class liquid extends Exchange {
             'id': this.marketId (symbol),
         };
         const response = await this.publicGetProductsIdPriceLevels (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'buy_price_levels', 'sell_price_levels');
+        return this.parseOrderBook (response, undefined,'sell_price_levels', 'buy_price_levels');
+
     }
 
     parseTicker (ticker, market = undefined) {
