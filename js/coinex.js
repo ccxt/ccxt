@@ -493,7 +493,6 @@ module.exports = class coinex extends Exchange {
         amount = parseFloat (amount);
         const request = {
             'market': market['id'],
-            'amount': this.amountToPrecision (symbol, amount),
             'type': side,
         };
         // for market buy it requires the amount of quote currency to spend
@@ -503,10 +502,10 @@ module.exports = class coinex extends Exchange {
                     throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
                 } else {
                     price = parseFloat (price);
-                    request['amount'] = this.priceToPrecision (amount * price);
+                    request['amount'] = this.costToPrecision (amount * price);
                 }
             } else {
-                request['amount'] = this.priceToPrecision (amount);
+                request['amount'] = this.costToPrecision (amount);
             }
         } else {
             request['amount'] = this.amountToPrecision (amount);
