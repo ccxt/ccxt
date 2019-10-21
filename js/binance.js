@@ -657,6 +657,8 @@ module.exports = class binance extends Exchange {
             side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
         } else if ('isBuyerMaker' in trade) {
             side = trade['isBuyerMaker'] ? 'sell' : 'buy';
+        } else if ('side' in trade) {
+            side = this.safeStringLower (trade, 'side');
         } else {
             if ('isBuyer' in trade) {
                 side = trade['isBuyer'] ? 'buy' : 'sell'; // this is a true side
