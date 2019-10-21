@@ -460,7 +460,7 @@ class kkex extends Exchange {
                     if ($price === null) {
                         throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
                     } else {
-                        $amount = floatval ($amount) * floatval ($price);
+                        $request['amount'] = $this->cost_to_precision($symbol, floatval ($amount) * floatval ($price));
                     }
                 }
                 $request['price'] = $this->cost_to_precision($symbol, $amount);
