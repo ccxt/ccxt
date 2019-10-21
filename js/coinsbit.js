@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, ExchangeError, OrderNotFound } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, OrderNotFound, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -118,6 +118,11 @@ module.exports = class coinsbit extends Exchange {
                         'KSH': 0.0,
                     },
                 },
+            },
+            'exceptions': {
+                'balance not enough': InsufficientFunds,
+                'Total is less than': InvalidOrder,
+                'This action is unauthorized': AuthenticationError,
             },
         });
     }
@@ -348,5 +353,34 @@ module.exports = class coinsbit extends Exchange {
 
     getOrderIdField () {
         return 'orderId';
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return;
+        }
+        if (code >= 400 || this.safeValue (response, 'status', 200) >= 400) {
+            if (body.indexOf ('Server Error') >= 0) {
+                throw new ExchangeError (this.id + ' Server Error');
+            }
+        }
+        if (body.length > 0) {
+            if (body[0] === '{') {
+                const success = this.safeValue (response, 'success', true);
+                const errorMessage = this.safeValue (response, 'message', [[]]);
+                if (!success && errorMessage) {
+                    const messageKey = Object.keys (errorMessage)[0];
+                    const message = errorMessage[messageKey][0];
+                    const exceptionMessages = Object.keys (this.exceptions);
+                    for (let i = 0; i < exceptionMessages.length; i++) {
+                        const exceptionMessage = exceptionMessages[i];
+                        if (message.indexOf (exceptionMessage) >= 0) {
+                            const ExceptionClass = this.exceptions[exceptionMessage];
+                            throw new ExceptionClass (this.id + ' ' + message);
+                        }
+                    }
+                }
+            }
+        }
     }
 };
