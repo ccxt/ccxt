@@ -886,18 +886,13 @@ module.exports = class huobipro extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
-        // market buy order need to use the value precision.
-        // market order buy amount means the cost of base currency. amount-precision is applied on quote currency
-        const requestAmount = ((type === 'market') && (side === 'buy')) ? this.costToPrecision (symbol, amount) : this.amountToPrecision (symbol, amount);
         const request = {
             'account-id': this.accounts[0]['id'],
-            'amount': requestAmount,
             'symbol': market['id'],
             'type': side + '-' + type,
         };
-
-        if (this.options['createMarketBuyOrderRequiresPrice']) {
-            if ((type === 'market') && (side === 'buy')) {
+        if ((type === 'market') && (side === 'buy')) {
+            if (this.options['createMarketBuyOrderRequiresPrice']) {
                 if (price === undefined) {
                     throw new InvalidOrder (this.id + " market buy order requires price argument to calculate cost (total amount of quote currency to spend for buying, amount * price). To switch off this warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
                 } else {
@@ -908,7 +903,11 @@ module.exports = class huobipro extends Exchange {
                     // because in this case the amount is in the quote currency
                     request['amount'] = this.priceToPrecision (symbol, parseFloat (amount) * parseFloat (price));
                 }
+            } else {
+                request['amount'] = this.priceToPrecision (symbol, amount);
             }
+        } else {
+            request['amount'] = this.amountToPrecision (symbol, amount);
         }
         if (type === 'limit' || type === 'ioc' || type === 'limit-maker') {
             request['price'] = this.priceToPrecision (symbol, price);
