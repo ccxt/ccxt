@@ -182,15 +182,8 @@ class exmo extends Exchange {
                             array( 'pair' => 'XLM/RUB', 'min_q' => '0.01', 'max_q' => '200000', 'min_p' => '0.00001', 'max_p' => '100000', 'min_a' => '0.1', 'max_a' => '50000000' ),
                             array( 'pair' => 'EOS/BTC', 'min_q' => '0.01', 'max_q' => '100000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
                             array( 'pair' => 'EOS/USD', 'min_q' => '0.01', 'max_q' => '100000', 'min_p' => '0.01', 'max_p' => '1000', 'min_a' => '0.5', 'max_a' => '500000' ),
-                            array( 'pair' => 'STQ/BTC', 'min_q' => '100', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.0001', 'max_a' => '100' ),
-                            array( 'pair' => 'STQ/USD', 'min_q' => '100', 'max_q' => '10000000', 'min_p' => '0.0001', 'max_p' => '1000', 'min_a' => '0.1', 'max_a' => '500000' ),
-                            array( 'pair' => 'STQ/EUR', 'min_q' => '100', 'max_q' => '10000000', 'min_p' => '0.0001', 'max_p' => '1000', 'min_a' => '0.1', 'max_a' => '500000' ),
-                            array( 'pair' => 'STQ/RUB', 'min_q' => '100', 'max_q' => '10000000', 'min_p' => '0.00001', 'max_p' => '50000', 'min_a' => '1', 'max_a' => '50000000' ),
                             array( 'pair' => 'BTG/BTC', 'min_q' => '0.01', 'max_q' => '200000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
                             array( 'pair' => 'BTG/USD', 'min_q' => '0.01', 'max_q' => '200000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '3', 'max_a' => '500000' ),
-                            array( 'pair' => 'HBZ/BTC', 'min_q' => '100', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.0001', 'max_a' => '100' ),
-                            array( 'pair' => 'HBZ/ETH', 'min_q' => '100', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.0001', 'max_a' => '5000' ),
-                            array( 'pair' => 'HBZ/USD', 'min_q' => '100', 'max_q' => '10000000', 'min_p' => '0.0001', 'max_p' => '1000', 'min_a' => '0.1', 'max_a' => '500000' ),
                             array( 'pair' => 'DXT/BTC', 'min_q' => '100', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.0001', 'max_a' => '100' ),
                             array( 'pair' => 'DXT/USD', 'min_q' => '100', 'max_q' => '10000000', 'min_p' => '0.0001', 'max_p' => '1000', 'min_a' => '0.1', 'max_a' => '500000' ),
                             array( 'pair' => 'BTCZ/BTC', 'min_q' => '100', 'max_q' => '100000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.1', 'max_a' => '100' ),
@@ -255,15 +248,21 @@ class exmo extends Exchange {
                             array( 'pair' => 'DASH/UAH', 'min_q' => '0.01', 'max_q' => '200000', 'min_p' => '0.01', 'max_p' => '200000', 'min_a' => '10', 'max_a' => '15000000' ),
                             array( 'pair' => 'XMR/ETH', 'min_q' => '0.03', 'max_q' => '1000', 'min_p' => '0.00000001', 'max_p' => '100', 'min_a' => '0.001', 'max_a' => '5000' ),
                             array( 'pair' => 'WAVES/ETH', 'min_q' => '0.5', 'max_q' => '10000', 'min_p' => '0.00001', 'max_p' => '30', 'min_a' => '0.0035', 'max_a' => '3500' ),
+                            array( 'pair' => 'DCR/BTC', 'min_q' => '0.01', 'max_q' => '50000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
+                            array( 'pair' => 'DCR/RUB', 'min_q' => '0.01', 'max_q' => '50000', 'min_p' => '0.00001', 'max_p' => '100000', 'min_a' => '0.5', 'max_a' => '3000000' ),
+                            array( 'pair' => 'DCR/UAH', 'min_q' => '0.01', 'max_q' => '50000', 'min_p' => '0.00001', 'max_p' => '100000', 'min_a' => '0.25', 'max_a' => '1000000' ),
+                            array( 'pair' => 'ZAG/BTC', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '0.1', 'min_a' => '0.00001', 'max_a' => '100' ),
+                            array( 'pair' => 'EXM/BTC', 'min_q' => '1', 'max_q' => '157022513', 'min_p' => '0.0000009', 'max_p' => '0.0000009', 'min_a' => '0.000001', 'max_a' => '141' ),
                         ),
                         'fees' => array (
                             array (
                                 'group' => 'crypto',
                                 'title' => 'Криптовалюта',
                                 'items' => array (
+                                    array( 'prov' => 'EXM', 'dep' => '0%', 'wd' => '-' ),
                                     array( 'prov' => 'BTC', 'dep' => '0%', 'wd' => '0.0005 BTC' ),
                                     array( 'prov' => 'LTC', 'dep' => '0%', 'wd' => '0.01 LTC' ),
-                                    array( 'prov' => 'DOGE', 'dep' => '0%', 'wd' => '1 Doge' ),
+                                    array( 'prov' => 'DOGE', 'dep' => '0%', 'wd' => '1 DOGE' ),
                                     array( 'prov' => 'DASH', 'dep' => '0%', 'wd' => '0.01 DASH' ),
                                     array( 'prov' => 'ETH', 'dep' => '0%', 'wd' => '0.01 ETH' ),
                                     array( 'prov' => 'WAVES', 'dep' => '0%', 'wd' => '0.001 WAVES' ),
@@ -275,11 +274,10 @@ class exmo extends Exchange {
                                     array( 'prov' => 'ETC', 'dep' => '0%', 'wd' => '0.01 ETC' ),
                                     array( 'prov' => 'BCH', 'dep' => '0%', 'wd' => '0.001 BCH' ),
                                     array( 'prov' => 'BTG', 'dep' => '0%', 'wd' => '0.001 BTG' ),
-                                    array( 'prov' => 'EOS', 'dep' => '', 'wd' => '0.05 EOS' ),
-                                    array( 'prov' => 'HBZ', 'dep' => '65 HBZ', 'wd' => '65 HBZ' ),
+                                    array( 'prov' => 'EOS', 'dep' => '0%', 'wd' => '0.05 EOS' ),
+                                    array( 'prov' => 'BTCZ', 'dep' => '0%', 'wd' => '5 BTCZ' ),
                                     array( 'prov' => 'DXT', 'dep' => '20 DXT', 'wd' => '20 DXT' ),
-                                    array( 'prov' => 'STQ', 'dep' => '-', 'wd' => '100 STQ' ),
-                                    array( 'prov' => 'XLM', 'dep' => '0%', 'wd' => '-' ),
+                                    array( 'prov' => 'XLM', 'dep' => '0%', 'wd' => '0.01 XLM' ),
                                     array( 'prov' => 'MNX', 'dep' => '0%', 'wd' => '0.01 MNX' ),
                                     array( 'prov' => 'OMG', 'dep' => '0.1 OMG', 'wd' => '0.5 OMG' ),
                                     array( 'prov' => 'TRX', 'dep' => '0%', 'wd' => '1 TRX' ),
@@ -297,11 +295,14 @@ class exmo extends Exchange {
                                     array( 'prov' => 'HB', 'dep' => '0%', 'wd' => '10 HB' ),
                                     array( 'prov' => 'DAI', 'dep' => '0%', 'wd' => '1 DAI' ),
                                     array( 'prov' => 'MKR', 'dep' => '0%', 'wd' => '0.005 MKR' ),
-                                    array( 'prov' => 'MNC', 'dep' => '-', 'wd' => '15 MNC' ),
+                                    array( 'prov' => 'MNC', 'dep' => '0%', 'wd' => '15 MNC' ),
                                     array( 'prov' => 'PTI', 'dep' => '0%', 'wd' => '10 PTI' ),
                                     array( 'prov' => 'ATMCASH', 'dep' => '0%', 'wd' => '5 ATMCASH' ),
                                     array( 'prov' => 'ETZ', 'dep' => '0%', 'wd' => '1 ETZ' ),
-                                    array( 'prov' => 'USDC', 'dep' => '', 'wd' => '0.5 USDC' ),
+                                    array( 'prov' => 'USDC', 'dep' => '0%', 'wd' => '0.5 USDC' ),
+                                    array( 'prov' => 'ROOBEE', 'dep' => '0%', 'wd' => '0%' ),
+                                    array( 'prov' => 'DCR', 'dep' => '0%', 'wd' => '0.01 DCR' ),
+                                    array( 'prov' => 'ZAG', 'dep' => '0%', 'wd' => '0%' ),
                                 ),
                             ),
                             array (
@@ -1329,7 +1330,7 @@ class exmo extends Exchange {
         //       ],
         //     }
         //
-        return $this->parseTransactions ($response['history'], $currency, $since, $limit);
+        return $this->parse_transactions($response['history'], $currency, $since, $limit);
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

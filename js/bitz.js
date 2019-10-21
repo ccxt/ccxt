@@ -24,6 +24,9 @@ module.exports = class bitz extends Exchange {
                 'fetchOrders': true,
                 'fetchOrder': true,
                 'createMarketOrder': false,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
+                'fetchTransactions': false,
             },
             'timeframes': {
                 '1m': '1min',
@@ -71,6 +74,7 @@ module.exports = class bitz extends Exchange {
                         'getUserHistoryEntrustSheet', // closed orders
                         'getUserNowEntrustSheet', // open orders
                         'getEntrustSheetInfo', // order
+                        'depositOrWithdraw', // transactions
                     ],
                 },
                 'assets': {
@@ -81,8 +85,8 @@ module.exports = class bitz extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.001,
-                    'taker': 0.001,
+                    'maker': 0.002,
+                    'taker': 0.002,
                 },
                 'funding': {
                     'withdraw': {
@@ -157,6 +161,8 @@ module.exports = class bitz extends Exchange {
                 'BOX': 'BOX Token',
                 'XRB': 'NANO',
                 'PXC': 'Pixiecoin',
+                'VTC': 'VoteCoin',
+                'TTC': 'TimesChain',
             },
             'exceptions': {
                 // '200': Success
@@ -1006,6 +1012,141 @@ module.exports = class bitz extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchOrdersWithMethod ('tradePostGetUserHistoryEntrustSheet', symbol, since, limit, params);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            '1': 'pending',
+            '2': 'pending',
+            '3': 'pending',
+            '4': 'ok',
+            '5': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //     {
+        //         "id": '96275',
+        //         "uid": '2109073',
+        //         "wallet": '0xf4c4141c0127bc37b1d0c409a091920eba13ada7',
+        //         "txid": '0xb7adfa52aa566f9ac112e3c01f77bd91179b19eab12092a9a5a8b33d5086e31d',
+        //         "confirm": '12',
+        //         "number": '0.50000000',
+        //         "status": 4,
+        //         "updated": '1534944168605',
+        //         "addressUrl": 'https://etherscan.io/address/',
+        //         "txidUrl": 'https://etherscan.io/tx/',
+        //         "description": 'Ethereum',
+        //         "coin": 'eth',
+        //         "memo": ''
+        //     }
+        //
+        //     {
+        //         "id":"397574",
+        //         "uid":"2033056",
+        //         "wallet":"1AG1gZvQAYu3WBvgg7p4BMMghQD2gE693k",
+        //         "txid":"",
+        //         "confirm":"0",
+        //         "number":"1000.00000000",
+        //         "status":1,
+        //         "updated":"0",
+        //         "addressUrl":"http://omniexplorer.info/lookupadd.aspx?address=",
+        //         "txidUrl":"http://omniexplorer.info/lookuptx.aspx?txid=",
+        //         "description":"Tether",
+        //         "coin":"usdt",
+        //         "memo":""
+        //     }
+        //
+        //     {
+        //         "id":"153606",
+        //         "uid":"2033056",
+        //         "wallet":"1AG1gZvQAYu3WBvgg7p4BMMghQD2gE693k",
+        //         "txid":"aa2b179f84cd6dedafd41845e0fbf7f01e14c0d71ea3140d03d6f5a9ccd93199",
+        //         "confirm":"0",
+        //         "number":"761.11110000",
+        //         "status":4,
+        //         "updated":"1536726133579",
+        //         "addressUrl":"http://omniexplorer.info/lookupadd.aspx?address=",
+        //         "txidUrl":"http://omniexplorer.info/lookuptx.aspx?txid=",
+        //         "description":"Tether",
+        //         "coin":"usdt",
+        //         "memo":""
+        //     }
+        //
+        let timestamp = this.safeInteger (transaction, 'updated');
+        if (timestamp === 0) {
+            timestamp = undefined;
+        }
+        const currencyId = this.safeString (transaction, 'coin');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const type = this.safeStringLower (transaction, 'type');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        return {
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'txid'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': this.safeString (transaction, 'wallet'),
+            'tag': this.safeString (transaction, 'memo'),
+            'type': type,
+            'amount': this.safeFloat (transaction, 'number'),
+            'currency': code,
+            'status': status,
+            'updated': timestamp,
+            'fee': undefined,
+            'info': transaction,
+        };
+    }
+
+    parseTransactionsByType (type, transactions, code = undefined, since = undefined, limit = undefined) {
+        const result = [];
+        for (let i = 0; i < transactions.length; i++) {
+            const transaction = this.parseTransaction (this.extend ({
+                'type': type,
+            }, transactions[i]));
+            result.push (transaction);
+        }
+        return this.filterByCurrencySinceLimit (result, code, since, limit);
+    }
+
+    parseTransactionType (type) {
+        const types = {
+            'deposit': 1,
+            'withdrawal': 2,
+        };
+        return this.safeInteger (types, type, type);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsForType ('deposit', code, since, limit, params);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsForType ('withdrawal', code, since, limit, params);
+    }
+
+    async fetchTransactionsForType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency `code` argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+            'type': this.parseTransactionType (type),
+        };
+        if (since !== undefined) {
+            request['startTime'] = parseInt (since / 1000).toString ();
+        }
+        if (limit !== undefined) {
+            request['page'] = 1;
+            request['pageSize'] = limit;
+        }
+        const response = await this.tradePostDepositOrWithdraw (this.extend (request, params));
+        const transactions = this.safeValue (response['data'], 'data', []);
+        return this.parseTransactionsByType (type, transactions, code, since, limit);
     }
 
     nonce () {

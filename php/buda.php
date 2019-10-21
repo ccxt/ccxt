@@ -700,7 +700,7 @@ class buda extends Exchange {
         );
         $response = $this->privateGetCurrenciesCurrencyDeposits (array_merge ($request, $params));
         $deposits = $this->safe_value($response, 'deposits');
-        return $this->parseTransactions ($deposits, $currency, $since, $limit);
+        return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -715,7 +715,7 @@ class buda extends Exchange {
         );
         $response = $this->privateGetCurrenciesCurrencyWithdrawals (array_merge ($request, $params));
         $withdrawals = $this->safe_value($response, 'withdrawals');
-        return $this->parseTransactions ($withdrawals, $currency, $since, $limit);
+        return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
@@ -731,7 +731,7 @@ class buda extends Exchange {
         );
         $response = $this->privatePostCurrenciesCurrencyWithdrawals (array_merge ($request, $params));
         $withdrawal = $this->safe_value($response, 'withdrawal');
-        return $this->parse_transaction ($withdrawal);
+        return $this->parse_transaction($withdrawal);
     }
 
     public function nonce () {

@@ -30,6 +30,14 @@ class bitso extends Exchange {
                 'fees' => 'https://bitso.com/fees?l=es',
                 'referral' => 'https://bitso.com/?ref=itej',
             ),
+            'options' => array (
+                'precision' => array (
+                    'XRP' => 6,
+                    'MXN' => 2,
+                    'TUSD' => 2,
+                ),
+                'defaultPrecision' => 8,
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
@@ -119,8 +127,8 @@ class bitso extends Exchange {
                 ),
             );
             $precision = array (
-                'amount' => $this->precision_from_string($market['minimum_amount']),
-                'price' => $this->precision_from_string($market['minimum_price']),
+                'amount' => $this->safe_integer($this->options['precision'], $base, $this->options['defaultPrecision']),
+                'price' => $this->safe_integer($this->options['precision'], $quote, $this->options['defaultPrecision']),
             );
             $result[] = array (
                 'id' => $id,
@@ -520,7 +528,7 @@ class bitso extends Exchange {
         }
         if (is_array($response) && array_key_exists('success', $response)) {
             //
-            //     array("$success":false,"$error":{"$code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237")}
+            //     array("$success":false,"$error":array("$code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"))
             //
             $success = $this->safe_value($response, 'success', false);
             if (gettype ($success) === 'string') {

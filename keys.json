@@ -69,6 +69,7 @@
     "mandala":       { "skip": true },
     "mixcoins":      { "skip": true },
     "nova":          { "skip": true },
+    "oceanex":       { "skip": true },
     "okcoincny":     { "skip": true },
     "okcoinusd":     { "skip": true },
     "okex3":         { "skip": true },

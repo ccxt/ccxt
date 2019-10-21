@@ -270,6 +270,8 @@ class zb (Exchange):
         marketFieldName = self.get_market_field_name()
         request = {}
         request[marketFieldName] = market['id']
+        if limit is not None:
+            request['size'] = limit
         response = self.publicGetDepth(self.extend(request, params))
         return self.parse_order_book(response)
 

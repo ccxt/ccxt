@@ -126,8 +126,8 @@ class fcoin (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.001,
-                    'taker': 0.001,
+                    'maker': -0.0002,
+                    'taker': 0.0003,
                 },
             },
             'limits': {
@@ -461,7 +461,7 @@ class fcoin (Exchange):
             'side': side,
             'type': orderType,
         }
-        if type == 'limit':
+        if (type == 'limit') or (type == 'ioc') or (type == 'fok'):
             request['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostOrders(self.extend(request, params))
         return {

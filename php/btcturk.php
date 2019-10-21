@@ -53,7 +53,7 @@ class btcturk extends Exchange {
             'fees' => array (
                 'trading' => array (
                     'maker' => 0.002 * 1.18,
-                    'taker' => 0.0035 * 1.18,
+                    'taker' => 0.003 * 1.18,
                 ),
             ),
         ));

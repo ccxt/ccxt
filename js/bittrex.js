@@ -427,11 +427,11 @@ module.exports = class bittrex extends Exchange {
                 'limits': {
                     'amount': {
                         'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'max': undefined,
                     },
                     'price': {
                         'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'max': undefined,
                     },
                     'cost': {
                         'min': undefined,
@@ -439,7 +439,7 @@ module.exports = class bittrex extends Exchange {
                     },
                     'withdraw': {
                         'min': fee,
-                        'max': Math.pow (10, precision),
+                        'max': undefined,
                     },
                 },
             };

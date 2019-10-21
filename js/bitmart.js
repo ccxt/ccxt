@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ArgumentsRequired, ExchangeError, InvalidOrder, BadRequest, OrderNotFound } = require ('./base/errors');
+const { AuthenticationError, ArgumentsRequired, ExchangeError, InvalidOrder, BadRequest, OrderNotFound, DDoSProtection } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitmart extends Exchange {
@@ -103,7 +103,7 @@ module.exports = class bitmart extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.001,
+                    'taker': 0.002,
                     'maker': 0.001,
                     'tiers': {
                         'taker': [
@@ -133,6 +133,7 @@ module.exports = class bitmart extends Exchange {
                 'exact': {
                     'Place order error': InvalidOrder, // {"message":"Place order error"}
                     'Not found': OrderNotFound, // {"message":"Not found"}
+                    'Visit too often, please try again later': DDoSProtection, // {"code":-30,"msg":"Visit too often, please try again later","subMsg":"","data":{}}
                 },
                 'broad': {
                     'Maximum price is': InvalidOrder, // {"message":"Maximum price is 0.112695"}
@@ -489,7 +490,7 @@ module.exports = class bitmart extends Exchange {
             'symbol': market['id'],
             // 'offset': 0, // current page, starts from 0
         };
-        if (limit === undefined) {
+        if (limit !== undefined) {
             request['limit'] = limit; // default 500, max 1000
         }
         const response = await this.privateGetTrades (this.extend (request, params));
@@ -886,7 +887,7 @@ module.exports = class bitmart extends Exchange {
         //     {"message":"Place order error"}
         //
         const feedback = this.id + ' ' + body;
-        const message = this.safeString (response, 'message');
+        const message = this.safeString2 (response, 'message', 'msg');
         if (message !== undefined) {
             const exact = this.exceptions['exact'];
             if (message in exact) {

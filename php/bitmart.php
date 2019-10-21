@@ -105,7 +105,7 @@ class bitmart extends Exchange {
                 'trading' => array (
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.001,
+                    'taker' => 0.002,
                     'maker' => 0.001,
                     'tiers' => array (
                         'taker' => [
@@ -135,6 +135,7 @@ class bitmart extends Exchange {
                 'exact' => array (
                     'Place order error' => '\\ccxt\\InvalidOrder', // array("message":"Place order error")
                     'Not found' => '\\ccxt\\OrderNotFound', // array("message":"Not found")
+                    'Visit too often, please try again later' => '\\ccxt\\DDoSProtection', // array("code":-30,"msg":"Visit too often, please try again later","subMsg":"","data":array())
                 ),
                 'broad' => array (
                     'Maximum price is' => '\\ccxt\\InvalidOrder', // array("message":"Maximum price is 0.112695")
@@ -491,7 +492,7 @@ class bitmart extends Exchange {
             'symbol' => $market['id'],
             // 'offset' => 0, // current page, starts from 0
         );
-        if ($limit === null) {
+        if ($limit !== null) {
             $request['limit'] = $limit; // default 500, max 1000
         }
         $response = $this->privateGetTrades (array_merge ($request, $params));
@@ -888,7 +889,7 @@ class bitmart extends Exchange {
         //     array("$message":"Place order error")
         //
         $feedback = $this->id . ' ' . $body;
-        $message = $this->safe_string($response, 'message');
+        $message = $this->safe_string_2($response, 'message', 'msg');
         if ($message !== null) {
             $exact = $this->exceptions['exact'];
             if (is_array($exact) && array_key_exists($message, $exact)) {

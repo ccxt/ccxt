@@ -34,7 +34,7 @@ use kornrunner\Keccak;
 use kornrunner\Solidity;
 use Elliptic\EC;
 
-$version = '1.18.1209';
+$version = '1.18.1308';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -53,7 +53,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.1209';
+    const VERSION = '1.18.1308';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -106,6 +106,7 @@ class Exchange {
         'bitkk',
         'bitlish',
         'bitmart',
+        'bitmax',
         'bitmex',
         'bitso',
         'bitstamp',
@@ -123,7 +124,6 @@ class Exchange {
         'btctradeua',
         'btcturk',
         'buda',
-        'bxinth',
         'cex',
         'chilebit',
         'cobinhood',
@@ -145,12 +145,10 @@ class Exchange {
         'coolcoin',
         'coss',
         'crex24',
-        'crypton',
         'deribit',
         'digifinex',
         'dsx',
         'dx',
-        'ethfinex',
         'exmo',
         'exx',
         'fcoin',
@@ -159,7 +157,6 @@ class Exchange {
         'foxbit',
         'fybse',
         'gateio',
-        'gdax',
         'gemini',
         'hitbtc',
         'hitbtc2',
@@ -186,7 +183,6 @@ class Exchange {
         'mercado',
         'mixcoins',
         'negociecoins',
-        'nova',
         'oceanex',
         'okcoincny',
         'okcoinusd',
@@ -206,6 +202,7 @@ class Exchange {
         'vaultoro',
         'vbtc',
         'virwox',
+        'whitebit',
         'xbtce',
         'yobit',
         'zaif',
@@ -352,8 +349,10 @@ class Exchange {
             $scale = 60 * 60 * 24;
         } elseif ($unit === 'h') {
             $scale = 60 * 60;
-        } else {
+        } elseif ($unit === 'm') {
             $scale = 60;
+        } else {
+            throw new NotSupported('timeframe unit ' . $unit . ' is not supported');
         }
         return $amount * $scale;
     }
@@ -446,14 +445,11 @@ class Exchange {
     }
 
     public function filter_by($array, $key, $value = null) {
-        if ($value) {
-            $grouped = static::group_by($array, $key);
-            if (is_array($grouped) && array_key_exists($value, $grouped)) {
-                return $grouped[$value];
-            }
-            return array();
+        $grouped = static::group_by($array, $key);
+        if (is_array($grouped) && array_key_exists($value, $grouped)) {
+            return $grouped[$value];
         }
-        return $array;
+        return array();
     }
 
     public static function group_by($array, $key) {
@@ -2742,6 +2738,10 @@ class Exchange {
         } else {
             throw new ExchangeError($this->id . ' requires a non-empty value in $this->twofa property');
         }
+    }
+
+    public function soliditySha3 ($array) {
+        return @Solidity::sha3 (... $array);
     }
 
     public static function totp($key) {

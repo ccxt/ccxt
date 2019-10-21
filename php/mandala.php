@@ -193,8 +193,8 @@ class mandala extends Exchange {
                 'trading' => array (
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.005,
-                    'taker' => 0.005,
+                    'maker' => 0.00,
+                    'taker' => 0.001,
                 ),
             ),
             'exceptions' => array (
@@ -1495,7 +1495,7 @@ class mandala extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $deposits = $this->safe_value($data, 'Deposits', array());
-        return $this->parseTransactions ($deposits, $currency, $since, $limit);
+        return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1533,7 +1533,7 @@ class mandala extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $withdrawals = $this->safe_value($data, 'Withdrawals', array());
-        return $this->parseTransactions ($withdrawals, $currency, $since, $limit);
+        return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
     public function parse_transaction_status ($status) {

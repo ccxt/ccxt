@@ -58,9 +58,15 @@ class coinfloor extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/GBP' => array( 'id' => 'XBT/GBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP', 'baseId' => 'XBT', 'quoteId' => 'GBP', 'precision' => array ( 'price' => 0, 'amount' => 4 )),
-                'BTC/EUR' => array( 'id' => 'XBT/EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'XBT', 'quoteId' => 'EUR', 'precision' => array ( 'price' => 0, 'amount' => 4 )),
-                'ETH/GBP' => array( 'id' => 'ETH/GBP', 'symbol' => 'ETH/GBP', 'base' => 'ETH', 'quote' => 'GBP', 'baseId' => 'ETH', 'quoteId' => 'GBP', 'precision' => array ( 'price' => 0, 'amount' => 4 )),
+                'BTC/GBP' => array( 'id' => 'XBT/GBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP', 'baseId' => 'XBT', 'quoteId' => 'GBP', 'precision' => array( 'price' => 0, 'amount' => 4 )),
+                'BTC/EUR' => array( 'id' => 'XBT/EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'XBT', 'quoteId' => 'EUR', 'precision' => array( 'price' => 0, 'amount' => 4 )),
+                'ETH/GBP' => array( 'id' => 'ETH/GBP', 'symbol' => 'ETH/GBP', 'base' => 'ETH', 'quote' => 'GBP', 'baseId' => 'ETH', 'quoteId' => 'GBP', 'precision' => array( 'price' => 0, 'amount' => 4 )),
+            ),
+            'exceptions' => array (
+                'exact' => array (
+                    'You have insufficient funds.' => '\\ccxt\\InsufficientFunds',
+                    'Tonce is out of sequence.' => '\\ccxt\\InvalidNonce',
+                ),
             ),
         ));
     }
@@ -463,6 +469,22 @@ class coinfloor extends Exchange {
         //     "type" => 0
         //   }
         return $this->parse_orders($response, $market, $since, $limit, array( 'status' => 'open' ));
+    }
+
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($code < 400) {
+            return;
+        }
+        if ($response === null) {
+            return;
+        }
+        $message = $this->safe_string($response, 'error_msg');
+        $feedback = $this->id . ' ' . $body;
+        $exact = $this->exceptions['exact'];
+        if (is_array($exact) && array_key_exists($message, $exact)) {
+            throw new $exact[$message]($feedback);
+        }
+        throw new ExchangeError($feedback);
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

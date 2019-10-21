@@ -75,8 +75,8 @@ class ice3x extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.01,
-                    'taker' => 0.01,
+                    'maker' => 0.005,
+                    'taker' => 0.005,
                 ),
             ),
             'precision' => array (

@@ -1142,6 +1142,7 @@ module.exports = class anxpro extends Exchange {
         return {
             'currency': code,
             'address': address,
+            'tag': undefined,
             'info': response,
         };
     }

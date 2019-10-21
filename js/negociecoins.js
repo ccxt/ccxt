@@ -69,8 +69,8 @@ module.exports = class negociecoins extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.003,
-                    'taker': 0.004,
+                    'maker': 0.005,
+                    'taker': 0.005,
                 },
                 'funding': {
                     'withdraw': {

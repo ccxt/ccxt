@@ -1207,7 +1207,7 @@ class kucoin (Exchange):
         #     }
         #
         responseData = response['data']['items']
-        return self.parseTransactions(responseData, currency, since, limit, {'type': 'deposit'})
+        return self.parse_transactions(responseData, currency, since, limit, {'type': 'deposit'})
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1267,7 +1267,7 @@ class kucoin (Exchange):
         #     }
         #
         responseData = response['data']['items']
-        return self.parseTransactions(responseData, currency, since, limit, {'type': 'withdrawal'})
+        return self.parse_transactions(responseData, currency, since, limit, {'type': 'withdrawal'})
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -1311,7 +1311,7 @@ class kucoin (Exchange):
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchLedger requires a code param')
         await self.load_markets()
-        await self.loadAccounts()
+        await self.load_accounts()
         currency = self.currency(code)
         accountId = self.safe_string(params, 'accountId')
         if accountId is None:

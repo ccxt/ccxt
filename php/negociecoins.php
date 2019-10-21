@@ -70,8 +70,8 @@ class negociecoins extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.003,
-                    'taker' => 0.004,
+                    'maker' => 0.005,
+                    'taker' => 0.005,
                 ),
                 'funding' => array (
                     'withdraw' => array (
