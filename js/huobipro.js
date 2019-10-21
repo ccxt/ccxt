@@ -901,10 +901,10 @@ module.exports = class huobipro extends Exchange {
                     // more about it here: https://github.com/ccxt/ccxt/pull/4395
                     // we use priceToPrecision instead of amountToPrecision here
                     // because in this case the amount is in the quote currency
-                    request['amount'] = this.priceToPrecision (symbol, parseFloat (amount) * parseFloat (price));
+                    request['amount'] = this.costToPrecision (symbol, parseFloat (amount) * parseFloat (price));
                 }
             } else {
-                request['amount'] = this.priceToPrecision (symbol, amount);
+                request['amount'] = this.costToPrecision (symbol, amount);
             }
         } else {
             request['amount'] = this.amountToPrecision (symbol, amount);
