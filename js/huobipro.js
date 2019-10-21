@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, RequestTimeout } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -133,6 +133,7 @@ module.exports = class huobipro extends Exchange {
             'exceptions': {
                 'exact': {
                     // err-code
+                    'timeout': RequestTimeout, // {"ts":1571653730865,"status":"error","err-code":"timeout","err-msg":"Request Timeout"}
                     'gateway-internal-error': ExchangeNotAvailable, // {"status":"error","err-code":"gateway-internal-error","err-msg":"Failed to load data. Try again later.","data":null}
                     'account-frozen-balance-insufficient-error': InsufficientFunds, // {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
                     'invalid-amount': InvalidOrder, // eg "Paramemter `amount` is invalid."
