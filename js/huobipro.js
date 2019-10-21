@@ -790,7 +790,7 @@ module.exports = class huobipro extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        let market = this.market (symbol);
+        const market = this.market (symbol);
 
         let requestAmount = ((type === 'market') && (side === 'buy')) ? this.valueToPrecision (symbol, amount) : this.amountToPrecision (symbol, amount);
 
@@ -800,6 +800,7 @@ module.exports = class huobipro extends Exchange {
             'symbol': market['id'],
             'type': side + '-' + type,
         };
+
         if (this.options['createMarketBuyOrderRequiresPrice']) {
             if ((type === 'market') && (side === 'buy')) {
                 if (price === undefined) {
