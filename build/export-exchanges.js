@@ -7,17 +7,18 @@
 "use strict";
 
 const fs        = require ('fs')
-const countries = require ('./countries')
-const asTable   = require ('as-table')
-const execSync  = require ('child_process').execSync
-const log       = require ('ololog').unlimited
-const ansi      = require ('ansicolor').nice
-const { keys, values, entries } = Object
+    , countries = require ('./countries')
+    , asTable   = require ('as-table')
+    , execSync  = require ('child_process').execSync
+    , log       = require ('ololog').unlimited
+    , ansi      = require ('ansicolor').nice
+    , { keys, values, entries } = Object
+    , { replaceInFile, logReplaceInFile } = require ('./common.js')
 
 // ----------------------------------------------------------------------------
 
 const wikiPath = 'wiki'
-const gitWikiPath = 'build/ccxt.wiki'
+    , gitWikiPath = 'build/ccxt.wiki'
 
 // ----------------------------------------------------------------------------
 
@@ -28,12 +29,8 @@ if (!fs.existsSync (gitWikiPath)) {
 
 // ----------------------------------------------------------------------------
 
-function replaceInFile (filename, regex, replacement) {
-    log.bright.cyan ('Exporting exchanges →', filename.yellow)
-    let contents = fs.readFileSync (filename, 'utf8')
-    const newContents = contents.replace (regex, replacement)
-    fs.truncateSync (filename)
-    fs.writeFileSync (filename, newContents)
+function logExportExchanges (filename, regex, replacement) {
+    return logReplaceInFile ('Exporting exchanges →', filename, regex, replacement)
 }
 
 // ----------------------------------------------------------------------------
@@ -85,12 +82,12 @@ const pad = function (string, n) {
     },
     {
         file: './php/Exchange.php',
-        regex: /public static \$exchanges \= array \([^\)]+\)/,
-        replacement: "public static $exchanges = array (\n        '" + ids.join ("',\n        '") + "',\n    )",
+        regex: /public static \$exchanges \= array\s*\([^\)]+\)/,
+        replacement: "public static $exchanges = array(\n        '" + ids.join ("',\n        '") + "',\n    )",
     },
 
 ].forEach (({ file, regex, replacement }) => {
-    replaceInFile (file, regex, replacement)
+    logExportExchanges (file, regex, replacement)
 })
 
 log.bright.green ('Base sources updated successfully.')
@@ -168,23 +165,23 @@ function makeTable (jsonArray) {
     return lines.map (line => '|' + line + '|').join ("\n")
 }
 
-let exchangesTable = makeTable (tableData)
-let numExchanges = keys (exchanges).length
-let beginning = "The ccxt library currently supports the following "
-let ending = " cryptocurrency exchange markets and trading APIs:\n\n"
-let totalString = beginning + numExchanges + ending
-let howMany = totalString + exchangesTable + "$1"
-let allExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^#]+\\|([\n][\n]|[\n]$|$)", 'm')
-replaceInFile ('README.md', allExchangesRegex, howMany)
-replaceInFile (wikiPath + '/Manual.md', allExchangesRegex, howMany)
-replaceInFile (wikiPath + '/Exchange-Markets.md', allExchangesRegex, howMany)
+const exchangesTable = makeTable (tableData)
+const numExchanges = keys (exchanges).length
+const beginning = "The ccxt library currently supports the following "
+const ending = " cryptocurrency exchange markets and trading APIs:\n\n"
+const totalString = beginning + numExchanges + ending
+const allExchanges = totalString + exchangesTable + "$1"
+const allExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
+logExportExchanges ('README.md', allExchangesRegex, allExchanges)
+logExportExchanges (wikiPath + '/Manual.md', allExchangesRegex, allExchanges)
+logExportExchanges (wikiPath + '/Exchange-Markets.md', allExchangesRegex, allExchanges)
 
-let certifiedFieldIndex = tableHeadings.indexOf ('certified')
-let certified = tableData.filter ((x) => x[certifiedFieldIndex] !== '' )
-let allCertifiedRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
-let certifiedTable = makeTable (certified)
-let certifiedTableReplacement = '$1' + certifiedTable + "\n"
-replaceInFile ('README.md', allCertifiedRegex, certifiedTableReplacement)
+const certifiedFieldIndex = tableHeadings.indexOf ('certified')
+const certified = tableData.filter ((x) => x[certifiedFieldIndex] !== '' )
+const certifiedExchangesRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
+const certifiedExchangesTable = makeTable (certified)
+const certifiedExchanges = '$1' + certifiedExchangesTable + "\n"
+logExportExchanges ('README.md', certifiedExchangesRegex, certifiedExchanges)
 
 
 let exchangesByCountries = []

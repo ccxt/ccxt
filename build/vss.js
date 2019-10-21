@@ -28,24 +28,27 @@ let [ major, minor, patch ] = version.split ('.')
 version = [ major, minor, patch ].join ('.')
 log.bright ('New version: '.cyan, version)
 
-function vss (filename, regex, replacement) {
+function vss (filename, template) {
     log.bright.cyan ('Single-sourcing version', version, './package.json → ' + filename.yellow)
-    let oldContent = fs.readFileSync (filename, 'utf8')
-    let parts = oldContent.split (regex)
-    let newContent = parts[0] + replacement + version + "'" + parts[1]
-    fs.truncateSync (filename)
-    fs.writeFileSync (filename, newContent)
+    const content = fs.readFileSync (filename, 'utf8')
+    const regexp  = new RegExp (template.replace (/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') // escape string for use in regexp
+                                        .replace ('\\{version\\}', '\\d+\\.\\d+\\.\\d+'), 'g')
+    fs.truncateSync  (filename)
+    fs.writeFileSync (filename, content.replace (regexp, template.replace ('{version}', version)))
 }
 
 //-----------------------------------------------------------------------------
 
-vss ('./php/Exchange.php',                           /\$version \= \'[^\']+\'/, "$version = '")
-vss ('./php/Exchange.php',                           /VERSION \= \'[^\']+\'/, "VERSION = '")
-vss ('./ccxt.js',                                    /const version \= \'[^\']+\'/, "const version = '")
-vss ('./python/ccxt/__init__.py',                    /\_\_version\_\_ \= \'[^\']+\'/, "__version__ = '")
-vss ('./python/ccxt/async_support/__init__.py',      /\_\_version\_\_ \= \'[^\']+\'/, "__version__ = '")
-vss ('./python/ccxt/base/exchange.py',               /\_\_version\_\_ \= \'[^\']+\'/, "__version__ = '")
-vss ('./python/ccxt/async_support/base/exchange.py', /\_\_version\_\_ \= \'[^\']+\'/, "__version__ = '")
+vss ('./php/Exchange.php',                           "$version = '{version}'")
+vss ('./php/Exchange.php',                           "VERSION = '{version}'")
+vss ('./ccxt.js',                                    "const version = '{version}'")
+vss ('./python/ccxt/__init__.py',                    "__version__ = '{version}'")
+vss ('./python/ccxt/async_support/__init__.py',      "__version__ = '{version}'")
+vss ('./python/ccxt/base/exchange.py',               "__version__ = '{version}'")
+vss ('./python/ccxt/async_support/base/exchange.py', "__version__ = '{version}'")
+
+vss ('./README.md',       "ccxt@{version}")
+vss ('./wiki/Install.md', "ccxt@{version}")
 
 //-----------------------------------------------------------------------------
 
