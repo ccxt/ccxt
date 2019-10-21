@@ -109,8 +109,8 @@ module.exports = class coss extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.0020,
-                    'maker': 0.0014,
+                    'taker': 0.0025,
+                    'maker': 0.0,
                 },
                 'funding': {
                     'tierBased': false,
@@ -118,6 +118,9 @@ module.exports = class coss extends Exchange {
                     'withdraw': {},
                     'deposit': {},
                 },
+            },
+            'commonCurrencies': {
+                'COS': 'COSS',
             },
         });
     }
@@ -160,8 +163,8 @@ module.exports = class coss extends Exchange {
             const market = markets[i];
             const marketId = market['symbol'];
             const [ baseId, quoteId ] = marketId.split ('_');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
                 'amount': this.safeInteger (market, 'amount_limit_decimal'),
@@ -237,7 +240,7 @@ module.exports = class coss extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const currencyId = this.safeString (currency, 'currency_code');
-            const code = this.commonCurrencyCode (currencyId);
+            const code = this.safeCurrencyCode (currencyId);
             const name = this.safeString (currency, 'name');
             const allowBuy = this.safeValue (currency, 'allow_buy');
             const allowSell = this.safeValue (currency, 'allow_sell');
@@ -314,7 +317,7 @@ module.exports = class coss extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency_code');
-            const code = this.commonCurrencyCode (currencyId);
+            const code = this.safeCurrencyCode (currencyId);
             const total = this.safeFloat (balance, 'total');
             const used = this.safeFloat (balance, 'in_order');
             const free = this.safeFloat (balance, 'available');
@@ -340,12 +343,12 @@ module.exports = class coss extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
             'tt': this.timeframes[timeframe],
         };
-        let response = await this.engineGetCs (this.extend (request, params));
+        const response = await this.engineGetCs (this.extend (request, params));
         //
         //     {       tt:   "1m",
         //         symbol:   "ETH_BTC",
@@ -406,7 +409,7 @@ module.exports = class coss extends Exchange {
         //               Bid: "0.00063400",
         //           PrevDay:  0.000636                   }
         //
-        let timestamp = this.parse8601 (this.safeString (ticker, 'TimeStamp'));
+        const timestamp = this.parse8601 (this.safeString (ticker, 'TimeStamp'));
         let symbol = undefined;
         let marketId = this.safeString (ticker, 'MarketName');
         if (marketId !== undefined) {
@@ -416,24 +419,26 @@ module.exports = class coss extends Exchange {
         if (market === undefined) {
             if (marketId !== undefined) {
                 const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.commonCurrencyCode (baseId);
-                const quote = this.commonCurrencyCode (quoteId);
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
         }
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let previous = this.safeFloat (ticker, 'PrevDay');
-        let last = this.safeFloat (ticker, 'Last');
+        const previous = this.safeFloat (ticker, 'PrevDay');
+        const last = this.safeFloat (ticker, 'Last');
         let change = undefined;
         let percentage = undefined;
-        if (last !== undefined)
+        if (last !== undefined) {
             if (previous !== undefined) {
                 change = last - previous;
-                if (previous > 0)
+                if (previous > 0) {
                     percentage = (change / previous) * 100;
+                }
             }
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -509,7 +514,7 @@ module.exports = class coss extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-        let tickers = await this.fetchTickers ([ symbol ], params);
+        const tickers = await this.fetchTickers ([ symbol ], params);
         return tickers[symbol];
     }
 
@@ -553,7 +558,7 @@ module.exports = class coss extends Exchange {
         const cost = parts[0];
         let code = undefined;
         if (numParts > 1) {
-            code = this.commonCurrencyCode (parts[1]);
+            code = this.safeCurrencyCode (parts[1]);
         }
         return {
             'cost': cost,
@@ -587,18 +592,15 @@ module.exports = class coss extends Exchange {
         const id = this.safeString (trade, 'id');
         const timestamp = this.safeInteger (trade, 'time');
         const orderId = this.safeString (trade, 'order_id');
-        let side = this.safeString (trade, 'order_side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (trade, 'order_side');
         let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
         if (marketId !== undefined) {
             market = this.safeValue (this.markets_by_id, marketId, market);
             if (market === undefined) {
                 const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.commonCurrencyCode (baseId);
-                const quote = this.commonCurrencyCode (quoteId);
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
         } else if (market !== undefined) {
@@ -613,18 +615,19 @@ module.exports = class coss extends Exchange {
             }
         }
         const result = {
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': id,
             'order': orderId,
             'type': undefined,
-            'takerOrMaker': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
-            'cost': cost,
             'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
         const fee = this.parseTradeFee (this.safeString (trade, 'fee'));
         if (fee !== undefined) {
@@ -724,9 +727,10 @@ module.exports = class coss extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.tradePostOrderDetails (this.extend ({
+        const request = {
             'order_id': id,
-        }, params));
+        };
+        const response = await this.tradePostOrderDetails (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -739,7 +743,7 @@ module.exports = class coss extends Exchange {
         const request = {
             'order_id': id,
         };
-        let response = await this.tradePostOrderTradeDetail (this.extend (request, params));
+        const response = await this.tradePostOrderTradeDetail (this.extend (request, params));
         //
         //     [ {         hex_id:  null,
         //                 symbol: "COSS_ETH",
@@ -759,11 +763,11 @@ module.exports = class coss extends Exchange {
         if (status === undefined) {
             return status;
         }
-        let statuses = {
+        const statuses = {
             'OPEN': 'open',
             'CANCELLED': 'canceled',
             'FILLED': 'closed',
-            'PARTIAL_FILL': 'open',
+            'PARTIAL_FILL': 'closed',
             'CANCELLING': 'open',
         };
         return this.safeString (statuses, status.toUpperCase (), status);
@@ -801,8 +805,8 @@ module.exports = class coss extends Exchange {
             market = this.safeValue (this.markets_by_id, marketId, market);
             if (market === undefined) {
                 const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.commonCurrencyCode (baseId);
-                const quote = this.commonCurrencyCode (quoteId);
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             } else {
                 symbol = market['symbol'];
@@ -821,10 +825,7 @@ module.exports = class coss extends Exchange {
             }
         }
         const average = this.safeFloat (order, 'avg');
-        let side = this.safeString (order, 'order_side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (order, 'order_side');
         const cost = this.safeFloat (order, 'total');
         const fee = undefined;
         const trades = undefined;
@@ -854,11 +855,13 @@ module.exports = class coss extends Exchange {
         const market = this.market (symbol);
         const request = {
             'order_symbol': market['id'],
-            'order_price': parseFloat (this.priceToPrecision (symbol, price)),
-            'order_size': parseFloat (this.amountToPrecision (symbol, amount)),
+            'order_size': this.amountToPrecision (symbol, amount),
             'order_side': side.toUpperCase (),
             'type': type,
         };
+        if (price !== undefined) {
+            request['order_price'] = this.priceToPrecision (symbol, price);
+        }
         const response = await this.tradePostOrderAdd (this.extend (request, params));
         //
         //     {

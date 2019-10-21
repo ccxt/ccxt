@@ -23,5 +23,6 @@ class bequant (hitbtc2):
                 'fees': [
                     'https://bequant.io/fees-and-limits',
                 ],
+                'referral': 'https://bequant.io',
             },
         })

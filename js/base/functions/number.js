@@ -1,8 +1,5 @@
 'use strict'
 
-const { isString, isNumber } = require ('./type')
-const { max } = Math
-
 /*  ------------------------------------------------------------------------
 
     NB: initially, I used objects for options passing:
@@ -16,11 +13,14 @@ const { max } = Math
 
             decimalToPrecision ('123.456', ROUND, 2, DECIMAL_PLACES)                     */
 
-const ROUND    = 0                  // rounding mode
-    , TRUNCATE = 1
+const ROUND      = 0                // rounding mode
+    , TRUNCATE   = 1
+    , ROUND_UP   = 2
+    , ROUND_DOWN = 3
 
 const DECIMAL_PLACES     = 0        // digits counting mode
     , SIGNIFICANT_DIGITS = 1
+    , TICK_SIZE = 2
 
 const NO_PADDING    = 0             // zero-padding mode
     , PAD_WITH_ZERO = 1
@@ -28,8 +28,11 @@ const NO_PADDING    = 0             // zero-padding mode
 const precisionConstants = {
     ROUND,
     TRUNCATE,
+    ROUND_UP,
+    ROUND_DOWN,
     DECIMAL_PLACES,
     SIGNIFICANT_DIGITS,
+    TICK_SIZE,
     NO_PADDING,
     PAD_WITH_ZERO,
 }
@@ -40,14 +43,14 @@ const precisionConstants = {
 
 function numberToString (x) { // avoids scientific notation for too large and too small numbers
 
-    if (isString (x)) return x
+    if (typeof x === 'string') return x
 
     if (Math.abs (x) < 1.0) {
         const s = x.toString ()
         const e = parseInt (s.split ('e-')[1])
         const neg = (s[0] === '-')
         if (e) {
-            x *= Math.pow (10, e-1)
+            x *= Math.pow (10, e - 1)
             x = (neg ? '-' : '') + '0.' + (new Array (e)).join ('0') + x.toString ().substring (neg ? 3 : 2)
         }
     } else {
@@ -55,7 +58,7 @@ function numberToString (x) { // avoids scientific notation for too large and to
         if (e > 20) {
             e -= 20
             x /= Math.pow (10, e)
-            x += (new Array (e+1)).join ('0')
+            x += (new Array (e + 1)).join ('0')
         }
     }
     return x.toString ()
@@ -68,8 +71,8 @@ const truncate_regExpCache = []
     , truncate_to_string = (num, precision = 0) => {
         num = numberToString (num)
         if (precision > 0) {
-            const re = truncate_regExpCache[precision] || (truncate_regExpCache[precision] = new RegExp("([-]*\\d+\\.\\d{" + precision + "})(\\d)"))
-            const [,result] = num.toString ().match (re) || [null, num]
+            const re = truncate_regExpCache[precision] || (truncate_regExpCache[precision] = new RegExp ("([-]*\\d+\\.\\d{" + precision + "})(\\d)"))
+            const [ , result] = num.toString ().match (re) || [null, num]
             return result.toString ()
         }
         return parseInt (num).toString ()
@@ -89,13 +92,44 @@ const decimalToPrecision = (x, roundingMode
                              , paddingMode        = NO_PADDING) => {
 
     if (numPrecisionDigits < 0) {
-        let toNearest = Math.pow (10, -numPrecisionDigits)
+        if (countingMode === TICK_SIZE) {
+            throw new Error (`TICK_SIZE cant be used with negative numPrecisionDigits`)
+        }
+        const toNearest = Math.pow (10, -numPrecisionDigits)
         if (roundingMode === ROUND) {
             return (toNearest * decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ()
         }
         if (roundingMode === TRUNCATE) {
             return (x - (x % toNearest)).toString ()
         }
+    }
+
+/*  handle tick size */
+    if (countingMode === TICK_SIZE) {
+        const missing = x % numPrecisionDigits
+        const reminder = x / numPrecisionDigits
+        if (reminder !== Math.floor (reminder)) {
+            if (roundingMode === ROUND) {
+                if (x > 0) {
+                    if (missing >= numPrecisionDigits / 2) {
+                        x = x - missing + numPrecisionDigits
+                    } else {
+                        x = x - missing
+                    }
+                } else {
+                    if (missing >= numPrecisionDigits / 2) {
+                        x = Number (x) - missing
+                    } else {
+                        x = Number (x) - missing - numPrecisionDigits
+                    }
+                }
+            } else if (roundingMode === TRUNCATE) {
+                x = x - missing
+            }
+        }
+        const precisionDigitsString = decimalToPrecision (numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING)
+        const newNumPrecisionDigits = precisionFromString (precisionDigitsString)
+        return decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
     }
 
 /*  Convert to a string (if needed), skip leading minus sign (if any)   */
@@ -220,24 +254,24 @@ const decimalToPrecision = (x, roundingMode
 
 /*  Compute various sub-ranges       */
 
-    const nSign         =     (signNeeded ? 1 : 0)                // (-)123.456
-        , nBeforeDot    =     (nSign + (afterDot - readStart))    // (-123).456
-        , nAfterDot     = max (readEnd - afterDot, 0)             // -123.(456)
-        , actualLength  =     (readEnd - readStart)               // -(123.456)
-        , desiredLength =     (paddingMode === NO_PADDING)
-                                    ? (actualLength)              // -(123.456)
-                                    : (precisionEnd - readStart)  // -(123.456    )
+    const nSign         =          (signNeeded ? 1 : 0)                // (-)123.456
+        , nBeforeDot    =          (nSign + (afterDot - readStart))    // (-123).456
+        , nAfterDot     = Math.max (readEnd - afterDot, 0)             // -123.(456)
+        , actualLength  =          (readEnd - readStart)               // -(123.456)
+        , desiredLength =          (paddingMode === NO_PADDING)
+                                       ? (actualLength)                // -(123.456)
+                                       : (precisionEnd - readStart)    // -(123.456    )
 
-        , pad           = max (desiredLength - actualLength, 0)   //  -123.456(    )
-        , padStart      =     (nBeforeDot + 1 + nAfterDot)        //  -123.456( )
-        , padEnd        =     (padStart + pad)                    //  -123.456     ( )
-        , isInteger     =     (nAfterDot + pad) === 0             //  -123
+        , pad           = Math.max (desiredLength - actualLength, 0)   //  -123.456(    )
+        , padStart      =          (nBeforeDot + 1 + nAfterDot)        //  -123.456( )
+        , padEnd        =          (padStart + pad)                    //  -123.456     ( )
+        , isInteger     =          (nAfterDot + pad) === 0             //  -123
 
 /*  Fill the output buffer with characters    */
 
     const out = new Uint8Array (nBeforeDot + (isInteger ? 0 : 1) + nAfterDot + pad)
-                                                                                                  // ---------------------
-    if  (signNeeded)                                out[0]          = MINUS     // -     minus sign
+    // ------------------------------------------------------------------------------------------ // ---------------------
+    if  (signNeeded)                                                  out[0]          = MINUS     // -     minus sign
     for (i = nSign, j = readStart;          i < nBeforeDot; i++, j++) out[i]          = chars[j]  // 123   before dot
     if  (!isInteger)                                                  out[nBeforeDot] = DOT       // .     dot
     for (i = nBeforeDot + 1, j = afterDot;  i < padStart;   i++, j++) out[i]          = chars[j]  // 456   after dot
@@ -260,8 +294,11 @@ module.exports = {
     precisionConstants,
     ROUND,
     TRUNCATE,
+    ROUND_UP,
+    ROUND_DOWN,
     DECIMAL_PLACES,
     SIGNIFICANT_DIGITS,
+    TICK_SIZE,
     NO_PADDING,
     PAD_WITH_ZERO,
 }

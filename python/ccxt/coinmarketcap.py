@@ -110,13 +110,14 @@ class coinmarketcap (Exchange):
             'E-Dinar Coin': 'E-Dinar Coin',  # conflict with EDR Endor Protocol and EDRCoin
             'EDRcoin': 'EDRcoin',  # conflict with EDR Endor Protocol and E-Dinar Coin
             'ENTCash': 'ENTCash',  # conflict with ENT(Eternity)
-            'FairGame': 'FairGame',
+            'FairCoin': 'FairCoin',  # conflict with FAIR(FairGame) https://github.com/ccxt/ccxt/pull/5865
             'Fabric Token': 'Fabric Token',
             'GET Protocol': 'GET Protocol',
             'Global Tour Coin': 'Global Tour Coin',  # conflict with GTC(Game.com)
             'GuccioneCoin': 'GuccioneCoin',  # conflict with GCC(Global Cryptocurrency)
             'HarmonyCoin': 'HarmonyCoin',  # conflict with HMC(Hi Mutual Society)
             'Harvest Masternode Coin': 'Harvest Masternode Coin',  # conflict with HC(HyperCash)
+            'HOT Token': 'HOT Token',
             'Hydro Protocol': 'Hydro Protocol',  # conflict with HOT(Holo)
             'Huncoin': 'Huncoin',  # conflict with HNC(Helleniccoin)
             'iCoin': 'iCoin',
@@ -131,20 +132,19 @@ class coinmarketcap (Exchange):
             'PutinCoin': 'PutinCoin',  # conflict with PUT(Profile Utility Token)
             'Rcoin': 'Rcoin',  # conflict with RCN(Ripio Credit Network)
         }
-        if name in currencies:
-            return currencies[name]
-        return base
+        return self.safe_value(currencies, name, base)
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetTicker({
+        request = {
             'limit': 0,
-        })
+        }
+        response = self.publicGetTicker(self.extend(request, params))
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
+        for i in range(0, len(response)):
+            market = response[i]
             currencies = self.currencyCodes
-            for i in range(0, len(currencies)):
-                quote = currencies[i]
+            for j in range(0, len(currencies)):
+                quote = currencies[j]
                 quoteId = quote.lower()
                 baseId = market['id']
                 base = self.currency_code(market['symbol'], market['name'])
@@ -169,27 +169,19 @@ class coinmarketcap (Exchange):
         return self.publicGetGlobal(request)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.milliseconds()
-        if 'last_updated' in ticker:
-            if ticker['last_updated']:
-                timestamp = int(ticker['last_updated']) * 1000
-        change = None
-        if 'percent_change_24h' in ticker:
-            if ticker['percent_change_24h']:
-                change = self.safe_float(ticker, 'percent_change_24h')
+        timestamp = self.safe_timestamp(ticker, 'last_updated')
+        if timestamp is None:
+            timestamp = self.milliseconds()
+        change = self.safe_float(ticker, 'percent_change_24h')
         last = None
         symbol = None
         volume = None
         if market is not None:
-            priceKey = 'price_' + market['quoteId']
-            if priceKey in ticker:
-                if ticker[priceKey]:
-                    last = self.safe_float(ticker, priceKey)
             symbol = market['symbol']
+            priceKey = 'price_' + market['quoteId']
+            last = self.safe_float(ticker, priceKey)
             volumeKey = '24h_volume_' + market['quoteId']
-            if volumeKey in ticker:
-                if ticker[volumeKey]:
-                    volume = self.safe_float(ticker, volumeKey)
+            volume = self.safe_float(ticker, volumeKey)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -221,7 +213,7 @@ class coinmarketcap (Exchange):
         if currency:
             request['convert'] = currency
         response = self.publicGetTicker(self.extend(request, params))
-        tickers = {}
+        result = {}
         for t in range(0, len(response)):
             ticker = response[t]
             currencyId = currency.lower()
@@ -231,29 +223,30 @@ class coinmarketcap (Exchange):
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
-            tickers[symbol] = self.parse_ticker(ticker, market)
-        return tickers
+            result[symbol] = self.parse_ticker(ticker, market)
+        return result
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        request = self.extend({
+        request = {
             'convert': market['quote'],
             'id': market['baseId'],
-        }, params)
-        response = self.publicGetTickerId(request)
+        }
+        response = self.publicGetTickerId(self.extend(request, params))
         ticker = response[0]
         return self.parse_ticker(ticker, market)
 
     def fetch_currencies(self, params={}):
-        currencies = self.publicGetTicker(self.extend({
+        request = {
             'limit': 0,
-        }, params))
+        }
+        response = self.publicGetTicker(self.extend(request, params))
         result = {}
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            id = currency['symbol']
-            name = currency['name']
+        for i in range(0, len(response)):
+            currency = response[i]
+            id = self.safe_string(currency, 'symbol')
+            name = self.safe_string(currency, 'name')
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method

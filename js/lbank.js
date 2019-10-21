@@ -41,8 +41,8 @@ module.exports = class lbank extends Exchange {
                 'api': 'https://api.lbank.info',
                 'www': 'https://www.lbank.info',
                 'doc': 'https://github.com/LBank-exchange/lbank-official-api-docs',
-                'fees': 'https://lbankinfo.zendesk.com/hc/zh-cn/articles/115002295114--%E8%B4%B9%E7%8E%87%E8%AF%B4%E6%98%8E',
-                'referral': 'https://www.lbank.info/sign-up.html?icode=7QCY&lang=en-US',
+                'fees': 'https://lbankinfo.zendesk.com/hc/en-gb/articles/360012072873-Trading-Fees',
+                'referral': 'https://www.lbex.io/invite?icode=7QCY',
             },
             'api': {
                 'public': {
@@ -104,19 +104,22 @@ module.exports = class lbank extends Exchange {
             'commonCurrencies': {
                 'VET_ERC20': 'VEN',
             },
+            'options': {
+                'cacheSecretAsPem': true,
+            },
         });
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.publicGetAccuracy ();
-        let result = [];
-        for (let i = 0; i < markets.length; i++) {
-            let market = markets[i];
-            let id = market['symbol'];
-            let parts = id.split ('_');
+        const response = await this.publicGetAccuracy (params);
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
+            const id = market['symbol'];
+            const parts = id.split ('_');
             let baseId = undefined;
             let quoteId = undefined;
-            let numParts = parts.length;
+            const numParts = parts.length;
             // lbank will return symbols like "vet_erc20_usdt"
             if (numParts > 2) {
                 baseId = parts[0] + '_' + parts[1];
@@ -125,10 +128,10 @@ module.exports = class lbank extends Exchange {
                 baseId = parts[0];
                 quoteId = parts[1];
             }
-            let base = this.commonCurrencyCode (baseId.toUpperCase ());
-            let quote = this.commonCurrencyCode (quoteId.toUpperCase ());
-            let symbol = base + '/' + quote;
-            let precision = {
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const precision = {
                 'amount': this.safeInteger (market, 'quantityAccuracy'),
                 'price': this.safeInteger (market, 'priceAccuracy'),
             };
@@ -164,15 +167,15 @@ module.exports = class lbank extends Exchange {
     parseTicker (ticker, market = undefined) {
         let symbol = undefined;
         if (market === undefined) {
-            let marketId = this.safeString (ticker, 'symbol');
+            const marketId = this.safeString (ticker, 'symbol');
             if (marketId in this.markets_by_id) {
-                let market = this.marketsById[marketId];
+                const market = this.marketsById[marketId];
                 symbol = market['symbol'];
             } else {
-                let parts = marketId.split ('_');
+                const parts = marketId.split ('_');
                 let baseId = undefined;
                 let quoteId = undefined;
-                let numParts = parts.length;
+                const numParts = parts.length;
                 // lbank will return symbols like "vet_erc20_usdt"
                 if (numParts > 2) {
                     baseId = parts[0] + '_' + parts[1];
@@ -181,22 +184,32 @@ module.exports = class lbank extends Exchange {
                     baseId = parts[0];
                     quoteId = parts[1];
                 }
-                let base = this.commonCurrencyCode (baseId.toUpperCase ());
-                let quote = this.commonCurrencyCode (quoteId.toUpperCase ());
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
         }
-        let timestamp = this.safeInteger (ticker, 'timestamp');
-        let info = ticker;
+        const timestamp = this.safeInteger (ticker, 'timestamp');
+        const info = ticker;
         ticker = info['ticker'];
-        let last = this.safeFloat (ticker, 'latest');
-        let percentage = this.safeFloat (ticker, 'change');
-        let relativeChange = percentage / 100;
-        let open = last / this.sum (1, relativeChange);
-        let change = last - open;
-        let average = this.sum (last, open) / 2;
-        if (market !== undefined)
+        const last = this.safeFloat (ticker, 'latest');
+        const percentage = this.safeFloat (ticker, 'change');
+        let open = undefined;
+        if (percentage !== undefined) {
+            const relativeChange = this.sum (1, percentage / 100);
+            if (relativeChange > 0) {
+                open = last / this.sum (1, relativeChange);
+            }
+        }
+        let change = undefined;
+        let average = undefined;
+        if (last !== undefined && open !== undefined) {
+            change = last - open;
+            average = this.sum (last, open) / 2;
+        }
+        if (market !== undefined) {
             symbol = market['symbol'];
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -223,22 +236,24 @@ module.exports = class lbank extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetTicker (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
-        }, params));
+        };
+        const response = await this.publicGetTicker (this.extend (request, params));
         return this.parseTicker (response, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetTicker (this.extend ({
+        const request = {
             'symbol': 'all',
-        }, params));
-        let result = {};
-        for (let i = 0; i < tickers.length; i++) {
-            let ticker = this.parseTicker (tickers[i]);
-            let symbol = ticker['symbol'];
+        };
+        const response = await this.publicGetTicker (this.extend (request, params));
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const ticker = this.parseTicker (response[i]);
+            const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
         return result;
@@ -247,49 +262,65 @@ module.exports = class lbank extends Exchange {
     async fetchOrderBook (symbol, limit = 60, params = {}) {
         await this.loadMarkets ();
         let size = 60;
-        if (limit !== undefined)
+        if (limit !== undefined) {
             size = Math.min (limit, size);
-        let response = await this.publicGetDepth (this.extend ({
+        }
+        const request = {
             'symbol': this.marketId (symbol),
             'size': size,
-        }, params));
+        };
+        const response = await this.publicGetDepth (this.extend (request, params));
         return this.parseOrderBook (response);
     }
 
     parseTrade (trade, market = undefined) {
-        let symbol = market['symbol'];
-        let timestamp = parseInt (trade['date_ms']);
-        let price = this.safeFloat (trade, 'price');
-        let amount = this.safeFloat (trade, 'amount');
-        let cost = this.costToPrecision (symbol, price * amount);
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const timestamp = this.safeInteger (trade, 'date_ms');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = parseFloat (this.costToPrecision (symbol, price * amount));
+            }
+        }
+        const id = this.safeString (trade, 'tid');
+        const type = undefined;
+        const side = this.safeString (trade, 'type');
         return {
+            'id': id,
+            'info': this.safeValue (trade, 'info', trade),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': this.safeString (trade, 'tid'),
             'order': undefined,
-            'type': undefined,
-            'side': trade['type'],
+            'type': type,
+            'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
-            'cost': parseFloat (cost),
+            'cost': cost,
             'fee': undefined,
-            'info': this.safeValue (trade, 'info', trade),
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
             'size': 100,
         };
-        if (since !== undefined)
+        if (since !== undefined) {
             request['time'] = parseInt (since);
-        if (limit !== undefined)
+        }
+        if (limit !== undefined) {
             request['size'] = limit;
-        let response = await this.publicGetTrades (this.extend (request, params));
+        }
+        const response = await this.publicGetTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -306,46 +337,68 @@ module.exports = class lbank extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = 1000, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        if (since === undefined)
-            throw new ExchangeError (this.id + ' fetchOHLCV requires a since argument');
-        if (limit === undefined)
-            throw new ExchangeError (this.id + ' fetchOHLCV requires a limit argument');
-        let request = {
+        const market = this.market (symbol);
+        if (since === undefined) {
+            throw new ExchangeError (this.id + ' fetchOHLCV requires a `since` argument');
+        }
+        if (limit === undefined) {
+            throw new ExchangeError (this.id + ' fetchOHLCV requires a `limit` argument');
+        }
+        const request = {
             'symbol': market['id'],
             'type': this.timeframes[timeframe],
             'size': limit,
             'time': parseInt (since / 1000),
         };
-        let response = await this.publicGetKline (this.extend (request, params));
+        const response = await this.publicGetKline (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostUserInfo (params);
-        let result = { 'info': response };
-        let ids = Object.keys (this.extend (response['info']['free'], response['info']['freeze']));
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let code = id;
-            if (id in this.currencies_by_id)
-                code = this.currencies_by_id[id]['code'];
-            let free = this.safeFloat (response['info']['free'], id, 0.0);
-            let used = this.safeFloat (response['info']['freeze'], id, 0.0);
-            let account = {
-                'free': free,
-                'used': used,
-                'total': 0.0,
-            };
-            account['total'] = this.sum (account['free'], account['used']);
+        const response = await this.privatePostUserInfo (params);
+        //
+        //     {
+        //         "result":"true",
+        //         "info":{
+        //             "freeze":{
+        //                 "iog":"0.00000000",
+        //                 "ssc":"0.00000000",
+        //                 "eon":"0.00000000",
+        //             },
+        //             "asset":{
+        //                 "iog":"0.00000000",
+        //                 "ssc":"0.00000000",
+        //                 "eon":"0.00000000",
+        //             },
+        //             "free":{
+        //                 "iog":"0.00000000",
+        //                 "ssc":"0.00000000",
+        //                 "eon":"0.00000000",
+        //             },
+        //         }
+        //     }
+        //
+        const result = { 'info': response };
+        const info = this.safeValue (response, 'info', {});
+        const free = this.safeValue (info, 'free', {});
+        const freeze = this.safeValue (info, 'freeze', {});
+        const asset = this.safeValue (info, 'asset', {});
+        const currencyIds = Object.keys (free);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeFloat (free, currencyId);
+            account['used'] = this.safeFloat (freeze, currencyId);
+            account['total'] = this.safeFloat (asset, currencyId);
             result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     parseOrderStatus (status) {
-        let statuses = {
+        const statuses = {
             '-1': 'cancelled', // cancelled
             '0': 'open', // not traded
             '1': 'open', // partial deal
@@ -357,38 +410,47 @@ module.exports = class lbank extends Exchange {
 
     parseOrder (order, market = undefined) {
         let symbol = undefined;
-        let responseMarket = this.safeValue (this.marketsById, order['symbol']);
+        const responseMarket = this.safeValue (this.marketsById, order['symbol']);
         if (responseMarket !== undefined) {
             symbol = responseMarket['symbol'];
         } else if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let timestamp = this.safeInteger (order, 'create_time');
+        const timestamp = this.safeInteger (order, 'create_time');
         // Limit Order Request Returns: Order Price
         // Market Order Returns: cny amount of market order
-        let price = this.safeFloat (order, 'price');
-        let amount = this.safeFloat (order, 'amount', 0.0);
-        let filled = this.safeFloat (order, 'deal_amount', 0.0);
-        let av_price = this.safeFloat (order, 'avg_price');
+        const price = this.safeFloat (order, 'price');
+        const amount = this.safeFloat (order, 'amount', 0.0);
+        const filled = this.safeFloat (order, 'deal_amount', 0.0);
+        const av_price = this.safeFloat (order, 'avg_price');
         let cost = undefined;
         if (av_price !== undefined) {
             cost = filled * av_price;
         }
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const id = this.safeString (order, 'order_id');
+        const type = this.safeString (order, 'order_type');
+        const side = this.safeString (order, 'type');
+        let remaining = undefined;
+        if (amount !== undefined) {
+            if (filled !== undefined) {
+                remaining = amount - filled;
+            }
+        }
         return {
-            'id': this.safeString (order, 'order_id'),
+            'id': id,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': this.safeString (order, 'order_type'),
-            'side': order['type'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,
             'filled': filled,
-            'remaining': amount - filled,
+            'remaining': remaining,
             'trades': undefined,
             'fee': undefined,
             'info': this.safeValue (order, 'info', order),
@@ -397,7 +459,7 @@ module.exports = class lbank extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        const market = this.market (symbol);
         let order = {
             'symbol': market['id'],
             'type': side,
@@ -408,7 +470,7 @@ module.exports = class lbank extends Exchange {
         } else {
             order['price'] = price;
         }
-        let response = await this.privatePostCreateOrder (this.extend (order, params));
+        const response = await this.privatePostCreateOrder (this.extend (order, params));
         order = this.omit (order, 'type');
         order['order_id'] = response['order_id'];
         order['type'] = side;
@@ -416,31 +478,34 @@ module.exports = class lbank extends Exchange {
         order['create_time'] = this.milliseconds ();
         order['info'] = response;
         order = this.parseOrder (order, market);
-        let id = order['id'];
+        const id = order['id'];
         this.orders[id] = order;
         return order;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privatePostCancelOrder (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
             'order_id': id,
-        }, params));
+        };
+        const response = await this.privatePostCancelOrder (this.extend (request, params));
         return response;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         // Id can be a list of ids delimited by a comma
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privatePostOrdersInfo (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
             'order_id': id,
-        }, params));
-        let orders = this.parseOrders (response['orders'], market);
-        if (orders.length === 1) {
+        };
+        const response = await this.privatePostOrdersInfo (this.extend (request, params));
+        const orders = this.parseOrders (response['orders'], market);
+        const numOrders = orders.length;
+        if (numOrders === 1) {
             return orders[0];
         } else {
             return orders;
@@ -452,28 +517,30 @@ module.exports = class lbank extends Exchange {
         if (limit === undefined) {
             limit = 100;
         }
-        let market = this.market (symbol);
-        let response = await this.privatePostOrdersInfoHistory (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
             'current_page': 1,
             'page_length': limit,
-        }, params));
+        };
+        const response = await this.privatePostOrdersInfoHistory (this.extend (request, params));
         return this.parseOrders (response['orders'], undefined, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, since, limit, params);
-        let closed = this.filterBy (orders, 'status', 'closed');
-        let cancelled = this.filterBy (orders, 'status', 'cancelled'); // cancelled orders may be partially filled
-        return closed + cancelled;
+        const orders = await this.fetchOrders (symbol, since, limit, params);
+        const closed = this.filterBy (orders, 'status', 'closed');
+        const canceled = this.filterBy (orders, 'status', 'cancelled'); // cancelled orders may be partially filled
+        const allOrders = this.arrayConcat (closed, canceled);
+        return this.filterBySymbolSinceLimit (allOrders, symbol, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         // mark and fee are optional params, mark is a note and must be less than 255 characters
         this.checkAddress (address);
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let request = {
+        const currency = this.currency (code);
+        const request = {
             'assetCode': currency['id'],
             'amount': amount,
             'account': address,
@@ -481,28 +548,56 @@ module.exports = class lbank extends Exchange {
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        let response = this.privatePostWithdraw (this.extend (request, params));
+        const response = this.privatePostWithdraw (this.extend (request, params));
         return {
             'id': response['id'],
             'info': response,
         };
     }
 
+    convertSecretToPem (secret) {
+        const lineLength = 64;
+        const secretLength = secret.length - 0;
+        let numLines = parseInt (secretLength / lineLength);
+        numLines = this.sum (numLines, 1);
+        let pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
+        for (let i = 0; i < numLines; i++) {
+            const start = i * lineLength;
+            const end = this.sum (start, lineLength);
+            pem += this.secret.slice (start, end) + "\n"; // eslint-disable-line
+        }
+        return pem + '-----END PRIVATE KEY-----';
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         // Every endpoint ends with ".do"
         url += '.do';
         if (api === 'public') {
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         } else {
             this.checkRequiredCredentials ();
-            let query = this.keysort (this.extend ({
+            const query = this.keysort (this.extend ({
                 'api_key': this.apiKey,
             }, params));
-            let queryString = this.rawencode (query) + '&secret_key=' + this.secret;
-            query['sign'] = this.hash (this.encode (queryString)).toUpperCase ();
+            const queryString = this.rawencode (query);
+            const message = this.hash (this.encode (queryString)).toUpperCase ();
+            const cacheSecretAsPem = this.safeValue (this.options, 'cacheSecretAsPem', true);
+            let pem = undefined;
+            if (cacheSecretAsPem) {
+                pem = this.safeValue (this.options, 'pem');
+                if (pem === undefined) {
+                    pem = this.convertSecretToPem (this.secret);
+                    this.options['pem'] = pem;
+                }
+            } else {
+                pem = this.convertSecretToPem (this.secret);
+            }
+            const sign = this.binaryToBase64 (this.rsa (message, this.encode (pem), 'RS256'));
+            query['sign'] = sign;
             body = this.urlencode (query);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
         }
@@ -510,11 +605,11 @@ module.exports = class lbank extends Exchange {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        let success = this.safeString (response, 'result');
+        const response = await this.fetch2 (path, api, method, params, headers, body);
+        const success = this.safeString (response, 'result');
         if (success === 'false') {
-            let errorCode = this.safeString (response, 'error_code');
-            let message = this.safeString ({
+            const errorCode = this.safeString (response, 'error_code');
+            const message = this.safeString ({
                 '10000': 'Internal error',
                 '10001': 'The required parameters can not be empty',
                 '10002': 'verification failed',
@@ -538,7 +633,7 @@ module.exports = class lbank extends Exchange {
                 '10020': 'less than the minimum amount of the transaction limit of 0.001',
                 '10022': 'Insufficient key authority',
             }, errorCode, this.json (response));
-            let ErrorClass = this.safeValue ({
+            const ErrorClass = this.safeValue ({
                 '10002': AuthenticationError,
                 '10004': DDoSProtection,
                 '10005': AuthenticationError,

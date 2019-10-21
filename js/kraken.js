@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress } = require ('./base/errors');
+const { ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, NotSupported } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -53,14 +53,11 @@ module.exports = class kraken extends Exchange {
                 'api': {
                     'public': 'https://api.kraken.com',
                     'private': 'https://api.kraken.com',
-                    'zendesk': 'https://support.kraken.com/hc/en-us/articles/',
+                    'zendesk': 'https://support.kraken.com/hc/en-us/articles',
                 },
                 'www': 'https://www.kraken.com',
-                'doc': [
-                    'https://www.kraken.com/en-us/help/api',
-                    'https://github.com/nothingisdead/npm-kraken-api',
-                ],
-                'fees': 'https://www.kraken.com/en-us/help/fees',
+                'doc': 'https://www.kraken.com/features/api',
+                'fees': 'https://www.kraken.com/en-us/features/fee-schedule',
             },
             'fees': {
                 'trading': {
@@ -171,18 +168,22 @@ module.exports = class kraken extends Exchange {
                 'private': {
                     'post': [
                         'AddOrder',
+                        'AddExport',
                         'Balance',
                         'CancelOrder',
                         'ClosedOrders',
                         'DepositAddresses',
                         'DepositMethods',
                         'DepositStatus',
+                        'ExportStatus',
                         'Ledgers',
                         'OpenOrders',
                         'OpenPositions',
                         'QueryLedgers',
                         'QueryOrders',
                         'QueryTrades',
+                        'RetrieveExport',
+                        'RemoveExport',
                         'TradeBalance',
                         'TradesHistory',
                         'TradeVolume',
@@ -194,6 +195,7 @@ module.exports = class kraken extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'XBT': 'BTC',
                 'XDG': 'DOGE',
             },
             'options': {
@@ -229,24 +231,24 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchMinOrderAmounts () {
-        let html = await this.zendeskGet205893708WhatIsTheMinimumOrderSize ();
-        let parts = html.split ('<td class="wysiwyg-text-align-right">');
-        let numParts = parts.length;
+        const html = await this.zendeskGet205893708WhatIsTheMinimumOrderSize ();
+        const parts = html.split ('<td class="wysiwyg-text-align-right">');
+        const numParts = parts.length;
         if (numParts < 3) {
-            throw new ExchangeError (this.id + ' fetchMinOrderAmounts HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
+            throw new NotSupported (this.id + ' fetchMinOrderAmounts HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
         }
-        let result = {};
+        const result = {};
         // skip the part before the header and the header itself
         for (let i = 2; i < parts.length; i++) {
-            let part = parts[i];
-            let chunks = part.split ('</td>');
-            let amountAndCode = chunks[0];
+            const part = parts[i];
+            const chunks = part.split ('</td>');
+            const amountAndCode = chunks[0];
             if (amountAndCode !== 'To Be Announced') {
-                let pieces = amountAndCode.split (' ');
-                let numPieces = pieces.length;
+                const pieces = amountAndCode.split (' ');
+                const numPieces = pieces.length;
                 if (numPieces === 2) {
-                    let amount = parseFloat (pieces[0]);
-                    let code = this.commonCurrencyCode (pieces[1]);
+                    const amount = parseFloat (pieces[0]);
+                    const code = this.safeCurrencyCode (pieces[1]);
                     result[code] = amount;
                 }
             }
@@ -255,42 +257,31 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.publicGetAssetPairs ();
-        let limits = await this.fetchMinOrderAmounts ();
-        let keys = Object.keys (markets['result']);
+        const response = await this.publicGetAssetPairs (params);
+        const limits = await this.fetchMinOrderAmounts ();
+        const keys = Object.keys (response['result']);
         let result = [];
         for (let i = 0; i < keys.length; i++) {
-            let id = keys[i];
-            let market = markets['result'][id];
-            let baseId = market['base'];
-            let quoteId = market['quote'];
-            let base = baseId;
-            let quote = quoteId;
-            if (base.length > 3) {
-                if ((base[0] === 'X') || (base[0] === 'Z')) {
-                    base = base.slice (1);
-                }
-            }
-            if (quote.length > 3) {
-                if ((quote[0] === 'X') || (quote[0] === 'Z')) {
-                    quote = quote.slice (1);
-                }
-            }
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
-            let darkpool = id.indexOf ('.d') >= 0;
-            let symbol = darkpool ? market['altname'] : (base + '/' + quote);
+            const id = keys[i];
+            const market = response['result'][id];
+            const baseId = market['base'];
+            const quoteId = market['quote'];
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const darkpool = id.indexOf ('.d') >= 0;
+            const symbol = darkpool ? market['altname'] : (base + '/' + quote);
             let maker = undefined;
             if ('fees_maker' in market) {
                 maker = parseFloat (market['fees_maker'][0][1]) / 100;
             }
-            let precision = {
+            const precision = {
                 'amount': market['lot_decimals'],
                 'price': market['pair_decimals'],
             };
             let minAmount = Math.pow (10, -precision['amount']);
-            if (base in limits)
+            if (base in limits) {
                 minAmount = limits[base];
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -326,14 +317,23 @@ module.exports = class kraken extends Exchange {
         return result;
     }
 
+    safeCurrencyCode (currencyId, currency = undefined) {
+        if (currencyId.length > 3) {
+            if ((currencyId.indexOf ('X') === 0) || (currencyId.indexOf ('Z') === 0)) {
+                currencyId = currencyId.slice (1);
+            }
+        }
+        return super.safeCurrencyCode (currencyId, currency);
+    }
+
     appendInactiveMarkets (result) {
         // result should be an array to append to
-        let precision = { 'amount': 8, 'price': 8 };
-        let costLimits = { 'min': 0, 'max': undefined };
-        let priceLimits = { 'min': Math.pow (10, -precision['price']), 'max': undefined };
-        let amountLimits = { 'min': Math.pow (10, -precision['amount']), 'max': Math.pow (10, precision['amount']) };
-        let limits = { 'amount': amountLimits, 'price': priceLimits, 'cost': costLimits };
-        let defaults = {
+        const precision = { 'amount': 8, 'price': 8 };
+        const costLimits = { 'min': 0, 'max': undefined };
+        const priceLimits = { 'min': Math.pow (10, -precision['price']), 'max': undefined };
+        const amountLimits = { 'min': Math.pow (10, -precision['amount']), 'max': Math.pow (10, precision['amount']) };
+        const limits = { 'amount': amountLimits, 'price': priceLimits, 'cost': costLimits };
+        const defaults = {
             'darkpool': false,
             'info': undefined,
             'maker': undefined,
@@ -342,7 +342,7 @@ module.exports = class kraken extends Exchange {
             'precision': precision,
             'limits': limits,
         };
-        let markets = [
+        const markets = [
             // { 'id': 'XXLMZEUR', 'symbol': 'XLM/EUR', 'base': 'XLM', 'quote': 'EUR', 'altname': 'XLMEUR' },
         ];
         for (let i = 0; i < markets.length; i++) {
@@ -373,7 +373,7 @@ module.exports = class kraken extends Exchange {
             // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            const code = this.commonCurrencyCode (this.safeString (currency, 'altname'));
+            const code = this.safeCurrencyCode (this.safeString (currency, 'altname'));
             const precision = this.safeInteger (currency, 'decimals');
             // assumes all currencies are active except those listed above
             const active = !this.inArray (code, this.options['inactiveCurrencies']);
@@ -411,18 +411,20 @@ module.exports = class kraken extends Exchange {
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
         this.checkRequiredCredentials ();
-        let response = await this.privatePostTradeVolume (params);
-        let tradedVolume = this.safeFloat (response['result'], 'volume');
-        let tiers = this.fees['trading']['tiers'];
+        const response = await this.privatePostTradeVolume (params);
+        const tradedVolume = this.safeFloat (response['result'], 'volume');
+        const tiers = this.fees['trading']['tiers'];
         let taker = tiers['taker'][1];
         let maker = tiers['maker'][1];
         for (let i = 0; i < tiers['taker'].length; i++) {
-            if (tradedVolume >= tiers['taker'][i][0])
+            if (tradedVolume >= tiers['taker'][i][0]) {
                 taker = tiers['taker'][i][1];
+            }
         }
         for (let i = 0; i < tiers['maker'].length; i++) {
-            if (tradedVolume >= tiers['maker'][i][0])
+            if (tradedVolume >= tiers['maker'][i][0]) {
                 maker = tiers['maker'][i][1];
+            }
         }
         return {
             'info': response,
@@ -433,30 +435,34 @@ module.exports = class kraken extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        if (market['darkpool'])
+        const market = this.market (symbol);
+        if (market['darkpool']) {
             throw new ExchangeError (this.id + ' does not provide an order book for darkpool symbol ' + symbol);
-        let request = {
+        }
+        const request = {
             'pair': market['id'],
         };
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['count'] = limit; // 100
-        let response = await this.publicGetDepth (this.extend (request, params));
-        let orderbook = response['result'][market['id']];
+        }
+        const response = await this.publicGetDepth (this.extend (request, params));
+        const orderbook = response['result'][market['id']];
         return this.parseOrderBook (orderbook);
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.milliseconds ();
+        const timestamp = this.milliseconds ();
         let symbol = undefined;
-        if (market)
+        if (market) {
             symbol = market['symbol'];
-        let baseVolume = parseFloat (ticker['v'][1]);
-        let vwap = parseFloat (ticker['p'][1]);
+        }
+        const baseVolume = parseFloat (ticker['v'][1]);
+        const vwap = parseFloat (ticker['p'][1]);
         let quoteVolume = undefined;
-        if (baseVolume !== undefined && vwap !== undefined)
+        if (baseVolume !== undefined && vwap !== undefined) {
             quoteVolume = baseVolume * vwap;
-        let last = parseFloat (ticker['c'][0]);
+        }
+        const last = parseFloat (ticker['c'][0]);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -483,41 +489,46 @@ module.exports = class kraken extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let pairs = [];
-        for (let s = 0; s < this.symbols.length; s++) {
-            let symbol = this.symbols[s];
-            let market = this.markets[symbol];
-            if (market['active'])
-                if (!market['darkpool'])
-                    pairs.push (market['id']);
+        symbols = (symbols === undefined) ? this.symbols : symbols;
+        const marketIds = [];
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.markets[symbol];
+            if (market['active'] && !market['darkpool']) {
+                marketIds.push (market['id']);
+            }
         }
-        let filter = pairs.join (',');
-        let response = await this.publicGetTicker (this.extend ({
-            'pair': filter,
-        }, params));
-        let tickers = response['result'];
-        let ids = Object.keys (tickers);
-        let result = {};
+        const request = {
+            'pair': marketIds.join (','),
+        };
+        const response = await this.publicGetTicker (this.extend (request, params));
+        const tickers = response['result'];
+        const ids = Object.keys (tickers);
+        const result = {};
         for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
-            let ticker = tickers[id];
-            result[symbol] = this.parseTicker (ticker, market);
+            const id = ids[i];
+            const market = this.markets_by_id[id];
+            const symbol = market['symbol'];
+            const ticker = tickers[id];
+            if (this.inArray (symbol, symbols)) {
+                result[symbol] = this.parseTicker (ticker, market);
+            }
         }
         return result;
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let darkpool = symbol.indexOf ('.d') >= 0;
-        if (darkpool)
+        const darkpool = symbol.indexOf ('.d') >= 0;
+        if (darkpool) {
             throw new ExchangeError (this.id + ' does not provide a ticker for darkpool symbol ' + symbol);
-        let market = this.market (symbol);
-        let response = await this.publicGetTicker (this.extend ({
+        }
+        const market = this.market (symbol);
+        const request = {
             'pair': market['id'],
-        }, params));
-        let ticker = response['result'][market['id']];
+        };
+        const response = await this.publicGetTicker (this.extend (request, params));
+        const ticker = response['result'][market['id']];
         return this.parseTicker (ticker, market);
     }
 
@@ -534,15 +545,16 @@ module.exports = class kraken extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'pair': market['id'],
             'interval': this.timeframes[timeframe],
         };
-        if (since !== undefined)
+        if (since !== undefined) {
             request['since'] = parseInt ((since - 1) / 1000);
-        let response = await this.publicGetOHLC (this.extend (request, params));
-        let ohlcvs = response['result'][market['id']];
+        }
+        const response = await this.publicGetOHLC (this.extend (request, params));
+        const ohlcvs = response['result'][market['id']];
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
@@ -558,21 +570,28 @@ module.exports = class kraken extends Exchange {
     }
 
     parseLedgerEntry (item, currency = undefined) {
-        // { 'LTFK7F-N2CUX-PNY4SX': {   refid: "TSJTGT-DT7WN-GPPQMJ",
-        //                               time:  1520102320.555,
-        //                               type: "trade",
-        //                             aclass: "currency",
-        //                              asset: "XETH",
-        //                             amount: "0.1087194600",
-        //                                fee: "0.0000000000",
-        //                            balance: "0.2855851000"         }, ... }
+        //
+        //     {
+        //         'LTFK7F-N2CUX-PNY4SX': {
+        //             refid: "TSJTGT-DT7WN-GPPQMJ",
+        //             time:  1520102320.555,
+        //             type: "trade",
+        //             aclass: "currency",
+        //             asset: "XETH",
+        //             amount: "0.1087194600",
+        //             fee: "0.0000000000",
+        //             balance: "0.2855851000"
+        //         },
+        //         ...
+        //     }
+        //
         const id = this.safeString (item, 'id');
         let direction = undefined;
         const account = undefined;
         const referenceId = this.safeString (item, 'refid');
         const referenceAccount = undefined;
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
-        const code = this.safeCurrencyCode (item, 'asset', currency);
+        const code = this.safeCurrencyCode (this.safeString (item, 'asset'), currency);
         let amount = this.safeFloat (item, 'amount');
         if (amount < 0) {
             direction = 'out';
@@ -582,10 +601,8 @@ module.exports = class kraken extends Exchange {
         }
         const time = this.safeFloat (item, 'time');
         let timestamp = undefined;
-        let datetime = undefined;
         if (time !== undefined) {
             timestamp = parseInt (time * 1000);
-            datetime = this.iso8601 (timestamp);
         }
         const fee = {
             'cost': this.safeFloat (item, 'fee'),
@@ -593,6 +610,7 @@ module.exports = class kraken extends Exchange {
         };
         const before = undefined;
         const after = this.safeFloat (item, 'balance');
+        const status = 'ok';
         return {
             'info': item,
             'id': id,
@@ -605,8 +623,9 @@ module.exports = class kraken extends Exchange {
             'amount': amount,
             'before': before,
             'after': after,
+            'status': status,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'fee': fee,
         };
     }
@@ -635,8 +654,8 @@ module.exports = class kraken extends Exchange {
         //                                                balance: "0.0000051000"           },
         const result = this.safeValue (response, 'result', {});
         const ledger = this.safeValue (result, 'ledger', {});
-        let keys = Object.keys (ledger);
-        let items = [];
+        const keys = Object.keys (ledger);
+        const items = [];
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const value = ledger[key];
@@ -676,7 +695,7 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchLedgerEntry (id, code = undefined, params = {}) {
-        const items = await this.fetchLedgerEntrysByIds ([ id ], code, params);
+        const items = await this.fetchLedgerEntriesByIds ([ id ], code, params);
         return items[0];
     }
 
@@ -689,8 +708,8 @@ module.exports = class kraken extends Exchange {
         let id = undefined;
         let order = undefined;
         let fee = undefined;
-        let marketId = this.safeString (trade, 'pair');
-        let foundMarket = this.findMarketByAltnameOrId (marketId);
+        const marketId = this.safeString (trade, 'pair');
+        const foundMarket = this.findMarketByAltnameOrId (marketId);
         let symbol = undefined;
         if (foundMarket !== undefined) {
             market = foundMarket;
@@ -701,32 +720,34 @@ module.exports = class kraken extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        if ('ordertxid' in trade) {
+        if (Array.isArray (trade)) {
+            timestamp = parseInt (trade[2] * 1000);
+            side = (trade[3] === 's') ? 'sell' : 'buy';
+            type = (trade[4] === 'l') ? 'limit' : 'market';
+            price = parseFloat (trade[0]);
+            amount = parseFloat (trade[1]);
+            const tradeLength = trade.length;
+            if (tradeLength > 6) {
+                id = trade[6]; // artificially added as per #1794
+            }
+        } else if ('ordertxid' in trade) {
             order = trade['ordertxid'];
             id = this.safeString2 (trade, 'id', 'postxid');
-            timestamp = parseInt (trade['time'] * 1000);
+            timestamp = this.safeTimestamp (trade, 'time');
             side = trade['type'];
             type = trade['ordertype'];
             price = this.safeFloat (trade, 'price');
             amount = this.safeFloat (trade, 'vol');
             if ('fee' in trade) {
                 let currency = undefined;
-                if (market)
+                if (market) {
                     currency = market['quote'];
+                }
                 fee = {
                     'cost': this.safeFloat (trade, 'fee'),
                     'currency': currency,
                 };
             }
-        } else {
-            timestamp = parseInt (trade[2] * 1000);
-            side = (trade[3] === 's') ? 'sell' : 'buy';
-            type = (trade[4] === 'l') ? 'limit' : 'market';
-            price = parseFloat (trade[0]);
-            amount = parseFloat (trade[1]);
-            let tradeLength = trade.length;
-            if (tradeLength > 6)
-                id = trade[6]; // artificially added as per #1794
         }
         return {
             'id': id,
@@ -737,6 +758,7 @@ module.exports = class kraken extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': price * amount,
@@ -746,11 +768,27 @@ module.exports = class kraken extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let id = market['id'];
-        let response = await this.publicGetTrades (this.extend ({
+        const market = this.market (symbol);
+        const id = market['id'];
+        const request = {
             'pair': id,
-        }, params));
+        };
+        // https://support.kraken.com/hc/en-us/articles/218198197-How-to-pull-all-trade-data-using-the-Kraken-REST-API
+        // https://github.com/ccxt/ccxt/issues/5677
+        if (since !== undefined) {
+            // php does not format it properly
+            // therefore we use string concatenation here
+            request['since'] = since * 1e6;
+            request['since'] = since.toString () + '000000'; // expected to be in nanoseconds
+        }
+        // https://github.com/ccxt/ccxt/issues/5698
+        if (limit !== undefined && limit !== 1000) {
+            const fetchTradesWarning = this.safeValue (this.options, 'fetchTradesWarning', true);
+            if (fetchTradesWarning) {
+                throw new ExchangeError (this.id + ' fetchTrades() cannot serve ' + limit.toString () + " trades without breaking the pagination, see https://github.com/ccxt/ccxt/issues/5698 for more details. Set exchange.options['fetchTradesWarning'] to acknowledge this warning and silence it.");
+            }
+        }
+        const response = await this.publicGetTrades (this.extend (request, params));
         //
         //     {
         //         "error": [],
@@ -762,46 +800,29 @@ module.exports = class kraken extends Exchange {
         //         }
         //     }
         //
-        let result = response['result'];
-        let trades = result[id];
+        const result = response['result'];
+        const trades = result[id];
         // trades is a sorted array: last (most recent trade) goes last
-        let length = trades.length;
-        if (length <= 0)
+        const length = trades.length;
+        if (length <= 0) {
             return [];
-        let lastTrade = trades[length - 1];
-        let lastTradeId = this.safeString (result, 'last');
+        }
+        const lastTrade = trades[length - 1];
+        const lastTradeId = this.safeString (result, 'last');
         lastTrade.push (lastTradeId);
         return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        let response = await this.privatePostBalance (params);
-        let balances = this.safeValue (response, 'result');
-        if (balances === undefined)
-            throw new ExchangeNotAvailable (this.id + ' fetchBalance failed due to a malformed response ' + this.json (response));
-        let result = { 'info': balances };
-        let currencies = Object.keys (balances);
-        for (let c = 0; c < currencies.length; c++) {
-            let currency = currencies[c];
-            let code = currency;
-            if (code in this.currencies_by_id) {
-                code = this.currencies_by_id[code]['code'];
-            } else {
-                // X-ISO4217-A3 standard currency codes
-                if (code[0] === 'X') {
-                    code = code.slice (1);
-                } else if (code[0] === 'Z') {
-                    code = code.slice (1);
-                }
-                code = this.commonCurrencyCode (code);
-            }
-            let balance = parseFloat (balances[currency]);
-            let account = {
-                'free': balance,
-                'used': 0.0,
-                'total': balance,
-            };
+        const response = await this.privatePostBalance (params);
+        const balances = this.safeValue (response, 'result', {});
+        const result = { 'info': balances };
+        const currencyIds = Object.keys (balances);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeFloat (balances, currencyId);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -809,31 +830,46 @@ module.exports = class kraken extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let order = {
+        const market = this.market (symbol);
+        const request = {
             'pair': market['id'],
             'type': side,
             'ordertype': type,
             'volume': this.amountToPrecision (symbol, amount),
         };
-        let priceIsDefined = (price !== undefined);
-        let marketOrder = (type === 'market');
-        let limitOrder = (type === 'limit');
-        let shouldIncludePrice = limitOrder || (!marketOrder && priceIsDefined);
+        const priceIsDefined = (price !== undefined);
+        const marketOrder = (type === 'market');
+        const limitOrder = (type === 'limit');
+        const shouldIncludePrice = limitOrder || (!marketOrder && priceIsDefined);
         if (shouldIncludePrice) {
-            order['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (symbol, price);
         }
-        let response = await this.privatePostAddOrder (this.extend (order, params));
+        const response = await this.privatePostAddOrder (this.extend (request, params));
         let id = this.safeValue (response['result'], 'txid');
         if (id !== undefined) {
             if (Array.isArray (id)) {
-                let length = id.length;
+                const length = id.length;
                 id = (length > 1) ? id : id[0];
             }
         }
         return {
-            'info': response,
             'id': id,
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'average': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'status': undefined,
+            'fee': undefined,
+            'trades': undefined,
         };
     }
 
@@ -854,7 +890,7 @@ module.exports = class kraken extends Exchange {
         if (market !== undefined) {
             return market;
         }
-        let baseIdStart = 0;
+        const baseIdStart = 0;
         let baseIdEnd = 3;
         let quoteIdStart = 3;
         let quoteIdEnd = 6;
@@ -867,23 +903,11 @@ module.exports = class kraken extends Exchange {
             quoteIdStart = 4;
             quoteIdEnd = 7;
         }
-        let baseId = id.slice (baseIdStart, baseIdEnd);
-        let quoteId = id.slice (quoteIdStart, quoteIdEnd);
-        let base = baseId;
-        let quote = quoteId;
-        if (base.length > 3) {
-            if ((base[0] === 'X') || (base[0] === 'Z')) {
-                base = base.slice (1);
-            }
-        }
-        if (quote.length > 3) {
-            if ((quote[0] === 'X') || (quote[0] === 'Z')) {
-                quote = quote.slice (1);
-            }
-        }
-        base = this.commonCurrencyCode (base);
-        quote = this.commonCurrencyCode (quote);
-        let symbol = base + '/' + quote;
+        const baseId = id.slice (baseIdStart, baseIdEnd);
+        const quoteId = id.slice (quoteIdStart, quoteIdEnd);
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const symbol = base + '/' + quote;
         market = {
             'symbol': symbol,
             'base': base,
@@ -907,11 +931,11 @@ module.exports = class kraken extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let description = order['descr'];
-        let side = description['type'];
-        let type = description['ordertype'];
-        let marketId = this.safeString (description, 'pair');
-        let foundMarket = this.findMarketByAltnameOrId (marketId);
+        const description = this.safeValue (order, 'descr', {});
+        const side = this.safeString (description, 'type');
+        const type = this.safeString (description, 'ordertype');
+        const marketId = this.safeString (description, 'pair');
+        const foundMarket = this.findMarketByAltnameOrId (marketId);
         let symbol = undefined;
         if (foundMarket !== undefined) {
             market = foundMarket;
@@ -919,23 +943,25 @@ module.exports = class kraken extends Exchange {
             // delisted market ids go here
             market = this.getDelistedMarketById (marketId);
         }
-        let timestamp = parseInt (order['opentm'] * 1000);
-        let amount = this.safeFloat (order, 'vol');
-        let filled = this.safeFloat (order, 'vol_exec');
-        let remaining = amount - filled;
+        const timestamp = this.safeTimestamp (order, 'opentm');
+        const amount = this.safeFloat (order, 'vol');
+        const filled = this.safeFloat (order, 'vol_exec');
+        const remaining = amount - filled;
         let fee = undefined;
-        let cost = this.safeFloat (order, 'cost');
+        const cost = this.safeFloat (order, 'cost');
         let price = this.safeFloat (description, 'price');
-        if ((price === undefined) || (price === 0))
+        if ((price === undefined) || (price === 0)) {
             price = this.safeFloat (description, 'price2');
-        if ((price === undefined) || (price === 0))
+        }
+        if ((price === undefined) || (price === 0)) {
             price = this.safeFloat (order, 'price', price);
-        let average = this.safeFloat (order, 'price');
+        }
+        const average = this.safeFloat (order, 'price');
         if (market !== undefined) {
             symbol = market['symbol'];
             if ('fee' in order) {
-                let flags = order['oflags'];
-                let feeCost = this.safeFloat (order, 'fee');
+                const flags = order['oflags'];
+                const feeCost = this.safeFloat (order, 'fee');
                 fee = {
                     'cost': feeCost,
                     'rate': undefined,
@@ -948,8 +974,9 @@ module.exports = class kraken extends Exchange {
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const id = this.safeString (order, 'id');
         return {
-            'id': order['id'],
+            'id': id,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -969,15 +996,19 @@ module.exports = class kraken extends Exchange {
         };
     }
 
-    parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
-        let result = [];
-        let ids = Object.keys (orders);
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let order = this.extend ({ 'id': id }, orders[id]);
-            result.push (this.parseOrder (order, market));
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
+        const result = [];
+        const ids = Object.keys (orders);
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
         }
-        return this.filterBySinceLimit (result, since, limit);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const order = this.extend ({ 'id': id }, orders[id]);
+            result.push (this.extend (this.parseOrder (order, market), params));
+        }
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -1012,16 +1043,17 @@ module.exports = class kraken extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             // 'type': 'all', // any position, closed position, closing position, no position
             // 'trades': false, // whether or not to include trades related to position in output
             // 'start': 1234567890, // starting unix timestamp or trade tx id of results (exclusive)
             // 'end': 1234567890, // ending unix timestamp or trade tx id of results (inclusive)
             // 'ofs' = result offset
         };
-        if (since !== undefined)
+        if (since !== undefined) {
             request['start'] = parseInt (since / 1000);
-        let response = await this.privatePostTradesHistory (this.extend (request, params));
+        }
+        const response = await this.privatePostTradesHistory (this.extend (request, params));
         //
         //     {
         //         "error": [],
@@ -1047,14 +1079,15 @@ module.exports = class kraken extends Exchange {
         //         },
         //     }
         //
-        let trades = response['result']['trades'];
-        let ids = Object.keys (trades);
+        const trades = response['result']['trades'];
+        const ids = Object.keys (trades);
         for (let i = 0; i < ids.length; i++) {
             trades[ids[i]]['id'] = ids[i];
         }
-        let result = this.parseTrades (trades, undefined, since, limit);
-        if (symbol === undefined)
+        const result = this.parseTrades (trades, undefined, since, limit);
+        if (symbol === undefined) {
             return result;
+        }
         return this.filterBySymbol (result, symbol);
     }
 
@@ -1066,9 +1099,11 @@ module.exports = class kraken extends Exchange {
                 'txid': id,
             }, params));
         } catch (e) {
-            if (this.last_http_response)
-                if (this.last_http_response.indexOf ('EOrder:Unknown order') >= 0)
+            if (this.last_http_response) {
+                if (this.last_http_response.indexOf ('EOrder:Unknown order') >= 0) {
                     throw new OrderNotFound (this.id + ' cancelOrder() error ' + this.last_http_response);
+                }
+            }
             throw e;
         }
         return response;
@@ -1076,34 +1111,39 @@ module.exports = class kraken extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {};
-        if (since !== undefined)
+        const request = {};
+        if (since !== undefined) {
             request['start'] = parseInt (since / 1000);
-        let response = await this.privatePostOpenOrders (this.extend (request, params));
-        let orders = this.parseOrders (response['result']['open'], undefined, since, limit);
-        if (symbol === undefined)
+        }
+        const response = await this.privatePostOpenOrders (this.extend (request, params));
+        const orders = this.parseOrders (response['result']['open'], undefined, since, limit);
+        if (symbol === undefined) {
             return orders;
+        }
         return this.filterBySymbol (orders, symbol);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {};
-        if (since !== undefined)
+        const request = {};
+        if (since !== undefined) {
             request['start'] = parseInt (since / 1000);
-        let response = await this.privatePostClosedOrders (this.extend (request, params));
-        let orders = this.parseOrders (response['result']['closed'], undefined, since, limit);
-        if (symbol === undefined)
+        }
+        const response = await this.privatePostClosedOrders (this.extend (request, params));
+        const orders = this.parseOrders (response['result']['closed'], undefined, since, limit);
+        if (symbol === undefined) {
             return orders;
+        }
         return this.filterBySymbol (orders, symbol);
     }
 
     async fetchDepositMethods (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let response = await this.privatePostDepositMethods (this.extend ({
+        const currency = this.currency (code);
+        const request = {
             'asset': currency['id'],
-        }, params));
+        };
+        const response = await this.privatePostDepositMethods (this.extend (request, params));
         return response['result'];
     }
 
@@ -1113,7 +1153,7 @@ module.exports = class kraken extends Exchange {
             'Initial': 'pending',
             'Pending': 'pending',
             'Success': 'ok',
-            'Settled': 'ok',
+            'Settled': 'pending',
             'Failure': 'failed',
             'Partial': 'ok',
         };
@@ -1150,18 +1190,9 @@ module.exports = class kraken extends Exchange {
         //
         const id = this.safeString (transaction, 'refid');
         const txid = this.safeString (transaction, 'txid');
-        let timestamp = this.safeInteger (transaction, 'time');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
-        let code = undefined;
-        let currencyId = this.safeString (transaction, 'asset');
-        currency = this.safeValue (this.currencies_by_id, currencyId);
-        if (currency !== undefined) {
-            code = currency['code'];
-        } else {
-            code = this.commonCurrencyCode (currencyId);
-        }
+        const timestamp = this.safeTimestamp (transaction, 'time');
+        const currencyId = this.safeString (transaction, 'asset');
+        const code = this.safeCurrencyCode (currencyId, currency);
         const address = this.safeString (transaction, 'info');
         const amount = this.safeFloat (transaction, 'amount');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
@@ -1258,11 +1289,11 @@ module.exports = class kraken extends Exchange {
     }
 
     async createDepositAddress (code, params = {}) {
-        let request = {
+        const request = {
             'new': 'true',
         };
-        let response = await this.fetchDepositAddress (code, this.extend (request, params));
-        let address = this.safeString (response, 'address');
+        const response = await this.fetchDepositAddress (code, this.extend (request, params));
+        const address = this.safeString (response, 'address');
         this.checkAddress (address);
         return {
             'currency': code,
@@ -1273,30 +1304,32 @@ module.exports = class kraken extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
+        const currency = this.currency (code);
         // eslint-disable-next-line quotes
         let method = this.safeString (params, 'method');
         if (method === undefined) {
             if (this.options['cacheDepositMethodsOnFetchDepositAddress']) {
                 // cache depositMethods
-                if (!(code in this.options['depositMethods']))
+                if (!(code in this.options['depositMethods'])) {
                     this.options['depositMethods'][code] = await this.fetchDepositMethods (code);
+                }
                 method = this.options['depositMethods'][code][0]['method'];
             } else {
                 throw new ExchangeError (this.id + ' fetchDepositAddress() requires an extra `method` parameter. Use fetchDepositMethods ("' + code + '") to get a list of available deposit methods or enable the exchange property .options["cacheDepositMethodsOnFetchDepositAddress"] = true');
             }
         }
-        let request = {
+        const request = {
             'asset': currency['id'],
             'method': method,
         };
-        let response = await this.privatePostDepositAddresses (this.extend (request, params)); // overwrite methods
-        let result = response['result'];
-        let numResults = result.length;
-        if (numResults < 1)
+        const response = await this.privatePostDepositAddresses (this.extend (request, params)); // overwrite methods
+        const result = response['result'];
+        const numResults = result.length;
+        if (numResults < 1) {
             throw new InvalidAddress (this.id + ' privatePostDepositAddresses() returned no addresses');
-        let address = this.safeString (result[0], 'address');
-        let tag = this.safeString2 (result[0], 'tag', 'memo');
+        }
+        const address = this.safeString (result[0], 'address');
+        const tag = this.safeString2 (result[0], 'tag', 'memo');
         this.checkAddress (address);
         return {
             'currency': code,
@@ -1310,12 +1343,13 @@ module.exports = class kraken extends Exchange {
         this.checkAddress (address);
         if ('key' in params) {
             await this.loadMarkets ();
-            let currency = this.currency (code);
-            let response = await this.privatePostWithdraw (this.extend ({
+            const currency = this.currency (code);
+            const request = {
                 'asset': currency['id'],
                 'amount': amount,
                 // 'address': address, // they don't allow withdrawals to direct addresses
-            }, params));
+            };
+            const response = await this.privatePostWithdraw (this.extend (request, params));
             return {
                 'info': response,
                 'id': response['result'],
@@ -1327,18 +1361,19 @@ module.exports = class kraken extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
-            if (Object.keys (params).length)
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString ();
+            const nonce = this.nonce ().toString ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
-            let auth = this.encode (nonce + body);
-            let hash = this.hash (auth, 'sha256', 'binary');
-            let binary = this.stringToBinary (this.encode (url));
-            let binhash = this.binaryConcat (binary, hash);
-            let secret = this.base64ToBinary (this.secret);
-            let signature = this.hmac (binhash, secret, 'sha512', 'base64');
+            const auth = this.encode (nonce + body);
+            const hash = this.hash (auth, 'sha256', 'binary');
+            const binary = this.stringToBinary (this.encode (url));
+            const binhash = this.binaryConcat (binary, hash);
+            const secret = this.base64ToBinary (this.secret);
+            const signature = this.hmac (binhash, secret, 'sha512', 'base64');
             headers = {
                 'API-Key': this.apiKey,
                 'API-Sign': this.decode (signature),
@@ -1355,26 +1390,32 @@ module.exports = class kraken extends Exchange {
         return this.milliseconds ();
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (code === 520) {
             throw new ExchangeNotAvailable (this.id + ' ' + code.toString () + ' ' + reason);
         }
-        if (body.indexOf ('Invalid order') >= 0)
+        // todo: rewrite this for "broad" exceptions matching
+        if (body.indexOf ('Invalid order') >= 0) {
             throw new InvalidOrder (this.id + ' ' + body);
-        if (body.indexOf ('Invalid nonce') >= 0)
+        }
+        if (body.indexOf ('Invalid nonce') >= 0) {
             throw new InvalidNonce (this.id + ' ' + body);
-        if (body.indexOf ('Insufficient funds') >= 0)
+        }
+        if (body.indexOf ('Insufficient funds') >= 0) {
             throw new InsufficientFunds (this.id + ' ' + body);
-        if (body.indexOf ('Cancel pending') >= 0)
+        }
+        if (body.indexOf ('Cancel pending') >= 0) {
             throw new CancelPending (this.id + ' ' + body);
-        if (body.indexOf ('Invalid arguments:volume') >= 0)
+        }
+        if (body.indexOf ('Invalid arguments:volume') >= 0) {
             throw new InvalidOrder (this.id + ' ' + body);
+        }
         if (body[0] === '{') {
             if (typeof response !== 'string') {
                 if ('error' in response) {
-                    let numErrors = response['error'].length;
+                    const numErrors = response['error'].length;
                     if (numErrors) {
-                        let message = this.id + ' ' + this.json (response);
+                        const message = this.id + ' ' + this.json (response);
                         for (let i = 0; i < response['error'].length; i++) {
                             if (response['error'][i] in this.exceptions) {
                                 throw new this.exceptions[response['error'][i]] (message);

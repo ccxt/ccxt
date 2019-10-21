@@ -56,7 +56,7 @@ module.exports = async (exchange, symbol, balance) => {
     }
 
     const { base, quote } = market
-    if (balance[quote].total > 0) {
+    if (balance[quote] !== undefined && balance[quote].total > 0) {
         log ('balance is not empty, will not test order creation')
         return
     }
