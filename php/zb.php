@@ -269,6 +269,9 @@ class zb extends Exchange {
         $marketFieldName = $this->get_market_field_name ();
         $request = array();
         $request[$marketFieldName] = $market['id'];
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
         $response = $this->publicGetDepth (array_merge ($request, $params));
         return $this->parse_order_book($response);
     }

@@ -112,6 +112,7 @@ class yobit (Exchange):
                 'CPC': 'Capricoin',
                 'CS': 'CryptoSpots',
                 'DCT': 'Discount',
+                'DFT': 'DraftCoin',
                 'DGD': 'DarkGoldCoin',
                 'DIRT': 'DIRTY',
                 'DROP': 'FaucetCoin',
@@ -157,6 +158,7 @@ class yobit (Exchange):
                 'RCN': 'RCoin',
                 'REP': 'Republicoin',
                 'RUR': 'RUB',
+                'TTC': 'TittieCoin',
                 'XIN': 'XINCoin',
             },
             'options': {

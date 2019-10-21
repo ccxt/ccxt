@@ -814,8 +814,14 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostTransfer (request);
-        const address = this.safeString (response, 'result');
-        const tag = undefined; // todo: figure this out
+        //
+        //     {
+        //         "result":"{\"account\":\"PERSONALLY OMITTED\",\"memo\":\"PERSONALLY OMITTED\"}","cmd":"transfer/transferIn"
+        //     }
+        //
+        const result = JSON.parse (this.safeString (response, 'result'));
+        const address = this.safeString (result, 'account');
+        const tag = this.safeString (result, 'memo');
         return {
             'currency': code,
             'address': address,

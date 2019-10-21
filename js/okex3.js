@@ -90,6 +90,7 @@ module.exports = class okex3 extends Exchange {
                         'orders/{order_id}',
                         'orders/{client_oid}',
                         'fills',
+                        'algo',
                         // public
                         'instruments',
                         'instruments/{instrument_id}/book',
@@ -99,10 +100,12 @@ module.exports = class okex3 extends Exchange {
                         'instruments/{instrument_id}/candles',
                     ],
                     'post': [
+                        'order_algo',
                         'orders',
                         'batch_orders',
                         'cancel_orders/{order_id}',
                         'cancel_orders/{client_oid}',
+                        'cancel_batch_algos',
                         'cancel_batch_orders',
                     ],
                 },
@@ -243,12 +246,12 @@ module.exports = class okex3 extends Exchange {
                     'maker': 0.0010,
                 },
                 'futures': {
-                    'taker': 0.0030,
-                    'maker': 0.0020,
+                    'taker': 0.0005,
+                    'maker': 0.0002,
                 },
                 'swap': {
-                    'taker': 0.0070,
-                    'maker': 0.0020,
+                    'taker': 0.00075,
+                    'maker': 0.00020,
                 },
             },
             'requiredCredentials': {
@@ -935,7 +938,11 @@ module.exports = class okex3 extends Exchange {
         if (feeCost !== undefined) {
             const feeCurrency = undefined;
             fee = {
-                'cost': feeCost,
+                // fee is either a positive number (invitation rebate)
+                // or a negative number (transaction fee deduction)
+                // therefore we need to invert the fee
+                // more about it https://github.com/ccxt/ccxt/issues/5909
+                'cost': -feeCost,
                 'currency': feeCurrency,
             };
         }
@@ -2203,6 +2210,7 @@ module.exports = class okex3 extends Exchange {
             id = withdrawalId;
             address = addressTo;
         } else {
+            id = this.safeString (transaction, 'payment_id');
             type = 'deposit';
             address = addressTo;
         }

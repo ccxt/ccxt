@@ -94,7 +94,7 @@ class rightbtc (Exchange):
                     # 0.01 ETP
                     # 0.001 ETH
                     # 0.1 BITCNY
-                    'maker': 0.2 / 100,
+                    'maker': 0.1 / 100,
                     'taker': 0.2 / 100,
                 },
                 'funding': {
@@ -117,11 +117,11 @@ class rightbtc (Exchange):
                         # 'BitCNY': n => 0.1 + n * (1 / 100),
                         # 'MTX': n => 1 + n * (1 / 100),
                         'ETP': 0.01,
-                        'BTC': 0.001,
-                        'ETH': 0.01,
+                        'BTC': 0.0005,
+                        'ETH': 0.005,
                         'ETC': 0.01,
                         'STORJ': 3,
-                        'LTC': 0.001,
+                        'LTC': 0.01,
                         'ZEC': 0.001,
                         'BCC': 0.001,
                         'XRB': 0,

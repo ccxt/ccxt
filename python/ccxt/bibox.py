@@ -13,6 +13,7 @@ except NameError:
     basestring = str  # Python 2
 import hashlib
 import math
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -764,8 +765,14 @@ class bibox (Exchange):
             }, params),
         }
         response = self.privatePostTransfer(request)
-        address = self.safe_string(response, 'result')
-        tag = None  # todo: figure self out
+        #
+        #     {
+        #         "result":"{\"account\":\"PERSONALLY OMITTED\",\"memo\":\"PERSONALLY OMITTED\"}","cmd":"transfer/transferIn"
+        #     }
+        #
+        result = json.loads(self.safe_string(response, 'result'))
+        address = self.safe_string(result, 'account')
+        tag = self.safe_string(result, 'memo')
         return {
             'currency': code,
             'address': address,

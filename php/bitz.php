@@ -86,8 +86,8 @@ class bitz extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.001,
-                    'taker' => 0.001,
+                    'maker' => 0.002,
+                    'taker' => 0.002,
                 ),
                 'funding' => array (
                     'withdraw' => array (
@@ -162,6 +162,8 @@ class bitz extends Exchange {
                 'BOX' => 'BOX Token',
                 'XRB' => 'NANO',
                 'PXC' => 'Pixiecoin',
+                'VTC' => 'VoteCoin',
+                'TTC' => 'TimesChain',
             ),
             'exceptions' => array (
                 // '200' => Success

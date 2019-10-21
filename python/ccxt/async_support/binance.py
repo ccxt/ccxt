@@ -682,6 +682,8 @@ class binance (Exchange):
                 if (cost is not None) and (filled is not None):
                     if (cost > 0) and (filled > 0):
                         price = cost / filled
+                        if self.options['parseOrderToPrecision']:
+                            price = float(self.price_to_precision(symbol, price))
         side = self.safe_string_lower(order, 'side')
         fee = None
         trades = None
@@ -702,6 +704,8 @@ class binance (Exchange):
         if cost is not None:
             if filled:
                 average = cost / filled
+                if self.options['parseOrderToPrecision']:
+                    average = float(self.amount_to_precision(symbol, average))
             if self.options['parseOrderToPrecision']:
                 cost = float(self.cost_to_precision(symbol, cost))
         return {
@@ -883,7 +887,7 @@ class binance (Exchange):
         #             "time": 1499865549590,
         #             "isBuyer": True,
         #             "isMaker": False,
-        #             "isBestMatch": True
+        #             "isBestMatch": True,
         #         }
         #     ]
         #

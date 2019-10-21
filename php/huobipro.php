@@ -446,7 +446,7 @@ class huobipro extends Exchange {
         if ($filledPoints !== null) {
             if (($feeCost === null) || ($feeCost === 0.0)) {
                 $feeCost = $filledPoints;
-                $feeCurrency = $this->safe_currency_code('HBPOINT');
+                $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee-deduct-currency'));
             }
         }
         if ($feeCost !== null) {

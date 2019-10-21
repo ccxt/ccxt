@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1265'
+__version__ = '1.18.1306'
 
 # -----------------------------------------------------------------------------
 
@@ -767,12 +767,7 @@ class Exchange(object):
 
     @staticmethod
     def filter_by(array, key, value=None):
-        if value:
-            grouped = Exchange.group_by(array, key)
-            if value in grouped:
-                return grouped[value]
-            return []
-        return array
+        return list(filter(lambda x: x[key] == value, array))
 
     @staticmethod
     def filterBy(array, key, value=None):
@@ -1533,18 +1528,20 @@ class Exchange(object):
     def parse_timeframe(timeframe):
         amount = int(timeframe[0:-1])
         unit = timeframe[-1]
-        if 'y' in unit:
+        if 'y' == unit:
             scale = 60 * 60 * 24 * 365
-        elif 'M' in unit:
+        elif 'M' == unit:
             scale = 60 * 60 * 24 * 30
-        elif 'w' in unit:
+        elif 'w' == unit:
             scale = 60 * 60 * 24 * 7
-        elif 'd' in unit:
+        elif 'd' == unit:
             scale = 60 * 60 * 24
-        elif 'h' in unit:
+        elif 'h' == unit:
             scale = 60 * 60
+        elif 'm' == unit:
+            scale = 60
         else:
-            scale = 60  # 1m by default
+            raise NotSupported('timeframe unit {} is not supported'.format(unit))
         return amount * scale
 
     @staticmethod

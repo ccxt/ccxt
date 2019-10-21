@@ -122,7 +122,7 @@ class crex24 (Exchange):
                     'tierBased': True,
                     'percentage': True,
                     'taker': 0.001,
-                    'maker': -0.01,
+                    'maker': -0.0001,
                 },
                 # should be deleted, these are outdated and inaccurate
                 'funding': {

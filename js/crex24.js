@@ -108,7 +108,7 @@ module.exports = class crex24 extends Exchange {
                     'tierBased': true,
                     'percentage': true,
                     'taker': 0.001,
-                    'maker': -0.01,
+                    'maker': -0.0001,
                 },
                 // should be deleted, these are outdated and inaccurate
                 'funding': {

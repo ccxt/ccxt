@@ -34,7 +34,7 @@ use kornrunner\Keccak;
 use kornrunner\Solidity;
 use Elliptic\EC;
 
-$version = '1.18.1265';
+$version = '1.18.1306';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -53,7 +53,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.1265';
+    const VERSION = '1.18.1306';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -106,6 +106,7 @@ class Exchange {
         'bitkk',
         'bitlish',
         'bitmart',
+        'bitmax',
         'bitmex',
         'bitso',
         'bitstamp',
@@ -348,8 +349,10 @@ class Exchange {
             $scale = 60 * 60 * 24;
         } elseif ($unit === 'h') {
             $scale = 60 * 60;
-        } else {
+        } elseif ($unit === 'm') {
             $scale = 60;
+        } else {
+            throw new NotSupported('timeframe unit ' . $unit . ' is not supported');
         }
         return $amount * $scale;
     }
@@ -442,14 +445,11 @@ class Exchange {
     }
 
     public function filter_by($array, $key, $value = null) {
-        if ($value) {
-            $grouped = static::group_by($array, $key);
-            if (is_array($grouped) && array_key_exists($value, $grouped)) {
-                return $grouped[$value];
-            }
-            return array();
+        $grouped = static::group_by($array, $key);
+        if (is_array($grouped) && array_key_exists($value, $grouped)) {
+            return $grouped[$value];
         }
-        return $array;
+        return array();
     }
 
     public static function group_by($array, $key) {
@@ -2738,6 +2738,10 @@ class Exchange {
         } else {
             throw new ExchangeError($this->id . ' requires a non-empty value in $this->twofa property');
         }
+    }
+
+    public function soliditySha3 ($array) {
+        return @Solidity::sha3 (... $array);
     }
 
     public static function totp($key) {
