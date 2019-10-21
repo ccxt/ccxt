@@ -791,9 +791,9 @@ module.exports = class huobipro extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
-
-        let requestAmount = ((type === 'market') && (side === 'buy')) ? this.valueToPrecision (symbol, amount) : this.amountToPrecision (symbol, amount);
-
+        // market buy order need to use the value precision.
+        // market order buy amount means the amount of base currency. amount-precision is applied on quote currency
+        const requestAmount = ((type === 'market') && (side === 'buy')) ? this.valueToPrecision (symbol, amount) : this.amountToPrecision (symbol, amount);
         const request = {
             'account-id': this.accounts[0]['id'],
             'amount': requestAmount,
