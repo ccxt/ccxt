@@ -48,7 +48,7 @@ $error_hierarchy = array (
 if (!function_exists('ccxt\error_factory')) {
     function error_factory($array, $parent) {
         foreach ($array as $error => $subclasses) {
-            if (!class_exists($error)) {
+            if (!class_exists('ccxt\\'.$error, false)) {
                 eval("namespace ccxt; class $error extends $parent {};");
                 error_factory($subclasses, $error);
             }
@@ -56,7 +56,7 @@ if (!function_exists('ccxt\error_factory')) {
     }
 }
 
-if (!class_exists('ccxt\BaseError')) {
+if (!class_exists('ccxt\BaseError', false)) {
     class BaseError extends Exception {};
 }
 
