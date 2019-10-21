@@ -177,22 +177,21 @@ module.exports = class coinsbit extends Exchange {
         const market = this.market (symbol);
         const method = 'privatePostOrderNew';
         const request = {
-            'pair': market['id'],
+            'side': side,
+            'market': market['id'],
             'amount': this.amountToPrecision (symbol, amount),
             'price': this.priceToPrecision (symbol, price),
         };
         const response = await this[method] (this.extend (request, params));
-        const order = this.parseOrder (response, market);
-        return this.extend (order, {
-            'type': type,
-        });
+        const order = this.parseNewOrder (response.result, market);
+        return order;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'market': this.marketId (symbol),
-            'order_id': parseInt (id),
+            'orderId': parseInt (id),
         };
         return await this.privatePostOrderCancel (this.extend (request, params));
     }
@@ -287,6 +286,36 @@ module.exports = class coinsbit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    parseNewOrder (order, market = undefined) {
+        const marketName = this.safeString (order, 'market');
+        market = market || this.findMarket (marketName);
+        const symbol = this.safeString (market, 'symbol');
+        let timestamp = this.safeString (order, 'timestamp');
+        if (timestamp !== undefined) {
+            timestamp = parseInt (timestamp) * 1000;
+        }
+        const amount = this.safeFloat (order, 'amount');
+        const remaining = this.safeFloat (order, 'left');
+        const fillAmount = amount - remaining;
+        return {
+            'id': this.safeString (order, 'orderId'),
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
+            'status': undefined,
+            'symbol': symbol,
+            'type': this.safeString (order, 'type'),
+            'side': this.safeString (order, 'side'),
+            'price': this.safeFloat (order, 'price'),
+            'cost': this.safeFloat (order, 'dealFee', 0.0),
+            'amount': amount,
+            'filled': fillAmount,
+            'remaining': remaining,
+            'fee': this.safeFloat (order, 'dealFee'),
+            'info': order,
+        };
+    }
+
     parseOrder (order, market = undefined) {
         const marketName = this.safeString (order, 'market');
         market = market || this.findMarket (marketName);
@@ -308,11 +337,11 @@ module.exports = class coinsbit extends Exchange {
             'type': this.safeString (order, 'type'),
             'side': this.safeString (order, 'side'),
             'price': this.safeFloat (order, 'price'),
-            'cost': this.safeFloat (order, 'dealFee', 0.0) + this.safeFloat (order, 'takerFee', 0.0),
+            'cost': this.safeFloat (order, 'dealFee', 0.0),
             'amount': amount,
             'filled': fillAmount,
             'remaining': remaining,
-            'fee': this.safeFloat (order, 'fee'),
+            'fee': this.safeFloat (order, 'dealFee'),
             'info': order,
         };
     }
