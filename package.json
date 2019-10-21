@@ -44,7 +44,8 @@
     "pandoc-doc-install": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/install.rst wiki/Install.md",
     "pandoc-doc-exchanges": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges.rst wiki/Exchange-Markets.md",
     "pandoc-doc-exchanges-by-country": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges-by-country.rst wiki/Exchange-Markets-By-Country.md",
-    "postinstall": "node postinstall"
+    "postinstall": "node postinstall",
+    "tokens-test": "npm run export-exchanges && npm run check-js-syntax && npm run transpile"
   },
   "types": "./ccxt.d.ts",
   "dependencies": {},
@@ -60,7 +61,7 @@
     "eslint-plugin-import": "2.16.0",
     "istanbul": "0.4.5",
     "mocha": "5.2.0",
-    "nyc": "13.3.0",
+    "nyc": "^14.1.1",
     "ololog": "1.1.121"
   },
   "author": {
@@ -474,7 +475,10 @@
     "adara.io",
     "Adara",
     "binance.us",
-    "Binance US"
+    "Binance US",
+    "tokens.net",
+    "Tokens",
+    "Tokens.net"
   ],
   "collective": {
     "type": "opencollective",

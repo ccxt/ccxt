@@ -202,6 +202,7 @@ class Exchange {
         'therock',
         'tidebit',
         'tidex',
+        'tokens',
         'upbit',
         'vaultoro',
         'vbtc',
