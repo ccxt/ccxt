@@ -813,17 +813,9 @@ class huobipro (Exchange):
         self.load_markets()
         self.load_accounts()
         market = self.market(symbol)
-
-        # market buy order need to use the value precision.
-        # market order buy amount means the cost of base currency. amount-precision is applied on quote currency
-        if (type == 'market') and (side == 'buy'):
-            request_amount = self.cost_to_precision(symbol, amount)
-        else:
-            request_amount = self.amount_to_precision(symbol, amount)
-
         request = {
             'account-id': self.accounts[0]['id'],
-            'amount': request_amount,
+            'amount': self.amount_to_precision(symbol, amount),
             'symbol': market['id'],
             'type': side + '-' + type,
         }
