@@ -794,7 +794,7 @@ module.exports = class huobipro extends Exchange {
 
         let requestAmount = ((type === 'market') && (side === 'buy')) ? this.valueToPrecision (symbol, amount) : this.amountToPrecision (symbol, amount);
 
-        let request = {
+        const request = {
             'account-id': this.accounts[0]['id'],
             'amount': requestAmount,
             'symbol': market['id'],
