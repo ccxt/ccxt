@@ -490,6 +490,10 @@ module.exports = class coinex extends Exchange {
         await this.loadMarkets ();
         const method = 'privatePostOrder' + this.capitalize (type);
         const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'type': side,
+        };
         amount = parseFloat (amount);
         // for market buy it requires the amount of quote currency to spend
         if ((type === 'market') && (side === 'buy')) {
@@ -498,19 +502,14 @@ module.exports = class coinex extends Exchange {
                     throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
                 } else {
                     price = parseFloat (price);
-                    amount = this.costToPrecision (symbol, amount * price);
+                    request['amount'] = this.costToPrecision (symbol, amount * price);
                 }
             } else {
-                amount = this.costToPrecision (symbol, amount);
+                request['amount'] = this.costToPrecision (symbol, amount);
             }
         } else {
-            amount = this.amountToPrecision (symbol, amount);
+            request['amount'] = this.amountToPrecision (symbol, amount);
         }
-        const request = {
-            'market': market['id'],
-            'amount': amount,
-            'type': side,
-        };
         if ((type === 'limit') || (type === 'ioc')) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
