@@ -741,9 +741,9 @@ class huobipro (Exchange):
         market = self.market(symbol)
 
         # market buy order need to use the value precision.
-        # market order buy amount means the amount of base currency. amount-precision is applied on quote currency
+        # market order buy amount means the cost of base currency. amount-precision is applied on quote currency
         if (type == 'market') and (side == 'buy'):
-            request_amount = self.value_to_precision(symbol, amount)
+            request_amount = self.cost_to_precision(symbol, amount)
         else:
             request_amount = self.amount_to_precision(symbol, amount)
 
