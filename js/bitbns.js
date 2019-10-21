@@ -1,7 +1,6 @@
 /* eslint-disable no-restricted-syntax */
-'use strict';
 
-const axios = require ('axios');
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -55,13 +54,12 @@ module.exports = class bitbnsexchange extends Exchange {
             },
             'api': {
                 // All methods are passed in as query params
-                'public': {
-                    'get': [
-                        'fetchOrderBook',
-                        'fetchMarkets',
-                        'fetchTickers',
-                        'fetchTrades',
-                    ] },
+                'public': { 'get': [
+                    'fetchOrderBook',
+                    'fetchMarkets',
+                    'fetchTickers',
+                    'fetchTrades',
+                ] },
                 'private': { 'post': [
                     'orders',
                     'cancel',
@@ -83,20 +81,10 @@ module.exports = class bitbnsexchange extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        // Dev Logging
-        // console.log ({path,api});
-        // console.log(this.urls)
-        // console.log("Implode:", this.implodeParams (path, params));
-        // console.log("Extract:", this.extractParams (path));
-        // console.log("Encode:", this.encode({
-        //     "a": "abc",
-        // }));
-        console.log("Body: ", body);
-        
+        console.log ('Body: ', body);
         let url = '';
         if (api === 'private') {
-            console.log("Signing Privately !!!");
-            
+            console.log ('Signing Privately !!!');
             // Generate payload
             const timeStamp_nonce = Date.now ().toString ();
             const data = {
@@ -109,8 +97,10 @@ module.exports = class bitbnsexchange extends Exchange {
             const signature = this.hmac (payload, this.secret, 'sha512', 'hex');
             // Generate complete url
             url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
-            console.log(method,url);
-            
+            if (method === 'POST') {
+                body = this.json (params);
+            }
+            console.log (method, url);
             // Init headers
             headers = {};
             // Attach headers
@@ -122,10 +112,9 @@ module.exports = class bitbnsexchange extends Exchange {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
-            console.log(url);
+            console.log (url);
         }
-        console.log({ 'url': url, 'method': method, 'body': body, 'headers': headers });
-        
+        console.log ({ 'url': url, 'method': method, 'body': body, 'headers': headers });
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
@@ -135,16 +124,15 @@ module.exports = class bitbnsexchange extends Exchange {
         return data;
     }
 
-    // Emulated using fetchTickers
-    async fetchTicker (symbol, params = {}) {
-        const tickers = await this.fetchTickers ();
-        return this.safeValue (tickers, symbol);
-    }
-
     async fetchTickers (symbols = undefined, params = {}) {
-        // console.log(this.symbols);
         const tickers = await this.publicGetFetchTickers ();
         return tickers;
+    }
+
+    // Emulated using fetchTickers
+    async fetchTicker (symbol = undefined, params = {}) {
+        const tickers = await this.fetchTickers ();
+        return this.safeString (tickers, symbol);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -190,13 +178,11 @@ module.exports = class bitbnsexchange extends Exchange {
             'quantity': amount,
             'rate': price,
         };
-        
-        
         const splitSymbol = symbol.split ('/');
         if (splitSymbol[1] === 'USDT') {
             request['symbol'] = splitSymbol[0] + '_' + splitSymbol[1];
         }
-        console.log(request);
+        console.log (request);
         // return request;
         const resp = await this.privatePostOrders (this.extend (request, params));
         return {
@@ -223,5 +209,6 @@ module.exports = class bitbnsexchange extends Exchange {
             request['side'] = 'cancelOrder';
         }
         const resp = await this.privatePostCancel (this.extend (request, params));
+        return resp;
     }
 };
