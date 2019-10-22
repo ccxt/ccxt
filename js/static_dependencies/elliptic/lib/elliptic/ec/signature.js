@@ -1,6 +1,6 @@
 'use strict';
 
-var BN = require('../../BN/bn');
+var BN = require('../../../../BN/bn');
 
 var elliptic = require('../../elliptic');
 var utils = elliptic.utils;

@@ -141,6 +141,7 @@ const commonRegexes = [
     [ /\.safeCurrencyCode\s/g, '.safe_currency_code'],
     [ /\.roundTimeframe/g, '.round_timeframe'],
     [ /errorHierarchy/g, 'error_hierarchy'],
+    [ /base16ToBinary/g, 'base16_to_binary'],
     [ /\'use strict\';?\s+/g, '' ],
 ]
 
@@ -173,6 +174,7 @@ const pythonRegexes = [
     [ /\=\=\=?/g, '==' ],
     [ /\!\=\=?/g, '!=' ],
     [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
+    [ /this\.binaryToBase16\s/g, 'base64.b16encode' ],
     [ /this\.stringToBase64\s/g, 'base64.b64encode' ],
     [ /this\.base64ToBinary\s/g, 'base64.b64decode' ],
     [ /\.shift\s*\(\)/g, '.pop(0)' ],
@@ -208,7 +210,7 @@ const pythonRegexes = [
     [ /\s\|\|\s/g, ' or ' ],
     [ /\s\&\&\s/g, ' and ' ],
     [ /\!([^\=])/g, 'not $1'],
-    [ /([^\s]+)\.length/g, 'len($1)' ],
+    [ /([^\s(]+)\.length/g, 'len($1)' ],
     [ /\.push\s*\(([\s\S]+?)\);/g, '.append($1);' ],
     [ /^(\s*}\s*$)+/gm, '' ],
     [ /\;(\s+?\/\/.+?)/g, '$1' ],
@@ -290,6 +292,7 @@ const phpRegexes = [
 
     [ /undefined/g, 'null' ],
     [ /this\.extend/g, 'array_merge' ],
+    [ /this\.binaryToBase16\s/g, 'bin2hex' ],
     [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
     [ /this\.stringToBase64/g, 'base64_encode' ],
     [ /this\.base64ToBinary/g, 'base64_decode' ],
