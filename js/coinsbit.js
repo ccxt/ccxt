@@ -48,26 +48,8 @@ module.exports = class coinsbit extends Exchange {
                         'symbols',
                         'depth/result',
                     ],
-                    'post': [
-                        'order/new',
-                        'order/cancel',
-                        'orders',
-                        'account/balances',
-                        'account/balance',
-                        'account/order',
-                        'account/order_history',
-                    ],
                 },
                 'private': {
-                    'get': [
-                        'markets',
-                        'tickers',
-                        'ticker',
-                        'book',
-                        'history',
-                        'symbols',
-                        'depth/result',
-                    ],
                     'post': [
                         'order/new',
                         'order/cancel',
