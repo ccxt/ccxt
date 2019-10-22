@@ -111,13 +111,6 @@ module.exports = class coinsbit extends Exchange {
                     'maker': 0.002,
                     'taker': 0.002,
                 },
-                'funding': {
-                    'withdraw': {
-                        'BTC': 0.0,
-                        'ETH': 0.0,
-                        'KSH': 0.0,
-                    },
-                },
             },
             'exceptions': {
                 'balance not enough': InsufficientFunds,
