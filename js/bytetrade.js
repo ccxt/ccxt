@@ -16,6 +16,7 @@ module.exports = class bytetrade extends Exchange {
             'countries': ['HK'],
             'rateLimit': 500,
             'requiresWeb3': true,
+            'certified': true,
             // new metainfo interface
             'has': {
                 'fetchCurrencies': true,
@@ -83,12 +84,6 @@ module.exports = class bytetrade extends Exchange {
                         'transaction/transfer',       // Post transfer transaction to blockchain
                     ],
                 },
-                'private': {
-                    'get': [
-                    ],
-                    'post': [
-                    ],
-                },
             },
             'fees': {
                 'trading': {
@@ -98,8 +93,6 @@ module.exports = class bytetrade extends Exchange {
             },
             'commonCurrencies': {
                 '48': 'Blocktonic',
-            },
-            'options': {
             },
             'exceptions': {
                 'vertify error': AuthenticationError, // typo on the exchange side, 'vertify'
