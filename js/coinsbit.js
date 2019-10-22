@@ -183,7 +183,7 @@ module.exports = class coinsbit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'market': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
