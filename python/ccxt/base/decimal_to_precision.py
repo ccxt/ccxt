@@ -121,7 +121,7 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
         elif counting_mode == SIGNIFICANT_DIGITS:
             if precision == 0:
                 return '0'
-            dot = string.index('.') if '.' in string else 0
+            dot = string.index('.') if '.' in string else len(string)
             start = dot - dec.adjusted()
             end = start + precision
             # need to clarify these conditionals

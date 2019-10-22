@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1312'
+__version__ = '1.18.1314'
 
 # -----------------------------------------------------------------------------
 
@@ -39,7 +39,6 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from ccxt.static_dependencies import ecdsa
 
 # -----------------------------------------------------------------------------
-
 
 __all__ = [
     'Exchange',
@@ -1064,7 +1063,8 @@ class Exchange(object):
         return priv_key.sign(Exchange.encode(request), padding.PKCS1v15(), algorithm)
 
     @staticmethod
-    def ecdsa(request, secret, algorithm='p256', hash=None):
+    def ecdsa(request, secret, algorithm='p256', hash=None, fixed_length=False):
+        # your welcome - frosty00
         algorithms = {
             'p192': [ecdsa.NIST192p, 'sha256'],
             'p224': [ecdsa.NIST224p, 'sha256'],
@@ -1082,8 +1082,20 @@ class Exchange(object):
             digest = Exchange.hash(encoded_request, hash, 'binary')
         else:
             digest = base64.b16decode(encoded_request, casefold=True)
-        key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret), casefold=True), curve=curve_info[0])
-        r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function, sigencode=ecdsa.util.sigencode_strings_canonize)
+        key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret),
+                                                            casefold=True), curve=curve_info[0])
+        r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function,
+                                                              sigencode=ecdsa.util.sigencode_strings_canonize)
+        r_int, s_int = ecdsa.util.sigdecode_strings((r_binary, s_binary), key.privkey.order)
+        counter = 0
+        minimum_size = (1 << (8 * 31)) - 1
+        half_order = key.privkey.order / 2
+        while fixed_length and (r_int > half_order or r_int <= minimum_size or s_int <= minimum_size):
+            r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function,
+                                                                  sigencode=ecdsa.util.sigencode_strings_canonize,
+                                                                  extra_entropy=Exchange.numberToLE(counter, 32))
+            r_int, s_int = ecdsa.util.sigdecode_strings((r_binary, s_binary), key.privkey.order)
+            counter += 1
         r, s = Exchange.decode(base64.b16encode(r_binary)).lower(), Exchange.decode(base64.b16encode(s_binary)).lower()
         return {
             'r': r,
@@ -2013,8 +2025,8 @@ class Exchange(object):
     def decimal_to_bytes(n, endian='big'):
         """int.from_bytes and int.to_bytes don't work in python2"""
         if n > 0:
-            next_byte = Exchange.decimal_to_bytes(n // 256, endian)
-            remainder = bytes([n % 256])
+            next_byte = Exchange.decimal_to_bytes(n // 0x100, endian)
+            remainder = bytes([n % 0x100])
             return next_byte + remainder if endian == 'big' else remainder + next_byte
         else:
             return b''
@@ -2035,3 +2047,28 @@ class Exchange(object):
         offset = hex_to_dec(hmac_res[-1]) * 2
         otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
         return otp[-6:]
+
+    @staticmethod
+    def numberToLE(n, size):
+        return Exchange.decimal_to_bytes(int(n), 'little').ljust(size, b'\x00')
+
+    @staticmethod
+    def numberToBE(n, size):
+        return Exchange.decimal_to_bytes(int(n), 'big').rjust(size, b'\x00')
+
+    @staticmethod
+    def base16_to_binary(s):
+        return base64.b16decode(s, True)
+
+    # python supports arbitrarily big integers
+    @staticmethod
+    def divide(a, b):
+        return int(a) // int(b)
+
+    @staticmethod
+    def pow(a, b):
+        return int(a) ** int(b)
+
+    @staticmethod
+    def modulo(a, b):
+        return int(a) % int(b)

@@ -458,7 +458,7 @@ class indodax (Exchange):
         #     }
         #
         id = None
-        if ('txid' in list(response.keys())) and len((response['txid']) > 0):
+        if ('txid' in list(response.keys())) and (len(response['txid']) > 0):
             id = response['txid']
         return {
             'info': response,
