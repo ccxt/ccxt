@@ -134,6 +134,7 @@ class huobipro extends Exchange {
             'exceptions' => array (
                 'exact' => array (
                     // err-code
+                    'timeout' => '\\ccxt\\RequestTimeout', // array("ts":1571653730865,"status":"error","err-code":"timeout","err-msg":"Request Timeout")
                     'gateway-internal-error' => '\\ccxt\\ExchangeNotAvailable', // array("status":"error","err-code":"gateway-internal-error","err-msg":"Failed to load data. Try again later.","data":null)
                     'account-frozen-balance-insufficient-error' => '\\ccxt\\InsufficientFunds', // array("status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left => `0.0027`","data":null)
                     'invalid-amount' => '\\ccxt\\InvalidOrder', // eg "Paramemter `amount` is invalid."
@@ -889,12 +890,11 @@ class huobipro extends Exchange {
         $market = $this->market ($symbol);
         $request = array (
             'account-id' => $this->accounts[0]['id'],
-            'amount' => $this->amount_to_precision($symbol, $amount),
             'symbol' => $market['id'],
             'type' => $side . '-' . $type,
         );
-        if ($this->options['createMarketBuyOrderRequiresPrice']) {
-            if (($type === 'market') && ($side === 'buy')) {
+        if (($type === 'market') && ($side === 'buy')) {
+            if ($this->options['createMarketBuyOrderRequiresPrice']) {
                 if ($price === null) {
                     throw new InvalidOrder($this->id . " $market buy order requires $price argument to calculate cost (total $amount of quote currency to spend for buying, $amount * $price). To switch off this warning exception and specify cost in the $amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
                 } else {
@@ -903,9 +903,13 @@ class huobipro extends Exchange {
                     // more about it here => https://github.com/ccxt/ccxt/pull/4395
                     // we use priceToPrecision instead of amountToPrecision here
                     // because in this case the $amount is in the quote currency
-                    $request['amount'] = $this->price_to_precision($symbol, floatval ($amount) * floatval ($price));
+                    $request['amount'] = $this->cost_to_precision($symbol, floatval ($amount) * floatval ($price));
                 }
+            } else {
+                $request['amount'] = $this->cost_to_precision($symbol, $amount);
             }
+        } else {
+            $request['amount'] = $this->amount_to_precision($symbol, $amount);
         }
         if ($type === 'limit' || $type === 'ioc' || $type === 'limit-maker') {
             $request['price'] = $this->price_to_precision($symbol, $price);
