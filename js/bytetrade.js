@@ -102,8 +102,9 @@ module.exports = class bytetrade extends Exchange {
             'options': {
             },
             'exceptions': {
-                'verify error': AuthenticationError,           // private key signature is incorrect
-                'transaction already in network': BadRequest,   // same transaction submited
+                'vertify error': AuthenticationError, // typo on the exchange side, 'vertify'
+                'verify error': AuthenticationError, // private key signature is incorrect
+                'transaction already in network': BadRequest, // same transaction submited
                 'invalid argument': BadRequest,
             },
         });
