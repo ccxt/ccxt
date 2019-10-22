@@ -28,7 +28,7 @@ module.exports = class coinsbit extends Exchange {
             'urls': {
                 'api': {
                     'public': 'https://coinsbit.io/api/v1/public',
-                    'private': 'https://coinsbit.io/api/v1'
+                    'private': 'https://coinsbit.io/api/v1',
                 },
                 'www': 'https://coinsbit.io/',
                 'doc': [
@@ -58,7 +58,7 @@ module.exports = class coinsbit extends Exchange {
                         'account/order',
                         'account/order_history',
                     ],
-                }
+                },
             },
             'fees': {
                 'trading': {
