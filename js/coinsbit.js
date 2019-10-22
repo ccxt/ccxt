@@ -189,7 +189,7 @@ module.exports = class coinsbit extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privatePostOrders (this.extend (request, params));
-        const result = response.result;
+        const result = response.result.result;
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -300,7 +300,7 @@ module.exports = class coinsbit extends Exchange {
         const marketName = this.safeString (order, 'market');
         market = market || this.findMarket (marketName);
         const symbol = this.safeString (market, 'symbol');
-        let timestamp = this.safeString (order, 'time');
+        let timestamp = this.safeString (order, 'time') || this.safeString (order, 'timestamp');
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp) * 1000;
         }
