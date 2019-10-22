@@ -47,7 +47,7 @@ module.exports = class bytetrade extends Exchange {
             },
             'urls': {
                 'test': 'https://api-v2-test.bytetrade.com',
-                'logo': 'https://user-images.githubusercontent.com/246404/60647143-9c28f880-9e6f-11e9-8b94-fbdd0d3f2c5d.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/67288762-2f04a600-f4e6-11e9-9fd6-c60641919491.jpg',
                 'api': 'https://api-v2.bytetrade.com',
                 'www': 'https://www.bytetrade.com',
                 'doc': 'https://github.com/Bytetrade/bytetrade-official-api-docs/wiki',
