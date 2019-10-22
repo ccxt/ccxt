@@ -1,8 +1,14 @@
 "use strict";
 
-const ansi = require ('ansicolor').nice
+const fs = require ('fs')
+    , log = require ('ololog')
+    , ansi = require ('ansicolor').nice
     , errors = require ('../js/base/errors.js')
-    , { regexAll } = require ('./common.js')
+    , { basename } = require ('path')
+    , {
+        regexAll,
+        overwriteFile,
+    } = require ('./common.js')
     , { unCamelCase, precisionConstants } = require ('../js/base/functions.js')
 
 // ----------------------------------------------------------------------------
@@ -667,18 +673,92 @@ function transpileDerivedExchangeClass (contents) {
     }
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
+
+function transpileDerivedExchangeFile (folder, filename, options) {
+
+    try {
+
+        const contents = fs.readFileSync (folder + filename, 'utf8')
+        const { python2Folder, python3Folder, phpFolder } = options
+        const { python2, python3, php, className, baseClass } = transpileDerivedExchangeClass (contents)
+
+        const python2Filename = python2Folder + filename.replace ('.js', '.py')
+        const python3Filename = python3Folder + filename.replace ('.js', '.py')
+        const phpFilename     = phpFolder     + filename.replace ('.js', '.php')
+
+        log.cyan ('Transpiling from', filename.yellow)
+
+        overwriteFile (python2Filename, python2)
+        overwriteFile (python3Filename, python3)
+        overwriteFile (phpFilename,     php)
+
+        return { className, baseClass }
+
+    } catch (e) {
+
+        log.red ('\nFailed to transpile source code from', filename.yellow)
+        log.red ('See https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md on how to build this library properly\n')
+        throw e // rethrow it
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+function transpileDerivedExchangeFiles (folder, pattern = '.js', options) {
+
+    const { python2Folder, python3Folder, phpFolder } = options
+
+    // exchanges.json accounts for ids included in exchanges.cfg
+    const ids = require ('../exchanges.json').ids;
+
+    const classNames = fs.readdirSync (folder)
+        .filter (file => file.includes (pattern) && ids.includes (basename (file, pattern)))
+        .map (file => transpileDerivedExchangeFile (folder, file, options))
+
+    if (classNames.length === 0)
+        return null
+
+    let classes = {}
+    classNames.forEach (({ className, baseClass }) => {
+        classes[className] = baseClass
+    })
+
+    function deleteOldTranspiledFiles (folder, pattern) {
+        fs.readdirSync (folder)
+            .filter (file =>
+                !fs.lstatSync (folder + file).isDirectory () &&
+                file.match (pattern) &&
+                !(file.replace (/\.[a-z]+$/, '') in classes) &&
+                !file.match (/^Exchange|errors|__init__|\\./))
+            .map (file => folder + file)
+            .forEach (file => log.red ('Deleting ' + file.yellow) && fs.unlinkSync (file))
+    }
+
+    deleteOldTranspiledFiles (python2Folder, /\.pyc?$/)
+    deleteOldTranspiledFiles (python3Folder, /\.pyc?$/)
+    deleteOldTranspiledFiles (phpFolder, /\.php$/)
+
+    return classes
+}
+
+// ============================================================================
 
 module.exports = {
     commonRegexes,
     pythonRegexes,
     python2Regexes,
     phpRegexes,
+    // ........................................................................
     createPythonClass,
     createPHPClass,
+    // ........................................................................
     transpileJavaScriptToPython3,
     transpilePython3ToPython2,
     transpileJavaScriptToPHP,
     transpileJavaScriptToPythonAndPHP,
     transpileDerivedExchangeClass,
+    // ........................................................................
+    transpileDerivedExchangeFile,
+    transpileDerivedExchangeFiles,
 }
