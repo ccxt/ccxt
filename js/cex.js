@@ -119,9 +119,10 @@ module.exports = class cex extends Exchange {
                 },
             },
             'exceptions': {
-                'exact': {
-                    'Error: Place order error: Insufficient funds.': InsufficientFunds,
-                    'Error: Nonce must be incremented': InvalidNonce,
+                'exact': {},
+                'broad': {
+                    'Insufficient funds': InsufficientFunds,
+                    'Nonce must be incremented': InvalidNonce,
                 },
             },
             'options': {
@@ -1167,6 +1168,11 @@ module.exports = class cex extends Exchange {
             const exact = this.exceptions['exact'];
             if (message in exact) {
                 throw new exact[message] (feedback);
+            }
+            const broad = this.exceptions['broad'];
+            const broadKey = this.findBroadlyMatchedKey (broad, message);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
             }
             throw new ExchangeError (feedback);
         }
