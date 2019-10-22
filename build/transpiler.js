@@ -562,6 +562,45 @@ function transpileJavaScriptToPythonAndPHP (args) {
     return { python3Body, python2Body, phpBody }
 }
 
+//-----------------------------------------------------------------------------
+
+function transpilePythonAsyncToSync (oldName, newName) {
+
+    log.magenta ('Transpiling ' + oldName.yellow + ' → ' + newName.yellow)
+    const fileContents = fs.readFileSync (oldName, 'utf8')
+    let lines = fileContents.split ("\n")
+
+    lines = lines.filter (line => ![ 'import asyncio' ].includes (line))
+                .map (line => {
+                    return (
+                        line.replace ('asyncio.get_event_loop().run_until_complete(main())', 'main()')
+                            .replace ('import ccxt.async_support as ccxt', 'import ccxt')
+                            .replace (/.*token\_bucket.*/g, '')
+                            .replace ('await asyncio.sleep', 'time.sleep')
+                            .replace ('async ', '')
+                            .replace ('await ', ''))
+                })
+
+    // lines.forEach (line => log (line))
+
+    function deleteFunction (f, from) {
+        // the following regexes make a technical error
+        // since it won't cut away a single function
+        // it will delete everything up to the beginning of the next comment
+        const re1 = new RegExp ('def ' + f + '[^\#]+', 'g')
+        const re2 = new RegExp ('[\\s]+' + f + '\\(exchange\\)', 'g')
+        return from.replace (re1, '').replace (re2, '')
+    }
+
+    let newContents = lines.join ('\n')
+
+    newContents = deleteFunction ('test_tickers_async', newContents)
+    newContents = deleteFunction ('test_l2_order_books_async', newContents)
+
+    fs.truncateSync (newName)
+    fs.writeFileSync (newName, newContents)
+}
+
 // ----------------------------------------------------------------------------
 
 function transpileDerivedExchangeClass (contents) {
@@ -757,6 +796,7 @@ module.exports = {
     transpilePython3ToPython2,
     transpileJavaScriptToPHP,
     transpileJavaScriptToPythonAndPHP,
+    transpilePythonAsyncToSync,
     transpileDerivedExchangeClass,
     // ........................................................................
     transpileDerivedExchangeFile,
