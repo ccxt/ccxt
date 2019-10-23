@@ -404,16 +404,16 @@ module.exports = class bytetrade extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeInteger2 (trade, 'timestamp', 'timestamp');
-        const price = this.safeFloat2 (trade, 'price', 'price');
-        const amount = this.safeFloat2 (trade, 'amount', 'amount');
-        const cost = this.safeFloat2 (trade, 'cost', 'cost');
-        const id = this.safeString2 (trade, 'id', 'id');
-        const type = this.safeString2 (trade, 'type', 'type');
-        const takerOrMaker = this.safeString2 (trade, 'takerOrMaker', 'takerOrMaker');
-        const side = this.safeString2 (trade, 'side', 'side');
-        const datetime = this.safeString2 (trade, 'datetime', 'datetime');
-        const order = this.safeString2 (trade, 'order', 'order');
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        const cost = this.safeFloat (trade, 'cost');
+        const id = this.safeString (trade, 'id');
+        const type = this.safeString (trade, 'type');
+        const takerOrMaker = this.safeString (trade, 'takerOrMaker');
+        const side = this.safeString (trade, 'side');
+        const datetime = this.safeString (trade, 'datetime');
+        const order = this.safeString (trade, 'order');
         const fee = this.safeValue (trade, 'fee');
         let symbol = undefined;
         if (market === undefined) {
