@@ -404,16 +404,16 @@ class bytetrade extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer_2($trade, 'timestamp', 'timestamp');
-        $price = $this->safe_float_2($trade, 'price', 'price');
-        $amount = $this->safe_float_2($trade, 'amount', 'amount');
-        $cost = $this->safe_float_2($trade, 'cost', 'cost');
-        $id = $this->safe_string_2($trade, 'id', 'id');
-        $type = $this->safe_string_2($trade, 'type', 'type');
-        $takerOrMaker = $this->safe_string_2($trade, 'takerOrMaker', 'takerOrMaker');
-        $side = $this->safe_string_2($trade, 'side', 'side');
-        $datetime = $this->safe_string_2($trade, 'datetime', 'datetime');
-        $order = $this->safe_string_2($trade, 'order', 'order');
+        $timestamp = $this->safe_integer($trade, 'timestamp');
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'amount');
+        $cost = $this->safe_float($trade, 'cost');
+        $id = $this->safe_string($trade, 'id');
+        $type = $this->safe_string($trade, 'type');
+        $takerOrMaker = $this->safe_string($trade, 'takerOrMaker');
+        $side = $this->safe_string($trade, 'side');
+        $datetime = $this->safe_string($trade, 'datetime');
+        $order = $this->safe_string($trade, 'order');
         $fee = $this->safe_value($trade, 'fee');
         $symbol = null;
         if ($market === null) {

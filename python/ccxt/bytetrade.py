@@ -387,16 +387,16 @@ class bytetrade (Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer_2(trade, 'timestamp', 'timestamp')
-        price = self.safe_float_2(trade, 'price', 'price')
-        amount = self.safe_float_2(trade, 'amount', 'amount')
-        cost = self.safe_float_2(trade, 'cost', 'cost')
-        id = self.safe_string_2(trade, 'id', 'id')
-        type = self.safe_string_2(trade, 'type', 'type')
-        takerOrMaker = self.safe_string_2(trade, 'takerOrMaker', 'takerOrMaker')
-        side = self.safe_string_2(trade, 'side', 'side')
-        datetime = self.safe_string_2(trade, 'datetime', 'datetime')
-        order = self.safe_string_2(trade, 'order', 'order')
+        timestamp = self.safe_integer(trade, 'timestamp')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = self.safe_float(trade, 'cost')
+        id = self.safe_string(trade, 'id')
+        type = self.safe_string(trade, 'type')
+        takerOrMaker = self.safe_string(trade, 'takerOrMaker')
+        side = self.safe_string(trade, 'side')
+        datetime = self.safe_string(trade, 'datetime')
+        order = self.safe_string(trade, 'order')
         fee = self.safe_value(trade, 'fee')
         symbol = None
         if market is None:
