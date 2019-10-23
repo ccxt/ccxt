@@ -529,7 +529,7 @@ module.exports = class bytetrade extends Exchange {
         const chainName = 'Sagittarius';
         const defaultFee = this.safeString (this.options, 'fee', '300000000000000');
         const fee = this.safeString (params, 'fee', defaultFee);
-        const eightBytes = this.pow ('2', '64');
+        const eightBytes = this.integerPow ('2', '64');
         const byteStringArray = [
             this.numberToBE (1, 32),
             this.numberToLE (Math.floor (now / 1000), 4),
@@ -545,10 +545,10 @@ module.exports = class bytetrade extends Exchange {
             this.numberToLE (typeNum, 1),
             this.numberToLE (normalSymbol.length, 1),
             this.stringToBinary (this.encode (normalSymbol)),
-            this.numberToLE (this.divide (amountChain, eightBytes), 8),
-            this.numberToLE (this.modulo (amountChain, eightBytes), 8),
-            this.numberToLE (this.divide (priceChain, eightBytes), 8),
-            this.numberToLE (this.modulo (priceChain, eightBytes), 8),
+            this.numberToLE (this.integerDivide (amountChain, eightBytes), 8),
+            this.numberToLE (this.integerModulo (amountChain, eightBytes), 8),
+            this.numberToLE (this.integerDivide (priceChain, eightBytes), 8),
+            this.numberToLE (this.integerModulo (priceChain, eightBytes), 8),
             this.numberToLE (0, 2),
             this.numberToLE (Math.floor (now / 1000), 4),
             this.numberToLE (Math.floor (expiration / 1000), 4),
@@ -833,7 +833,7 @@ module.exports = class bytetrade extends Exchange {
         expirationDatetime = expirationDatetime.split ('.')[0];
         const feeAmount = '300000000000000';
         const chainName = 'Sagittarius';
-        const eightBytes = this.pow ('2', '64');
+        const eightBytes = this.integerPow ('2', '64');
         const byteStringArray = [
             this.numberToBE (1, 32),
             this.numberToLE (Math.floor (now / 1000), 4),
@@ -848,8 +848,8 @@ module.exports = class bytetrade extends Exchange {
             this.numberToLE (address.length, 1),
             this.stringToBinary (this.encode (address)),
             this.numberToLE (assetType, 4),
-            this.numberToLE (this.divide (amountChain, eightBytes), 8),
-            this.numberToLE (this.modulo (amountChain, eightBytes), 8),
+            this.numberToLE (this.integerDivide (amountChain, eightBytes), 8),
+            this.numberToLE (this.integerModulo (amountChain, eightBytes), 8),
             this.numberToLE (0, 1),
             this.numberToLE (1, 1),
             this.numberToLE (chainName.length, 1),
@@ -1115,7 +1115,7 @@ module.exports = class bytetrade extends Exchange {
         const coinId = currency['id'];
         const amountTruncate = this.decimalToPrecision (amount, TRUNCATE, currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING);
         const amountChain = this.toWei (amountTruncate, 'ether', currency['info']['externalPrecision']);
-        const eightBytes = this.pow ('2', '64');
+        const eightBytes = this.integerPow ('2', '64');
         let assetFee = 0;
         let byteStringArray = [];
         if (chainTypeString === 'bitcoin') {
@@ -1134,11 +1134,11 @@ module.exports = class bytetrade extends Exchange {
                 this.numberToLE (address.length, 1),
                 this.stringToBinary (this.encode (address)),
                 this.numberToLE (parseInt (coinId), 4),
-                this.numberToLE (Math.floor (parseInt (parseFloat (this.divide (amountChain, eightBytes)))), 8),
-                this.numberToLE (this.modulo (amountChain, eightBytes), 8),
+                this.numberToLE (Math.floor (parseInt (parseFloat (this.integerDivide (amountChain, eightBytes)))), 8),
+                this.numberToLE (this.integerModulo (amountChain, eightBytes), 8),
                 this.numberToLE (1, 1),
-                this.numberToLE (this.divide (assetFee, eightBytes), 8),
-                this.numberToLE (this.modulo (assetFee, eightBytes), 8),
+                this.numberToLE (this.integerDivide (assetFee, eightBytes), 8),
+                this.numberToLE (this.integerModulo (assetFee, eightBytes), 8),
                 this.numberToLE (0, 1),
                 this.numberToLE (1, 1),
                 this.numberToLE (chainName.length, 1),
@@ -1167,8 +1167,8 @@ module.exports = class bytetrade extends Exchange {
                 this.numberToLE (middleAddress.length, 1),
                 this.stringToBinary (this.encode (middleAddress)),
                 this.numberToLE (parseInt (coinId), 4),
-                this.numberToLE (Math.floor (parseInt (parseFloat (this.divide (amountChain, eightBytes)))), 8),
-                this.numberToLE (this.modulo (amountChain, eightBytes), 8),
+                this.numberToLE (Math.floor (parseInt (parseFloat (this.integerDivide (amountChain, eightBytes)))), 8),
+                this.numberToLE (this.integerModulo (amountChain, eightBytes), 8),
                 this.numberToLE (0, 1),
                 this.numberToLE (1, 1),
                 this.numberToLE (chainName.length, 1),
