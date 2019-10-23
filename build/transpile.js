@@ -5,7 +5,7 @@
 "use strict";
 
 const log  = require ('ololog')
-    , { createFolderRecursively } = require ('./common.js')
+    , { createFolderRecursively } = require ('./js/base/functions/fs.js')
     , {
         transpileDerivedExchangeFiles,
         transpilePythonAsyncToSync,
@@ -14,7 +14,8 @@ const log  = require ('ololog')
         transpilePrecisionTests,
         transpileDateTimeTests,
         transpileCryptoTests,
-    } = require ('./transpiler.js')
+    } = require ('../js/base/transpile.js')
+    , errors = require ('../js/base/errors.js')
     , python2Folder = './python/ccxt/'
     , python3Folder = './python/ccxt/async_support/'
     , phpFolder     = './php/'

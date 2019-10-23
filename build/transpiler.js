@@ -5,12 +5,12 @@ const fs = require ('fs')
     , ansi = require ('ansicolor').nice
     , errors = require ('../js/base/errors.js')
     , { basename } = require ('path')
+    , { regexAll } = require ('./common.js')
     , {
         replaceInFile,
-        logReplaceInFile,
         regexAll,
         overwriteFile,
-    } = require ('./common.js')
+    } = require ('../js/base/functions/fs.js')
     , { unCamelCase, precisionConstants } = require ('../js/base/functions.js')
 
 // ----------------------------------------------------------------------------
@@ -815,8 +815,24 @@ function transpileErrorHierarchy () {
     const { python3Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js })
 
     const message = 'Transpiling error hierachy →'
-    logReplaceInFile (message, './python/ccxt/base/errors.py', /error_hierarchy = .+?\n\}/s, python3Body)
-    logReplaceInFile (message, './php/errors.php',             /\$error_hierarchy = .+?\n\)\;/s, phpBody)
+
+    const python = {
+        filename: './python/ccxt/base/errors.py',
+        regex: /error_hierarchy = .+?\n\}/s,
+        replacement: python3Body,
+    }
+
+    log.bright.cyan (message, python.filename.yellow)
+    replaceInFile (... Object.values (python))
+
+    const php = {
+        filename:'./php/errors.php',
+        regex: /\$error_hierarchy = .+?\n\)\;/s,
+        replacement: phpBody,
+    }
+
+    log.bright.cyan (message, php.filename.yellow)
+    replaceInFile (... Object.values (php))
 }
 
 //-----------------------------------------------------------------------------
