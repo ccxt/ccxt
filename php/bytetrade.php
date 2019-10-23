@@ -991,16 +991,23 @@ class bytetrade extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function parse_transaction_status_by_type ($status) {
-        if (($status === 'DEPOSIT_FAILED') || ($status === 'FEE_SEND_FAILED') || ($status === 'FEE_FAILED') || ($status === 'PAY_SEND_FAILED') || ($status === 'PAY_FAILED') || ($status === 'BTT_FAILED') || ($status === 'WITHDDRAW_FAILED') || ($status === 'USER_FAILED')) {
-            return 'failed';
-        } else if (($status === 'FEE_EXECUED') || ($status === 'PAY_EXECUED') || ($status === 'WITHDDRAW_EXECUTED') || ($status === 'USER_EXECUED')) {
-            return 'pending';
-        } else if ($status === 'BTT_SUCCED') {
-            return 'ok';
-        } else {
-            return $status;
-        }
+    public function parse_transaction_status ($status) {
+        $statuses = array (
+            'DEPOSIT_FAILED' => 'failed',
+            'FEE_SEND_FAILED' => 'failed',
+            'FEE_FAILED' => 'failed',
+            'PAY_SEND_FAILED' => 'failed',
+            'PAY_FAILED' => 'failed',
+            'BTT_FAILED' => 'failed',
+            'WITHDDRAW_FAILED' => 'failed',
+            'USER_FAILED' => 'failed',
+            'FEE_EXECUED' => 'pending',
+            'PAY_EXECUED' => 'pending',
+            'WITHDDRAW_EXECUTED' => 'pending',
+            'USER_EXECUED' => 'pending',
+            'BTT_SUCCED' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_transaction ($transaction, $currency = null) {
@@ -1018,7 +1025,7 @@ class bytetrade extends Exchange {
         $timestamp = $this->safe_integer($transaction, 'timestamp');
         $datetime = $this->safe_string($transaction, 'datetime');
         $type = $this->safe_string($transaction, 'type');
-        $status = $this->parse_transaction_status_by_type ($this->safe_string($transaction, 'status'));
+        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
         $amount = $this->safe_float($transaction, 'amount');
         $feeInfo = $this->safe_value($transaction, 'fee');
         $feeCost = $this->safe_float($feeInfo, 'cost');

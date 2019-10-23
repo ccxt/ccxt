@@ -918,15 +918,23 @@ class bytetrade (Exchange):
         response = self.publicGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
-    def parse_transaction_status_by_type(self, status):
-        if (status == 'DEPOSIT_FAILED') or (status == 'FEE_SEND_FAILED') or (status == 'FEE_FAILED') or (status == 'PAY_SEND_FAILED') or (status == 'PAY_FAILED') or (status == 'BTT_FAILED') or (status == 'WITHDDRAW_FAILED') or (status == 'USER_FAILED'):
-            return 'failed'
-        elif (status == 'FEE_EXECUED') or (status == 'PAY_EXECUED') or (status == 'WITHDDRAW_EXECUTED') or (status == 'USER_EXECUED'):
-            return 'pending'
-        elif status == 'BTT_SUCCED':
-            return 'ok'
-        else:
-            return status
+    def parse_transaction_status(self, status):
+        statuses = {
+            'DEPOSIT_FAILED': 'failed',
+            'FEE_SEND_FAILED': 'failed',
+            'FEE_FAILED': 'failed',
+            'PAY_SEND_FAILED': 'failed',
+            'PAY_FAILED': 'failed',
+            'BTT_FAILED': 'failed',
+            'WITHDDRAW_FAILED': 'failed',
+            'USER_FAILED': 'failed',
+            'FEE_EXECUED': 'pending',
+            'PAY_EXECUED': 'pending',
+            'WITHDDRAW_EXECUTED': 'pending',
+            'USER_EXECUED': 'pending',
+            'BTT_SUCCED': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_transaction(self, transaction, currency=None):
         id = self.safe_string(transaction, 'id')
@@ -941,7 +949,7 @@ class bytetrade (Exchange):
         timestamp = self.safe_integer(transaction, 'timestamp')
         datetime = self.safe_string(transaction, 'datetime')
         type = self.safe_string(transaction, 'type')
-        status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'))
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         amount = self.safe_float(transaction, 'amount')
         feeInfo = self.safe_value(transaction, 'fee')
         feeCost = self.safe_float(feeInfo, 'cost')
