@@ -238,6 +238,10 @@ module.exports = class coinsbit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    getOrderIdField () {
+        return 'orderId';
+    }
+
     parseNewOrder (order, market = undefined) {
         const marketName = this.safeString (order, 'market');
         market = market || this.findMarket (marketName);
@@ -296,10 +300,6 @@ module.exports = class coinsbit extends Exchange {
             'fee': this.safeFloat (order, 'dealFee'),
             'info': order,
         };
-    }
-
-    getOrderIdField () {
-        return 'orderId';
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
