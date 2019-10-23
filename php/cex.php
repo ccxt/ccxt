@@ -124,6 +124,8 @@ class cex extends Exchange {
                 'broad' => array (
                     'Insufficient funds' => '\\ccxt\\InsufficientFunds',
                     'Nonce must be incremented' => '\\ccxt\\InvalidNonce',
+                    'Invalid Order' => '\\ccxt\\InvalidOrder',
+                    'Order not found' => '\\ccxt\\OrderNotFound',
                 ),
             ),
             'options' => array (
