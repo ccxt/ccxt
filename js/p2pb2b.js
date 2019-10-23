@@ -152,7 +152,7 @@ module.exports = class p2pb2b extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': -1 * Math.log10 (precision['amount']),
+                        'min': Math.pow (10, -precision['amount']),
                         'max': undefined,
                     },
                 },
@@ -224,7 +224,8 @@ module.exports = class p2pb2b extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicGetDepthResult (this.extend (request, params));
-        return this.parseOrderBook (response.result, undefined, 'bids', 'asks');
+        const orderBook = this.safeValue (response, 'result');
+        return this.parseOrderBook (orderBook, undefined, 'bids', 'asks');
     }
 
     async fetchBalance (params = {}) {
