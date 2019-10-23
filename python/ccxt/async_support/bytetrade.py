@@ -278,7 +278,7 @@ class bytetrade (Exchange):
         return result
 
     async def fetch_balance(self, params={}):
-        if not('userid' in list(params.keys())) and (self.apiKey is None):
+        if not ('userid' in list(params.keys())) and (self.apiKey is None):
             raise ArgumentsRequired(self.id + ' fetchDeposits requires self.apiKey or userid argument')
         await self.load_markets()
         request = {
@@ -597,7 +597,7 @@ class bytetrade (Exchange):
         }
 
     async def fetch_order(self, id, symbol=None, params={}):
-        if not('userid' in list(params.keys())) and (self.apiKey is None):
+        if not ('userid' in list(params.keys())) and (self.apiKey is None):
             raise ArgumentsRequired('fetchOrder requires self.apiKey or userid argument')
         await self.load_markets()
         request = {}
@@ -614,7 +614,7 @@ class bytetrade (Exchange):
         return self.parse_order(response, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not('userid' in list(params.keys())) and (self.apiKey is None):
+        if not ('userid' in list(params.keys())) and (self.apiKey is None):
             raise ArgumentsRequired('fetchOpenOrders requires self.apiKey or userid argument')
         await self.load_markets()
         market = None
@@ -632,7 +632,7 @@ class bytetrade (Exchange):
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not('userid' in list(params.keys())) and (self.apiKey is None):
+        if not ('userid' in list(params.keys())) and (self.apiKey is None):
             raise ArgumentsRequired('fetchClosedOrders requires self.apiKey or userid argument')
         await self.load_markets()
         market = None
@@ -650,7 +650,7 @@ class bytetrade (Exchange):
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not('userid' in list(params.keys())) and (self.apiKey is None):
+        if not ('userid' in list(params.keys())) and (self.apiKey is None):
             raise ArgumentsRequired('fetchOrders requires self.apiKey or userid argument')
         await self.load_markets()
         market = None
@@ -862,7 +862,7 @@ class bytetrade (Exchange):
         }
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        if not('userid' in list(params.keys())) and (self.apiKey is None):
+        if not ('userid' in list(params.keys())) and (self.apiKey is None):
             raise ArgumentsRequired('fetchMyTrades requires self.apiKey or userid argument')
         await self.load_markets()
         market = self.market(symbol)
@@ -880,7 +880,7 @@ class bytetrade (Exchange):
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
-        if not('userid' in list(params.keys())) and (self.apiKey is None):
+        if not ('userid' in list(params.keys())) and (self.apiKey is None):
             raise ArgumentsRequired('fetchDeposits requires self.apiKey or userid argument')
         currency = None
         request = {}
@@ -900,7 +900,7 @@ class bytetrade (Exchange):
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
-        if not('userid' in list(params.keys())) and (self.apiKey is None):
+        if not ('userid' in list(params.keys())) and (self.apiKey is None):
             raise ArgumentsRequired('fetchWithdrawals requires self.apiKey or userid argument')
         currency = None
         request = {}
@@ -969,7 +969,7 @@ class bytetrade (Exchange):
 
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
-        if not('userid' in list(params.keys())) and (self.apiKey is None):
+        if not ('userid' in list(params.keys())) and (self.apiKey is None):
             raise ArgumentsRequired('fetchDepositAddress requires self.apiKey or userid argument')
         currency = self.currency(code)
         request = {}

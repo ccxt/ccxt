@@ -1127,7 +1127,7 @@ class kucoin (Exchange):
         timestamp = self.safe_integer_2(transaction, 'createdAt', 'createAt')
         id = self.safe_string(transaction, 'id')
         updated = self.safe_integer(transaction, 'updatedAt')
-        isV1 = not('createdAt' in list(transaction.keys()))
+        isV1 = not ('createdAt' in list(transaction.keys()))
         # if it's a v1 structure
         if isV1:
             type = 'withdrawal' if ('address' in list(transaction.keys())) else 'deposit'

@@ -402,7 +402,7 @@ class bitbank (Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
-        if not('uuid' in list(params.keys())):
+        if not ('uuid' in list(params.keys())):
             raise ExchangeError(self.id + ' uuid is required for withdrawal')
         self.load_markets()
         currency = self.currency(code)
