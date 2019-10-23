@@ -992,15 +992,22 @@ module.exports = class bytetrade extends Exchange {
     }
 
     parseTransactionStatusByType (status) {
-        if ((status === 'DEPOSIT_FAILED') || (status === 'FEE_SEND_FAILED') || (status === 'FEE_FAILED') || (status === 'PAY_SEND_FAILED') || (status === 'PAY_FAILED') || (status === 'BTT_FAILED') || (status === 'WITHDDRAW_FAILED') || (status === 'USER_FAILED')) {
-            return 'failed';
-        } else if ((status === 'FEE_EXECUED') || (status === 'PAY_EXECUED') || (status === 'WITHDDRAW_EXECUTED') || (status === 'USER_EXECUED')) {
-            return 'pending';
-        } else if (status === 'BTT_SUCCED') {
-            return 'ok';
-        } else {
-            return status;
-        }
+        const statusMap = {
+            'DEPOSIT_FAILED': 'failed',
+            'FEE_SEND_FAILED': 'failed',
+            'FEE_FAILED': 'failed',
+            'PAY_SEND_FAILED': 'failed',
+            'PAY_FAILED': 'failed',
+            'BTT_FAILED': 'failed',
+            'WITHDDRAW_FAILED': 'failed',
+            'USER_FAILED': 'failed',
+            'FEE_EXECUED': 'pending',
+            'PAY_EXECUED': 'pending',
+            'WITHDDRAW_EXECUTED': 'pending',
+            'USER_EXECUED': 'pending',
+            'BTT_SUCCED': 'ok',
+        };
+        return this.safeString (statusMap, status, status);
     }
 
     parseTransaction (transaction, currency = undefined) {
