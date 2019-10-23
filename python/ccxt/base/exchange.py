@@ -1017,9 +1017,13 @@ class Exchange(object):
 
     @staticmethod
     def binary_concat(*args):
+        return Exchange.binary_concat_array(args)
+
+    @staticmethod
+    def binary_concat_array(arr):
         result = bytes()
-        for arg in args:
-            result = result + arg
+        for elem in arr:
+            result = result + elem
         return result
 
     @staticmethod
