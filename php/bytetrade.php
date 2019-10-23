@@ -561,10 +561,7 @@ class bytetrade extends Exchange {
             $this->encode ($chainName),
             $this->numberToLE (0, 1),
         );
-        $bytestring = $byteStringArray[0];
-        for ($i = 1; $i < count ($byteStringArray); $i++) {
-            $bytestring = $this->binary_concat($bytestring, $byteStringArray[$i]);
-        }
+        $bytestring = $this->binary_concat_array($byteStringArray);
         $hash = $this->hash ($bytestring, 'sha256', 'hex');
         $signature = $this->ecdsa ($hash, $this->secret, 'secp256k1', null, true);
         $recoveryParam = $this->decode (bin2hex($this->numberToLE ($this->sum ($signature['v'], 31), 1)));
@@ -757,10 +754,7 @@ class bytetrade extends Exchange {
             $this->encode ($chainName),
             $this->numberToLE (0, 1),
         );
-        $bytestring = $byteStringArray[0];
-        for ($i = 1; $i < count ($byteStringArray); $i++) {
-            $bytestring = $this->binary_concat($bytestring, $byteStringArray[$i]);
-        }
+        $bytestring = $this->binary_concat_array($byteStringArray);
         $hash = $this->hash ($bytestring, 'sha256', 'hex');
         $signature = $this->ecdsa ($hash, $this->secret, 'secp256k1', null, true);
         $recoveryParam = $this->decode (bin2hex($this->numberToLE ($this->sum ($signature['v'], 31), 1)));
@@ -856,10 +850,7 @@ class bytetrade extends Exchange {
             $this->encode ($chainName),
             $this->numberToLE (0, 1),
         );
-        $bytestring = $byteStringArray[0];
-        for ($i = 1; $i < count ($byteStringArray); $i++) {
-            $bytestring = $this->binary_concat($bytestring, $byteStringArray[$i]);
-        }
+        $bytestring = $this->binary_concat_array($byteStringArray);
         $hash = $this->hash ($bytestring, 'sha256', 'hex');
         $signature = $this->ecdsa ($hash, $this->secret, 'secp256k1', null, true);
         $recoveryParam = $this->decode (bin2hex($this->numberToLE ($this->sum ($signature['v'], 31), 1)));
@@ -1176,10 +1167,7 @@ class bytetrade extends Exchange {
                 $this->numberToLE (0, 1),
             );
         }
-        $bytestring = $byteStringArray[0];
-        for ($i = 1; $i < count ($byteStringArray); $i++) {
-            $bytestring = $this->binary_concat($bytestring, $byteStringArray[$i]);
-        }
+        $bytestring = $this->binary_concat_array($byteStringArray);
         $hash = $this->hash ($bytestring, 'sha256', 'hex');
         $signature = $this->ecdsa ($hash, $this->secret, 'secp256k1', null, true);
         $recoveryParam = $this->decode (bin2hex($this->numberToLE ($this->sum ($signature['v'], 31), 1)));

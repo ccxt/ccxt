@@ -534,9 +534,7 @@ class bytetrade (Exchange):
             self.encode(chainName),
             self.numberToLE(0, 1),
         ]
-        bytestring = byteStringArray[0]
-        for i in range(1, len(byteStringArray)):
-            bytestring = self.binary_concat(bytestring, byteStringArray[i])
+        bytestring = self.binary_concat_array(byteStringArray)
         hash = self.hash(bytestring, 'sha256', 'hex')
         signature = self.ecdsa(hash, self.secret, 'secp256k1', None, True)
         recoveryParam = self.decode(base64.b16encode(self.numberToLE(self.sum(signature['v'], 31), 1)))
@@ -707,9 +705,7 @@ class bytetrade (Exchange):
             self.encode(chainName),
             self.numberToLE(0, 1),
         ]
-        bytestring = byteStringArray[0]
-        for i in range(1, len(byteStringArray)):
-            bytestring = self.binary_concat(bytestring, byteStringArray[i])
+        bytestring = self.binary_concat_array(byteStringArray)
         hash = self.hash(bytestring, 'sha256', 'hex')
         signature = self.ecdsa(hash, self.secret, 'secp256k1', None, True)
         recoveryParam = self.decode(base64.b16encode(self.numberToLE(self.sum(signature['v'], 31), 1)))
@@ -803,9 +799,7 @@ class bytetrade (Exchange):
             self.encode(chainName),
             self.numberToLE(0, 1),
         ]
-        bytestring = byteStringArray[0]
-        for i in range(1, len(byteStringArray)):
-            bytestring = self.binary_concat(bytestring, byteStringArray[i])
+        bytestring = self.binary_concat_array(byteStringArray)
         hash = self.hash(bytestring, 'sha256', 'hex')
         signature = self.ecdsa(hash, self.secret, 'secp256k1', None, True)
         recoveryParam = self.decode(base64.b16encode(self.numberToLE(self.sum(signature['v'], 31), 1)))
@@ -1093,9 +1087,7 @@ class bytetrade (Exchange):
                 self.encode(chainName),
                 self.numberToLE(0, 1),
             ]
-        bytestring = byteStringArray[0]
-        for i in range(1, len(byteStringArray)):
-            bytestring = self.binary_concat(bytestring, byteStringArray[i])
+        bytestring = self.binary_concat_array(byteStringArray)
         hash = self.hash(bytestring, 'sha256', 'hex')
         signature = self.ecdsa(hash, self.secret, 'secp256k1', None, True)
         recoveryParam = self.decode(base64.b16encode(self.numberToLE(self.sum(signature['v'], 31), 1)))
