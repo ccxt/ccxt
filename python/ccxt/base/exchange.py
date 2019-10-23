@@ -2062,13 +2062,13 @@ class Exchange(object):
 
     # python supports arbitrarily big integers
     @staticmethod
-    def divide(a, b):
+    def integer_divide(a, b):
         return int(a) // int(b)
 
     @staticmethod
-    def pow(a, b):
+    def integer_pow(a, b):
         return int(a) ** int(b)
 
     @staticmethod
-    def modulo(a, b):
+    def integer_modulo(a, b):
         return int(a) % int(b)

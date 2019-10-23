@@ -2795,15 +2795,15 @@ class Exchange {
         return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $b . $a; });
     }
 
-    public static function divide($a, $b) {
+    public static function integer_divide($a, $b) {
         return (new BN ($a))->div (new BN ($b));
     }
 
-    public static function modulo($a, $b) {
+    public static function integer_modulo($a, $b) {
         return (new BN ($a))->mod (new BN ($b));
     }
 
-    public static function pow($a, $b) {
+    public static function integer_pow($a, $b) {
         return (new BN ($a))->pow (new BN ($b));
     }
 }
