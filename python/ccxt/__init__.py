@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.1312'
+__version__ = '1.18.1315'
 
 # ----------------------------------------------------------------------------
 
@@ -106,6 +106,7 @@ from ccxt.btctradeim import btctradeim                      # noqa: F401
 from ccxt.btctradeua import btctradeua                      # noqa: F401
 from ccxt.btcturk import btcturk                            # noqa: F401
 from ccxt.buda import buda                                  # noqa: F401
+from ccxt.bytetrade import bytetrade                        # noqa: F401
 from ccxt.cex import cex                                    # noqa: F401
 from ccxt.chilebit import chilebit                          # noqa: F401
 from ccxt.cobinhood import cobinhood                        # noqa: F401
@@ -232,6 +233,7 @@ exchanges = [
     'btctradeua',
     'btcturk',
     'buda',
+    'bytetrade',
     'cex',
     'chilebit',
     'cobinhood',
