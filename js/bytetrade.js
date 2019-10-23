@@ -991,16 +991,23 @@ module.exports = class bytetrade extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status) {
-        if ((status === 'DEPOSIT_FAILED') || (status === 'FEE_SEND_FAILED') || (status === 'FEE_FAILED') || (status === 'PAY_SEND_FAILED') || (status === 'PAY_FAILED') || (status === 'BTT_FAILED') || (status === 'WITHDDRAW_FAILED') || (status === 'USER_FAILED')) {
-            return 'failed';
-        } else if ((status === 'FEE_EXECUED') || (status === 'PAY_EXECUED') || (status === 'WITHDDRAW_EXECUTED') || (status === 'USER_EXECUED')) {
-            return 'pending';
-        } else if (status === 'BTT_SUCCED') {
-            return 'ok';
-        } else {
-            return status;
-        }
+    parseTransactionStatus (status) {
+        const statuses = {
+            'DEPOSIT_FAILED': 'failed',
+            'FEE_SEND_FAILED': 'failed',
+            'FEE_FAILED': 'failed',
+            'PAY_SEND_FAILED': 'failed',
+            'PAY_FAILED': 'failed',
+            'BTT_FAILED': 'failed',
+            'WITHDDRAW_FAILED': 'failed',
+            'USER_FAILED': 'failed',
+            'FEE_EXECUED': 'pending',
+            'PAY_EXECUED': 'pending',
+            'WITHDDRAW_EXECUTED': 'pending',
+            'USER_EXECUED': 'pending',
+            'BTT_SUCCED': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -1018,7 +1025,7 @@ module.exports = class bytetrade extends Exchange {
         const timestamp = this.safeInteger (transaction, 'timestamp');
         const datetime = this.safeString (transaction, 'datetime');
         const type = this.safeString (transaction, 'type');
-        const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const amount = this.safeFloat (transaction, 'amount');
         const feeInfo = this.safeValue (transaction, 'fee');
         const feeCost = this.safeFloat (feeInfo, 'cost');
