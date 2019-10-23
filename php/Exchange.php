@@ -693,6 +693,9 @@ class Exchange {
         return implode('', func_get_args());
     }
 
+    public static function binary_concat_array($arr) {
+        return implode('', $arr);
+    }
 
     public static function binary_to_base64($binary) {
         return \base64_encode($binary);

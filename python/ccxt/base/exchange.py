@@ -1023,6 +1023,13 @@ class Exchange(object):
         return result
 
     @staticmethod
+    def binary_concat_array(array):
+        result = bytes()
+        for element in array:
+            result = result + element
+        return result
+
+    @staticmethod
     def base64urlencode(s):
         return Exchange.decode(base64.urlsafe_b64encode(s)).replace('=', '')
 

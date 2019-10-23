@@ -52,6 +52,7 @@ const commonRegexes = [
     [ /\.isEmpty\s/g, '.is_empty'],
     [ /\.arrayConcat\s/g, '.array_concat'],
     [ /\.binaryConcat\s/g, '.binary_concat'],
+    [ /\.binaryConcatArray\s/g, '.binary_concat_array'],
     [ /\.binaryToString\s/g, '.binary_to_string' ],
     [ /\.precisionFromString\s/g, '.precision_from_string'],
     [ /\.implodeParams\s/g, '.implode_params'],
