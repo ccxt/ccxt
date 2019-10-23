@@ -4,9 +4,8 @@
 
 "use strict";
 
-const { createFolderRecursively } = require ('./common.js')
-    , log  = require ('ololog')
-
+const log  = require ('ololog')
+    , { createFolderRecursively } = require ('./common.js')
     , {
         transpileDerivedExchangeFiles,
         transpilePythonAsyncToSync,
@@ -16,7 +15,6 @@ const { createFolderRecursively } = require ('./common.js')
         transpileDateTimeTests,
         transpileCryptoTests,
     } = require ('./transpiler.js')
-
     , python2Folder = './python/ccxt/'
     , python3Folder = './python/ccxt/async_support/'
     , phpFolder     = './php/'
