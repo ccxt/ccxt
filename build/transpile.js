@@ -251,6 +251,7 @@ const pythonRegexes = [
     [ /([^:+=\/\*\s-]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
     [ /\sand\(/g, ' and (' ],
     [ /\sor\(/g, ' or (' ],
+    [ /\snot\(/g, ' not (' ],
     [ /\[ /g, '[' ],              // PEP8 E201 remove whitespaces after left [ square bracket
     [ /\{ /g, '{' ],              // PEP8 E201 remove whitespaces after left { bracket
     [ /([^\s]+) \]/g, '$1]' ],    // PEP8 E202 remove whitespaces before right ] square bracket
