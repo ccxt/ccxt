@@ -583,9 +583,14 @@ class whitebit (Exchange):
         if response is not None:
             success = self.safe_value(response, 'success')
             if not success:
-                message = response['message']
-                if message:
-                    raise ExchangeError(message)
-                else:
-                    feedback = self.id + ' ' + self.json(response)
-                    raise ExchangeError(feedback)
+                feedback = self.id + ' ' + body
+                message = self.safe_value(response, 'message')
+                if isinstance(message, basestring):
+                    exact = self.safe_value(self.exceptions, 'exact', {})
+                    if message in exact:
+                        raise exact[message](feedback)
+                    broad = self.safe_value(self.exceptions, 'broad', {})
+                    broadKey = self.findBroadlyMatchedKey(broad, message)
+                    if broadKey is not None:
+                        raise broad[broadKey](feedback)
+                raise ExchangeError(feedback)
