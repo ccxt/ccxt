@@ -529,7 +529,7 @@ class bytetrade extends Exchange {
         $chainName = 'Sagittarius';
         $defaultFee = $this->safe_string($this->options, 'fee', '300000000000000');
         $fee = $this->safe_string($params, 'fee', $defaultFee);
-        $eightBytes = $this->pow ('2', '64');
+        $eightBytes = $this->integer_pow ('2', '64');
         $byteStringArray = array (
             $this->numberToBE (1, 32),
             $this->numberToLE ((int) floor($now / 1000), 4),
@@ -545,10 +545,10 @@ class bytetrade extends Exchange {
             $this->numberToLE ($typeNum, 1),
             $this->numberToLE (strlen ($normalSymbol), 1),
             $this->encode ($normalSymbol),
-            $this->numberToLE ($this->divide ($amountChain, $eightBytes), 8),
-            $this->numberToLE ($this->modulo ($amountChain, $eightBytes), 8),
-            $this->numberToLE ($this->divide ($priceChain, $eightBytes), 8),
-            $this->numberToLE ($this->modulo ($priceChain, $eightBytes), 8),
+            $this->numberToLE ($this->integer_divide ($amountChain, $eightBytes), 8),
+            $this->numberToLE ($this->integer_modulo ($amountChain, $eightBytes), 8),
+            $this->numberToLE ($this->integer_divide ($priceChain, $eightBytes), 8),
+            $this->numberToLE ($this->integer_modulo ($priceChain, $eightBytes), 8),
             $this->numberToLE (0, 2),
             $this->numberToLE ((int) floor($now / 1000), 4),
             $this->numberToLE ((int) floor($expiration / 1000), 4),
@@ -833,7 +833,7 @@ class bytetrade extends Exchange {
         $expirationDatetime = explode('.', $expirationDatetime)[0];
         $feeAmount = '300000000000000';
         $chainName = 'Sagittarius';
-        $eightBytes = $this->pow ('2', '64');
+        $eightBytes = $this->integer_pow ('2', '64');
         $byteStringArray = array (
             $this->numberToBE (1, 32),
             $this->numberToLE ((int) floor($now / 1000), 4),
@@ -848,8 +848,8 @@ class bytetrade extends Exchange {
             $this->numberToLE (strlen ($address), 1),
             $this->encode ($address),
             $this->numberToLE ($assetType, 4),
-            $this->numberToLE ($this->divide ($amountChain, $eightBytes), 8),
-            $this->numberToLE ($this->modulo ($amountChain, $eightBytes), 8),
+            $this->numberToLE ($this->integer_divide ($amountChain, $eightBytes), 8),
+            $this->numberToLE ($this->integer_modulo ($amountChain, $eightBytes), 8),
             $this->numberToLE (0, 1),
             $this->numberToLE (1, 1),
             $this->numberToLE (strlen ($chainName), 1),
@@ -1115,7 +1115,7 @@ class bytetrade extends Exchange {
         $coinId = $currency['id'];
         $amountTruncate = $this->decimal_to_precision($amount, TRUNCATE, $currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING);
         $amountChain = $this->toWei ($amountTruncate, 'ether', $currency['info']['externalPrecision']);
-        $eightBytes = $this->pow ('2', '64');
+        $eightBytes = $this->integer_pow ('2', '64');
         $assetFee = 0;
         $byteStringArray = array();
         if ($chainTypeString === 'bitcoin') {
@@ -1134,11 +1134,11 @@ class bytetrade extends Exchange {
                 $this->numberToLE (strlen ($address), 1),
                 $this->encode ($address),
                 $this->numberToLE (intval ($coinId), 4),
-                $this->numberToLE ((int) floor(intval (floatval ($this->divide ($amountChain, $eightBytes)))), 8),
-                $this->numberToLE ($this->modulo ($amountChain, $eightBytes), 8),
+                $this->numberToLE ((int) floor(intval (floatval ($this->integer_divide ($amountChain, $eightBytes)))), 8),
+                $this->numberToLE ($this->integer_modulo ($amountChain, $eightBytes), 8),
                 $this->numberToLE (1, 1),
-                $this->numberToLE ($this->divide ($assetFee, $eightBytes), 8),
-                $this->numberToLE ($this->modulo ($assetFee, $eightBytes), 8),
+                $this->numberToLE ($this->integer_divide ($assetFee, $eightBytes), 8),
+                $this->numberToLE ($this->integer_modulo ($assetFee, $eightBytes), 8),
                 $this->numberToLE (0, 1),
                 $this->numberToLE (1, 1),
                 $this->numberToLE (strlen ($chainName), 1),
@@ -1167,8 +1167,8 @@ class bytetrade extends Exchange {
                 $this->numberToLE (strlen ($middleAddress), 1),
                 $this->encode ($middleAddress),
                 $this->numberToLE (intval ($coinId), 4),
-                $this->numberToLE ((int) floor(intval (floatval ($this->divide ($amountChain, $eightBytes)))), 8),
-                $this->numberToLE ($this->modulo ($amountChain, $eightBytes), 8),
+                $this->numberToLE ((int) floor(intval (floatval ($this->integer_divide ($amountChain, $eightBytes)))), 8),
+                $this->numberToLE ($this->integer_modulo ($amountChain, $eightBytes), 8),
                 $this->numberToLE (0, 1),
                 $this->numberToLE (1, 1),
                 $this->numberToLE (strlen ($chainName), 1),

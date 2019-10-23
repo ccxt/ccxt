@@ -502,7 +502,7 @@ class bytetrade (Exchange):
         chainName = 'Sagittarius'
         defaultFee = self.safe_string(self.options, 'fee', '300000000000000')
         fee = self.safe_string(params, 'fee', defaultFee)
-        eightBytes = self.pow('2', '64')
+        eightBytes = self.integer_pow('2', '64')
         byteStringArray = [
             self.numberToBE(1, 32),
             self.numberToLE(int(math.floor(now / 1000)), 4),
@@ -518,10 +518,10 @@ class bytetrade (Exchange):
             self.numberToLE(typeNum, 1),
             self.numberToLE(len(normalSymbol), 1),
             self.encode(normalSymbol),
-            self.numberToLE(self.divide(amountChain, eightBytes), 8),
-            self.numberToLE(self.modulo(amountChain, eightBytes), 8),
-            self.numberToLE(self.divide(priceChain, eightBytes), 8),
-            self.numberToLE(self.modulo(priceChain, eightBytes), 8),
+            self.numberToLE(self.integer_divide(amountChain, eightBytes), 8),
+            self.numberToLE(self.integer_modulo(amountChain, eightBytes), 8),
+            self.numberToLE(self.integer_divide(priceChain, eightBytes), 8),
+            self.numberToLE(self.integer_modulo(priceChain, eightBytes), 8),
             self.numberToLE(0, 2),
             self.numberToLE(int(math.floor(now / 1000)), 4),
             self.numberToLE(int(math.floor(expiration / 1000)), 4),
@@ -780,7 +780,7 @@ class bytetrade (Exchange):
         expirationDatetime = expirationDatetime.split('.')[0]
         feeAmount = '300000000000000'
         chainName = 'Sagittarius'
-        eightBytes = self.pow('2', '64')
+        eightBytes = self.integer_pow('2', '64')
         byteStringArray = [
             self.numberToBE(1, 32),
             self.numberToLE(int(math.floor(now / 1000)), 4),
@@ -795,8 +795,8 @@ class bytetrade (Exchange):
             self.numberToLE(len(address), 1),
             self.encode(address),
             self.numberToLE(assetType, 4),
-            self.numberToLE(self.divide(amountChain, eightBytes), 8),
-            self.numberToLE(self.modulo(amountChain, eightBytes), 8),
+            self.numberToLE(self.integer_divide(amountChain, eightBytes), 8),
+            self.numberToLE(self.integer_modulo(amountChain, eightBytes), 8),
             self.numberToLE(0, 1),
             self.numberToLE(1, 1),
             self.numberToLE(len(chainName), 1),
@@ -1033,7 +1033,7 @@ class bytetrade (Exchange):
         coinId = currency['id']
         amountTruncate = self.decimal_to_precision(amount, TRUNCATE, currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING)
         amountChain = self.toWei(amountTruncate, 'ether', currency['info']['externalPrecision'])
-        eightBytes = self.pow('2', '64')
+        eightBytes = self.integer_pow('2', '64')
         assetFee = 0
         byteStringArray = []
         if chainTypeString == 'bitcoin':
@@ -1052,11 +1052,11 @@ class bytetrade (Exchange):
                 self.numberToLE(len(address), 1),
                 self.encode(address),
                 self.numberToLE(int(coinId), 4),
-                self.numberToLE(int(math.floor(int(float(self.divide(amountChain, eightBytes))))), 8),
-                self.numberToLE(self.modulo(amountChain, eightBytes), 8),
+                self.numberToLE(int(math.floor(int(float(self.integer_divide(amountChain, eightBytes))))), 8),
+                self.numberToLE(self.integer_modulo(amountChain, eightBytes), 8),
                 self.numberToLE(1, 1),
-                self.numberToLE(self.divide(assetFee, eightBytes), 8),
-                self.numberToLE(self.modulo(assetFee, eightBytes), 8),
+                self.numberToLE(self.integer_divide(assetFee, eightBytes), 8),
+                self.numberToLE(self.integer_modulo(assetFee, eightBytes), 8),
                 self.numberToLE(0, 1),
                 self.numberToLE(1, 1),
                 self.numberToLE(len(chainName), 1),
@@ -1085,8 +1085,8 @@ class bytetrade (Exchange):
                 self.numberToLE(len(middleAddress), 1),
                 self.encode(middleAddress),
                 self.numberToLE(int(coinId), 4),
-                self.numberToLE(int(math.floor(int(float(self.divide(amountChain, eightBytes))))), 8),
-                self.numberToLE(self.modulo(amountChain, eightBytes), 8),
+                self.numberToLE(int(math.floor(int(float(self.integer_divide(amountChain, eightBytes))))), 8),
+                self.numberToLE(self.integer_modulo(amountChain, eightBytes), 8),
                 self.numberToLE(0, 1),
                 self.numberToLE(1, 1),
                 self.numberToLE(len(chainName), 1),
