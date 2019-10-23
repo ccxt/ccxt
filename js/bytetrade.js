@@ -991,8 +991,8 @@ module.exports = class bytetrade extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status) {
-        const statusMap = {
+    parseTransactionStatus (status) {
+        const statuses = {
             'DEPOSIT_FAILED': 'failed',
             'FEE_SEND_FAILED': 'failed',
             'FEE_FAILED': 'failed',
@@ -1007,7 +1007,7 @@ module.exports = class bytetrade extends Exchange {
             'USER_EXECUED': 'pending',
             'BTT_SUCCED': 'ok',
         };
-        return this.safeString (statusMap, status, status);
+        return this.safeString (statuses, status, status);
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -1025,7 +1025,7 @@ module.exports = class bytetrade extends Exchange {
         const timestamp = this.safeInteger (transaction, 'timestamp');
         const datetime = this.safeString (transaction, 'datetime');
         const type = this.safeString (transaction, 'type');
-        const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const amount = this.safeFloat (transaction, 'amount');
         const feeInfo = this.safeValue (transaction, 'fee');
         const feeCost = this.safeFloat (feeInfo, 'cost');
