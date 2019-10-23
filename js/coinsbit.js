@@ -114,7 +114,7 @@ module.exports = class coinsbit extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': -1 * Math.log10 (precision['amount']),
+                        'min': Math.pow (10, -precision['amount']),
                         'max': undefined,
                     },
                 },
