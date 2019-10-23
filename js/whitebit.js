@@ -609,7 +609,7 @@ module.exports = class whitebit extends Exchange {
         if (response !== undefined) {
             const success = this.safeValue (response, 'success');
             if (!success) {
-                const message = response['message'];
+                const message = this.safeValue (response, 'message');
                 if (message) {
                     throw new ExchangeError (message);
                 } else {
