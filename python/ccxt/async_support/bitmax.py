@@ -1070,7 +1070,10 @@ class bitmax (Exchange):
                 headers['x-auth-coid'] = coid
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             headers['x-auth-signature'] = signature
-            if method != 'GET':
+            if method == 'GET':
+                if query:
+                    url += '?' + self.urlencode(query)
+            else:
                 body = self.json(query)
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
