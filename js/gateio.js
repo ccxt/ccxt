@@ -763,14 +763,9 @@ module.exports = class gateio extends Exchange {
         const errorCode = this.safeString (response, 'code');
         if (errorCode !== undefined) {
             const exceptions = this.exceptions;
-            const errorCodeNames = this.errorCodeNames;
             if (errorCode in exceptions) {
-                let message = '';
-                if (errorCode in errorCodeNames) {
-                    message = errorCodeNames[errorCode];
-                } else {
-                    message = this.safeString (response, 'message', '(unknown)');
-                }
+                const feedback = this.safeString (response, 'message', body);
+                const message = this.safeString (this.errorCodeNames, errorCode, feedback);
                 throw new exceptions[errorCode] (message);
             }
         }
