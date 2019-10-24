@@ -696,7 +696,7 @@ class bytetrade (Exchange):
             self.encode(self.apiKey),
             self.numberToLE(len(normalSymbol), 1),
             self.encode(normalSymbol),
-            self.base16_to_binary(id),
+            self.base16ToBinary(id),
             self.numberToLE(int(quoteId), 4),
             self.numberToLE(int(baseId), 4),
             self.numberToLE(0, 1),
