@@ -637,7 +637,7 @@ module.exports = class kucoin extends Exchange {
             'clientOid': clientOid,
             'info': data,
         };
-        if (this.safeValue (params, 'quoteAmount') !== undefined) {
+        if (!this.safeValue (params, 'quoteAmount')) {
             order['amount'] = amount;
         }
         return order;
