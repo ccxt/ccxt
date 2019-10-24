@@ -989,7 +989,11 @@ module.exports = class bitmax extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const orders = this.safeValue (data, 'data', []);
-        return this.parseOrders (orders, market, since, limit);
+        const result = this.parseOrders (orders, market, since, limit);
+        if (symbol !== undefined) {
+            return this.filterBy (result, 'symbol', symbol)
+        }
+        return
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -1131,7 +1135,11 @@ module.exports = class bitmax extends Exchange {
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
             headers['x-auth-signature'] = signature;
-            if (method !== 'GET') {
+            if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            } else {
                 body = this.json (query);
             }
         }
