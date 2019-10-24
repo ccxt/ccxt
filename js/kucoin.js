@@ -365,6 +365,7 @@ module.exports = class kucoin extends Exchange {
             percentage = percentage * 100;
         }
         const last = this.safeFloat (ticker, 'last');
+        const average = this.safeFloat (ticker, 'averagePrice');
         let symbol = undefined;
         const marketId = this.safeString (ticker, 'symbol');
         if (marketId !== undefined) {
@@ -400,7 +401,7 @@ module.exports = class kucoin extends Exchange {
             'previousClose': undefined,
             'change': this.safeFloat (ticker, 'changePrice'),
             'percentage': percentage,
-            'average': undefined,
+            'average': average,
             'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': this.safeFloat (ticker, 'volValue'),
             'info': ticker,
@@ -794,7 +795,8 @@ module.exports = class kucoin extends Exchange {
         const cost = this.safeFloat (order, 'dealFunds');
         const remaining = amount - filled;
         // bool
-        const status = order['isActive'] ? 'open' : 'closed';
+        let status = order['isActive'] ? 'open' : 'closed';
+        status = order['cancelExist'] ? 'canceled' : status;
         const fee = {
             'currency': feeCurrency,
             'cost': feeCost,
