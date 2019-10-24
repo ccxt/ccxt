@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.18.1315';
+$version = '1.18.1331';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.1315';
+    const VERSION = '1.18.1331';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -693,6 +693,9 @@ class Exchange {
         return implode('', func_get_args());
     }
 
+    public static function binary_concat_array($arr) {
+        return implode('', $arr);
+    }
 
     public static function binary_to_base64($binary) {
         return \base64_encode($binary);
@@ -2795,15 +2798,15 @@ class Exchange {
         return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $b . $a; });
     }
 
-    public static function divide($a, $b) {
+    public static function integer_divide($a, $b) {
         return (new BN ($a))->div (new BN ($b));
     }
 
-    public static function modulo($a, $b) {
+    public static function integer_modulo($a, $b) {
         return (new BN ($a))->mod (new BN ($b));
     }
 
-    public static function pow($a, $b) {
+    public static function integer_pow($a, $b) {
         return (new BN ($a))->pow (new BN ($b));
     }
 }
