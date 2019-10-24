@@ -596,12 +596,19 @@ module.exports = class kucoin extends Exchange {
         const request = {
             'clientOid': clientOid,
             'side': side,
-            'size': this.amountToPrecision (symbol, amount),
             'symbol': marketId,
             'type': type,
         };
         if (type !== 'market') {
             request['price'] = this.priceToPrecision (symbol, price);
+            request['size'] = this.amountToPrecision (symbol, amount);
+        } else {
+            if (this.safeValue (params, 'quoteAmount')) {
+                // used to create market order by quote amount - https://github.com/ccxt/ccxt/issues/4876
+                request['funds'] = this.amountToPrecision (symbol, amount);
+            } else {
+                request['size'] = this.amountToPrecision (symbol, amount);
+            }
         }
         const response = await this.privatePostOrders (this.extend (request, params));
         //
@@ -614,12 +621,11 @@ module.exports = class kucoin extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const timestamp = this.milliseconds ();
-        return {
+        const order = {
             'id': this.safeString (data, 'orderId'),
             'symbol': symbol,
             'type': type,
             'side': side,
-            'amount': amount,
             'price': price,
             'cost': undefined,
             'filled': undefined,
@@ -631,6 +637,10 @@ module.exports = class kucoin extends Exchange {
             'clientOid': clientOid,
             'info': data,
         };
+        if (this.safeValue (params, 'quoteAmount') !== undefined) {
+            order['amount'] = amount;
+        }
+        return order;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
