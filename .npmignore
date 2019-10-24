@@ -1,5 +1,6 @@
 ccxt.egg-info/
 build/
+!build/transpile.js
 examples/
 node_modules/
 python/
