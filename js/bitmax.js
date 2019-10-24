@@ -989,11 +989,7 @@ module.exports = class bitmax extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const orders = this.safeValue (data, 'data', []);
-        const result = this.parseOrders (orders, market, since, limit);
-        if (symbol !== undefined) {
-            return this.filterBy (result, 'symbol', symbol)
-        }
-        return
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
