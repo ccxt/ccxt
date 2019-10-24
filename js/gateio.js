@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InvalidAddress, OrderNotFound, NotSupported, DDoSProtection, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InvalidAddress, OrderNotFound, NotSupported, DDoSProtection, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -109,6 +109,7 @@ module.exports = class gateio extends Exchange {
                 '15': DDoSProtection,
                 '16': OrderNotFound,
                 '17': OrderNotFound,
+                '20': InvalidOrder,
                 '21': InsufficientFunds,
             },
             // https://gate.io/api2#errCode
@@ -329,30 +330,6 @@ module.exports = class gateio extends Exchange {
             'quoteVolume': this.safeFloat (ticker, 'baseVolume'),
             'info': ticker,
         };
-    }
-
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (response === undefined) {
-            return;
-        }
-        const resultString = this.safeString (response, 'result', '');
-        if (resultString !== 'false') {
-            return;
-        }
-        const errorCode = this.safeString (response, 'code');
-        if (errorCode !== undefined) {
-            const exceptions = this.exceptions;
-            const errorCodeNames = this.errorCodeNames;
-            if (errorCode in exceptions) {
-                let message = '';
-                if (errorCode in errorCodeNames) {
-                    message = errorCodeNames[errorCode];
-                } else {
-                    message = this.safeString (response, 'message', '(unknown)');
-                }
-                throw new exceptions[errorCode] (message);
-            }
-        }
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -775,22 +752,27 @@ module.exports = class gateio extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('result' in response) {
-            const result = response['result'];
-            const message = this.id + ' ' + this.json (response);
-            if (result === undefined) {
-                throw new ExchangeError (message);
-            }
-            if (typeof result === 'string') {
-                if (result !== 'true') {
-                    throw new ExchangeError (message);
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return;
+        }
+        const resultString = this.safeString (response, 'result', '');
+        if (resultString !== 'false') {
+            return;
+        }
+        const errorCode = this.safeString (response, 'code');
+        if (errorCode !== undefined) {
+            const exceptions = this.exceptions;
+            const errorCodeNames = this.errorCodeNames;
+            if (errorCode in exceptions) {
+                let message = '';
+                if (errorCode in errorCodeNames) {
+                    message = errorCodeNames[errorCode];
+                } else {
+                    message = this.safeString (response, 'message', '(unknown)');
                 }
-            } else if (!result) {
-                throw new ExchangeError (message);
+                throw new exceptions[errorCode] (message);
             }
         }
-        return response;
     }
 };
