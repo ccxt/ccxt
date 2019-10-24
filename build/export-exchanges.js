@@ -13,6 +13,7 @@ const fs        = require ('fs')
     , log       = require ('ololog').unlimited
     , ansi      = require ('ansicolor').nice
     , { keys, values, entries } = Object
+    , { replaceInFile } = require ('./fs.js')
 
 // ----------------------------------------------------------------------------
 
