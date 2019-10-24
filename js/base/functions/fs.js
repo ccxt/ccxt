@@ -1,6 +1,3 @@
-// This file is not included in the platform-independent functions.js
-// because the filesystem operations below are NodeJS-specific
-
 "use strict";
 
 const fs = require ('fs')
