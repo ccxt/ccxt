@@ -741,11 +741,13 @@ function transpileDerivedExchangeClass (contents) {
 
 // ============================================================================
 
-function transpileDerivedExchangeFile (folder, filename, options) {
+function transpileDerivedExchangeFile (jsFolder, filename, options) {
+
+    // todo normalize jsFolder and other arguments
 
     try {
 
-        const contents = fs.readFileSync (folder + filename, 'utf8')
+        const contents = fs.readFileSync (jsFolder + filename, 'utf8')
         const { python2Folder, python3Folder, phpFolder } = options
         const { python2, python3, php, className, baseClass } = transpileDerivedExchangeClass (contents)
 
@@ -771,16 +773,18 @@ function transpileDerivedExchangeFile (folder, filename, options) {
 
 //-----------------------------------------------------------------------------
 
-function transpileDerivedExchangeFiles (folder, options, pattern = '.js') {
+function transpileDerivedExchangeFiles (jsFolder, options, pattern = '.js') {
+
+    // todo normalize jsFolder and other arguments
 
     const { python2Folder, python3Folder, phpFolder } = options
 
     // exchanges.json accounts for ids included in exchanges.cfg
     const ids = require ('../exchanges.json').ids;
 
-    const classNames = fs.readdirSync (folder)
+    const classNames = fs.readdirSync (jsFolder)
         .filter (file => file.includes (pattern) && ids.includes (basename (file, pattern)))
-        .map (file => transpileDerivedExchangeFile (folder, file, options))
+        .map (file => transpileDerivedExchangeFile (jsFolder, file, options))
 
     if (classNames.length === 0)
         return null
@@ -1055,36 +1059,7 @@ function equals($a, $b) {
 
 // ============================================================================
 
-module.exports = {
-    commonRegexes,
-    pythonRegexes,
-    python2Regexes,
-    phpRegexes,
-    // ........................................................................
-    createPythonClass,
-    createPHPClass,
-    // ........................................................................
-    transpileJavaScriptToPython3,
-    transpilePython3ToPython2,
-    transpileJavaScriptToPHP,
-    transpileJavaScriptToPythonAndPHP,
-    transpilePythonAsyncToSync,
-    transpileDerivedExchangeClass,
-    // ........................................................................
-    transpileDerivedExchangeFile,
-    transpileDerivedExchangeFiles,
-    // ........................................................................
-    exportTypeScriptDeclarations,
-    transpileErrorHierarchy,
-    // ........................................................................
-    transpileDateTimeTests,
-    transpilePrecisionTests,
-    transpileCryptoTests,
-}
-
-// ============================================================================
-
-function main () {
+function transpileEverything () {
 
     // default pattern is '.js'
     const [ /* node */, /* script */, pattern ] = process.argv
@@ -1124,9 +1099,40 @@ function main () {
 
 if (require.main === module) { // called directly like `node module`
 
-    main ()
+    transpileEverything ()
 
 } else { // if required as a module
 
     // do nothing
+}
+
+// ============================================================================
+
+module.exports = {
+    commonRegexes,
+    pythonRegexes,
+    python2Regexes,
+    phpRegexes,
+    // ........................................................................
+    createPythonClass,
+    createPHPClass,
+    // ........................................................................
+    transpileJavaScriptToPython3,
+    transpilePython3ToPython2,
+    transpileJavaScriptToPHP,
+    transpileJavaScriptToPythonAndPHP,
+    transpilePythonAsyncToSync,
+    transpileDerivedExchangeClass,
+    // ........................................................................
+    transpileDerivedExchangeFile,
+    transpileDerivedExchangeFiles,
+    // ........................................................................
+    exportTypeScriptDeclarations,
+    transpileErrorHierarchy,
+    // ........................................................................
+    transpileDateTimeTests,
+    transpilePrecisionTests,
+    transpileCryptoTests,
+    // ........................................................................
+    transpileEverything,
 }
