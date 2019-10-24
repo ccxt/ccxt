@@ -1,5 +1,5 @@
 ccxt.egg-info/
-build/*
+build/**/*
 !build/transpile.js
 !build/fs.js
 examples/
