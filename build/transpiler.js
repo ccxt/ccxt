@@ -5,13 +5,22 @@ const fs = require ('fs')
     , ansi = require ('ansicolor').nice
     , errors = require ('../js/base/errors.js')
     , { basename } = require ('path')
-    , { regexAll } = require ('./common.js')
-    , {
-        replaceInFile,
-        regexAll,
-        overwriteFile,
-    } = require ('../js/base/functions/fs.js')
+    , { replaceInFile, overwriteFile } = require ('../js/base/functions/fs.js')
     , { unCamelCase, precisionConstants } = require ('../js/base/functions.js')
+
+// ----------------------------------------------------------------------------
+// a helper to apply an array of regexes and substitutions to text
+// accepts and array like [ [ regex, substitution ], ... ]
+
+function regexAll (text, array) {
+    for (const i in array) {
+        let regex = array[i][0]
+        const flags = (typeof regex === 'string') ? 'g' : undefined
+        regex = new RegExp (regex, flags)
+        text = text.replace (regex, array[i][1])
+    }
+    return text
+}
 
 // ----------------------------------------------------------------------------
 // TODO: rewrite commonRegexes from hardcoded logic to conversion methods
