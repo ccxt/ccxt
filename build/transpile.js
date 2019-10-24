@@ -150,7 +150,7 @@ const commonRegexes = [
     [ /\.integerModulo/g, '.integer_modulo'],
     [ /\.integerPow/g, '.integer_pow'],
     [ /errorHierarchy/g, 'error_hierarchy'],
-    [ /'.base16ToBinary/g, '.base16_to_binary'],
+    [ /\.base16ToBinary/g, '.base16_to_binary'],
     [ /\'use strict\';?\s+/g, '' ],
 ]
 
@@ -278,7 +278,7 @@ const python2Regexes = [
 // ----------------------------------------------------------------------------
 
 const phpRegexes = [
-    [ /\{([a-zA-Z0-9_]+?)\}/g, '<$1>' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+    [ /\{([a-zA-Z0-9_]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
     [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype ($1) === 'array' && count (array_filter (array_keys ($1), 'is_string')) == 0" ],
 
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
@@ -383,7 +383,7 @@ const phpRegexes = [
     [ /console\.log/g, 'var_dump'],
     [ /process\.exit/g, 'exit'],
     [ /super\./g, 'parent::'],
-    [ /\<([a-zA-Z0-9_]+?)\>/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+    [ /\~([a-zA-Z0-9_]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
 ])
 
 // ============================================================================
