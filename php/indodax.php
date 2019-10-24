@@ -136,7 +136,7 @@ class indodax extends Exchange {
             ),
             'exceptions' => array (
                 'exact' => array (
-                    'invalid_pair' => '\\ccxt\\BadRequest', // array("error":"invalid_pair","error_description":"Invalid Pair")
+                    'invalid_pair' => '\\ccxt\\BadSymbol', // array("error":"invalid_pair","error_description":"Invalid Pair")
                     'Insufficient balance.' => '\\ccxt\\InsufficientFunds',
                     'invalid order.' => '\\ccxt\\OrderNotFound',
                     'Invalid credentials. API not found or session has expired.' => '\\ccxt\\AuthenticationError',
