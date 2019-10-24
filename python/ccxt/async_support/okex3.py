@@ -2002,7 +2002,7 @@ class okex3 (Exchange):
         elif 'trade_pwd' in params:
             request['trade_pwd'] = params['trade_pwd']
         query = self.omit(params, ['fee', 'password', 'trade_pwd'])
-        if not('trade_pwd' in list(request.keys())):
+        if not ('trade_pwd' in list(request.keys())):
             raise ExchangeError(self.id + ' withdraw() requires self.password set on the exchange instance or a password / trade_pwd parameter')
         response = await self.accountPostWithdrawal(self.extend(request, query))
         #

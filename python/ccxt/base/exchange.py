@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1315'
+__version__ = '1.18.1322'
 
 # -----------------------------------------------------------------------------
 
@@ -1020,6 +1020,13 @@ class Exchange(object):
         result = bytes()
         for arg in args:
             result = result + arg
+        return result
+
+    @staticmethod
+    def binary_concat_array(array):
+        result = bytes()
+        for element in array:
+            result = result + element
         return result
 
     @staticmethod
@@ -2062,13 +2069,13 @@ class Exchange(object):
 
     # python supports arbitrarily big integers
     @staticmethod
-    def divide(a, b):
+    def integer_divide(a, b):
         return int(a) // int(b)
 
     @staticmethod
-    def pow(a, b):
+    def integer_pow(a, b):
         return int(a) ** int(b)
 
     @staticmethod
-    def modulo(a, b):
+    def integer_modulo(a, b):
         return int(a) % int(b)

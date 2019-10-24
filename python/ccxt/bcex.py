@@ -397,7 +397,7 @@ class bcex (Exchange):
             currencyId = parts[0]
             lockOrOver = parts[1]
             code = self.safe_currency_code(currencyId)
-            if not(code in list(result.keys())):
+            if not (code in list(result.keys())):
                 result[code] = self.account()
             if lockOrOver == 'lock':
                 result[code]['used'] = float(amount)

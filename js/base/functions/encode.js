@@ -27,6 +27,7 @@ module.exports =
     , base16ToBinary: string => CryptoJS.enc.Hex.parse (string)
     , binaryToBase16: binary => binary.toString (CryptoJS.enc.Hex)
     , binaryConcat: (...args) => args.reduce ((a, b) => a.concat (b))
+    , binaryConcatArray: (arr) => arr.reduce ((a, b) => a.concat (b))
 
     , urlencode: object => qs.stringify (object)
     , rawencode: object => qs.stringify (object, { encode: false })

@@ -491,11 +491,11 @@ class indodax (Exchange):
         if isinstance(response, list):
             return  # public endpoints may return []-arrays
         error = self.safe_value(response, 'error', '')
-        if not('success' in list(response.keys())) and error == '':
+        if not ('success' in list(response.keys())) and error == '':
             return  # no 'success' property on public responses
         if self.safe_integer(response, 'success', 0) == 1:
             # {success: 1, return: {orders: []}}
-            if not('return' in list(response.keys())):
+            if not ('return' in list(response.keys())):
                 raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
             else:
                 return
