@@ -943,7 +943,7 @@ module.exports = class bitmax extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['pageSize'] = limit;
+            request['n'] = limit; // default 15, max 50
         }
         const response = await this.privateGetOrderHistory (this.extend (request, params));
         //
