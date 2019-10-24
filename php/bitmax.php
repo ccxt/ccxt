@@ -943,7 +943,7 @@ class bitmax extends Exchange {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $request['pageSize'] = $limit;
+            $request['n'] = $limit; // default 15, max 50
         }
         $response = $this->privateGetOrderHistory (array_merge ($request, $params));
         //

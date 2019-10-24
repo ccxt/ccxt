@@ -895,7 +895,7 @@ class bitmax (Exchange):
         if since is not None:
             request['startTime'] = since
         if limit is not None:
-            request['pageSize'] = limit
+            request['n'] = limit  # default 15, max 50
         response = await self.privateGetOrderHistory(self.extend(request, params))
         #
         #     {
