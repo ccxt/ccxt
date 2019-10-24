@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadRequest } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -135,7 +135,7 @@ module.exports = class indodax extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    'invalid_pair': BadRequest, // {"error":"invalid_pair","error_description":"Invalid Pair"}
+                    'invalid_pair': BadSymbol, // {"error":"invalid_pair","error_description":"Invalid Pair"}
                     'Insufficient balance.': InsufficientFunds,
                     'invalid order.': OrderNotFound,
                     'Invalid credentials. API not found or session has expired.': AuthenticationError,
