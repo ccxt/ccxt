@@ -745,7 +745,7 @@ class bytetrade extends Exchange {
             $this->encode ($this->apiKey),
             $this->numberToLE (strlen ($normalSymbol), 1),
             $this->encode ($normalSymbol),
-            $this->base16ToBinary ($id),
+            $this->base16_to_binary ($id),
             $this->numberToLE (intval ($quoteId), 4),
             $this->numberToLE (intval ($baseId), 4),
             $this->numberToLE (0, 1),
