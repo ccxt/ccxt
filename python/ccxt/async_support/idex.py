@@ -418,7 +418,7 @@ class idex (Exchange):
             #      user: '0x0ab991497116f7f5532a4c2f4f7b1784488628e1'} }
             return self.parse_order(response, market)
         elif type == 'market':
-            if not('orderHash' in list(params.keys())):
+            if not ('orderHash' in list(params.keys())):
                 raise ArgumentsRequired(self.id + ' market order requires an order structure such as that in fetchOrderBook()[\'bids\'][0][2], fetchOrder()[\'info\'], or fetchOpenOrders()[0][\'info\']')
             # {price: '0.000132247803328924',
             #   amount: '19980',

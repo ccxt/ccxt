@@ -110,6 +110,7 @@ class gateio extends Exchange {
                 '15' => '\\ccxt\\DDoSProtection',
                 '16' => '\\ccxt\\OrderNotFound',
                 '17' => '\\ccxt\\OrderNotFound',
+                '20' => '\\ccxt\\InvalidOrder',
                 '21' => '\\ccxt\\InsufficientFunds',
             ),
             // https://gate.io/api2#errCode
@@ -330,30 +331,6 @@ class gateio extends Exchange {
             'quoteVolume' => $this->safe_float($ticker, 'baseVolume'),
             'info' => $ticker,
         );
-    }
-
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
-        if ($response === null) {
-            return;
-        }
-        $resultString = $this->safe_string($response, 'result', '');
-        if ($resultString !== 'false') {
-            return;
-        }
-        $errorCode = $this->safe_string($response, 'code');
-        if ($errorCode !== null) {
-            $exceptions = $this->exceptions;
-            $errorCodeNames = $this->errorCodeNames;
-            if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
-                $message = '';
-                if (is_array($errorCodeNames) && array_key_exists($errorCode, $errorCodeNames)) {
-                    $message = $errorCodeNames[$errorCode];
-                } else {
-                    $message = $this->safe_string($response, 'message', '(unknown)');
-                }
-                throw new $exceptions[$errorCode]($message);
-            }
-        }
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
@@ -776,22 +753,22 @@ class gateio extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array($response) && array_key_exists('result', $response)) {
-            $result = $response['result'];
-            $message = $this->id . ' ' . $this->json ($response);
-            if ($result === null) {
-                throw new ExchangeError($message);
-            }
-            if (gettype ($result) === 'string') {
-                if ($result !== 'true') {
-                    throw new ExchangeError($message);
-                }
-            } else if (!$result) {
-                throw new ExchangeError($message);
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return;
+        }
+        $resultString = $this->safe_string($response, 'result', '');
+        if ($resultString !== 'false') {
+            return;
+        }
+        $errorCode = $this->safe_string($response, 'code');
+        if ($errorCode !== null) {
+            $exceptions = $this->exceptions;
+            if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
+                $message = $this->safe_string($response, 'message', $body);
+                $feedback = $this->safe_string($this->errorCodeNames, $errorCode, $message);
+                throw new $exceptions[$errorCode]($feedback);
             }
         }
-        return $response;
     }
 }

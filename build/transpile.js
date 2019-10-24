@@ -57,6 +57,7 @@ const commonRegexes = [
     [ /\.isEmpty\s/g, '.is_empty'],
     [ /\.arrayConcat\s/g, '.array_concat'],
     [ /\.binaryConcat\s/g, '.binary_concat'],
+    [ /\.binaryConcatArray\s/g, '.binary_concat_array'],
     [ /\.binaryToString\s/g, '.binary_to_string' ],
     [ /\.precisionFromString\s/g, '.precision_from_string'],
     [ /\.implodeParams\s/g, '.implode_params'],
@@ -145,6 +146,9 @@ const commonRegexes = [
     [ /\.setSandboxMode\s/g, '.set_sandbox_mode'],
     [ /\.safeCurrencyCode\s/g, '.safe_currency_code'],
     [ /\.roundTimeframe/g, '.round_timeframe'],
+    [ /\.integerDivide/g, '.integer_divide'],
+    [ /\.integerModulo/g, '.integer_modulo'],
+    [ /\.integerPow/g, '.integer_pow'],
     [ /errorHierarchy/g, 'error_hierarchy'],
     [ /'.base16ToBinary/g, '.base16_to_binary'],
     [ /\'use strict\';?\s+/g, '' ],
@@ -256,6 +260,7 @@ const pythonRegexes = [
     [ /([^:+=\/\*\s-]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
     [ /\sand\(/g, ' and (' ],
     [ /\sor\(/g, ' or (' ],
+    [ /\snot\(/g, ' not (' ],
     [ /\[ /g, '[' ],              // PEP8 E201 remove whitespaces after left [ square bracket
     [ /\{ /g, '{' ],              // PEP8 E201 remove whitespaces after left { bracket
     [ /([^\s]+) \]/g, '$1]' ],    // PEP8 E202 remove whitespaces before right ] square bracket
