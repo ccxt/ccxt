@@ -943,7 +943,7 @@ class bitmax extends Exchange {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $request['pageSize'] = $limit;
+            $request['n'] = $limit; // default 15, max 50
         }
         $response = $this->privateGetOrderHistory (array_merge ($request, $params));
         //
@@ -1131,7 +1131,11 @@ class bitmax extends Exchange {
             }
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha256', 'base64');
             $headers['x-$auth-signature'] = $signature;
-            if ($method !== 'GET') {
+            if ($method === 'GET') {
+                if ($query) {
+                    $url .= '?' . $this->urlencode ($query);
+                }
+            } else {
                 $body = $this->json ($query);
             }
         }
