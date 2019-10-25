@@ -76,7 +76,7 @@ class BaseError extends Exception {
     public $response_json;
     public static $verbose = False;
 
-    public function __construct($error_message = "", $exchange_id = null, $http_code = null, $http_status_text = null, $url = null, $http_method = null, $response_headers = null, $response_body = null, $response_json = null) {
+    public function __construct($error_message, $exchange_id = null, $http_code = null, $http_status_text = null, $url = null, $http_method = null, $response_headers = null, $response_body = null, $response_json = null) {
         $message = implode(' ', array_map('strval', array_filter(array($exchange_id, $http_method, $url, $http_code, $http_status_text, $error_message), 'is_string')));
         if (static::$verbose) {
             if ($response_headers) {
