@@ -12,7 +12,9 @@ $error_hierarchy = array (
                 'AccountSuspended' => array(),
             ),
             'ArgumentsRequired' => array(),
-            'BadRequest' => array(),
+            'BadRequest' => array (
+                'BadSymbol' => array(),
+            ),
             'BadResponse' => array (
                 'NullResponse' => array(),
             ),
@@ -32,7 +34,9 @@ $error_hierarchy = array (
         ),
         'NetworkError' => array (
             'DDoSProtection' => array(),
-            'ExchangeNotAvailable' => array(),
+            'ExchangeNotAvailable' => array (
+                'OnMaintenance' => array(),
+            ),
             'InvalidNonce' => array(),
             'RequestTimeout' => array(),
         ),
@@ -75,11 +79,13 @@ class BaseError extends Exception {
     public function __construct($error_message = "", $exchange_id = null, $http_code = null, $http_status_text = null, $url = null, $http_method = null, $response_headers = null, $response_body = null, $response_json = null) {
         $message = implode(' ', array_map('strval', array_filter(array($exchange_id, $http_method, $url, $http_code, $http_status_text, $error_message), 'is_string')));
         if (static::$verbose) {
-            if ($response_headers !== null) {
+            if ($response_headers) {
                 $message .= "\n" . print_r($response_headers, true);
             }
-            if ($response_json !== null) {
+            if ($response_json) {
                 $message .= "\n" . print_r($response_json, true);
+            } else if ($response_body) {
+                $message .= "\n" . $response_body;
             }
         }
         parent::__construct($message, 0, null);

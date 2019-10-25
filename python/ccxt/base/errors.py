@@ -6,7 +6,9 @@ error_hierarchy = {
                 'AccountSuspended': {},
             },
             'ArgumentsRequired': {},
-            'BadRequest': {},
+            'BadRequest': {
+                'BadSymbol': {},
+            },
             'BadResponse': {
                 'NullResponse': {},
             },
@@ -26,7 +28,9 @@ error_hierarchy = {
         },
         'NetworkError': {
             'DDoSProtection': {},
-            'ExchangeNotAvailable': {},
+            'ExchangeNotAvailable': {
+                'OnMaintenance': {},
+            },
             'InvalidNonce': {},
             'RequestTimeout': {},
         },
@@ -64,10 +68,12 @@ class BaseError(Exception):
         message = ' '.join(str(i) for i in [exchange_id, http_method, url, http_code, http_status_text, error_message]
                            if i is not None)
         if self.verbose:
-            if response_headers is not None:
-                message += '\n' + json.dumps(response_headers)
-            if response_json is not None:
-                message += '\n' + json.dumps(response_json)
+            if response_headers:
+                message += '\n' + json.dumps(response_headers, indent=2)
+            if response_json:
+                message += '\n' + json.dumps(response_json, indent=2)
+            elif response_body:
+                message += '\n' + response_body
         super(BaseError, self).__init__(message)
         self.__dict__['error_messsage'] = error_message
         self.__dict__['exchange_id'] = exchange_id

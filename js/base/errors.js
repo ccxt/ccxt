@@ -27,6 +27,8 @@ function subclass (BaseClass, classes, namespace = {}) {
                         }
                         if (responseJson) {
                             message += '\n' + JSON.stringify (responseJson, undefined, 2)
+                        } else if (responseBody) {
+                            message += '\n' + responseBody
                         }
                     }
                     super (message)
