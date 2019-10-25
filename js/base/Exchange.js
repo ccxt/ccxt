@@ -44,7 +44,9 @@ const {
     , AuthenticationError
     , DDoSProtection
     , RequestTimeout
-    , ExchangeNotAvailable } = require ('./errors')
+    , ExchangeNotAvailable
+    , BaseError
+} = require ('./errors')
 
 const { TRUNCATE, ROUND, DECIMAL_PLACES } = functions.precisionConstants
 
@@ -632,6 +634,10 @@ module.exports = class Exchange {
 
             return json || responseBody
         })
+    }
+
+    setVerboseErrors (verbose = true) {
+        BaseError.prototype.verbose = verbose
     }
 
     setMarkets (markets, currencies = undefined) {

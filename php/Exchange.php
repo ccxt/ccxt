@@ -211,6 +211,10 @@ class Exchange {
         'zb',
     );
 
+    public static function set_verbose_errors($verbose = True) {
+        BaseError::$verbose = $verbose;
+    }
+
     public static function split($string, $delimiters = array(' ')) {
         return explode($delimiters[0], str_replace($delimiters, $delimiters[0], $string));
     }

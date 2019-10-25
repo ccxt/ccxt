@@ -1,6 +1,7 @@
 'use strict';
 
-const errorHierarchy = require ('./errorHierarchy.js')
+const errorHierarchy = require ('./errorHierarchy')
+const { unCamelCase } = require ('./functions/string')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -17,19 +18,39 @@ function subclass (BaseClass, classes, namespace = {}) {
 
             [className]: class extends BaseClass {
 
-                constructor (message) {
+                constructor (errorMessage, exchangeId = undefined, httpStatusCode = undefined, httpStatusText = undefined, url = undefined, httpMethod = undefined, responseHeaders = undefined, responseBody = undefined, responseJson = undefined) {
 
+                    let message = [exchangeId, httpMethod, url, httpStatusCode, httpStatusText, errorMessage].filter (x => x !== undefined).join (' ')
+                    if (Class.prototype.verbose) {
+                        if (responseHeaders) {
+                            message += '\n' + JSON.stringify (responseHeaders, undefined, 2)
+                        }
+                        if (responseJson) {
+                            message += '\n' + JSON.stringify (responseJson, undefined, 2)
+                        }
+                    }
                     super (message)
 
-                /*  A workaround to make `instanceof` work on custom Error classes in transpiled ES5.
-                    See my blog post for the explanation of this hack:
-
-                    https://medium.com/@xpl/javascript-deriving-from-error-properly-8d2f8f315801        */
-
+                    // A workaround to make `instanceof` work on custom Error classes in transpiled ES5.
+                    // See my blog post for the explanation of this hack:
+                    // https://medium.com/@xpl/javascript-deriving-from-error-properly-8d2f8f315801
                     this.constructor = Class
-                    this.__proto__   = Class.prototype
-                    this.name        = className
-                    this.message     = message
+                    this.name = className
+                    this.__proto__ = Class.prototype
+
+                    this.errorMessage = errorMessage
+                    this.exchangeId = exchangeId
+                    this.httpStatusCode = httpStatusCode
+                    this.httpStatusText = httpStatusText
+                    this.url = url
+                    this.httpMethod = httpMethod
+                    this.responseHeaders = responseHeaders
+                    this.responseBody = responseBody
+                    this.responseJson = responseJson
+                }
+
+                toString () {
+                    return this.message
                 }
             }
 
@@ -43,9 +64,28 @@ function subclass (BaseClass, classes, namespace = {}) {
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = subclass (
+const Errors = subclass (
     // Root class
     Error,
     // Derived class hierarchy
-    errorHierarchy
+    errorHierarchy,
 )
+
+const BaseError = Errors['BaseError']
+const instance = new BaseError ()
+for (const property of Object.getOwnPropertyNames (instance)) {
+    const underscore = unCamelCase (property)
+    if (underscore !== property) {
+        Object.defineProperty (BaseError.prototype, underscore, {
+            get () {
+                return this[property]
+            },
+            set (value) {
+                this[property] = value
+            },
+        })
+    }
+}
+BaseError.prototype.verbose = false
+
+module.exports = Errors

@@ -18,6 +18,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import BaseError
 
 # -----------------------------------------------------------------------------
 
@@ -392,6 +393,10 @@ class Exchange(object):
         elif 'api_backup' in self.urls:
             self.urls['api'] = self.urls['api_backup']
             del self.urls['api_backup']
+
+    @staticmethod
+    def set_verbose_errors(verbose=True):
+        BaseError.verbose = verbose
 
     @classmethod
     def define_rest_api(cls, api, method_name, options={}):
