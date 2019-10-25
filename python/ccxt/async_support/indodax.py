@@ -8,7 +8,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
-from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -143,7 +143,7 @@ class indodax (Exchange):
             },
             'exceptions': {
                 'exact': {
-                    'invalid_pair': BadRequest,  # {"error":"invalid_pair","error_description":"Invalid Pair"}
+                    'invalid_pair': BadSymbol,  # {"error":"invalid_pair","error_description":"Invalid Pair"}
                     'Insufficient balance.': InsufficientFunds,
                     'invalid order.': OrderNotFound,
                     'Invalid credentials. API not found or session has expired.': AuthenticationError,

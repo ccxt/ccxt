@@ -1,29 +1,34 @@
 // ---------------------------------------------------------------------------
-// Usage:
-//
-//      npm run transpile
+// Usage: npm run transpile
 // ---------------------------------------------------------------------------
 
 "use strict";
 
-const fs   = require ('fs')
-    , {
-        replaceInFile,
-        logReplaceInFile,
-        overwriteFile,
-        createFolderRecursively,
-        regexAll
-    } = require ('./common.js')
-    , { basename } = require ('path')
-    , log  = require ('ololog')
+const fs = require ('fs')
+    , log = require ('ololog')
     , ansi = require ('ansicolor').nice
     , errors = require ('../js/base/errors.js')
-    , { unCamelCase } = require ('../js/base/functions.js')
-    , { precisionConstants } = require ('../js/base/functions/number.js')
+    , { unCamelCase, precisionConstants } = require ('../js/base/functions.js')
+    , { basename } = require ('path')
+    , {
+        createFolderRecursively,
+        replaceInFile,
+        overwriteFile,
+    } = require ('./fs.js')
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// a helper to apply an array of regexes and substitutions to text
+// accepts and array like [ [ regex, substitution ], ... ]
 
-const [ /* node */, /* script */, filename ] = process.argv
+function regexAll (text, array) {
+    for (const i in array) {
+        let regex = array[i][0]
+        const flags = (typeof regex === 'string') ? 'g' : undefined
+        regex = new RegExp (regex, flags)
+        text = text.replace (regex, array[i][1])
+    }
+    return text
+}
 
 // ----------------------------------------------------------------------------
 // TODO: rewrite commonRegexes from hardcoded logic to conversion methods
@@ -145,7 +150,7 @@ const commonRegexes = [
     [ /\.integerModulo/g, '.integer_modulo'],
     [ /\.integerPow/g, '.integer_pow'],
     [ /errorHierarchy/g, 'error_hierarchy'],
-    [ /base16ToBinary/g, 'base16_to_binary'],
+    [ /\.base16ToBinary/g, '.base16_to_binary'],
     [ /\'use strict\';?\s+/g, '' ],
 ]
 
@@ -178,8 +183,8 @@ const pythonRegexes = [
     [ /\=\=\=?/g, '==' ],
     [ /\!\=\=?/g, '!=' ],
     [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
-    [ /this\.binaryToBase16\s/g, 'base64.b16encode' ],
     [ /this\.stringToBase64\s/g, 'base64.b64encode' ],
+    [ /this\.binaryToBase16\s/g, 'base64.b16encode' ],
     [ /this\.base64ToBinary\s/g, 'base64.b64decode' ],
     [ /\.shift\s*\(\)/g, '.pop(0)' ],
 
@@ -273,7 +278,7 @@ const python2Regexes = [
 // ----------------------------------------------------------------------------
 
 const phpRegexes = [
-    [ /\{([a-zA-Z0-9_]+?)\}/g, '<$1>' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+    [ /\{([a-zA-Z0-9_]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
     [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype ($1) === 'array' && count (array_filter (array_keys ($1), 'is_string')) == 0" ],
 
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
@@ -297,9 +302,9 @@ const phpRegexes = [
 
     [ /undefined/g, 'null' ],
     [ /this\.extend/g, 'array_merge' ],
-    [ /this\.binaryToBase16\s/g, 'bin2hex' ],
     [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
     [ /this\.stringToBase64/g, 'base64_encode' ],
+    [ /this\.binaryToBase16\s/g, 'bin2hex' ],
     [ /this\.base64ToBinary/g, 'base64_decode' ],
     [ /this\.deepExtend/g, 'array_replace_recursive'],
     [ /(\w+)\.shift\s*\(\)/g, 'array_shift($1)' ],
@@ -378,10 +383,10 @@ const phpRegexes = [
     [ /console\.log/g, 'var_dump'],
     [ /process\.exit/g, 'exit'],
     [ /super\./g, 'parent::'],
-    [ /\<([a-zA-Z0-9_]+?)\>/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+    [ /\~([a-zA-Z0-9_]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
 ])
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 // one-time helpers
 
 function createPythonClass (className, baseClass, body, methods, async = false) {
@@ -461,9 +466,6 @@ function createPythonClass (className, baseClass, body, methods, async = false) 
 
 function createPHPClass (className, baseClass, body, methods) {
 
-    const baseFolder = (baseClass == 'Exchange') ? 'base/' : ''
-    const baseFile =  baseFolder + baseClass + '.php'
-
     const header = [
         "<?php\n",
         "namespace ccxt;\n",
@@ -489,13 +491,7 @@ function createPHPClass (className, baseClass, body, methods) {
     return result
 }
 
-// ----------------------------------------------------------------------------
-
-const python2Folder = './python/ccxt/'
-const python3Folder = './python/ccxt/async_support/'
-const phpFolder     = './php/'
-
-// ----------------------------------------------------------------------------
+// ============================================================================
 
 function transpileJavaScriptToPython3 ({ js, className, removeEmptyLines }) {
 
@@ -581,22 +577,55 @@ function transpileJavaScriptToPHP ({ js, variables }) {
 
 function transpileJavaScriptToPythonAndPHP (args) {
 
-    //-------------------------------------------------------------------------
-
     // transpile JS → Python 3
     let python3Body = transpileJavaScriptToPython3 (args)
 
-    //-------------------------------------------------------------------------
-
     // remove await from Python 2 body (transpile Python 3 → Python 2)
     let python2Body = transpilePython3ToPython2 (python3Body)
-
-    //-------------------------------------------------------------------------
 
     // transpile JS → PHP
     let phpBody = transpileJavaScriptToPHP (args)
 
     return { python3Body, python2Body, phpBody }
+}
+
+//-----------------------------------------------------------------------------
+
+function transpilePythonAsyncToSync (oldName, newName) {
+
+    log.magenta ('Transpiling ' + oldName.yellow + ' → ' + newName.yellow)
+    const fileContents = fs.readFileSync (oldName, 'utf8')
+    let lines = fileContents.split ("\n")
+
+    lines = lines.filter (line => ![ 'import asyncio' ].includes (line))
+                .map (line => {
+                    return (
+                        line.replace ('asyncio.get_event_loop().run_until_complete(main())', 'main()')
+                            .replace ('import ccxt.async_support as ccxt', 'import ccxt')
+                            .replace (/.*token\_bucket.*/g, '')
+                            .replace ('await asyncio.sleep', 'time.sleep')
+                            .replace ('async ', '')
+                            .replace ('await ', ''))
+                })
+
+    // lines.forEach (line => log (line))
+
+    function deleteFunction (f, from) {
+        // the following regexes make a technical error
+        // since it won't cut away a single function
+        // it will delete everything up to the beginning of the next comment
+        const re1 = new RegExp ('def ' + f + '[^\#]+', 'g')
+        const re2 = new RegExp ('[\\s]+' + f + '\\(exchange\\)', 'g')
+        return from.replace (re1, '').replace (re2, '')
+    }
+
+    let newContents = lines.join ('\n')
+
+    newContents = deleteFunction ('test_tickers_async', newContents)
+    newContents = deleteFunction ('test_l2_order_books_async', newContents)
+
+    fs.truncateSync (newName)
+    fs.writeFileSync (newName, newContents)
 }
 
 // ----------------------------------------------------------------------------
@@ -700,7 +729,7 @@ function transpileDerivedExchangeClass (contents) {
 
     return {
 
-        // altogether in PHP, Python 2 and 3
+        // altogether in PHP, Python 2 and 3 (async)
         python2: createPythonClass (className, baseClass, python2, methodNames),
         python3: createPythonClass (className, baseClass, python3, methodNames, true),
         php:     createPHPClass    (className, baseClass, php,     methodNames),
@@ -710,15 +739,17 @@ function transpileDerivedExchangeClass (contents) {
     }
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 
-function transpileDerivedExchangeFile (folder, filename) {
+function transpileDerivedExchangeFile (jsFolder, filename, options) {
+
+    // todo normalize jsFolder and other arguments
 
     try {
 
-        let contents = fs.readFileSync (folder + filename, 'utf8')
-
-        let { python2, python3, php, className, baseClass } = transpileDerivedExchangeClass (contents)
+        const contents = fs.readFileSync (jsFolder + filename, 'utf8')
+        const { python2Folder, python3Folder, phpFolder } = options
+        const { python2, python3, php, className, baseClass } = transpileDerivedExchangeClass (contents)
 
         const python2Filename = python2Folder + filename.replace ('.js', '.py')
         const python3Filename = python3Folder + filename.replace ('.js', '.py')
@@ -742,14 +773,18 @@ function transpileDerivedExchangeFile (folder, filename) {
 
 //-----------------------------------------------------------------------------
 
-function transpileDerivedExchangeFiles (folder, pattern = '.js') {
+function transpileDerivedExchangeFiles (jsFolder, options, pattern = '.js') {
+
+    // todo normalize jsFolder and other arguments
+
+    const { python2Folder, python3Folder, phpFolder } = options
 
     // exchanges.json accounts for ids included in exchanges.cfg
     const ids = require ('../exchanges.json').ids;
 
-    const classNames = fs.readdirSync (folder)
+    const classNames = fs.readdirSync (jsFolder)
         .filter (file => file.includes (pattern) && ids.includes (basename (file, pattern)))
-        .map (file => transpileDerivedExchangeFile (folder, file))
+        .map (file => transpileDerivedExchangeFile (jsFolder, file, options))
 
     if (classNames.length === 0)
         return null
@@ -777,43 +812,7 @@ function transpileDerivedExchangeFiles (folder, pattern = '.js') {
     return classes
 }
 
-//-----------------------------------------------------------------------------
-
-function transpilePythonAsyncToSync (oldName, newName) {
-
-    log.magenta ('Transpiling ' + oldName.yellow + ' → ' + newName.yellow)
-    const fileContents = fs.readFileSync (oldName, 'utf8')
-    let lines = fileContents.split ("\n")
-
-    lines = lines.filter (line => ![ 'import asyncio' ].includes (line))
-                .map (line => {
-                    return (
-                        line.replace ('asyncio.get_event_loop().run_until_complete(main())', 'main()')
-                            .replace ('import ccxt.async_support as ccxt', 'import ccxt')
-                            .replace (/.*token\_bucket.*/g, '')
-                            .replace ('await asyncio.sleep', 'time.sleep')
-                            .replace ('async ', '')
-                            .replace ('await ', ''))
-                })
-
-    // lines.forEach (line => log (line))
-
-    function deleteFunction (f, from) {
-        const re1 = new RegExp ('def ' + f + '[^\#]+', 'g')
-        const re2 = new RegExp ('[\\s]+' + f + '\\(exchange\\)', 'g')
-        return from.replace (re1, '').replace (re2, '')
-    }
-
-    let newContents = lines.join ('\n')
-
-    newContents = deleteFunction ('test_tickers_async', newContents)
-    newContents = deleteFunction ('test_l2_order_books_async', newContents)
-
-    fs.truncateSync (newName)
-    fs.writeFileSync (newName, newContents)
-}
-
-//-----------------------------------------------------------------------------
+// ============================================================================
 
 function exportTypeScriptDeclarations (classes) {
 
@@ -825,6 +824,41 @@ function exportTypeScriptDeclarations (classes) {
     }).join ("\n") + "\n"
 
     replaceInFile (file, regex, replacement)
+}
+
+// ============================================================================
+
+function transpileErrorHierarchy () {
+
+    const errorHierarchyFilename = './js/base/errorHierarchy.js'
+
+    let js = fs.readFileSync (errorHierarchyFilename, 'utf8')
+
+    js = regexAll (js, [
+        [ /module\.exports = [^\;]+\;\n/s, '' ],
+    ]).trim ()
+
+    const { python3Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js })
+
+    const message = 'Transpiling error hierachy →'
+
+    const python = {
+        filename: './python/ccxt/base/errors.py',
+        regex: /error_hierarchy = .+?\n\}/s,
+        replacement: python3Body,
+    }
+
+    log.bright.cyan (message, python.filename.yellow)
+    replaceInFile (... Object.values (python))
+
+    const php = {
+        filename:'./php/errors.php',
+        regex: /\$error_hierarchy = .+?\n\)\;/s,
+        replacement: phpBody,
+    }
+
+    log.bright.cyan (message, php.filename.yellow)
+    replaceInFile (... Object.values (php))
 }
 
 //-----------------------------------------------------------------------------
@@ -1023,48 +1057,82 @@ function equals($a, $b) {
     overwriteFile (phpFile, php)
 }
 
-//-----------------------------------------------------------------------------
+// ============================================================================
 
-function transpileErrorHierarchy () {
+function transpileEverything () {
 
-    const errorHierarchyFilename = './js/base/errorHierarchy.js'
+    // default pattern is '.js'
+    const [ /* node */, /* script */, pattern ] = process.argv
+        , python2Folder = './python/ccxt/'
+        , python3Folder = './python/ccxt/async_support/'
+        , phpFolder     = './php/'
+        , options = { python2Folder, python3Folder, phpFolder }
 
-    let js = fs.readFileSync (errorHierarchyFilename, 'utf8')
+    createFolderRecursively (python2Folder)
+    createFolderRecursively (python3Folder)
+    createFolderRecursively (phpFolder)
 
-    js = regexAll (js, [
-        [ /module\.exports = [^\;]+\;\n/s, '' ],
-    ]).trim ()
+    const classes = transpileDerivedExchangeFiles ('./js/', options, pattern)
 
-    const { python3Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js })
+    if (classes === null) {
+        log.bright.yellow ('0 files transpiled.')
+        return;
+    }
 
-    const message = 'Transpiling error hierachy →'
-    logReplaceInFile (message, './python/ccxt/base/errors.py', /error_hierarchy = .+?\n\}/s, python3Body)
-    logReplaceInFile (message, './php/errors.php',             /\$error_hierarchy = .+?\n\)\;/s, phpBody)
+    // HINT: if we're going to support specific class definitions
+    // this process won't work anymore as it will override the definitions
+    exportTypeScriptDeclarations (classes)
+
+    transpileErrorHierarchy ()
+
+    transpilePrecisionTests ()
+    transpileDateTimeTests ()
+    transpileCryptoTests ()
+
+    transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
+
+    log.bright.green ('Transpiled successfully.')
 }
 
-//-----------------------------------------------------------------------------
+// ============================================================================
+// main entry point
 
-createFolderRecursively (python2Folder)
-createFolderRecursively (python3Folder)
-createFolderRecursively (phpFolder)
+if (require.main === module) { // called directly like `node module`
 
+    transpileEverything ()
 
-const classes = transpileDerivedExchangeFiles ('./js/', filename)
+} else { // if required as a module
 
-if (classes === null) {
-    log.bright.yellow ('0 files transpiled.')
-    return;
+    // do nothing
 }
 
-// HINT: if we're going to support specific class definitions this process won't work anymore as it will override the definitions.
-exportTypeScriptDeclarations (classes)  // we use typescript?
+// ============================================================================
 
-transpileErrorHierarchy ()
-transpilePrecisionTests ()
-transpileDateTimeTests ()
-transpileCryptoTests ()
-transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
-
-//-----------------------------------------------------------------------------
-
-log.bright.green ('Transpiled successfully.')
+module.exports = {
+    commonRegexes,
+    pythonRegexes,
+    python2Regexes,
+    phpRegexes,
+    // ........................................................................
+    createPythonClass,
+    createPHPClass,
+    // ........................................................................
+    transpileJavaScriptToPython3,
+    transpilePython3ToPython2,
+    transpileJavaScriptToPHP,
+    transpileJavaScriptToPythonAndPHP,
+    transpilePythonAsyncToSync,
+    transpileDerivedExchangeClass,
+    // ........................................................................
+    transpileDerivedExchangeFile,
+    transpileDerivedExchangeFiles,
+    // ........................................................................
+    exportTypeScriptDeclarations,
+    transpileErrorHierarchy,
+    // ........................................................................
+    transpileDateTimeTests,
+    transpilePrecisionTests,
+    transpileCryptoTests,
+    // ........................................................................
+    transpileEverything,
+}

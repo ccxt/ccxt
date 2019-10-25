@@ -873,7 +873,7 @@ class bibox (Exchange):
                     raise exceptions[code](feedback)
                 else:
                     raise ExchangeError(feedback)
-            raise ExchangeError(self.id + ': "error" in response: ' + body)
+            raise ExchangeError(self.id + ' ' + body)
         if not ('result' in list(response.keys())):
             raise ExchangeError(self.id + ' ' + body)
 

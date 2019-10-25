@@ -939,7 +939,7 @@ class bibox extends Exchange {
                     throw new ExchangeError($feedback);
                 }
             }
-            throw new ExchangeError($this->id . ' => "error" in $response => ' . $body);
+            throw new ExchangeError($this->id . ' ' . $body);
         }
         if (!(is_array($response) && array_key_exists('result', $response))) {
             throw new ExchangeError($this->id . ' ' . $body);
