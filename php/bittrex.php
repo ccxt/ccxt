@@ -219,6 +219,8 @@ class bittrex extends Exchange {
                 'RATE_NOT_PROVIDED' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder ('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP' => '\\ccxt\\PermissionDenied',
                 'DUST_TRADE_DISALLOWED_MIN_VALUE' => '\\ccxt\\InvalidOrder',
+                'RESTRICTED_MARKET' => '\\ccxt\\BadSymbol',
+                'We are down for scheduled maintenance, but we\u2019ll be back up shortly.' => '\\ccxt\\OnMaintenance', // array("success":false,"message":"We are down for scheduled maintenance, but we\u2019ll be back up shortly.","result":null,"explanation":null)
             ),
             'options' => array (
                 'parseOrderStatus' => false,
@@ -378,48 +380,6 @@ class bittrex extends Exchange {
         return $this->parse_order_book($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
-    public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->parse8601 ($this->safe_string($ticker, 'TimeStamp'));
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        $previous = $this->safe_float($ticker, 'PrevDay');
-        $last = $this->safe_float($ticker, 'Last');
-        $change = null;
-        $percentage = null;
-        if ($last !== null) {
-            if ($previous !== null) {
-                $change = $last - $previous;
-                if ($previous > 0) {
-                    $percentage = ($change / $previous) * 100;
-                }
-            }
-        }
-        return array (
-            'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'high' => $this->safe_float($ticker, 'High'),
-            'low' => $this->safe_float($ticker, 'Low'),
-            'bid' => $this->safe_float($ticker, 'Bid'),
-            'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'Ask'),
-            'askVolume' => null,
-            'vwap' => null,
-            'open' => $previous,
-            'close' => $last,
-            'last' => $last,
-            'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'Volume'),
-            'quoteVolume' => $this->safe_float($ticker, 'BaseVolume'),
-            'info' => $ticker,
-        );
-    }
-
     public function fetch_currencies ($params = array ()) {
         $response = $this->publicGetCurrencies ($params);
         //
@@ -467,11 +427,11 @@ class bittrex extends Exchange {
                 'limits' => array (
                     'amount' => array (
                         'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'max' => null,
                     ),
                     'price' => array (
                         'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'max' => null,
                     ),
                     'cost' => array (
                         'min' => null,
@@ -479,7 +439,7 @@ class bittrex extends Exchange {
                     ),
                     'withdraw' => array (
                         'min' => $fee,
-                        'max' => pow(10, $precision),
+                        'max' => null,
                     ),
                 ),
             );
@@ -487,25 +447,83 @@ class bittrex extends Exchange {
         return $result;
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
-        $this->load_markets();
-        $response = $this->publicGetMarketsummaries ($params);
-        $tickers = $this->safe_value($response, 'result');
-        $result = array();
-        for ($t = 0; $t < count ($tickers); $t++) {
-            $ticker = $tickers[$t];
-            $marketId = $this->safe_string($ticker, 'MarketName');
-            $market = null;
-            $symbol = $marketId;
+    public function parse_ticker ($ticker, $market = null) {
+        //
+        //     {
+        //         "MarketName":"BTC-ETH",
+        //         "High":0.02127099,
+        //         "Low":0.02035064,
+        //         "Volume":10288.40271571,
+        //         "Last":0.02070510,
+        //         "BaseVolume":214.64663206,
+        //         "TimeStamp":"2019-09-18T21:03:59.897",
+        //         "Bid":0.02070509,
+        //         "Ask":0.02070510,
+        //         "OpenBuyOrders":1228,
+        //         "OpenSellOrders":5899,
+        //         "PrevDay":0.02082823,
+        //         "Created":"2015-08-14T09:02:24.817"
+        //     }
+        //
+        $timestamp = $this->parse8601 ($this->safe_string($ticker, 'TimeStamp'));
+        $symbol = null;
+        $marketId = $this->safe_string($ticker, 'MarketName');
+        if ($marketId !== null) {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
             } else {
                 $symbol = $this->parse_symbol ($marketId);
             }
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $result;
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
+        }
+        $previous = $this->safe_float($ticker, 'PrevDay');
+        $last = $this->safe_float($ticker, 'Last');
+        $change = null;
+        $percentage = null;
+        if ($last !== null) {
+            if ($previous !== null) {
+                $change = $last - $previous;
+                if ($previous > 0) {
+                    $percentage = ($change / $previous) * 100;
+                }
+            }
+        }
+        return array (
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => $this->safe_float($ticker, 'High'),
+            'low' => $this->safe_float($ticker, 'Low'),
+            'bid' => $this->safe_float($ticker, 'Bid'),
+            'bidVolume' => null,
+            'ask' => $this->safe_float($ticker, 'Ask'),
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => $previous,
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
+            'change' => $change,
+            'percentage' => $percentage,
+            'average' => null,
+            'baseVolume' => $this->safe_float($ticker, 'Volume'),
+            'quoteVolume' => $this->safe_float($ticker, 'BaseVolume'),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->publicGetMarketsummaries ($params);
+        $result = $this->safe_value($response, 'result');
+        $tickers = array();
+        for ($i = 0; $i < count ($result); $i++) {
+            $ticker = $this->parse_ticker($result[$i]);
+            $tickers[] = $ticker;
+        }
+        return $this->filter_by_array($tickers, 'symbol', $symbols);
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
@@ -515,6 +533,29 @@ class bittrex extends Exchange {
             'market' => $market['id'],
         );
         $response = $this->publicGetMarketsummary (array_merge ($request, $params));
+        //
+        //     {
+        //         "success":true,
+        //         "message":"",
+        //         "result":array (
+        //             {
+        //                 "MarketName":"BTC-ETH",
+        //                 "High":0.02127099,
+        //                 "Low":0.02035064,
+        //                 "Volume":10288.40271571,
+        //                 "Last":0.02070510,
+        //                 "BaseVolume":214.64663206,
+        //                 "TimeStamp":"2019-09-18T21:03:59.897",
+        //                 "Bid":0.02070509,
+        //                 "Ask":0.02070510,
+        //                 "OpenBuyOrders":1228,
+        //                 "OpenSellOrders":5899,
+        //                 "PrevDay":0.02082823,
+        //                 "Created":"2015-08-14T09:02:24.817"
+        //             }
+        //         )
+        //     }
+        //
         $ticker = $response['result'][0];
         return $this->parse_ticker($ticker, $market);
     }
@@ -687,8 +728,8 @@ class bittrex extends Exchange {
         //
         // we cannot filter by `$since` timestamp, as it isn't set by Bittrex
         // see https://github.com/ccxt/ccxt/issues/4067
-        // return $this->parseTransactions ($response['result'], $currency, $since, $limit);
-        return $this->parseTransactions ($response['result'], $currency, null, $limit);
+        // return $this->parse_transactions($response['result'], $currency, $since, $limit);
+        return $this->parse_transactions($response['result'], $currency, null, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -733,7 +774,7 @@ class bittrex extends Exchange {
         //         ]
         //     }
         //
-        return $this->parseTransactions ($response['result'], $currency, $since, $limit);
+        return $this->parse_transactions($response['result'], $currency, $since, $limit);
     }
 
     public function parse_transaction ($transaction, $currency = null) {

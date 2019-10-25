@@ -25,6 +25,9 @@ class bitz extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrder' => true,
                 'createMarketOrder' => false,
+                'fetchDeposits' => true,
+                'fetchWithdrawals' => true,
+                'fetchTransactions' => false,
             ),
             'timeframes' => array (
                 '1m' => '1min',
@@ -72,6 +75,7 @@ class bitz extends Exchange {
                         'getUserHistoryEntrustSheet', // closed orders
                         'getUserNowEntrustSheet', // open orders
                         'getEntrustSheetInfo', // order
+                        'depositOrWithdraw', // transactions
                     ),
                 ),
                 'assets' => array (
@@ -82,8 +86,8 @@ class bitz extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.001,
-                    'taker' => 0.001,
+                    'maker' => 0.002,
+                    'taker' => 0.002,
                 ),
                 'funding' => array (
                     'withdraw' => array (
@@ -158,6 +162,8 @@ class bitz extends Exchange {
                 'BOX' => 'BOX Token',
                 'XRB' => 'NANO',
                 'PXC' => 'Pixiecoin',
+                'VTC' => 'VoteCoin',
+                'TTC' => 'TimesChain',
             ),
             'exceptions' => array (
                 // '200' => Success
@@ -1007,6 +1013,141 @@ class bitz extends Exchange {
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         return $this->fetch_orders_with_method ('tradePostGetUserHistoryEntrustSheet', $symbol, $since, $limit, $params);
+    }
+
+    public function parse_transaction_status ($status) {
+        $statuses = array (
+            '1' => 'pending',
+            '2' => 'pending',
+            '3' => 'pending',
+            '4' => 'ok',
+            '5' => 'canceled',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        //
+        //     {
+        //         "id" => '96275',
+        //         "uid" => '2109073',
+        //         "wallet" => '0xf4c4141c0127bc37b1d0c409a091920eba13ada7',
+        //         "txid" => '0xb7adfa52aa566f9ac112e3c01f77bd91179b19eab12092a9a5a8b33d5086e31d',
+        //         "confirm" => '12',
+        //         "number" => '0.50000000',
+        //         "$status" => 4,
+        //         "updated" => '1534944168605',
+        //         "addressUrl" => 'https://etherscan.io/address/',
+        //         "txidUrl" => 'https://etherscan.io/tx/',
+        //         "description" => 'Ethereum',
+        //         "coin" => 'eth',
+        //         "memo" => ''
+        //     }
+        //
+        //     {
+        //         "id":"397574",
+        //         "uid":"2033056",
+        //         "wallet":"1AG1gZvQAYu3WBvgg7p4BMMghQD2gE693k",
+        //         "txid":"",
+        //         "confirm":"0",
+        //         "number":"1000.00000000",
+        //         "$status":1,
+        //         "updated":"0",
+        //         "addressUrl":"http://omniexplorer.info/lookupadd.aspx?address=",
+        //         "txidUrl":"http://omniexplorer.info/lookuptx.aspx?txid=",
+        //         "description":"Tether",
+        //         "coin":"usdt",
+        //         "memo":""
+        //     }
+        //
+        //     {
+        //         "id":"153606",
+        //         "uid":"2033056",
+        //         "wallet":"1AG1gZvQAYu3WBvgg7p4BMMghQD2gE693k",
+        //         "txid":"aa2b179f84cd6dedafd41845e0fbf7f01e14c0d71ea3140d03d6f5a9ccd93199",
+        //         "confirm":"0",
+        //         "number":"761.11110000",
+        //         "$status":4,
+        //         "updated":"1536726133579",
+        //         "addressUrl":"http://omniexplorer.info/lookupadd.aspx?address=",
+        //         "txidUrl":"http://omniexplorer.info/lookuptx.aspx?txid=",
+        //         "description":"Tether",
+        //         "coin":"usdt",
+        //         "memo":""
+        //     }
+        //
+        $timestamp = $this->safe_integer($transaction, 'updated');
+        if ($timestamp === 0) {
+            $timestamp = null;
+        }
+        $currencyId = $this->safe_string($transaction, 'coin');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $type = $this->safe_string_lower($transaction, 'type');
+        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        return array (
+            'id' => $this->safe_string($transaction, 'id'),
+            'txid' => $this->safe_string($transaction, 'txid'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'address' => $this->safe_string($transaction, 'wallet'),
+            'tag' => $this->safe_string($transaction, 'memo'),
+            'type' => $type,
+            'amount' => $this->safe_float($transaction, 'number'),
+            'currency' => $code,
+            'status' => $status,
+            'updated' => $timestamp,
+            'fee' => null,
+            'info' => $transaction,
+        );
+    }
+
+    public function parse_transactions_by_type ($type, $transactions, $code = null, $since = null, $limit = null) {
+        $result = array();
+        for ($i = 0; $i < count ($transactions); $i++) {
+            $transaction = $this->parse_transaction(array_merge (array (
+                'type' => $type,
+            ), $transactions[$i]));
+            $result[] = $transaction;
+        }
+        return $this->filterByCurrencySinceLimit ($result, $code, $since, $limit);
+    }
+
+    public function parse_transaction_type ($type) {
+        $types = array (
+            'deposit' => 1,
+            'withdrawal' => 2,
+        );
+        return $this->safe_integer($types, $type, $type);
+    }
+
+    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_for_type ('deposit', $code, $since, $limit, $params);
+    }
+
+    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_for_type ('withdrawal', $code, $since, $limit, $params);
+    }
+
+    public function fetch_transactions_for_type ($type, $code = null, $since = null, $limit = null, $params = array ()) {
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' fetchTransactions() requires a $currency `$code` argument');
+        }
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $request = array (
+            'coin' => $currency['id'],
+            'type' => $this->parse_transaction_type ($type),
+        );
+        if ($since !== null) {
+            $request['startTime'] = intval ($since / (string) 1000);
+        }
+        if ($limit !== null) {
+            $request['page'] = 1;
+            $request['pageSize'] = $limit;
+        }
+        $response = $this->tradePostDepositOrWithdraw (array_merge ($request, $params));
+        $transactions = $this->safe_value($response['data'], 'data', array());
+        return $this->parse_transactions_by_type ($type, $transactions, $code, $since, $limit);
     }
 
     public function nonce () {

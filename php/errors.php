@@ -12,7 +12,9 @@ $error_hierarchy = array (
                 'AccountSuspended' => array(),
             ),
             'ArgumentsRequired' => array(),
-            'BadRequest' => array(),
+            'BadRequest' => array (
+                'BadSymbol' => array(),
+            ),
             'BadResponse' => array (
                 'NullResponse' => array(),
             ),
@@ -32,7 +34,9 @@ $error_hierarchy = array (
         ),
         'NetworkError' => array (
             'DDoSProtection' => array(),
-            'ExchangeNotAvailable' => array(),
+            'ExchangeNotAvailable' => array (
+                'OnMaintenance' => array(),
+            ),
             'InvalidNonce' => array(),
             'RequestTimeout' => array(),
         ),
@@ -41,13 +45,19 @@ $error_hierarchy = array (
 
 /*  ------------------------------------------------------------------------ */
 
-function error_factory($array, $parent) {
-    foreach ($array as $error => $subclasses) {
-        eval("namespace ccxt; class $error extends $parent {};");
-        error_factory($subclasses, $error);
+if (!function_exists('ccxt\error_factory')) {
+    function error_factory($array, $parent) {
+        foreach ($array as $error => $subclasses) {
+            if (!class_exists('ccxt\\'.$error, false)) {
+                eval("namespace ccxt; class $error extends $parent {};");
+                error_factory($subclasses, $error);
+            }
+        }
     }
 }
 
-class BaseError extends Exception {};
+if (!class_exists('ccxt\BaseError', false)) {
+    class BaseError extends Exception {};
+}
 
 error_factory($error_hierarchy['BaseError'], 'BaseError');

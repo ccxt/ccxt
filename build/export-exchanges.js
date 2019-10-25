@@ -13,7 +13,7 @@ const fs        = require ('fs')
     , log       = require ('ololog').unlimited
     , ansi      = require ('ansicolor').nice
     , { keys, values, entries } = Object
-    , { replaceInFile, logReplaceInFile } = require ('./common.js')
+    , { replaceInFile } = require ('./fs.js')
 
 // ----------------------------------------------------------------------------
 
@@ -30,7 +30,8 @@ if (!fs.existsSync (gitWikiPath)) {
 // ----------------------------------------------------------------------------
 
 function logExportExchanges (filename, regex, replacement) {
-    return logReplaceInFile ('Exporting exchanges →', filename, regex, replacement)
+    log.bright.cyan ('Exporting exchanges →', filename.yellow)
+    replaceInFile (filename, regex, replacement)
 }
 
 // ----------------------------------------------------------------------------

@@ -198,14 +198,13 @@ def string_to_number_fixedlen(string, order):
 def sigencode_strings(r, s, order, v=None):
     r_str = number_to_string(r, order)
     s_str = number_to_string(s, order)
-    result = (r_str, s_str)
-    return result if v is None else result + (v,)
+    return r_str, s_str, v
 
 
 def sigencode_string(r, s, order, v=None):
     # for any given curve, the size of the signature numbers is
     # fixed, so just use simple concatenation
-    r_str, s_str = sigencode_strings(r, s, order)
+    r_str, s_str, v = sigencode_strings(r, s, order)
     return r_str + s_str
 
 

@@ -78,8 +78,8 @@ class ice3x (Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.01,
-                    'taker': 0.01,
+                    'maker': 0.005,
+                    'taker': 0.005,
                 },
             },
             'precision': {
@@ -209,7 +209,7 @@ class ice3x (Exchange):
         }
         if limit is not None:
             type = self.safe_string(params, 'type')
-            if (type != 'ask') and(type != 'bid'):
+            if (type != 'ask') and (type != 'bid'):
                 # eslint-disable-next-line quotes
                 raise ExchangeError(self.id + " fetchOrderBook requires an exchange-specific extra 'type' param('bid' or 'ask') when used with a limit")
             else:
@@ -283,7 +283,7 @@ class ice3x (Exchange):
     def parse_order(self, order, market=None):
         pairId = self.safe_integer(order, 'pair_id')
         symbol = None
-        if pairId and not market and(pairId in list(self.marketsById.keys())):
+        if pairId and not market and (pairId in list(self.marketsById.keys())):
             market = self.marketsById[pairId]
             symbol = market['symbol']
         timestamp = self.safe_timestamp(order, 'created')

@@ -141,12 +141,13 @@ class okcoinusd (Exchange):
                     'https://www.npmjs.com/package/okcoin.com',
                 ],
                 'referral': 'https://www.okcoin.com/account/register?flag=activity&channelId=600001513',
+                'fees': 'https://support.okcoin.com/hc/en-us/articles/360015261532-OKCoin-Fee-Rates',
             },
             # these are okcoin.com fees, okex fees are in okex.js
             'fees': {
                 'trading': {
-                    'taker': 0.001,
-                    'maker': 0.0005,
+                    'taker': 0.002,
+                    'maker': 0.001,
                 },
             },
             'exceptions': {
@@ -692,7 +693,6 @@ class okcoinusd (Exchange):
         method = 'publicGetFutureKline' if market['future'] else 'publicGetKline'
         request = self.create_request(market, {
             'type': self.timeframes[timeframe],
-            # 'since': since is self.milliseconds() - 86400000 if None else since,  # default last 24h
         })
         if since is not None:
             request['since'] = int((self.milliseconds() - 86400000) / 1000)  # default last 24h
@@ -713,7 +713,7 @@ class okcoinusd (Exchange):
         usedField = 'freezed'
         # wtf, okex?
         # https://github.com/okcoin-okex/API-docs-OKEx.com/commit/01cf9dd57b1f984a8737ef76a037d4d3795d2ac7
-        if not(usedField in list(balances.keys())):
+        if not (usedField in list(balances.keys())):
             usedField = 'holds'
         usedKeys = list(balances[usedField].keys())
         ids = self.array_concat(ids, usedKeys)
@@ -731,7 +731,7 @@ class okcoinusd (Exchange):
         market = self.market(symbol)
         method = 'privatePostFutureTrade' if market['future'] else 'privatePostTrade'
         orderSide = (side + '_market') if (type == 'market') else side
-        isMarketBuy = ((market['spot']) and(type == 'market') and(side == 'buy') and(not self.options['marketBuyPrice']))
+        isMarketBuy = ((market['spot']) and (type == 'market') and (side == 'buy') and (not self.options['marketBuyPrice']))
         orderPrice = self.safe_float(params, 'cost') if isMarketBuy else price
         request = self.create_request(market, {
             'type': orderSide,

@@ -192,8 +192,8 @@ module.exports = class mandala extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.005,
-                    'taker': 0.005,
+                    'maker': 0.00,
+                    'taker': 0.001,
                 },
             },
             'exceptions': {
@@ -1686,7 +1686,7 @@ module.exports = class mandala extends Exchange {
     }
 
     async generateDepositAddress (code, params = {}) {
-        // a common implmenetation of fetchDepositAddress and createDepositAddress
+        // a common implementation of fetchDepositAddress and createDepositAddress
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {

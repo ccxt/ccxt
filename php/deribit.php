@@ -81,19 +81,19 @@ class deribit extends Exchange {
                 '10002' => '\\ccxt\\InvalidOrder',      // "qty_too_low" Order quantity is too low
                 '10003' => '\\ccxt\\InvalidOrder',      // "order_overlap" Rejection, order overlap is found and self-trading is not enabled
                 '10004' => '\\ccxt\\OrderNotFound',     // "order_not_found" Attempt to operate with order that can't be found by specified id
-                '10005' => '\\ccxt\\InvalidOrder',      // "price_too_low {Limit}" Price is too low, {Limit} defines current limit for the operation
-                '10006' => '\\ccxt\\InvalidOrder',      // "price_too_low4idx {Limit}" Price is too low for current index, {Limit} defines current bottom limit for the operation
-                '10007' => '\\ccxt\\InvalidOrder', // "price_too_high {Limit}" Price is too high, {Limit} defines current up limit for the operation
-                '10008' => '\\ccxt\\InvalidOrder', // "price_too_high4idx {Limit}" Price is too high for current index, {Limit} defines current up limit for the operation
+                '10005' => '\\ccxt\\InvalidOrder',      // "price_too_low <Limit>" Price is too low, <Limit> defines current limit for the operation
+                '10006' => '\\ccxt\\InvalidOrder',      // "price_too_low4idx <Limit>" Price is too low for current index, <Limit> defines current bottom limit for the operation
+                '10007' => '\\ccxt\\InvalidOrder', // "price_too_high <Limit>" Price is too high, <Limit> defines current up limit for the operation
+                '10008' => '\\ccxt\\InvalidOrder', // "price_too_high4idx <Limit>" Price is too high for current index, <Limit> defines current up limit for the operation
                 '10009' => '\\ccxt\\InsufficientFunds', // "not_enough_funds" Account has not enough funds for the operation
                 '10010' => '\\ccxt\\OrderNotFound', // "already_closed" Attempt of doing something with closed order
                 '10011' => '\\ccxt\\InvalidOrder', // "price_not_allowed" This price is not allowed for some reason
                 '10012' => '\\ccxt\\InvalidOrder', // "book_closed" Operation for instrument which order book had been closed
-                '10013' => '\\ccxt\\PermissionDenied', // "pme_max_total_open_orders {Limit}" Total limit of open orders has been exceeded, it is applicable for PME users
-                '10014' => '\\ccxt\\PermissionDenied', // "pme_max_future_open_orders {Limit}" Limit of count of futures' open orders has been exceeded, it is applicable for PME users
-                '10015' => '\\ccxt\\PermissionDenied', // "pme_max_option_open_orders {Limit}" Limit of count of options' open orders has been exceeded, it is applicable for PME users
-                '10016' => '\\ccxt\\PermissionDenied', // "pme_max_future_open_orders_size {Limit}" Limit of size for futures has been exceeded, it is applicable for PME users
-                '10017' => '\\ccxt\\PermissionDenied', // "pme_max_option_open_orders_size {Limit}" Limit of size for options has been exceeded, it is applicable for PME users
+                '10013' => '\\ccxt\\PermissionDenied', // "pme_max_total_open_orders <Limit>" Total limit of open orders has been exceeded, it is applicable for PME users
+                '10014' => '\\ccxt\\PermissionDenied', // "pme_max_future_open_orders <Limit>" Limit of count of futures' open orders has been exceeded, it is applicable for PME users
+                '10015' => '\\ccxt\\PermissionDenied', // "pme_max_option_open_orders <Limit>" Limit of count of options' open orders has been exceeded, it is applicable for PME users
+                '10016' => '\\ccxt\\PermissionDenied', // "pme_max_future_open_orders_size <Limit>" Limit of size for futures has been exceeded, it is applicable for PME users
+                '10017' => '\\ccxt\\PermissionDenied', // "pme_max_option_open_orders_size <Limit>" Limit of size for options has been exceeded, it is applicable for PME users
                 '10019' => '\\ccxt\\PermissionDenied', // "locked_by_admin" Trading is temporary locked by admin
                 '10020' => '\\ccxt\\ExchangeError', // "invalid_or_unsupported_instrument" Instrument name is not valid
                 '10022' => '\\ccxt\\InvalidOrder', // "invalid_quantity" quantity was not recognized as a valid number
@@ -110,7 +110,7 @@ class deribit extends Exchange {
                 '10033' => '\\ccxt\\NotSupported', // "not_implemented" Method is not implemented yet
                 '10034' => '\\ccxt\\InvalidOrder', // "stop_price_too_high" Stop price is too high
                 '10035' => '\\ccxt\\InvalidOrder', // "stop_price_too_low" Stop price is too low
-                '11035' => '\\ccxt\\InvalidOrder', // "no_more_stops {Limit}" Allowed amount of stop orders has been exceeded
+                '11035' => '\\ccxt\\InvalidOrder', // "no_more_stops <Limit>" Allowed amount of stop orders has been exceeded
                 '11036' => '\\ccxt\\InvalidOrder', // "invalid_stoppx_for_index_or_last" Invalid StopPx (too high or too low) as to current index or market
                 '11037' => '\\ccxt\\InvalidOrder', // "outdated_instrument_for_IV_order" Instrument already not available for trading
                 '11038' => '\\ccxt\\InvalidOrder', // "no_adv_for_futures" Advanced orders are not available for futures
@@ -125,8 +125,8 @@ class deribit extends Exchange {
                 '11048' => '\\ccxt\\ExchangeError', // "not_on_this_server" The requested operation is not available on this server.
                 '11050' => '\\ccxt\\ExchangeError', // "invalid_request" Request has not been parsed properly
                 '11051' => '\\ccxt\\ExchangeNotAvailable', // "system_maintenance" System is under maintenance
-                '11030' => '\\ccxt\\ExchangeError', // "other_reject {Reason}" Some rejects which are not considered as very often, more info may be specified in {Reason}
-                '11031' => '\\ccxt\\ExchangeError', // "other_error {Error}" Some errors which are not considered as very often, more info may be specified in {Error}
+                '11030' => '\\ccxt\\ExchangeError', // "other_reject <Reason>" Some rejects which are not considered as very often, more info may be specified in <Reason>
+                '11031' => '\\ccxt\\ExchangeError', // "other_error <Error>" Some errors which are not considered as very often, more info may be specified in <Error>
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array (
@@ -186,22 +186,68 @@ class deribit extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
+        $this->load_markets();
         $response = $this->privateGetAccount ($params);
+        //
+        //     {
+        //         "usOut":1569048827943520,
+        //         "usIn":1569048827943020,
+        //         "usDiff":500,
+        //         "testnet":false,
+        //         "success":true,
+        //         "$result":array (
+        //             "equity":2e-9,
+        //             "maintenanceMargin":0.0,
+        //             "initialMargin":0.0,
+        //             "availableFunds":0.0,
+        //             "$balance":0.0,
+        //             "marginBalance":0.0,
+        //             "SUPL":0.0,
+        //             "SRPL":0.0,
+        //             "PNL":0.0,
+        //             "optionsPNL":0.0,
+        //             "optionsSUPL":0.0,
+        //             "optionsSRPL":0.0,
+        //             "optionsD":0.0,
+        //             "optionsG":0.0,
+        //             "optionsV":0.0,
+        //             "optionsTh":0.0,
+        //             "futuresPNL":0.0,
+        //             "futuresSUPL":0.0,
+        //             "futuresSRPL":0.0,
+        //             "deltaTotal":0.0,
+        //             "sessionFunding":0.0,
+        //             "depositAddress":"13tUtNsJSZa1F5GeCmwBywVrymHpZispzw",
+        //             "currency":"BTC"
+        //         ),
+        //         "message":""
+        //     }
+        //
         $result = array (
-            'BTC' => array (
-                'free' => $this->safe_float($response['result'], 'availableFunds'),
-                'used' => $this->safe_float($response['result'], 'maintenanceMargin'),
-                'total' => $this->safe_float($response['result'], 'equity'),
-            ),
+            'info' => $response,
         );
+        $balance = $this->safe_value($response, 'result', array());
+        $currencyId = $this->safe_string($balance, 'currency');
+        $code = $this->safe_currency_code($currencyId);
+        $account = $this->account ();
+        $account['free'] = $this->safe_float($balance, 'availableFunds');
+        $account['used'] = $this->safe_float($balance, 'maintenanceMargin');
+        $account['total'] = $this->safe_float($balance, 'equity');
+        $result[$code] = $account;
         return $this->parse_balance($result);
     }
 
-    public function fetch_deposit_address ($currency, $params = array ()) {
-        $response = $this->privateGetAccount ($params);
-        $address = $this->safe_string($response, 'depositAddress');
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $request = array (
+            'currency' => $currency['id'],
+        );
+        $response = $this->privateGetAccount (array_merge ($request, $params));
+        $result = $this->safe_value($response, 'result', array());
+        $address = $this->safe_string($result, 'depositAddress');
         return array (
-            'currency' => $this->safe_currency_code('BTC'),
+            'currency' => $code,
             'address' => $address,
             'tag' => null,
             'info' => $response,

@@ -165,11 +165,15 @@ module.exports = class coinex extends Exchange {
             const key = keys[i];
             const market = markets[key];
             const id = this.safeString (market, 'name');
-            const baseId = this.safeString (market, 'trading_name');
+            const tradingName = this.safeString (market, 'trading_name');
+            const baseId = tradingName;
             const quoteId = this.safeString (market, 'pricing_name');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            let symbol = base + '/' + quote;
+            if (tradingName === id) {
+                symbol = id;
+            }
             const precision = {
                 'amount': this.safeInteger (market, 'trading_decimal'),
                 'price': this.safeInteger (market, 'pricing_decimal'),
@@ -483,30 +487,30 @@ module.exports = class coinex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        amount = parseFloat (amount); // this line is deprecated
-        if (type === 'market') {
-            // for market buy it requires the amount of quote currency to spend
-            if (side === 'buy') {
-                if (this.options['createMarketBuyOrderRequiresPrice']) {
-                    if (price === undefined) {
-                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
-                    } else {
-                        price = parseFloat (price); // this line is deprecated
-                        amount = amount * price;
-                    }
-                }
-            }
-        }
         await this.loadMarkets ();
         const method = 'privatePostOrder' + this.capitalize (type);
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
-            'amount': this.amountToPrecision (symbol, amount),
             'type': side,
         };
-        if (type === 'limit') {
-            price = parseFloat (price); // this line is deprecated
+        amount = parseFloat (amount);
+        // for market buy it requires the amount of quote currency to spend
+        if ((type === 'market') && (side === 'buy')) {
+            if (this.options['createMarketBuyOrderRequiresPrice']) {
+                if (price === undefined) {
+                    throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                } else {
+                    price = parseFloat (price);
+                    request['amount'] = this.costToPrecision (symbol, amount * price);
+                }
+            } else {
+                request['amount'] = this.costToPrecision (symbol, amount);
+            }
+        } else {
+            request['amount'] = this.amountToPrecision (symbol, amount);
+        }
+        if ((type === 'limit') || (type === 'ioc')) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this[method] (this.extend (request, params));
@@ -889,7 +893,8 @@ module.exports = class coinex extends Exchange {
         const response = await this.fetch2 (path, api, method, params, headers, body);
         const code = this.safeString (response, 'code');
         const data = this.safeValue (response, 'data');
-        if (code !== '0' || !data) {
+        const message = this.safeString (response, 'message');
+        if ((code !== '0') || (data === undefined) || ((message !== 'Ok') && !data)) {
             const responseCodes = {
                 '24': AuthenticationError,
                 '25': AuthenticationError,

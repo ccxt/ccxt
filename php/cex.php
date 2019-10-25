@@ -119,6 +119,15 @@ class cex extends Exchange {
                     ),
                 ),
             ),
+            'exceptions' => array (
+                'exact' => array(),
+                'broad' => array (
+                    'Insufficient funds' => '\\ccxt\\InsufficientFunds',
+                    'Nonce must be incremented' => '\\ccxt\\InvalidNonce',
+                    'Invalid Order' => '\\ccxt\\InvalidOrder',
+                    'Order not found' => '\\ccxt\\OrderNotFound',
+                ),
+            ),
             'options' => array (
                 'fetchOHLCVWarning' => true,
                 'createMarketBuyOrderRequiresPrice' => true,
@@ -313,8 +322,11 @@ class cex extends Exchange {
                     $pricePrecision = $this->safe_integer($pair, 'pricePrecision', $pricePrecision);
                 }
             }
+            $baseCcyPrecision = $this->safe_integer($baseCurrency, 'precision', 8);
+            $baseCcyScale = $this->safe_integer($baseCurrency, 'scale', 0);
+            $amountPrecision = $baseCcyPrecision - $baseCcyScale;
             $precision = array (
-                'amount' => $this->safe_integer($baseCurrency, 'precision', 8),
+                'amount' => $amountPrecision,
                 'price' => $pricePrecision,
             );
             $result[] = array (
@@ -396,7 +408,7 @@ class cex extends Exchange {
             $since = $this->milliseconds () - 86400000; // yesterday
         } else {
             if ($this->options['fetchOHLCVWarning']) {
-                throw new ExchangeError($this->id . " fetchOHLCV warning => CEX can return historical candles for a certain date only, this might produce an empty or null reply. Set exchange.options['fetchOHLCVWarning'] = false or add (array( 'options' => array ( 'fetchOHLCVWarning' => false ))) to constructor $params to suppress this warning message.");
+                throw new ExchangeError($this->id . " fetchOHLCV warning => CEX can return historical candles for a certain date only, this might produce an empty or null reply. Set exchange.options['fetchOHLCVWarning'] = false or add (array( 'options' => array( 'fetchOHLCVWarning' => false ))) to constructor $params to suppress this warning message.");
             }
         }
         $ymd = $this->ymd ($since);
@@ -527,15 +539,13 @@ class cex extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type === 'market') {
-            // for market buy it requires the $amount of quote currency to spend
-            if ($side === 'buy') {
-                if ($this->options['createMarketBuyOrderRequiresPrice']) {
-                    if ($price === null) {
-                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
-                    } else {
-                        $amount = $amount * $price;
-                    }
+        // for market buy it requires the $amount of quote currency to spend
+        if (($type === 'market') && ($side === 'buy')) {
+            if ($this->options['createMarketBuyOrderRequiresPrice']) {
+                if ($price === null) {
+                    throw new InvalidOrder($this->id . " createOrder() requires the $price argument with market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                } else {
+                    $amount = $amount * $price;
                 }
             }
         }
@@ -773,7 +783,7 @@ class cex extends Exchange {
                 $tradeAmount = $this->safe_float($item, 'amount');
                 $tradePrice = $this->safe_float($item, 'price');
                 $feeCost = $this->safe_float($item, 'fee_amount');
-                $absTradeAmount = $tradeAmount < 0 ? -$tradeAmount : $tradeAmount;
+                $absTradeAmount = ($tradeAmount < 0) ? -$tradeAmount : $tradeAmount;
                 $tradeCost = null;
                 if ($tradeSide === 'sell') {
                     $tradeCost = $absTradeAmount;
@@ -1138,27 +1148,36 @@ class cex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (gettype ($response) === 'array' && count (array_filter (array_keys ($response), 'is_string')) == 0) {
             return $response; // public endpoints may return array()-arrays
         }
         if (!$response) {
             throw new NullResponse($this->id . ' returned ' . $this->json ($response));
-        } else if ($response === true || $response === 'true') {
-            return $response;
-        } else if (is_array($response) && array_key_exists('e', $response)) {
+        }
+        if ($response === true || $response === 'true') {
+            return;
+        }
+        if (is_array($response) && array_key_exists('e', $response)) {
             if (is_array($response) && array_key_exists('ok', $response)) {
                 if ($response['ok'] === 'ok') {
-                    return $response;
+                    return;
                 }
             }
-            throw new ExchangeError($this->id . ' ' . $this->json ($response));
-        } else if (is_array($response) && array_key_exists('error', $response)) {
-            if ($response['error']) {
-                throw new ExchangeError($this->id . ' ' . $this->json ($response));
-            }
         }
-        return $response;
+        if (is_array($response) && array_key_exists('error', $response)) {
+            $message = $this->safe_string($response, 'error');
+            $feedback = $this->id . ' ' . $body;
+            $exact = $this->exceptions['exact'];
+            if (is_array($exact) && array_key_exists($message, $exact)) {
+                throw new $exact[$message]($feedback);
+            }
+            $broad = $this->exceptions['broad'];
+            $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+            if ($broadKey !== null) {
+                throw new $broad[$broadKey]($feedback);
+            }
+            throw new ExchangeError($feedback);
+        }
     }
 }

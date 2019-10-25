@@ -121,6 +121,9 @@ class coss (Exchange):
                     'deposit': {},
                 },
             },
+            'commonCurrencies': {
+                'COS': 'COSS',
+            },
         })
 
     async def fetch_markets(self, params={}):

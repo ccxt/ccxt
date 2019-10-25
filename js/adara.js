@@ -96,8 +96,8 @@ module.exports = class adara extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.0025,
-                    'taker': 0.0025,
+                    'maker': 0.001,
+                    'taker': 0.001,
                 },
                 'funding': {
                     'tierBased': false,
@@ -446,7 +446,7 @@ module.exports = class adara extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const filters = 'filters[' + 'symbol' + ']';
+        const filters = 'filters[symbol]';
         const request = {};
         request[filters] = market['id'];
         const response = await this.publicGetOrderBook (this.extend (request, params));
@@ -680,6 +680,7 @@ module.exports = class adara extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -996,7 +997,7 @@ module.exports = class adara extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            const filters = 'filters[' + 'symbol' + ']';
+            const filters = 'filters[symbol]';
             request[filters] = market['id'];
         }
         const response = await this.privateGetOrder (this.extend (request, params));
@@ -1061,14 +1062,14 @@ module.exports = class adara extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const filters = 'filters[status]' + '[' + ']';
+        const filters = 'filters[status][]';
         const request = {};
         request[filters] = 'open';
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const filters = 'filters[status]' + '[' + ']';
+        const filters = 'filters[status][]';
         const request = {};
         request[filters] = 'closed';
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));

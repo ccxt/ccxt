@@ -878,6 +878,8 @@ class dsx (Exchange):
             # 'endId': 321,  # Decimal, ID of the last order of the selection
             # 'order': 'ASC',  # String, Order in which orders shown. Possible values are "ASC" — from first to last, "DESC" — from last to first.
         }
+        if limit is not None:
+            request['count'] = limit
         response = await self.privatePostHistoryOrders(self.extend(request, params))
         #
         #     {
@@ -982,7 +984,7 @@ class dsx (Exchange):
         #     }
         #
         transactions = self.safe_value(response, 'return', [])
-        return self.parseTransactions(transactions, currency, since, limit)
+        return self.parse_transactions(transactions, currency, since, limit)
 
     def parse_transaction_status(self, status):
         statuses = {

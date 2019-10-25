@@ -30,8 +30,9 @@ class idex (Exchange):
                 'fetchBalance': True,
                 'createOrder': True,
                 'cancelOrder': True,
+                'fetchOpenOrders': True,
                 'fetchTransactions': True,
-                'fetchTrades': False,
+                'fetchTrades': True,
                 'fetchMyTrades': True,
                 'withdraw': True,
                 'fetchOHLCV': False,
@@ -54,7 +55,7 @@ class idex (Exchange):
                 'api': 'https://api.idex.market',
                 'www': 'https://idex.market',
                 'doc': [
-                    'https://github.com/AuroraDAO/idex-api-docs',
+                    'https://docs.idex.market/',
                 ],
             },
             'api': {
@@ -417,7 +418,7 @@ class idex (Exchange):
             #      user: '0x0ab991497116f7f5532a4c2f4f7b1784488628e1'} }
             return self.parse_order(response, market)
         elif type == 'market':
-            if not('orderHash' in list(params.keys())):
+            if not ('orderHash' in list(params.keys())):
                 raise ArgumentsRequired(self.id + ' market order requires an order structure such as that in fetchOrderBook()[\'bids\'][0][2], fetchOrder()[\'info\'], or fetchOpenOrders()[0][\'info\']')
             # {price: '0.000132247803328924',
             #   amount: '19980',
@@ -530,8 +531,8 @@ class idex (Exchange):
         #         '0xab555fc301779dd92fd41ccd143b1d72776ae7b5acfc59ca44a1d376f68fda15',
         #        withdrawalNumber: 1444070,
         #        status: 'COMPLETE'}]}
-        deposits = self.parseTransactions(response['deposits'], currency, since, limit)
-        withdrawals = self.parseTransactions(response['withdrawals'], currency, since, limit)
+        deposits = self.parse_transactions(response['deposits'], currency, since, limit)
+        withdrawals = self.parse_transactions(response['withdrawals'], currency, since, limit)
         return self.array_concat(deposits, withdrawals)
 
     def parse_transaction(self, item, currency=None):
@@ -702,12 +703,12 @@ class idex (Exchange):
         if 'market' in order:
             marketId = order['market']
             symbol = self.markets_by_id[marketId]['symbol']
-        elif (side is not None) and('params' in list(order.keys())):
+        elif (side is not None) and ('params' in list(order.keys())):
             params = order['params']
             buy = self.safe_currency_code(self.safe_string(params, 'tokenBuy'))
             sell = self.safe_currency_code(self.safe_string(params, 'tokenSell'))
             if buy is not None and sell is not None:
-                symbol = side == buy + '/' + sell if 'buy' else sell + '/' + buy
+                symbol = (buy + '/' + sell) if (side == 'buy') else (sell + '/' + buy)
         if symbol is None and market is not None:
             symbol = market['symbol']
         id = self.safe_string(order, 'orderHash')
@@ -804,6 +805,37 @@ class idex (Exchange):
                 result = self.array_concat(result, parsed)
             return result
 
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+        }
+        if limit is not None:
+            request['start'] = int(int(math.floor(limit)))
+        response = await self.publicPostReturnTradeHistory(self.extend(request, params))
+        #    [{type: 'buy',
+        #        date: '2019-07-25 11:24:41',
+        #        amount: '347.833140025692348611',
+        #        total: '0.050998794333719943',
+        #        uuid: 'cbdff960-aece-11e9-b566-c5d69c3be671',
+        #        tid: 4320867,
+        #        timestamp: 1564053881,
+        #        price: '0.000146618560640751',
+        #        taker: '0x0ab991497116f7f5532a4c2f4f7b1784488628e1',
+        #        maker: '0x1a961bc2e0d619d101f5f92a6be752132d7606e6',
+        #        orderHash:
+        #         '0xbec6485613a15be619c04c1425e8e821ebae42b88fa95ac4dfe8ba2beb363ee4',
+        #        transactionHash:
+        #         '0xf094e07b329ac8046e8f34db358415863c41daa36765c05516f4cf4f5b403ad1',
+        #        tokenBuy: '0x0000000000000000000000000000000000000000',
+        #        buyerFee: '0.695666280051384697',
+        #        gasFee: '28.986780264563232993',
+        #        sellerFee: '0.00005099879433372',
+        #        tokenSell: '0xb705268213d593b8fd88d3fdeff93aff5cbdcfae',
+        #        usdValue: '11.336926687304238214'}]
+        return self.parse_trades(response, market, since, limit)
+
     def parse_trade(self, trade, market=None):
         # {type: 'buy',
         #   date: '2019-07-25 11:24:41',
@@ -830,7 +862,7 @@ class idex (Exchange):
         symbol = None
         maker = self.safe_string(trade, 'maker')
         takerOrMaker = None
-        if maker is not None:
+        if maker is not None and self.walletAddress is not None:
             if maker.lower() == self.walletAddress.lower():
                 takerOrMaker = 'maker'
             else:
@@ -872,7 +904,7 @@ class idex (Exchange):
             'cost': feeCost,
         }
         if feeCost is not None and amount is not None:
-            feeCurrencyAmount = feeCurrency == cost if 'ETH' else amount
+            feeCurrencyAmount = cost if (feeCurrency == 'ETH') else amount
             fee['rate'] = feeCost / feeCurrencyAmount
         orderId = self.safe_string(trade, 'orderHash')
         return {

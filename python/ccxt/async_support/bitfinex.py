@@ -290,6 +290,7 @@ class bitfinex (Exchange):
             'commonCurrencies': {
                 'ABS': 'ABYSS',
                 'AIO': 'AION',
+                'ALG': 'ALGO',  # https://github.com/ccxt/ccxt/issues/6034
                 'AMP': 'AMPL',
                 'ATM': 'ATMI',
                 'ATO': 'ATOM',  # https://github.com/ccxt/ccxt/issues/5118
@@ -355,7 +356,9 @@ class bitfinex (Exchange):
                     'ANT': 'ant',
                     'AVT': 'aventus',  # #1811
                     'BAT': 'bat',
-                    'BCH': 'bcash',  # undocumented
+                    # https://github.com/ccxt/ccxt/issues/5833
+                    'BCH': 'bab',  # undocumented
+                    # 'BCH': 'bcash',  # undocumented
                     'BCI': 'bci',
                     'BFT': 'bft',
                     'BTC': 'bitcoin',
@@ -376,6 +379,9 @@ class bitfinex (Exchange):
                     'GNT': 'golem',
                     'IOST': 'ios',
                     'IOTA': 'iota',
+                    # https://github.com/ccxt/ccxt/issues/5833
+                    'LEO': 'let',  # ETH chain
+                    # 'LEO': 'les',  # EOS chain
                     'LRC': 'lrc',
                     'LTC': 'litecoin',
                     'LYM': 'lym',
@@ -402,8 +408,13 @@ class bitfinex (Exchange):
                     'TNB': 'tnb',
                     'TRX': 'trx',
                     'USD': 'wire',
+                    'USDC': 'udc',  # https://github.com/ccxt/ccxt/issues/5833
                     'UTK': 'utk',
-                    'USDT': 'tetheruso',  # undocumented
+                    'USDT': 'tetheruso',  # Tether on Omni
+                    # 'USDT': 'tetheruse',  # Tether on ERC20
+                    # 'USDT': 'tetherusl',  # Tether on Liquid
+                    # 'USDT': 'tetherusx',  # Tether on Tron
+                    # 'USDT': 'tetheruss',  # Tether on EOS
                     'VEE': 'vee',
                     'WAX': 'wax',
                     'XLM': 'xlm',
@@ -558,7 +569,7 @@ class bitfinex (Exchange):
                 # we need a workaround here so that the old BCH balance
                 # would not override the new BAB balance(BAB is unified to BCH)
                 # https://github.com/ccxt/ccxt/issues/4989
-                if not(code in list(result.keys())):
+                if not (code in list(result.keys())):
                     account = self.account()
                     account['free'] = self.safe_float(balance, 'available')
                     account['total'] = self.safe_float(balance, 'amount')
@@ -800,7 +811,7 @@ class bitfinex (Exchange):
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         if symbol is not None:
-            if not(symbol in list(self.markets.keys())):
+            if not (symbol in list(self.markets.keys())):
                 raise ExchangeError(self.id + ' has no symbol ' + symbol)
         response = await self.privatePostOrders(params)
         orders = self.parse_orders(response, None, since, limit)
@@ -926,7 +937,7 @@ class bitfinex (Exchange):
         #         }
         #     ]
         #
-        return self.parseTransactions(response, currency, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
         #

@@ -166,11 +166,15 @@ class coinex extends Exchange {
             $key = $keys[$i];
             $market = $markets[$key];
             $id = $this->safe_string($market, 'name');
-            $baseId = $this->safe_string($market, 'trading_name');
+            $tradingName = $this->safe_string($market, 'trading_name');
+            $baseId = $tradingName;
             $quoteId = $this->safe_string($market, 'pricing_name');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            if ($tradingName === $id) {
+                $symbol = $id;
+            }
             $precision = array (
                 'amount' => $this->safe_integer($market, 'trading_decimal'),
                 'price' => $this->safe_integer($market, 'pricing_decimal'),
@@ -484,30 +488,30 @@ class coinex extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $amount = floatval ($amount); // this line is deprecated
-        if ($type === 'market') {
-            // for $market buy it requires the $amount of quote currency to spend
-            if ($side === 'buy') {
-                if ($this->options['createMarketBuyOrderRequiresPrice']) {
-                    if ($price === null) {
-                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
-                    } else {
-                        $price = floatval ($price); // this line is deprecated
-                        $amount = $amount * $price;
-                    }
-                }
-            }
-        }
         $this->load_markets();
         $method = 'privatePostOrder' . $this->capitalize ($type);
         $market = $this->market ($symbol);
         $request = array (
             'market' => $market['id'],
-            'amount' => $this->amount_to_precision($symbol, $amount),
             'type' => $side,
         );
-        if ($type === 'limit') {
-            $price = floatval ($price); // this line is deprecated
+        $amount = floatval ($amount);
+        // for $market buy it requires the $amount of quote currency to spend
+        if (($type === 'market') && ($side === 'buy')) {
+            if ($this->options['createMarketBuyOrderRequiresPrice']) {
+                if ($price === null) {
+                    throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                } else {
+                    $price = floatval ($price);
+                    $request['amount'] = $this->cost_to_precision($symbol, $amount * $price);
+                }
+            } else {
+                $request['amount'] = $this->cost_to_precision($symbol, $amount);
+            }
+        } else {
+            $request['amount'] = $this->amount_to_precision($symbol, $amount);
+        }
+        if (($type === 'limit') || ($type === 'ioc')) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $response = $this->$method (array_merge ($request, $params));
@@ -646,7 +650,7 @@ class coinex extends Exchange {
         //     }
         //
         $transaction = $this->safe_value($response, 'data', array());
-        return $this->parse_transaction ($transaction, $currency);
+        return $this->parse_transaction($transaction, $currency);
     }
 
     public function parse_transaction_status ($status) {
@@ -805,7 +809,7 @@ class coinex extends Exchange {
         //         "message" => "Ok"
         //     }
         //
-        return $this->parseTransactions ($response['data'], $currency, $since, $limit);
+        return $this->parse_transactions($response['data'], $currency, $since, $limit);
     }
 
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -848,7 +852,7 @@ class coinex extends Exchange {
         //         "message" => "Ok"
         //     }
         //
-        return $this->parseTransactions ($response['data'], $currency, $since, $limit);
+        return $this->parse_transactions($response['data'], $currency, $since, $limit);
     }
 
     public function nonce () {
@@ -890,7 +894,8 @@ class coinex extends Exchange {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         $code = $this->safe_string($response, 'code');
         $data = $this->safe_value($response, 'data');
-        if ($code !== '0' || !$data) {
+        $message = $this->safe_string($response, 'message');
+        if (($code !== '0') || ($data === null) || (($message !== 'Ok') && !$data)) {
             $responseCodes = array (
                 '24' => '\\ccxt\\AuthenticationError',
                 '25' => '\\ccxt\\AuthenticationError',

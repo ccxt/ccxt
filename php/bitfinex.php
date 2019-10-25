@@ -276,6 +276,7 @@ class bitfinex extends Exchange {
             'commonCurrencies' => array (
                 'ABS' => 'ABYSS',
                 'AIO' => 'AION',
+                'ALG' => 'ALGO', // https://github.com/ccxt/ccxt/issues/6034
                 'AMP' => 'AMPL',
                 'ATM' => 'ATMI',
                 'ATO' => 'ATOM', // https://github.com/ccxt/ccxt/issues/5118
@@ -341,7 +342,9 @@ class bitfinex extends Exchange {
                     'ANT' => 'ant',
                     'AVT' => 'aventus', // #1811
                     'BAT' => 'bat',
-                    'BCH' => 'bcash', // undocumented
+                    // https://github.com/ccxt/ccxt/issues/5833
+                    'BCH' => 'bab', // undocumented
+                    // 'BCH' => 'bcash', // undocumented
                     'BCI' => 'bci',
                     'BFT' => 'bft',
                     'BTC' => 'bitcoin',
@@ -362,6 +365,9 @@ class bitfinex extends Exchange {
                     'GNT' => 'golem',
                     'IOST' => 'ios',
                     'IOTA' => 'iota',
+                    // https://github.com/ccxt/ccxt/issues/5833
+                    'LEO' => 'let', // ETH chain
+                    // 'LEO' => 'les', // EOS chain
                     'LRC' => 'lrc',
                     'LTC' => 'litecoin',
                     'LYM' => 'lym',
@@ -388,8 +394,13 @@ class bitfinex extends Exchange {
                     'TNB' => 'tnb',
                     'TRX' => 'trx',
                     'USD' => 'wire',
+                    'USDC' => 'udc', // https://github.com/ccxt/ccxt/issues/5833
                     'UTK' => 'utk',
-                    'USDT' => 'tetheruso', // undocumented
+                    'USDT' => 'tetheruso', // Tether on Omni
+                    // 'USDT' => 'tetheruse', // Tether on ERC20
+                    // 'USDT' => 'tetherusl', // Tether on Liquid
+                    // 'USDT' => 'tetherusx', // Tether on Tron
+                    // 'USDT' => 'tetheruss', // Tether on EOS
                     'VEE' => 'vee',
                     'WAX' => 'wax',
                     'XLM' => 'xlm',
@@ -985,7 +996,7 @@ class bitfinex extends Exchange {
         //         }
         //     )
         //
-        return $this->parseTransactions ($response, $currency, $since, $limit);
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function parse_transaction ($transaction, $currency = null) {

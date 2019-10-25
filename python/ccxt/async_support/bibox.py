@@ -13,6 +13,7 @@ except NameError:
     basestring = str  # Python 2
 import hashlib
 import math
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -68,10 +69,9 @@ class bibox (Exchange):
                 'api': 'https://api.bibox.com',
                 'www': 'https://www.bibox.com',
                 'doc': [
-                    'https://github.com/Biboxcom/api_reference/wiki/home_en',
-                    'https://github.com/Biboxcom/api_reference/wiki/api_reference',
+                    'https://github.com/Biboxcom/API_Docs_en/wiki',
                 ],
-                'fees': 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
+                'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
                 'referral': 'https://www.bibox.com/signPage?id=11114745&lang=en',
             },
             'api': {
@@ -89,6 +89,11 @@ class bibox (Exchange):
                         'user',
                         'orderpending',
                         'transfer',
+                    ],
+                },
+                'v2private': {
+                    'post': [
+                        'assets/transfer/spot',
                     ],
                 },
             },
@@ -216,7 +221,7 @@ class bibox (Exchange):
         change = self.safe_float(ticker, 'change')
         baseVolume = self.safe_float_2(ticker, 'vol', 'vol24H')
         open = None
-        if (last is not None) and(change is not None):
+        if (last is not None) and (change is not None):
             open = last - change
         percentage = self.safe_string(ticker, 'percent')
         if percentage is not None:
@@ -281,7 +286,7 @@ class bibox (Exchange):
             if marketId is None:
                 baseId = self.safe_string(trade, 'coin_symbol')
                 quoteId = self.safe_string(trade, 'currency_symbol')
-                if (baseId is not None) and(quoteId is not None):
+                if (baseId is not None) and (quoteId is not None):
                     marketId = baseId + '_' + quoteId
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
@@ -477,7 +482,7 @@ class bibox (Exchange):
         deposits = self.safe_value(response['result'], 'items', [])
         for i in range(0, len(deposits)):
             deposits[i]['type'] = 'deposit'
-        return self.parseTransactions(deposits, currency, since, limit)
+        return self.parse_transactions(deposits, currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -499,7 +504,7 @@ class bibox (Exchange):
         withdrawals = self.safe_value(response['result'], 'items', [])
         for i in range(0, len(withdrawals)):
             withdrawals[i]['type'] = 'withdrawal'
-        return self.parseTransactions(withdrawals, currency, since, limit)
+        return self.parse_transactions(withdrawals, currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
         #
@@ -629,7 +634,7 @@ class bibox (Exchange):
             marketId = None
             baseId = self.safe_string(order, 'coin_symbol')
             quoteId = self.safe_string(order, 'currency_symbol')
-            if (baseId is not None) and(quoteId is not None):
+            if (baseId is not None) and (quoteId is not None):
                 marketId = baseId + '_' + quoteId
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
@@ -658,7 +663,7 @@ class bibox (Exchange):
                 'cost': feeCost,
                 'currency': None,
             }
-        cost = cost if cost else float(price) * filled
+        cost = cost if cost else (float(price) * filled)
         return {
             'info': order,
             'id': id,
@@ -697,7 +702,7 @@ class bibox (Exchange):
         if symbol is not None:
             market = self.market(symbol)
             pair = market['id']
-        size = limit if (limit) else 200
+        size = limit if limit else 200
         request = {
             'cmd': 'orderpending/orderPendingList',
             'body': self.extend({
@@ -734,7 +739,7 @@ class bibox (Exchange):
             raise ArgumentsRequired(self.id + ' fetchMyTrades requires a `symbol` argument')
         await self.load_markets()
         market = self.market(symbol)
-        size = limit if (limit) else 200
+        size = limit if limit else 200
         request = {
             'cmd': 'orderpending/orderHistoryList',
             'body': self.extend({
@@ -760,8 +765,14 @@ class bibox (Exchange):
             }, params),
         }
         response = await self.privatePostTransfer(request)
-        address = self.safe_string(response, 'result')
-        tag = None  # todo: figure self out
+        #
+        #     {
+        #         "result":"{\"account\":\"PERSONALLY OMITTED\",\"memo\":\"PERSONALLY OMITTED\"}","cmd":"transfer/transferIn"
+        #     }
+        #
+        result = json.loads(self.safe_string(response, 'result'))
+        address = self.safe_string(result, 'account')
+        tag = self.safe_string(result, 'memo')
         return {
             'currency': code,
             'address': address,
@@ -774,9 +785,9 @@ class bibox (Exchange):
         await self.load_markets()
         currency = self.currency(code)
         if self.password is None:
-            if not('trade_pwd' in list(params.keys())):
+            if not ('trade_pwd' in list(params.keys())):
                 raise ExchangeError(self.id + ' withdraw() requires self.password set on the exchange instance or a trade_pwd parameter')
-        if not('totp_code' in list(params.keys())):
+        if not ('totp_code' in list(params.keys())):
             raise ExchangeError(self.id + ' withdraw() requires a totp_code parameter for 2FA authentication')
         request = {
             'trade_pwd': self.password,
@@ -829,6 +840,15 @@ class bibox (Exchange):
                 body = {'cmds': cmds}
             elif params:
                 url += '?' + self.urlencode(params)
+        elif api == 'v2private':
+            self.check_required_credentials()
+            url = self.urls['api'] + '/v2/' + path
+            json_params = self.json(params)
+            body = {
+                'body': json_params,
+                'apikey': self.apiKey,
+                'sign': self.hmac(self.encode(json_params), self.encode(self.secret), hashlib.md5),
+            }
         else:
             self.check_required_credentials()
             body = {
@@ -853,8 +873,8 @@ class bibox (Exchange):
                     raise exceptions[code](feedback)
                 else:
                     raise ExchangeError(feedback)
-            raise ExchangeError(self.id + ': "error" in response: ' + body)
-        if not('result' in list(response.keys())):
+            raise ExchangeError(self.id + ' ' + body)
+        if not ('result' in list(response.keys())):
             raise ExchangeError(self.id + ' ' + body)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

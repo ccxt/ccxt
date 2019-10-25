@@ -40,7 +40,7 @@ let proxies = [
     // 'https://crossorigin.me/',
 ]
 
-/*  ------------------------------------------------------------------------ */
+//-----------------------------------------------------------------------------
 
 const enableRateLimit = true
 
@@ -418,4 +418,5 @@ let tryAllProxies = async function (exchange, proxies) {
 
         await tryAllProxies (exchange, proxies)
     }
+
 }) ()

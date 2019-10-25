@@ -33,8 +33,9 @@ namespace ccxt;
 use kornrunner\Keccak;
 use kornrunner\Solidity;
 use Elliptic\EC;
+use BN\BN;
 
-$version = '1.18.1129';
+$version = '1.18.1333';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -53,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.1129';
+    const VERSION = '1.18.1333';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -94,6 +95,7 @@ class Exchange {
         'bigone',
         'binance',
         'binanceje',
+        'binanceus',
         'bit2c',
         'bitbank',
         'bitbay',
@@ -105,6 +107,7 @@ class Exchange {
         'bitkk',
         'bitlish',
         'bitmart',
+        'bitmax',
         'bitmex',
         'bitso',
         'bitstamp',
@@ -122,7 +125,7 @@ class Exchange {
         'btctradeua',
         'btcturk',
         'buda',
-        'bxinth',
+        'bytetrade',
         'cex',
         'chilebit',
         'cobinhood',
@@ -144,12 +147,10 @@ class Exchange {
         'coolcoin',
         'coss',
         'crex24',
-        'crypton',
         'deribit',
         'digifinex',
         'dsx',
         'dx',
-        'ethfinex',
         'exmo',
         'exx',
         'fcoin',
@@ -158,7 +159,6 @@ class Exchange {
         'foxbit',
         'fybse',
         'gateio',
-        'gdax',
         'gemini',
         'hitbtc',
         'hitbtc2',
@@ -185,7 +185,6 @@ class Exchange {
         'mercado',
         'mixcoins',
         'negociecoins',
-        'nova',
         'oceanex',
         'okcoincny',
         'okcoinusd',
@@ -205,6 +204,7 @@ class Exchange {
         'vaultoro',
         'vbtc',
         'virwox',
+        'whitebit',
         'xbtce',
         'yobit',
         'zaif',
@@ -213,6 +213,10 @@ class Exchange {
 
     public static function split($string, $delimiters = array(' ')) {
         return explode($delimiters[0], str_replace($delimiters, $delimiters[0], $string));
+    }
+
+    public static function strip($string) {
+        return trim($string);
     }
 
     public static function decimal($number) {
@@ -347,8 +351,10 @@ class Exchange {
             $scale = 60 * 60 * 24;
         } elseif ($unit === 'h') {
             $scale = 60 * 60;
-        } else {
+        } elseif ($unit === 'm') {
             $scale = 60;
+        } else {
+            throw new NotSupported('timeframe unit ' . $unit . ' is not supported');
         }
         return $amount * $scale;
     }
@@ -441,14 +447,11 @@ class Exchange {
     }
 
     public function filter_by($array, $key, $value = null) {
-        if ($value) {
-            $grouped = static::group_by($array, $key);
-            if (is_array($grouped) && array_key_exists($value, $grouped)) {
-                return $grouped[$value];
-            }
-            return array();
+        $grouped = static::group_by($array, $key);
+        if (is_array($grouped) && array_key_exists($value, $grouped)) {
+            return $grouped[$value];
         }
-        return $array;
+        return array();
     }
 
     public static function group_by($array, $key) {
@@ -690,6 +693,9 @@ class Exchange {
         return implode('', func_get_args());
     }
 
+    public static function binary_concat_array($arr) {
+        return implode('', $arr);
+    }
 
     public static function binary_to_base64($binary) {
         return \base64_encode($binary);
@@ -1116,7 +1122,7 @@ class Exchange {
         return $signature;
     }
 
-    public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = null) {
+    public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = null, $fixedLength = false) {
         $digest = $request;
         if ($hash !== null) {
             $digest = static::hash($request, $hash, 'hex');
@@ -1124,6 +1130,12 @@ class Exchange {
         $ec = new EC(strtolower($algorithm));
         $key = $ec->keyFromPrivate($secret);
         $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true));
+        $count = new BN ('0');
+        $minimumSize = (new BN ('1'))->shln (8 * 31)->sub (new BN ('1'));
+        while ($fixedLength && ($ellipticSignature->r->gt($ec->nh) || $ellipticSignature->r->lte($minimumSize) || $ellipticSignature->s->lte($minimumSize))) {
+            $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true, 'extraEntropy' => $count->toArray('le', 32)));
+            $count = $count->add(new BN('1'));
+        }
         $signature = array();
         $signature['r'] = $ellipticSignature->r->bi->toHex();
         $signature['s'] = $ellipticSignature->s->bi->toHex();
@@ -1577,26 +1589,26 @@ class Exchange {
     }
 
     public function parse_balance($balance) {
-        $currencies = array_keys($this->omit($balance, 'info'));
+        $currencies = $this->omit($balance, 'info');
 
         $balance['free'] = array();
         $balance['used'] = array();
         $balance['total'] = array();
 
-        foreach ($currencies as $currency) {
-            if (!isset($currencies[$currency]['total'])) {
-                if (isset($currencies[$currency]['free']) && isset($currencies[$currency]['used'])) {
-                    $currencies[$currency]['total'] = static::sum($currencies[$currency]['free'], $currencies[$currency]['used']);
+        foreach ($currencies as $code => $value) {
+            if (!isset($value['total'])) {
+                if (isset($value['free']) && isset($value['used'])) {
+                    $currencies[$code]['total'] = static::sum($value['free'], $value['used']);
                 }
             }
-            if (!isset($currencies[$currency]['used'])) {
-                if (isset($currencies[$currency]['total']) && isset($currencies[$currency]['free'])) {
-                    $currencies[$currency]['used'] = static::sum($currencies[$currency]['total'], -$currencies[$currency]['free']);
+            if (!isset($value['used'])) {
+                if (isset($value['total']) && isset($value['free'])) {
+                    $currencies[$code]['used'] = static::sum($value['total'], -$value['free']);
                 }
             }
-            if (!isset($currencies[$currency]['free'])) {
-                if (isset($currencies[$currency]['total']) && isset($currencies[$currency]['used'])) {
-                    $currencies[$currency]['free'] = static::sum($currencies[$currency]['total'], -$currencies[$currency]['used']);
+            if (!isset($value['free'])) {
+                if (isset($value['total']) && isset($value['used'])) {
+                    $currencies[$code]['free'] = static::sum($value['total'], -$value['used']);
                 }
             }
         }
@@ -1604,8 +1616,9 @@ class Exchange {
         $accounts = array('free', 'used', 'total');
         foreach ($accounts as $account) {
             $balance[$account] = array();
-            foreach ($currencies as $currency) {
-                $balance[$account][$currency] = $balance[$currency][$account];
+            foreach ($currencies as $code => $value) {
+                $balance[$code] = isset($balance[$code]) ? $balance[$code] : array();
+                $balance[$code][$account] = $balance[$account][$code] = $value[$account];
             }
         }
         return $balance;
@@ -2317,7 +2330,7 @@ class Exchange {
             return $this->markets[$symbol];
         }
 
-        throw new ExchangeError($this->id . ' does not have market symbol ' . $symbol);
+        throw new BadSymbol($this->id . ' does not have market symbol ' . $symbol);
     }
 
     public function market_ids($symbols) {
@@ -2381,7 +2394,7 @@ class Exchange {
         $nonfiltered = get_object_vars($this);
         $filtered = array();
         foreach ($nonfiltered as $key => $value) {
-            if ((strpos($key, 'has') !== false) && (key !== 'has')) {
+            if ((strpos($key, 'has') !== false) && ($key !== 'has')) {
                 $filtered[$key] = $value;
             }
         }
@@ -2475,7 +2488,7 @@ class Exchange {
             }
         } elseif ($roundingMode === TRUNCATE) {
             $dotIndex = strpos($x, '.');
-            $dotPosition = $dotIndex ?: 0;
+            $dotPosition = $dotIndex ?: strlen($x);
             if ($countingMode === DECIMAL_PLACES) {
                 if ($dotIndex) {
                     list($before, $after) = explode('.', static::number_to_string($x));
@@ -2487,7 +2500,7 @@ class Exchange {
                 if ($numPrecisionDigits === 0) {
                     return '0';
                 }
-                $significantPosition = log(abs($x), 10) % 10;
+                $significantPosition = (int) log(abs($x), 10);
                 $start = $dotPosition - $significantPosition;
                 $end = $start + $numPrecisionDigits;
                 if ($dotPosition >= $end) {
@@ -2649,7 +2662,7 @@ class Exchange {
         if (!isset(Exchange::$eth_units[$unit])) {
             throw new \UnexpectedValueException("Unknown unit '" . $unit . "', supported units: " . implode(', ', array_keys(Exchange::$eth_units)));
         }
-        return (string) (int) (('wei' === $unit) ? $amount : bcmul($amount, Exchange::$eth_units[$unit]));
+        return (('wei' === $unit) ? (string) (int) $amount : bcmul($amount, Exchange::$eth_units[$unit]));
     }
 
     public function getZeroExOrderHash($order) {
@@ -2738,6 +2751,10 @@ class Exchange {
         }
     }
 
+    public function soliditySha3 ($array) {
+        return @Solidity::sha3 (... $array);
+    }
+
     public static function totp($key) {
         function base32_decode($s) {
             static $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
@@ -2765,5 +2782,31 @@ class Exchange {
         $code = ($hmac[$offset + 0] & 0x7F) << 24 | ($hmac[$offset + 1] & 0xFF) << 16 | ($hmac[$offset + 2] & 0xFF) << 8 | ($hmac[$offset + 3] & 0xFF);
         $otp = $code % pow(10, 6);
         return str_pad((string) $otp, 6, '0', STR_PAD_LEFT);
+    }
+
+    public static function pack_byte ($n) {
+        return pack('C', $n);
+    }
+
+    public static function numberToBE($n, $padding) {
+        $n = new BN ($n);
+        return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $a . $b; });
+    }
+
+    public static function numberToLE($n, $padding) {
+        $n = new BN ($n);
+        return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $b . $a; });
+    }
+
+    public static function integer_divide($a, $b) {
+        return (new BN ($a))->div (new BN ($b));
+    }
+
+    public static function integer_modulo($a, $b) {
+        return (new BN ($a))->mod (new BN ($b));
+    }
+
+    public static function integer_pow($a, $b) {
+        return (new BN ($a))->pow (new BN ($b));
     }
 }

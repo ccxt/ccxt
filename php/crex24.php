@@ -28,10 +28,10 @@ class crex24 extends Exchange {
                 'fetchDeposits' => true,
                 'fetchFundingFees' => false,
                 'fetchMyTrades' => true,
-                'fetchOHLCV' => false,
+                'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
-                'fetchOrders' => false,
+                'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchTickers' => true,
                 'fetchTradingFee' => false, // actually, true, but will be implemented later
@@ -39,6 +39,18 @@ class crex24 extends Exchange {
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
+            ),
+            'timeframes' => array (
+                '1m' => '1m',
+                '3m' => '3m',
+                '5m' => '5m',
+                '15m' => '15m',
+                '30m' => '30m',
+                '1h' => '1h',
+                '4h' => '4h',
+                '1d' => '1d',
+                '1w' => '1w',
+                '1M' => '1mo',
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg',
@@ -56,11 +68,13 @@ class crex24 extends Exchange {
                         'tickers',
                         'recentTrades',
                         'orderBook',
+                        'ohlcv',
                     ),
                 ),
                 'trading' => array (
                     'get' => array (
                         'orderStatus',
+                        'orderTrades',
                         'activeOrders',
                         'orderHistory',
                         'tradeHistory',
@@ -95,7 +109,7 @@ class crex24 extends Exchange {
                     'tierBased' => true,
                     'percentage' => true,
                     'taker' => 0.001,
-                    'maker' => -0.01,
+                    'maker' => -0.0001,
                 ),
                 // should be deleted, these are outdated and inaccurate
                 'funding' => array (
@@ -111,6 +125,8 @@ class crex24 extends Exchange {
             ),
             // exchange-specific options
             'options' => array (
+                'fetchOrdersMethod' => 'tradingGetOrderHistory', // or 'tradingGetActiveOrders'
+                'fetchClosedOrdersMethod' => 'tradingGetOrderHistory', // or 'tradingGetActiveOrders'
                 'fetchTickersMethod' => 'publicGetTicker24hr',
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType' => 'limit', // or 'limit_maker'
@@ -131,6 +147,7 @@ class crex24 extends Exchange {
                 'broad' => array (
                     'API Key' => '\\ccxt\\AuthenticationError', // "API Key '9edc48de-d5b0-4248-8e7e-f59ffcd1c7f1' doesn't exist."
                     'Insufficient funds' => '\\ccxt\\InsufficientFunds', // "Insufficient funds => new order requires 10 ETH which is more than the available balance."
+                    'has been delisted.' => '\\ccxt\\BadSymbol', // array("errorDescription":"Instrument '$PAC-BTC' has been delisted.")
                 ),
             ),
         ));
@@ -502,7 +519,7 @@ class crex24 extends Exchange {
                 $cost = $amount * $price;
             }
         }
-        $id = null;
+        $id = $this->safe_string($trade, 'id');
         $side = $this->safe_string($trade, 'side');
         $orderId = $this->safe_string($trade, 'orderId');
         $symbol = null;
@@ -562,6 +579,39 @@ class crex24 extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        // { $timestamp => '2019-09-21T10:36:00Z',
+        //     open => 0.02152,
+        //     high => 0.02156,
+        //     low => 0.02152,
+        //     close => 0.02156,
+        //     volume => 0.01741259 }
+        $date = $this->safe_string($ohlcv, 'timestamp');
+        $timestamp = $this->parse8601 ($date);
+        return array (
+            $timestamp,
+            $this->safe_float($ohlcv, 'open'),
+            $this->safe_float($ohlcv, 'high'),
+            $this->safe_float($ohlcv, 'low'),
+            $this->safe_float($ohlcv, 'close'),
+            $this->safe_float($ohlcv, 'volume'),
+        );
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'granularity' => $this->timeframes[$timeframe],
+            'instrument' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit; // Accepted values => 1 - 1000. If the parameter is not specified, the number of results is limited to 100
+        }
+        $response = $this->publicGetOhlcv (array_merge ($request, $params));
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+    }
+
     public function parse_order_status ($status) {
         $statuses = array (
             'submitting' => 'open', // A newly created limit order has a $status "submitting" until it has been processed.
@@ -598,7 +648,7 @@ class crex24 extends Exchange {
         //     }
         //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $symbol = $this->find_symbol($this->safe_string($order, 'symbol'), $market);
+        $symbol = $this->find_symbol($this->safe_string($order, 'instrument'), $market);
         $timestamp = $this->parse8601 ($this->safe_string($order, 'timestamp'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'volume');
@@ -758,6 +808,45 @@ class crex24 extends Exchange {
         return $this->parse_order($response[0]);
     }
 
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array();
+        if ($since !== null) {
+            $request['from'] = $this->ymdhms ($since, 'T');
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['instrument'] = $market['id'];
+        }
+        $method = $this->safe_string($this->options, 'fetchOrdersMethod', 'tradingGetOrderHistory');
+        $response = $this->$method (array_merge ($request, $params));
+        //
+        //     array (
+        //         {
+        //             "id" => 468535711,
+        //             "timestamp" => "2018-06-02T16:42:40Z",
+        //             "instrument" => "BTC-EUR",
+        //             "side" => "sell",
+        //             "type" => "$limit",
+        //             "status" => "submitting",
+        //             "cancellationReason" => null,
+        //             "timeInForce" => "GTC",
+        //             "volume" => 0.00770733,
+        //             "price" => 6724.9,
+        //             "stopPrice" => null,
+        //             "remainingVolume" => 0.00770733,
+        //             "lastUpdate" => "2018-06-02T16:42:40Z",
+        //             "parentOrderId" => null,
+        //             "childOrderId" => null
+        //         }
+        //     )
+        //
+        return $this->parse_orders($response);
+    }
+
     public function fetch_orders_by_ids ($ids = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array (
@@ -853,7 +942,8 @@ class crex24 extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // min 1, max 1000, default 100
         }
-        $response = $this->tradingGetActiveOrders (array_merge ($request, $params));
+        $method = $this->safe_string($this->options, 'fetchClosedOrdersMethod', 'tradingGetOrderHistory');
+        $response = $this->$method (array_merge ($request, $params));
         //     array (
         //         array (
         //             "id" => 468535711,
@@ -1017,7 +1107,7 @@ class crex24 extends Exchange {
         //         ...
         //     )
         //
-        return $this->parseTransactions ($response, $currency, $since, $limit);
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1136,7 +1226,7 @@ class crex24 extends Exchange {
             $request['paymentId'] = $tag;
         }
         $response = $this->accountPostWithdraw (array_merge ($request, $params));
-        return $this->parse_transaction ($response);
+        return $this->parse_transaction($response);
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

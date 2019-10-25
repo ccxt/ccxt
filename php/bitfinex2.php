@@ -27,7 +27,7 @@ class bitfinex2 extends bitfinex {
                 'fetchDepositAddress' => false,
                 'fetchClosedOrders' => false,
                 'fetchFundingFees' => false,
-                'fetchMyTrades' => false, // has to be false https://github.com/ccxt/ccxt/issues/4971
+                'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => false,
                 'fetchOrder' => true,
@@ -111,6 +111,7 @@ class bitfinex2 extends bitfinex {
                         'auth/r/trades/{symbol}/hist',
                         'auth/r/positions',
                         'auth/r/positions/hist',
+                        'auth/r/positions/audit',
                         'auth/r/funding/offers/{symbol}',
                         'auth/r/funding/offers/{symbol}/hist',
                         'auth/r/funding/loans/{symbol}',
@@ -459,7 +460,7 @@ class bitfinex2 extends bitfinex {
                     $symbol = $marketId;
                 }
             }
-            $orderId = $trade[3];
+            $orderId = (string) $trade[3];
             $takerOrMaker = ($trade[8] === 1) ? 'maker' : 'taker';
             $feeCost = $trade[9];
             $feeCurrency = $this->safe_currency_code($trade[10]);
@@ -574,8 +575,6 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        // $this->has['fetchMyTrades'] is set to false
-        // https://github.com/ccxt/ccxt/issues/4971
         $this->load_markets();
         $market = null;
         $request = array (
@@ -594,25 +593,6 @@ class bitfinex2 extends bitfinex {
             $method = 'privatePostAuthRTradesSymbolHist';
         }
         $response = $this->$method (array_merge ($request, $params));
-        //
-        //     array (
-        //         array (
-        //             ID,
-        //             PAIR,
-        //             MTS_CREATE,
-        //             ORDER_ID,
-        //             EXEC_AMOUNT,
-        //             EXEC_PRICE,
-        //             ORDER_TYPE,
-        //             ORDER_PRICE,
-        //             MAKER,
-        //             FEE,
-        //             FEE_CURRENCY,
-        //             ...
-        //         ),
-        //         ...
-        //     )
-        //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 

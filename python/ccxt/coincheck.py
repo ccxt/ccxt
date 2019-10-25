@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
+from ccxt.base.errors import BadSymbol
 
 
 class coincheck (Exchange):
@@ -200,14 +200,14 @@ class coincheck (Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         if symbol != 'BTC/JPY':
-            raise NotSupported(self.id + ' fetchOrderBook() supports BTC/JPY only')
+            raise BadSymbol(self.id + ' fetchOrderBook() supports BTC/JPY only')
         self.load_markets()
         response = self.publicGetOrderBooks(params)
         return self.parse_order_book(response)
 
     def fetch_ticker(self, symbol, params={}):
         if symbol != 'BTC/JPY':
-            raise NotSupported(self.id + ' fetchTicker() supports BTC/JPY only')
+            raise BadSymbol(self.id + ' fetchTicker() supports BTC/JPY only')
         self.load_markets()
         ticker = self.publicGetTicker(params)
         timestamp = self.safe_timestamp(ticker, 'timestamp')
@@ -312,7 +312,7 @@ class coincheck (Exchange):
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         if symbol != 'BTC/JPY':
-            raise NotSupported(self.id + ' fetchTrades() supports BTC/JPY only')
+            raise BadSymbol(self.id + ' fetchTrades() supports BTC/JPY only')
         self.load_markets()
         market = self.market(symbol)
         request = {

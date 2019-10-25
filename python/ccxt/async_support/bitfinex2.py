@@ -31,7 +31,7 @@ class bitfinex2 (bitfinex):
                 'fetchDepositAddress': False,
                 'fetchClosedOrders': False,
                 'fetchFundingFees': False,
-                'fetchMyTrades': False,  # has to be False https://github.com/ccxt/ccxt/issues/4971
+                'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': False,
                 'fetchOrder': True,
@@ -115,6 +115,7 @@ class bitfinex2 (bitfinex):
                         'auth/r/trades/{symbol}/hist',
                         'auth/r/positions',
                         'auth/r/positions/hist',
+                        'auth/r/positions/audit',
                         'auth/r/funding/offers/{symbol}',
                         'auth/r/funding/offers/{symbol}/hist',
                         'auth/r/funding/loans/{symbol}',
@@ -439,7 +440,7 @@ class bitfinex2 (bitfinex):
                     symbol = market['symbol']
                 else:
                     symbol = marketId
-            orderId = trade[3]
+            orderId = str(trade[3])
             takerOrMaker = 'maker' if (trade[8] == 1) else 'taker'
             feeCost = trade[9]
             feeCurrency = self.safe_currency_code(trade[10])
@@ -535,8 +536,6 @@ class bitfinex2 (bitfinex):
         raise NotSupported(self.id + ' withdraw not implemented yet')
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        # self.has['fetchMyTrades'] is set to False
-        # https://github.com/ccxt/ccxt/issues/4971
         await self.load_markets()
         market = None
         request = {
@@ -552,25 +551,6 @@ class bitfinex2 (bitfinex):
             request['symbol'] = market['id']
             method = 'privatePostAuthRTradesSymbolHist'
         response = await getattr(self, method)(self.extend(request, params))
-        #
-        #     [
-        #         [
-        #             ID,
-        #             PAIR,
-        #             MTS_CREATE,
-        #             ORDER_ID,
-        #             EXEC_AMOUNT,
-        #             EXEC_PRICE,
-        #             ORDER_TYPE,
-        #             ORDER_PRICE,
-        #             MAKER,
-        #             FEE,
-        #             FEE_CURRENCY,
-        #             ...
-        #         ],
-        #         ...
-        #     ]
-        #
         return self.parse_trades(response, market, since, limit)
 
     def nonce(self):

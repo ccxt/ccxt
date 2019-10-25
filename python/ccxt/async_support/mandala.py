@@ -202,8 +202,8 @@ class mandala (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.005,
-                    'taker': 0.005,
+                    'maker': 0.00,
+                    'taker': 0.001,
                 },
             },
             'exceptions': {
@@ -1138,8 +1138,8 @@ class mandala (Exchange):
         lastTradeTimestamp = None
         if filled > 0:
             lastTradeTimestamp = completionDate
-        if (filled is not None) and(amount is not None):
-            if (filled < amount) and(status == 'closed'):
+        if (filled is not None) and (amount is not None):
+            if (filled < amount) and (status == 'closed'):
                 status = 'canceled'
         feeCost = self.safe_value(order, 'serviceCharge')
         fee = None
@@ -1437,7 +1437,7 @@ class mandala (Exchange):
         #
         data = self.safe_value(response, 'data', {})
         deposits = self.safe_value(data, 'Deposits', [])
-        return self.parseTransactions(deposits, currency, since, limit)
+        return self.parse_transactions(deposits, currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1473,7 +1473,7 @@ class mandala (Exchange):
         #
         data = self.safe_value(response, 'data', {})
         withdrawals = self.safe_value(data, 'Withdrawals', [])
-        return self.parseTransactions(withdrawals, currency, since, limit)
+        return self.parse_transactions(withdrawals, currency, since, limit)
 
     def parse_transaction_status(self, status):
         statuses = {
@@ -1615,7 +1615,7 @@ class mandala (Exchange):
         return self.parse_addresses(data)
 
     async def generate_deposit_address(self, code, params={}):
-        # a common implmenetation of fetchDepositAddress and createDepositAddress
+        # a common implementation of fetchDepositAddress and createDepositAddress
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1756,7 +1756,7 @@ class mandala (Exchange):
         #
         #
         status = self.safe_string_2(response, 'status', 'Status')
-        if (status is not None) and(status != 'Success'):
+        if (status is not None) and (status != 'Success'):
             message = self.safe_string_2(response, 'errorMessage', 'Message')
             message = self.safe_string(response, 'message', message)
             feedback = self.id + ' ' + self.json(response)

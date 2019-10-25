@@ -21,6 +21,7 @@ class itbit (Exchange):
             'has': {
                 'CORS': True,
                 'createMarketOrder': False,
+                'fetchMyTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
@@ -228,8 +229,8 @@ class itbit (Exchange):
                     'cost': feeCost,
                     'currency': feeCurrency,
                 }
-        if not('fee' in list(result.keys())):
-            if not('fees' in list(result.keys())):
+        if not ('fee' in list(result.keys())):
+            if not ('fees' in list(result.keys())):
                 result['fee'] = None
         return result
 

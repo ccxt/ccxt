@@ -26,6 +26,7 @@ class okex3 extends Exchange {
                 'fetchCurrencies' => false, // see below
                 'fetchDeposits' => true,
                 'fetchWithdrawals' => true,
+                'fetchTime' => true,
                 'fetchTransactions' => false,
                 'fetchMyTrades' => false, // they don't have it
                 'fetchDepositAddress' => true,
@@ -90,6 +91,7 @@ class okex3 extends Exchange {
                         'orders/{order_id}',
                         'orders/{client_oid}',
                         'fills',
+                        'algo',
                         // public
                         'instruments',
                         'instruments/{instrument_id}/book',
@@ -99,10 +101,12 @@ class okex3 extends Exchange {
                         'instruments/{instrument_id}/candles',
                     ),
                     'post' => array (
+                        'order_algo',
                         'orders',
                         'batch_orders',
                         'cancel_orders/{order_id}',
                         'cancel_orders/{client_oid}',
+                        'cancel_batch_algos',
                         'cancel_batch_orders',
                     ),
                 ),
@@ -140,6 +144,7 @@ class okex3 extends Exchange {
                         'accounts/{currency}',
                         'accounts/{currency}/leverage',
                         'accounts/{currency}/ledger',
+                        'order_algo/{instrument_id}',
                         'orders/{instrument_id}',
                         'orders/{instrument_id}/{order_id}',
                         'orders/{instrument_id}/{client_oid}',
@@ -162,11 +167,16 @@ class okex3 extends Exchange {
                     ),
                     'post' => array (
                         'accounts/{currency}/leverage',
+                        'accounts/margin_mode',
                         'order',
                         'orders',
+                        'order_algo',
+                        'cancel_algos',
                         'cancel_order/{instrument_id}/{order_id}',
                         'cancel_order/{instrument_id}/{client_oid}',
                         'cancel_batch_orders/{instrument_id}',
+                        'close_position',
+                        'cancel_all',
                     ),
                 ),
                 'swap' => array (
@@ -237,12 +247,12 @@ class okex3 extends Exchange {
                     'maker' => 0.0010,
                 ),
                 'futures' => array (
-                    'taker' => 0.0030,
-                    'maker' => 0.0020,
+                    'taker' => 0.0005,
+                    'maker' => 0.0002,
                 ),
                 'swap' => array (
-                    'taker' => 0.0070,
-                    'maker' => 0.0020,
+                    'taker' => 0.00075,
+                    'maker' => 0.00020,
                 ),
             ),
             'requiredCredentials' => array (
@@ -261,6 +271,7 @@ class okex3 extends Exchange {
                     '1' => '\\ccxt\\ExchangeError', // array( "code" => 1, "message" => "System error" )
                     // undocumented
                     'failure to get a peer from the ring-balancer' => '\\ccxt\\ExchangeError', // array( "message" => "failure to get a peer from the ring-balancer" )
+                    '"instrument_id" is an invalid parameter' => '\\ccxt\\BadSymbol', // array("code":30024,"message":"\"instrument_id\" is an invalid parameter")
                     '4010' => '\\ccxt\\PermissionDenied', // array( "code" => 4010, "message" => "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings " )
                     // common
                     '30001' => '\\ccxt\\AuthenticationError', // array( "code" => 30001, "message" => 'request header "OK_ACCESS_KEY" cannot be blank')
@@ -449,7 +460,6 @@ class okex3 extends Exchange {
             'commonCurrencies' => array (
                 // OKEX refers to ERC20 version of Aeternity (AEToken)
                 'AE' => 'AET', // https://github.com/ccxt/ccxt/issues/4981
-                'FAIR' => 'FairGame',
                 'HOT' => 'Hydro Protocol',
                 'HSR' => 'HC',
                 'MAG' => 'Maggie',
@@ -929,7 +939,11 @@ class okex3 extends Exchange {
         if ($feeCost !== null) {
             $feeCurrency = null;
             $fee = array (
-                'cost' => $feeCost,
+                // $fee is either a positive number (invitation rebate)
+                // or a negative number (transaction $fee deduction)
+                // therefore we need to invert the $fee
+                // more about it https://github.com/ccxt/ccxt/issues/5909
+                'cost' => -$feeCost,
                 'currency' => $feeCurrency,
             );
         }
@@ -939,7 +953,7 @@ class okex3 extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'id' => $this->safe_string($trade, 'trade_id'),
+            'id' => $this->safe_string_2($trade, 'trade_id', 'ledger_id'),
             'order' => $orderId,
             'type' => null,
             'takerOrMaker' => $takerOrMaker,
@@ -2095,7 +2109,7 @@ class okex3 extends Exchange {
             $method .= 'Currency';
         }
         $response = $this->$method (array_merge ($request, $params));
-        return $this->parseTransactions ($response, $currency, $since, $limit, $params);
+        return $this->parse_transactions($response, $currency, $since, $limit, $params);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -2109,7 +2123,7 @@ class okex3 extends Exchange {
             $method .= 'Currency';
         }
         $response = $this->$method (array_merge ($request, $params));
-        return $this->parseTransactions ($response, $currency, $since, $limit, $params);
+        return $this->parse_transactions($response, $currency, $since, $limit, $params);
     }
 
     public function parse_transaction_status ($status) {
@@ -2197,8 +2211,9 @@ class okex3 extends Exchange {
             $id = $withdrawalId;
             $address = $addressTo;
         } else {
+            $id = $this->safe_string($transaction, 'payment_id');
             $type = 'deposit';
-            $address = $addressFrom;
+            $address = $addressTo;
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
@@ -2229,6 +2244,8 @@ class okex3 extends Exchange {
             'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,
             'address' => $address,
+            'tagFrom' => null,
+            'tagTo' => null,
             'tag' => null,
             'status' => $status,
             'type' => $type,
@@ -2244,6 +2261,10 @@ class okex3 extends Exchange {
     }
 
     public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        // okex actually returns ledger entries instead of fills here, so each fill in the order
+        // is represented by two trades with opposite buy/sell sides, not one :\
+        // this aspect renders the 'fills' endpoint unusable for fetchOrderTrades
+        // until either OKEX fixes the API or we workaround this on our side somehow
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrderTrades requires a $symbol argument');
         }
@@ -2265,32 +2286,26 @@ class okex3 extends Exchange {
         $method = $type . 'GetFills';
         $response = $this->$method (array_merge ($request, $query));
         //
-        // spot $trades, margin $trades
+        // spot trades, margin trades
         //
         //     array (
-        //         array (
-        //             array (
-        //                 "created_at":"2019-03-15T02:52:56.000Z",
-        //                 "exec_type":"T", // whether the order is taker or maker
-        //                 "fee":"0.00000082",
-        //                 "instrument_id":"BTC-USDT",
-        //                 "ledger_id":"3963052721",
-        //                 "liquidity":"T", // whether the order is taker or maker
-        //                 "order_id":"2482659399697408",
-        //                 "price":"3888.6",
-        //                 "product_id":"BTC-USDT",
-        //                 "side":"buy",
-        //                 "size":"0.00055306",
-        //                 "timestamp":"2019-03-15T02:52:56.000Z"
-        //             ),
-        //         ),
         //         {
-        //             "before":"3963052722",
-        //             "after":"3963052718"
+        //             "created_at":"2019-09-20T07:15:24.000Z",
+        //             "exec_type":"T",
+        //             "fee":"0",
+        //             "instrument_id":"ETH-USDT",
+        //             "ledger_id":"7173486113",
+        //             "liquidity":"T",
+        //             "order_id":"3553868136523776",
+        //             "price":"217.59",
+        //             "product_id":"ETH-USDT",
+        //             "side":"sell",
+        //             "size":"0.04619899",
+        //             "timestamp":"2019-09-20T07:15:24.000Z"
         //         }
         //     )
         //
-        // futures $trades, swap $trades
+        // futures trades, swap trades
         //
         //     array (
         //         {
@@ -2300,24 +2315,14 @@ class okex3 extends Exchange {
         //             "price":"3.633",
         //             "order_qty":"1.0000",
         //             "fee":"-0.000551",
-        //             "created_at":"2019-03-21T04:41:58.0Z", // missing in swap $trades
-        //             "timestamp":"2019-03-25T05:56:31.287Z", // missing in futures $trades
+        //             "created_at":"2019-03-21T04:41:58.0Z", // missing in swap trades
+        //             "timestamp":"2019-03-25T05:56:31.287Z", // missing in futures trades
         //             "exec_type":"M", // whether the order is taker or maker
-        //             "side":"short", // "buy" in futures $trades
+        //             "side":"short", // "buy" in futures trades
         //         }
         //     )
         //
-        $trades = null;
-        if ($market['type'] === 'swap' || $market['type'] === 'futures') {
-            $trades = $response;
-        } else {
-            $responseLength = is_array ($response) ? count ($response) : 0;
-            if ($responseLength < 1) {
-                return array();
-            }
-            $trades = $response[0];
-        }
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_ledger ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -2697,9 +2702,6 @@ class okex3 extends Exchange {
         $exact = $this->exceptions['exact'];
         $message = $this->safe_string($response, 'message');
         $errorCode = $this->safe_string_2($response, 'code', 'error_code');
-        if (is_array($exact) && array_key_exists($errorCode, $exact)) {
-            throw new $exact[$errorCode]($feedback);
-        }
         if ($message !== null) {
             if (is_array($exact) && array_key_exists($message, $exact)) {
                 throw new $exact[$message]($feedback);
@@ -2709,6 +2711,11 @@ class okex3 extends Exchange {
             if ($broadKey !== null) {
                 throw new $broad[$broadKey]($feedback);
             }
+        }
+        if (is_array($exact) && array_key_exists($errorCode, $exact)) {
+            throw new $exact[$errorCode]($feedback);
+        }
+        if ($message !== null) {
             throw new ExchangeError($feedback); // unknown $message
         }
     }

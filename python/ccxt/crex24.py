@@ -10,6 +10,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -40,10 +41,10 @@ class crex24 (Exchange):
                 'fetchDeposits': True,
                 'fetchFundingFees': False,
                 'fetchMyTrades': True,
-                'fetchOHLCV': False,
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
-                'fetchOrders': False,
+                'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchTickers': True,
                 'fetchTradingFee': False,  # actually, True, but will be implemented later
@@ -51,6 +52,18 @@ class crex24 (Exchange):
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
+            },
+            'timeframes': {
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '4h': '4h',
+                '1d': '1d',
+                '1w': '1w',
+                '1M': '1mo',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg',
@@ -68,11 +81,13 @@ class crex24 (Exchange):
                         'tickers',
                         'recentTrades',
                         'orderBook',
+                        'ohlcv',
                     ],
                 },
                 'trading': {
                     'get': [
                         'orderStatus',
+                        'orderTrades',
                         'activeOrders',
                         'orderHistory',
                         'tradeHistory',
@@ -107,7 +122,7 @@ class crex24 (Exchange):
                     'tierBased': True,
                     'percentage': True,
                     'taker': 0.001,
-                    'maker': -0.01,
+                    'maker': -0.0001,
                 },
                 # should be deleted, these are outdated and inaccurate
                 'funding': {
@@ -123,6 +138,8 @@ class crex24 (Exchange):
             },
             # exchange-specific options
             'options': {
+                'fetchOrdersMethod': 'tradingGetOrderHistory',  # or 'tradingGetActiveOrders'
+                'fetchClosedOrdersMethod': 'tradingGetOrderHistory',  # or 'tradingGetActiveOrders'
                 'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType': 'limit',  # or 'limit_maker'
@@ -143,6 +160,7 @@ class crex24 (Exchange):
                 'broad': {
                     'API Key': AuthenticationError,  # "API Key '9edc48de-d5b0-4248-8e7e-f59ffcd1c7f1' doesn't exist."
                     'Insufficient funds': InsufficientFunds,  # "Insufficient funds: new order requires 10 ETH which is more than the available balance."
+                    'has been delisted.': BadSymbol,  # {"errorDescription":"Instrument '$PAC-BTC' has been delisted."}
                 },
             },
         })
@@ -494,7 +512,7 @@ class crex24 (Exchange):
         if price is not None:
             if amount is not None:
                 cost = amount * price
-        id = None
+        id = self.safe_string(trade, 'id')
         side = self.safe_string(trade, 'side')
         orderId = self.safe_string(trade, 'orderId')
         symbol = None
@@ -549,6 +567,36 @@ class crex24 (Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        # {timestamp: '2019-09-21T10:36:00Z',
+        #     open: 0.02152,
+        #     high: 0.02156,
+        #     low: 0.02152,
+        #     close: 0.02156,
+        #     volume: 0.01741259}
+        date = self.safe_string(ohlcv, 'timestamp')
+        timestamp = self.parse8601(date)
+        return [
+            timestamp,
+            self.safe_float(ohlcv, 'open'),
+            self.safe_float(ohlcv, 'high'),
+            self.safe_float(ohlcv, 'low'),
+            self.safe_float(ohlcv, 'close'),
+            self.safe_float(ohlcv, 'volume'),
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'granularity': self.timeframes[timeframe],
+            'instrument': market['id'],
+        }
+        if limit is not None:
+            request['limit'] = limit  # Accepted values: 1 - 1000. If the parameter is not specified, the number of results is limited to 100
+        response = self.publicGetOhlcv(self.extend(request, params))
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+
     def parse_order_status(self, status):
         statuses = {
             'submitting': 'open',  # A newly created limit order has a status "submitting" until it has been processed.
@@ -584,7 +632,7 @@ class crex24 (Exchange):
         #     }
         #
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = self.find_symbol(self.safe_string(order, 'symbol'), market)
+        symbol = self.find_symbol(self.safe_string(order, 'instrument'), market)
         timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'volume')
@@ -604,8 +652,8 @@ class crex24 (Exchange):
         type = self.safe_string(order, 'type')
         if type == 'market':
             if price == 0.0:
-                if (cost is not None) and(filled is not None):
-                    if (cost > 0) and(filled > 0):
+                if (cost is not None) and (filled is not None):
+                    if (cost > 0) and (filled > 0):
                         price = cost / filled
         side = self.safe_string(order, 'side')
         fee = None
@@ -724,6 +772,41 @@ class crex24 (Exchange):
             raise OrderNotFound(self.id + ' fetchOrder could not fetch order id ' + id)
         return self.parse_order(response[0])
 
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        if since is not None:
+            request['from'] = self.ymdhms(since, 'T')
+        if limit is not None:
+            request['limit'] = limit
+        if symbol is not None:
+            market = self.market(symbol)
+            request['instrument'] = market['id']
+        method = self.safe_string(self.options, 'fetchOrdersMethod', 'tradingGetOrderHistory')
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "id": 468535711,
+        #             "timestamp": "2018-06-02T16:42:40Z",
+        #             "instrument": "BTC-EUR",
+        #             "side": "sell",
+        #             "type": "limit",
+        #             "status": "submitting",
+        #             "cancellationReason": null,
+        #             "timeInForce": "GTC",
+        #             "volume": 0.00770733,
+        #             "price": 6724.9,
+        #             "stopPrice": null,
+        #             "remainingVolume": 0.00770733,
+        #             "lastUpdate": "2018-06-02T16:42:40Z",
+        #             "parentOrderId": null,
+        #             "childOrderId": null
+        #         }
+        #     ]
+        #
+        return self.parse_orders(response)
+
     def fetch_orders_by_ids(self, ids=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {
@@ -813,7 +896,8 @@ class crex24 (Exchange):
             request['from'] = self.ymdhms(since, 'T')
         if limit is not None:
             request['limit'] = limit  # min 1, max 1000, default 100
-        response = self.tradingGetActiveOrders(self.extend(request, params))
+        method = self.safe_string(self.options, 'fetchClosedOrdersMethod', 'tradingGetOrderHistory')
+        response = getattr(self, method)(self.extend(request, params))
         #     [
         #         {
         #             "id": 468535711,
@@ -968,7 +1052,7 @@ class crex24 (Exchange):
         #         ...
         #     ]
         #
-        return self.parseTransactions(response, currency, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         request = {
@@ -1109,7 +1193,7 @@ class crex24 (Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not self.is_json_encoded_object(body):
             return  # fallback to default error handler
-        if (code >= 200) and(code < 300):
+        if (code >= 200) and (code < 300):
             return  # no error
         message = self.safe_string(response, 'errorDescription')
         feedback = self.id + ' ' + self.json(response)
