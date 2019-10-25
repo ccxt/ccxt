@@ -100,7 +100,7 @@ class BaseError(Exception):
             raise AttributeError('Cannot set attribute ' + key)
 
     def __str__(self):
-        return self.args[0]  #
+        return self.args[0] # message is the first argument to the error
 
 
 error_factory(error_hierarchy['BaseError'], BaseError)
