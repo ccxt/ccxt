@@ -62,12 +62,16 @@ def error_factory(dictionary, super_class):
 
 
 class BaseError(Exception):
-    verbose = False
+    def __init__(self, error_message, exchange=None, http_code=None, http_status_text=None, url=None, http_method=None, response_headers=None, response_body=None, response_json=None):
+        verbose = None
+        exchange_id = None
+        if exchange:
+            verbose = exchange.verbose
+            exchange_id = exchange.id
 
-    def __init__(self, error_message, exchange_id=None, http_code=None, http_status_text=None, url=None, http_method=None, response_headers=None, response_body=None, response_json=None):
         message = ' '.join(str(i) for i in [exchange_id, http_method, url, http_code, http_status_text, error_message]
                            if i is not None)
-        if self.verbose:
+        if verbose:
             if response_headers:
                 message += '\n' + json.dumps(response_headers, indent=2)
             if response_json:

@@ -18,10 +18,15 @@ function subclass (BaseClass, classes, namespace = {}) {
 
             [className]: class extends BaseClass {
 
-                constructor (errorMessage, exchangeId = undefined, httpStatusCode = undefined, httpStatusText = undefined, url = undefined, httpMethod = undefined, responseHeaders = undefined, responseBody = undefined, responseJson = undefined) {
-
+                constructor (errorMessage, exchange = undefined, httpStatusCode = undefined, httpStatusText = undefined, url = undefined, httpMethod = undefined, responseHeaders = undefined, responseBody = undefined, responseJson = undefined) {
+                    let verbose
+                    let exchangeId
+                    if (exchange) {
+                        verbose = exchange.verbose
+                        exchangeId = exchange.id
+                    }
                     let message = [exchangeId, httpMethod, url, httpStatusCode, httpStatusText, errorMessage].filter (x => x !== undefined).join (' ')
-                    if (Class.prototype.verbose) {
+                    if (verbose) {
                         if (responseHeaders) {
                             message += '\n' + JSON.stringify (responseHeaders, undefined, 2)
                         }
@@ -88,6 +93,5 @@ for (const property of Object.getOwnPropertyNames (instance)) {
         })
     }
 }
-BaseError.prototype.verbose = false
 
 module.exports = Errors

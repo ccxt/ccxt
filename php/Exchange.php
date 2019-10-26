@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.18.1333';
+$version = '1.18.1335';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.1333';
+    const VERSION = '1.18.1335';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -210,10 +210,6 @@ class Exchange {
         'zaif',
         'zb',
     );
-
-    public static function set_verbose_errors($verbose = True) {
-        BaseError::$verbose = $verbose;
-    }
 
     public static function split($string, $delimiters = array(' ')) {
         return explode($delimiters[0], str_replace($delimiters, $delimiters[0], $string));
