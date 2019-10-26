@@ -284,7 +284,7 @@ Most of exchange properties as well as specific options can be overrided upon ex
 const exchange = new ccxt.binance ({
     'rateLimit': 10000, // unified exchange property
     'headers': {
-        'YOUR_CUSTOM_HEADER': 'YOUR_CUSTOM_HEADER_VALUE',
+        'YOUR_CUSTOM_HTTP_HEADER': 'YOUR_CUSTOM_VALUE',
     },
     'options': {
         'adjustForTimeDifference': true, // exchange-specific option
@@ -298,7 +298,7 @@ exchange.options['adjustForTimeDifference'] = false
 exchange = ccxt.binance ({
     'rateLimit': 10000,  # unified exchange property
     'headers': {
-        'YOUR_CUSTOM_HEADER': 'YOUR_CUSTOM_HEADER_VALUE',
+        'YOUR_CUSTOM_HTTP_HEADER': 'YOUR_CUSTOM_VALUE',
     },
     'options': {
         'adjustForTimeDifference': True,  # exchange-specific option
@@ -314,7 +314,7 @@ $exchange_class = "\\ccxt\\$exchange_id";
 $exchange = new $exchange_class(array(
     'rateLimit' => 10000, // unified exchange property
     'headers' => array(
-        'YOUR_CUSTOM_HEADER' => 'YOUR_CUSTOM_HEADER_VALUE',
+        'YOUR_CUSTOM_HTTP_HEADER' => 'YOUR_CUSTOM_VALUE',
     ),
     'options' => array(
         'adjustForTimeDifference' => true, // exchange-specific option
