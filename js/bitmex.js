@@ -584,7 +584,7 @@ module.exports = class bitmex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseLedger (response, currency);
+        return this.parseLedger (response, currency, since, limit);
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
