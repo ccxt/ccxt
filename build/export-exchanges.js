@@ -34,7 +34,7 @@ function logExportExchanges (filename, regex, replacement) {
 
 // ----------------------------------------------------------------------------
 
-function exportExchanges () {
+function exportExchanges ({ python2Folder, python3Folder, phpFolder }) {
 
     log.bright.yellow ('Exporting exchanges...')
 
@@ -62,27 +62,27 @@ function exportExchanges () {
             replacement: "const exchanges = {\n" + ids.map (id => pad ("    '" + id + "':", 30) + " require ('./js/" + id + ".js'),").join ("\n") + "    \n}",
         },
         {
-            file: './python/ccxt/__init__.py',
+            file: python2Folder + '/__init__.py',
             regex: /exchanges \= \[[^\]]+\]/,
             replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
         },
         {
-            file: './python/ccxt/__init__.py',
+            file: python2Folder + '/__init__.py',
             regex: /(?:from ccxt\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
             replacement: ids.map (id => pad ('from ccxt.' + id + ' import ' + id, 60) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },
         {
-            file: './python/ccxt/async_support/__init__.py',
+            file: python3Folder + '/__init__.py',
             regex: /(?:from ccxt\.async_support\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
             replacement: ids.map (id => pad ('from ccxt.async_support.' + id + ' import ' + id, 74) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },
         {
-            file: './python/ccxt/async_support/__init__.py',
+            file: python3Folder + '/__init__.py',
             regex: /exchanges \= \[[^\]]+\]/,
             replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
         },
         {
-            file: './php/Exchange.php',
+            file: phpFolder + '/base/Exchange.php',
             regex: /public static \$exchanges \= array\s*\([^\)]+\)/,
             replacement: "public static $exchanges = array(\n        '" + ids.join ("',\n        '") + "',\n    )",
         },
@@ -322,7 +322,11 @@ function exportEverything () {
         , gitWikiPath = 'build/ccxt.wiki'
 
     cloneGitHubWiki (gitWikiPath)
-    const ids = exportExchanges ()
+    const ids = exportExchanges ({
+        python2Folder: './python/ccxt',
+        python3Folder: './python/ccxt/async_support',
+        phpFolder: './php'
+    })
 
     // strategically placed exactly here (we can require it AFTER the export)
     const exchanges = createExchanges (ids)
