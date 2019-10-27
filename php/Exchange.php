@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.18.1335';
+$version = '1.18.1339';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.1335';
+    const VERSION = '1.18.1339';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -172,7 +172,6 @@ class Exchange {
         'kkex',
         'kraken',
         'kucoin',
-        'kucoin2',
         'kuna',
         'lakebtc',
         'latoken',

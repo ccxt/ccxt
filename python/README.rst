@@ -24,7 +24,9 @@ Current feature list:
 Sponsored Promotion
 -------------------
 
-`Official Trezor Shop <https://shop.trezor.io/?offer_id=10&aff_id=3580>`__
+Want this place? Contact us: info@ccxt.trade
+
+`Placehodler <https://ccxt.trade/advertise/>`__
 
 See Also
 --------
@@ -66,7 +68,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 125 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 124 cryptocurrency exchange markets and trading APIs:
 
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | id                 | name                                                                                       | ver | doc                                                                                             | certified                                                            |
@@ -369,14 +371,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.1333/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.1333/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.1339/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.1339/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.1333/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.1339/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

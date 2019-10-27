@@ -53,7 +53,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 
 # Exchanges
 
-The ccxt library currently supports the following 127 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 124 cryptocurrency exchange markets and trading APIs:
 
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;logo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                                                                                       | id                 | name                                                                                    | ver | doc                                                                                          | certified                                                                                                                  |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|-----------------------------------------------------------------------------------------|:---:|:--------------------------------------------------------------------------------------------:|----------------------------------------------------------------------------------------------------------------------------|
@@ -253,23 +253,23 @@ exchange = exchange_class({
 })
 ```
 
-The ccxt library in PHP uses builtin UTC/GMT time functions, therefore you are required to set date.timezone in your php.ini or call [date_default_timezone_set ()](http://php.net/manual/en/function.date-default-timezone-set.php) function before using the PHP version of the library. The recommended timezone setting is `"UTC"`.
+The ccxt library in PHP uses builtin UTC/GMT time functions, therefore you are required to set date.timezone in your php.ini or call [date_default_timezone_set()](http://php.net/manual/en/function.date-default-timezone-set.php) function before using the PHP version of the library. The recommended timezone setting is `"UTC"`.
 
 ```PHP
 // PHP
-date_default_timezone_set ('UTC');
+date_default_timezone_set('UTC');
 include 'ccxt.php';
-$bitfinex = new \ccxt\bitfinex (); // default id
-$bitfinex1 = new \ccxt\bitfinex (array ('id' => 'bitfinex1'));
-$bitfinex2 = new \ccxt\bitfinex (array ('id' => 'bitfinex2'));
+$bitfinex = new \ccxt\bitfinex(); // default id
+$bitfinex1 = new \ccxt\bitfinex(array('id' => 'bitfinex1'));
+$bitfinex2 = new \ccxt\bitfinex(array('id' => 'bitfinex2'));
 $id = 'kraken';
 $exchange = '\\ccxt\\' . $id
-$kraken = new $exchange ();
+$kraken = new $exchange();
 
 // from variable id
 $exchange_id = 'binance';
 $exchange_class = "\\ccxt\\$exchange_id";
-$exchange = new $exchange_class (array (
+$exchange = new $exchange_class(array(
     'apiKey' => 'YOUR_API_KEY',
     'secret' => 'YOUR_SECRET',
     'timeout' => 30000,
@@ -285,6 +285,9 @@ Most of exchange properties as well as specific options can be overrided upon ex
 // JavaScript
 const exchange = new ccxt.binance ({
     'rateLimit': 10000, // unified exchange property
+    'headers': {
+        'YOUR_CUSTOM_HTTP_HEADER': 'YOUR_CUSTOM_VALUE',
+    },
     'options': {
         'adjustForTimeDifference': true, // exchange-specific option
     }
@@ -296,6 +299,9 @@ exchange.options['adjustForTimeDifference'] = false
 # Python
 exchange = ccxt.binance ({
     'rateLimit': 10000,  # unified exchange property
+    'headers': {
+        'YOUR_CUSTOM_HTTP_HEADER': 'YOUR_CUSTOM_VALUE',
+    },
     'options': {
         'adjustForTimeDifference': True,  # exchange-specific option
     }
@@ -307,9 +313,12 @@ exchange.options['adjustForTimeDifference'] = False
 // PHP
 $exchange_id = 'binance';
 $exchange_class = "\\ccxt\\$exchange_id";
-$exchange = new $exchange_class (array (
+$exchange = new $exchange_class(array(
     'rateLimit' => 10000, // unified exchange property
-    'options' => array (
+    'headers' => array(
+        'YOUR_CUSTOM_HTTP_HEADER' => 'YOUR_CUSTOM_VALUE',
+    ),
+    'options' => array(
         'adjustForTimeDifference' => true, // exchange-specific option
     ),
 ));
@@ -413,7 +422,9 @@ Below is a detailed description of each of the base exchange properties:
 
 - `enableRateLimit`: A boolean (true/false) value that enables the built-in rate limiter and throttles consecutive requests. This setting is false (disabled) by default. **The user is required to implement own [rate limiting](https://github.com/ccxt/ccxt/wiki/Manual#rate-limit) or enable the built-in rate limiter to avoid being banned from the exchange**.
 
-- `userAgent`: An object to set HTTP User-Agent header to. The ccxt library will set its User-Agent by default. Some exchanges may not like it. If you are having difficulties getting a reply from an exchange and want to turn User-Agent off or use the default one, set this value to false, undefined, or an empty string.
+- `userAgent`: An object to set HTTP User-Agent header to. The ccxt library will set its User-Agent by default. Some exchanges may not like it. If you are having difficulties getting a reply from an exchange and want to turn User-Agent off or use the default one, set this value to false, undefined, or an empty string. The value of `userAgent` may be overrided by HTTP `headers` property below.
+
+- `headers`: An associative array of HTTP headers and their values. Default value is empty `{}`. All headers will be prepended to all requests. If the `User-Agent` header is set within `headers`, it will override whatever value is set in the `userAgent` property above.
 
 - `verbose`: A boolean flag indicating whether to log HTTP requests to stdout (verbose flag is false by default). Python people have an alternative way of DEBUG logging with a standard pythonic logger, which is enabled by adding these two lines to the beginning of their code:
   ```Python
