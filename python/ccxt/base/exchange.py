@@ -1559,6 +1559,8 @@ class Exchange(object):
             scale = 60 * 60
         elif 'm' == unit:
             scale = 60
+        elif 's' == unit:
+            scale = 1
         else:
             raise NotSupported('timeframe unit {} is not supported'.format(unit))
         return amount * scale

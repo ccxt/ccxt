@@ -352,6 +352,8 @@ class Exchange {
             $scale = 60 * 60;
         } elseif ($unit === 'm') {
             $scale = 60;
+        } elseif ($unit === 's') {
+            $scale = 1;
         } else {
             throw new NotSupported('timeframe unit ' . $unit . ' is not supported');
         }
