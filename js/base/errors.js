@@ -30,9 +30,7 @@ function subclass (BaseClass, classes, namespace = {}) {
                         if (responseHeaders) {
                             message += '\n' + JSON.stringify (responseHeaders, undefined, 2)
                         }
-                        if (responseJson) {
-                            message += '\n' + JSON.stringify (responseJson, undefined, 2)
-                        } else if (responseBody) {
+                        if (responseBody) {
                             message += '\n' + responseBody
                         }
                     }
