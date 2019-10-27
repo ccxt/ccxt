@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.18.1342",
+  "version": "1.18.1343",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -480,7 +480,9 @@
     "bitmax.io",
     "BitMax",
     "bytetrade.com",
-    "ByteTrade"
+    "ByteTrade",
+    "ftx.com",
+    "FTX"
   ],
   "collective": {
     "type": "opencollective",
