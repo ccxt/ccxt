@@ -11,14 +11,22 @@ let tokens = new ccxt.tokens ({
 })
 
 
-let printTicker = async () => {
-    log.green ('printTicker:', '--- start ----')
+let printMarkets = async () => {
+    log.green ('printMarkets:', '--- start ----')
     let markets = await tokens.loadMarkets ()
     log(markets)
 }
 
+let printTicker = async () => {
+    log.green ('printTicker:', '--- start ----')
+    let markets = await tokens.loadTickers ()
+    log(markets)
+}
+
 ;(async function main () {
+    // await printMarkets ()
     await printTicker ()
+
 
     process.exit ()
 

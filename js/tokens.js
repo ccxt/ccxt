@@ -35,11 +35,11 @@ module.exports = class tokens extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'public/ticker/{pair}/',
+                        'public/trading-pairs/get/all/',
+                        'public/ticker/all/',
                         'public/ticker/{pair}/',
                         'public/ticker/{time}/{pair}/',
                         'public/trades/{time}/{pair}/',
-                        'public/trading-pairs/get/all/',
                         'public/order-book/{pair}/',
                     ],
                 },
@@ -205,87 +205,86 @@ module.exports = class tokens extends Exchange {
         return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
-        console.log ('xx');
-        await this.loadMarkets ();
-        console.log ('zz');
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.publicGetMarketStats (this.extend (request, params));
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             'buy': '0.00001168',
-        //             'changePrice': '-0.00000018',
-        //             'changeRate': '-0.0151',
-        //             'datetime': 1550661146316,
-        //             'high': '0.0000123',
-        //             'last': '0.00001169',
-        //             'low': '0.00001159',
-        //             'sell': '0.00001182',
-        //             'symbol': 'LOOM-BTC',
-        //             'vol': '44399.5669'
-        //         },
-        //     }
-        //
-        return this.parseTicker (response['data'], market);
+    async fetchTickers (symbols = undefined, params = {}) {
+        const tickers = await this.publicGetPublicTickerGetAll ();
+        // {
+        //     "btcusdt": {
+        //         "last": "9381.24",
+        //         "volume_usdt": "272264.02067160",
+        //         "open": "9616.58",
+        //         "volume": "28.54974563",
+        //         "ask": "9381.25",
+        //         "low": "9340.37",
+        //         "bid": "9371.87",
+        //         "vwap": "9536.47798478",
+        //         "high": "9702.76"
+        //     },
+        //     ...
+        // }
+        const result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            const ticker = this.parseTicker (tickers[i]);
+            const symbol = this.safeString (ticker, 'symbol');
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
+        }
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {
-        //
-        //     {
-        //         'buy': '0.00001168',
-        //         'changePrice': '-0.00000018',
-        //         'changeRate': '-0.0151',
-        //         'datetime': 1550661146316,
-        //         'high': '0.0000123',
-        //         'last': '0.00001169',
-        //         'low': '0.00001159',
-        //         'sell': '0.00001182',
-        //         'symbol': 'LOOM-BTC',
-        //         'vol': '44399.5669'
+        // {
+        //     "vwap": "9536.47798478",
+        //     "volume_usdt": "272264.02067160",
+        //     "open": "9616.58",
+        //     "ask": "9381.25",
+        //     "status": "ok",
+        //     "high": "9702.76",
+        //     "timestamp": 1572265101,
+        //     "volume": "28.54974563",
+        //     "bid": "9371.87",
+        //     "last": "9381.24",
+        //     "low": "9340.37"
+        // }
+
+        // let percentage = this.safeFloat (ticker, 'changeRate');
+        // if (percentage !== undefined) {
+        //     percentage = percentage * 100;
+        // }
+        // const last = this.safeFloat (ticker, 'last');
+        // let symbol = undefined;
+        // const marketId = this.safeString (ticker, 'symbol');
+        //  if (marketId !== undefined) {
+        //     if (marketId in this.markets_by_id) {
+        //         market = this.markets_by_id[marketId];
+        //         symbol = market['symbol'];
+        //     } else {
+        //         const [ baseId, quoteId ] = marketId.split ('-');
+        //         const base = this.safeCurrencyCode (baseId);
+        //         const quote = this.safeCurrencyCode (quoteId);
+        //         symbol = base + '/' + quote;
         //     }
-        //
-        let percentage = this.safeFloat (ticker, 'changeRate');
-        if (percentage !== undefined) {
-            percentage = percentage * 100;
-        }
-        const last = this.safeFloat (ticker, 'last');
-        let symbol = undefined;
-        const marketId = this.safeString (ticker, 'symbol');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
-        }
+        // }
+        // if (symbol === undefined) {
+        //     if (market !== undefined) {
+        //         symbol = market['symbol'];
+        //     }
+        // }
+
         return {
-            'symbol': symbol,
-            'timestamp': undefined,
+            'symbol': undefined,
+            'timestamp': this.safeInteger (ticker, 'timestamp'),
             'datetime': undefined,
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
-            'vwap': undefined,
+            'vwap': this.safeFloat (ticker, 'vwap'),
             'open': this.safeFloat (ticker, 'open'),
-            'close': last,
-            'last': last,
+            'close': this.safeFloat (ticker, 'last'),
+            'last': this.safeFloat (ticker, 'last'),
             'previousClose': undefined,
             'change': this.safeFloat (ticker, 'changePrice'),
             'percentage': percentage,
