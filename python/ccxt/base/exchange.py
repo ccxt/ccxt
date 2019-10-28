@@ -363,7 +363,7 @@ class Exchange(object):
             'defaultCost': 1.0,
         }, getattr(self, 'tokenBucket') if hasattr(self, 'tokenBucket') else {})
 
-        self.session = self.session if self.session else Session()
+        self.session = self.session if self.session or self.asyncio_loop else Session()
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
         if self.requiresWeb3 and Web3 and not self.web3:
