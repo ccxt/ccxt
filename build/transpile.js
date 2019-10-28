@@ -747,19 +747,21 @@ function transpileDerivedExchangeFile (jsFolder, filename, options) {
 
     try {
 
-        const contents = fs.readFileSync (jsFolder + filename, 'utf8')
         const { python2Folder, python3Folder, phpFolder } = options
+        const contents = fs.readFileSync (jsFolder + filename, 'utf8')
         const { python2, python3, php, className, baseClass } = transpileDerivedExchangeClass (contents)
-
-        const python2Filename = python2Folder + filename.replace ('.js', '.py')
-        const python3Filename = python3Folder + filename.replace ('.js', '.py')
-        const phpFilename     = phpFolder     + filename.replace ('.js', '.php')
 
         log.cyan ('Transpiling from', filename.yellow)
 
-        overwriteFile (python2Filename, python2)
-        overwriteFile (python3Filename, python3)
-        overwriteFile (phpFilename,     php)
+        [
+            [ python2Folder, filename.replace ('.js', '.py'), python2 ],
+            [ python3Folder, filename.replace ('.js', '.py'), python3 ],
+            [ phpFolder, filename.replace ('.js', '.php'), php ],
+        ].forEach (([ folder, filename, code ]) => {
+            if (folder) {
+                overwriteFile (folder + filename, code)
+            }
+        })
 
         return { className, baseClass }
 
@@ -805,9 +807,15 @@ function transpileDerivedExchangeFiles (jsFolder, options, pattern = '.js') {
             .forEach (file => log.red ('Deleting ' + file.yellow) && fs.unlinkSync (file))
     }
 
-    deleteOldTranspiledFiles (python2Folder, /\.pyc?$/)
-    deleteOldTranspiledFiles (python3Folder, /\.pyc?$/)
-    deleteOldTranspiledFiles (phpFolder, /\.php$/)
+    [
+        [ python2Folder, /\.pyc?$/ ],
+        [ python3Folder, /\.pyc?$/ ],
+        [ phpFolder, /\.php$/ ],
+    ].forEach (([ folder, pattern ]) => {
+        if (folder) {
+            deleteOldTranspiledFiles (folder, pattern)
+        }
+    })
 
     return classes
 }
