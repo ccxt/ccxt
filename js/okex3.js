@@ -929,7 +929,10 @@ module.exports = class okex3 extends Exchange {
         const feeCost = this.safeFloat (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
-            const feeCurrency = undefined;
+            let feeCurrency = undefined;
+            if (market !== undefined) {
+                feeCurrency = side === 'buy' ? market['base'] : market['quote'];
+            }
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
