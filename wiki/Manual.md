@@ -130,6 +130,7 @@ The ccxt library currently supports the following 125 cryptocurrency exchange ma
 |[![fcoinjp](https://user-images.githubusercontent.com/1294454/54219174-08b66b00-4500-11e9-862d-f522d0fe08c6.jpg)](https://www.fcoinjp.com)                                                     | fcoinjp            | [FCoinJP](https://www.fcoinjp.com)                                                      | 2   | [API](https://developer.fcoin.com)                                                           |                                                                                                                             | Japan                                   |
 |[![flowbtc](https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg)](https://www.flowbtc.com.br)                                                  | flowbtc            | [flowBTC](https://www.flowbtc.com.br)                                                   | 1   | [API](https://www.flowbtc.com.br/api.html)                                                   |                                                                                                                             | Brazil                                  |
 |[![foxbit](https://user-images.githubusercontent.com/1294454/27991413-11b40d42-647f-11e7-91ee-78ced874dd09.jpg)](https://foxbit.com.br/exchange)                                               | foxbit             | [FoxBit](https://foxbit.com.br/exchange)                                                | 1   | [API](https://foxbit.com.br/api/)                                                            |                                                                                                                             | Brazil                                  |
+|[![ftx](https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg)](https://ftx.com/#a=1623029)                                                      | ftx                | [FTX](https://ftx.com/#a=1623029)                                                       | *   | [API](https://github.com/ftexchange/ftx)                                                     | [![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | Hong Kong                               |
 |[![fybse](https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg)](https://www.fybse.se)                                                          | fybse              | [FYB-SE](https://www.fybse.se)                                                          | *   | [API](https://fyb.docs.apiary.io)                                                            |                                                                                                                             | Sweden                                  |
 |[![gateio](https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg)](https://www.gate.io/signup/2436035)                                           | gateio             | [Gate.io](https://www.gate.io/signup/2436035)                                           | 2   | [API](https://gate.io/api2)                                                                  |                                                                                                                             | China                                   |
 |[![gemini](https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg)](https://gemini.com/)                                                          | gemini             | [Gemini](https://gemini.com/)                                                           | 1   | [API](https://docs.gemini.com/rest-api)                                                      |                                                                                                                             | US                                      |
@@ -171,7 +172,7 @@ The ccxt library currently supports the following 125 cryptocurrency exchange ma
 |[![theocean](https://user-images.githubusercontent.com/1294454/43103756-d56613ce-8ed7-11e8-924e-68f9d4bcacab.jpg)](https://theocean.trade)                                                     | theocean           | [The Ocean](https://theocean.trade)                                                     | 1   | [API](https://docs.theocean.trade)                                                           |                                                                                                                             | US                                      |
 |[![therock](https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg)](https://therocktrading.com)                                                  | therock            | [TheRockTrading](https://therocktrading.com)                                            | 1   | [API](https://api.therocktrading.com/doc/v1/index.html)                                      |                                                                                                                             | Malta                                   |
 |[![tidebit](https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg)](http://bit.ly/2IX0LrM)                                                       | tidebit            | [TideBit](http://bit.ly/2IX0LrM)                                                        | 2   | [API](https://www.tidebit.com/documents/api/guide)                                           |                                                                                                                             | Hong Kong                               |
-|[![tidex](https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg)](https://tidex.com)                                                             | tidex              | [Tidex](https://tidex.com)                                                              | 3   | [API](https://tidex.com/exchange/public-api)                                                 |                                                                                                                             | UK                                      |
+|[![tidex](https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg)](https://tidex.com/exchange/?ref=57f5638d9cd7)                                  | tidex              | [Tidex](https://tidex.com/exchange/?ref=57f5638d9cd7)                                   | 3   | [API](https://tidex.com/exchange/public-api)                                                 |                                                                                                                             | UK                                      |
 |[![upbit](https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg)](https://upbit.com)                                                             | upbit              | [Upbit](https://upbit.com)                                                              | 1   | [API](https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C)           | [![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | South Korea                             |
 |[![vaultoro](https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg)](https://www.vaultoro.com)                                                   | vaultoro           | [Vaultoro](https://www.vaultoro.com)                                                    | 1   | [API](https://api.vaultoro.com)                                                              |                                                                                                                             | Switzerland                             |
 |[![vbtc](https://user-images.githubusercontent.com/1294454/27991481-1f53d1d8-6481-11e7-884e-21d17e7939db.jpg)](https://vbtc.exchange)                                                          | vbtc               | [VBTC](https://vbtc.exchange)                                                           | 1   | [API](https://blinktrade.com/docs)                                                           |                                                                                                                             | Vietnam                                 |
@@ -251,23 +252,23 @@ exchange = exchange_class({
 })
 ```
 
-The ccxt library in PHP uses builtin UTC/GMT time functions, therefore you are required to set date.timezone in your php.ini or call [date_default_timezone_set ()](http://php.net/manual/en/function.date-default-timezone-set.php) function before using the PHP version of the library. The recommended timezone setting is `"UTC"`.
+The ccxt library in PHP uses builtin UTC/GMT time functions, therefore you are required to set date.timezone in your php.ini or call [date_default_timezone_set()](http://php.net/manual/en/function.date-default-timezone-set.php) function before using the PHP version of the library. The recommended timezone setting is `"UTC"`.
 
 ```PHP
 // PHP
-date_default_timezone_set ('UTC');
+date_default_timezone_set('UTC');
 include 'ccxt.php';
-$bitfinex = new \ccxt\bitfinex (); // default id
-$bitfinex1 = new \ccxt\bitfinex (array ('id' => 'bitfinex1'));
-$bitfinex2 = new \ccxt\bitfinex (array ('id' => 'bitfinex2'));
+$bitfinex = new \ccxt\bitfinex(); // default id
+$bitfinex1 = new \ccxt\bitfinex(array('id' => 'bitfinex1'));
+$bitfinex2 = new \ccxt\bitfinex(array('id' => 'bitfinex2'));
 $id = 'kraken';
 $exchange = '\\ccxt\\' . $id
-$kraken = new $exchange ();
+$kraken = new $exchange();
 
 // from variable id
 $exchange_id = 'binance';
 $exchange_class = "\\ccxt\\$exchange_id";
-$exchange = new $exchange_class (array (
+$exchange = new $exchange_class(array(
     'apiKey' => 'YOUR_API_KEY',
     'secret' => 'YOUR_SECRET',
     'timeout' => 30000,
@@ -283,6 +284,9 @@ Most of exchange properties as well as specific options can be overrided upon ex
 // JavaScript
 const exchange = new ccxt.binance ({
     'rateLimit': 10000, // unified exchange property
+    'headers': {
+        'YOUR_CUSTOM_HTTP_HEADER': 'YOUR_CUSTOM_VALUE',
+    },
     'options': {
         'adjustForTimeDifference': true, // exchange-specific option
     }
@@ -294,6 +298,9 @@ exchange.options['adjustForTimeDifference'] = false
 # Python
 exchange = ccxt.binance ({
     'rateLimit': 10000,  # unified exchange property
+    'headers': {
+        'YOUR_CUSTOM_HTTP_HEADER': 'YOUR_CUSTOM_VALUE',
+    },
     'options': {
         'adjustForTimeDifference': True,  # exchange-specific option
     }
@@ -305,9 +312,12 @@ exchange.options['adjustForTimeDifference'] = False
 // PHP
 $exchange_id = 'binance';
 $exchange_class = "\\ccxt\\$exchange_id";
-$exchange = new $exchange_class (array (
+$exchange = new $exchange_class(array(
     'rateLimit' => 10000, // unified exchange property
-    'options' => array (
+    'headers' => array(
+        'YOUR_CUSTOM_HTTP_HEADER' => 'YOUR_CUSTOM_VALUE',
+    ),
+    'options' => array(
         'adjustForTimeDifference' => true, // exchange-specific option
     ),
 ));
@@ -411,7 +421,9 @@ Below is a detailed description of each of the base exchange properties:
 
 - `enableRateLimit`: A boolean (true/false) value that enables the built-in rate limiter and throttles consecutive requests. This setting is false (disabled) by default. **The user is required to implement own [rate limiting](https://github.com/ccxt/ccxt/wiki/Manual#rate-limit) or enable the built-in rate limiter to avoid being banned from the exchange**.
 
-- `userAgent`: An object to set HTTP User-Agent header to. The ccxt library will set its User-Agent by default. Some exchanges may not like it. If you are having difficulties getting a reply from an exchange and want to turn User-Agent off or use the default one, set this value to false, undefined, or an empty string.
+- `userAgent`: An object to set HTTP User-Agent header to. The ccxt library will set its User-Agent by default. Some exchanges may not like it. If you are having difficulties getting a reply from an exchange and want to turn User-Agent off or use the default one, set this value to false, undefined, or an empty string. The value of `userAgent` may be overrided by HTTP `headers` property below.
+
+- `headers`: An associative array of HTTP headers and their values. Default value is empty `{}`. All headers will be prepended to all requests. If the `User-Agent` header is set within `headers`, it will override whatever value is set in the `userAgent` property above.
 
 - `verbose`: A boolean flag indicating whether to log HTTP requests to stdout (verbose flag is false by default). Python people have an alternative way of DEBUG logging with a standard pythonic logger, which is enabled by adding these two lines to the beginning of their code:
   ```Python

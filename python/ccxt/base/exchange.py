@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1331'
+__version__ = '1.18.1348'
 
 # -----------------------------------------------------------------------------
 
@@ -363,7 +363,7 @@ class Exchange(object):
             'defaultCost': 1.0,
         }, getattr(self, 'tokenBucket') if hasattr(self, 'tokenBucket') else {})
 
-        self.session = self.session if self.session else Session()
+        self.session = self.session if self.session or self.asyncio_loop else Session()
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
         if self.requiresWeb3 and Web3 and not self.web3:
@@ -1559,6 +1559,8 @@ class Exchange(object):
             scale = 60 * 60
         elif 'm' == unit:
             scale = 60
+        elif 's' == unit:
+            scale = 1
         else:
             raise NotSupported('timeframe unit {} is not supported'.format(unit))
         return amount * scale

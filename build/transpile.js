@@ -852,7 +852,7 @@ function transpileErrorHierarchy () {
     replaceInFile (... Object.values (python))
 
     const php = {
-        filename:'./php/errors.php',
+        filename:'./php/base/errors.php',
         regex: /\$error_hierarchy = .+?\n\)\;/s,
         replacement: phpBody,
     }

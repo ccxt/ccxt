@@ -23,6 +23,8 @@ const parseTimeframe = (timeframe) => {
         scale = 60 * 60
     } else if (unit === 'm') {
         scale = 60
+    } else if (unit === 's') {
+        scale = 1
     } else {
         throw new NotSupported ('timeframe unit ' + unit + ' is not supported')
     }

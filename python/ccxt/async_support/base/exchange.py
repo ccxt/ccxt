@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1331'
+__version__ = '1.18.1348'
 
 # -----------------------------------------------------------------------------
 
@@ -53,7 +53,6 @@ class Exchange(BaseExchange):
         self.verify = config.get('verify', self.verify)
         self.own_session = 'session' not in config
         self.cafile = config.get('cafile', certifi.where())
-        self.open()
         super(Exchange, self).__init__(config)
         self.init_rest_rate_limiter()
 
@@ -127,6 +126,7 @@ class Exchange(BaseExchange):
 
         request_body = body
         encoded_body = body.encode() if body else None
+        self.open()
         session_method = getattr(self.session, method.lower())
 
         http_response = None

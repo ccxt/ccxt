@@ -31,6 +31,7 @@ SOFTWARE.
 namespace ccxt;
 
 define('PATH_TO_CCXT', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR);
+define('PATH_TO_CCXT_BASE', PATH_TO_CCXT . 'base' . DIRECTORY_SEPARATOR);
 
 spl_autoload_register(function ($class) {
     // used to include static dependencies
@@ -50,7 +51,8 @@ spl_autoload_register(function ($class) {
         require_once $file;
 });
 
-require_once PATH_TO_CCXT . 'errors.php';
+require_once PATH_TO_CCXT_BASE . 'errors.php';
+require_once PATH_TO_CCXT_BASE . 'Exchange.php';
 
 spl_autoload_register (function ($class_name) {
     $class_name = str_replace ("ccxt\\", "", $class_name);
