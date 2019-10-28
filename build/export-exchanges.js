@@ -57,38 +57,46 @@ function exportExchanges ({ python2Folder, python3Folder, phpFolder }) {
 
     ;[
         {
-            file: './ccxt.js',
+            folder: '.',
+            file: '/ccxt.js',
             regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
             replacement: "const exchanges = {\n" + ids.map (id => pad ("    '" + id + "':", 30) + " require ('./js/" + id + ".js'),").join ("\n") + "    \n}",
         },
         {
-            file: python2Folder + '/__init__.py',
+            folder: python2Folder,
+            file: '/__init__.py',
             regex: /exchanges \= \[[^\]]+\]/,
             replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
         },
         {
-            file: python2Folder + '/__init__.py',
+            folder: python2Folder,
+            file: '/__init__.py',
             regex: /(?:from ccxt\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
             replacement: ids.map (id => pad ('from ccxt.' + id + ' import ' + id, 60) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },
         {
-            file: python3Folder + '/__init__.py',
+            folder: python3Folder,
+            file: '/__init__.py',
             regex: /(?:from ccxt\.async_support\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
             replacement: ids.map (id => pad ('from ccxt.async_support.' + id + ' import ' + id, 74) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },
         {
-            file: python3Folder + '/__init__.py',
+            folder: python3Folder,
+            file: '/__init__.py',
             regex: /exchanges \= \[[^\]]+\]/,
             replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
         },
         {
-            file: phpFolder + '/base/Exchange.php',
+            folder: phpFolder,
+            file: '/base/Exchange.php',
             regex: /public static \$exchanges \= array\s*\([^\)]+\)/,
             replacement: "public static $exchanges = array(\n        '" + ids.join ("',\n        '") + "',\n    )",
         },
 
-    ].forEach (({ file, regex, replacement }) => {
-        logExportExchanges (file, regex, replacement)
+    ].forEach (({ folder, file, regex, replacement }) => {
+        if (folder) {
+            logExportExchanges (folder + file, regex, replacement)
+        }
     })
 
     log.bright.green ('Base sources updated successfully.')
