@@ -21,7 +21,7 @@ async def test(loop):
 
 
 def function_in_a_thread():
-    # get_event loop doesn't work inside a thread
+    # get_event_loop doesn't work inside a thread
     loop = asyncio.new_event_loop()
     loop.run_until_complete(test(loop))
 
