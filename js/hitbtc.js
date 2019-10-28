@@ -762,7 +762,7 @@ module.exports = class hitbtc extends Exchange {
         if (Math.abs (difference) > market['step']) {
             throw new ExchangeError (this.id + ' order amount should be evenly divisible by lot unit size of ' + market['lot'].toString ());
         }
-        const clientOrderId = this.milliseconds ();
+        const clientOrderId = params['clientOrderId'] || this.milliseconds ();
         const request = {
             'clientOrderId': clientOrderId.toString (),
             'symbol': market['id'],
