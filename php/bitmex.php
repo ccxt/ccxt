@@ -438,6 +438,7 @@ class bitmex extends Exchange {
         $types = array (
             'Withdrawal' => 'transaction',
             'RealisedPNL' => 'margin',
+            'UnrealisedPNL' => 'margin',
             'Deposit' => 'transaction',
             'Transfer' => 'transfer',
             'AffiliatePayout' => 'referral',
@@ -464,6 +465,29 @@ class bitmex extends Exchange {
         //         $timestamp => "2017-03-22T13:09:23.514Z"
         //     }
         //
+        // ButMEX returns the unrealized pnl from the wallet history endpoint.
+        // The unrealized pnl transaction has an empty $timestamp->
+        // It is not related to historical pnl it has $status set to "Pending".
+        // Therefore it's not a part of the history at all.
+        // https://github.com/ccxt/ccxt/issues/6047
+        //
+        //     {
+        //         "transactID":"00000000-0000-0000-0000-000000000000",
+        //         "$account":121210,
+        //         "$currency":"XBt",
+        //         "transactType":"UnrealisedPNL",
+        //         "$amount":-5508,
+        //         "$fee":0,
+        //         "transactStatus":"Pending",
+        //         "address":"XBTUSD",
+        //         "tx":"",
+        //         "text":"",
+        //         "transactTime":null,  # ←---------------------------- null
+        //         "walletBalance":139198767,
+        //         "marginBalance":139193259,
+        //         "$timestamp":null  # ←---------------------------- null
+        //     }
+        //
         $id = $this->safe_string($item, 'transactID');
         $account = $this->safe_string($item, 'account');
         $referenceId = $this->safe_string($item, 'tx');
@@ -476,6 +500,12 @@ class bitmex extends Exchange {
             $amount = $amount * 1e-8;
         }
         $timestamp = $this->parse8601 ($this->safe_string($item, 'transactTime'));
+        if ($timestamp === null) {
+            // https://github.com/ccxt/ccxt/issues/6047
+            // set the $timestamp to zero, 1970 Jan 1 00:00:00
+            // for unrealized pnl and other transactions without a $timestamp
+            $timestamp = 0; // see comments above
+        }
         $feeCost = $this->safe_float($item, 'fee', 0);
         if ($feeCost !== null) {
             $feeCost = $feeCost * 1e-8;
@@ -576,7 +606,7 @@ class bitmex extends Exchange {
         if ($code !== null) {
             $currency = $this->currency ($code);
         }
-        return $this->parseTransactions ($transactions, $currency, $since, $limit);
+        return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
     public function parse_transaction_status ($status) {

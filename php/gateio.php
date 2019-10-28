@@ -110,6 +110,7 @@ class gateio extends Exchange {
                 '15' => '\\ccxt\\DDoSProtection',
                 '16' => '\\ccxt\\OrderNotFound',
                 '17' => '\\ccxt\\OrderNotFound',
+                '20' => '\\ccxt\\InvalidOrder',
                 '21' => '\\ccxt\\InsufficientFunds',
             ),
             // https://gate.io/api2#errCode
@@ -332,30 +333,6 @@ class gateio extends Exchange {
         );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
-        if ($response === null) {
-            return;
-        }
-        $resultString = $this->safe_string($response, 'result', '');
-        if ($resultString !== 'false') {
-            return;
-        }
-        $errorCode = $this->safe_string($response, 'code');
-        if ($errorCode !== null) {
-            $exceptions = $this->exceptions;
-            $errorCodeNames = $this->errorCodeNames;
-            if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
-                $message = '';
-                if (is_array($errorCodeNames) && array_key_exists($errorCode, $errorCodeNames)) {
-                    $message = $errorCodeNames[$errorCode];
-                } else {
-                    $message = $this->safe_string($response, 'message', '(unknown)');
-                }
-                throw new $exceptions[$errorCode]($message);
-            }
-        }
-    }
-
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTickers ($params);
@@ -491,7 +468,8 @@ class gateio extends Exchange {
         $timestamp = $this->safe_timestamp($order, 'timestamp');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $side = $this->safe_string($order, 'type');
-        $price = $this->safe_float($order, 'filledRate');
+        $price = $this->safe_float($order, 'initialRate');
+        $average = $this->safe_float($order, 'filledRate');
         $amount = $this->safe_float($order, 'initialAmount');
         $filled = $this->safe_float($order, 'filledAmount');
         // In the $order $status response, this field has a different name.
@@ -516,6 +494,7 @@ class gateio extends Exchange {
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
+            'average' => $average,
             'trades' => null,
             'fee' => array (
                 'cost' => $feeCost,
@@ -690,7 +669,7 @@ class gateio extends Exchange {
         if ($code !== null) {
             $currency = $this->currency ($code);
         }
-        return $this->parseTransactions ($transactions, $currency, $since, $limit);
+        return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -776,22 +755,22 @@ class gateio extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array($response) && array_key_exists('result', $response)) {
-            $result = $response['result'];
-            $message = $this->id . ' ' . $this->json ($response);
-            if ($result === null) {
-                throw new ExchangeError($message);
-            }
-            if (gettype ($result) === 'string') {
-                if ($result !== 'true') {
-                    throw new ExchangeError($message);
-                }
-            } else if (!$result) {
-                throw new ExchangeError($message);
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return;
+        }
+        $resultString = $this->safe_string($response, 'result', '');
+        if ($resultString !== 'false') {
+            return;
+        }
+        $errorCode = $this->safe_string($response, 'code');
+        if ($errorCode !== null) {
+            $exceptions = $this->exceptions;
+            if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
+                $message = $this->safe_string($response, 'message', $body);
+                $feedback = $this->safe_string($this->errorCodeNames, $errorCode, $message);
+                throw new $exceptions[$errorCode]($feedback);
             }
         }
-        return $response;
     }
 }

@@ -369,6 +369,7 @@ class kucoin (Exchange):
         if percentage is not None:
             percentage = percentage * 100
         last = self.safe_float(ticker, 'last')
+        average = self.safe_float(ticker, 'averagePrice')
         symbol = None
         marketId = self.safe_string(ticker, 'symbol')
         if marketId is not None:
@@ -400,7 +401,7 @@ class kucoin (Exchange):
             'previousClose': None,
             'change': self.safe_float(ticker, 'changePrice'),
             'percentage': percentage,
-            'average': None,
+            'average': average,
             'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': self.safe_float(ticker, 'volValue'),
             'info': ticker,
@@ -581,12 +582,18 @@ class kucoin (Exchange):
         request = {
             'clientOid': clientOid,
             'side': side,
-            'size': self.amount_to_precision(symbol, amount),
             'symbol': marketId,
             'type': type,
         }
         if type != 'market':
             request['price'] = self.price_to_precision(symbol, price)
+            request['size'] = self.amount_to_precision(symbol, amount)
+        else:
+            if self.safe_value(params, 'quoteAmount'):
+                # used to create market order by quote amount - https://github.com/ccxt/ccxt/issues/4876
+                request['funds'] = self.amount_to_precision(symbol, amount)
+            else:
+                request['size'] = self.amount_to_precision(symbol, amount)
         response = self.privatePostOrders(self.extend(request, params))
         #
         #     {
@@ -598,12 +605,11 @@ class kucoin (Exchange):
         #
         data = self.safe_value(response, 'data', {})
         timestamp = self.milliseconds()
-        return {
+        order = {
             'id': self.safe_string(data, 'orderId'),
             'symbol': symbol,
             'type': type,
             'side': side,
-            'amount': amount,
             'price': price,
             'cost': None,
             'filled': None,
@@ -615,6 +621,9 @@ class kucoin (Exchange):
             'clientOid': clientOid,
             'info': data,
         }
+        if not self.safe_value(params, 'quoteAmount'):
+            order['amount'] = amount
+        return order
 
     def cancel_order(self, id, symbol=None, params={}):
         request = {'orderId': id}
@@ -766,6 +775,7 @@ class kucoin (Exchange):
         remaining = amount - filled
         # bool
         status = 'open' if order['isActive'] else 'closed'
+        status = 'canceled' if order['cancelExist'] else status
         fee = {
             'currency': feeCurrency,
             'cost': feeCost,
@@ -1127,7 +1137,7 @@ class kucoin (Exchange):
         timestamp = self.safe_integer_2(transaction, 'createdAt', 'createAt')
         id = self.safe_string(transaction, 'id')
         updated = self.safe_integer(transaction, 'updatedAt')
-        isV1 = not('createdAt' in list(transaction.keys()))
+        isV1 = not ('createdAt' in list(transaction.keys()))
         # if it's a v1 structure
         if isV1:
             type = 'withdrawal' if ('address' in list(transaction.keys())) else 'deposit'
@@ -1207,7 +1217,7 @@ class kucoin (Exchange):
         #     }
         #
         responseData = response['data']['items']
-        return self.parseTransactions(responseData, currency, since, limit, {'type': 'deposit'})
+        return self.parse_transactions(responseData, currency, since, limit, {'type': 'deposit'})
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1267,7 +1277,7 @@ class kucoin (Exchange):
         #     }
         #
         responseData = response['data']['items']
-        return self.parseTransactions(responseData, currency, since, limit, {'type': 'withdrawal'})
+        return self.parse_transactions(responseData, currency, since, limit, {'type': 'withdrawal'})
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -1311,7 +1321,7 @@ class kucoin (Exchange):
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchLedger requires a code param')
         self.load_markets()
-        self.loadAccounts()
+        self.load_accounts()
         currency = self.currency(code)
         accountId = self.safe_string(params, 'accountId')
         if accountId is None:

@@ -427,11 +427,11 @@ class bittrex extends Exchange {
                 'limits' => array (
                     'amount' => array (
                         'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'max' => null,
                     ),
                     'price' => array (
                         'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'max' => null,
                     ),
                     'cost' => array (
                         'min' => null,
@@ -439,7 +439,7 @@ class bittrex extends Exchange {
                     ),
                     'withdraw' => array (
                         'min' => $fee,
-                        'max' => pow(10, $precision),
+                        'max' => null,
                     ),
                 ),
             );
@@ -728,8 +728,8 @@ class bittrex extends Exchange {
         //
         // we cannot filter by `$since` timestamp, as it isn't set by Bittrex
         // see https://github.com/ccxt/ccxt/issues/4067
-        // return $this->parseTransactions ($response['result'], $currency, $since, $limit);
-        return $this->parseTransactions ($response['result'], $currency, null, $limit);
+        // return $this->parse_transactions($response['result'], $currency, $since, $limit);
+        return $this->parse_transactions($response['result'], $currency, null, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -774,7 +774,7 @@ class bittrex extends Exchange {
         //         ]
         //     }
         //
-        return $this->parseTransactions ($response['result'], $currency, $since, $limit);
+        return $this->parse_transactions($response['result'], $currency, $since, $limit);
     }
 
     public function parse_transaction ($transaction, $currency = null) {

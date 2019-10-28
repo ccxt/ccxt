@@ -79,8 +79,7 @@ class binance (Exchange):
                 'www': 'https://www.binance.com',
                 'referral': 'https://www.binance.com/?ref=10205187',
                 'doc': [
-                    'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
-                    'https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md',
+                    'https://binance-docs.github.io/apidocs/spot/en',
                 ],
                 'api_management': 'https://www.binance.com/en/usercenter/settings/api-management',
                 'fees': 'https://www.binance.com/en/fee/schedule',
@@ -683,6 +682,8 @@ class binance (Exchange):
                 if (cost is not None) and (filled is not None):
                     if (cost > 0) and (filled > 0):
                         price = cost / filled
+                        if self.options['parseOrderToPrecision']:
+                            price = float(self.price_to_precision(symbol, price))
         side = self.safe_string_lower(order, 'side')
         fee = None
         trades = None
@@ -703,6 +704,8 @@ class binance (Exchange):
         if cost is not None:
             if filled:
                 average = cost / filled
+                if self.options['parseOrderToPrecision']:
+                    average = float(self.amount_to_precision(symbol, average))
             if self.options['parseOrderToPrecision']:
                 cost = float(self.cost_to_precision(symbol, cost))
         return {
@@ -866,6 +869,8 @@ class binance (Exchange):
         request = {
             'symbol': market['id'],
         }
+        if since is not None:
+            request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetMyTrades(self.extend(request, params))
@@ -882,7 +887,7 @@ class binance (Exchange):
         #             "time": 1499865549590,
         #             "isBuyer": True,
         #             "isMaker": False,
-        #             "isBestMatch": True
+        #             "isBestMatch": True,
         #         }
         #     ]
         #
@@ -1005,7 +1010,7 @@ class binance (Exchange):
         #                             asset: "ETH",
         #                            status:  1                                                                    }]}
         #
-        return self.parseTransactions(response['depositList'], currency, since, limit)
+        return self.parse_transactions(response['depositList'], currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1038,7 +1043,7 @@ class binance (Exchange):
         #                              status:  6                       }  ],
         #            success:    True                                         }
         #
-        return self.parseTransactions(response['withdrawList'], currency, since, limit)
+        return self.parse_transactions(response['withdrawList'], currency, since, limit)
 
     def parse_transaction_status_by_type(self, status, type=None):
         if type is None:

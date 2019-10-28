@@ -756,7 +756,7 @@ class livecoin (Exchange):
         if limit is not None:
             request['limit'] = limit  # default is 100
         response = self.privateGetPaymentHistoryTransactions(self.extend(request, params))
-        return self.parseTransactions(response, currency, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -775,7 +775,7 @@ class livecoin (Exchange):
         if since is not None:
             request['start'] = since
         response = self.privateGetPaymentHistoryTransactions(self.extend(request, params))
-        return self.parseTransactions(response, currency, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     def fetch_deposit_address(self, currency, params={}):
         request = {

@@ -813,7 +813,7 @@ class livecoin extends Exchange {
             $request['limit'] = $limit; // default is 100
         }
         $response = $this->privateGetPaymentHistoryTransactions (array_merge ($request, $params));
-        return $this->parseTransactions ($response, $currency, $since, $limit);
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -836,7 +836,7 @@ class livecoin extends Exchange {
             $request['start'] = $since;
         }
         $response = $this->privateGetPaymentHistoryTransactions (array_merge ($request, $params));
-        return $this->parseTransactions ($response, $currency, $since, $limit);
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function fetch_deposit_address ($currency, $params = array ()) {

@@ -177,7 +177,7 @@ class gemini extends Exchange {
             throw new NotSupported($error);
         }
         // $tables[1] = str_replace("\n", '', $tables[1]); // eslint-disable-line quotes
-        $rows = explode("{tr}\n", $tables[1]); // eslint-disable-line quotes
+        $rows = explode("<tr>\n", $tables[1]); // eslint-disable-line quotes
         $numRows = is_array ($rows) ? count ($rows) : 0;
         if ($numRows < 2) {
             throw new NotSupported($error);
@@ -193,23 +193,23 @@ class gemini extends Exchange {
             }
             //
             //     array (
-            //         '{td}<code class="prettyprint">btcusd</code>',
-            //         '{td}USD', // $quote
-            //         '{td}BTC', // $base
-            //         '{td}0.00001 BTC (1e-5)', // min amount
-            //         '{td}0.00000001 BTC (1e-8)', // amount min tick size
-            //         '{td}0.01 USD', // price min tick size
+            //         '<td><code class="prettyprint">btcusd</code>',
+            //         '<td>USD', // $quote
+            //         '<td>BTC', // $base
+            //         '<td>0.00001 BTC (1e-5)', // min amount
+            //         '<td>0.00000001 BTC (1e-8)', // amount min tick size
+            //         '<td>0.01 USD', // price min tick size
             //         '</tr>\n'
             //     )
             //
-            $id = str_replace('{td}', '', $cells[0]);
+            $id = str_replace('<td>', '', $cells[0]);
             $id = str_replace('<code class="prettyprint">', '', $id);
             $id = str_replace('</code>', '', $id);
-            $baseId = str_replace('{td}', '', $cells[2]);
-            $quoteId = str_replace('{td}', '', $cells[1]);
-            $minAmountAsString = str_replace('{td}', '', $cells[3]);
-            $amountTickSizeAsString = str_replace('{td}', '', $cells[4]);
-            $priceTickSizeAsString = str_replace('{td}', '', $cells[5]);
+            $baseId = str_replace('<td>', '', $cells[2]);
+            $quoteId = str_replace('<td>', '', $cells[1]);
+            $minAmountAsString = str_replace('<td>', '', $cells[3]);
+            $amountTickSizeAsString = str_replace('<td>', '', $cells[4]);
+            $priceTickSizeAsString = str_replace('<td>', '', $cells[5]);
             $minAmount = explode(' ', $minAmountAsString);
             $amountPrecision = explode(' ', $amountTickSizeAsString);
             $pricePrecision = explode(' ', $priceTickSizeAsString);
@@ -569,7 +569,7 @@ class gemini extends Exchange {
             $request['timestamp'] = $since;
         }
         $response = $this->privatePostV1Transfers (array_merge ($request, $params));
-        return $this->parseTransactions ($response);
+        return $this->parse_transactions($response);
     }
 
     public function parse_transaction ($transaction, $currency = null) {
@@ -652,7 +652,7 @@ class gemini extends Exchange {
         //     {
         //         "$result" => "error",
         //         "$reason" => "BadNonce",
-        //         "$message" => "Out-of-sequence nonce {1234} precedes previously used nonce {2345}"
+        //         "$message" => "Out-of-sequence nonce <1234> precedes previously used nonce <2345>"
         //     }
         //
         $result = $this->safe_string($response, 'result');

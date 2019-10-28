@@ -114,8 +114,8 @@ class fcoin extends Exchange {
                 'trading' => array (
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.001,
-                    'taker' => 0.001,
+                    'maker' => -0.0002,
+                    'taker' => 0.0003,
                 ),
             ),
             'limits' => array (
@@ -459,27 +459,27 @@ class fcoin extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type === 'market') {
-            // for market buy it requires the $amount of quote currency to spend
-            if ($side === 'buy') {
-                if ($this->options['createMarketBuyOrderRequiresPrice']) {
-                    if ($price === null) {
-                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
-                    } else {
-                        $amount = $amount * $price;
-                    }
-                }
-            }
-        }
         $this->load_markets();
-        $orderType = $type;
         $request = array (
             'symbol' => $this->market_id($symbol),
-            'amount' => $this->amount_to_precision($symbol, $amount),
             'side' => $side,
-            'type' => $orderType,
+            'type' => $type,
         );
-        if ($type === 'limit') {
+        // for market buy it requires the $amount of quote currency to spend
+        if (($type === 'market') && ($side === 'buy')) {
+            if ($this->options['createMarketBuyOrderRequiresPrice']) {
+                if ($price === null) {
+                    throw new InvalidOrder($this->id . " createOrder() requires the $price argument with market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                } else {
+                    $request['amount'] = $this->cost_to_precision($symbol, $amount * $price);
+                }
+            } else {
+                $request['amount'] = $this->cost_to_precision($symbol, $amount);
+            }
+        } else {
+            $request['amount'] = $this->amount_to_precision($symbol, $amount);
+        }
+        if (($type === 'limit') || ($type === 'ioc') || ($type === 'fok')) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $response = $this->privatePostOrders (array_merge ($request, $params));

@@ -210,7 +210,7 @@ class anxpro extends Exchange {
         $transactions = $this->safe_value($response, 'transactions', array());
         $grouped = $this->group_by($transactions, 'transactionType', array());
         $depositsAndWithdrawals = $this->array_concat($this->safe_value($grouped, 'DEPOSIT', array()), $this->safe_value($grouped, 'WITHDRAWAL', array()));
-        return $this->parseTransactions ($depositsAndWithdrawals, $currency, $since, $limit);
+        return $this->parse_transactions($depositsAndWithdrawals, $currency, $since, $limit);
     }
 
     public function parse_transaction ($transaction, $currency = null) {
@@ -1143,6 +1143,7 @@ class anxpro extends Exchange {
         return array (
             'currency' => $code,
             'address' => $address,
+            'tag' => null,
             'info' => $response,
         );
     }
