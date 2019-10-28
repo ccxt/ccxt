@@ -52,6 +52,8 @@ Certified Cryptocurrency Exchanges
 +-------------------------------------------------------------------------+-----------+-------------------------------------------------------------------------+-----+---------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `coss <https://www.coss.io/c/reg?r=OWCMHQVW2Q>`__                       | coss      | `COSS <https://www.coss.io/c/reg?r=OWCMHQVW2Q>`__                       | 1   | `API <https://api.coss.io/v1/spec>`__                                                 | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +-------------------------------------------------------------------------+-----------+-------------------------------------------------------------------------+-----+---------------------------------------------------------------------------------------+----------------------------------------------------------------------+
+| `ftx <https://ftx.com/#a=1623029>`__                                    | ftx       | `FTX <https://ftx.com/#a=1623029>`__                                    | \*  | `API <https://github.com/ftexchange/ftx>`__                                           | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
++-------------------------------------------------------------------------+-----------+-------------------------------------------------------------------------+-----+---------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `idex <https://idex.market>`__                                          | idex      | `IDEX <https://idex.market>`__                                          | \*  | `API <https://docs.idex.market/>`__                                                   | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +-------------------------------------------------------------------------+-----------+-------------------------------------------------------------------------+-----+---------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `kraken <https://www.kraken.com>`__                                     | kraken    | `Kraken <https://www.kraken.com>`__                                     | 0   | `API <https://www.kraken.com/features/api>`__                                         | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
@@ -219,7 +221,7 @@ The ccxt library currently supports the following 125 cryptocurrency exchange ma
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `foxbit <https://foxbit.com.br/exchange>`__                                               | foxbit             | `FoxBit <https://foxbit.com.br/exchange>`__                                                | 1   | `API <https://foxbit.com.br/api/>`__                                                            |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `ftx <https://ftx.com/#a=1623029>`__                                                      | ftx                | `FTX <https://ftx.com/#a=1623029>`__                                                       | \*  | `API <https://github.com/ftexchange/ftx>`__                                                     |                                                                      |
+| `ftx <https://ftx.com/#a=1623029>`__                                                      | ftx                | `FTX <https://ftx.com/#a=1623029>`__                                                       | \*  | `API <https://github.com/ftexchange/ftx>`__                                                     | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `fybse <https://www.fybse.se>`__                                                          | fybse              | `FYB-SE <https://www.fybse.se>`__                                                          | \*  | `API <https://fyb.docs.apiary.io>`__                                                            |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -373,14 +375,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.1345/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.1345/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.1346/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.1346/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.1345/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.1346/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
