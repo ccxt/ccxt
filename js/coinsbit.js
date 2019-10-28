@@ -20,7 +20,7 @@ module.exports = class coinsbit extends Exchange {
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchCurrencies': false,
-                'fetchTicker': false,
+                'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchOHLCV': false,
                 'fetchTrades': false,
@@ -122,6 +122,39 @@ module.exports = class coinsbit extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const timestamp = this.seconds ();
+        const market = this.market (symbol);
+        const request = this.extend ({
+            'market': market['id'],
+        }, params);
+        const response = await this.publicGetTicker (request);
+        const ticker = this.safeValue (response, 'result');
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'previousClose': undefined,
+            'open': this.safeFloat (ticker, 'open'),
+            'close': this.safeFloat (ticker, 'last'),
+            'last': this.safeFloat (ticker, 'last'),
+            'percentage': undefined,
+            'change': this.safeFloat (ticker, 'change'),
+            'average': undefined,
+            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'quoteVolume': this.safeFloat (ticker, 'deal'),
+            'info': ticker,
+        };
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
