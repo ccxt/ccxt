@@ -1,0 +1,4 @@
+*.* text eol=lf
+php/test/*.php linguist-generated=true
+python/ccxt/*.py linguist-generated=true
+python/ccxt/__init__.py linguist-generated=false

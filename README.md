@@ -1,1 +1,3 @@
-# ccxt.pro
+# CCXT Pro
+
+info@ccxt.pro
