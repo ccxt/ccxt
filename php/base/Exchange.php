@@ -1218,8 +1218,11 @@ class Exchange {
 
         $verbose_headers = $headers;
 
-        // Reset curl opts
-        curl_reset($this->curl);
+        // https://github.com/ccxt/ccxt/issues/5914
+        // we don't do a reset here to save those cookies in between the calls
+        // if the user wants to reset the curl handle between his requests
+        // then curl_reset can be called manually in userland
+        // curl_reset($this->curl);
 
         curl_setopt($this->curl, CURLOPT_URL, $url);
 
