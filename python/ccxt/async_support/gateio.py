@@ -447,7 +447,8 @@ class gateio (Exchange):
         timestamp = self.safe_timestamp(order, 'timestamp')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'type')
-        price = self.safe_float(order, 'filledRate')
+        price = self.safe_float(order, 'initialRate')
+        average = self.safe_float(order, 'filledRate')
         amount = self.safe_float(order, 'initialAmount')
         filled = self.safe_float(order, 'filledAmount')
         # In the order status response, self field has a different name.
@@ -471,6 +472,7 @@ class gateio (Exchange):
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
+            'average': average,
             'trades': None,
             'fee': {
                 'cost': feeCost,

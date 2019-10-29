@@ -467,7 +467,8 @@ module.exports = class gateio extends Exchange {
         const timestamp = this.safeTimestamp (order, 'timestamp');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const side = this.safeString (order, 'type');
-        const price = this.safeFloat (order, 'filledRate');
+        const price = this.safeFloat (order, 'initialRate');
+        const average = this.safeFloat (order, 'filledRate');
         const amount = this.safeFloat (order, 'initialAmount');
         const filled = this.safeFloat (order, 'filledAmount');
         // In the order status response, this field has a different name.
@@ -492,6 +493,7 @@ module.exports = class gateio extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
+            'average': average,
             'trades': undefined,
             'fee': {
                 'cost': feeCost,
