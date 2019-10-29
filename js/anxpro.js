@@ -959,6 +959,8 @@ module.exports = class anxpro extends Exchange {
             'ACTIVE': 'open',
             'FULL_FILL': 'closed',
             'CANCEL': 'canceled',
+            'USER_CANCEL_PARTIAL': 'canceled',
+            'PARTIAL_FILL': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
