@@ -966,6 +966,7 @@ class Exchange {
         $this->last_http_response = null;
         $this->last_json_response = null;
         $this->last_response_headers = null;
+        $this->last_response_cookies = null;
 
         $this->requiresWeb3 = false;
 
@@ -1346,9 +1347,15 @@ class Exchange {
         $curl_error = curl_error($this->curl);
         $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
 
-        // Write cookies here but do not close the handle
-        $curl_copy = curl_copy_handle($this->curl);
-        curl_close($curl_copy);
+        // Save cookies in mem here but do not close the handle
+        $cookie_file = static::safe_value($this->curl_options, CURLOPT_COOKIEJAR);
+        $this->last_response_cookies = curl_getinfo($this->curl, CURLINFO_COOKIELIST);
+        if ($cookie_file) {
+            $cookies = implode("\n", $this->last_response_cookies) . "\n";
+            $file = fopen($cookie_file, 'w');
+            fwrite($file, $cookies);
+            fclose($file);
+        }
         // Reset curl opts
         curl_reset($this->curl);
 
