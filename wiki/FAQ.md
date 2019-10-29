@@ -36,7 +36,7 @@ We don't give promises or estimates on the open-source work. The reasoning behin
 
 ## When will you add the support for an exchange requested in the Issues?
 
-Again, we can't promise on the dates for adding this or that exchange, due to reasons outlined above. The answer will always remain the same: _"as soon as we can"_.
+Again, we can't promise on the dates for adding this or that exchange, due to reasons outlined above. The answer will always remain the same: _as soon as we can_.
 
 ## What's your progress on adding the feature `foo` that was requested earlier? How do you do implementing exchange `bar`?
 
