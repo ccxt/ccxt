@@ -1218,6 +1218,9 @@ class Exchange {
 
         $verbose_headers = $headers;
 
+        // Reset curl opts
+        curl_reset($this->curl);
+
         curl_setopt($this->curl, CURLOPT_URL, $url);
 
         if ($this->timeout) {
@@ -1345,9 +1348,6 @@ class Exchange {
         $curl_errno = curl_errno($this->curl);
         $curl_error = curl_error($this->curl);
         $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
-
-        // Reset curl opts
-        curl_reset($this->curl);
 
         if ($this->verbose) {
             print_r("\nResponse:\n");
