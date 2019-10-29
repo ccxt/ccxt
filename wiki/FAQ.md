@@ -48,7 +48,7 @@ If it is not merged, it means that the PR contains errors, that should be fixed 
 
 ## Can you point out the errors or what should I edit in my PR to get it merged into master branch?
 
-Unfortunately, we don't always have the time to quickly list out each and every single error in the code that prevents it from merging. It is often easier and faster to just go and fix the error rather than explain what one should do to fix it. Most of them are already outlined in the [CONTRIBUTING guidelines](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#derived-exchange-classes). The main rule of thumb is following **all guidelines literally**.
+Unfortunately, we don't always have the time to quickly list out each and every single error in the code that prevents it from merging. It is often easier and faster to just go and fix the error rather than explain what one should do to fix it. Most of them are already outlined in the [CONTRIBUTING guidelines](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#derived-exchange-classes). The main rule of thumb is to follow **all guidelines literally**.
 
 ## Hey! The fix you've uploaded is in JS, would you fix Python / PHP as well, please?
 
