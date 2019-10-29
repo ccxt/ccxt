@@ -1346,6 +1346,14 @@ class Exchange {
         $curl_error = curl_error($this->curl);
         $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
 
+        // Write cookies here but do not close the handle
+        $cookie_file = static::safe_value($this->curl_options, CURLOPT_COOKIEJAR);
+        if ($cookie_file) {
+            $cookies = implode("\n", curl_getinfo($this->curl, CURLINFO_COOKIELIST)) . "\n";
+            $file = fopen($cookie_file, 'w');
+            fwrite($file, $cookies);
+            fclose($file);
+        }
         // Reset curl opts
         curl_reset($this->curl);
 
