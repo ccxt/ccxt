@@ -2,8 +2,8 @@
   "name": "ccxt.pro",
   "version": "1.0.0",
   "description": "A professional tool for algorithmic cryptocurrency trading",
-  "main": "./ccxt.js",
-  "unpkg": "dist/ccxt.browser.js",
+  "main": "./ccxt.pro.js",
+  "unpkg": "dist/ccxt.pro.browser.js",
   "engines": {
     "node": ">=7.6.0"
   },
@@ -30,10 +30,10 @@
     "check-js-syntax": "pwd && eslint --version && eslint 'js/*.js'",
     "check-python-syntax": "cd python && tox -e qa && cd ..",
     "check-php-syntax": "php -f php/test/syntax.php",
-    "browserify": "browserify ./ccxt.browser.js > ./dist/ccxt.browser.js",
+    "browserify": "browserify ./ccxt.pro.browser.js > ./dist/ccxt.pro.browser.js",
     "postinstall": "node postinstall"
   },
-  "types": "./ccxt.d.ts",
+  "types": "./ccxt.pro.d.ts",
   "dependencies": {},
   "devDependencies": {
     "ansicolor": "1.1.81",
