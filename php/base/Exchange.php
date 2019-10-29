@@ -1347,8 +1347,8 @@ class Exchange {
         $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
 
         // Write cookies here but do not close the handle
-        $curl2 = curl_copy_handle($this->curl);
-        curl_close($curl2);
+        $curl_copy = curl_copy_handle($this->curl);
+        curl_close($curl_copy);
         // Reset curl opts
         curl_reset($this->curl);
 
