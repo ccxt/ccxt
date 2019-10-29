@@ -4,6 +4,7 @@ build/**/*
 !build/export-exchanges.js
 !build/fs.js
 !build/transpile.js
+!build/vss.js
 examples/
 node_modules/
 python/

@@ -753,7 +753,7 @@ function transpileDerivedExchangeFile (jsFolder, filename, options) {
 
         log.cyan ('Transpiling from', filename.yellow)
 
-        [
+        ;[
             [ python2Folder, filename.replace ('.js', '.py'), python2 ],
             [ python3Folder, filename.replace ('.js', '.py'), python3 ],
             [ phpFolder, filename.replace ('.js', '.php'), php ],
