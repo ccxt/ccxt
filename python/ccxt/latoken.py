@@ -30,7 +30,7 @@ class latoken (Exchange):
             'has': {
                 'CORS': False,
                 'publicAPI': True,
-                'pivateAPI': True,
+                'privateAPI': True,
                 'cancelOrder': True,
                 'cancelAllOrders': True,
                 'createMarketOrder': False,
