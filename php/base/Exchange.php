@@ -966,7 +966,6 @@ class Exchange {
         $this->last_http_response = null;
         $this->last_json_response = null;
         $this->last_response_headers = null;
-        $this->last_response_cookies = null;
 
         $this->requiresWeb3 = false;
 
@@ -1219,6 +1218,9 @@ class Exchange {
 
         $verbose_headers = $headers;
 
+        // Reset curl opts
+        curl_reset($this->curl);
+
         curl_setopt($this->curl, CURLOPT_URL, $url);
 
         if ($this->timeout) {
@@ -1346,18 +1348,6 @@ class Exchange {
         $curl_errno = curl_errno($this->curl);
         $curl_error = curl_error($this->curl);
         $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
-
-        // Save cookies in mem here but do not close the handle
-        $cookie_file = static::safe_value($this->curl_options, CURLOPT_COOKIEJAR);
-        $this->last_response_cookies = curl_getinfo($this->curl, CURLINFO_COOKIELIST);
-        if ($cookie_file) {
-            $cookies = implode("\n", $this->last_response_cookies) . "\n";
-            $file = fopen($cookie_file, 'w');
-            fwrite($file, $cookies);
-            fclose($file);
-        }
-        // Reset curl opts
-        curl_reset($this->curl);
 
         if ($this->verbose) {
             print_r("\nResponse:\n");
