@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.18.1353';
+$version = '1.18.1354';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.1353';
+    const VERSION = '1.18.1354';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -1218,6 +1218,9 @@ class Exchange {
 
         $verbose_headers = $headers;
 
+        // Reset curl opts
+        curl_reset($this->curl);
+
         curl_setopt($this->curl, CURLOPT_URL, $url);
 
         if ($this->timeout) {
@@ -1345,9 +1348,6 @@ class Exchange {
         $curl_errno = curl_errno($this->curl);
         $curl_error = curl_error($this->curl);
         $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
-
-        // Reset curl opts
-        curl_reset($this->curl);
 
         if ($this->verbose) {
             print_r("\nResponse:\n");
