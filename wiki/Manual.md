@@ -3435,11 +3435,13 @@ Below is an outline of exception inheritance hierarchy:
 |
 +---+ NetworkError (recoverable)
     |
-    +---+ ExchangeNotAvailable
-    |
     +---+ InvalidNonce
     |
     +---+ RequestTimeout
+    |
+    +---+ ExchangeNotAvailable
+    |   |
+    |   +---+ OnMaintenance
     |
     +---+ DDoSProtection
         |
