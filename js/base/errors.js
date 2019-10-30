@@ -19,24 +19,14 @@ function subclass (BaseClass, classes, namespace = {}) {
             [className]: class extends BaseClass {
 
                 constructor (errorMessage, exchange = undefined, httpStatusCode = undefined, httpStatusText = undefined, url = undefined, httpMethod = undefined, responseHeaders = undefined, responseBody = undefined, responseJson = undefined) {
-                    let verbose
-                    let exchangeId
+                    super ()
                     if (exchange) {
-                        verbose = exchange.verbose
-                        exchangeId = exchange.id
+                        this.verbose = exchange.verbose
+                        this.exchangeId = exchange.id
+                    } else {
+                        this.verbose = true
+                        this.exchangeId = undefined
                     }
-                    let message = [exchangeId, httpMethod, url, httpStatusCode, httpStatusText, errorMessage].filter (x => x !== undefined).join (' ')
-                    if (verbose) {
-                        if (responseHeaders) {
-                            message += '\n' + JSON.stringify (responseHeaders, undefined, 2)
-                        }
-                        if (responseJson) {
-                            message += '\n' + JSON.stringify (responseJson, undefined, 2)
-                        } else if (responseBody) {
-                            message += '\n' + responseBody
-                        }
-                    }
-                    super (message)
 
                     // A workaround to make `instanceof` work on custom Error classes in transpiled ES5.
                     // See my blog post for the explanation of this hack:
@@ -46,7 +36,6 @@ function subclass (BaseClass, classes, namespace = {}) {
                     this.__proto__ = Class.prototype
 
                     this.errorMessage = errorMessage
-                    this.exchangeId = exchangeId
                     this.httpStatusCode = httpStatusCode
                     this.httpStatusText = httpStatusText
                     this.url = url
@@ -93,5 +82,23 @@ for (const property of Object.getOwnPropertyNames (instance)) {
         })
     }
 }
+// delay string concatenation until error is thrown
+Object.defineProperty (BaseError.prototype, 'message', {
+    get () {
+        console.log ('run')
+        let message = [this.exchangeId, this.httpMethod, this.url, this.httpStatusCode, this.httpStatusText, this.errorMessage].filter (x => x !== undefined).join (' ')
+        if (this.verbose) {
+            if (this.responseHeaders) {
+                message += '\n' + JSON.stringify (this.responseHeaders, undefined, 2)
+            }
+            if (this.responseJson) {
+                message += '\n' + JSON.stringify (this.responseJson, undefined, 2)
+            } else if (this.responseBody) {
+                message += '\n' + this.responseBody
+            }
+        }
+        return message
+    },
+})
 
 module.exports = Errors

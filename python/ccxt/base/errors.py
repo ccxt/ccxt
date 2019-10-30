@@ -63,24 +63,14 @@ def error_factory(dictionary, super_class):
 
 class BaseError(Exception):
     def __init__(self, error_message, exchange=None, http_code=None, http_status_text=None, url=None, http_method=None, response_headers=None, response_body=None, response_json=None):
-        verbose = None
-        exchange_id = None
+        super(BaseError, self).__init__()
         if exchange:
-            verbose = exchange.verbose
-            exchange_id = exchange.id
-
-        message = ' '.join(str(i) for i in [exchange_id, http_method, url, http_code, http_status_text, error_message]
-                           if i is not None)
-        if verbose:
-            if response_headers:
-                message += '\n' + json.dumps(response_headers, indent=2)
-            if response_json:
-                message += '\n' + json.dumps(response_json, indent=2)
-            elif response_body:
-                message += '\n' + response_body
-        super(BaseError, self).__init__(message)
-        self.__dict__['error_messsage'] = error_message
-        self.__dict__['exchange_id'] = exchange_id
+            self.__dict__['verbose'] = exchange.verbose
+            self.__dict__['exchange_id'] = exchange.id
+        else:
+            self.__dict__['verbose'] = True
+            self.__dict__['exchange_id'] = None
+        self.__dict__['error_message'] = error_message
         self.__dict__['http_code'] = http_code
         self.__dict__['http_status_text'] = http_status_text
         self.__dict__['url'] = url
@@ -103,8 +93,21 @@ class BaseError(Exception):
         else:
             raise AttributeError('Cannot set attribute ' + key)
 
+    @property
+    def args(self):
+        message = ' '.join(str(i) for i in [self.exchange_id, self.http_method, self.url, self.http_code,
+                                            self.http_status_text, self.error_message] if i is not None)
+        if self.verbose:
+            if self.response_headers:
+                message += '\n' + json.dumps(self.response_headers, indent=2)
+            if self.response_json:
+                message += '\n' + json.dumps(self.response_json, indent=2)
+            elif self.response_body:
+                message += '\n' + self.response_body
+        return (message,)
+
     def __str__(self):
-        return self.args[0]  # message is the first argument to the error
+        return self.args[0]
 
 
 error_factory(error_hierarchy['BaseError'], BaseError)
