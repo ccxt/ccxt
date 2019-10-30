@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.18.1353';
+$version = '1.18.1355';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.1353';
+    const VERSION = '1.18.1355';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -1218,6 +1218,12 @@ class Exchange {
 
         $verbose_headers = $headers;
 
+        // https://github.com/ccxt/ccxt/issues/5914
+        // we don't do a reset here to save those cookies in between the calls
+        // if the user wants to reset the curl handle between his requests
+        // then curl_reset can be called manually in userland
+        // curl_reset($this->curl);
+
         curl_setopt($this->curl, CURLOPT_URL, $url);
 
         if ($this->timeout) {
@@ -1345,9 +1351,6 @@ class Exchange {
         $curl_errno = curl_errno($this->curl);
         $curl_error = curl_error($this->curl);
         $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
-
-        // Reset curl opts
-        curl_reset($this->curl);
 
         if ($this->verbose) {
             print_r("\nResponse:\n");
