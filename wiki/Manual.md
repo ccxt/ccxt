@@ -3435,13 +3435,17 @@ Below is an outline of exception inheritance hierarchy:
 |
 +---+ NetworkError (recoverable)
     |
-    +---+ DDoSProtection
-    |
-    +---+ ExchangeNotAvailable
-    |
     +---+ InvalidNonce
     |
     +---+ RequestTimeout
+    |
+    +---+ ExchangeNotAvailable
+    |   |
+    |   +---+ OnMaintenance
+    |
+    +---+ DDoSProtection
+        |
+        +---+ RateLimitExceeded
 ```
 
 The `BaseError` class is a generic error class for all sorts of errors, including accessibility and request/response mismatch. Users should catch this exception at the very least, if no error differentiation is required.
