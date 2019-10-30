@@ -66,7 +66,7 @@ let bitbns = new ccxt.bitbns();
         
     // })
 
-    // let order = await bitbns.createOrder("BTC/INR", "", 'buy', '0.001', '766000');
+    // let order = await bitbns.createOrder("BTC/INR", "", 'buy', '0.001', '720000');
     // console.log(order);
     // let cancel = await bitbns.cancelOrder('asd', 'BTC/INR');
     // console.log(cancel);
@@ -79,6 +79,8 @@ let bitbns = new ccxt.bitbns();
 
     let openOrder = await bitbns.fetchOpenOrders ('BTC/INR');
     console.log(openOrder);
+    let openOrder2 = await bitbns.fetchOpenOrders ('BTC/USDT');
+    console.log(openOrder2);
     
     
     
