@@ -85,7 +85,6 @@ for (const property of Object.getOwnPropertyNames (instance)) {
 // delay string concatenation until error is thrown
 Object.defineProperty (BaseError.prototype, 'message', {
     get () {
-        console.log ('run')
         let message = [this.exchangeId, this.httpMethod, this.url, this.httpStatusCode, this.httpStatusText, this.errorMessage].filter (x => x !== undefined).join (' ')
         if (this.verbose) {
             if (this.responseHeaders) {
