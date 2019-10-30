@@ -4,7 +4,7 @@
 - This file is a work in progress, guidelines for contributing are being developed right now!
 ```
 
-## How To Submit An Issue
+## How To Submit An Issue?
 
 If you want to submit an issue and you want your issue to be resolved quickly, here's a checklist for you:
 
