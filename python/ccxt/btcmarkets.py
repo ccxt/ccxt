@@ -306,9 +306,17 @@ class btcmarkets (Exchange):
         request = {
             'id': market['id'],
             'timeframe': self.timeframes[timeframe],
+            # set to True to see candles more recent than the timestamp in the
+            # since parameter, if a since parameter is used, default is False
+            'indexForward': True,
+            # set to True to see the earliest candles first in the list of
+            # returned candles in chronological order, default is False
+            'sortForward': True,
         }
         if since is not None:
             request['since'] = since
+        if limit is not None:
+            request['limit'] = limit  # default is 3000
         response = self.publicGetV2MarketIdTickByTimeTimeframe(self.extend(request, params))
         #
         #     {
