@@ -317,9 +317,18 @@ module.exports = class btcmarkets extends Exchange {
         const request = {
             'id': market['id'],
             'timeframe': this.timeframes[timeframe],
+            // set to true to see candles more recent than the timestamp in the
+            // since parameter, if a since parameter is used, default is false
+            'indexForward': true,
+            // set to true to see the earliest candles first in the list of
+            // returned candles in chronological order, default is false
+            'sortForward': true,
         };
         if (since !== undefined) {
             request['since'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default is 3000
         }
         const response = await this.publicGetV2MarketIdTickByTimeTimeframe (this.extend (request, params));
         //

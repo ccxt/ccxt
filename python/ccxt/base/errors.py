@@ -27,7 +27,9 @@ error_hierarchy = {
             'NotSupported': {},
         },
         'NetworkError': {
-            'DDoSProtection': {},
+            'DDoSProtection': {
+                'RateLimitExceeded': {},
+            },
             'ExchangeNotAvailable': {
                 'OnMaintenance': {},
             },

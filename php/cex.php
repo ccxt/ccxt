@@ -126,6 +126,7 @@ class cex extends Exchange {
                     'Nonce must be incremented' => '\\ccxt\\InvalidNonce',
                     'Invalid Order' => '\\ccxt\\InvalidOrder',
                     'Order not found' => '\\ccxt\\OrderNotFound',
+                    'Rate limit exceeded' => '\\ccxt\\RateLimitExceeded',
                 ),
             ),
             'options' => array (
