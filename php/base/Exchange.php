@@ -773,6 +773,10 @@ class Exchange {
         return array();
     }
 
+    public function __destruct() {
+        curl_close ($this->curl);
+    }
+
     public function __construct($options = array()) {
         // todo auto-camelcasing for methods in PHP
         // $method_names = get_class_methods ($this);
