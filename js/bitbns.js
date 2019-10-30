@@ -31,7 +31,7 @@ module.exports = class bitbnsexchange extends Exchange {
                 'fetchDepositAddress': false,
                 'fetchWithdrawals': false,
                 'fetchDeposits': false,
-                'fetchClosedOrders': 'emulated',
+                'fetchClosedOrders': false,
                 'fetchL2OrderBook': false,
                 'fetchOHLCV': 'emulated',
                 'fetchOrder': true,
@@ -64,6 +64,7 @@ module.exports = class bitbnsexchange extends Exchange {
                 'private': { 'post': [
                     'orders',
                     'cancel',
+                    'getordersnew',
                 ] },
                 'private1': { 'post': [
                     'orderStatus',
@@ -302,11 +303,22 @@ module.exports = class bitbnsexchange extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const tradingSymbol = market['id'];
+        const splitSymbol = symbol.split ('/');
         const request = {
             'symbol': tradingSymbol,
             'page': 0,
         };
-        const resp = await this.private1PostListOpenOrders (this.extend (request, params));
+        if (splitSymbol[1] === 'USDT') {
+            request['symbol'] = splitSymbol[0] + '_' + splitSymbol[1];
+        }
+        if (splitSymbol[1] === 'USDT') {
+            request['side'] = 'usdtListOpenOrders';
+        } else {
+            request['side'] = 'listOpenOrders';
+        }
+        // const resp = await this.private1PostListOpenOrders (this.extend (request, params));
+        const resp = await this.privatePostGetordersnew (this.extend (request, params));
+        // return resp;
         const orders = this.safeValue (resp, 'data');
         const openOrders = [];
         for (let i = 0; i < orders.length; i += 1) {
