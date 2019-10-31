@@ -206,7 +206,7 @@ module.exports = class p2pb2b extends Exchange {
             'price': this.priceToPrecision (symbol, price),
         };
         const response = await this[method] (this.extend (request, params));
-        const order = this.parseNewOrder (this.safeValue(response, 'result'), market);
+        const order = this.parseNewOrder (this.safeValue (response, 'result'), market);
         return order;
     }
 
