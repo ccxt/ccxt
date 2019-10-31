@@ -91,6 +91,20 @@ class btcmarkets (Exchange):
                 '3': InvalidOrder,
                 '6': DDoSProtection,
             },
+            'fees': {
+                'percentage': True,
+                'tierBased': True,
+                'maker': -0.05 / 100,
+                'taker': 0.20 / 100,
+            },
+            'options': {
+                'fees': {
+                    'AUD': {
+                        'maker': 0.85 / 100,
+                        'taker': 0.85 / 100,
+                    },
+                },
+            },
         })
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
@@ -210,8 +224,7 @@ class btcmarkets (Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            # todo: refactor self
-            fee = 0.0085 if (quote == 'AUD') else 0.0022
+            fees = self.safe_value(self.safe_value(self.options, 'fees', {}), quote, self.fees)
             pricePrecision = 2
             amountPrecision = 4
             minAmount = 0.001  # where does it come from?
@@ -248,8 +261,8 @@ class btcmarkets (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': None,
-                'maker': fee,
-                'taker': fee,
+                'maker': fees['maker'],
+                'taker': fees['taker'],
                 'limits': limits,
                 'precision': precision,
             })

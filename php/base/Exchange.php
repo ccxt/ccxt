@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.18.1358';
+$version = '1.18.1365';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.1358';
+    const VERSION = '1.18.1365';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -2761,7 +2761,7 @@ class Exchange {
     }
 
     public function soliditySha3 ($array) {
-        return @Solidity::sha3 (... $array);
+        return @call_user_func_array ('\\kornrunner\Solidity::sha3', $array);
     }
 
     public static function totp($key) {

@@ -158,7 +158,7 @@ class oceanex (Exchange):
                 },
                 'limits': {
                     'amount': {
-                        'min': self.safe_value(market, 'minimum_trading_amount'),
+                        'min': None,
                         'max': None,
                     },
                     'price': {
@@ -166,7 +166,7 @@ class oceanex (Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.safe_value(market, 'minimum_trading_amount'),
                         'max': None,
                     },
                 },
