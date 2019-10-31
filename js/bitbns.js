@@ -96,7 +96,7 @@ module.exports = class bitbns extends Exchange {
                 body = this.json (params);
             }
             // Generate payload
-            const timeStamp_nonce = Date.now ().toString ();
+            const timeStamp_nonce = this.milliseconds ();
             // const timeStamp_nonce = '1571663667098';
             const data = {
                 'symbol': '/' + path + '/' + this.safeString (params, 'symbol'),
@@ -104,7 +104,7 @@ module.exports = class bitbns extends Exchange {
                 'body': body,
             };
             // console.log("ccxt data:", data);
-            const payload = this.stringToBase64 (JSON.stringify (data));
+            const payload = this.stringToBase64 (this.json (data));
             // console.log("ccxt payload:", payload);
             // Generate signature from payload
             const signature = this.hmac (payload, this.secret, 'sha512', 'hex');
@@ -127,7 +127,7 @@ module.exports = class bitbns extends Exchange {
                 body = this.json (params);
             }
             // Generate payload
-            const timeStamp_nonce = Date.now ().toString ();
+            const timeStamp_nonce = this.milliseconds ();
             // const timeStamp_nonce = '1571663667098';
             const data = {
                 'symbol': '/' + path + '/' + this.safeString (params, 'symbol'),
@@ -135,7 +135,7 @@ module.exports = class bitbns extends Exchange {
                 'body': body,
             };
             // console.log("ccxt data:", data);
-            const payload = this.stringToBase64 (JSON.stringify (data));
+            const payload = this.stringToBase64 (this.json (data));
             // console.log("ccxt payload:", payload);
             // Generate signature from payload
             const signature = this.hmac (payload, this.secret, 'sha512', 'hex');
@@ -190,10 +190,10 @@ module.exports = class bitbns extends Exchange {
         const trades = await this.publicGetFetchTrades (this.extend (request, params));
         // console.log (trades.length);
         for (let i = 0; i < trades.length; i++) {
-            trades[i].symbol = symbol;
+            trades[i]['symbol'] = symbol;
             const keys = Object.keys (trades[i]);
             for (let k = 0; k < keys.length; k += 1) {
-                if (trades[i][keys[k]] === null) {
+                if (!this.safeString (trades[i], keys[k])) {
                     trades[i][keys[k]] = undefined;
                 }
             }
@@ -271,7 +271,7 @@ module.exports = class bitbns extends Exchange {
         const orderObj = {
             'id': this.safeString (order, 'entry_id'), // string
             'datetime': this.safeString (order, 'time'), // ISO8601 datetime of 'timestamp' with milliseconds
-            'timestamp': (new Date (this.safeString (order, 'time'))).getTime (),
+            'timestamp': this.parse8601 (this.safeString (order, 'time')),
             'lastTradeTimestamp': undefined, // Unix timestamp of the most recent trade on this order
             'symbol': symbol,      // symbol
             'type': 'limit',        // 'market', 'limit'
@@ -323,7 +323,7 @@ module.exports = class bitbns extends Exchange {
             const orderObj = {
                 'id': this.safeString (orders[i], 'entry_id'), // string
                 'datetime': this.safeString (orders[i], 'time'), // ISO8601 datetime of 'timestamp' with milliseconds
-                'timestamp': (new Date (this.safeString (orders[i], 'time'))).getTime (),
+                'timestamp': this.parse8601 (this.safeString (orders[i], 'time')),
                 'lastTradeTimestamp': undefined, // Unix timestamp of the most recent trade on this order
                 'symbol': symbol,      // symbol
                 'type': 'limit',        // 'market', 'limit'
