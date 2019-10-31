@@ -1,15 +1,12 @@
-/* eslint-disable no-restricted-syntax */
-
 'use strict';
 
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-// const { ExchangeError, ArgumentsRequired, NotSupported, AuthenticationError, InsufficientFunds, OrderNotFound, BadRequest } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitbnsexchange extends Exchange {
+module.exports = class bitbns extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitbns',
@@ -194,9 +191,10 @@ module.exports = class bitbnsexchange extends Exchange {
         // console.log (trades.length);
         for (let i = 0; i < trades.length; i++) {
             trades[i].symbol = symbol;
-            for (const key of Object.keys (trades[i])) {
-                if (trades[i][key] === null) {
-                    trades[i][key] = undefined;
+            const keys = Object.keys (trades[i]);
+            for (let k = 0; k < keys.length; k += 1) {
+                if (trades[i][keys[k]] === null) {
+                    trades[i][keys[k]] = undefined;
                 }
             }
         }
