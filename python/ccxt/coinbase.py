@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
-from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 
 
 class coinbase (Exchange):
@@ -142,7 +142,7 @@ class coinbase (Exchange):
                 'expired_token': AuthenticationError,  # 401 Expired Oauth token
                 'invalid_scope': AuthenticationError,  # 403 User hasn’t authenticated necessary scope
                 'not_found': ExchangeError,  # 404 Resource not found
-                'rate_limit_exceeded': DDoSProtection,  # 429 Rate limit exceeded
+                'rate_limit_exceeded': RateLimitExceeded,  # 429 Rate limit exceeded
                 'internal_server_error': ExchangeError,  # 500 Internal server error
             },
             'options': {

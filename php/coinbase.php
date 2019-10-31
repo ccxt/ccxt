@@ -139,7 +139,7 @@ class coinbase extends Exchange {
                 'expired_token' => '\\ccxt\\AuthenticationError', // 401 Expired Oauth token
                 'invalid_scope' => '\\ccxt\\AuthenticationError', // 403 User hasn’t authenticated necessary scope
                 'not_found' => '\\ccxt\\ExchangeError', // 404 Resource not found
-                'rate_limit_exceeded' => '\\ccxt\\DDoSProtection', // 429 Rate limit exceeded
+                'rate_limit_exceeded' => '\\ccxt\\RateLimitExceeded', // 429 Rate limit exceeded
                 'internal_server_error' => '\\ccxt\\ExchangeError', // 500 Internal server error
             ),
             'options' => array (
