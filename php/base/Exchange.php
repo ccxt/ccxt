@@ -2761,7 +2761,7 @@ class Exchange {
     }
 
     public function soliditySha3 ($array) {
-        return @call_user_func_array ('\\kornrunner\Solidity::sha3', $array);
+        return @call_user_func_array('\\kornrunner\Solidity::sha3', $array);
     }
 
     public static function totp($key) {
