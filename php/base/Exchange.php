@@ -33,8 +33,9 @@ namespace ccxt;
 use kornrunner\Keccak;
 use kornrunner\Solidity;
 use Elliptic\EC;
+use BN\BN;
 
-$version = '1.18.1308';
+$version = '1.18.1362';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -53,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.1308';
+    const VERSION = '1.18.1362';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -124,6 +125,7 @@ class Exchange {
         'btctradeua',
         'btcturk',
         'buda',
+        'bytetrade',
         'cex',
         'chilebit',
         'cobinhood',
@@ -155,6 +157,7 @@ class Exchange {
         'fcoinjp',
         'flowbtc',
         'foxbit',
+        'ftx',
         'fybse',
         'gateio',
         'gemini',
@@ -170,7 +173,6 @@ class Exchange {
         'kkex',
         'kraken',
         'kucoin',
-        'kucoin2',
         'kuna',
         'lakebtc',
         'latoken',
@@ -351,6 +353,8 @@ class Exchange {
             $scale = 60 * 60;
         } elseif ($unit === 'm') {
             $scale = 60;
+        } elseif ($unit === 's') {
+            $scale = 1;
         } else {
             throw new NotSupported('timeframe unit ' . $unit . ' is not supported');
         }
@@ -691,6 +695,9 @@ class Exchange {
         return implode('', func_get_args());
     }
 
+    public static function binary_concat_array($arr) {
+        return implode('', $arr);
+    }
 
     public static function binary_to_base64($binary) {
         return \base64_encode($binary);
@@ -764,6 +771,10 @@ class Exchange {
 
     public function describe() {
         return array();
+    }
+
+    public function __destruct() {
+        curl_close ($this->curl);
     }
 
     public function __construct($options = array()) {
@@ -1117,7 +1128,7 @@ class Exchange {
         return $signature;
     }
 
-    public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = null) {
+    public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = null, $fixedLength = false) {
         $digest = $request;
         if ($hash !== null) {
             $digest = static::hash($request, $hash, 'hex');
@@ -1125,6 +1136,12 @@ class Exchange {
         $ec = new EC(strtolower($algorithm));
         $key = $ec->keyFromPrivate($secret);
         $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true));
+        $count = new BN ('0');
+        $minimumSize = (new BN ('1'))->shln (8 * 31)->sub (new BN ('1'));
+        while ($fixedLength && ($ellipticSignature->r->gt($ec->nh) || $ellipticSignature->r->lte($minimumSize) || $ellipticSignature->s->lte($minimumSize))) {
+            $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true, 'extraEntropy' => $count->toArray('le', 32)));
+            $count = $count->add(new BN('1'));
+        }
         $signature = array();
         $signature['r'] = $ellipticSignature->r->bi->toHex();
         $signature['s'] = $ellipticSignature->s->bi->toHex();
@@ -1204,6 +1221,12 @@ class Exchange {
         $url = $this->proxy . $url;
 
         $verbose_headers = $headers;
+
+        // https://github.com/ccxt/ccxt/issues/5914
+        // we don't do a reset here to save those cookies in between the calls
+        // if the user wants to reset the curl handle between his requests
+        // then curl_reset can be called manually in userland
+        // curl_reset($this->curl);
 
         curl_setopt($this->curl, CURLOPT_URL, $url);
 
@@ -1332,9 +1355,6 @@ class Exchange {
         $curl_errno = curl_errno($this->curl);
         $curl_error = curl_error($this->curl);
         $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
-
-        // Reset curl opts
-        curl_reset($this->curl);
 
         if ($this->verbose) {
             print_r("\nResponse:\n");
@@ -2477,7 +2497,7 @@ class Exchange {
             }
         } elseif ($roundingMode === TRUNCATE) {
             $dotIndex = strpos($x, '.');
-            $dotPosition = $dotIndex ?: 0;
+            $dotPosition = $dotIndex ?: strlen($x);
             if ($countingMode === DECIMAL_PLACES) {
                 if ($dotIndex) {
                     list($before, $after) = explode('.', static::number_to_string($x));
@@ -2489,7 +2509,7 @@ class Exchange {
                 if ($numPrecisionDigits === 0) {
                     return '0';
                 }
-                $significantPosition = log(abs($x), 10) % 10;
+                $significantPosition = (int) log(abs($x), 10);
                 $start = $dotPosition - $significantPosition;
                 $end = $start + $numPrecisionDigits;
                 if ($dotPosition >= $end) {
@@ -2651,7 +2671,7 @@ class Exchange {
         if (!isset(Exchange::$eth_units[$unit])) {
             throw new \UnexpectedValueException("Unknown unit '" . $unit . "', supported units: " . implode(', ', array_keys(Exchange::$eth_units)));
         }
-        return (string) (int) (('wei' === $unit) ? $amount : bcmul($amount, Exchange::$eth_units[$unit]));
+        return (('wei' === $unit) ? (string) (int) $amount : bcmul($amount, Exchange::$eth_units[$unit]));
     }
 
     public function getZeroExOrderHash($order) {
@@ -2771,5 +2791,31 @@ class Exchange {
         $code = ($hmac[$offset + 0] & 0x7F) << 24 | ($hmac[$offset + 1] & 0xFF) << 16 | ($hmac[$offset + 2] & 0xFF) << 8 | ($hmac[$offset + 3] & 0xFF);
         $otp = $code % pow(10, 6);
         return str_pad((string) $otp, 6, '0', STR_PAD_LEFT);
+    }
+
+    public static function pack_byte ($n) {
+        return pack('C', $n);
+    }
+
+    public static function numberToBE($n, $padding) {
+        $n = new BN ($n);
+        return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $a . $b; });
+    }
+
+    public static function numberToLE($n, $padding) {
+        $n = new BN ($n);
+        return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $b . $a; });
+    }
+
+    public static function integer_divide($a, $b) {
+        return (new BN ($a))->div (new BN ($b));
+    }
+
+    public static function integer_modulo($a, $b) {
+        return (new BN ($a))->mod (new BN ($b));
+    }
+
+    public static function integer_pow($a, $b) {
+        return (new BN ($a))->pow (new BN ($b));
     }
 }

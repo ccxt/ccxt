@@ -285,15 +285,30 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     {
+        //         "timestamp":1572307200000,
+        //         "open":1962218,
+        //         "high":1974850,
+        //         "low":1962208,
+        //         "close":1974850,
+        //         "volume":305211315,
+        //     }
+        //
         const multiplier = 100000000; // for price and volume
-        return [
-            ohlcv[0],
-            parseFloat (ohlcv[1]) / multiplier,
-            parseFloat (ohlcv[2]) / multiplier,
-            parseFloat (ohlcv[3]) / multiplier,
-            parseFloat (ohlcv[4]) / multiplier,
-            parseFloat (ohlcv[5]) / multiplier,
+        const keys = [ 'open', 'high', 'low', 'close', 'volume' ];
+        const result = [
+            this.safeInteger (ohlcv, 'timestamp'),
         ];
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            let value = this.safeFloat (ohlcv, key);
+            if (value !== undefined) {
+                value = value / multiplier;
+            }
+            result.push (value);
+        }
+        return result;
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -301,13 +316,37 @@ module.exports = class btcmarkets extends Exchange {
         const market = this.market (symbol);
         const request = {
             'id': market['id'],
-            'timeWindow': this.timeframes[timeframe],
+            'timeframe': this.timeframes[timeframe],
+            // set to true to see candles more recent than the timestamp in the
+            // since parameter, if a since parameter is used, default is false
+            'indexForward': true,
+            // set to true to see the earliest candles first in the list of
+            // returned candles in chronological order, default is false
+            'sortForward': true,
         };
         if (since !== undefined) {
             request['since'] = since;
         }
-        const response = await this.webGetMarketBTCMarketsIdTickByTime (this.extend (request, params));
-        return this.parseOHLCVs (response['ticks'], market, timeframe, since, limit);
+        if (limit !== undefined) {
+            request['limit'] = limit; // default is 3000
+        }
+        const response = await this.publicGetV2MarketIdTickByTimeTimeframe (this.extend (request, params));
+        //
+        //     {
+        //         "success":true,
+        //         "paging":{
+        //             "newer":"/v2/market/ETH/BTC/tickByTime/day?indexForward=true&since=1572307200000",
+        //             "older":"/v2/market/ETH/BTC/tickByTime/day?since=1457827200000"
+        //         },
+        //         "ticks":[
+        //             {"timestamp":1572307200000,"open":1962218,"high":1974850,"low":1962208,"close":1974850,"volume":305211315},
+        //             {"timestamp":1572220800000,"open":1924700,"high":1951276,"low":1909328,"close":1951276,"volume":1086067595},
+        //             {"timestamp":1572134400000,"open":1962155,"high":1962734,"low":1900905,"close":1930243,"volume":790141098},
+        //         ],
+        //     }
+        //
+        const ticks = this.safeValue (response, 'ticks', []);
+        return this.parseOHLCVs (ticks, market, timeframe, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

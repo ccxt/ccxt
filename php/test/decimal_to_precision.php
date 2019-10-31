@@ -223,6 +223,7 @@ assert (decimal_to_precision ('-69.3', TRUNCATE, -2, DECIMAL_PLACES) === '0');
 assert (decimal_to_precision ('69.3', TRUNCATE, -1, SIGNIFICANT_DIGITS) === '60');
 assert (decimal_to_precision ('-69.3', TRUNCATE, -1, SIGNIFICANT_DIGITS) === '-60');
 assert (decimal_to_precision ('69.3', TRUNCATE, -2, SIGNIFICANT_DIGITS) === '0');
+assert (decimal_to_precision ('1602000000000000000000', TRUNCATE, 3, SIGNIFICANT_DIGITS) === '1600000000000000000000');
 
 // ----------------------------------------------------------------------------
 // testDecimalToPrecisionErrorHandling (todo)

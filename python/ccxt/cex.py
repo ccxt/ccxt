@@ -15,8 +15,12 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NullResponse
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import InvalidNonce
 
 
 class cex (Exchange):
@@ -129,6 +133,16 @@ class cex (Exchange):
                         'XRP': 0.0,
                         'XLM': 0.0,
                     },
+                },
+            },
+            'exceptions': {
+                'exact': {},
+                'broad': {
+                    'Insufficient funds': InsufficientFunds,
+                    'Nonce must be incremented': InvalidNonce,
+                    'Invalid Order': InvalidOrder,
+                    'Order not found': OrderNotFound,
+                    'Rate limit exceeded': RateLimitExceeded,
                 },
             },
             'options': {
@@ -513,14 +527,13 @@ class cex (Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if type == 'market':
-            # for market buy it requires the amount of quote currency to spend
-            if side == 'buy':
-                if self.options['createMarketBuyOrderRequiresPrice']:
-                    if price is None:
-                        raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
-                    else:
-                        amount = amount * price
+        # for market buy it requires the amount of quote currency to spend
+        if (type == 'market') and (side == 'buy'):
+            if self.options['createMarketBuyOrderRequiresPrice']:
+                if price is None:
+                    raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
+                else:
+                    amount = amount * price
         self.load_markets()
         request = {
             'pair': self.market_id(symbol),
@@ -1080,20 +1093,25 @@ class cex (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if isinstance(response, list):
             return response  # public endpoints may return []-arrays
         if not response:
             raise NullResponse(self.id + ' returned ' + self.json(response))
-        elif response is True or response == 'true':
-            return response
-        elif 'e' in response:
+        if response is True or response == 'true':
+            return
+        if 'e' in response:
             if 'ok' in response:
                 if response['ok'] == 'ok':
-                    return response
-            raise ExchangeError(self.id + ' ' + self.json(response))
-        elif 'error' in response:
-            if response['error']:
-                raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+                    return
+        if 'error' in response:
+            message = self.safe_string(response, 'error')
+            feedback = self.id + ' ' + body
+            exact = self.exceptions['exact']
+            if message in exact:
+                raise exact[message](feedback)
+            broad = self.exceptions['broad']
+            broadKey = self.findBroadlyMatchedKey(broad, message)
+            if broadKey is not None:
+                raise broad[broadKey](feedback)
+            raise ExchangeError(feedback)
