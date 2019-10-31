@@ -1,9 +1,9 @@
 const ccxt = require("./ccxt")
-const bitbnsApi = require('bitbns');
-const bitbns2 = new bitbnsApi({
-      apiKey :  '***REMOVED***',
-      apiSecretKey : '***REMOVED***'
-}); 
+// const bitbnsApi = require('bitbns');
+// const bitbns2 = new bitbnsApi({
+//       apiKey :  '***REMOVED***',
+//       apiSecretKey : '***REMOVED***'
+// }); 
 // console.log(ccxt.version);
 
 // console.log(ccxt.exchanges);
@@ -28,9 +28,9 @@ let bitbns = new ccxt.bitbns();
     // let tickerone = await bitbns.fetchTicker("BTC/INR");
     // console.log(tickerone);
     
-    // let trades = await bitbns.fetchTrades("BTC/INR", Date.now()-360000000);
+    let trades = await bitbns.fetchTrades("BTC/INR", Date.now()-360000000);
     // console.log(trades);
-    // console.log(trades.length);
+    console.log(trades.length);
     
     // let ob = await bitbns.fetchOrderBook("BTC/INR", 100);
     // console.log(ob);
@@ -77,10 +77,15 @@ let bitbns = new ccxt.bitbns();
     // let status = await bitbns.fetchOrder('2583833', 'BTC/INR');
     // console.log(status);
 
+<<<<<<< Updated upstream
     let openOrder = await bitbns.fetchOpenOrders ('BTC/INR');
     console.log(openOrder);
     let openOrder2 = await bitbns.fetchOpenOrders ('BTC/USDT');
     console.log(openOrder2);
+=======
+    // let openOrder = await bitbns.fetchOpenOrders ('BTC/INR');
+    // console.log(openOrder);
+>>>>>>> Stashed changes
     
     
     
