@@ -151,7 +151,7 @@ module.exports = class oceanex extends Exchange {
                 },
                 'limits': {
                     'amount': {
-                        'min': this.safeValue (market, 'minimum_trading_amount'),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
@@ -159,7 +159,7 @@ module.exports = class oceanex extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeValue (market, 'minimum_trading_amount'),
                         'max': undefined,
                     },
                 },
