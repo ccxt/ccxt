@@ -400,9 +400,7 @@ function createPythonClass (className, baseClass, body, methods, async = false) 
 
     async = async ? 'async_support.' : ''
 
-    const importFrom = (baseClass == 'Exchange') ?
-        ('ccxt.' + async + 'base.exchange') :
-        ('ccxt.' + async + baseClass)
+    const importFrom = 'ccxt.' + async + ((baseClass == 'Exchange') ? 'base.exchange' : baseClass)
 
     let bodyAsString = body.join ("\n")
 
