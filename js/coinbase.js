@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, RateLimitExceeded } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -138,7 +138,7 @@ module.exports = class coinbase extends Exchange {
                 'expired_token': AuthenticationError, // 401 Expired Oauth token
                 'invalid_scope': AuthenticationError, // 403 User hasn’t authenticated necessary scope
                 'not_found': ExchangeError, // 404 Resource not found
-                'rate_limit_exceeded': DDoSProtection, // 429 Rate limit exceeded
+                'rate_limit_exceeded': RateLimitExceeded, // 429 Rate limit exceeded
                 'internal_server_error': ExchangeError, // 500 Internal server error
             },
             'options': {
