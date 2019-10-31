@@ -164,7 +164,7 @@ module.exports = class p2pb2b extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        const timestamp = this.seconds ();
+        const timestamp = this.milliseconds ();
         const market = this.market (symbol);
         const request = this.extend ({
             'market': market['id'],
