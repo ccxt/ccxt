@@ -91,8 +91,8 @@ module.exports = class coinsbit extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
-                'amount': this.safeFloat (market, 'stockPrec'),
-                'price': this.safeFloat (market, 'moneyPrec'),
+                'amount': this.safeInteger (market, 'stockPrec'),
+                'price': this.safeInteger (market, 'moneyPrec'),
             };
             const minAmount = this.safeFloat (market, 'minAmount', 0);
             result.push ({
