@@ -55,6 +55,7 @@ class tidex (Exchange):
                 },
                 'www': 'https://tidex.com',
                 'doc': 'https://tidex.com/exchange/public-api',
+                'referral': 'https://tidex.com/exchange/?ref=57f5638d9cd7',
                 'fees': [
                     'https://tidex.com/exchange/assets-spec',
                     'https://tidex.com/exchange/pairs-spec',
@@ -607,7 +608,7 @@ class tidex (Exchange):
             # - symbol mismatch(e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
             cachedOrderId = cachedOrderIds[k]
             cachedOrder = self.orders[cachedOrderId]
-            if not(cachedOrderId in list(openOrdersIndexedById.keys())):
+            if not (cachedOrderId in list(openOrdersIndexedById.keys())):
                 # cached order is not in open orders array
                 # if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
                 if symbol is not None and symbol != cachedOrder['symbol']:

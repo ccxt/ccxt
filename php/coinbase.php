@@ -30,7 +30,7 @@ class coinbase extends Exchange {
                 'fetchClosedOrders' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => false,
-                'fetchMarkets' => false,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => false,
                 'fetchOHLCV' => false,
                 'fetchOpenOrders' => false,
@@ -139,24 +139,13 @@ class coinbase extends Exchange {
                 'expired_token' => '\\ccxt\\AuthenticationError', // 401 Expired Oauth token
                 'invalid_scope' => '\\ccxt\\AuthenticationError', // 403 User hasn’t authenticated necessary scope
                 'not_found' => '\\ccxt\\ExchangeError', // 404 Resource not found
-                'rate_limit_exceeded' => '\\ccxt\\DDoSProtection', // 429 Rate limit exceeded
+                'rate_limit_exceeded' => '\\ccxt\\RateLimitExceeded', // 429 Rate limit exceeded
                 'internal_server_error' => '\\ccxt\\ExchangeError', // 500 Internal server error
             ),
-            'markets' => array (
-                'BTC/USD' => array( 'id' => 'btc-usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
-                'LTC/USD' => array( 'id' => 'ltc-usd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD' ),
-                'ETH/USD' => array( 'id' => 'eth-usd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD' ),
-                'BCH/USD' => array( 'id' => 'bch-usd', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD' ),
-                'BTC/EUR' => array( 'id' => 'btc-eur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
-                'LTC/EUR' => array( 'id' => 'ltc-eur', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR' ),
-                'ETH/EUR' => array( 'id' => 'eth-eur', 'symbol' => 'ETH/EUR', 'base' => 'ETH', 'quote' => 'EUR' ),
-                'BCH/EUR' => array( 'id' => 'bch-eur', 'symbol' => 'BCH/EUR', 'base' => 'BCH', 'quote' => 'EUR' ),
-                'BTC/GBP' => array( 'id' => 'btc-gbp', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP' ),
-                'LTC/GBP' => array( 'id' => 'ltc-gbp', 'symbol' => 'LTC/GBP', 'base' => 'LTC', 'quote' => 'GBP' ),
-                'ETH/GBP' => array( 'id' => 'eth-gbp', 'symbol' => 'ETH/GBP', 'base' => 'ETH', 'quote' => 'GBP' ),
-                'BCH/GBP' => array( 'id' => 'bch-gbp', 'symbol' => 'BCH/GBP', 'base' => 'BCH', 'quote' => 'GBP' ),
-            ),
             'options' => array (
+                'fetchCurrencies' => array (
+                    'expires' => 5000,
+                ),
                 'accounts' => array (
                     'wallet',
                     'fiat',
@@ -514,27 +503,133 @@ class coinbase extends Exchange {
         );
     }
 
-    public function fetch_currencies ($params = array ()) {
-        $response = $this->publicGetCurrencies ($params);
-        $currencies = $response['data'];
+    public function fetch_markets ($params = array ()) {
+        $response = $this->fetch_currencies_from_cache ($params);
+        $currencies = $this->safe_value($response, 'currencies', array());
+        $exchangeRates = $this->safe_value($response, 'exchangeRates', array());
+        $data = $this->safe_value($currencies, 'data', array());
+        $dataById = $this->index_by($data, 'id');
+        $rates = $this->safe_value($this->safe_value($exchangeRates, 'data', array()), 'rates', array());
+        $baseIds = is_array($rates) ? array_keys($rates) : array();
         $result = array();
-        for ($i = 0; $i < count ($currencies); $i++) {
-            $currency = $currencies[$i];
-            $id = $this->safe_string($currency, 'id');
+        for ($i = 0; $i < count ($baseIds); $i++) {
+            $baseId = $baseIds[$i];
+            $base = $this->safe_currency_code($baseId);
+            $type = (is_array($dataById) && array_key_exists($baseId, $dataById)) ? 'fiat' : 'crypto';
+            // https://github.com/ccxt/ccxt/issues/6066
+            if ($type === 'crypto') {
+                for ($j = 0; $j < count ($data); $j++) {
+                    $quoteCurrency = $data[$j];
+                    $quoteId = $this->safe_string($quoteCurrency, 'id');
+                    $quote = $this->safe_currency_code($quoteId);
+                    $symbol = $base . '/' . $quote;
+                    $id = $baseId . '-' . $quoteId;
+                    $result[] = array (
+                        'id' => $id,
+                        'symbol' => $symbol,
+                        'base' => $base,
+                        'quote' => $quote,
+                        'baseId' => $baseId,
+                        'quoteId' => $quoteId,
+                        'active' => null,
+                        'info' => $quoteCurrency,
+                        'precision' => array (
+                            'amount' => null,
+                            'price' => null,
+                        ),
+                        'limits' => array (
+                            'amount' => array (
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'price' => array (
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'cost' => array (
+                                'min' => $this->safe_float($quoteCurrency, 'min_size'),
+                                'max' => null,
+                            ),
+                        ),
+                    );
+                }
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_currencies_from_cache ($params = array ()) {
+        $options = $this->safe_value($this->options, 'fetchCurrencies', array());
+        $timestamp = $this->safe_integer($options, 'timestamp');
+        $expires = $this->safe_integer($options, 'expires', 1000);
+        $now = $this->milliseconds ();
+        if (($timestamp === null) || (($now - $timestamp) > $expires)) {
+            $currencies = $this->publicGetCurrencies ($params);
+            $exchangeRates = $this->publicGetExchangeRates ($params);
+            $this->options['fetchCurrencies'] = array_merge ($options, array (
+                'currencies' => $currencies,
+                'exchangeRates' => $exchangeRates,
+                'timestamp' => $now,
+            ));
+        }
+        return $this->safe_value($this->options, 'fetchCurrencies', array());
+    }
+
+    public function fetch_currencies ($params = array ()) {
+        $response = $this->fetch_currencies_from_cache ($params);
+        $currencies = $this->safe_value($response, 'currencies', array());
+        //
+        //     {
+        //         "$data":array (
+        //             array("$id":"AED","$name":"United Arab Emirates Dirham","min_size":"0.01000000"),
+        //             array("$id":"AFN","$name":"Afghan Afghani","min_size":"0.01000000"),
+        //             array("$id":"ALL","$name":"Albanian Lek","min_size":"0.01000000"),
+        //             array("$id":"AMD","$name":"Armenian Dram","min_size":"0.01000000"),
+        //             array("$id":"ANG","$name":"Netherlands Antillean Gulden","min_size":"0.01000000"),
+        //             // ...
+        //         ),
+        //     }
+        //
+        $exchangeRates = $this->safe_value($response, 'exchangeRates', array());
+        //
+        //     {
+        //         "$data":{
+        //             "$currency":"USD",
+        //             "$rates":array (
+        //                 "AED":"3.67",
+        //                 "AFN":"78.21",
+        //                 "ALL":"110.42",
+        //                 "AMD":"474.18",
+        //                 "ANG":"1.75",
+        //                 // ...
+        //             ),
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($currencies, 'data', array());
+        $dataById = $this->index_by($data, 'id');
+        $rates = $this->safe_value($this->safe_value($exchangeRates, 'data', array()), 'rates', array());
+        $keys = is_array($rates) ? array_keys($rates) : array();
+        $result = array();
+        for ($i = 0; $i < count ($keys); $i++) {
+            $key = $keys[$i];
+            $type = (is_array($dataById) && array_key_exists($key, $dataById)) ? 'fiat' : 'crypto';
+            $currency = $this->safe_value($dataById, $key, array());
+            $id = $this->safe_string($currency, 'id', $key);
             $name = $this->safe_string($currency, 'name');
             $code = $this->safe_currency_code($id);
-            $minimum = $this->safe_float($currency, 'min_size');
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency, // the original payload
+                'type' => $type,
                 'name' => $name,
                 'active' => true,
                 'fee' => null,
                 'precision' => null,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $minimum,
+                        'min' => $this->safe_float($currency, 'min_size'),
                         'max' => null,
                     ),
                     'price' => array (

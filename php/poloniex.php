@@ -110,8 +110,12 @@ class poloniex extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.15 / 100,
-                    'taker' => 0.25 / 100,
+                    // https://github.com/ccxt/ccxt/issues/6064
+                    // starting from October 21, 2019 17:00 UTC
+                    // all spot trading fees will be reduced to 0.00%
+                    // until December 31, 2019 23:59 UTC
+                    'maker' => 0.0,
+                    'taker' => 0.0,
                 ),
                 'funding' => array(),
             ),
