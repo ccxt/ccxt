@@ -552,12 +552,14 @@ class okex3 extends Exchange {
         $future = false;
         $swap = false;
         $baseId = $this->safe_string($market, 'base_currency');
-        if ($baseId === null) {
+        $contractVal = $this->safe_float($market, 'contract_val');
+        if ($contractVal !== null) {
             $marketType = 'swap';
             $spot = false;
             $swap = true;
             $baseId = $this->safe_string($market, 'coin');
-            if ($baseId === null) {
+            $futuresAlias = $this->safe_string($market, 'alias');
+            if ($futuresAlias !== null) {
                 $swap = false;
                 $future = true;
                 $marketType = 'futures';
