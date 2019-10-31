@@ -14,8 +14,9 @@ RUN sed -i 's/archive\.ubuntu\.com/us\.archive\.ubuntu\.com/' /etc/apt/sources.l
 # PHP
     && apt-get install -y php php-curl php-iconv php-mbstring php-bcmath \
 # Node
+    && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
     && curl -sL https://deb.nodesource.com/setup_11.x | bash - \
-    && apt-get -y install nodejs \
+    && apt-get -y install nodejs yarn \
 # Python 2
     && apt-get install -y python-pip \
     && pip2 install --upgrade setuptools \
