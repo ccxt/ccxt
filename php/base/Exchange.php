@@ -200,6 +200,7 @@ class Exchange {
         'therock',
         'tidebit',
         'tidex',
+        'timex',
         'upbit',
         'vaultoro',
         'vbtc',

@@ -181,6 +181,7 @@ from ccxt.theocean import theocean                          # noqa: F401
 from ccxt.therock import therock                            # noqa: F401
 from ccxt.tidebit import tidebit                            # noqa: F401
 from ccxt.tidex import tidex                                # noqa: F401
+from ccxt.timex import timex                                # noqa: F401
 from ccxt.upbit import upbit                                # noqa: F401
 from ccxt.vaultoro import vaultoro                          # noqa: F401
 from ccxt.vbtc import vbtc                                  # noqa: F401
@@ -308,6 +309,7 @@ exchanges = [
     'therock',
     'tidebit',
     'tidex',
+    'timex',
     'upbit',
     'vaultoro',
     'vbtc',
