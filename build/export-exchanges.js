@@ -34,7 +34,7 @@ function logExportExchanges (filename, regex, replacement) {
 
 // ----------------------------------------------------------------------------
 
-function exportExchanges ({ python2Folder, python3Folder, phpFolder }) {
+function exportExchanges ({ js, python2, python3, php }) {
 
     log.bright.yellow ('Exporting exchanges...')
 
@@ -56,42 +56,30 @@ function exportExchanges ({ python2Folder, python3Folder, phpFolder }) {
     }
 
     ;[
-        {
-            folder: '.',
-            file: '/ccxt.js',
+        Object.assign ({}, js, {
             regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
             replacement: "const exchanges = {\n" + ids.map (id => pad ("    '" + id + "':", 30) + " require ('./js/" + id + ".js'),").join ("\n") + "    \n}",
-        },
-        {
-            folder: python2Folder,
-            file: '/__init__.py',
+        }),
+        Object.assign ({}, python2, {
             regex: /exchanges \= \[[^\]]+\]/,
             replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
-        },
-        {
-            folder: python2Folder,
-            file: '/__init__.py',
+        }),
+        Object.assign ({}, python2, {
             regex: /(?:from ccxt\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
             replacement: ids.map (id => pad ('from ccxt.' + id + ' import ' + id, 60) + '# noqa: F401').join ("\n") + "\n\nexchanges",
-        },
-        {
-            folder: python3Folder,
-            file: '/__init__.py',
+        }),
+        Object.assign ({}, python3, {
             regex: /(?:from ccxt\.async_support\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
             replacement: ids.map (id => pad ('from ccxt.async_support.' + id + ' import ' + id, 74) + '# noqa: F401').join ("\n") + "\n\nexchanges",
-        },
-        {
-            folder: python3Folder,
-            file: '/__init__.py',
+        }),
+        Object.assign ({}, python3, {
             regex: /exchanges \= \[[^\]]+\]/,
             replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
-        },
-        {
-            folder: phpFolder,
-            file: '/base/Exchange.php',
+        }),
+        Object.assign ({}, php, {
             regex: /public static \$exchanges \= array\s*\([^\)]+\)/,
             replacement: "public static $exchanges = array(\n        '" + ids.join ("',\n        '") + "',\n    )",
-        },
+        }),
 
     ].forEach (({ folder, file, regex, replacement }) => {
         if (folder) {
@@ -308,7 +296,8 @@ function exportKeywordsToPackageJson (exchanges) {
 
     log.bright ('Exporting exchange keywords to'.cyan, 'package.json'.yellow)
 
-    const packageJSON = require ('../package.json')
+    // const packageJSON = require ('../package.json')
+    const packageJSON = JSON.parse (fs.readFileSync ('./package.json'))
     const keywords = new Set (packageJSON.keywords)
 
     for (const ex of values (exchanges)) {
@@ -331,9 +320,10 @@ function exportEverything () {
 
     cloneGitHubWiki (gitWikiPath)
     const ids = exportExchanges ({
-        python2Folder: './python/ccxt',
-        python3Folder: './python/ccxt/async_support',
-        phpFolder: './php'
+        js:      { folder: '.', file: '/ccxt.js' },
+        python2: { folder: './python/ccxt', file: '/__init__.py' },
+        python3: { folder: './python/ccxt/async_support', file: '/__init__.py' },
+        php:     { folder: './php', file: '/base/Exchange.php' },
     })
 
     // strategically placed exactly here (we can require it AFTER the export)
