@@ -33,7 +33,7 @@ class coinbase (Exchange):
                 'fetchClosedOrders': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': False,
-                'fetchMarkets': False,
+                'fetchMarkets': True,
                 'fetchMyTrades': False,
                 'fetchOHLCV': False,
                 'fetchOpenOrders': False,
@@ -145,21 +145,10 @@ class coinbase (Exchange):
                 'rate_limit_exceeded': DDoSProtection,  # 429 Rate limit exceeded
                 'internal_server_error': ExchangeError,  # 500 Internal server error
             },
-            'markets': {
-                'BTC/USD': {'id': 'btc-usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD'},
-                'LTC/USD': {'id': 'ltc-usd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD'},
-                'ETH/USD': {'id': 'eth-usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD'},
-                'BCH/USD': {'id': 'bch-usd', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD'},
-                'BTC/EUR': {'id': 'btc-eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
-                'LTC/EUR': {'id': 'ltc-eur', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR'},
-                'ETH/EUR': {'id': 'eth-eur', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR'},
-                'BCH/EUR': {'id': 'bch-eur', 'symbol': 'BCH/EUR', 'base': 'BCH', 'quote': 'EUR'},
-                'BTC/GBP': {'id': 'btc-gbp', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP'},
-                'LTC/GBP': {'id': 'ltc-gbp', 'symbol': 'LTC/GBP', 'base': 'LTC', 'quote': 'GBP'},
-                'ETH/GBP': {'id': 'eth-gbp', 'symbol': 'ETH/GBP', 'base': 'ETH', 'quote': 'GBP'},
-                'BCH/GBP': {'id': 'bch-gbp', 'symbol': 'BCH/GBP', 'base': 'BCH', 'quote': 'GBP'},
-            },
             'options': {
+                'fetchCurrencies': {
+                    'expires': 5000,
+                },
                 'accounts': [
                     'wallet',
                     'fiat',
@@ -495,27 +484,127 @@ class coinbase (Exchange):
             'fee': fee,
         }
 
+    async def fetch_markets(self, params={}):
+        response = await self.fetch_currencies_from_cache(params)
+        currencies = self.safe_value(response, 'currencies', {})
+        exchangeRates = self.safe_value(response, 'exchangeRates', {})
+        data = self.safe_value(currencies, 'data', [])
+        dataById = self.index_by(data, 'id')
+        rates = self.safe_value(self.safe_value(exchangeRates, 'data', {}), 'rates', {})
+        baseIds = list(rates.keys())
+        result = []
+        for i in range(0, len(baseIds)):
+            baseId = baseIds[i]
+            base = self.safe_currency_code(baseId)
+            type = 'fiat' if (baseId in list(dataById.keys())) else 'crypto'
+            # https://github.com/ccxt/ccxt/issues/6066
+            if type == 'crypto':
+                for j in range(0, len(data)):
+                    quoteCurrency = data[j]
+                    quoteId = self.safe_string(quoteCurrency, 'id')
+                    quote = self.safe_currency_code(quoteId)
+                    symbol = base + '/' + quote
+                    id = baseId + '-' + quoteId
+                    result.append({
+                        'id': id,
+                        'symbol': symbol,
+                        'base': base,
+                        'quote': quote,
+                        'baseId': baseId,
+                        'quoteId': quoteId,
+                        'active': None,
+                        'info': quoteCurrency,
+                        'precision': {
+                            'amount': None,
+                            'price': None,
+                        },
+                        'limits': {
+                            'amount': {
+                                'min': None,
+                                'max': None,
+                            },
+                            'price': {
+                                'min': None,
+                                'max': None,
+                            },
+                            'cost': {
+                                'min': self.safe_float(quoteCurrency, 'min_size'),
+                                'max': None,
+                            },
+                        },
+                    })
+        return result
+
+    async def fetch_currencies_from_cache(self, params={}):
+        options = self.safe_value(self.options, 'fetchCurrencies', {})
+        timestamp = self.safe_integer(options, 'timestamp')
+        expires = self.safe_integer(options, 'expires', 1000)
+        now = self.milliseconds()
+        if (timestamp is None) or ((now - timestamp) > expires):
+            currencies = await self.publicGetCurrencies(params)
+            exchangeRates = await self.publicGetExchangeRates(params)
+            self.options['fetchCurrencies'] = self.extend(options, {
+                'currencies': currencies,
+                'exchangeRates': exchangeRates,
+                'timestamp': now,
+            })
+        return self.safe_value(self.options, 'fetchCurrencies', {})
+
     async def fetch_currencies(self, params={}):
-        response = await self.publicGetCurrencies(params)
-        currencies = response['data']
+        response = await self.fetch_currencies_from_cache(params)
+        currencies = self.safe_value(response, 'currencies', {})
+        #
+        #     {
+        #         "data":[
+        #             {"id":"AED","name":"United Arab Emirates Dirham","min_size":"0.01000000"},
+        #             {"id":"AFN","name":"Afghan Afghani","min_size":"0.01000000"},
+        #             {"id":"ALL","name":"Albanian Lek","min_size":"0.01000000"},
+        #             {"id":"AMD","name":"Armenian Dram","min_size":"0.01000000"},
+        #             {"id":"ANG","name":"Netherlands Antillean Gulden","min_size":"0.01000000"},
+        #             # ...
+        #         ],
+        #     }
+        #
+        exchangeRates = self.safe_value(response, 'exchangeRates', {})
+        #
+        #     {
+        #         "data":{
+        #             "currency":"USD",
+        #             "rates":{
+        #                 "AED":"3.67",
+        #                 "AFN":"78.21",
+        #                 "ALL":"110.42",
+        #                 "AMD":"474.18",
+        #                 "ANG":"1.75",
+        #                 # ...
+        #             },
+        #         }
+        #     }
+        #
+        data = self.safe_value(currencies, 'data', [])
+        dataById = self.index_by(data, 'id')
+        rates = self.safe_value(self.safe_value(exchangeRates, 'data', {}), 'rates', {})
+        keys = list(rates.keys())
         result = {}
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            id = self.safe_string(currency, 'id')
+        for i in range(0, len(keys)):
+            key = keys[i]
+            type = 'fiat' if (key in list(dataById.keys())) else 'crypto'
+            currency = self.safe_value(dataById, key, {})
+            id = self.safe_string(currency, 'id', key)
             name = self.safe_string(currency, 'name')
             code = self.safe_currency_code(id)
-            minimum = self.safe_float(currency, 'min_size')
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,  # the original payload
+                'type': type,
                 'name': name,
                 'active': True,
                 'fee': None,
                 'precision': None,
                 'limits': {
                     'amount': {
-                        'min': minimum,
+                        'min': self.safe_float(currency, 'min_size'),
                         'max': None,
                     },
                     'price': {
