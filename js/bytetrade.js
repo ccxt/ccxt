@@ -223,7 +223,6 @@ module.exports = class bytetrade extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'symbol');
-            // there may be duplicate codes
             let base = this.safeString (market, 'baseName');
             let quote = this.safeString (market, 'quoteName');
             const baseId = this.safeString (market, 'base');
@@ -283,9 +282,12 @@ module.exports = class bytetrade extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchDeposits requires this.apiKey or userid argument');
         }
         await this.loadMarkets ();
-        const request = {
-            'userid': this.apiKey,
-        };
+        const request = {};
+        if ('userid' in params) {
+            request['userid'] = params['userid'];
+        } else {
+            request['userid'] = this.apiKey;
+        }
         const balances = await this.publicGetBalance (this.extend (request, params));
         const result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
@@ -530,8 +532,8 @@ module.exports = class bytetrade extends Exchange {
         const defaultFee = this.safeString (this.options, 'fee', '300000000000000');
         const fee = this.safeString (params, 'fee', defaultFee);
         const eightBytes = this.integerPow ('2', '64');
-        const byteStringArray = [
-            this.numberToBE (1, 32),
+        const chainidByteStringArray = [this.numberToBE (1, 32)];
+        const txByteStringArray = [
             this.numberToLE (Math.floor (now / 1000), 4),
             this.numberToLE (1, 1),
             this.numberToLE (Math.floor (expiration / 1000), 4),
@@ -561,6 +563,24 @@ module.exports = class bytetrade extends Exchange {
             this.stringToBinary (this.encode (chainName)),
             this.numberToLE (0, 1),
         ];
+        const opid0ByteStringArray = [this.numberToBE (0, 4)];
+        const opid1ByteStringArray = [this.numberToBE (1, 4)];
+        const txbytestring = this.binaryConcatArray (txByteStringArray);
+        const txidhash = this.hash (txbytestring, 'sha256', 'hex');
+        const txid = txidhash.slice (0, 40);
+        const txidByteStringArray = [
+            this.numberToLE (txid.length, 1),
+            this.stringToBinary (this.encode (txid)),
+        ];
+        const orderid0byteStringArray = this.arrayConcat (txidByteStringArray, opid0ByteStringArray);
+        const orderid0bytestring = this.binaryConcatArray (orderid0byteStringArray);
+        const orderid0hash = this.hash (orderid0bytestring, 'sha256', 'hex');
+        const orderid0 = orderid0hash.slice (0, 40);
+        const orderid1byteStringArray = this.arrayConcat (txidByteStringArray, opid1ByteStringArray);
+        const orderid1bytestring = this.binaryConcatArray (orderid1byteStringArray);
+        const orderid1hash = this.hash (orderid1bytestring, 'sha256', 'hex');
+        const orderid1 = orderid1hash.slice (0, 40);
+        const byteStringArray = this.arrayConcat (chainidByteStringArray, txByteStringArray);
         const bytestring = this.binaryConcatArray (byteStringArray);
         const hash = this.hash (bytestring, 'sha256', 'hex');
         const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined, true);
@@ -604,7 +624,9 @@ module.exports = class bytetrade extends Exchange {
         const status = (statusCode === '0') ? 'open' : 'failed';
         return {
             'info': response,
-            'id': undefined,
+            'id': orderid0,
+            'id1': orderid1,
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
