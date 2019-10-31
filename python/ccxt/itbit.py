@@ -229,8 +229,8 @@ class itbit (Exchange):
                     'cost': feeCost,
                     'currency': feeCurrency,
                 }
-        if not('fee' in list(result.keys())):
-            if not('fees' in list(result.keys())):
+        if not ('fee' in list(result.keys())):
+            if not ('fees' in list(result.keys())):
                 result['fee'] = None
         return result
 

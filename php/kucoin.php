@@ -366,6 +366,7 @@ class kucoin extends Exchange {
             $percentage = $percentage * 100;
         }
         $last = $this->safe_float($ticker, 'last');
+        $average = $this->safe_float($ticker, 'averagePrice');
         $symbol = null;
         $marketId = $this->safe_string($ticker, 'symbol');
         if ($marketId !== null) {
@@ -401,7 +402,7 @@ class kucoin extends Exchange {
             'previousClose' => null,
             'change' => $this->safe_float($ticker, 'changePrice'),
             'percentage' => $percentage,
-            'average' => null,
+            'average' => $average,
             'baseVolume' => $this->safe_float($ticker, 'vol'),
             'quoteVolume' => $this->safe_float($ticker, 'volValue'),
             'info' => $ticker,
@@ -596,12 +597,19 @@ class kucoin extends Exchange {
         $request = array (
             'clientOid' => $clientOid,
             'side' => $side,
-            'size' => $this->amount_to_precision($symbol, $amount),
             'symbol' => $marketId,
             'type' => $type,
         );
         if ($type !== 'market') {
             $request['price'] = $this->price_to_precision($symbol, $price);
+            $request['size'] = $this->amount_to_precision($symbol, $amount);
+        } else {
+            if ($this->safe_value($params, 'quoteAmount')) {
+                // used to create market $order by quote $amount - https://github.com/ccxt/ccxt/issues/4876
+                $request['funds'] = $this->amount_to_precision($symbol, $amount);
+            } else {
+                $request['size'] = $this->amount_to_precision($symbol, $amount);
+            }
         }
         $response = $this->privatePostOrders (array_merge ($request, $params));
         //
@@ -614,12 +622,11 @@ class kucoin extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->milliseconds ();
-        return array (
+        $order = array (
             'id' => $this->safe_string($data, 'orderId'),
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'amount' => $amount,
             'price' => $price,
             'cost' => null,
             'filled' => null,
@@ -631,6 +638,10 @@ class kucoin extends Exchange {
             'clientOid' => $clientOid,
             'info' => $data,
         );
+        if (!$this->safe_value($params, 'quoteAmount')) {
+            $order['amount'] = $amount;
+        }
+        return $order;
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -796,6 +807,7 @@ class kucoin extends Exchange {
         $remaining = $amount - $filled;
         // bool
         $status = $order['isActive'] ? 'open' : 'closed';
+        $status = $order['cancelExist'] ? 'canceled' : $status;
         $fee = array (
             'currency' => $feeCurrency,
             'cost' => $feeCost,

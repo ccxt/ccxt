@@ -256,7 +256,7 @@ class cointiger (huobipro):
         market = self.market(symbol)
         marketId = market['uppercaseId']
         response = self.exchangeGetApiPublicMarketDetail(params)
-        if not(marketId in list(response.keys())):
+        if not (marketId in list(response.keys())):
             raise ExchangeError(self.id + ' fetchTicker symbol ' + symbol + '(' + marketId + ') not found')
         return self.parse_ticker(response[marketId], market)
 

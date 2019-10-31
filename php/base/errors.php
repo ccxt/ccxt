@@ -33,7 +33,9 @@ $error_hierarchy = array (
             'NotSupported' => array(),
         ),
         'NetworkError' => array (
-            'DDoSProtection' => array(),
+            'DDoSProtection' => array (
+                'RateLimitExceeded' => array(),
+            ),
             'ExchangeNotAvailable' => array (
                 'OnMaintenance' => array(),
             ),
