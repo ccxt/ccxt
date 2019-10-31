@@ -472,10 +472,12 @@ class bitmart (Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            # 'offset': 0,  # current page, starts from 0
+            'offset': 0,  # current page, starts from 0
         }
         if limit is not None:
             request['limit'] = limit  # default 500, max 1000
+        else:
+            request['limit'] = 1000
         response = await self.privateGetTrades(self.extend(request, params))
         #
         #     {
