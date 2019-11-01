@@ -667,13 +667,10 @@ module.exports = class bytetrade extends Exchange {
             throw new ArgumentsRequired ('fetchOrder requires this.apiKey or userid argument');
         }
         await this.loadMarkets ();
-        const request = {};
+        const request = {
+            'userid': this.apiKey,
+        };
         let market = undefined;
-        if ('userid' in params) {
-            request['userid'] = params['userid'];
-        } else {
-            request['userid'] = this.apiKey;
-        }
         if (symbol !== undefined) {
             market = this.markets[symbol];
             request['symbol'] = market['id'];
@@ -688,13 +685,10 @@ module.exports = class bytetrade extends Exchange {
             throw new ArgumentsRequired ('fetchOpenOrders requires this.apiKey or userid argument');
         }
         await this.loadMarkets ();
+        const request = {
+            'userid': this.apiKey,
+        };
         let market = undefined;
-        const request = {};
-        if ('userid' in params) {
-            request['userid'] = params['userid'];
-        } else {
-            request['userid'] = this.apiKey;
-        }
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -712,12 +706,9 @@ module.exports = class bytetrade extends Exchange {
         }
         await this.loadMarkets ();
         let market = undefined;
-        const request = { };
-        if ('userid' in params) {
-            request['userid'] = params['userid'];
-        } else {
-            request['userid'] = this.apiKey;
-        }
+        const request = {
+            'userid': this.apiKey,
+        };
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -735,12 +726,9 @@ module.exports = class bytetrade extends Exchange {
         }
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
-        if ('userid' in params) {
-            request['userid'] = params['userid'];
-        } else {
-            request['userid'] = this.apiKey;
-        }
+        const request = {
+            'userid': this.apiKey,
+        };
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -831,7 +819,7 @@ module.exports = class bytetrade extends Exchange {
         const status = (statusCode === '0') ? 'canceled' : 'failed';
         return {
             'info': response,
-            'id': '',
+            'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -954,12 +942,9 @@ module.exports = class bytetrade extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {};
-        if ('userid' in params) {
-            request['userid'] = params['userid'];
-        } else {
-            request['userid'] = this.apiKey;
-        }
+        const request = {
+            'userid': this.apiKey,
+        };
         if (symbol !== undefined) {
             request['symbol'] = market['id'];
         }
@@ -976,12 +961,9 @@ module.exports = class bytetrade extends Exchange {
             throw new ArgumentsRequired ('fetchDeposits requires this.apiKey or userid argument');
         }
         let currency = undefined;
-        const request = { };
-        if ('userid' in params) {
-            request['userid'] = params['userid'];
-        } else {
-            request['userid'] = this.apiKey;
-        }
+        const request = {
+            'userid': this.apiKey,
+        };
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -1002,12 +984,9 @@ module.exports = class bytetrade extends Exchange {
             throw new ArgumentsRequired ('fetchWithdrawals requires this.apiKey or userid argument');
         }
         let currency = undefined;
-        const request = {};
-        if ('userid' in params) {
-            request['userid'] = params['userid'];
-        } else {
-            request['userid'] = this.apiKey;
-        }
+        const request = {
+            'userid': this.apiKey,
+        };
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
