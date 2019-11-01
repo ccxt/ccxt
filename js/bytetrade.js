@@ -1089,13 +1089,10 @@ module.exports = class bytetrade extends Exchange {
             throw new ArgumentsRequired ('fetchDepositAddress requires this.apiKey or userid argument');
         }
         const currency = this.currency (code);
-        const request = { };
-        if ('userid' in params) {
-            request['userid'] = params['userid'];
-        } else {
-            request['userid'] = this.apiKey;
-        }
-        request['code'] = currency['id'];
+        const request = {
+            'userid': this.apiKey,
+            'code': currency['id'],
+        };
         const response = await this.publicGetDepositaddress (request);
         const address = this.safeString (response[0], 'address');
         const tag = this.safeString (response[0], 'addressTag');
@@ -1212,9 +1209,9 @@ module.exports = class bytetrade extends Exchange {
         const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined, true);
         const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (this.sum (signature['v'], 31), 1)));
         const mySignature = recoveryParam + signature['r'] + signature['s'];
-        let fatty = { };
-        let request = { };
-        let operation = { };
+        let fatty = undefined;
+        let request = undefined;
+        let operation = undefined;
         const chainContractAddress = this.safeString (currency['info'], 'chainContractAddress');
         if (chainTypeString === 'bitcoin') {
             operation = {
@@ -1301,7 +1298,7 @@ module.exports = class bytetrade extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if ((code === 503)) {
+        if (code === 503) {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         }
         if (response === undefined) {
