@@ -450,7 +450,7 @@ function createPythonClass (className, baseClass, body, methods, async = false) 
             (match, p1) => ('self.' + unCamelCase (p1) + '('))
     }
 
-    header.push ("\n\nclass " + className + ' (' + baseClass + '):')
+    header.push ("\n\nclass " + className + '(' + baseClass + '):')
 
     const footer = [
         '', // footer (last empty line)
