@@ -10,7 +10,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
 
 
-class mercado (Exchange):
+class mercado(Exchange):
 
     def describe(self):
         return self.deep_extend(super(mercado, self).describe(), {

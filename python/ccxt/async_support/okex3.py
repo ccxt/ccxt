@@ -32,7 +32,7 @@ from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 
 
-class okex3 (Exchange):
+class okex3(Exchange):
 
     def describe(self):
         return self.deep_extend(super(okex3, self).describe(), {

@@ -14,7 +14,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 
 
-class btcmarkets (Exchange):
+class btcmarkets(Exchange):
 
     def describe(self):
         return self.deep_extend(super(btcmarkets, self).describe(), {

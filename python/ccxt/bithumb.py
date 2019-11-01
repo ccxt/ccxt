@@ -14,7 +14,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import ExchangeNotAvailable
 
 
-class bithumb (Exchange):
+class bithumb(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bithumb, self).describe(), {

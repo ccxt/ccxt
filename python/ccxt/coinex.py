@@ -13,7 +13,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
-class coinex (Exchange):
+class coinex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(coinex, self).describe(), {

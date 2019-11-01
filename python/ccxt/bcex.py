@@ -12,7 +12,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
-class bcex (Exchange):
+class bcex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bcex, self).describe(), {

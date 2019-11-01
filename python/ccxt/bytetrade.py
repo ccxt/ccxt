@@ -16,7 +16,7 @@ from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import NO_PADDING
 
 
-class bytetrade (Exchange):
+class bytetrade(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bytetrade, self).describe(), {
@@ -638,12 +638,10 @@ class bytetrade (Exchange):
         if not ('userid' in list(params.keys())) and (self.apiKey is None):
             raise ArgumentsRequired('fetchOrder requires self.apiKey or userid argument')
         self.load_markets()
-        request = {}
+        request = {
+            'userid': self.apiKey,
+        }
         market = None
-        if 'userid' in params:
-            request['userid'] = params['userid']
-        else:
-            request['userid'] = self.apiKey
         if symbol is not None:
             market = self.markets[symbol]
             request['symbol'] = market['id']
@@ -655,12 +653,10 @@ class bytetrade (Exchange):
         if not ('userid' in list(params.keys())) and (self.apiKey is None):
             raise ArgumentsRequired('fetchOpenOrders requires self.apiKey or userid argument')
         self.load_markets()
+        request = {
+            'userid': self.apiKey,
+        }
         market = None
-        request = {}
-        if 'userid' in params:
-            request['userid'] = params['userid']
-        else:
-            request['userid'] = self.apiKey
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -674,11 +670,9 @@ class bytetrade (Exchange):
             raise ArgumentsRequired('fetchClosedOrders requires self.apiKey or userid argument')
         self.load_markets()
         market = None
-        request = {}
-        if 'userid' in params:
-            request['userid'] = params['userid']
-        else:
-            request['userid'] = self.apiKey
+        request = {
+            'userid': self.apiKey,
+        }
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -692,11 +686,9 @@ class bytetrade (Exchange):
             raise ArgumentsRequired('fetchOrders requires self.apiKey or userid argument')
         self.load_markets()
         market = None
-        request = {}
-        if 'userid' in params:
-            request['userid'] = params['userid']
-        else:
-            request['userid'] = self.apiKey
+        request = {
+            'userid': self.apiKey,
+        }
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -782,7 +774,7 @@ class bytetrade (Exchange):
         status = 'canceled' if (statusCode == '0') else 'failed'
         return {
             'info': response,
-            'id': '',
+            'id': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -900,11 +892,9 @@ class bytetrade (Exchange):
             raise ArgumentsRequired('fetchMyTrades requires self.apiKey or userid argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {}
-        if 'userid' in params:
-            request['userid'] = params['userid']
-        else:
-            request['userid'] = self.apiKey
+        request = {
+            'userid': self.apiKey,
+        }
         if symbol is not None:
             request['symbol'] = market['id']
         if limit is not None:
@@ -917,11 +907,9 @@ class bytetrade (Exchange):
         if not ('userid' in list(params.keys())) and (self.apiKey is None):
             raise ArgumentsRequired('fetchDeposits requires self.apiKey or userid argument')
         currency = None
-        request = {}
-        if 'userid' in params:
-            request['userid'] = params['userid']
-        else:
-            request['userid'] = self.apiKey
+        request = {
+            'userid': self.apiKey,
+        }
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -937,11 +925,9 @@ class bytetrade (Exchange):
         if not ('userid' in list(params.keys())) and (self.apiKey is None):
             raise ArgumentsRequired('fetchWithdrawals requires self.apiKey or userid argument')
         currency = None
-        request = {}
-        if 'userid' in params:
-            request['userid'] = params['userid']
-        else:
-            request['userid'] = self.apiKey
+        request = {
+            'userid': self.apiKey,
+        }
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -1014,12 +1000,10 @@ class bytetrade (Exchange):
         if not ('userid' in list(params.keys())) and (self.apiKey is None):
             raise ArgumentsRequired('fetchDepositAddress requires self.apiKey or userid argument')
         currency = self.currency(code)
-        request = {}
-        if 'userid' in params:
-            request['userid'] = params['userid']
-        else:
-            request['userid'] = self.apiKey
-        request['code'] = currency['id']
+        request = {
+            'userid': self.apiKey,
+            'code': currency['id'],
+        }
         response = self.publicGetDepositaddress(request)
         address = self.safe_string(response[0], 'address')
         tag = self.safe_string(response[0], 'addressTag')
@@ -1132,9 +1116,9 @@ class bytetrade (Exchange):
         signature = self.ecdsa(hash, self.secret, 'secp256k1', None, True)
         recoveryParam = self.decode(base64.b16encode(self.numberToLE(self.sum(signature['v'], 31), 1)))
         mySignature = recoveryParam + signature['r'] + signature['s']
-        fatty = {}
-        request = {}
-        operation = {}
+        fatty = None
+        request = None
+        operation = None
         chainContractAddress = self.safe_string(currency['info'], 'chainContractAddress')
         if chainTypeString == 'bitcoin':
             operation = {
@@ -1217,7 +1201,7 @@ class bytetrade (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
-        if (code == 503):
+        if code == 503:
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
         if response is None:
             return  # fallback to default error handler

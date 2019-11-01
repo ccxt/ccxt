@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 
 
-class southxchange (Exchange):
+class southxchange(Exchange):
 
     def describe(self):
         return self.deep_extend(super(southxchange, self).describe(), {

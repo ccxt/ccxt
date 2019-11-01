@@ -17,7 +17,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
 
 
-class huobipro (Exchange):
+class huobipro(Exchange):
 
     def describe(self):
         return self.deep_extend(super(huobipro, self).describe(), {

@@ -10,7 +10,7 @@ import math
 from ccxt.base.errors import ExchangeError
 
 
-class btcturk (Exchange):
+class btcturk(Exchange):
 
     def describe(self):
         return self.deep_extend(super(btcturk, self).describe(), {

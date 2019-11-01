@@ -14,7 +14,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
-class indodax (Exchange):
+class indodax(Exchange):
 
     def describe(self):
         return self.deep_extend(super(indodax, self).describe(), {

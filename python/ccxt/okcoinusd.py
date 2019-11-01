@@ -15,7 +15,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 
 
-class okcoinusd (Exchange):
+class okcoinusd(Exchange):
 
     def describe(self):
         return self.deep_extend(super(okcoinusd, self).describe(), {

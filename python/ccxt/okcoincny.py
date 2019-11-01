@@ -6,7 +6,7 @@
 from ccxt.okcoinusd import okcoinusd
 
 
-class okcoincny (okcoinusd):
+class okcoincny(okcoinusd):
 
     def describe(self):
         return self.deep_extend(super(okcoincny, self).describe(), {
