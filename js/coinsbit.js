@@ -311,7 +311,7 @@ module.exports = class coinsbit extends Exchange {
         const symbol = this.safeString (market, 'symbol');
         let timestamp = this.safeString (order, 'time') || this.safeString (order, 'timestamp');
         if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp) * 1000;
+            timestamp = Math.round (timestamp) * 1000;
         }
         const amount = this.safeFloat (order, 'amount');
         const fillAmount = this.safeFloat (order, 'dealStock', amount);
