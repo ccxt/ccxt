@@ -233,7 +233,8 @@ module.exports = class p2pb2b extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privatePostOrders (this.extend (request, params));
-        return this.parseOrders (this.safeValue (response, 'result'), market, since, limit);
+        const result = this.safeValue (response, 'result');
+        return this.parseOrders (this.safeValue (result, 'result'), market, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
