@@ -223,7 +223,6 @@ class bytetrade extends Exchange {
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'symbol');
-            // there may be duplicate codes
             $base = $this->safe_string($market, 'baseName');
             $quote = $this->safe_string($market, 'quoteName');
             $baseId = $this->safe_string($market, 'base');
@@ -530,7 +529,7 @@ class bytetrade extends Exchange {
         $defaultFee = $this->safe_string($this->options, 'fee', '300000000000000');
         $fee = $this->safe_string($params, 'fee', $defaultFee);
         $eightBytes = $this->integer_pow ('2', '64');
-        $byteStringArray = array (
+        $allByteStringArray = array (
             $this->numberToBE (1, 32),
             $this->numberToLE ((int) floor($now / 1000), 4),
             $this->numberToLE (1, 1),
@@ -561,7 +560,48 @@ class bytetrade extends Exchange {
             $this->encode ($chainName),
             $this->numberToLE (0, 1),
         );
-        $bytestring = $this->binary_concat_array($byteStringArray);
+        $txByteStringArray = array (
+            $this->numberToLE ((int) floor($now / 1000), 4),
+            $this->numberToLE (1, 1),
+            $this->numberToLE ((int) floor($expiration / 1000), 4),
+            $this->numberToLE (1, 1),
+            $this->numberToLE (32, 1),
+            $this->numberToLE (0, 8),
+            $this->numberToLE ($fee, 8),  // string for 32 bit php
+            $this->numberToLE (strlen ($this->apiKey), 1),
+            $this->encode ($this->apiKey),
+            $this->numberToLE ($sideNum, 1),
+            $this->numberToLE ($typeNum, 1),
+            $this->numberToLE (strlen ($normalSymbol), 1),
+            $this->encode ($normalSymbol),
+            $this->numberToLE ($this->integer_divide ($amountChain, $eightBytes), 8),
+            $this->numberToLE ($this->integer_modulo ($amountChain, $eightBytes), 8),
+            $this->numberToLE ($this->integer_divide ($priceChain, $eightBytes), 8),
+            $this->numberToLE ($this->integer_modulo ($priceChain, $eightBytes), 8),
+            $this->numberToLE (0, 2),
+            $this->numberToLE ((int) floor($now / 1000), 4),
+            $this->numberToLE ((int) floor($expiration / 1000), 4),
+            $this->numberToLE (0, 2),
+            $this->numberToLE (intval ($quoteId), 4),
+            $this->numberToLE (intval ($baseId), 4),
+            $this->numberToLE (0, 1),
+            $this->numberToLE (1, 1),
+            $this->numberToLE (strlen ($chainName), 1),
+            $this->encode ($chainName),
+            $this->numberToLE (0, 1),
+        );
+        $txbytestring = $this->binary_concat_array($txByteStringArray);
+        $txidhash = $this->hash ($txbytestring, 'sha256', 'hex');
+        $txid = mb_substr($txidhash, 0, 40 - 0);
+        $orderidByteStringArray = array (
+            $this->numberToLE (strlen ($txid), 1),
+            $this->encode ($txid),
+            $this->numberToBE (0, 4),
+        );
+        $orderidbytestring = $this->binary_concat_array($orderidByteStringArray);
+        $orderidhash = $this->hash ($orderidbytestring, 'sha256', 'hex');
+        $orderid = mb_substr($orderidhash, 0, 40 - 0);
+        $bytestring = $this->binary_concat_array($allByteStringArray);
         $hash = $this->hash ($bytestring, 'sha256', 'hex');
         $signature = $this->ecdsa ($hash, $this->secret, 'secp256k1', null, true);
         $recoveryParam = $this->decode (bin2hex($this->numberToLE ($this->sum ($signature['v'], 31), 1)));
@@ -604,7 +644,7 @@ class bytetrade extends Exchange {
         $status = ($statusCode === '0') ? 'open' : 'failed';
         return array (
             'info' => $response,
-            'id' => null,
+            'id' => $orderid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
