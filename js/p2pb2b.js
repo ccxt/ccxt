@@ -18,7 +18,8 @@ module.exports = class p2pb2b extends Exchange {
             'has': {
                 'createMarketOrder': false,
                 'fetchOrder': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
+                'fetchOpenOrders': true,
                 'fetchCurrencies': false,
                 'fetchTicker': true,
                 'fetchTickers': false,
@@ -219,7 +220,7 @@ module.exports = class p2pb2b extends Exchange {
         return await this.privatePostOrderCancel (this.extend (request, params));
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
         }
