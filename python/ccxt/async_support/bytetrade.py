@@ -226,7 +226,6 @@ class bytetrade (Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'symbol')
-            # there may be duplicate codes
             base = self.safe_string(market, 'baseName')
             quote = self.safe_string(market, 'quoteName')
             baseId = self.safe_string(market, 'base')
@@ -503,7 +502,7 @@ class bytetrade (Exchange):
         defaultFee = self.safe_string(self.options, 'fee', '300000000000000')
         fee = self.safe_string(params, 'fee', defaultFee)
         eightBytes = self.integer_pow('2', '64')
-        byteStringArray = [
+        allByteStringArray = [
             self.numberToBE(1, 32),
             self.numberToLE(int(math.floor(now / 1000)), 4),
             self.numberToLE(1, 1),
@@ -534,7 +533,48 @@ class bytetrade (Exchange):
             self.encode(chainName),
             self.numberToLE(0, 1),
         ]
-        bytestring = self.binary_concat_array(byteStringArray)
+        txByteStringArray = [
+            self.numberToLE(int(math.floor(now / 1000)), 4),
+            self.numberToLE(1, 1),
+            self.numberToLE(int(math.floor(expiration / 1000)), 4),
+            self.numberToLE(1, 1),
+            self.numberToLE(32, 1),
+            self.numberToLE(0, 8),
+            self.numberToLE(fee, 8),  # string for 32 bit php
+            self.numberToLE(len(self.apiKey), 1),
+            self.encode(self.apiKey),
+            self.numberToLE(sideNum, 1),
+            self.numberToLE(typeNum, 1),
+            self.numberToLE(len(normalSymbol), 1),
+            self.encode(normalSymbol),
+            self.numberToLE(self.integer_divide(amountChain, eightBytes), 8),
+            self.numberToLE(self.integer_modulo(amountChain, eightBytes), 8),
+            self.numberToLE(self.integer_divide(priceChain, eightBytes), 8),
+            self.numberToLE(self.integer_modulo(priceChain, eightBytes), 8),
+            self.numberToLE(0, 2),
+            self.numberToLE(int(math.floor(now / 1000)), 4),
+            self.numberToLE(int(math.floor(expiration / 1000)), 4),
+            self.numberToLE(0, 2),
+            self.numberToLE(int(quoteId), 4),
+            self.numberToLE(int(baseId), 4),
+            self.numberToLE(0, 1),
+            self.numberToLE(1, 1),
+            self.numberToLE(len(chainName), 1),
+            self.encode(chainName),
+            self.numberToLE(0, 1),
+        ]
+        txbytestring = self.binary_concat_array(txByteStringArray)
+        txidhash = self.hash(txbytestring, 'sha256', 'hex')
+        txid = txidhash[0:40]
+        orderidByteStringArray = [
+            self.numberToLE(len(txid), 1),
+            self.encode(txid),
+            self.numberToBE(0, 4),
+        ]
+        orderidbytestring = self.binary_concat_array(orderidByteStringArray)
+        orderidhash = self.hash(orderidbytestring, 'sha256', 'hex')
+        orderid = orderidhash[0:40]
+        bytestring = self.binary_concat_array(allByteStringArray)
         hash = self.hash(bytestring, 'sha256', 'hex')
         signature = self.ecdsa(hash, self.secret, 'secp256k1', None, True)
         recoveryParam = self.decode(base64.b16encode(self.numberToLE(self.sum(signature['v'], 31), 1)))
@@ -577,7 +617,7 @@ class bytetrade (Exchange):
         status = 'open' if (statusCode == '0') else 'failed'
         return {
             'info': response,
-            'id': None,
+            'id': orderid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
