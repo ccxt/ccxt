@@ -316,7 +316,7 @@ module.exports = class p2pb2b extends Exchange {
         const symbol = this.safeString (market, 'symbol');
         let timestamp = this.safeString (order, 'timestamp');
         if (timestamp !== undefined) {
-            timestamp = Math.round (timestamp * 1000);
+            timestamp = Math.round (parseFloat (timestamp) * 1000);
         }
         const amount = this.safeFloat (order, 'amount');
         const remaining = this.safeFloat (order, 'left');
@@ -346,7 +346,7 @@ module.exports = class p2pb2b extends Exchange {
         const symbol = this.safeString (market, 'symbol');
         let timestamp = this.safeString (order, 'time');
         if (timestamp !== undefined) {
-            timestamp = Math.round (timestamp * 1000);
+            timestamp = Math.round (parseFloat (timestamp) * 1000);
         }
         const amount = this.safeFloat (order, 'amount');
         const fillAmount = this.safeFloat (order, 'dealStock', amount);
