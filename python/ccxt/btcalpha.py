@@ -12,7 +12,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
 
 
-class btcalpha (Exchange):
+class btcalpha(Exchange):
 
     def describe(self):
         return self.deep_extend(super(btcalpha, self).describe(), {

@@ -18,7 +18,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 
 
-class bitforex (Exchange):
+class bitforex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitforex, self).describe(), {

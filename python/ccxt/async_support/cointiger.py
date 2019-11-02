@@ -17,7 +17,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 
 
-class cointiger (huobipro):
+class cointiger(huobipro):
 
     def describe(self):
         return self.deep_extend(super(cointiger, self).describe(), {

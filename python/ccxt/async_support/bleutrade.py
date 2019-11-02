@@ -12,7 +12,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 
 
-class bleutrade (bittrex):
+class bleutrade(bittrex):
 
     def describe(self):
         timeframes = {

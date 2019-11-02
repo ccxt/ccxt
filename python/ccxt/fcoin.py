@@ -19,7 +19,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
 
-class fcoin (Exchange):
+class fcoin(Exchange):
 
     def describe(self):
         return self.deep_extend(super(fcoin, self).describe(), {

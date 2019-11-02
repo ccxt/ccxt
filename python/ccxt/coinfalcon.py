@@ -11,7 +11,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import DDoSProtection
 
 
-class coinfalcon (Exchange):
+class coinfalcon(Exchange):
 
     def describe(self):
         return self.deep_extend(super(coinfalcon, self).describe(), {

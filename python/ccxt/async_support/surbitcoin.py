@@ -6,7 +6,7 @@
 from ccxt.async_support.foxbit import foxbit
 
 
-class surbitcoin (foxbit):
+class surbitcoin(foxbit):
 
     def describe(self):
         return self.deep_extend(super(surbitcoin, self).describe(), {

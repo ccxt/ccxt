@@ -23,7 +23,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 
 
-class tidex (Exchange):
+class tidex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(tidex, self).describe(), {

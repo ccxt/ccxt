@@ -12,7 +12,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
 
-class bigone (Exchange):
+class bigone(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bigone, self).describe(), {

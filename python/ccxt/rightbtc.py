@@ -14,7 +14,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.decimal_to_precision import ROUND
 
 
-class rightbtc (Exchange):
+class rightbtc(Exchange):
 
     def describe(self):
         return self.deep_extend(super(rightbtc, self).describe(), {
