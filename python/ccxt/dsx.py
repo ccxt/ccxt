@@ -24,7 +24,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
 
-class dsx (Exchange):
+class dsx(Exchange):
 
     def describe(self):
         return self.deep_extend(super(dsx, self).describe(), {

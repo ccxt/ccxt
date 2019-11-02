@@ -13,7 +13,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
 
 
-class cobinhood (Exchange):
+class cobinhood(Exchange):
 
     def describe(self):
         return self.deep_extend(super(cobinhood, self).describe(), {

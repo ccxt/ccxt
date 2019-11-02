@@ -31,7 +31,7 @@ from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 
-class kraken (Exchange):
+class kraken(Exchange):
 
     def describe(self):
         return self.deep_extend(super(kraken, self).describe(), {

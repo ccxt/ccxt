@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 
 
-class flowbtc (Exchange):
+class flowbtc(Exchange):
 
     def describe(self):
         return self.deep_extend(super(flowbtc, self).describe(), {

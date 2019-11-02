@@ -23,7 +23,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
 
-class exmo (Exchange):
+class exmo(Exchange):
 
     def describe(self):
         return self.deep_extend(super(exmo, self).describe(), {

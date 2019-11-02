@@ -14,7 +14,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 
 
-class bitmart (Exchange):
+class bitmart(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitmart, self).describe(), {

@@ -9,7 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 
 
-class luno (Exchange):
+class luno(Exchange):
 
     def describe(self):
         return self.deep_extend(super(luno, self).describe(), {
