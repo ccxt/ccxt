@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const IncrementalOrderBook = require ('./base/IncrementalOrderBook');
+// const IncrementalOrderBook = require ('./base/IncrementalOrderBook');
 
 //  ---------------------------------------------------------------------------
 
@@ -63,10 +63,10 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const url = this.urls['api']['websocket']['public'] + market['id'].toLowerCase () + '@depth';
-        if (!(symbol in this.orderbooks)) {
-            const snapshot = await this.fetchOrderBook (symbol, limit, params);
-            this.orderbooks[symbol] = new IncrementalOrderBook (snapshot);
-        }
+        // if (!(symbol in this.orderbooks)) {
+        //     const snapshot = await this.fetchOrderBook (symbol, limit, params);
+        //     this.orderbooks[symbol] = new IncrementalOrderBook (snapshot);
+        // }
         return await this.WsOrderBookMessage (url, url);
     }
 

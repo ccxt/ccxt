@@ -34,7 +34,10 @@
     "postinstall": "node postinstall"
   },
   "types": "./ccxt.pro.d.ts",
-  "dependencies": {},
+  "dependencies": {
+    "ccxt": "^1.18.1350",
+    "ws": "^7.2.0"
+  },
   "devDependencies": {
     "ansicolor": "1.1.81",
     "as-table": "1.0.37",

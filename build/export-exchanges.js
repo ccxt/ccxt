@@ -27,11 +27,19 @@ function exportEverything () {
 
     // cloneGitHubWiki (gitWikiPath)
 
+    // const ids = exportExchanges ({
+    //     // python2Folder: './python/ccxtpro',
+    //     python3Folder: './python/ccxtpro',
+    //     phpFolder: './php'
+    // })
+
     const ids = exportExchanges ({
-        // python2Folder: './python/ccxtpro',
-        python3Folder: './python/ccxtpro',
-        phpFolder: './php'
+        js:      { folder: '.', file: '/ccxt.pro.js' },
+        // python2: { folder: './python/ccxtpro', file: '/__init__.py' },
+        python3: { folder: './python/ccxtpro', file: '/__init__.py' },
+        php:     { folder: './php', file: '/base/Exchange.php' },
     })
+
 
     // strategically placed exactly here (we can require it AFTER the export)
     const exchanges = createExchanges (ids)

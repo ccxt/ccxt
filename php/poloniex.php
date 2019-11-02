@@ -113,7 +113,7 @@ class poloniex extends Exchange {
             } else if ($delta[0] === 'o') {
                 $price = floatval ($delta[2]);
                 $amount = floatval ($delta[3]);
-                $operation = $amount === 0 ? 'delete' : 'add';
+                $operation = ($amount === 0) ? 'delete' : 'add';
                 $side = $delta[1] ? 'bids' : 'asks';
                 $delta = [null, $operation, $side, $price, $amount];
                 $deltas[] = $delta;
@@ -121,9 +121,9 @@ class poloniex extends Exchange {
         }
         $market = $this->safe_value($this->options['marketsByNumericId'], (string) $orderBook[0]);
         $symbol = $this->safe_string($market, 'symbol');
-        if (!(is_array($this->orderBooks) && array_key_exists($symbol, $this->orderBooks))) {
-            $this->orderBooks[$symbol] = new IncrementalOrderBook (array_shift($deltas));
-        }
+        // if (!(is_array($this->orderBooks) && array_key_exists($symbol, $this->orderBooks))) {
+        //     $this->orderBooks[$symbol] = new IncrementalOrderBook (array_shift($deltas));
+        // }
         $incrementalBook = $this->orderBooks[$symbol];
         $incrementalBook->update ($deltas);
         $incrementalBook->orderBook['nonce'] = $orderBook[1];

@@ -6,7 +6,7 @@
 const isNode = (typeof window === 'undefined')
 const WebSocket = isNode ? require ('ws') : window.WebSocket
 const Future = require ('./Future')
-const ccxt = require ('./../../ccxt')
+const { RequestTimeout } = require ('ccxt/js/base/errors')
 
 class WebSocketClient {
     constructor (url, handler, timeout = 5000) {
@@ -33,7 +33,7 @@ class WebSocketClient {
         await this.timedoutFuture.promise ()
         clearInterval (pinger)
         for (let messageKey of Object.keys (this.futures)) {
-            let error = new ccxt.RequestTimeout ('Websocket did not recieve a pong in reply to a ping within ' + this.timeout + ' seconds');
+            let error = new RequestTimeout ('Websocket did not recieve a pong in reply to a ping within ' + this.timeout + ' seconds');
             this.futures[messageKey].reject (error)
         }
         this.futures = {}

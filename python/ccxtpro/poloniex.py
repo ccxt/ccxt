@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 
 
-class poloniex (Exchange):
+class poloniex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(poloniex, self).describe(), {
@@ -102,14 +102,15 @@ class poloniex (Exchange):
             elif delta[0] == 'o':
                 price = float(delta[2])
                 amount = float(delta[3])
-                operation = amount == 'delete' if 0 else 'add'
+                operation = 'delete' if (amount == 0) else 'add'
                 side = 'bids' if delta[1] else 'asks'
                 delta = [None, operation, side, price, amount]
                 deltas.append(delta)
         market = self.safe_value(self.options['marketsByNumericId'], str(orderBook[0]))
         symbol = self.safe_string(market, 'symbol')
-        if not (symbol in list(self.orderBooks.keys())):
-            self.orderBooks[symbol] = IncrementalOrderBook(deltas.pop(0))
+        # if not (symbol in list(self.orderBooks.keys())):
+        #     self.orderBooks[symbol] = IncrementalOrderBook(deltas.pop(0))
+        # }
         incrementalBook = self.orderBooks[symbol]
         incrementalBook.update(deltas)
         incrementalBook.orderBook['nonce'] = orderBook[1]

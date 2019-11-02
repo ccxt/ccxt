@@ -2,13 +2,14 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const IncrementalOrderBook = require ('./base/IncrementalOrderBook');
+const ccxt = require ('ccxt');
+// const IncrementalOrderBook = require ('./base/IncrementalOrderBook');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitfinex extends Exchange {
+module.exports = class bitfinex extends ccxt.bitfinex {
     describe () {
+        console.log ('foobar');
         return this.deepExtend (super.describe (), {
             'has': {
                 'fetchWsTicker': true,
@@ -88,9 +89,9 @@ module.exports = class bitfinex extends Exchange {
             }
         }
         const symbol = this.parseSymbol (orderBook);
-        if (!(symbol in this.orderBooks)) {
-            this.orderBooks[symbol] = new IncrementalOrderBook ();
-        }
+        // if (!(symbol in this.orderBooks)) {
+        //     this.orderBooks[symbol] = new IncrementalOrderBook ();
+        // }
         const nonce = undefined;
         const timestamp = undefined;
         return this.orderBooks[symbol].update (nonce, timestamp, bids, asks);

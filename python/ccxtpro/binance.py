@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 
 
-class binance (Exchange):
+class binance(Exchange):
 
     def describe(self):
         return self.deep_extend(super(binance, self).describe(), {
@@ -57,9 +57,10 @@ class binance (Exchange):
         await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['websocket']['public'] + market['id'].lower() + '@depth'
-        if not (symbol in list(self.orderbooks.keys())):
-            snapshot = await self.fetch_order_book(symbol, limit, params)
-            self.orderbooks[symbol] = IncrementalOrderBook(snapshot)
+        # if not (symbol in list(self.orderbooks.keys())):
+        #     snapshot = await self.fetch_order_book(symbol, limit, params)
+        #     self.orderbooks[symbol] = IncrementalOrderBook(snapshot)
+        # }
         return await self.WsOrderBookMessage(url, url)
 
     def handle_ws_order_book(self, orderBook):

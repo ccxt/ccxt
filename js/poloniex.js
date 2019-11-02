@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const IncrementalOrderBook = require ('./base/IncrementalOrderBook');
+// const IncrementalOrderBook = require ('./base/IncrementalOrderBook');
 
 //  ---------------------------------------------------------------------------
 
@@ -112,7 +112,7 @@ module.exports = class poloniex extends Exchange {
             } else if (delta[0] === 'o') {
                 const price = parseFloat (delta[2]);
                 const amount = parseFloat (delta[3]);
-                const operation = amount === 0 ? 'delete' : 'add';
+                const operation = (amount === 0) ? 'delete' : 'add';
                 const side = delta[1] ? 'bids' : 'asks';
                 delta = [undefined, operation, side, price, amount];
                 deltas.push (delta);
@@ -120,9 +120,9 @@ module.exports = class poloniex extends Exchange {
         }
         const market = this.safeValue (this.options['marketsByNumericId'], orderBook[0].toString ());
         const symbol = this.safeString (market, 'symbol');
-        if (!(symbol in this.orderBooks)) {
-            this.orderBooks[symbol] = new IncrementalOrderBook (deltas.shift ());
-        }
+        // if (!(symbol in this.orderBooks)) {
+        //     this.orderBooks[symbol] = new IncrementalOrderBook (deltas.shift ());
+        // }
         const incrementalBook = this.orderBooks[symbol];
         incrementalBook.update (deltas);
         incrementalBook.orderBook['nonce'] = orderBook[1];

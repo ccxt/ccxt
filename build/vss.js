@@ -22,11 +22,11 @@ function vssEverything () {
     version = incrementVersionPatchNumber (version)
     log.bright ('New version: '.cyan, version)
 
-    vss ('./ccxt.js',                                    "const version = '{version}'", version)
-    vss ('./php/base/Exchange.php',                      "$version = '{version}'",      version)
-    vss ('./php/base/Exchange.php',                      "VERSION = '{version}'",       version)
-    vss ('./python/ccxtpro/__init__.py',                    "__version__ = '{version}'",   version)
-    vss ('./python/ccxtpro/base/exchange.py',               "__version__ = '{version}'",   version)
+    vss ('./ccxt.pro.js',                     "const version = '{version}'", version)
+    vss ('./php/base/Exchange.php',           "$version = '{version}'",      version)
+    vss ('./php/base/Exchange.php',           "VERSION = '{version}'",       version)
+    vss ('./python/ccxtpro/__init__.py',      "__version__ = '{version}'",   version)
+    vss ('./python/ccxtpro/base/exchange.py', "__version__ = '{version}'",   version)
 
     vss ('./README.md',       "ccxt@{version}")
     // vss ('./wiki/Install.md', "ccxt@{version}")

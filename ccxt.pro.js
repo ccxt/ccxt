@@ -4,33 +4,35 @@
 
 // TODO rework this
 
-const Exchange  = require ('ccxt/js/base/Exchange')
-    , functions = require ('ccxt/js/base/functions')
-    , errors    = require ('ccxt/js/base/errors')
+const ccxt = require ('ccxt')
+    , { deepExtend } = ccxt
+    // , Exchange  = require ('ccxt/js/base/Exchange')
+    // , functions = require ('ccxt/js/base/functions')
+    // , errors    = require ('ccxt/js/base/errors')
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.1351'
+const version = '1.0.0'
 
-Exchange.ccxtVersion = version
+// Exchange.ccxtVersion = version
 
 //-----------------------------------------------------------------------------
 
 const exchanges = {
     'binance':                 require ('./js/binance.js'),
     'bitfinex':                require ('./js/bitfinex.js'),
-    'poloniex':                require ('./js/poloniex.js'),
+    'poloniex':                require ('./js/poloniex.js'),    
 }
 
 //-----------------------------------------------------------------------------
 
 // TODO monkey-patch
 
-module.exports = Object.assign ({
+module.exports = deepExtend (ccxt, {
     version,
-    Exchange,
-    exchanges: Object.keys (exchanges)
-}, exchanges, functions, errors)
+    // Exchange,
+    exchanges: ccxt.exchanges.concat (Object.keys (exchanges)),
+}, exchanges)
 
 //-----------------------------------------------------------------------------

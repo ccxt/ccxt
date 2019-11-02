@@ -64,10 +64,10 @@ class binance extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $url = $this->urls['api']['websocket']['public'] . strtolower($market['id']) . '@depth';
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
-            $snapshot = $this->fetch_order_book($symbol, $limit, $params);
-            $this->orderbooks[$symbol] = new IncrementalOrderBook ($snapshot);
-        }
+        // if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        //     $snapshot = $this->fetch_order_book($symbol, $limit, $params);
+        //     $this->orderbooks[$symbol] = new IncrementalOrderBook ($snapshot);
+        // }
         return $this->WsOrderBookMessage ($url, $url);
     }
 
