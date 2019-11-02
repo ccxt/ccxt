@@ -1,8 +1,8 @@
 const ccxt = require("./ccxt")
 // const bitbnsApi = require('bitbns');
 // const bitbns2 = new bitbnsApi({
-//       apiKey :  '***REMOVED***',
-//       apiSecretKey : '***REMOVED***'
+//       apiKey :  'EC17DC6AAF115A2796D821D4A32D17C4',
+//       apiSecretKey : '79944F76EB93AA6BB82A296B4EDF3AFD'
 // }); 
 // console.log(ccxt.version);
 

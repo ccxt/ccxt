@@ -14,7 +14,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
-class adara (Exchange):
+class adara(Exchange):
 
     def describe(self):
         return self.deep_extend(super(adara, self).describe(), {

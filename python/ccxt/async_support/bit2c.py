@@ -16,7 +16,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 
 
-class bit2c (Exchange):
+class bit2c(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bit2c, self).describe(), {

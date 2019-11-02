@@ -8,7 +8,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
 
 
-class coincheck (Exchange):
+class coincheck(Exchange):
 
     def describe(self):
         return self.deep_extend(super(coincheck, self).describe(), {

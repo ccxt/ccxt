@@ -8,7 +8,7 @@ import base64
 import hashlib
 
 
-class btcchina (Exchange):
+class btcchina(Exchange):
 
     def describe(self):
         return self.deep_extend(super(btcchina, self).describe(), {

@@ -8,7 +8,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 
 
-class mixcoins (Exchange):
+class mixcoins(Exchange):
 
     def describe(self):
         return self.deep_extend(super(mixcoins, self).describe(), {

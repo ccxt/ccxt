@@ -13,7 +13,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
 
 
-class bitbay (Exchange):
+class bitbay(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitbay, self).describe(), {

@@ -12,7 +12,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
-class ftx (Exchange):
+class ftx(Exchange):
 
     def describe(self):
         return self.deep_extend(super(ftx, self).describe(), {

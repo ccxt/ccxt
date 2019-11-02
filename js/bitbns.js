@@ -78,8 +78,6 @@ module.exports = class bitbns extends Exchange {
             },
             'verbose': true,
             // 'proxy': '',
-            // 'apiKey': '***REMOVED***',
-            // 'secret': '***REMOVED***',
         });
     }
 

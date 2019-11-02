@@ -11,7 +11,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
 
 
-class coinfloor (Exchange):
+class coinfloor(Exchange):
 
     def describe(self):
         return self.deep_extend(super(coinfloor, self).describe(), {

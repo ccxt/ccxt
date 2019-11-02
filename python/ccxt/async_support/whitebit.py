@@ -15,7 +15,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import DDoSProtection
 
 
-class whitebit (Exchange):
+class whitebit(Exchange):
 
     def describe(self):
         return self.deep_extend(super(whitebit, self).describe(), {

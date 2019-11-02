@@ -25,7 +25,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 
 
-class bibox (Exchange):
+class bibox(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bibox, self).describe(), {

@@ -8,7 +8,7 @@ import math
 from ccxt.base.errors import ExchangeError
 
 
-class coinexchange (Exchange):
+class coinexchange(Exchange):
 
     def describe(self):
         return self.deep_extend(super(coinexchange, self).describe(), {

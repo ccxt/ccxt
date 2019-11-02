@@ -19,7 +19,7 @@ from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 
-class livecoin (Exchange):
+class livecoin(Exchange):
 
     def describe(self):
         return self.deep_extend(super(livecoin, self).describe(), {

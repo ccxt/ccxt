@@ -32,7 +32,7 @@ from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 
 
-class okex3 (Exchange):
+class okex3(Exchange):
 
     def describe(self):
         return self.deep_extend(super(okex3, self).describe(), {
@@ -571,12 +571,14 @@ class okex3 (Exchange):
         future = False
         swap = False
         baseId = self.safe_string(market, 'base_currency')
-        if baseId is None:
+        contractVal = self.safe_float(market, 'contract_val')
+        if contractVal is not None:
             marketType = 'swap'
             spot = False
             swap = True
             baseId = self.safe_string(market, 'coin')
-            if baseId is None:
+            futuresAlias = self.safe_string(market, 'alias')
+            if futuresAlias is not None:
                 swap = False
                 future = True
                 marketType = 'futures'
