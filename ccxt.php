@@ -28,35 +28,23 @@ SOFTWARE.
 
 //-----------------------------------------------------------------------------
 
-namespace ccxt;
+namespace ccxtpro;
 
-define('PATH_TO_CCXT', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR);
-define('PATH_TO_CCXT_BASE', PATH_TO_CCXT . 'base' . DIRECTORY_SEPARATOR);
+// echo "--------------------------------------------------------------\n";
+// debug_print_backtrace();
+// echo "--------------------------------------------------------------\n";
 
-spl_autoload_register(function ($class) {
-    // used to include static dependencies
-    $PATH = PATH_TO_CCXT . 'static_dependencies/';
-    if (strpos($class, 'kornrunner') !== false) {
-        $version = phpversion();
-        if (intval(explode('.', $version)[0]) < 7) {
-            throw new \RuntimeException($class . " requires php7 or greater, your version: " . $version);
-        }
-    }
-    $class_name = str_replace('kornrunner\\Solidity', 'kornrunner/solidity/src/Solidity', $class);
-    $class_name = str_replace('kornrunner\\Keccak', 'kornrunner/keccak/src/Keccak', $class_name);
-    $class_name = str_replace('Elliptic\\', 'elliptic-php/lib/', $class_name);
-    $class_name = str_replace('\\', DIRECTORY_SEPARATOR, $class_name);
-    $file = $PATH . $class_name . '.php';
-    if (file_exists ($file))
-        require_once $file;
-});
+require_once 'vendor/autoload.php';
 
-// require_once PATH_TO_CCXT_BASE . 'errors.php';
-require_once PATH_TO_CCXT_BASE . 'Exchange.php';
+define('PATH_TO_CCXTPRO', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR);
+define('PATH_TO_CCXTPRO_BASE', PATH_TO_CCXT . 'base' . DIRECTORY_SEPARATOR);
+
+// require_once PATH_TO_CCXTPRO_BASE . 'errors.php';
+require_once PATH_TO_CCXTPRO_BASE . 'Exchange.php';
 
 spl_autoload_register (function ($class_name) {
     $class_name = str_replace ("ccxt\\", "", $class_name);
-    $file = PATH_TO_CCXT . $class_name . '.php';
+    $file = PATH_TO_CCXTPRO . $class_name . '.php';
     if (file_exists ($file))
         require_once $file;
 });

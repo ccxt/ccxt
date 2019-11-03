@@ -14,7 +14,7 @@ function on_error ($errno, $message, $file, $line) {
 
 set_error_handler ('on_error');
 
-include_once 'ccxt.php';
+require_once 'ccxt.php';
 
 foreach (\ccxt\Exchange::$exchanges as $id) {
     $exchange = '\\ccxt\\' . $id;
