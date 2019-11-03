@@ -8,7 +8,7 @@ __version__ = '1.0.0'
 
 # -----------------------------------------------------------------------------
 
-from ccxt.async_support.base.exchange import Exchange                   # noqa: F401
+from ccxt.base.exchange import Exchange                   # noqa: F401
 
 from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa: F401
 from ccxt.base.decimal_to_precision import TRUNCATE              # noqa: F401
@@ -34,8 +34,10 @@ from ccxt.base.errors import DuplicateOrderId                   # noqa: F401
 from ccxt.base.errors import CancelPending                      # noqa: F401
 from ccxt.base.errors import NetworkError                       # noqa: F401
 from ccxt.base.errors import DDoSProtection                     # noqa: F401
+from ccxt.base.errors import RateLimitExceeded                  # noqa: F401
 from ccxt.base.errors import RequestTimeout                     # noqa: F401
 from ccxt.base.errors import ExchangeNotAvailable               # noqa: F401
+from ccxt.base.errors import OnMaintenance                      # noqa: F401
 from ccxt.base.errors import InvalidAddress                     # noqa: F401
 from ccxt.base.errors import AddressPending                     # noqa: F401
 from ccxt.base.errors import ArgumentsRequired                  # noqa: F401
@@ -46,9 +48,9 @@ from ccxt.base.errors import OrderImmediatelyFillable           # noqa: F401
 from ccxt.base.errors import OrderNotFillable                   # noqa: F401
 
 
-from ccxt.async_support.binance import binance                            # noqa: F401
-from ccxt.async_support.bitfinex import bitfinex                          # noqa: F401
-from ccxt.async_support.poloniex import poloniex                          # noqa: F401
+from ccxt.binance import binance                            # noqa: F401
+from ccxt.bitfinex import bitfinex                          # noqa: F401
+from ccxt.poloniex import poloniex                          # noqa: F401
 
 exchanges = [
     'binance',

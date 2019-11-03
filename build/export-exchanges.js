@@ -35,8 +35,8 @@ function exportEverything () {
 
     const ids = exportExchanges ({
         js:      { folder: '.', file: '/ccxt.pro.js' },
-        // python2: { folder: './python/ccxtpro', file: '/__init__.py' },
-        python3: { folder: './python/ccxtpro', file: '/__init__.py' },
+        python2: { folder: './python/ccxtpro', file: '/__init__.py' },
+        // python3: { folder: './python/ccxtpro', file: '/__init__.py' },
         php:     { folder: './php', file: '/base/Exchange.php' },
     })
 
