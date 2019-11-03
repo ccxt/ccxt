@@ -223,18 +223,23 @@ class poloniex extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        if ($since === null) {
-            $since = 0;
-        }
         $request = array (
             'currencyPair' => $market['id'],
             'period' => $this->timeframes[$timeframe],
-            'start' => intval ($since / 1000),
         );
-        if ($limit !== null) {
-            $request['end'] = $this->sum ($request['start'], $limit * $this->timeframes[$timeframe]);
+        if ($since === null) {
+            $request['end'] = $this->seconds ();
+            if ($limit === null) {
+                $request['start'] = $request['end'] - $this->parse_timeframe('1w'); // max range = 1 week
+            } else {
+                $request['start'] = $request['end'] - $this->sum ($limit) * $this->parse_timeframe($timeframe);
+            }
         } else {
-            $request['end'] = $this->sum ($this->seconds (), 1);
+            $request['start'] = intval ($since / 1000);
+            if ($limit !== null) {
+                $end = $this->sum ($request['start'], $limit * $this->parse_timeframe($timeframe));
+                $request['end'] = $end;
+            }
         }
         $response = $this->publicGetReturnChartData (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
