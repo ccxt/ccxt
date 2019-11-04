@@ -78,6 +78,8 @@ module.exports = class bitbns extends Exchange {
             },
             'verbose': true,
             // 'proxy': '',
+            'apiKey': '',
+            'secret': '',
         });
     }
 
@@ -162,6 +164,11 @@ module.exports = class bitbns extends Exchange {
     async fetchMarkets (params = {}) {
         const data = await this.publicGetFetchMarkets ();
         // console.log(data);
+        for (let i = 0; i < data.length; i += 1) {
+            if (data[i]['quote'] === 'USDT') {
+                data[i]['us_symbol'] = data[i]['base'] + '_' + data[i]['quote'];
+            }
+        }
         return data;
     }
 
@@ -221,12 +228,9 @@ module.exports = class bitbns extends Exchange {
             'quantity': amount,
             'rate': price,
         };
-        const splitSymbol = symbol.split ('/');
-        if (splitSymbol[1] === 'USDT') {
-            request['symbol'] = splitSymbol[0] + '_' + splitSymbol[1];
+        if (market['quote'] === 'USDT') {
+            request['symbol'] = market['us_symbol'];
         }
-        // console.log (request);
-        // return request;
         const resp = await this.privatePostOrders (this.extend (request, params));
         return {
             'info': resp,
@@ -242,11 +246,10 @@ module.exports = class bitbns extends Exchange {
             'symbol': tradingSymbol,
             'entry_id': id,
         };
-        const splitSymbol = symbol.split ('/');
-        if (splitSymbol[1] === 'USDT') {
-            request['symbol'] = splitSymbol[0] + '_' + splitSymbol[1];
+        if (market['quote'] === 'USDT') {
+            request['symbol'] = market['us_symbol'];
         }
-        if (splitSymbol[1] === 'USDT') {
+        if (market['quote'] === 'USDT') {
             request['side'] = 'usdtcancelOrder';
         } else {
             request['side'] = 'cancelOrder';
@@ -299,15 +302,14 @@ module.exports = class bitbns extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const tradingSymbol = market['id'];
-        const splitSymbol = symbol.split ('/');
         const request = {
             'symbol': tradingSymbol,
             'page': 0,
         };
-        if (splitSymbol[1] === 'USDT') {
-            request['symbol'] = splitSymbol[0] + '_' + splitSymbol[1];
+        if (market['quote'] === 'USDT') {
+            request['symbol'] = market['us_symbol'];
         }
-        if (splitSymbol[1] === 'USDT') {
+        if (market['quote'] === 'USDT') {
             request['side'] = 'usdtListOpenOrders';
         } else {
             request['side'] = 'listOpenOrders';
