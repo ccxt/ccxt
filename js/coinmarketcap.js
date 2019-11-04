@@ -105,6 +105,7 @@ module.exports = class coinmarketcap extends Exchange {
             'Comet': 'Comet', // conflict with CMT (CyberMiles)
             'CPChain': 'CPChain',
             'CrowdCoin': 'CrowdCoin', // conflict with CRC CryCash
+            'Cryptaur': 'Cryptaur', // conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
             'Cubits': 'Cubits', // conflict with QBT (Qbao)
             'DAO.Casino': 'DAO.Casino', // conflict with BET (BetaCoin)
             'E-Dinar Coin': 'E-Dinar Coin', // conflict with EDR Endor Protocol and EDRCoin
