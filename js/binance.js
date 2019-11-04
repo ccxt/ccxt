@@ -891,6 +891,7 @@ module.exports = class binance extends Exchange {
         const marketOrderType = {
             'spotMargin': [
                 'LIMIT',
+                'MARKET',
                 'STOP_LOSS',
                 'TAKE_PROFIT',
                 'STOP_LOSS_LIMIT',
