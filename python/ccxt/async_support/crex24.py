@@ -20,7 +20,7 @@ from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 
 
-class crex24 (Exchange):
+class crex24(Exchange):
 
     def describe(self):
         return self.deep_extend(super(crex24, self).describe(), {

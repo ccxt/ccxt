@@ -11,7 +11,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ExchangeNotAvailable
 
 
-class exx (Exchange):
+class exx(Exchange):
 
     def describe(self):
         return self.deep_extend(super(exx, self).describe(), {

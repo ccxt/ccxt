@@ -15,7 +15,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
 
 
-class stronghold (Exchange):
+class stronghold(Exchange):
 
     def describe(self):
         return self.deep_extend(super(stronghold, self).describe(), {

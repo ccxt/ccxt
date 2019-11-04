@@ -163,6 +163,10 @@ class huobipro extends Exchange {
                 'language' => 'en-US',
             ),
             'commonCurrencies' => array (
+                // https://github.com/ccxt/ccxt/issues/6081
+                // https://github.com/ccxt/ccxt/issues/3365
+                // https://github.com/ccxt/ccxt/issues/2873
+                'GET' => 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
                 'HOT' => 'Hydro Protocol', // conflict with HOT (Holo) https://github.com/ccxt/ccxt/issues/4929
             ),
         ));

@@ -19,7 +19,7 @@ from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import ROUND
 
 
-class binance (Exchange):
+class binance(Exchange):
 
     def describe(self):
         return self.deep_extend(super(binance, self).describe(), {

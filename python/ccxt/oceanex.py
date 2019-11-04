@@ -14,7 +14,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
-class oceanex (Exchange):
+class oceanex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(oceanex, self).describe(), {

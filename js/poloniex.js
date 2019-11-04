@@ -222,18 +222,23 @@ module.exports = class poloniex extends Exchange {
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (since === undefined) {
-            since = 0;
-        }
         const request = {
             'currencyPair': market['id'],
             'period': this.timeframes[timeframe],
-            'start': parseInt (since / 1000),
         };
-        if (limit !== undefined) {
-            request['end'] = this.sum (request['start'], limit * this.timeframes[timeframe]);
+        if (since === undefined) {
+            request['end'] = this.seconds ();
+            if (limit === undefined) {
+                request['start'] = request['end'] - this.parseTimeframe ('1w'); // max range = 1 week
+            } else {
+                request['start'] = request['end'] - this.sum (limit) * this.parseTimeframe (timeframe);
+            }
         } else {
-            request['end'] = this.sum (this.seconds (), 1);
+            request['start'] = parseInt (since / 1000);
+            if (limit !== undefined) {
+                const end = this.sum (request['start'], limit * this.parseTimeframe (timeframe));
+                request['end'] = end;
+            }
         }
         const response = await this.publicGetReturnChartData (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);

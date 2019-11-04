@@ -6,7 +6,7 @@
 from ccxt.async_support.coinbasepro import coinbasepro
 
 
-class coinbaseprime (coinbasepro):
+class coinbaseprime(coinbasepro):
 
     def describe(self):
         return self.deep_extend(super(coinbaseprime, self).describe(), {

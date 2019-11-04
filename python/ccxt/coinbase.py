@@ -10,7 +10,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import RateLimitExceeded
 
 
-class coinbase (Exchange):
+class coinbase(Exchange):
 
     def describe(self):
         return self.deep_extend(super(coinbase, self).describe(), {

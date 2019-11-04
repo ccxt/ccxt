@@ -9,7 +9,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import OrderNotFound
 
 
-class bitflyer (Exchange):
+class bitflyer(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitflyer, self).describe(), {

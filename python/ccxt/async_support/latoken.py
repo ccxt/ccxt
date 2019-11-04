@@ -16,7 +16,7 @@ from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import ROUND
 
 
-class latoken (Exchange):
+class latoken(Exchange):
 
     def describe(self):
         return self.deep_extend(super(latoken, self).describe(), {

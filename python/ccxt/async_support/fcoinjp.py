@@ -6,7 +6,7 @@
 from ccxt.async_support.fcoin import fcoin
 
 
-class fcoinjp (fcoin):
+class fcoinjp(fcoin):
 
     def describe(self):
         return self.deep_extend(super(fcoinjp, self).describe(), {

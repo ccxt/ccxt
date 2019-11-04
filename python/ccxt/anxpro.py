@@ -17,7 +17,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 
 
-class anxpro (Exchange):
+class anxpro(Exchange):
 
     def describe(self):
         return self.deep_extend(super(anxpro, self).describe(), {

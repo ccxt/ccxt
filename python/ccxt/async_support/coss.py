@@ -8,7 +8,7 @@ import math
 from ccxt.base.errors import ArgumentsRequired
 
 
-class coss (Exchange):
+class coss(Exchange):
 
     def describe(self):
         return self.deep_extend(super(coss, self).describe(), {

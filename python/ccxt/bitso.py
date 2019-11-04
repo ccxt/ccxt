@@ -17,7 +17,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
 
 
-class bitso (Exchange):
+class bitso(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitso, self).describe(), {
