@@ -42,6 +42,7 @@ class huobipro extends Exchange {
                 '15m' => '15min',
                 '30m' => '30min',
                 '1h' => '60min',
+                '4h' => '4hour',
                 '1d' => '1day',
                 '1w' => '1week',
                 '1M' => '1mon',
