@@ -7,7 +7,7 @@ namespace ccxt;
 
 use Exception as Exception; // a common import
 
-class binance extends Exchange {
+class binance extends ccxt.binance {
 
     public function describe () {
         return array_replace_recursive (parent::describe (), array (

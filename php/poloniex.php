@@ -7,7 +7,7 @@ namespace ccxt;
 
 use Exception as Exception; // a common import
 
-class poloniex extends Exchange {
+class poloniex extends ccxt.poloniex {
 
     public function describe () {
         return array_replace_recursive (parent::describe (), array (

@@ -2,12 +2,12 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
+const ccxt = require ('ccxt');
 // const IncrementalOrderBook = require ('./base/IncrementalOrderBook');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class binance extends Exchange {
+module.exports = class binance extends ccxt.binance {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

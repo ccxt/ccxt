@@ -16,7 +16,6 @@ class bitfinex(ccxt.bitfinex):
                 'fetchWsOrderBook': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
                 'api': {
                     'wss': 'wss://api-pub.bitfinex.com/ws/2',
                 },

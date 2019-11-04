@@ -9,14 +9,12 @@ const ccxt = require ('ccxt');
 
 module.exports = class bitfinex extends ccxt.bitfinex {
     describe () {
-        console.log ('foobar');
         return this.deepExtend (super.describe (), {
             'has': {
                 'fetchWsTicker': true,
                 'fetchWsOrderBook': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
                 'api': {
                     'wss': 'wss://api-pub.bitfinex.com/ws/2',
                 },
