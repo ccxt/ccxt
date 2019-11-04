@@ -69,8 +69,9 @@ module.exports = class coinsbit extends Exchange {
             },
             'exceptions': {
                 'balance not enough': InsufficientFunds,
+                'amount is less than': InvalidOrder,
                 'Total is less than': InvalidOrder,
-                'This action is unauthorized': AuthenticationError,
+                'This action is unauthorized.': AuthenticationError,
             },
         });
     }
@@ -350,6 +351,10 @@ module.exports = class coinsbit extends Exchange {
                 const success = this.safeValue (response, 'success', true);
                 const errorMessage = this.safeValue (response, 'message', [[]]);
                 if (!success && errorMessage) {
+                    if (Array.isArray (errorMessage)) {
+                        const message = errorMessage.toString ();
+                        throw new ExchangeError (this.id + ' Error ' + message);
+                    }
                     const messageKey = Object.keys (errorMessage)[0];
                     const message = errorMessage[messageKey][0];
                     const exceptionMessages = Object.keys (this.exceptions);
@@ -360,6 +365,7 @@ module.exports = class coinsbit extends Exchange {
                             throw new ExceptionClass (this.id + ' ' + message);
                         }
                     }
+                    throw new ExchangeError (this.id + ' Error ' + message);
                 }
             }
         }
