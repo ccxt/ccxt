@@ -305,7 +305,7 @@ class okex3 extends Exchange {
                     '30029' => '\\ccxt\\AccountSuspended', // array( "code" => 30029, "message" => "account suspended" )
                     '30030' => '\\ccxt\\ExchangeError', // array( "code" => 30030, "message" => "endpoint request failed. Please try again" )
                     '30031' => '\\ccxt\\BadRequest', // array( "code" => 30031, "message" => "token does not exist" )
-                    '30032' => '\\ccxt\\ExchangeError', // array( "code" => 30032, "message" => "pair does not exist" )
+                    '30032' => '\\ccxt\\BadSymbol', // array( "code" => 30032, "message" => "pair does not exist" )
                     '30033' => '\\ccxt\\BadRequest', // array( "code" => 30033, "message" => "exchange domain does not exist" )
                     '30034' => '\\ccxt\\ExchangeError', // array( "code" => 30034, "message" => "exchange ID does not exist" )
                     '30035' => '\\ccxt\\ExchangeError', // array( "code" => 30035, "message" => "trading is not supported in this website" )
