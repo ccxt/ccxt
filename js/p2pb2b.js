@@ -271,12 +271,11 @@ module.exports = class p2pb2b extends Exchange {
         const result = { 'info': balances };
         for (let i = 0; i < symbols.length; i++) {
             const currencyId = symbols[i];
-            const code = this.safeCurrencyCode (currencyId);
-            const balance = balances[code];
+            const balance = balances[currencyId];
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'available');
             account['total'] = this.safeFloat (balance, 'available') + this.safeFloat (balance, 'freeze');
-            result[code] = account;
+            result[currencyId] = account;
         }
         return this.parseBalance (result);
     }
