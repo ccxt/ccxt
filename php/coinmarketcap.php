@@ -127,6 +127,7 @@ class coinmarketcap extends Exchange {
             'KingN Coin' => 'KingN Coin', // conflict with KNC (Kyber Network)
             'LiteBitcoin' => 'LiteBitcoin', // conflict with LBTC (LightningBitcoin)
             'Maggie' => 'Maggie',
+            'MTC Mesh Network' => 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
             'IOTA' => 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin' => 'NetCoin',
             'PCHAIN' => 'PCHAIN', // conflict with PAI (Project Pai)

@@ -304,7 +304,7 @@ module.exports = class okex3 extends Exchange {
                     '30029': AccountSuspended, // { "code": 30029, "message": "account suspended" }
                     '30030': ExchangeError, // { "code": 30030, "message": "endpoint request failed. Please try again" }
                     '30031': BadRequest, // { "code": 30031, "message": "token does not exist" }
-                    '30032': ExchangeError, // { "code": 30032, "message": "pair does not exist" }
+                    '30032': BadSymbol, // { "code": 30032, "message": "pair does not exist" }
                     '30033': BadRequest, // { "code": 30033, "message": "exchange domain does not exist" }
                     '30034': ExchangeError, // { "code": 30034, "message": "exchange ID does not exist" }
                     '30035': ExchangeError, // { "code": 30035, "message": "trading is not supported in this website" }
