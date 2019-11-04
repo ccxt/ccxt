@@ -114,7 +114,7 @@ class coinmarketcap extends Exchange {
             'ENTCash' => 'ENTCash', // conflict with ENT (Eternity)
             'FairCoin' => 'FairCoin', // conflict with FAIR (FairGame) https://github.com/ccxt/ccxt/pull/5865
             'Fabric Token' => 'Fabric Token',
-            'GET Protocol' => 'GET Protocol',
+            // 'GET Protocol' => 'GET Protocol',
             'Global Tour Coin' => 'Global Tour Coin', // conflict with GTC (Game.com)
             'GuccioneCoin' => 'GuccioneCoin', // conflict with GCC (Global Cryptocurrency)
             'HarmonyCoin' => 'HarmonyCoin', // conflict with HMC (Hi Mutual Society)
@@ -133,6 +133,10 @@ class coinmarketcap extends Exchange {
             'Polcoin' => 'Polcoin',
             'PutinCoin' => 'PutinCoin', // conflict with PUT (Profile Utility Token)
             'Rcoin' => 'Rcoin', // conflict with RCN (Ripio Credit Network)
+            // https://github.com/ccxt/ccxt/issues/6081
+            // https://github.com/ccxt/ccxt/issues/3365
+            // https://github.com/ccxt/ccxt/issues/2873
+            'Themis' => 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
         );
         return $this->safe_value($currencies, $name, $base);
     }
