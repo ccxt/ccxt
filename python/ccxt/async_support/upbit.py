@@ -150,9 +150,6 @@ class upbit(Exchange):
                     'KRW': 0.0005,
                 },
             },
-            'commonCurrencies': {
-                'CPT': 'Contents Protocol',  # conflict with CPT(Cryptaur) https://github.com/ccxt/ccxt/issues/4920
-            },
         })
 
     async def fetch_currency(self, code, params={}):
