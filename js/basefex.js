@@ -4,17 +4,7 @@
 
 const Exchange = require("./base/Exchange");
 // const { TICK_SIZE } = require ('./base/functions/number');
-// const {
-//     AuthenticationError,
-//     BadRequest,
-//     DDoSProtection,
-//     ExchangeError,
-//     ExchangeNotAvailable,
-//     InsufficientFunds,
-//     InvalidOrder,
-//     OrderNotFound,
-//     PermissionDenied,
-// } = require ('./base/errors');
+const { AuthenticationError } = require("./base/errors");
 
 //  ---------------------------------------------------------------------------
 module.exports = class basefex extends Exchange {
@@ -115,33 +105,14 @@ module.exports = class basefex extends Exchange {
         "1d": "1d"
       }, // redefine if the exchange has.fetchOHLCV . TODO
       exceptions: {}, // TODO
-      //   httpExceptions: {
-      //     498: "invaild token"
-      //   }
+      httpExceptions: {
+        498: AuthenticationError
+      },
       // 'precisionMode': DECIMAL_PLACES, // TODO
       options: {
         "api-expires": 10 // in seconds
       }
     };
-  }
-
-  //override
-  request(
-    path,
-    type = "public",
-    method = "GET",
-    params = {},
-    headers = { "Content-Type": "application/json" },
-    body = undefined
-  ) {
-    const { path: pathObj, query: queryObj } = params;
-    if (pathObj) {
-      path = localTool.makePath(path, pathObj);
-    }
-    if (queryObj) {
-      path += `?${this.urlencode(queryObj)}`;
-    }
-    return super.request(path, type, method, params, headers, body);
   }
 
   //override
@@ -176,6 +147,25 @@ module.exports = class basefex extends Exchange {
       );
     }
     return { url: url, method: method, body: body, headers: headers };
+  }
+
+  //override
+  request(
+    path,
+    type = "public",
+    method = "GET",
+    params = {},
+    headers = { "Content-Type": "application/json" },
+    body = undefined
+  ) {
+    const { path: pathObj, query: queryObj } = params;
+    if (pathObj) {
+      path = localTool.makePath(path, pathObj);
+    }
+    if (queryObj) {
+      path += `?${this.urlencode(queryObj)}`;
+    }
+    return super.request(path, type, method, params, headers, body);
   }
 };
 
