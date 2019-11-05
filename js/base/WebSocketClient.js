@@ -22,9 +22,9 @@ class WebSocketClient {
         this.subscriptions = {}
     }
 
-    async checkTimeout() {
+    async checkTimeout () {
         // ping every second
-        let pinger = setInterval (() => {
+        const pinger = setInterval (() => {
             this.connection.ping ()
             if (new Date ().getTime () - this.lastPong > this.timeout) {
                 this.timedoutFuture.resolve ()
@@ -48,12 +48,14 @@ class WebSocketClient {
             })
             this.connection.on ('message', this.onMessage.bind (this))
             this.connection.on ('close', this.closedFuture.resolve)
-            this.connection.on ('pong', () => {this.lastPong = new Date ().getTime ()})
+            this.connection.on ('pong', () => {
+                this.lastPong = new Date ().getTime ()
+            })
             return this.connectedFuture.promise ()
         }
     }
 
-    isConnected() {
+    isConnected () {
         return this.connection !== null && this.connection.readyState === WebSocket.OPEN
     }
 
@@ -81,16 +83,16 @@ class WebSocketClient {
     }
 
     static async registerFuture (url, messageHash, entry, apiKey, subscribe = undefined) {
-        let index = url + (apiKey ? apiKey : '')
-        let client = WebSocketClient.clients[index] || (WebSocketClient.clients[index] = new WebSocketClient (url, entry))
-        let future = client.futures[messageHash] || (client.futures[messageHash] = new Future ())
+        const index = url + (apiKey ? apiKey : '')
+        const client = WebSocketClient.clients[index] || (WebSocketClient.clients[index] = new WebSocketClient (url, entry))
+        const future = client.futures[messageHash] || (client.futures[messageHash] = new Future ())
         if (subscribe === undefined) {
             await client.connect ()
         } else if (!client.subscriptions[messageHash]) {
             client.send (subscribe)
             client.subscriptions[messageHash] = true
         }
-        let result = await future.promise ()
+        const result = await future.promise ()
         delete client.futures[messageHash]
         return result
     }
