@@ -64,47 +64,13 @@ module.exports = class basefex extends Exchange {
       },
       api: {
         public: {
-          get: [
-            "/v1/orderbook/{symbol}",
-            "/v1/ticker",
-            "/v1/trades/{symbol}",
-            "/v1/summary",
-            "/instruments/prices",
-            "/instruments/difference",
-            "/dateuuid",
-            "/depth@{symbol}/snapshot",
-            "/instruments"
-          ]
+          get: ["symbols"]
         },
         private: {
-          get: [
-            "/orders",
-            "/orders/{id}",
-            "/orders/opening",
-            "/orders/count",
-            "/orders/opening/count",
-            "/positions/{symbol}/adl-ranking",
-            "/trades",
-            "/trades/count",
-            "/accounts",
-            "/accounts/transactions/uncompleted",
-            "/accounts/equity",
-            "/accounts/transactions",
-            "/accounts/transactions/count"
-          ],
-          post: [
-            "/orders",
-            "/orders/batch",
-            "/positions/{symbol}/margin/estimation"
-          ],
-          put: ["/positions/{symbol}/margin", "/positions/{symbol}/risk-limit"],
-          delete: [
-            "/orders",
-            "/orders/batch",
-            "/orders/{id}",
-            "/positions/{symbol}",
-            "/accounts/withdraws/{id}"
-          ]
+          get: [],
+          post: [],
+          put: [],
+          delete: []
         }
       },
       timeframes: {
@@ -121,6 +87,39 @@ module.exports = class basefex extends Exchange {
       options: {
         "api-expires": 10 // in seconds
       }
+    };
+  }
+
+  async fetchMarkets() {
+    const symbols = await this.publicGetSymbols();
+    return symbols.map(this.convertMarkets.bind(this));
+  }
+
+  convertMarkets(symbol) {
+    return {
+      id: symbol.symbol, // string literal for referencing within an exchange
+      symbol: `${symbol.baseCurrency}/${symbol.quoteCurrency}`, // uppercase string literal of a pair of currencies
+      base: this.safe_string_upper(symbol, "baseCurrency"), // uppercase string, unified base currency code, 3 or more letters
+      quote: this.safe_string_upper(symbol, "quoteCurrency"), // uppercase string, unified quote currency code, 3 or more letters
+      baseId: symbol.baseCurrency, // any string, exchange-specific base currency id
+      quoteId: symbol.quoteCurrency, // any string, exchange-specific quote currency id
+      active: symbol.enable, // boolean, market status
+      precision: {
+        // number of decimal digits "after the dot"
+        price: symbol.priceStep // integer or float for TICK_SIZE roundingMode, might be missing if not supplied by the exchange
+        // amount: 8, // integer, might be missing if not supplied by the exchange
+        // cost: 8 // integer, very few exchanges actually have it
+      },
+      limits: {
+        // value limits when placing orders on this market
+        // amount: {
+        //   min: 0.01, // order amount should be > min
+        //   max: 1000 // order amount should be < max
+        // },
+        // price: {}, // same min/max limits for the price of the order
+        // cost: {} // same limits for order cost = price * amount
+      },
+      info: symbol // the original unparsed market info from the exchange
     };
   }
 
@@ -162,6 +161,8 @@ module.exports = class basefex extends Exchange {
     headers = { "Content-Type": "application/json" },
     body = undefined
   ) {
+    path = "/" + path;
+
     const { path: pathObj, query: queryObj } = params;
     if (pathObj) {
       path = localTool.makePath(path, pathObj);
