@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 import base64
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
 
@@ -380,7 +381,11 @@ class coinfloor(Exchange):
             'symbol': market['id'],
             'id': id,
         }
-        return self.privatePostSymbolCancelOrder(request)
+        response = self.privatePostSymbolCancelOrder(request)
+        if response == 'false':
+            # unfortunately the exchange does not give much info in the response
+            raise InvalidOrder(self.id + ' cancel was rejected')
+        return response
 
     def parse_order(self, order, market=None):
         timestamp = self.parse8601(self.safe_string(order, 'datetime'))
