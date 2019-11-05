@@ -2421,7 +2421,9 @@ class okex3(Exchange):
         #         },
         #     ]
         #
-        entries = response[0] if (type == 'margin') else response
+        isArray = isinstance(response[0], list)
+        isMargin = (type == 'margin')
+        entries = response[0] if (isMargin and isArray) else response
         return self.parse_ledger(entries, currency, since, limit)
 
     def parse_ledger_entry_type(self, type):
