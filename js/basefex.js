@@ -114,11 +114,14 @@ module.exports = class basefex extends Exchange {
         "1h": "1h",
         "1d": "1d"
       }, // redefine if the exchange has.fetchOHLCV . TODO
-      exceptions: {} // TODO
+      exceptions: {}, // TODO
       //   httpExceptions: {
       //     498: "invaild token"
       //   }
       // 'precisionMode': DECIMAL_PLACES, // TODO
+      options: {
+        "api-expires": 10 // in seconds
+      }
     };
   }
 
@@ -148,7 +151,7 @@ module.exports = class basefex extends Exchange {
     method = "GET",
     params = {},
     headers = {},
-    body = {}
+    body = undefined
   ) {
     const url = this.urls["api"] + path;
     if (api === "private" && this.apiKey && this.secret) {
@@ -159,7 +162,7 @@ module.exports = class basefex extends Exchange {
       auth += expires;
 
       if (method === "POST" || method === "PUT" || method === "DELETE") {
-        if (Object.keys(body).length) {
+        if (body && Object.keys(body).length) {
           body = this.json(body);
           auth += body;
         }
