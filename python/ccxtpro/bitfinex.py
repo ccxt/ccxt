@@ -9,7 +9,6 @@ import ccxt.async_support as ccxt
 class bitfinex(ccxt.bitfinex):
 
     def describe(self):
-        print('foobar')
         return self.deep_extend(super(bitfinex, self).describe(), {
             'has': {
                 'fetchWsTicker': True,

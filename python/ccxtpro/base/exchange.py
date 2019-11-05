@@ -6,16 +6,6 @@ __version__ = '1.0.0'
 
 # -----------------------------------------------------------------------------
 
-import asyncio
-import concurrent
-import socket
-import time
-import math
-import random
-import sys
-
-# -----------------------------------------------------------------------------
-
 from ccxtpro.base.web_socket_client import WebSocketClient
 from ccxt.async_support.base.exchange import Exchange as BaseExchange
 
@@ -27,7 +17,6 @@ __all__ = [
 ]
 
 # -----------------------------------------------------------------------------
-
 
 class Exchange(BaseExchange):
 
@@ -53,4 +42,3 @@ class Exchange(BaseExchange):
             return ws_x_message
         for key in methods:
             setattr(cls, key + 'Message', key_closure(cls.underscore(key)))
-

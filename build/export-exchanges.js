@@ -23,7 +23,7 @@ const log = require ('ololog').unlimited
 
 function exportEverything () {
 
-    const js      = { folder: '.', file: '/ccxt.js' }
+    const js      = { folder: '.', file: '/ccxt.pro.js' }
         , python3 = { folder: './python/ccxtpro', file: '/__init__.py' }
         , php     = { folder: './php', file: '/base/Exchange.php' }
 

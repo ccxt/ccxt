@@ -10,7 +10,6 @@ use Exception as Exception; // a common import
 class bitfinex extends ccxt.bitfinex {
 
     public function describe () {
-        var_dump ('foobar');
         return array_replace_recursive (parent::describe (), array (
             'has' => array (
                 'fetchWsTicker' => true,

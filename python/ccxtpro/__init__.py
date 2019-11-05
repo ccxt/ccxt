@@ -4,11 +4,16 @@
 
 # -----------------------------------------------------------------------------
 
+import inspect
+
+# -----------------------------------------------------------------------------
+
 __version__ = '1.0.0'
 
 # -----------------------------------------------------------------------------
 
 from ccxtpro.base.exchange import Exchange                   # noqa: F401
+from ccxtpro.base.exchange import BaseExchange               # noqa: F401
 
 # -----------------------------------------------------------------------------
 
@@ -50,9 +55,9 @@ from ccxt.base.errors import OrderImmediatelyFillable           # noqa: F401
 from ccxt.base.errors import OrderNotFillable                   # noqa: F401
 
 
-from ccxt.binance import binance                            # noqa: F401
-from ccxt.bitfinex import bitfinex                          # noqa: F401
-from ccxt.poloniex import poloniex                          # noqa: F401
+from ccxtpro.binance import binance                                       # noqa: F401
+from ccxtpro.bitfinex import bitfinex                                     # noqa: F401
+from ccxtpro.poloniex import poloniex                                     # noqa: F401
 
 exchanges = [
     'binance',
@@ -65,5 +70,13 @@ base = [
     'exchanges',
     'decimal_to_precision',
 ]
+
+# monkey patch
+
+baseExchangeMembers = inspect.getmembers(BaseExchange)
+exchangeMembers = inspect.getmembers(Exchange)
+diffMembers = [exchangeMember for exchangeMember in exchangeMembers if exchangeMember not in baseExchangeMembers]
+print(diffMembers)
+sys.exit ()
 
 __all__ = base + errors.__all__ + exchanges
