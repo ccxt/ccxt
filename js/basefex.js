@@ -5,6 +5,15 @@
 const Exchange = require("./base/Exchange");
 // const { TICK_SIZE } = require ('./base/functions/number');
 const { AuthenticationError } = require("./base/errors");
+//  ---------------------------------------------------------------------------
+const localTool = {
+  makePath(path, pathObj) {
+    return String(path).replace(/{.+?}/g, match => {
+      const key = match.substring(1, match.length - 1);
+      return pathObj[key];
+    });
+  }
+};
 
 //  ---------------------------------------------------------------------------
 module.exports = class basefex extends Exchange {
@@ -106,7 +115,7 @@ module.exports = class basefex extends Exchange {
       }, // redefine if the exchange has.fetchOHLCV . TODO
       exceptions: {}, // TODO
       httpExceptions: {
-        498: AuthenticationError
+        "498": AuthenticationError
       },
       // 'precisionMode': DECIMAL_PLACES, // TODO
       options: {
@@ -115,7 +124,6 @@ module.exports = class basefex extends Exchange {
     };
   }
 
-  //override
   sign(
     path,
     api = "public",
@@ -126,19 +134,16 @@ module.exports = class basefex extends Exchange {
   ) {
     const url = this.urls["api"] + path;
     if (api === "private" && this.apiKey && this.secret) {
-      let auth = method + path,
-        expires = this.safeInteger(this.options, "api-expires");
-
+      let auth = method + path;
+      let expires = this.safeInteger(this.options, "api-expires");
       expires = this.sum(this.seconds(), expires).toString();
       auth += expires;
-
       if (method === "POST" || method === "PUT" || method === "DELETE") {
         if (body && Object.keys(body).length) {
           body = this.json(body);
           auth += body;
         }
       }
-
       headers["api-key"] = this.apiKey;
       headers["api-expires"] = expires;
       headers["api-signature"] = this.hmac(
@@ -149,7 +154,6 @@ module.exports = class basefex extends Exchange {
     return { url: url, method: method, body: body, headers: headers };
   }
 
-  //override
   request(
     path,
     type = "public",
@@ -166,14 +170,5 @@ module.exports = class basefex extends Exchange {
       path += `?${this.urlencode(queryObj)}`;
     }
     return super.request(path, type, method, params, headers, body);
-  }
-};
-
-const localTool = {
-  makePath(path, pathObj) {
-    return String(path).replace(/{.+?}/g, match => {
-      const key = match.substring(1, match.length - 1);
-      return pathObj[key];
-    });
   }
 };
