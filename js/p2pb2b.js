@@ -154,7 +154,7 @@ module.exports = class p2pb2b extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
