@@ -69,7 +69,49 @@ module.exports = class basefex extends Exchange {
         referral: "https://www.basefex.com/register/76VqmL"
       },
       api: {
-        //TODO
+        public: {
+          get: [
+            "/v1/orderbook/{symbol}",
+            "/v1/ticker",
+            "/v1/trades/{symbol}",
+            "/v1/summary",
+            "/instruments/prices",
+            "/instruments/difference",
+            "/dateuuid",
+            "/depth@{symbol}/snapshot",
+            "/instruments"
+          ]
+        },
+        private: {
+          get: [
+            "/orders",
+            "/orders/{id}",
+            "/orders/opening",
+            "/orders/count",
+            "/orders/opening/count",
+            "/positions/{symbol}/adl-ranking",
+            "/trades",
+            "/trades/count",
+            "/accounts",
+            "/accounts/transactions/uncompleted",
+            "/accounts/equity",
+            "/accounts/transactions",
+            "/accounts/transactions/count"
+          ],
+          post: [
+            "/orders",
+            "/orders/batch",
+            "/positions/{symbol}/margin/estimation"
+          ],
+          put: ["/positions/{symbol}/margin", "/positions/{symbol}/risk-limit"],
+          delete: [
+            "/orders",
+            "/orders/batch",
+            "/orders/{id}",
+            "/positions/{symbol}",
+            "/accounts/withdraws/{id}"
+          ]
+        }
       },
       timeframes: {
         "1m": "1m",
@@ -77,8 +119,8 @@ module.exports = class basefex extends Exchange {
         "1h": "1h",
         "1d": "1d"
       }, // redefine if the exchange has.fetchOHLCV . TODO
-      exceptions: undefined, //TODO
-      precisionMode: DECIMAL_PLACES //TODO
+      exceptions: {}, // TODO
+      precisionMode: DECIMAL_PLACES // TODO
     };
   }
 };
