@@ -26,9 +26,7 @@ module.exports = class basefex extends Exchange {
       rateLimit: 2000, // milliseconds TODO
       has: {
         CORS: false,
-        fetchMarkets: false,
-        fetchCurrencies: false,
-        fetchTradingLimits: false,
+        fetchMarkets: true,
         fetchTradingFees: false,
         fetchFundingLimits: false,
         fetchTicker: false,
