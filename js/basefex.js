@@ -3,52 +3,47 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require("./base/Exchange");
-const { TICK_SIZE } = require("./base/functions/number");
-const {
-  AuthenticationError,
-  BadRequest,
-  DDoSProtection,
-  ExchangeError,
-  ExchangeNotAvailable,
-  InsufficientFunds,
-  InvalidOrder,
-  OrderNotFound,
-  PermissionDenied
-} = require("./base/errors");
+// const { TICK_SIZE } = require ('./base/functions/number');
+// const {
+//     AuthenticationError,
+//     BadRequest,
+//     DDoSProtection,
+//     ExchangeError,
+//     ExchangeNotAvailable,
+//     InsufficientFunds,
+//     InvalidOrder,
+//     OrderNotFound,
+//     PermissionDenied,
+// } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 module.exports = class basefex extends Exchange {
   describe() {
     return {
-      id: basefex,
-      name: BaseFEX,
+      id: "basefex",
+      name: "BaseFEX",
       countries: ["SC"], // TODO
       enableRateLimit: true,
       rateLimit: 2000, // milliseconds TODO
       has: {
         CORS: false,
-
         fetchMarkets: false,
         fetchCurrencies: false,
         fetchTradingLimits: false,
         fetchTradingFees: false,
         fetchFundingLimits: false,
-
         fetchTicker: false,
         fetchOrderBook: false,
         fetchTrades: false,
         fetchOHLCV: false,
-
         fetchBalance: false,
         createOrder: false,
         cancelOrder: false,
         editOrder: false,
-
         fetchOrder: false,
         fetchOpenOrders: false,
         fetchAllOrders: false,
         fetchMyTrades: false,
-
         fetchDepositAddress: false,
         fetchDeposits: false,
         fetchWithdrawals: false,
@@ -119,8 +114,73 @@ module.exports = class basefex extends Exchange {
         "1h": "1h",
         "1d": "1d"
       }, // redefine if the exchange has.fetchOHLCV . TODO
-      exceptions: {}, // TODO
-      precisionMode: DECIMAL_PLACES // TODO
+      exceptions: {} // TODO
+      //   httpExceptions: {
+      //     498: "invaild token"
+      //   }
+      // 'precisionMode': DECIMAL_PLACES, // TODO
     };
+  }
+
+  //override
+  request(
+    path,
+    type = "public",
+    method = "GET",
+    params = {},
+    headers = { "Content-Type": "application/json" },
+    body = undefined
+  ) {
+    const { path: pathObj, query: queryObj } = params;
+    if (pathObj) {
+      path = localTool.makePath(path, pathObj);
+    }
+    if (queryObj) {
+      path += `?${this.urlencode(queryObj)}`;
+    }
+    return super.request(path, type, method, params, headers, body);
+  }
+
+  //override
+  sign(
+    path,
+    api = "public",
+    method = "GET",
+    params = {},
+    headers = {},
+    body = {}
+  ) {
+    const url = this.urls["api"] + path;
+    if (api === "private" && this.apiKey && this.secret) {
+      let auth = method + path,
+        expires = this.safeInteger(this.options, "api-expires");
+
+      expires = this.sum(this.seconds(), expires).toString();
+      auth += expires;
+
+      if (method === "POST" || method === "PUT" || method === "DELETE") {
+        if (Object.keys(body).length) {
+          body = this.json(body);
+          auth += body;
+        }
+      }
+
+      headers["api-key"] = this.apiKey;
+      headers["api-expires"] = expires;
+      headers["api-signature"] = this.hmac(
+        this.encode(auth),
+        this.encode(this.secret)
+      );
+    }
+    return { url: url, method: method, body: body, headers: headers };
+  }
+};
+
+const localTool = {
+  makePath(path, pathObj) {
+    return String(path).replace(/{.+?}/g, match => {
+      const key = match.substring(1, match.length - 1);
+      return pathObj[key];
+    });
   }
 };
