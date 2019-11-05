@@ -178,10 +178,10 @@ class dx extends Exchange {
             list($base, $quote) = explode('/', $fullName);
             $amountPrecision = 0;
             if ($instrument['meQuantityMultiplier'] !== 0) {
-                $amountPrecision = log10 ($instrument['meQuantityMultiplier']);
+                $amountPrecision = intval (log10 ($instrument['meQuantityMultiplier']));
             }
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($base);
+            $quote = $this->safe_currency_code($quote);
             $baseId = $this->safe_string($asset, 'baseCurrencyId');
             $quoteId = $this->safe_string($asset, 'quotedCurrencyId');
             $baseNumericId = $this->safe_integer($asset, 'baseCurrencyId');
@@ -267,8 +267,21 @@ class dx extends Exchange {
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        //
+        //     {
+        //         "date":1546878960,
+        //         "open":0.038064,
+        //         "high":0.038064,
+        //         "low":0.038064,
+        //         "close":0.038064,
+        //         "volume":0.00755418,
+        //         "id":169042,
+        //         "instrumentId":1015,
+        //         "type":"1m"
+        //     }
+        //
         return array (
-            $this->safe_float($ohlcv, 'date') * 1000,
+            $this->safe_timestamp($ohlcv, 'date'),
             $this->safe_float($ohlcv, 'open'),
             $this->safe_float($ohlcv, 'high'),
             $this->safe_float($ohlcv, 'low'),
@@ -291,6 +304,23 @@ class dx extends Exchange {
             ),
         );
         $response = $this->publicPostAssetManagementHistory (array_merge ($request, $params));
+        //
+        //     {
+        //         "id":"1.565248994048e+12",
+        //         "result":{
+        //             "assets":array (
+        //                 array("date":1546878960,"open":0.038064,"high":0.038064,"low":0.038064,"close":0.038064,"volume":0.00755418,"id":169042,"instrumentId":1015,"type":"1m"),
+        //                 array("date":1546878660,"open":0.037863,"high":0.037863,"low":0.037863,"close":0.037863,"volume":0.0075726,"id":169028,"instrumentId":1015,"type":"1m"),
+        //                 array("date":1546860360,"open":0.03864,"high":0.03864,"low":0.03864,"close":0.03864,"volume":0.0013524,"id":168924,"instrumentId":1015,"type":"1m"),
+        //                 array("date":1546848480,"open":0.038969,"high":0.038969,"low":0.038969,"close":0.038969,"volume":0.01654819,"id":168880,"instrumentId":1015,"type":"1m"),
+        //             ),
+        //             "total":array (
+        //                 "count":52838
+        //             }
+        //         ),
+        //         "error":null
+        //     }
+        //
         return $this->parse_ohlcvs($response['result']['assets'], $market, $timeframe, $since, $limit);
     }
 
@@ -360,7 +390,7 @@ class dx extends Exchange {
         if ($order['orderType'] === $this->options['orderTypes']['market']) {
             $orderType = 'market';
         }
-        $timestamp = $order['time'] * 1000;
+        $timestamp = $this->safe_timestamp($order, 'time');
         $quantity = $this->object_to_number ($order['quantity']);
         $filledQuantity = $this->object_to_number ($order['filledQuantity']);
         $id = $this->safe_string($order, 'externalOrderId');
@@ -422,15 +452,13 @@ class dx extends Exchange {
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $balance = $this->safe_value($balances, $currencyId, array());
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-                $account = array (
-                    'free' => $this->safe_float($balance, 'available'),
-                    'used' => $this->safe_float($balance, 'frozen'),
-                    'total' => $this->safe_float($balance, 'total'),
-                );
-                $result[$code] = $account;
-            }
+            $code = $this->safe_currency_code($currencyId);
+            $account = array (
+                'free' => $this->safe_float($balance, 'available'),
+                'used' => $this->safe_float($balance, 'frozen'),
+                'total' => $this->safe_float($balance, 'total'),
+            );
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -505,7 +533,7 @@ class dx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return; // fallback to default $error handler
         }

@@ -167,8 +167,8 @@ class coinegg extends Exchange {
                 $baseId = explode('_', $id)[0];
                 $base = strtoupper($baseId);
                 $quote = strtoupper($quoteId);
-                $base = $this->common_currency_code($base);
-                $quote = $this->common_currency_code($quote);
+                $base = $this->safe_currency_code($base);
+                $quote = $this->safe_currency_code($quote);
                 $symbol = $base . '/' . $quote;
                 $precision = array (
                     'amount' => 8,
@@ -265,10 +265,7 @@ class coinegg extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'date');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $symbol = $market['symbol'];
@@ -319,12 +316,7 @@ class coinegg extends Exchange {
         for ($i = 0; $i < count ($keys); $i++) {
             $key = $keys[$i];
             list($currencyId, $accountType) = explode('_', $key);
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code(strtoupper($currencyId));
-            }
+            $code = $this->safe_currency_code($currencyId);
             if (!(is_array($result) && array_key_exists($code, $result))) {
                 $result[$code] = $this->account ();
             }
@@ -484,14 +476,14 @@ class coinegg extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }
         // private endpoints return the following structure:
-        // array("$result":true,"data":{...)} - success
+        // array("$result":true,"data":array(...)) - success
         // array("$result":false,"$code":"103") - failure
-        // array("$code":0,"msg":"Suceess","data":{"uid":"2716039","btc_balance":"0.00000000","btc_lock":"0.00000000","xrp_balance":"0.00000000","xrp_lock":"0.00000000")}
+        // array("$code":0,"msg":"Suceess","data":array("uid":"2716039","btc_balance":"0.00000000","btc_lock":"0.00000000","xrp_balance":"0.00000000","xrp_lock":"0.00000000"))
         $result = $this->safe_value($response, 'result');
         if ($result === null) {
             // public endpoint ← this comment left here by the contributor, in fact a missing $result does not necessarily mean a public endpoint...

@@ -9,7 +9,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 
 
-class tidebit (Exchange):
+class tidebit(Exchange):
 
     def describe(self):
         return self.deep_extend(super(tidebit, self).describe(), {
@@ -105,8 +105,8 @@ class tidebit (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': 0.3 / 100,
+                    'taker': 0.3 / 100,
                 },
                 'funding': {
                     'tierBased': False,
@@ -146,8 +146,8 @@ class tidebit (Exchange):
             id = self.safe_string(market, 'id')
             symbol = self.safe_string(market, 'name')
             baseId, quoteId = symbol.split('/')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -167,11 +167,7 @@ class tidebit (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'balance')
             account['used'] = self.safe_float(balance, 'locked')
@@ -188,15 +184,11 @@ class tidebit (Exchange):
             request['limit'] = limit  # default = 300
         request['market'] = market['id']
         response = self.publicGetDepth(self.extend(request, params))
-        timestamp = self.safe_integer(response, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(response, timestamp)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.safe_integer(ticker, 'at')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(ticker, 'at')
         ticker = self.safe_value(ticker, 'ticker', {})
         symbol = None
         if market is not None:
@@ -240,10 +232,8 @@ class tidebit (Exchange):
             else:
                 baseId = id[0:3]
                 quoteId = id[3:6]
-                base = baseId.upper()
-                quote = quoteId.upper()
-                base = self.common_currency_code(base)
-                quote = self.common_currency_code(quote)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
@@ -317,6 +307,8 @@ class tidebit (Exchange):
         else:
             request['timestamp'] = 1800000
         response = self.publicGetK(self.extend(request, params))
+        if response == 'null':
+            return []
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_order_status(self, status):
@@ -402,7 +394,7 @@ class tidebit (Exchange):
         request = {
             'id': id,
             'currency_type': 'coin',  # or 'cash'
-            'currency': currency.lower(),
+            'currency': currency['id'],
             'body': amount,
             # 'address': address,  # they don't allow withdrawing to direct addresses?
         }
@@ -445,7 +437,7 @@ class tidebit (Exchange):
                 headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if code == 400:
             error = self.safe_value(response, 'error')
             errorCode = self.safe_string(error, 'code')

@@ -82,12 +82,10 @@ class independentreserve extends Exchange {
         $result = array();
         for ($i = 0; $i < count ($baseCurrencies); $i++) {
             $baseId = $baseCurrencies[$i];
-            $baseIdUppercase = strtoupper($baseId);
-            $base = $this->common_currency_code($baseIdUppercase);
+            $base = $this->safe_currency_code($baseId);
             for ($j = 0; $j < count ($quoteCurrencies); $j++) {
                 $quoteId = $quoteCurrencies[$j];
-                $quoteIdUppercase = strtoupper($quoteId);
-                $quote = $this->common_currency_code($quoteIdUppercase);
+                $quote = $this->safe_currency_code($quoteId);
                 $id = $baseId . '/' . $quoteId;
                 $symbol = $base . '/' . $quote;
                 $result[] = array (
@@ -111,12 +109,7 @@ class independentreserve extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'CurrencyCode');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code(strtoupper($currencyId));
-            }
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'AvailableBalance');
             $account['total'] = $this->safe_float($balance, 'TotalBalance');

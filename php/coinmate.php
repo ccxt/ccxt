@@ -128,8 +128,8 @@ class coinmate extends Exchange {
             $id = $this->safe_string($market, 'name');
             $baseId = $this->safe_string($market, 'firstCurrency');
             $quoteId = $this->safe_string($market, 'secondCurrency');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -171,7 +171,7 @@ class coinmate extends Exchange {
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $balance = $this->safe_value($balances, $currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'available');
@@ -190,10 +190,7 @@ class coinmate extends Exchange {
         );
         $response = $this->publicGetOrderBook (array_merge ($request, $params));
         $orderbook = $response['data'];
-        $timestamp = $this->safe_integer($orderbook, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
         return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -204,10 +201,7 @@ class coinmate extends Exchange {
         );
         $response = $this->publicGetTicker (array_merge ($request, $params));
         $ticker = $this->safe_value($response, 'data');
-        $timestamp = $this->safe_integer($ticker, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -249,7 +243,7 @@ class coinmate extends Exchange {
         }
         $response = $this->privatePostTransferHistory (array_merge ($request, $params));
         $items = $response['data'];
-        return $this->parseTransactions ($items, null, $since, $limit);
+        return $this->parse_transactions($items, null, $since, $limit);
     }
 
     public function parse_transaction_status ($status) {
@@ -301,17 +295,9 @@ class coinmate extends Exchange {
         $txid = $this->safe_string($item, 'txid');
         $address = $this->safe_string($item, 'destination');
         $tag = $this->safe_string($item, 'destinationTag');
-        $code = null;
         $currencyId = $this->safe_string($item, 'amountCurrency');
-        if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-            $code = $this->currencies_by_id[$currencyId]['code'];
-        } else {
-            $code = $this->commonCurrencyCide ($currencyId);
-        }
-        $type = $this->safe_string($item, 'transferType');
-        if ($type !== null) {
-            $type = strtolower($type);
-        }
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $type = $this->safe_string_lower($item, 'transferType');
         $status = $this->parse_transaction_status ($this->safe_string($item, 'transferStatus'));
         $id = $this->safe_string($item, 'transactionId');
         return array (
@@ -386,8 +372,8 @@ class coinmate extends Exchange {
                 $quote = $market['quote'];
             } else {
                 list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
@@ -404,14 +390,8 @@ class coinmate extends Exchange {
                 $cost = $price * $amount;
             }
         }
-        $side = $this->safe_string_2($trade, 'type', 'tradeType');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
-        $type = $this->safe_string($trade, 'orderType');
-        if ($type !== null) {
-            $type = strtolower($type);
-        }
+        $side = $this->safe_string_lower_2($trade, 'type', 'tradeType');
+        $type = $this->safe_string_lower($trade, 'orderType');
         $orderId = $this->safe_string($trade, 'orderId');
         $id = $this->safe_string($trade, 'transactionId');
         $timestamp = $this->safe_integer_2($trade, 'timestamp', 'createdTimestamp');

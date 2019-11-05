@@ -10,7 +10,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
 
-class ice3x (Exchange):
+class ice3x(Exchange):
 
     def describe(self):
         return self.deep_extend(super(ice3x, self).describe(), {
@@ -78,8 +78,8 @@ class ice3x (Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.01,
-                    'taker': 0.01,
+                    'maker': 0.005,
+                    'taker': 0.005,
                 },
             },
             'precision': {
@@ -96,9 +96,8 @@ class ice3x (Exchange):
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'currency_id')
-            code = self.safe_string(currency, 'iso')
-            code = code.upper()
-            code = self.common_currency_code(code)
+            currencyId = self.safe_string(currency, 'iso')
+            code = self.safe_currency_code(currencyId)
             result[code] = {
                 'id': id,
                 'code': code,
@@ -124,9 +123,9 @@ class ice3x (Exchange):
         return result
 
     def fetch_markets(self, params={}):
-        if not self.currencies:
+        if self.currencies_by_id is None:
             self.currencies = self.fetch_currencies()
-        self.currencies_by_id = self.index_by(self.currencies, 'id')
+            self.currencies_by_id = self.index_by(self.currencies, 'id')
         response = self.publicGetPairList(params)
         markets = self.safe_value(response['response'], 'entities')
         result = []
@@ -137,8 +136,8 @@ class ice3x (Exchange):
             quoteId = self.safe_string(market, 'currency_id_to')
             baseCurrency = self.currencies_by_id[baseId]
             quoteCurrency = self.currencies_by_id[quoteId]
-            base = self.common_currency_code(baseCurrency['code'])
-            quote = self.common_currency_code(quoteCurrency['code'])
+            base = baseCurrency['code']
+            quote = quoteCurrency['code']
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -147,7 +146,7 @@ class ice3x (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': True,
+                'active': None,
                 'info': market,
             })
         return result
@@ -210,7 +209,7 @@ class ice3x (Exchange):
         }
         if limit is not None:
             type = self.safe_string(params, 'type')
-            if (type != 'ask') and(type != 'bid'):
+            if (type != 'ask') and (type != 'bid'):
                 # eslint-disable-next-line quotes
                 raise ExchangeError(self.id + " fetchOrderBook requires an exchange-specific extra 'type' param('bid' or 'ask') when used with a limit")
             else:
@@ -220,9 +219,7 @@ class ice3x (Exchange):
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'created')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(trade, 'created')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'volume')
         cost = None
@@ -277,9 +274,7 @@ class ice3x (Exchange):
             balance = balances[i]
             # currency ids are numeric strings
             currencyId = self.safe_string(balance, 'currency_id')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['total'] = self.safe_float(balance, 'balance')
             result[code] = account
@@ -288,10 +283,10 @@ class ice3x (Exchange):
     def parse_order(self, order, market=None):
         pairId = self.safe_integer(order, 'pair_id')
         symbol = None
-        if pairId and not market and(pairId in list(self.marketsById.keys())):
+        if pairId and not market and (pairId in list(self.marketsById.keys())):
             market = self.marketsById[pairId]
             symbol = market['symbol']
-        timestamp = self.safe_integer(order, 'created') * 1000
+        timestamp = self.safe_timestamp(order, 'created')
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'volume')
         status = self.safe_integer(order, 'active')

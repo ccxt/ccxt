@@ -7,11 +7,12 @@ from ccxt.base.exchange import Exchange
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
 
 
-class btcalpha (Exchange):
+class btcalpha(Exchange):
 
     def describe(self):
         return self.deep_extend(super(btcalpha, self).describe(), {
@@ -107,6 +108,15 @@ class btcalpha (Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'CBC': 'Cashbery',
+            },
+            'exceptions': {
+                'exact': {},
+                'broad': {
+                    'Out of balance': InsufficientFunds,  # {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
+                },
+            },
         })
 
     def fetch_markets(self, params={}):
@@ -117,8 +127,8 @@ class btcalpha (Exchange):
             id = self.safe_string(market, 'name')
             baseId = self.safe_string(market, 'currency1')
             quoteId = self.safe_string(market, 'currency2')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -166,9 +176,7 @@ class btcalpha (Exchange):
             market = self.safe_value(self.marketsById, trade['pair'])
         if market is not None:
             symbol = market['symbol']
-        timestamp = self.safe_integer(trade, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(trade, 'timestamp')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         cost = None
@@ -208,12 +216,12 @@ class btcalpha (Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
         return [
-            ohlcv['time'] * 1000,
-            ohlcv['open'],
-            ohlcv['high'],
-            ohlcv['low'],
-            ohlcv['close'],
-            ohlcv['volume'],
+            self.safe_timestamp(ohlcv, 'time'),
+            self.safe_float(ohlcv, 'open'),
+            self.safe_float(ohlcv, 'high'),
+            self.safe_float(ohlcv, 'low'),
+            self.safe_float(ohlcv, 'close'),
+            self.safe_float(ohlcv, 'volume'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
@@ -237,18 +245,11 @@ class btcalpha (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.common_currency_code(currencyId)
-            used = self.safe_float(balance, 'reserve')
-            total = self.safe_float(balance, 'balance')
-            free = None
-            if used is not None:
-                if total is not None:
-                    free = total - used
-            result[code] = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['used'] = self.safe_float(balance, 'reserve')
+            account['total'] = self.safe_float(balance, 'balance')
+            result[code] = account
         return self.parse_balance(result)
 
     def parse_order_status(self, status):
@@ -265,9 +266,7 @@ class btcalpha (Exchange):
             market = self.safe_value(self.marketsById, order['pair'])
         if market is not None:
             symbol = market['symbol']
-        timestamp = self.safe_integer(order, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(order, 'date')
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')
         status = self.parse_order_status(self.safe_string(order, 'status'))
@@ -275,6 +274,15 @@ class btcalpha (Exchange):
         trades = self.safe_value(order, 'trades', [])
         trades = self.parse_trades(trades, market)
         side = self.safe_string_2(order, 'my_side', 'type')
+        filled = None
+        numTrades = len(trades)
+        if numTrades > 0:
+            filled = 0.0
+            for i in range(0, numTrades):
+                filled = self.sum(filled, trades[i]['amount'])
+        remaining = None
+        if (amount is not None) and (amount > 0) and (filled is not None):
+            remaining = max(0, amount - filled)
         return {
             'id': id,
             'datetime': self.iso8601(timestamp),
@@ -286,8 +294,8 @@ class btcalpha (Exchange):
             'price': price,
             'cost': None,
             'amount': amount,
-            'filled': None,
-            'remaining': None,
+            'filled': filled,
+            'remaining': remaining,
             'trades': trades,
             'fee': None,
             'info': order,
@@ -305,7 +313,11 @@ class btcalpha (Exchange):
         response = self.privatePostOrder(self.extend(request, params))
         if not response['success']:
             raise InvalidOrder(self.id + ' ' + self.json(response))
-        return self.parse_order(response, market)
+        order = self.parse_order(response, market)
+        amount = order['amount'] if (order['amount'] > 0) else amount
+        return self.extend(order, {
+            'amount': amount,
+        })
 
     def cancel_order(self, id, symbol=None, params={}):
         request = {
@@ -384,14 +396,26 @@ class btcalpha (Exchange):
             headers['X-NONCE'] = str(self.nonce())
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
-        if code < 400:
-            return  # fallback to default error handler
-        message = self.id + ' ' + self.safe_value(response, 'detail', body)
+        #
+        #     {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
+        #
+        error = self.safe_string(response, 'error')
+        feedback = self.id + ' ' + body
+        if error is not None:
+            exact = self.exceptions['exact']
+            if error in exact:
+                raise exact[error](feedback)
+            broad = self.exceptions['broad']
+            broadKey = self.findBroadlyMatchedKey(broad, error)
+            if broadKey is not None:
+                raise broad[broadKey](feedback)
         if code == 401 or code == 403:
-            raise AuthenticationError(message)
+            raise AuthenticationError(feedback)
         elif code == 429:
-            raise DDoSProtection(message)
-        raise ExchangeError(message)
+            raise DDoSProtection(feedback)
+        if code < 400:
+            return
+        raise ExchangeError(feedback)

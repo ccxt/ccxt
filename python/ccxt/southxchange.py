@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 import hashlib
 
 
-class southxchange (Exchange):
+class southxchange(Exchange):
 
     def describe(self):
         return self.deep_extend(super(southxchange, self).describe(), {
@@ -42,9 +42,11 @@ class southxchange (Exchange):
                     'post': [
                         'cancelMarketOrders',
                         'cancelOrder',
+                        'getOrder',
                         'generatenewaddress',
                         'listOrders',
                         'listBalances',
+                        'listTransactions',
                         'placeOrder',
                         'withdraw',
                     ],
@@ -54,8 +56,8 @@ class southxchange (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': 0.1 / 100,
+                    'taker': 0.3 / 100,
                 },
             },
             'commonCurrencies': {
@@ -71,8 +73,8 @@ class southxchange (Exchange):
             market = markets[i]
             baseId = market[0]
             quoteId = market[1]
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             id = symbol
             result.append({
@@ -94,11 +96,7 @@ class southxchange (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'Currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
+            code = self.safe_currency_code(currencyId)
             deposited = self.safe_float(balance, 'Deposited')
             unconfirmed = self.safe_float(balance, 'Unconfirmed')
             account = self.account()
@@ -171,9 +169,7 @@ class southxchange (Exchange):
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market):
-        timestamp = self.safe_integer(trade, 'At')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(trade, 'At')
         price = self.safe_float(trade, 'Price')
         amount = self.safe_float(trade, 'Amount')
         cost = None
@@ -213,8 +209,8 @@ class southxchange (Exchange):
         status = 'open'
         baseId = self.safe_string(order, 'ListingCurrency')
         quoteId = self.safe_string(order, 'ReferenceCurrency')
-        base = self.common_currency_code(baseId)
-        quote = self.common_currency_code(quoteId)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
         timestamp = None
         price = self.safe_float(order, 'LimitPrice')
@@ -227,9 +223,7 @@ class southxchange (Exchange):
             if remaining is not None:
                 filled = amount - remaining
         type = 'limit'
-        side = self.safe_string(order, 'Type')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(order, 'Type')
         id = self.safe_string(order, 'Code')
         result = {
             'info': order,

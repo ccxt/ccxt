@@ -33,7 +33,7 @@ class bigone extends Exchange {
                 ),
                 'www' => 'https://big.one',
                 'doc' => 'https://open.big.one/docs/api.html',
-                'fees' => 'https://help.big.one/hc/en-us/articles/115001933374-BigONE-Fee-Policy',
+                'fees' => 'https://bigone.zendesk.com/hc/en-us/articles/115001933374-BigONE-Fee-Policy',
                 'referral' => 'https://b1.run/users/new?code=D3LLBVFT',
             ),
             'api' => array (
@@ -74,10 +74,10 @@ class bigone extends Exchange {
                 'funding' => array (
                     // HARDCODING IS DEPRECATED THE FEES BELOW ARE TO BE REMOVED SOON
                     'withdraw' => array (
-                        'BTC' => 0.002,
-                        'ETH' => 0.01,
+                        'BTC' => 0.001,
+                        'ETH' => 0.005,
                         'EOS' => 0.01,
-                        'ZEC' => 0.002,
+                        'ZEC' => 0.003,
                         'LTC' => 0.01,
                         'QTUM' => 0.01,
                         // 'INK' => 0.01 QTUM,
@@ -86,7 +86,7 @@ class bigone extends Exchange {
                         'GAS' => 0.0,
                         'BTS' => 1.0,
                         'GXS' => 0.1,
-                        'BITCNY' => 1.0,
+                        'BITCNY' => 19.0,
                     ),
                 ),
             ),
@@ -127,8 +127,8 @@ class bigone extends Exchange {
             $quoteAsset = $this->safe_value($market, 'quoteAsset', array());
             $baseId = $this->safe_string($baseAsset, 'symbol');
             $quoteId = $this->safe_string($quoteAsset, 'symbol');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'baseScale'),
@@ -381,21 +381,10 @@ class bigone extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'asset_id');
-            $code = $this->common_currency_code($currencyId);
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            }
-            $total = $this->safe_float($balance, 'balance');
-            $used = $this->safe_float($balance, 'locked_balance');
-            $free = null;
-            if ($total !== null && $used !== null) {
-                $free = $total - $used;
-            }
-            $account = array (
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['total'] = $this->safe_float($balance, 'balance');
+            $account['used'] = $this->safe_float($balance, 'locked_balance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -683,13 +672,13 @@ class bigone extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default $error handler
         }
         //
-        //      array("$errors":{"detail":"Internal server $error")}
-        //      array("$errors":[{"message":"invalid nonce, nonce should be a 19bits number","$code":10030)],"$data":null}
+        //      array("$errors":array("detail":"Internal server $error"))
+        //      array("$errors":[array("message":"invalid nonce, nonce should be a 19bits number","$code":10030)],"$data":null)
         //
         $error = $this->safe_value($response, 'error');
         $errors = $this->safe_value($response, 'errors');

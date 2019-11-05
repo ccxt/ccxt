@@ -165,8 +165,8 @@ class buda extends Exchange {
             $id = $this->safe_string($market, 'id');
             $baseId = $this->safe_string($market, 'base_currency');
             $quoteId = $this->safe_string($market, 'quote_currency');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $baseInfo = $this->fetch_currency_info ($baseId, $currencies);
             $quoteInfo = $this->fetch_currency_info ($quoteId, $currencies);
             $symbol = $base . '/' . $quote;
@@ -214,7 +214,7 @@ class buda extends Exchange {
                 continue;
             }
             $id = $this->safe_string($currency, 'id');
-            $code = $this->common_currency_code($id);
+            $code = $this->safe_currency_code($id);
             $precision = $this->safe_float($currency, 'input_decimals');
             $minimum = pow(10, -$precision);
             $result[$code] = array (
@@ -446,7 +446,7 @@ class buda extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'id');
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = floatval ($balance['available_amount'][0]);
             $account['total'] = floatval ($balance['amount'][0]);
@@ -545,10 +545,7 @@ class buda extends Exchange {
             $symbol = $market['symbol'];
         }
         $type = $this->safe_string($order, 'price_type');
-        $side = $this->safe_string($order, 'type');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($order, 'type');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $amount = floatval ($order['original_amount'][0]);
         $remaining = floatval ($order['amount'][0]);
@@ -661,17 +658,8 @@ class buda extends Exchange {
     public function parse_transaction ($transaction, $currency = null) {
         $id = $this->safe_string($transaction, 'id');
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'created_at'));
-        $code = null;
-        $currencyId = null;
-        if ($currency === null) {
-            $currencyId = $this->safe_string($transaction, 'currency');
-            $currency = $this->safe_value($this->currencies_by_id, $currencyId);
-        }
-        if ($currency !== null) {
-            $code = $currency['code'];
-        } else {
-            $code = $this->common_currency_code($currencyId);
-        }
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
         $amount = floatval ($transaction['amount'][0]);
         $fee = floatval ($transaction['fee'][0]);
         $feeCurrency = $transaction['fee'][1];
@@ -712,7 +700,7 @@ class buda extends Exchange {
         );
         $response = $this->privateGetCurrenciesCurrencyDeposits (array_merge ($request, $params));
         $deposits = $this->safe_value($response, 'deposits');
-        return $this->parseTransactions ($deposits, $currency, $since, $limit);
+        return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -727,7 +715,7 @@ class buda extends Exchange {
         );
         $response = $this->privateGetCurrenciesCurrencyWithdrawals (array_merge ($request, $params));
         $withdrawals = $this->safe_value($response, 'withdrawals');
-        return $this->parseTransactions ($withdrawals, $currency, $since, $limit);
+        return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
@@ -743,7 +731,7 @@ class buda extends Exchange {
         );
         $response = $this->privatePostCurrenciesCurrencyWithdrawals (array_merge ($request, $params));
         $withdrawal = $this->safe_value($response, 'withdrawal');
-        return $this->parse_transaction ($withdrawal);
+        return $this->parse_transaction($withdrawal);
     }
 
     public function nonce () {
@@ -782,7 +770,7 @@ class buda extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

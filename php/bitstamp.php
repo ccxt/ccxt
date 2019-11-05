@@ -96,13 +96,14 @@ class bitstamp extends Exchange {
                 'trading' => array (
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.25 / 100,
-                    'maker' => 0.25 / 100,
+                    'taker' => 0.5 / 100,
+                    'maker' => 0.5 / 100,
                     'tiers' => array (
                         'taker' => [
-                            [0, 0.25 / 100],
-                            [20000, 0.24 / 100],
-                            [100000, 0.22 / 100],
+                            [0, 0.5 / 100],
+                            [20000, 0.25 / 100],
+                            [100000, 0.24 / 100],
+                            [200000, 0.22 / 100],
                             [400000, 0.20 / 100],
                             [600000, 0.15 / 100],
                             [1000000, 0.14 / 100],
@@ -112,9 +113,10 @@ class bitstamp extends Exchange {
                             [20000001, 0.10 / 100],
                         ],
                         'maker' => [
-                            [0, 0.25 / 100],
-                            [20000, 0.24 / 100],
-                            [100000, 0.22 / 100],
+                            [0, 0.5 / 100],
+                            [20000, 0.25 / 100],
+                            [100000, 0.24 / 100],
+                            [200000, 0.22 / 100],
                             [400000, 0.20 / 100],
                             [600000, 0.15 / 100],
                             [1000000, 0.14 / 100],
@@ -180,8 +182,8 @@ class bitstamp extends Exchange {
             list($base, $quote) = explode('/', $name);
             $baseId = strtolower($base);
             $quoteId = strtolower($quote);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($base);
+            $quote = $this->safe_currency_code($quote);
             $symbol = $base . '/' . $quote;
             $symbolId = $baseId . '_' . $quoteId;
             $id = $this->safe_string($market, 'url_symbol');
@@ -229,10 +231,7 @@ class bitstamp extends Exchange {
             'pair' => $this->market_id($symbol),
         );
         $response = $this->publicGetOrderBookPair (array_merge ($request, $params));
-        $timestamp = $this->safe_integer($response, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($response, 'timestamp');
         return $this->parse_order_book($response, $timestamp);
     }
 
@@ -242,10 +241,7 @@ class bitstamp extends Exchange {
             'pair' => $this->market_id($symbol),
         );
         $ticker = $this->publicGetTickerPair (array_merge ($request, $params));
-        $timestamp = $this->safe_integer($ticker, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = $this->safe_float($ticker, 'volume');
         $quoteVolume = null;
@@ -291,8 +287,9 @@ class bitstamp extends Exchange {
         //         "eur" => 0.0
         //     }
         //
-        if (is_array($transaction) && array_key_exists('currency', $transaction)) {
-            return strtolower($transaction['currency']);
+        $currencyId = $this->safe_string_lower($transaction, 'currency');
+        if ($currencyId !== null) {
+            return $currencyId;
         }
         $transaction = $this->omit ($transaction, array (
             'fee',
@@ -659,7 +656,7 @@ class bitstamp extends Exchange {
             $currency = $this->currency ($code);
         }
         $transactions = $this->filter_by_array($response, 'type', array ( '0', '1' ), false);
-        return $this->parseTransactions ($transactions, $currency, $since, $limit);
+        return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -693,7 +690,7 @@ class bitstamp extends Exchange {
         //         ),
         //     )
         //
-        return $this->parseTransactions ($response, null, $since, $limit);
+        return $this->parse_transactions($response, null, $since, $limit);
     }
 
     public function parse_transaction ($transaction, $currency = null) {
@@ -701,7 +698,7 @@ class bitstamp extends Exchange {
         // fetchTransactions
         //
         //     {
-        //         "fee" => "0.00000000",
+        //         "$fee" => "0.00000000",
         //         "btc_usd" => "0.00",
         //         "$id" => 1234567894,
         //         "usd" => 0,
@@ -725,23 +722,29 @@ class bitstamp extends Exchange {
         //         transaction_id => 'xxxx',
         //     }
         //
+        //     {
+        //         "$id" => 3386432,
+        //         "$type" => 14,
+        //         "$amount" => "863.21332500",
+        //         "$status" => 2,
+        //         "$address" => "rE1sdh25BJQ3qFwngiTBwaq3zPGGYcrjp1?dt=1455",
+        //         "$currency" => "XRP",
+        //         "datetime" => "2018-01-05 15:27:55",
+        //         "transaction_id" => "001743B03B0C79BA166A064AC0142917B050347B4CB23BA2AB4B91B3C5608F4C"
+        //     }
+        //
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'datetime'));
-        $code = null;
         $id = $this->safe_string($transaction, 'id');
         $currencyId = $this->get_currency_id_from_transaction ($transaction);
-        if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-            $currency = $this->currencies_by_id[$currencyId];
-        } else if ($currencyId !== null) {
-            $code = strtoupper($currencyId);
-            $code = $this->common_currency_code($code);
-        }
+        $code = $this->safe_currency_code($currencyId, $currency);
         $feeCost = $this->safe_float($transaction, 'fee');
         $feeCurrency = null;
         $amount = null;
-        if ($currency !== null) {
+        if (is_array($transaction) && array_key_exists('amount', $transaction)) {
+            $amount = $this->safe_float($transaction, 'amount');
+        } else if ($currency !== null) {
             $amount = $this->safe_float($transaction, $currency['id'], $amount);
             $feeCurrency = $currency['code'];
-            $code = $currency['code'];
         } else if (($code !== null) && ($currencyId !== null)) {
             $amount = $this->safe_float($transaction, $currencyId, $amount);
             $feeCurrency = $code;
@@ -750,42 +753,69 @@ class bitstamp extends Exchange {
             // withdrawals have a negative $amount
             $amount = abs ($amount);
         }
-        $status = $this->parse_transaction_status_by_type ($this->safe_string($transaction, 'status'));
-        $type = $this->safe_string($transaction, 'type');
-        if ($status === null) {
-            if ($type === '0') {
+        $status = 'ok';
+        if (is_array($transaction) && array_key_exists('status', $transaction)) {
+            $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        }
+        $type = null;
+        if (is_array($transaction) && array_key_exists('type', $transaction)) {
+            // from fetchTransactions
+            $rawType = $this->safe_string($transaction, 'type');
+            if ($rawType === '0') {
                 $type = 'deposit';
-            } else if ($type === '1') {
+            } else if ($rawType === '1') {
                 $type = 'withdrawal';
             }
         } else {
+            // from fetchWithdrawals
             $type = 'withdrawal';
         }
         $txid = $this->safe_string($transaction, 'transaction_id');
+        $tag = null;
         $address = $this->safe_string($transaction, 'address');
-        $tag = null; // not documented
+        if ($address !== null) {
+            // dt (destination $tag) is embedded into the $address field
+            $addressParts = explode('?dt=', $address);
+            $numParts = is_array ($addressParts) ? count ($addressParts) : 0;
+            if ($numParts > 1) {
+                $address = $addressParts[0];
+                $tag = $addressParts[1];
+            }
+        }
+        $addressFrom = null;
+        $addressTo = $address;
+        $tagFrom = null;
+        $tagTo = $tag;
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array (
+                'currency' => $feeCurrency,
+                'cost' => $feeCost,
+                'rate' => null,
+            );
+        }
         return array (
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'addressFrom' => $addressFrom,
+            'addressTo' => $addressTo,
             'address' => $address,
+            'tagFrom' => $tagFrom,
+            'tagTo' => $tagTo,
             'tag' => $tag,
             'type' => $type,
             'amount' => $amount,
             'currency' => $code,
             'status' => $status,
             'updated' => null,
-            'fee' => array (
-                'currency' => $feeCurrency,
-                'cost' => $feeCost,
-                'rate' => null,
-            ),
+            'fee' => $fee,
         );
     }
 
-    public function parse_transaction_status_by_type ($status) {
+    public function parse_transaction_status ($status) {
         // withdrawals:
         // 0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
         $statuses = array (
@@ -1017,16 +1047,12 @@ class bitstamp extends Exchange {
         $v1 = ($code === 'BTC');
         $method = $v1 ? 'v1' : 'private'; // $v1 or v2
         $method .= 'Post' . $this->capitalize ($name) . 'Withdrawal';
-        $query = $params;
         if ($code === 'XRP') {
             if ($tag !== null) {
                 $request['destination_tag'] = $tag;
-                $query = $this->omit ($params, 'destination_tag');
-            } else {
-                throw new ExchangeError($this->id . ' withdraw() requires a destination_tag param for ' . $code);
             }
         }
-        $response = $this->$method (array_merge ($request, $query));
+        $response = $this->$method (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => $response['id'],
@@ -1066,13 +1092,13 @@ class bitstamp extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }
         //
         //     array("$error" => "No permission found") // fetchDepositAddress returns this on apiKeys that don't have the permission required
-        //     array("$status" => "$error", "$reason" => {"__all__" => ["Minimum order size is 5.0 EUR."])}
+        //     array("$status" => "$error", "$reason" => array("__all__" => ["Minimum order size is 5.0 EUR."]))
         //     reuse of a nonce gives => array( $status => 'error', $reason => 'Invalid nonce', $code => 'API0004' )
         $status = $this->safe_string($response, 'status');
         $error = $this->safe_value($response, 'error');

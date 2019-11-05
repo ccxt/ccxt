@@ -100,127 +100,127 @@ class bcex extends Exchange {
             'options' => array (
                 'limits' => array (
                     // hardcoding is deprecated, using these predefined values is not recommended, use loadTradingLimits instead
-                    'AFC/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 6, 'max' => 120000 ))),
-                    'AFC/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 6, 'max' => 120000 ))),
-                    'AFT/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 15, 'max' => 300000 ))),
-                    'AICC/CNET' => array( 'precision' => array ( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array ( 'min' => 5, 'max' => 50000 ))),
-                    'AIDOC/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 5, 'max' => 100000 ))),
-                    'AISI/ETH' => array( 'precision' => array ( 'amount' => 4, 'price' => 2 ), 'limits' => array( 'amount' => array ( 'min' => 0.001, 'max' => 500 ))),
-                    'AIT/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 20, 'max' => 400000 ))),
-                    'ANS/BTC' => array( 'precision' => array ( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 0.1, 'max' => 500 ))),
-                    'ANS/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array ( 'min' => 0.1, 'max' => 1000 ))),
-                    'ARC/CNET' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 60, 'max' => 600000 ))),
-                    'AXF/CNET' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 100, 'max' => 1000000 ))),
-                    'BASH/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 250, 'max' => 3000000 ))),
-                    'BATT/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 60, 'max' => 1500000 ))),
-                    'BCD/BTC' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 0.3, 'max' => 7000 ))),
-                    'BHPC/BTC' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 2, 'max' => 70000 ))),
-                    'BHPC/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 2, 'max' => 60000 ))),
-                    'BOPO/BTC' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 100, 'max' => 2000000 ))),
-                    'BOPO/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 100, 'max' => 10000000 ))),
-                    'BTC/CKUSD' => array( 'precision' => array ( 'amount' => 4, 'price' => 2 ), 'limits' => array( 'amount' => array ( 'min' => 0.001, 'max' => 10 ))),
-                    'BTC/CNET' => array( 'precision' => array ( 'amount' => 4, 'price' => 2 ), 'limits' => array( 'amount' => array ( 'min' => 0.0005, 'max' => 5 ))),
-                    'BTC/USDT' => array( 'precision' => array ( 'amount' => 4, 'price' => 2 ), 'limits' => array( 'amount' => array ( 'min' => 0.0002, 'max' => 4 ))),
-                    'BTE/CNET' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 25, 'max' => 250000 ))),
-                    'BU/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 20, 'max' => 400000 ))),
-                    'CIC/CNET' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 3000, 'max' => 30000000 ))),
-                    'CIT/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 4, 'max' => 40000 ))),
-                    'CIT/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 4, 'max' => 40000 ))),
-                    'CMT/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 5, 'max' => 2500000 ))),
-                    'CNET/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 12, 'max' => 120000 ))),
-                    'CNMC/BTC' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 4, 'max' => 50000 ))),
-                    'CTC/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 5, 'max' => 550000 ))),
-                    'CZR/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 12, 'max' => 500000 ))),
-                    'DCON/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 8, 'max' => 300000 ))),
-                    'DCT/BTC' => array( 'precision' => array ( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 2, 'max' => 40000 ))),
-                    'DCT/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 3 ), 'limits' => array( 'amount' => array ( 'min' => 2, 'max' => 2000 ))),
-                    'DOGE/BTC' => array( 'precision' => array ( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 3000, 'max' => 14000000 ))),
-                    'DOGE/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 6 ), 'limits' => array( 'amount' => array ( 'min' => 500, 'max' => 2000000 ))),
-                    'DRCT/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 16, 'max' => 190000 ))),
-                    'ELA/BTC' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 0.02, 'max' => 500 ))),
-                    'ELF/BTC' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 0.1, 'max' => 100000 ))),
-                    'ELF/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 3 ), 'limits' => array( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ))),
-                    'EOS/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array ( 'min' => 0.5, 'max' => 5000 ))),
-                    'EOS/CNET' => array( 'precision' => array ( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array ( 'min' => 2.5, 'max' => 30000 ))),
-                    'EOS/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 0.18, 'max' => 1800 ))),
-                    'ETC/BTC' => array( 'precision' => array ( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 0.2, 'max' => 2500 ))),
-                    'ETC/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array ( 'min' => 0.2, 'max' => 2500 ))),
-                    'ETF/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 7, 'max' => 150000 ))),
-                    'ETH/BTC' => array( 'precision' => array ( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 0.015, 'max' => 100 ))),
-                    'ETH/CKUSD' => array( 'precision' => array ( 'amount' => 4, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 0.005, 'max' => 100 ))),
-                    'ETH/USDT' => array( 'precision' => array ( 'amount' => 4, 'price' => 2 ), 'limits' => array( 'amount' => array ( 'min' => 0.005, 'max' => 100 ))),
-                    'FCT/BTC' => array( 'precision' => array ( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 0.24, 'max' => 1000 ))),
-                    'FCT/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array ( 'min' => 0.24, 'max' => 1000 ))),
-                    'GAME/CNET' => array( 'precision' => array ( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array ( 'min' => 1, 'max' => 10000 ))),
-                    'GOOC/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 200, 'max' => 2000000 ))),
-                    'GP/CNET' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 600, 'max' => 6000000 ))),
-                    'HSC/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 1000, 'max' => 20000000 ))),
-                    'IFISH/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 300, 'max' => 8000000 ))),
-                    'IIC/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 50, 'max' => 4000000 ))),
-                    'IMOS/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 15, 'max' => 300000 ))),
-                    'JC/CNET' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 300, 'max' => 3000000 ))),
-                    'LBTC/BTC' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 0.1, 'max' => 3000 ))),
-                    'LEC/CNET' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 500, 'max' => 5000000 ))),
-                    'LKY/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 10, 'max' => 70000 ))),
-                    'LKY/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 10, 'max' => 100000 ))),
-                    'LMC/CNET' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 25, 'max' => 250000 ))),
-                    'LSK/CNET' => array( 'precision' => array ( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array ( 'min' => 0.3, 'max' => 3000 ))),
-                    'LTC/BTC' => array( 'precision' => array ( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 0.01, 'max' => 500 ))),
-                    'LTC/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array ( 'min' => 0.01, 'max' => 500 ))),
-                    'LTC/USDT' => array( 'precision' => array ( 'amount' => 4, 'price' => 2 ), 'limits' => array( 'amount' => array ( 'min' => 0.02, 'max' => 450 ))),
-                    'MC/CNET' => array( 'precision' => array ( 'amount' => 2, 'price' => 6 ), 'limits' => array( 'amount' => array ( 'min' => 10000, 'max' => 100000000 ))),
-                    'MCC/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 30, 'max' => 350000 ))),
-                    'MOC/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 25, 'max' => 600000 ))),
-                    'MRYC/CNET' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 300, 'max' => 3000000 ))),
-                    'MT/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 200, 'max' => 6000000 ))),
-                    'MXI/CNET' => array( 'precision' => array ( 'amount' => 2, 'price' => 6 ), 'limits' => array( 'amount' => array ( 'min' => 5000, 'max' => 60000000 ))),
-                    'NAI/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 10, 'max' => 100000 ))),
-                    'NAS/BTC' => array( 'precision' => array ( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 0.2, 'max' => 15000 ))),
-                    'NAS/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array ( 'min' => 0.5, 'max' => 5000 ))),
-                    'NEWOS/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 65, 'max' => 700000 ))),
-                    'NKN/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 3, 'max' => 350000 ))),
-                    'NTK/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 2, 'max' => 30000 ))),
-                    'ONT/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 3 ), 'limits' => array( 'amount' => array ( 'min' => 0.2, 'max' => 2000 ))),
-                    'ONT/ETH' => array( 'precision' => array ( 'amount' => 3, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 0.01, 'max' => 1000 ))),
-                    'PNT/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 80, 'max' => 800000 ))),
-                    'PST/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 5, 'max' => 100000 ))),
-                    'PTT/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 450, 'max' => 10000000 ))),
-                    'QTUM/BTC' => array( 'precision' => array ( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 0.4, 'max' => 2800 ))),
-                    'QTUM/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array ( 'min' => 0.1, 'max' => 1000 ))),
-                    'RATING/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 500, 'max' => 10000000 ))),
-                    'RHC/CNET' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 1000, 'max' => 10000000 ))),
-                    'SDA/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 20, 'max' => 500000 ))),
-                    'SDD/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 3 ), 'limits' => array( 'amount' => array ( 'min' => 10, 'max' => 100000 ))),
-                    'SHC/CNET' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 250, 'max' => 2500000 ))),
-                    'SHE/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 100, 'max' => 5000000 ))),
-                    'SMC/CNET' => array( 'precision' => array ( 'amount' => 2, 'price' => 6 ), 'limits' => array( 'amount' => array ( 'min' => 1000, 'max' => 10000000 ))),
-                    'SOP/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 50, 'max' => 1000000 ))),
-                    'TAC/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 35, 'max' => 800000 ))),
-                    'TIP/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 7, 'max' => 200000 ))),
-                    'TKT/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 40, 'max' => 400000 ))),
-                    'TLC/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 500, 'max' => 10000000 ))),
-                    'TNC/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 10, 'max' => 110000 ))),
-                    'TUB/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 200, 'max' => 8000000 ))),
-                    'UC/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 100, 'max' => 3000000 ))),
-                    'UDB/CNET' => array( 'precision' => array ( 'amount' => 2, 'price' => 6 ), 'limits' => array( 'amount' => array ( 'min' => 2000, 'max' => 40000000 ))),
-                    'UIC/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 5, 'max' => 150000 ))),
-                    'VAAC/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 10, 'max' => 250000 ))),
-                    'VPN/CNET' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 200, 'max' => 2000000 ))),
-                    'VSC/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 30, 'max' => 650000 ))),
-                    'WAVES/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 3 ), 'limits' => array( 'amount' => array ( 'min' => 0.15, 'max' => 1500 ))),
-                    'WDNA/ETH' => array( 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 100, 'max' => 250000 ))),
-                    'WIC/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 3, 'max' => 30000 ))),
-                    'XAS/CNET' => array( 'precision' => array ( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array ( 'min' => 2.5, 'max' => 25000 ))),
-                    'XLM/BTC' => array( 'precision' => array ( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 10, 'max' => 300000 ))),
-                    'XLM/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 1, 'max' => 300000 ))),
-                    'XLM/USDT' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 5, 'max' => 150000 ))),
-                    'XRP/BTC' => array( 'precision' => array ( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 24, 'max' => 100000 ))),
-                    'XRP/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 3 ), 'limits' => array( 'amount' => array ( 'min' => 5, 'max' => 50000 ))),
-                    'YBCT/BTC' => array( 'precision' => array ( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 15, 'max' => 200000 ))),
-                    'YBCT/CKUSD' => array( 'precision' => array ( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array ( 'min' => 10, 'max' => 200000 ))),
-                    'YBY/CNET' => array( 'precision' => array ( 'amount' => 2, 'price' => 6 ), 'limits' => array( 'amount' => array ( 'min' => 25000, 'max' => 250000000 ))),
-                    'ZEC/BTC' => array( 'precision' => array ( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array ( 'min' => 0.02, 'max' => 100 ))),
-                    'ZEC/CKUSD' => array( 'precision' => array ( 'amount' => 4, 'price' => 2 ), 'limits' => array( 'amount' => array ( 'min' => 0.02, 'max' => 100 ))),
+                    'AFC/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 6, 'max' => 120000 ))),
+                    'AFC/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 6, 'max' => 120000 ))),
+                    'AFT/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 15, 'max' => 300000 ))),
+                    'AICC/CNET' => array( 'precision' => array( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array( 'min' => 5, 'max' => 50000 ))),
+                    'AIDOC/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 5, 'max' => 100000 ))),
+                    'AISI/ETH' => array( 'precision' => array( 'amount' => 4, 'price' => 2 ), 'limits' => array( 'amount' => array( 'min' => 0.001, 'max' => 500 ))),
+                    'AIT/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 20, 'max' => 400000 ))),
+                    'ANS/BTC' => array( 'precision' => array( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 0.1, 'max' => 500 ))),
+                    'ANS/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array( 'min' => 0.1, 'max' => 1000 ))),
+                    'ARC/CNET' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 60, 'max' => 600000 ))),
+                    'AXF/CNET' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 100, 'max' => 1000000 ))),
+                    'BASH/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 250, 'max' => 3000000 ))),
+                    'BATT/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 60, 'max' => 1500000 ))),
+                    'BCD/BTC' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 0.3, 'max' => 7000 ))),
+                    'BHPC/BTC' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 2, 'max' => 70000 ))),
+                    'BHPC/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 2, 'max' => 60000 ))),
+                    'BOPO/BTC' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 100, 'max' => 2000000 ))),
+                    'BOPO/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 100, 'max' => 10000000 ))),
+                    'BTC/CKUSD' => array( 'precision' => array( 'amount' => 4, 'price' => 2 ), 'limits' => array( 'amount' => array( 'min' => 0.001, 'max' => 10 ))),
+                    'BTC/CNET' => array( 'precision' => array( 'amount' => 4, 'price' => 2 ), 'limits' => array( 'amount' => array( 'min' => 0.0005, 'max' => 5 ))),
+                    'BTC/USDT' => array( 'precision' => array( 'amount' => 4, 'price' => 2 ), 'limits' => array( 'amount' => array( 'min' => 0.0002, 'max' => 4 ))),
+                    'BTE/CNET' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 25, 'max' => 250000 ))),
+                    'BU/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 20, 'max' => 400000 ))),
+                    'CIC/CNET' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 3000, 'max' => 30000000 ))),
+                    'CIT/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 4, 'max' => 40000 ))),
+                    'CIT/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 4, 'max' => 40000 ))),
+                    'CMT/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 5, 'max' => 2500000 ))),
+                    'CNET/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 12, 'max' => 120000 ))),
+                    'CNMC/BTC' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 4, 'max' => 50000 ))),
+                    'CTC/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 5, 'max' => 550000 ))),
+                    'CZR/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 12, 'max' => 500000 ))),
+                    'DCON/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 8, 'max' => 300000 ))),
+                    'DCT/BTC' => array( 'precision' => array( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 2, 'max' => 40000 ))),
+                    'DCT/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 3 ), 'limits' => array( 'amount' => array( 'min' => 2, 'max' => 2000 ))),
+                    'DOGE/BTC' => array( 'precision' => array( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 3000, 'max' => 14000000 ))),
+                    'DOGE/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 6 ), 'limits' => array( 'amount' => array( 'min' => 500, 'max' => 2000000 ))),
+                    'DRCT/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 16, 'max' => 190000 ))),
+                    'ELA/BTC' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 0.02, 'max' => 500 ))),
+                    'ELF/BTC' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 0.1, 'max' => 100000 ))),
+                    'ELF/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 3 ), 'limits' => array( 'amount' => array( 'min' => 0.01, 'max' => 100000 ))),
+                    'EOS/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array( 'min' => 0.5, 'max' => 5000 ))),
+                    'EOS/CNET' => array( 'precision' => array( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array( 'min' => 2.5, 'max' => 30000 ))),
+                    'EOS/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 0.18, 'max' => 1800 ))),
+                    'ETC/BTC' => array( 'precision' => array( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 0.2, 'max' => 2500 ))),
+                    'ETC/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array( 'min' => 0.2, 'max' => 2500 ))),
+                    'ETF/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 7, 'max' => 150000 ))),
+                    'ETH/BTC' => array( 'precision' => array( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 0.015, 'max' => 100 ))),
+                    'ETH/CKUSD' => array( 'precision' => array( 'amount' => 4, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 0.005, 'max' => 100 ))),
+                    'ETH/USDT' => array( 'precision' => array( 'amount' => 4, 'price' => 2 ), 'limits' => array( 'amount' => array( 'min' => 0.005, 'max' => 100 ))),
+                    'FCT/BTC' => array( 'precision' => array( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 0.24, 'max' => 1000 ))),
+                    'FCT/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array( 'min' => 0.24, 'max' => 1000 ))),
+                    'GAME/CNET' => array( 'precision' => array( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array( 'min' => 1, 'max' => 10000 ))),
+                    'GOOC/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 200, 'max' => 2000000 ))),
+                    'GP/CNET' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 600, 'max' => 6000000 ))),
+                    'HSC/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 1000, 'max' => 20000000 ))),
+                    'IFISH/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 300, 'max' => 8000000 ))),
+                    'IIC/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 50, 'max' => 4000000 ))),
+                    'IMOS/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 15, 'max' => 300000 ))),
+                    'JC/CNET' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 300, 'max' => 3000000 ))),
+                    'LBTC/BTC' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 0.1, 'max' => 3000 ))),
+                    'LEC/CNET' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 500, 'max' => 5000000 ))),
+                    'LKY/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 10, 'max' => 70000 ))),
+                    'LKY/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 10, 'max' => 100000 ))),
+                    'LMC/CNET' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 25, 'max' => 250000 ))),
+                    'LSK/CNET' => array( 'precision' => array( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array( 'min' => 0.3, 'max' => 3000 ))),
+                    'LTC/BTC' => array( 'precision' => array( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 0.01, 'max' => 500 ))),
+                    'LTC/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array( 'min' => 0.01, 'max' => 500 ))),
+                    'LTC/USDT' => array( 'precision' => array( 'amount' => 4, 'price' => 2 ), 'limits' => array( 'amount' => array( 'min' => 0.02, 'max' => 450 ))),
+                    'MC/CNET' => array( 'precision' => array( 'amount' => 2, 'price' => 6 ), 'limits' => array( 'amount' => array( 'min' => 10000, 'max' => 100000000 ))),
+                    'MCC/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 30, 'max' => 350000 ))),
+                    'MOC/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 25, 'max' => 600000 ))),
+                    'MRYC/CNET' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 300, 'max' => 3000000 ))),
+                    'MT/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 200, 'max' => 6000000 ))),
+                    'MXI/CNET' => array( 'precision' => array( 'amount' => 2, 'price' => 6 ), 'limits' => array( 'amount' => array( 'min' => 5000, 'max' => 60000000 ))),
+                    'NAI/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 10, 'max' => 100000 ))),
+                    'NAS/BTC' => array( 'precision' => array( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 0.2, 'max' => 15000 ))),
+                    'NAS/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array( 'min' => 0.5, 'max' => 5000 ))),
+                    'NEWOS/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 65, 'max' => 700000 ))),
+                    'NKN/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 3, 'max' => 350000 ))),
+                    'NTK/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 2, 'max' => 30000 ))),
+                    'ONT/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 3 ), 'limits' => array( 'amount' => array( 'min' => 0.2, 'max' => 2000 ))),
+                    'ONT/ETH' => array( 'precision' => array( 'amount' => 3, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 0.01, 'max' => 1000 ))),
+                    'PNT/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 80, 'max' => 800000 ))),
+                    'PST/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 5, 'max' => 100000 ))),
+                    'PTT/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 450, 'max' => 10000000 ))),
+                    'QTUM/BTC' => array( 'precision' => array( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 0.4, 'max' => 2800 ))),
+                    'QTUM/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array( 'min' => 0.1, 'max' => 1000 ))),
+                    'RATING/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 500, 'max' => 10000000 ))),
+                    'RHC/CNET' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 1000, 'max' => 10000000 ))),
+                    'SDA/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 20, 'max' => 500000 ))),
+                    'SDD/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 3 ), 'limits' => array( 'amount' => array( 'min' => 10, 'max' => 100000 ))),
+                    'SHC/CNET' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 250, 'max' => 2500000 ))),
+                    'SHE/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 100, 'max' => 5000000 ))),
+                    'SMC/CNET' => array( 'precision' => array( 'amount' => 2, 'price' => 6 ), 'limits' => array( 'amount' => array( 'min' => 1000, 'max' => 10000000 ))),
+                    'SOP/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 50, 'max' => 1000000 ))),
+                    'TAC/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 35, 'max' => 800000 ))),
+                    'TIP/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 7, 'max' => 200000 ))),
+                    'TKT/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 40, 'max' => 400000 ))),
+                    'TLC/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 500, 'max' => 10000000 ))),
+                    'TNC/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 10, 'max' => 110000 ))),
+                    'TUB/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 200, 'max' => 8000000 ))),
+                    'UC/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 100, 'max' => 3000000 ))),
+                    'UDB/CNET' => array( 'precision' => array( 'amount' => 2, 'price' => 6 ), 'limits' => array( 'amount' => array( 'min' => 2000, 'max' => 40000000 ))),
+                    'UIC/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 5, 'max' => 150000 ))),
+                    'VAAC/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 10, 'max' => 250000 ))),
+                    'VPN/CNET' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 200, 'max' => 2000000 ))),
+                    'VSC/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 30, 'max' => 650000 ))),
+                    'WAVES/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 3 ), 'limits' => array( 'amount' => array( 'min' => 0.15, 'max' => 1500 ))),
+                    'WDNA/ETH' => array( 'precision' => array( 'amount' => 2, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 100, 'max' => 250000 ))),
+                    'WIC/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 3, 'max' => 30000 ))),
+                    'XAS/CNET' => array( 'precision' => array( 'amount' => 2, 'price' => 2 ), 'limits' => array( 'amount' => array( 'min' => 2.5, 'max' => 25000 ))),
+                    'XLM/BTC' => array( 'precision' => array( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 10, 'max' => 300000 ))),
+                    'XLM/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 1, 'max' => 300000 ))),
+                    'XLM/USDT' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 5, 'max' => 150000 ))),
+                    'XRP/BTC' => array( 'precision' => array( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 24, 'max' => 100000 ))),
+                    'XRP/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 3 ), 'limits' => array( 'amount' => array( 'min' => 5, 'max' => 50000 ))),
+                    'YBCT/BTC' => array( 'precision' => array( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 15, 'max' => 200000 ))),
+                    'YBCT/CKUSD' => array( 'precision' => array( 'amount' => 2, 'price' => 4 ), 'limits' => array( 'amount' => array( 'min' => 10, 'max' => 200000 ))),
+                    'YBY/CNET' => array( 'precision' => array( 'amount' => 2, 'price' => 6 ), 'limits' => array( 'amount' => array( 'min' => 25000, 'max' => 250000000 ))),
+                    'ZEC/BTC' => array( 'precision' => array( 'amount' => 4, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 0.02, 'max' => 100 ))),
+                    'ZEC/CKUSD' => array( 'precision' => array( 'amount' => 4, 'price' => 2 ), 'limits' => array( 'amount' => array( 'min' => 0.02, 'max' => 100 ))),
                 ),
             ),
         ));
@@ -305,8 +305,8 @@ class bcex extends Exchange {
                 $quoteId = $this->safe_string($market, 'coin_to');
                 $base = strtoupper($baseId);
                 $quote = strtoupper($quoteId);
-                $base = $this->common_currency_code($base);
-                $quote = $this->common_currency_code($quote);
+                $base = $this->safe_currency_code($base);
+                $quote = $this->safe_currency_code($quote);
                 $id = $baseId . '2' . $quoteId;
                 $symbol = $base . '/' . $quote;
                 $active = true;
@@ -351,10 +351,7 @@ class bcex extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_integer_2($trade, 'date', 'created');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp_2($trade, 'date', 'created');
         $id = $this->safe_string($trade, 'tid');
         $orderId = $this->safe_string($trade, 'order_id');
         $amount = $this->safe_float_2($trade, 'number', 'amount');
@@ -410,12 +407,7 @@ class bcex extends Exchange {
             $parts = explode('_', $key);
             $currencyId = $parts[0];
             $lockOrOver = $parts[1];
-            $code = strtoupper($currencyId);
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code($code);
-            }
+            $code = $this->safe_currency_code($currencyId);
             if (!(is_array($result) && array_key_exists($code, $result))) {
                 $result[$code] = $this->account ();
             }
@@ -476,10 +468,7 @@ class bcex extends Exchange {
         );
         $response = $this->publicPostApiOrderDepth (array_merge ($request, $params));
         $data = $this->safe_value($response, 'data');
-        $timestamp = $this->safe_integer($data, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($data, 'date');
         return $this->parse_order_book($data, $timestamp);
     }
 
@@ -514,10 +503,7 @@ class bcex extends Exchange {
         );
         $response = $this->privatePostApiOrderOrderInfo (array_merge ($request, $params));
         $order = $this->safe_value($response, 'data');
-        $timestamp = $this->safe_integer($order, 'created');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($order, 'created');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $side = $this->safe_string($order, 'flag');
         if ($side === 'sale') {
@@ -546,10 +532,7 @@ class bcex extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $id = $this->safe_string($order, 'id');
-        $timestamp = $this->safe_integer($order, 'datetime');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($order, 'datetime');
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -673,7 +656,7 @@ class bcex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

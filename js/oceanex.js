@@ -43,6 +43,7 @@ module.exports = class oceanex extends Exchange {
                 'createMarketOrder': true,
                 'createOrder': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'cancelAllOrders': true,
             },
             'timeframes': {
@@ -128,8 +129,8 @@ module.exports = class oceanex extends Exchange {
             const id = this.safeValue (market, 'id');
             const name = this.safeValue (market, 'name');
             let [ baseId, quoteId ] = name.split ('/');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             baseId = baseId.toLowerCase ();
             quoteId = quoteId.toLowerCase ();
             const symbol = base + '/' + quote;
@@ -150,7 +151,7 @@ module.exports = class oceanex extends Exchange {
                 },
                 'limits': {
                     'amount': {
-                        'min': this.safeValue (market, 'minimum_trading_amount'),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
@@ -158,7 +159,7 @@ module.exports = class oceanex extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeValue (market, 'minimum_trading_amount'),
                         'max': undefined,
                     },
                 },
@@ -247,10 +248,7 @@ module.exports = class oceanex extends Exchange {
         //         }
         //
         const ticker = this.safeValue (data, 'ticker', {});
-        let timestamp = this.safeInteger (data, 'at');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (data, 'at');
         return {
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -305,10 +303,7 @@ module.exports = class oceanex extends Exchange {
         //     }
         //
         const orderbook = this.safeValue (response, 'data', {});
-        let timestamp = this.safeInteger (orderbook, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, timestamp);
     }
 
@@ -355,10 +350,7 @@ module.exports = class oceanex extends Exchange {
             const marketId = this.safeString (orderbook, 'market');
             const market = this.markets_by_id[marketId];
             const symbol = market['symbol'];
-            let timestamp = this.safeInteger (orderbook, 'timestamp');
-            if (timestamp !== undefined) {
-                timestamp = timestamp * 1000;
-            }
+            const timestamp = this.safeTimestamp (orderbook, 'timestamp');
             result[symbol] = this.parseOrderBook (orderbook, timestamp);
         }
         return result;
@@ -400,11 +392,9 @@ module.exports = class oceanex extends Exchange {
                 symbol = market['symbol'];
             }
         }
-        let timestamp = this.safeInteger (trade, 'created_on');
+        let timestamp = this.safeTimestamp (trade, 'created_on');
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
-        } else {
-            timestamp = timestamp * 1000;
         }
         return {
             'info': trade,
@@ -428,8 +418,7 @@ module.exports = class oceanex extends Exchange {
         //
         //     {"code":0,"message":"Operation successful","data":1559433420}
         //
-        const timestamp = this.safeInteger (response, 'data');
-        return timestamp * 1000;
+        return this.safeTimestamp (response, 'data');
     }
 
     async fetchAllTradingFees (params = {}) {
@@ -469,12 +458,7 @@ module.exports = class oceanex extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeValue (balance, 'currency');
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId.toUpperCase ());
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'balance');
             account['used'] = this.safeFloat (balance, 'locked');
@@ -501,15 +485,26 @@ module.exports = class oceanex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        let ids = id;
+        if (!Array.isArray (id)) {
+            ids = [ id ];
+        }
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = { 'ids': [id] };
+        const request = { 'ids': ids };
         const response = await this.privateGetOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data');
-        if (data === undefined || data.length === 0) {
+        const dataLength = data.length;
+        if (data === undefined) {
+            throw new OrderNotFound (this.id + ' could not found matching order');
+        }
+        if (Array.isArray (id)) {
+            return this.parseOrders (data, market);
+        }
+        if (dataLength === 0) {
             throw new OrderNotFound (this.id + ' could not found matching order');
         }
         return this.parseOrder (data[0], market);
@@ -574,11 +569,9 @@ module.exports = class oceanex extends Exchange {
                 symbol = market['symbol'];
             }
         }
-        let timestamp = this.safeInteger (order, 'created_on');
+        let timestamp = this.safeTimestamp (order, 'created_on');
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        } else {
-            timestamp = timestamp * 1000;
         }
         return {
             'info': order,
@@ -624,18 +617,21 @@ module.exports = class oceanex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         const response = await this.privatePostOrderDelete (this.extend ({ 'id': id }, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data);
     }
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         const response = await this.privatePostOrderDeleteMulti (this.extend ({ 'ids': ids }, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrders (data);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         const response = await this.privatePostOrdersClear (params);
         const data = this.safeValue (response, 'data');
         return this.parseOrders (data);
@@ -675,7 +671,7 @@ module.exports = class oceanex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //
         //     {"code":1011,"message":"This IP '5.228.233.138' is not allowed","data":{}}
         //

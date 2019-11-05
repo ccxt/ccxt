@@ -14,7 +14,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
-class upbit (Exchange):
+class upbit(Exchange):
 
     def describe(self):
         return self.deep_extend(super(upbit, self).describe(), {
@@ -150,9 +150,6 @@ class upbit (Exchange):
                     'KRW': 0.0005,
                 },
             },
-            'commonCurrencies': {
-                'CPT': 'Contents Protocol',  # conflict with CPT(Cryptaur) https://github.com/ccxt/ccxt/issues/4920
-            },
         })
 
     async def fetch_currency(self, code, params={}):
@@ -233,7 +230,7 @@ class upbit (Exchange):
             maxWithdrawLimit = maxDailyWithdrawal
         precision = None
         currencyId = self.safe_string(currencyInfo, 'code')
-        code = self.common_currency_code(currencyId)
+        code = self.safe_currency_code(currencyId)
         return {
             'info': response,
             'id': currencyId,
@@ -296,8 +293,8 @@ class upbit (Exchange):
         marketId = self.safe_string(marketInfo, 'id')
         baseId = self.safe_string(ask, 'currency')
         quoteId = self.safe_string(bid, 'currency')
-        base = self.common_currency_code(baseId)
-        quote = self.common_currency_code(quoteId)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
         precision = {
             'amount': 8,
@@ -361,8 +358,8 @@ class upbit (Exchange):
             market = response[i]
             id = self.safe_string(market, 'market')
             quoteId, baseId = id.split('-')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -419,11 +416,7 @@ class upbit (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'balance')
             account['used'] = self.safe_float(balance, 'locked')
@@ -437,8 +430,8 @@ class upbit (Exchange):
         if market is not None:
             return market['symbol']
         baseId, quoteId = marketId.split(self.options['symbolSeparator'])
-        base = self.common_currency_code(baseId)
-        quote = self.common_currency_code(quoteId)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         return base + '/' + quote
 
     async def fetch_order_books(self, symbols=None, params={}):
@@ -651,9 +644,7 @@ class upbit (Exchange):
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         side = None
-        askOrBid = self.safe_string_2(trade, 'ask_bid', 'side')
-        if askOrBid is not None:
-            askOrBid = askOrBid.lower()
+        askOrBid = self.safe_string_lower_2(trade, 'ask_bid', 'side')
         if askOrBid == 'ask':
             side = 'sell'
         elif askOrBid == 'bid':
@@ -675,8 +666,8 @@ class upbit (Exchange):
             feeCurrency = market['quote']
         else:
             baseId, quoteId = marketId.split('-')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             feeCurrency = quote
         feeCost = self.safe_string(trade, askOrBid + '_fee')
@@ -775,6 +766,9 @@ class upbit (Exchange):
             numMinutes = int(round(timeframePeriod / 60))
             request['unit'] = numMinutes
             method += 'Unit'
+        if since is not None:
+            # convert `since` to `to` value
+            request['to'] = self.iso8601(self.sum(since, timeframePeriod * limit * 1000))
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     [{                 market: "BTC-ETH",
@@ -914,7 +908,7 @@ class upbit (Exchange):
         #         ...,
         #     ]
         #
-        return self.parseTransactions(response, currency, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -945,7 +939,7 @@ class upbit (Exchange):
         #         ...,
         #     ]
         #
-        return self.parseTransactions(response, currency, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     def parse_transaction_status(self, status):
         statuses = {
@@ -1003,13 +997,8 @@ class upbit (Exchange):
         type = self.safe_string(transaction, 'type')
         if type == 'withdraw':
             type = 'withdrawal'
-        code = None
         currencyId = self.safe_string(transaction, 'currency')
-        currency = self.safe_value(self.currencies_by_id, currencyId)
-        if currency is not None:
-            code = currency['code']
-        else:
-            code = self.common_currency_code(currencyId)
+        code = self.safe_currency_code(currencyId)
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
         feeCost = self.safe_float(transaction, 'fee')
         return {
@@ -1114,8 +1103,8 @@ class upbit (Exchange):
             feeCurrency = market['quote']
         else:
             baseId, quoteId = marketId.split('-')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             feeCurrency = quote
         trades = self.safe_value(order, 'trades', [])
@@ -1300,7 +1289,8 @@ class upbit (Exchange):
         #
         address = self.safe_string(depositAddress, 'deposit_address')
         tag = self.safe_string(depositAddress, 'secondary_address')
-        code = self.common_currency_code(self.safe_string(depositAddress, 'currency'))
+        currencyId = self.safe_string(depositAddress, 'currency')
+        code = self.safe_currency_code(currencyId)
         self.check_address(address)
         return {
             'currency': code,
@@ -1416,7 +1406,7 @@ class upbit (Exchange):
                 headers['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         #

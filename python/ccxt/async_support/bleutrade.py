@@ -4,13 +4,15 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.bittrex import bittrex
+import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 
 
-class bleutrade (bittrex):
+class bleutrade(bittrex):
 
     def describe(self):
         timeframes = {
@@ -39,18 +41,23 @@ class bleutrade (bittrex):
                 'fetchOrders': True,
                 'fetchClosedOrders': True,
                 'fetchOrderTrades': True,
+                'fetchLedger': True,
             },
             'timeframes': timeframes,
             'hostname': 'bleutrade.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
                 'api': {
-                    'public': 'https://{hostname}/api',
-                    'account': 'https://{hostname}/api',
-                    'market': 'https://{hostname}/api',
+                    'public': 'https://{hostname}/api/v2',
+                    'account': 'https://{hostname}/api/v2',
+                    'market': 'https://{hostname}/api/v2',
+                    'v3Private': 'https://{hostname}/api/v3/private',
+                    'v3Public': 'https://{hostname}/api/v3/public',
                 },
                 'www': 'https://bleutrade.com',
-                'doc': 'https://bleutrade.com/help/API',
+                'doc': [
+                    'https://app.swaggerhub.com/apis-docs/bleu/white-label/3.0.0',
+                ],
                 'fees': 'https://bleutrade.com/help/fees_and_deadlines',
             },
             'api': {
@@ -77,6 +84,39 @@ class bleutrade (bittrex):
                         'marketsummary',
                         'orderbook',
                         'ticker',
+                    ],
+                },
+                'v3Public': {
+                    'get': [
+                        'assets',
+                        'markets',
+                        'ticker',
+                        'marketsummary',
+                        'marketsummaries',
+                        'orderbook',
+                        'markethistory',
+                        'candles',
+                    ],
+                },
+                'v3Private': {
+                    'get': [
+                        'getbalance',
+                        'getbalances',
+                        'buylimit',
+                        'selllimit',
+                        'buylimitami',
+                        'selllimitami',
+                        'buystoplimit',
+                        'sellstoplimit',
+                        'ordercancel',
+                        'getopenorders',
+                        'getdeposithistory',
+                        'getdepositaddress',
+                        'getmytransactions',
+                        'withdraw',
+                        'directtransfer',
+                        'getwithdrawhistory',
+                        'getlimits',
                     ],
                 },
             },
@@ -141,6 +181,10 @@ class bleutrade (bittrex):
                 'Invalid apikey or apisecret': AuthenticationError,
             },
             'options': {
+                # price precision by quote currency code
+                'pricePrecisionByCode': {
+                    'USD': 3,
+                },
                 'parseOrderStatus': True,
                 'disableNonce': False,
                 'symbolSeparator': '_',
@@ -148,6 +192,55 @@ class bleutrade (bittrex):
         })
         # bittrex inheritance override
         result['timeframes'] = timeframes
+        return result
+
+    async def fetch_markets(self, params={}):
+        # https://github.com/ccxt/ccxt/issues/5668
+        response = await self.publicGetMarkets(params)
+        result = []
+        markets = self.safe_value(response, 'result')
+        for i in range(0, len(markets)):
+            market = markets[i]
+            id = self.safe_string(market, 'MarketName')
+            baseId = self.safe_string(market, 'MarketCurrency')
+            quoteId = self.safe_string(market, 'BaseCurrency')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
+            pricePrecision = 8
+            if quote in self.options['pricePrecisionByCode']:
+                pricePrecision = self.options['pricePrecisionByCode'][quote]
+            precision = {
+                'amount': 8,
+                'price': pricePrecision,
+            }
+            # bittrex uses boolean values, bleutrade uses strings
+            active = self.safe_value(market, 'IsActive', False)
+            if (active != 'false') and active:
+                active = True
+            else:
+                active = False
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'info': market,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': self.safe_float(market, 'MinTradeSize'),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': None,
+                    },
+                },
+            })
         return result
 
     def parse_order_status(self, status):
@@ -165,12 +258,12 @@ class bleutrade (bittrex):
         # depth(optional, default is 500, max is 20000)
         await self.load_markets()
         market = None
+        marketId = 'ALL'
         if symbol is not None:
             market = self.market(symbol)
-        else:
-            market = None
+            marketId = market['id']
         request = {
-            'market': 'ALL',
+            'market': marketId,
             'orderstatus': 'ALL',
         }
         response = await self.accountGetOrders(self.extend(request, params))
@@ -185,8 +278,8 @@ class bleutrade (bittrex):
 
     def parse_symbol(self, id):
         base, quote = id.split(self.options['symbolSeparator'])
-        base = self.common_currency_code(base)
-        quote = self.common_currency_code(quote)
+        base = self.safe_currency_code(base)
+        quote = self.safe_currency_code(quote)
         return base + '/' + quote
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -221,7 +314,7 @@ class bleutrade (bittrex):
         await self.load_markets()
         method = 'accountGetDeposithistory' if (type == 'deposit') else 'accountGetWithdrawhistory'
         response = await getattr(self, method)(params)
-        result = self.parseTransactions(response['result'])
+        result = self.parse_transactions(response['result'])
         return self.filterByCurrencySinceLimit(result, code, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
@@ -261,7 +354,7 @@ class bleutrade (bittrex):
             side = 'buy'
         elif trade['OrderType'] == 'SELL':
             side = 'sell'
-        id = self.safe_string(trade, 'TradeID')
+        id = self.safe_string_2(trade, 'TradeID', 'ID')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -287,7 +380,149 @@ class bleutrade (bittrex):
             'fee': None,
         }
 
+    def parse_ledger_entry_type(self, type):
+        # deposits don't seem to appear in here
+        types = {
+            'TRADE': 'trade',
+            'WITHDRAW': 'transaction',
+        }
+        return self.safe_string(types, type, type)
+
+    def parse_ledger_entry(self, item, currency=None):
+        #
+        # trade(both sides)
+        #
+        #     {
+        #         ID: 109660527,
+        #         TimeStamp: '2018-11-14 15:12:57.140776',
+        #         Asset: 'ETH',
+        #         AssetName: 'Ethereum',
+        #         Amount: 0.01,
+        #         Type: 'TRADE',
+        #         Description: 'Trade +, order id 133111123',
+        #         Comments: '',
+        #         CoinSymbol: 'ETH',
+        #         CoinName: 'Ethereum'
+        #     }
+        #
+        #     {
+        #         ID: 109660526,
+        #         TimeStamp: '2018-11-14 15:12:57.140776',
+        #         Asset: 'BTC',
+        #         AssetName: 'Bitcoin',
+        #         Amount: -0.00031776,
+        #         Type: 'TRADE',
+        #         Description: 'Trade -, order id 133111123, fee -0.00000079',
+        #         Comments: '',
+        #         CoinSymbol: 'BTC',
+        #         CoinName: 'Bitcoin'
+        #     }
+        #
+        # withdrawal
+        #
+        #     {
+        #         ID: 104672316,
+        #         TimeStamp: '2018-05-03 08:18:19.031831',
+        #         Asset: 'DOGE',
+        #         AssetName: 'Dogecoin',
+        #         Amount: -61893.87864686,
+        #         Type: 'WITHDRAW',
+        #         Description: 'Withdraw: 61883.87864686 to address DD8tgehNNyYB2iqVazi2W1paaztgcWXtF6; fee 10.00000000',
+        #         Comments: '',
+        #         CoinSymbol: 'DOGE',
+        #         CoinName: 'Dogecoin'
+        #     }
+        #
+        code = self.safe_currency_code(self.safe_string(item, 'CoinSymbol'), currency)
+        description = self.safe_string(item, 'Description')
+        type = self.parse_ledger_entry_type(self.safe_string(item, 'Type'))
+        referenceId = None
+        fee = None
+        delimiter = ', ' if (type == 'trade') else '; '
+        parts = description.split(delimiter)
+        for i in range(0, len(parts)):
+            part = parts[i]
+            if part.find('fee') == 0:
+                part = part.replace('fee ', '')
+                feeCost = float(part)
+                if feeCost < 0:
+                    feeCost = -feeCost
+                fee = {
+                    'cost': feeCost,
+                    'currency': code,
+                }
+            elif part.find('order id') == 0:
+                referenceId = part.replace('order id', '')
+            #
+            # does not belong to Ledger, related to parseTransaction
+            #
+            #     if part.find('Withdraw') == 0:
+            #         details = part.split(' to address ')
+            #         if len(details) > 1:
+            #             address = details[1]
+            #     }
+            #
+        timestamp = self.parse8601(self.safe_string(item, 'TimeStamp'))
+        amount = self.safe_float(item, 'Amount')
+        direction = None
+        if amount is not None:
+            direction = 'in'
+            if amount < 0:
+                direction = 'out'
+                amount = -amount
+        id = self.safe_string(item, 'ID')
+        return {
+            'id': id,
+            'info': item,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'direction': direction,
+            'account': None,
+            'referenceId': referenceId,
+            'referenceAccount': None,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'before': None,
+            'after': None,
+            'status': 'ok',
+            'fee': fee,
+        }
+
+    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        #
+        #     if code is None:
+        #         raise ExchangeError(self.id + ' fetchClosedOrders requires a `symbol` argument')
+        #     }
+        #
+        await self.load_markets()
+        request = {}
+        #
+        #     if code is not None:
+        #         currency = self.market(code)
+        #         request['asset'] = currency['id']
+        #     }
+        #
+        response = await self.v3PrivateGetGetmytransactions(self.extend(request, params))
+        return self.parse_ledger(response['result'], code, since, limit)
+
     def parse_order(self, order, market=None):
+        #
+        # fetchOrders
+        #
+        #     {
+        #         OrderId: '107220258',
+        #         Exchange: 'LTC_BTC',
+        #         Type: 'SELL',
+        #         Quantity: '2.13040000',
+        #         QuantityRemaining: '0.00000000',
+        #         Price: '0.01332672',
+        #         Status: 'OK',
+        #         Created: '2018-06-30 04:55:50',
+        #         QuantityBaseTraded: '0.02839125',
+        #         Comments: ''
+        #     }
+        #
         side = self.safe_string_2(order, 'OrderType', 'Type')
         isBuyOrder = (side == 'LIMIT_BUY') or (side == 'BUY')
         isSellOrder = (side == 'LIMIT_SELL') or (side == 'SELL')
@@ -323,9 +558,9 @@ class bleutrade (bittrex):
         if 'Created' in order:
             timestamp = self.parse8601(order['Created'] + '+00:00')
         lastTradeTimestamp = None
-        if ('TimeStamp' in list(order.keys())) and(order['TimeStamp'] is not None):
+        if ('TimeStamp' in list(order.keys())) and (order['TimeStamp'] is not None):
             lastTradeTimestamp = self.parse8601(order['TimeStamp'] + '+00:00')
-        if ('Closed' in list(order.keys())) and(order['Closed'] is not None):
+        if ('Closed' in list(order.keys())) and (order['Closed'] is not None):
             lastTradeTimestamp = self.parse8601(order['Closed'] + '+00:00')
         if timestamp is None:
             timestamp = lastTradeTimestamp
@@ -344,10 +579,7 @@ class bleutrade (bittrex):
             elif symbol is not None:
                 currencyIds = symbol.split('/')
                 quoteCurrencyId = currencyIds[1]
-                if quoteCurrencyId in self.currencies_by_id:
-                    fee['currency'] = self.currencies_by_id[quoteCurrencyId]['code']
-                else:
-                    fee['currency'] = self.common_currency_code(quoteCurrencyId)
+                fee['currency'] = self.safe_currency_code(quoteCurrencyId)
         price = self.safe_float(order, 'Price')
         cost = None
         amount = self.safe_float(order, 'Quantity')
@@ -401,7 +633,7 @@ class bleutrade (bittrex):
         #         Coin: 'DOGE',
         #         Amount: '-483858.64312050',
         #         TimeStamp: '2017-11-22 22:29:05',
-        #         Label: '483848.64312050DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT10.00000000',
+        #         Label: '483848.64312050;DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT;10.00000000',
         #         TransactionId: '8563105276cf798385fee7e5a563c620fea639ab132b089ea880d4d1f4309432',
         #     }
         #
@@ -410,7 +642,7 @@ class bleutrade (bittrex):
         #         "Coin": "BTC",
         #         "Amount": "-0.71300000",
         #         "TimeStamp": "2017-07-19 17:14:24",
-        #         "Label": "0.71200000PER9VM2txt4BTdfyWgvv3GziECRdVEPN630.00100000",
+        #         "Label": "0.71200000;PER9VM2txt4BTdfyWgvv3GziECRdVEPN63;0.00100000",
         #         "TransactionId": "CANCELED"
         #     }
         #
@@ -421,18 +653,13 @@ class bleutrade (bittrex):
             amount = abs(amount)
             type = 'withdrawal'
         currencyId = self.safe_string(transaction, 'Coin')
-        code = None
-        currency = self.safe_value(self.currencies_by_id, currencyId)
-        if currency is not None:
-            code = currency['code']
-        else:
-            code = self.common_currency_code(currencyId)
+        code = self.safe_currency_code(currencyId, currency)
         label = self.safe_string(transaction, 'Label')
         timestamp = self.parse8601(self.safe_string(transaction, 'TimeStamp'))
         txid = self.safe_string(transaction, 'TransactionId')
         address = None
         feeCost = None
-        labelParts = label.split('')
+        labelParts = label.split(';')
         if len(labelParts) == 3:
             amount = float(labelParts[0])
             address = labelParts[1]
@@ -464,3 +691,26 @@ class bleutrade (bittrex):
             'txid': txid,
             'fee': fee,
         }
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        url = self.implode_params(self.urls['api'][api], {
+            'hostname': self.hostname,
+        }) + '/'
+        if api == 'v3Private' or api == 'account':
+            self.check_required_credentials()
+            if api == 'account':
+                url += api + '/'
+            if ((api == 'account') and (path != 'withdraw')) or (path == 'openorders'):
+                url += method.lower()
+            request = {
+                'apikey': self.apiKey,
+            }
+            request['nonce'] = self.nonce()
+            url += path + '?' + self.urlencode(self.extend(request, params))
+            signature = self.hmac(self.encode(url), self.encode(self.secret), hashlib.sha512)
+            headers = {'apisign': signature}
+        else:
+            url += api + '/' + method.lower() + path
+            if params:
+                url += '?' + self.urlencode(params)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}

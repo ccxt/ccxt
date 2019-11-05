@@ -69,8 +69,8 @@ module.exports = class negociecoins extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.003,
-                    'taker': 0.004,
+                    'maker': 0.005,
+                    'taker': 0.005,
                 },
                 'funding': {
                     'withdraw': {
@@ -95,7 +95,7 @@ module.exports = class negociecoins extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = ticker['date'] * 1000;
+        const timestamp = this.safeTimestamp (ticker, 'date');
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
         const last = this.safeFloat (ticker, 'last');
         return {
@@ -142,7 +142,7 @@ module.exports = class negociecoins extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = trade['date'] * 1000;
+        const timestamp = this.safeTimestamp (trade, 'date');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
@@ -157,10 +157,7 @@ module.exports = class negociecoins extends Exchange {
         }
         const id = this.safeString (trade, 'tid');
         const type = 'limit';
-        let side = this.safeString (trade, 'type');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (trade, 'type');
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -207,12 +204,7 @@ module.exports = class negociecoins extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'name');
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId);
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const openOrders = this.safeFloat (balance, 'openOrders');
             const withdraw = this.safeFloat (balance, 'withdraw');
             const account = {

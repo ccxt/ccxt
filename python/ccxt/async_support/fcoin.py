@@ -10,6 +10,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
@@ -18,7 +19,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
 
-class fcoin (Exchange):
+class fcoin(Exchange):
 
     def describe(self):
         return self.deep_extend(super(fcoin, self).describe(), {
@@ -58,13 +59,23 @@ class fcoin (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/42244210-c8c42e1e-7f1c-11e8-8710-a5fb63b165c4.jpg',
-                'api': 'https://api.{hostname}',
+                'api': {
+                    'public': 'https://api.{hostname}',
+                    'private': 'https://api.{hostname}',
+                    'market': 'https://api.{hostname}',
+                    'openapi': 'https://www.{hostname}',
+                },
                 'www': 'https://www.fcoin.com',
                 'referral': 'https://www.fcoin.com/i/Z5P7V',
                 'doc': 'https://developer.fcoin.com',
                 'fees': 'https://fcoinjp.zendesk.com/hc/en-us/articles/360018727371',
             },
             'api': {
+                'openapi': {
+                    'get': [
+                        'symbols',
+                    ],
+                },
                 'market': {
                     'get': [
                         'ticker/{symbol}',
@@ -83,11 +94,29 @@ class fcoin (Exchange):
                 'private': {
                     'get': [
                         'accounts/balance',
+                        'assets/accounts/balance',
+                        'broker/otc/suborders',
+                        'broker/otc/suborders/{id}',
+                        'broker/otc/suborders/{id}/payments',
+                        'broker/otc/users',
+                        'broker/otc/users/me/balances',
+                        'broker/otc/users/me/balance',
+                        'broker/leveraged_accounts/account',
+                        'broker/leveraged_accounts',
                         'orders',
                         'orders/{order_id}',
                         'orders/{order_id}/match-results',  # check order result
                     ],
                     'post': [
+                        'assets/accounts/assets-to-spot',
+                        'accounts/spot-to-assets',
+                        'broker/otc/assets/transfer/in',
+                        'broker/otc/assets/transfer/out',
+                        'broker/otc/suborders',
+                        'broker/otc/suborders/{id}/pay_confirm',
+                        'broker/otc/suborders/{id}/cancel',
+                        'broker/leveraged/assets/transfer/in',
+                        'broker/leveraged/assets/transfer/out',
                         'orders',
                         'orders/{order_id}/submit-cancel',  # cancel order
                     ],
@@ -97,8 +126,8 @@ class fcoin (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.001,
-                    'taker': 0.001,
+                    'maker': -0.0002,
+                    'taker': 0.0003,
                 },
             },
             'limits': {
@@ -106,6 +135,7 @@ class fcoin (Exchange):
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
+                'fetchMarketsMethod': 'fetch_markets_from_open_api',  # or 'fetch_markets_from_api'
                 'limits': {
                     'BTM/USDT': {'amount': {'min': 0.1, 'max': 10000000}},
                     'ETC/USDT': {'amount': {'min': 0.001, 'max': 400000}},
@@ -129,9 +159,11 @@ class fcoin (Exchange):
                 '429': DDoSProtection,  # Too Many Requests, exceed api request limit
                 '1002': ExchangeNotAvailable,  # System busy
                 '1016': InsufficientFunds,
+                '2136': AuthenticationError,  # The API key is expired
                 '3008': InvalidOrder,
                 '6004': InvalidNonce,
                 '6005': AuthenticationError,  # Illegal API Signature
+                '40003': BadSymbol,
             },
             'commonCurrencies': {
                 'DAG': 'DAGX',
@@ -141,7 +173,104 @@ class fcoin (Exchange):
         })
 
     async def fetch_markets(self, params={}):
+        method = self.safe_string(self.options, 'fetchMarketsMethod', 'fetch_markets_from_open_api')
+        return await getattr(self, method)(params)
+
+    async def fetch_markets_from_open_api(self, params={}):
+        # https://github.com/ccxt/ccxt/issues/5648
+        response = await self.openapiGetSymbols(params)
+        #
+        #     {
+        #         "status":"ok",
+        #         "data":{
+        #             "categories":["fone::coinforce", ...],
+        #             "symbols":{
+        #                 "mdaeth":{
+        #                     "price_decimal":8,
+        #                     "amount_decimal":2,
+        #                     "base_currency":"mda",
+        #                     "quote_currency":"eth",
+        #                     "symbol":"mdaeth",
+        #                     "category":"fone::bitangel",
+        #                     "leveraged_multiple":null,
+        #                     "tradeable":false,
+        #                     "market_order_enabled":false,
+        #                     "limit_amount_min":"1",
+        #                     "limit_amount_max":"10000000",
+        #                     "main_tag":"",
+        #                     "daily_open_at":"",
+        #                     "daily_close_at":""
+        #                 },
+        #             }
+        #             "category_ref":{
+        #                 "fone::coinforce":["btcusdt", ...],
+        #             }
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        markets = self.safe_value(data, 'symbols', {})
+        keys = list(markets.keys())
+        result = []
+        for i in range(0, len(keys)):
+            key = keys[i]
+            market = markets[key]
+            id = self.safe_string(market, 'symbol')
+            baseId = self.safe_string(market, 'base_currency')
+            quoteId = self.safe_string(market, 'quote_currency')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
+            precision = {
+                'price': self.safe_integer(market, 'price_decimal'),
+                'amount': self.safe_integer(market, 'amount_decimal'),
+            }
+            limits = {
+                'amount': {
+                    'min': self.safe_float(market, 'limit_amount_min'),
+                    'max': self.safe_float(market, 'limit_amount_max'),
+                },
+                'price': {
+                    'min': math.pow(10, -precision['price']),
+                    'max': math.pow(10, precision['price']),
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            }
+            active = self.safe_value(market, 'tradeable', False)
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'precision': precision,
+                'limits': limits,
+                'info': market,
+            })
+        return result
+
+    async def fetch_markets_from_api(self, params={}):
         response = await self.publicGetSymbols(params)
+        #
+        #     {
+        #         "status":0,
+        #         "data":[
+        #             {
+        #                 "name":"dapusdt",
+        #                 "base_currency":"dap",
+        #                 "quote_currency":"usdt",
+        #                 "price_decimal":6,
+        #                 "amount_decimal":2,
+        #                 "tradable":true
+        #             },
+        #         ]
+        #     }
+        #
         result = []
         markets = self.safe_value(response, 'data')
         for i in range(0, len(markets)):
@@ -149,10 +278,8 @@ class fcoin (Exchange):
             id = self.safe_string(market, 'name')
             baseId = self.safe_string(market, 'base_currency')
             quoteId = self.safe_string(market, 'quote_currency')
-            base = baseId.upper()
-            base = self.common_currency_code(base)
-            quote = quoteId.upper()
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'price': market['price_decimal'],
@@ -188,16 +315,12 @@ class fcoin (Exchange):
         balances = self.safe_value(response, 'data')
         for i in range(0, len(balances)):
             balance = balances[i]
-            currencyId = balance['currency']
-            code = currencyId.upper()
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(code)
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = float(balance['available'])
-            account['total'] = float(balance['balance'])
-            account['used'] = float(balance['frozen'])
+            account['free'] = self.safe_float(balance, 'available')
+            account['total'] = self.safe_float(balance, 'balance')
+            account['used'] = self.safe_float(balance, 'frozen')
             result[code] = account
         return self.parse_balance(result)
 
@@ -284,9 +407,7 @@ class fcoin (Exchange):
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_integer(trade, 'ts')
-        side = self.safe_string(trade, 'side')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(trade, 'side')
         id = self.safe_string(trade, 'id')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
@@ -324,23 +445,24 @@ class fcoin (Exchange):
         return self.parse_trades(response['data'], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if type == 'market':
-            # for market buy it requires the amount of quote currency to spend
-            if side == 'buy':
-                if self.options['createMarketBuyOrderRequiresPrice']:
-                    if price is None:
-                        raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
-                    else:
-                        amount = amount * price
         await self.load_markets()
-        orderType = type
         request = {
             'symbol': self.market_id(symbol),
-            'amount': self.amount_to_precision(symbol, amount),
             'side': side,
-            'type': orderType,
+            'type': type,
         }
-        if type == 'limit':
+        # for market buy it requires the amount of quote currency to spend
+        if (type == 'market') and (side == 'buy'):
+            if self.options['createMarketBuyOrderRequiresPrice']:
+                if price is None:
+                    raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
+                else:
+                    request['amount'] = self.cost_to_precision(symbol, amount * price)
+            else:
+                request['amount'] = self.cost_to_precision(symbol, amount)
+        else:
+            request['amount'] = self.amount_to_precision(symbol, amount)
+        if (type == 'limit') or (type == 'ioc') or (type == 'fok'):
             request['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostOrders(self.extend(request, params))
         return {
@@ -393,7 +515,7 @@ class fcoin (Exchange):
             if cost is None:
                 if price is not None:
                     cost = price * filled
-            elif (cost > 0) and(filled > 0):
+            elif (cost > 0) and (filled > 0):
                 price = cost / filled
         feeCurrency = None
         if market is not None:
@@ -436,7 +558,7 @@ class fcoin (Exchange):
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        request = {'states': 'filled'}
+        request = {'states': 'partial_canceled,filled'}
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -455,12 +577,12 @@ class fcoin (Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
-            ohlcv['id'] * 1000,
-            ohlcv['open'],
-            ohlcv['high'],
-            ohlcv['low'],
-            ohlcv['close'],
-            ohlcv['base_vol'],
+            self.safe_timestamp(ohlcv, 'id'),
+            self.safe_float(ohlcv, 'open'),
+            self.safe_float(ohlcv, 'high'),
+            self.safe_float(ohlcv, 'low'),
+            self.safe_float(ohlcv, 'close'),
+            self.safe_float(ohlcv, 'base_vol'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=100, params={}):
@@ -480,18 +602,19 @@ class fcoin (Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/' + self.version + '/'
-        request += '' if (api == 'private') else (api + '/')
+        request = '/'
+        openAPI = (api == 'openapi')
+        privateAPI = (api == 'private')
+        request += (api + '/') if openAPI else ''
+        request += self.version + '/'
+        request += '' if (privateAPI or openAPI) else (api + '/')
         request += self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        url = self.implode_params(self.urls['api'], {
+        url = self.implode_params(self.urls['api'][api], {
             'hostname': self.hostname,
         })
         url += request
-        if (api == 'public') or (api == 'market'):
-            if query:
-                url += '?' + self.urlencode(query)
-        elif api == 'private':
+        if privateAPI:
             self.check_required_credentials()
             timestamp = str(self.nonce())
             query = self.keysort(query)
@@ -513,13 +636,16 @@ class fcoin (Exchange):
                 'FC-ACCESS-TIMESTAMP': timestamp,
                 'Content-Type': 'application/json',
             }
+        else:
+            if query:
+                url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         status = self.safe_string(response, 'status')
-        if status != '0':
+        if status != '0' and status != 'ok':
             feedback = self.id + ' ' + body
             if status in self.exceptions:
                 exceptions = self.exceptions

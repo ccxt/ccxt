@@ -12,7 +12,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
 
-class bigone (Exchange):
+class bigone(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bigone, self).describe(), {
@@ -38,7 +38,7 @@ class bigone (Exchange):
                 },
                 'www': 'https://big.one',
                 'doc': 'https://open.big.one/docs/api.html',
-                'fees': 'https://help.big.one/hc/en-us/articles/115001933374-BigONE-Fee-Policy',
+                'fees': 'https://bigone.zendesk.com/hc/en-us/articles/115001933374-BigONE-Fee-Policy',
                 'referral': 'https://b1.run/users/new?code=D3LLBVFT',
             },
             'api': {
@@ -79,10 +79,10 @@ class bigone (Exchange):
                 'funding': {
                     # HARDCODING IS DEPRECATED THE FEES BELOW ARE TO BE REMOVED SOON
                     'withdraw': {
-                        'BTC': 0.002,
-                        'ETH': 0.01,
+                        'BTC': 0.001,
+                        'ETH': 0.005,
                         'EOS': 0.01,
-                        'ZEC': 0.002,
+                        'ZEC': 0.003,
                         'LTC': 0.01,
                         'QTUM': 0.01,
                         # 'INK': 0.01 QTUM,
@@ -91,7 +91,7 @@ class bigone (Exchange):
                         'GAS': 0.0,
                         'BTS': 1.0,
                         'GXS': 0.1,
-                        'BITCNY': 1.0,
+                        'BITCNY': 19.0,
                     },
                 },
             },
@@ -131,8 +131,8 @@ class bigone (Exchange):
             quoteAsset = self.safe_value(market, 'quoteAsset', {})
             baseId = self.safe_string(baseAsset, 'symbol')
             quoteId = self.safe_string(quoteAsset, 'symbol')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'baseScale'),
@@ -366,19 +366,10 @@ class bigone (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'asset_id')
-            code = self.common_currency_code(currencyId)
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            total = self.safe_float(balance, 'balance')
-            used = self.safe_float(balance, 'locked_balance')
-            free = None
-            if total is not None and used is not None:
-                free = total - used
-            account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_float(balance, 'balance')
+            account['used'] = self.safe_float(balance, 'locked_balance')
             result[code] = account
         return self.parse_balance(result)
 
@@ -639,7 +630,7 @@ class bigone (Exchange):
                 body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         #

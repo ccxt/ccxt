@@ -103,6 +103,15 @@ class btcalpha extends Exchange {
                     ),
                 ),
             ),
+            'commonCurrencies' => array (
+                'CBC' => 'Cashbery',
+            ),
+            'exceptions' => array (
+                'exact' => array(),
+                'broad' => array (
+                    'Out of balance' => '\\ccxt\\InsufficientFunds', // array("date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC")
+                ),
+            ),
         ));
     }
 
@@ -114,8 +123,8 @@ class btcalpha extends Exchange {
             $id = $this->safe_string($market, 'name');
             $baseId = $this->safe_string($market, 'currency1');
             $quoteId = $this->safe_string($market, 'currency2');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -169,10 +178,7 @@ class btcalpha extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_integer($trade, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'timestamp');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $cost = null;
@@ -217,14 +223,14 @@ class btcalpha extends Exchange {
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
-        return [
-            $ohlcv['time'] * 1000,
-            $ohlcv['open'],
-            $ohlcv['high'],
-            $ohlcv['low'],
-            $ohlcv['close'],
-            $ohlcv['volume'],
-        ];
+        return array (
+            $this->safe_timestamp($ohlcv, 'time'),
+            $this->safe_float($ohlcv, 'open'),
+            $this->safe_float($ohlcv, 'high'),
+            $this->safe_float($ohlcv, 'low'),
+            $this->safe_float($ohlcv, 'close'),
+            $this->safe_float($ohlcv, 'volume'),
+        );
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
@@ -251,20 +257,11 @@ class btcalpha extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->common_currency_code($currencyId);
-            $used = $this->safe_float($balance, 'reserve');
-            $total = $this->safe_float($balance, 'balance');
-            $free = null;
-            if ($used !== null) {
-                if ($total !== null) {
-                    $free = $total - $used;
-                }
-            }
-            $result[$code] = array (
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['used'] = $this->safe_float($balance, 'reserve');
+            $account['total'] = $this->safe_float($balance, 'balance');
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -286,10 +283,7 @@ class btcalpha extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_integer($order, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($order, 'date');
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -297,6 +291,18 @@ class btcalpha extends Exchange {
         $trades = $this->safe_value($order, 'trades', array());
         $trades = $this->parse_trades($trades, $market);
         $side = $this->safe_string_2($order, 'my_side', 'type');
+        $filled = null;
+        $numTrades = is_array ($trades) ? count ($trades) : 0;
+        if ($numTrades > 0) {
+            $filled = 0.0;
+            for ($i = 0; $i < $numTrades; $i++) {
+                $filled = $this->sum ($filled, $trades[$i]['amount']);
+            }
+        }
+        $remaining = null;
+        if (($amount !== null) && ($amount > 0) && ($filled !== null)) {
+            $remaining = max (0, $amount - $filled);
+        }
         return array (
             'id' => $id,
             'datetime' => $this->iso8601 ($timestamp),
@@ -308,8 +314,8 @@ class btcalpha extends Exchange {
             'price' => $price,
             'cost' => null,
             'amount' => $amount,
-            'filled' => null,
-            'remaining' => null,
+            'filled' => $filled,
+            'remaining' => $remaining,
             'trades' => $trades,
             'fee' => null,
             'info' => $order,
@@ -329,7 +335,11 @@ class btcalpha extends Exchange {
         if (!$response['success']) {
             throw new InvalidOrder($this->id . ' ' . $this->json ($response));
         }
-        return $this->parse_order($response, $market);
+        $order = $this->parse_order($response, $market);
+        $amount = ($order['amount'] > 0) ? $order['amount'] : $amount;
+        return array_merge ($order, array (
+            'amount' => $amount,
+        ));
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -425,19 +435,34 @@ class btcalpha extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default error handler
+            return; // fallback to default $error handler
+        }
+        //
+        //     array("date":1570599531.4814300537,"$error":"Out of balance -9.99243661 BTC")
+        //
+        $error = $this->safe_string($response, 'error');
+        $feedback = $this->id . ' ' . $body;
+        if ($error !== null) {
+            $exact = $this->exceptions['exact'];
+            if (is_array($exact) && array_key_exists($error, $exact)) {
+                throw new $exact[$error]($feedback);
+            }
+            $broad = $this->exceptions['broad'];
+            $broadKey = $this->findBroadlyMatchedKey ($broad, $error);
+            if ($broadKey !== null) {
+                throw new $broad[$broadKey]($feedback);
+            }
+        }
+        if ($code === 401 || $code === 403) {
+            throw new AuthenticationError($feedback);
+        } else if ($code === 429) {
+            throw new DDoSProtection($feedback);
         }
         if ($code < 400) {
-            return; // fallback to default error handler
+            return;
         }
-        $message = $this->id . ' ' . $this->safe_value($response, 'detail', $body);
-        if ($code === 401 || $code === 403) {
-            throw new AuthenticationError($message);
-        } else if ($code === 429) {
-            throw new DDoSProtection($message);
-        }
-        throw new ExchangeError($message);
+        throw new ExchangeError($feedback);
     }
 }

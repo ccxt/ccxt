@@ -276,6 +276,7 @@ class bitfinex extends Exchange {
             'commonCurrencies' => array (
                 'ABS' => 'ABYSS',
                 'AIO' => 'AION',
+                'ALG' => 'ALGO', // https://github.com/ccxt/ccxt/issues/6034
                 'AMP' => 'AMPL',
                 'ATM' => 'ATMI',
                 'ATO' => 'ATOM', // https://github.com/ccxt/ccxt/issues/5118
@@ -284,6 +285,7 @@ class bitfinex extends Exchange {
                 'DAD' => 'DADI',
                 'DAT' => 'DATA',
                 'DSH' => 'DASH',
+                'DRK' => 'DRK',
                 'GSD' => 'GUSD',
                 'HOT' => 'Hydro Protocol',
                 'IOS' => 'IOST',
@@ -305,6 +307,7 @@ class bitfinex extends Exchange {
                 'UDC' => 'USDC',
                 'UST' => 'USDT',
                 'UTN' => 'UTNP',
+                'VSY' => 'VSYS',
                 'XCH' => 'XCHF',
             ),
             'exceptions' => array (
@@ -339,7 +342,9 @@ class bitfinex extends Exchange {
                     'ANT' => 'ant',
                     'AVT' => 'aventus', // #1811
                     'BAT' => 'bat',
-                    'BCH' => 'bcash', // undocumented
+                    // https://github.com/ccxt/ccxt/issues/5833
+                    'BCH' => 'bab', // undocumented
+                    // 'BCH' => 'bcash', // undocumented
                     'BCI' => 'bci',
                     'BFT' => 'bft',
                     'BTC' => 'bitcoin',
@@ -360,6 +365,9 @@ class bitfinex extends Exchange {
                     'GNT' => 'golem',
                     'IOST' => 'ios',
                     'IOTA' => 'iota',
+                    // https://github.com/ccxt/ccxt/issues/5833
+                    'LEO' => 'let', // ETH chain
+                    // 'LEO' => 'les', // EOS chain
                     'LRC' => 'lrc',
                     'LTC' => 'litecoin',
                     'LYM' => 'lym',
@@ -386,8 +394,13 @@ class bitfinex extends Exchange {
                     'TNB' => 'tnb',
                     'TRX' => 'trx',
                     'USD' => 'wire',
+                    'USDC' => 'udc', // https://github.com/ccxt/ccxt/issues/5833
                     'UTK' => 'utk',
-                    'USDT' => 'tetheruso', // undocumented
+                    'USDT' => 'tetheruso', // Tether on Omni
+                    // 'USDT' => 'tetheruse', // Tether on ERC20
+                    // 'USDT' => 'tetherusl', // Tether on Liquid
+                    // 'USDT' => 'tetherusx', // Tether on Tron
+                    // 'USDT' => 'tetheruss', // Tether on EOS
                     'VEE' => 'vee',
                     'WAX' => 'wax',
                     'XLM' => 'xlm',
@@ -415,11 +428,7 @@ class bitfinex extends Exchange {
         $ids = is_array($fees) ? array_keys($fees) : array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $code = $id;
-            if (is_array($this->currencies_by_id) && array_key_exists($id, $this->currencies_by_id)) {
-                $currency = $this->currencies_by_id[$id];
-                $code = $currency['code'];
-            }
+            $code = $this->safe_currency_code($id);
             $withdraw[$code] = $this->safe_float($fees, $id);
         }
         return array (
@@ -472,10 +481,18 @@ class bitfinex extends Exchange {
                 continue;
             }
             $id = strtoupper($id);
-            $baseId = mb_substr($id, 0, 3 - 0);
-            $quoteId = mb_substr($id, 3, 6 - 3);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $baseId = null;
+            $quoteId = null;
+            if (mb_strpos($id, ':') !== false) {
+                $parts = explode(':', $id);
+                $baseId = $parts[0];
+                $quoteId = $parts[1];
+            } else {
+                $baseId = mb_substr($id, 0, 3 - 0);
+                $quoteId = mb_substr($id, 3, 6 - 3);
+            }
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'price' => $market['price_precision'],
@@ -543,8 +560,7 @@ class bitfinex extends Exchange {
             $balance = $response[$i];
             if ($balance['type'] === $balanceType) {
                 $currencyId = $this->safe_string($balance, 'currency');
-                $code = strtoupper($currencyId);
-                $code = $this->common_currency_code($code);
+                $code = $this->safe_currency_code($currencyId);
                 // bitfinex had BCH previously, now it's BAB, but the old
                 // BCH symbol is kept for backward-compatibility
                 // we need a workaround here so that the old BCH $balance
@@ -614,8 +630,8 @@ class bitfinex extends Exchange {
             } else {
                 $baseId = mb_substr($marketId, 0, 3 - 0);
                 $quoteId = mb_substr($marketId, 3, 6 - 3);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
@@ -651,10 +667,7 @@ class bitfinex extends Exchange {
             $timestamp = intval ($timestamp) * 1000;
         }
         $type = null;
-        $side = $this->safe_string($trade, 'type');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($trade, 'type');
         $orderId = $this->safe_string($trade, 'order_id');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
@@ -668,12 +681,7 @@ class bitfinex extends Exchange {
         if (is_array($trade) && array_key_exists('fee_amount', $trade)) {
             $feeCost = -$this->safe_float($trade, 'fee_amount');
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
-            $feeCurrencyCode = null;
-            if (is_array($this->currencies_by_id) && array_key_exists($feeCurrencyId, $this->currencies_by_id)) {
-                $feeCurrencyCode = $this->currencies_by_id[$feeCurrencyId]['code'];
-            } else {
-                $feeCurrencyCode = $this->common_currency_code($feeCurrencyId);
-            }
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
@@ -988,10 +996,12 @@ class bitfinex extends Exchange {
         //         }
         //     )
         //
-        return $this->parseTransactions ($response, $currency, $since, $limit);
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function parse_transaction ($transaction, $currency = null) {
+        //
+        // crypto
         //
         //     {
         //         "id" => 12042490,
@@ -1008,6 +1018,23 @@ class bitfinex extends Exchange {
         //         "timestamp_created" => "1551730523.0"
         //     }
         //
+        // fiat
+        //
+        //     {
+        //         "id" => 12725095,
+        //         "fee" => "-60.0",
+        //         "txid" => null,
+        //         "$type" => "WITHDRAWAL",
+        //         "amount" => "9943.0",
+        //         "method" => "WIRE",
+        //         "$status" => "SENDING",
+        //         "address" => null,
+        //         "$currency" => "EUR",
+        //         "$timestamp" => "1561802484.0",
+        //         "description" => "Name => bob, AccountAddress => some address, Account => someaccountno, Bank => bank address, SWIFT => foo, Country => UK, Details of Payment => withdrawal name, Intermediary Bank Name => , Intermediary Bank Address => , Intermediary Bank City => , Intermediary Bank Country => , Intermediary Bank Account => , Intermediary Bank SWIFT => , Fee => -60.0",
+        //         "timestamp_created" => "1561716066.0"
+        //     }
+        //
         $timestamp = $this->safe_float($transaction, 'timestamp_created');
         if ($timestamp !== null) {
             $timestamp = intval ($timestamp * 1000);
@@ -1016,22 +1043,9 @@ class bitfinex extends Exchange {
         if ($updated !== null) {
             $updated = intval ($updated * 1000);
         }
-        $code = null;
-        if ($currency === null) {
-            $currencyId = $this->safe_string($transaction, 'currency');
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $currency = $this->currencies_by_id[$currencyId];
-            } else {
-                $code = $this->common_currency_code($currencyId);
-            }
-        }
-        if ($currency !== null) {
-            $code = $currency['code'];
-        }
-        $type = $this->safe_string($transaction, 'type'); // DEPOSIT or WITHDRAWAL
-        if ($type !== null) {
-            $type = strtolower($type);
-        }
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $type = $this->safe_string_lower($transaction, 'type'); // DEPOSIT or WITHDRAWAL
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
         $feeCost = $this->safe_float($transaction, 'fee');
         if ($feeCost !== null) {
@@ -1060,6 +1074,7 @@ class bitfinex extends Exchange {
 
     public function parse_transaction_status ($status) {
         $statuses = array (
+            'SENDING' => 'pending',
             'CANCELED' => 'canceled',
             'ZEROCONFIRMED' => 'failed', // ZEROCONFIRMED happens e.g. in a double spend attempt (I had one in my movements!)
             'COMPLETED' => 'ok',
@@ -1138,7 +1153,7 @@ class bitfinex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }

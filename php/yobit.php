@@ -96,6 +96,7 @@ class yobit extends Exchange {
                 'CPC' => 'Capricoin',
                 'CS' => 'CryptoSpots',
                 'DCT' => 'Discount',
+                'DFT' => 'DraftCoin',
                 'DGD' => 'DarkGoldCoin',
                 'DIRT' => 'DIRTY',
                 'DROP' => 'FaucetCoin',
@@ -103,7 +104,6 @@ class yobit extends Exchange {
                 'EKO' => 'EkoCoin',
                 'ENTER' => 'ENTRC',
                 'EPC' => 'ExperienceCoin',
-                'ERT' => 'Eristica Token',
                 'ESC' => 'EdwardSnowden',
                 'EUROPE' => 'EUROP',
                 'EXT' => 'LifeExtension',
@@ -142,6 +142,7 @@ class yobit extends Exchange {
                 'RCN' => 'RCoin',
                 'REP' => 'Republicoin',
                 'RUR' => 'RUB',
+                'TTC' => 'TittieCoin',
                 'XIN' => 'XINCoin',
             ),
             'options' => array (
@@ -215,7 +216,7 @@ class yobit extends Exchange {
         $currencyIds = is_array(array_merge ($free, $total)) ? array_keys(array_merge ($free, $total)) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $code = $this->common_currency_code(strtoupper($currencyId));
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($free, $currencyId);
             $account['total'] = $this->safe_float($total, $currencyId);
@@ -235,8 +236,8 @@ class yobit extends Exchange {
             list($baseId, $quoteId) = explode('_', $id);
             $base = strtoupper($baseId);
             $quote = strtoupper($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($base);
+            $quote = $this->safe_currency_code($quote);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'decimal_places'),
@@ -339,10 +340,7 @@ class yobit extends Exchange {
         //        sell => 0.03377798,
         //     updated => 1537522009          }
         //
-        $timestamp = $this->safe_integer($ticker, 'updated');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'updated');
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -413,10 +411,7 @@ class yobit extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'timestamp');
         $side = $this->safe_string($trade, 'type');
         if ($side === 'ask') {
             $side = 'sell';
@@ -441,14 +436,7 @@ class yobit extends Exchange {
         $feeCost = $this->safe_float($trade, 'commission');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'commissionCurrency');
-            $feeCurrencyId = strtoupper($feeCurrencyId);
-            $feeCurrency = $this->safe_value($this->currencies_by_id, $feeCurrencyId);
-            $feeCurrencyCode = null;
-            if ($feeCurrency !== null) {
-                $feeCurrencyCode = $feeCurrency['code'];
-            } else {
-                $feeCurrencyCode = $this->common_currency_code($feeCurrencyId);
-            }
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
@@ -581,10 +569,7 @@ class yobit extends Exchange {
     public function parse_order ($order, $market = null) {
         $id = $this->safe_string($order, 'id');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $timestamp = $this->safe_integer($order, 'timestamp_created');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($order, 'timestamp_created');
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($order, 'pair');
@@ -885,7 +870,7 @@ class yobit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

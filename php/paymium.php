@@ -23,6 +23,7 @@ class paymium extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg',
                 'api' => 'https://paymium.com/api',
                 'www' => 'https://www.paymium.com',
+                'fees' => 'https://www.paymium.com/page/help/fees',
                 'doc' => array (
                     'https://github.com/Paymium/api-documentation',
                     'https://www.paymium.com/page/developers',
@@ -67,8 +68,8 @@ class paymium extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.0059,
-                    'taker' => 0.0059,
+                    'maker' => 0.002,
+                    'taker' => 0.002,
                 ),
             ),
         ));
@@ -108,10 +109,7 @@ class paymium extends Exchange {
             'id' => $this->market_id($symbol),
         );
         $ticker = $this->publicGetDataIdTicker (array_merge ($request, $params));
-        $timestamp = $this->safe_integer($ticker, 'at');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'at');
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = $this->safe_float($ticker, 'volume');
         $quoteVolume = null;
@@ -144,10 +142,7 @@ class paymium extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
-        $timestamp = $this->safe_integer($trade, 'created_at_int');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'created_at_int');
         $id = $this->safe_string($trade, 'uuid');
         $symbol = null;
         if ($market !== null) {

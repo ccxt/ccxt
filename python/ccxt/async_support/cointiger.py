@@ -17,7 +17,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 
 
-class cointiger (huobipro):
+class cointiger(huobipro):
 
     def describe(self):
         return self.deep_extend(super(cointiger, self).describe(), {
@@ -165,10 +165,8 @@ class cointiger (huobipro):
                 market = partition[j]
                 baseId = self.safe_string(market, 'baseCurrency')
                 quoteId = self.safe_string(market, 'quoteCurrency')
-                base = baseId.upper()
-                quote = quoteId.upper()
-                base = self.common_currency_code(base)
-                quote = self.common_currency_code(quote)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 id = baseId + quoteId
                 uppercaseId = id.upper()
                 symbol = base + '/' + quote
@@ -258,7 +256,7 @@ class cointiger (huobipro):
         market = self.market(symbol)
         marketId = market['uppercaseId']
         response = await self.exchangeGetApiPublicMarketDetail(params)
-        if not(marketId in list(response.keys())):
+        if not (marketId in list(response.keys())):
             raise ExchangeError(self.id + ' fetchTicker symbol ' + symbol + '(' + marketId + ') not found')
         return self.parse_ticker(response[marketId], market)
 
@@ -315,14 +313,14 @@ class cointiger (huobipro):
         #
         id = self.safe_string(trade, 'id')
         orderId = self.safe_string(trade, 'orderId')
-        orderType = self.safe_string(trade, 'type')
+        orderType = self.safe_string_lower(trade, 'type')
         type = None
         side = None
         if orderType is not None:
             parts = orderType.split('-')
             side = parts[0]
             type = parts[1]
-        side = self.safe_string(trade, 'side', side)
+        side = self.safe_string_lower(trade, 'side', side)
         amount = None
         price = None
         cost = None
@@ -331,7 +329,6 @@ class cointiger (huobipro):
             amount = self.safe_float(trade['volume'], 'amount')
             cost = self.safe_float(trade['deal_price'], 'amount')
         else:
-            side = side.lower()
             price = self.safe_float(trade, 'price')
             amount = self.safe_float_2(trade, 'amount', 'volume')
         fee = None
@@ -421,12 +418,12 @@ class cointiger (huobipro):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
-            ohlcv['id'] * 1000,
-            ohlcv['open'],
-            ohlcv['high'],
-            ohlcv['low'],
-            ohlcv['close'],
-            ohlcv['vol'],
+            self.safe_timestamp(ohlcv, 'id'),
+            self.safe_float(ohlcv, 'open'),
+            self.safe_float(ohlcv, 'high'),
+            self.safe_float(ohlcv, 'low'),
+            self.safe_float(ohlcv, 'close'),
+            self.safe_float(ohlcv, 'vol'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1000, params={}):
@@ -464,11 +461,7 @@ class cointiger (huobipro):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'coin')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = currencyId.upper()
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['used'] = self.safe_float(balance, 'lock')
             account['free'] = self.safe_float(balance, 'normal')
@@ -637,7 +630,7 @@ class cointiger (huobipro):
         #                    status:  2              }}
         #
         id = self.safe_string(order, 'id')
-        side = self.safe_string(order, 'side')
+        side = self.safe_string_lower(order, 'side')
         type = None
         orderType = self.safe_string(order, 'type')
         status = self.parse_order_status(self.safe_string(order, 'status'))
@@ -658,7 +651,6 @@ class cointiger (huobipro):
         fee = None
         average = None
         if side is not None:
-            side = side.lower()
             amount = self.safe_float(order['volume'], 'amount')
             remaining = self.safe_float(order['remain_volume'], 'amount') if ('remain_volume' in list(order.keys())) else None
             filled = self.safe_float(order['deal_volume'], 'amount') if ('deal_volume' in list(order.keys())) else None
@@ -739,7 +731,7 @@ class cointiger (huobipro):
             'volume': self.amount_to_precision(symbol, amount),
             # 'capital_password': self.password,  # obsolete since v2, https://github.com/ccxt/ccxt/issues/4815
         }
-        if (type == 'market') and(side == 'buy'):
+        if (type == 'market') and (side == 'buy'):
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder requires price argument for market buy orders to calculate total cost according to exchange rules')
             request['volume'] = self.amount_to_precision(symbol, float(amount) * float(price))
@@ -849,7 +841,7 @@ class cointiger (huobipro):
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         if 'code' in response:

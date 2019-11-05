@@ -16,7 +16,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 
 
-class bitz (Exchange):
+class bitz(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitz, self).describe(), {
@@ -34,6 +34,9 @@ class bitz (Exchange):
                 'fetchOrders': True,
                 'fetchOrder': True,
                 'createMarketOrder': False,
+                'fetchDeposits': True,
+                'fetchWithdrawals': True,
+                'fetchTransactions': False,
             },
             'timeframes': {
                 '1m': '1min',
@@ -81,6 +84,7 @@ class bitz (Exchange):
                         'getUserHistoryEntrustSheet',  # closed orders
                         'getUserNowEntrustSheet',  # open orders
                         'getEntrustSheetInfo',  # order
+                        'depositOrWithdraw',  # transactions
                     ],
                 },
                 'assets': {
@@ -91,8 +95,8 @@ class bitz (Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.001,
-                    'taker': 0.001,
+                    'maker': 0.002,
+                    'taker': 0.002,
                 },
                 'funding': {
                     'withdraw': {
@@ -167,6 +171,8 @@ class bitz (Exchange):
                 'BOX': 'BOX Token',
                 'XRB': 'NANO',
                 'PXC': 'Pixiecoin',
+                'VTC': 'VoteCoin',
+                'TTC': 'TimesChain',
             },
             'exceptions': {
                 # '200': Success
@@ -248,8 +254,8 @@ class bitz (Exchange):
             quoteId = self.safe_string(market, 'coinTo')
             base = baseId.upper()
             quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(base)
+            quote = self.safe_currency_code(quote)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'numberFloat'),
@@ -314,11 +320,7 @@ class bitz (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'name')
-            code = currencyId.upper()
-            if currencyId in self.markets_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(code)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['used'] = self.safe_float(balance, 'lock')
             account['total'] = self.safe_float(balance, 'num')
@@ -490,10 +492,8 @@ class bitz (Exchange):
                     symbol = market['symbol']
                 else:
                     baseId, quoteId = id.split('_')
-                    base = baseId.upper()
-                    quote = quoteId.upper()
-                    base = self.common_currency_code(baseId)
-                    quote = self.common_currency_code(quoteId)
+                    base = self.safe_currency_code(baseId)
+                    quote = self.safe_currency_code(quoteId)
                     symbol = base + '/' + quote
             if symbol is not None:
                 result[symbol] = self.extend(ticker, {
@@ -543,9 +543,7 @@ class bitz (Exchange):
         #       s: "buy"         },
         #
         id = self.safe_string(trade, 'id')
-        timestamp = self.safe_integer(trade, 'T')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(trade, 'T')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -697,15 +695,13 @@ class bitz (Exchange):
         if market is None:
             baseId = self.safe_string(order, 'coinFrom')
             quoteId = self.safe_string(order, 'coinTo')
-            if (baseId is not None) and(quoteId is not None):
+            if (baseId is not None) and (quoteId is not None):
                 marketId = baseId + '_' + quoteId
                 if marketId in self.markets_by_id:
                     market = self.safe_value(self.markets_by_id, marketId)
                 else:
-                    base = baseId.upper()
-                    quote = quoteId.upper()
-                    base = self.common_currency_code(base)
-                    quote = self.common_currency_code(quote)
+                    base = self.safe_currency_code(baseId)
+                    quote = self.safe_currency_code(quoteId)
                     symbol = base + '/' + quote
         if market is not None:
             symbol = market['symbol']
@@ -718,9 +714,7 @@ class bitz (Exchange):
         filled = self.safe_float(order, 'numberDeal')
         timestamp = self.safe_integer(order, 'timestamp')
         if timestamp is None:
-            timestamp = self.safe_integer(order, 'created')
-            if timestamp is not None:
-                timestamp = timestamp * 1000
+            timestamp = self.safe_timestamp(order, 'created')
         cost = self.safe_float(order, 'orderTotalPrice')
         if price is not None:
             if filled is not None:
@@ -976,6 +970,129 @@ class bitz (Exchange):
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         return self.fetch_orders_with_method('tradePostGetUserHistoryEntrustSheet', symbol, since, limit, params)
 
+    def parse_transaction_status(self, status):
+        statuses = {
+            '1': 'pending',
+            '2': 'pending',
+            '3': 'pending',
+            '4': 'ok',
+            '5': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        #     {
+        #         "id": '96275',
+        #         "uid": '2109073',
+        #         "wallet": '0xf4c4141c0127bc37b1d0c409a091920eba13ada7',
+        #         "txid": '0xb7adfa52aa566f9ac112e3c01f77bd91179b19eab12092a9a5a8b33d5086e31d',
+        #         "confirm": '12',
+        #         "number": '0.50000000',
+        #         "status": 4,
+        #         "updated": '1534944168605',
+        #         "addressUrl": 'https://etherscan.io/address/',
+        #         "txidUrl": 'https://etherscan.io/tx/',
+        #         "description": 'Ethereum',
+        #         "coin": 'eth',
+        #         "memo": ''
+        #     }
+        #
+        #     {
+        #         "id":"397574",
+        #         "uid":"2033056",
+        #         "wallet":"1AG1gZvQAYu3WBvgg7p4BMMghQD2gE693k",
+        #         "txid":"",
+        #         "confirm":"0",
+        #         "number":"1000.00000000",
+        #         "status":1,
+        #         "updated":"0",
+        #         "addressUrl":"http://omniexplorer.info/lookupadd.aspx?address=",
+        #         "txidUrl":"http://omniexplorer.info/lookuptx.aspx?txid=",
+        #         "description":"Tether",
+        #         "coin":"usdt",
+        #         "memo":""
+        #     }
+        #
+        #     {
+        #         "id":"153606",
+        #         "uid":"2033056",
+        #         "wallet":"1AG1gZvQAYu3WBvgg7p4BMMghQD2gE693k",
+        #         "txid":"aa2b179f84cd6dedafd41845e0fbf7f01e14c0d71ea3140d03d6f5a9ccd93199",
+        #         "confirm":"0",
+        #         "number":"761.11110000",
+        #         "status":4,
+        #         "updated":"1536726133579",
+        #         "addressUrl":"http://omniexplorer.info/lookupadd.aspx?address=",
+        #         "txidUrl":"http://omniexplorer.info/lookuptx.aspx?txid=",
+        #         "description":"Tether",
+        #         "coin":"usdt",
+        #         "memo":""
+        #     }
+        #
+        timestamp = self.safe_integer(transaction, 'updated')
+        if timestamp == 0:
+            timestamp = None
+        currencyId = self.safe_string(transaction, 'coin')
+        code = self.safe_currency_code(currencyId, currency)
+        type = self.safe_string_lower(transaction, 'type')
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        return {
+            'id': self.safe_string(transaction, 'id'),
+            'txid': self.safe_string(transaction, 'txid'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'address': self.safe_string(transaction, 'wallet'),
+            'tag': self.safe_string(transaction, 'memo'),
+            'type': type,
+            'amount': self.safe_float(transaction, 'number'),
+            'currency': code,
+            'status': status,
+            'updated': timestamp,
+            'fee': None,
+            'info': transaction,
+        }
+
+    def parse_transactions_by_type(self, type, transactions, code=None, since=None, limit=None):
+        result = []
+        for i in range(0, len(transactions)):
+            transaction = self.parse_transaction(self.extend({
+                'type': type,
+            }, transactions[i]))
+            result.append(transaction)
+        return self.filterByCurrencySinceLimit(result, code, since, limit)
+
+    def parse_transaction_type(self, type):
+        types = {
+            'deposit': 1,
+            'withdrawal': 2,
+        }
+        return self.safe_integer(types, type, type)
+
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        return self.fetch_transactions_for_type('deposit', code, since, limit, params)
+
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        return self.fetch_transactions_for_type('withdrawal', code, since, limit, params)
+
+    def fetch_transactions_for_type(self, type, code=None, since=None, limit=None, params={}):
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchTransactions() requires a currency `code` argument')
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+            'type': self.parse_transaction_type(type),
+        }
+        if since is not None:
+            request['startTime'] = int(since / str(1000))
+        if limit is not None:
+            request['page'] = 1
+            request['pageSize'] = limit
+        response = self.tradePostDepositOrWithdraw(self.extend(request, params))
+        transactions = self.safe_value(response['data'], 'data', [])
+        return self.parse_transactions_by_type(type, transactions, code, since, limit)
+
     def nonce(self):
         currentTimestamp = self.seconds()
         if currentTimestamp > self.options['lastNonceTimestamp']:
@@ -1002,7 +1119,7 @@ class bitz (Exchange):
             headers = {'Content-type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         status = self.safe_string(response, 'status')

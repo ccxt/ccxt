@@ -83,6 +83,20 @@ module.exports = class btcmarkets extends Exchange {
                 '3': InvalidOrder,
                 '6': DDoSProtection,
             },
+            'fees': {
+                'percentage': true,
+                'tierBased': true,
+                'maker': -0.05 / 100,
+                'taker': 0.20 / 100,
+            },
+            'options': {
+                'fees': {
+                    'AUD': {
+                        'maker': 0.85 / 100,
+                        'taker': 0.85 / 100,
+                    },
+                },
+            },
         });
     }
 
@@ -172,7 +186,7 @@ module.exports = class btcmarkets extends Exchange {
         const fee = this.safeFloat (item, 'fee');
         const status = this.parseTransactionStatus (this.safeString (item, 'status'));
         const ccy = this.safeString (item, 'currency');
-        const code = this.commonCurrencyCode (ccy);
+        const code = this.safeCurrencyCode (ccy);
         // todo: this logic is duplicated below
         let amount = this.safeFloat (item, 'amount');
         if (amount !== undefined) {
@@ -207,11 +221,10 @@ module.exports = class btcmarkets extends Exchange {
             const baseId = this.safeString (market, 'instrument');
             const quoteId = this.safeString (market, 'currency');
             const id = baseId + '/' + quoteId;
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            // todo: refactor this
-            const fee = (quote === 'AUD') ? 0.0085 : 0.0022;
+            const fees = this.safeValue (this.safeValue (this.options, 'fees', {}), quote, this.fees);
             let pricePrecision = 2;
             let amountPrecision = 4;
             const minAmount = 0.001; // where does it come from?
@@ -250,8 +263,8 @@ module.exports = class btcmarkets extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': undefined,
-                'maker': fee,
-                'taker': fee,
+                'maker': fees['maker'],
+                'taker': fees['taker'],
                 'limits': limits,
                 'precision': precision,
             });
@@ -266,31 +279,49 @@ module.exports = class btcmarkets extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
-            const code = this.commonCurrencyCode (currencyId);
+            const code = this.safeCurrencyCode (currencyId);
             const multiplier = 100000000;
-            const total = this.safeFloat (balance, 'balance') / multiplier;
-            const used = this.safeFloat (balance, 'pendingFunds') / multiplier;
-            const free = total - used;
-            const account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            let total = this.safeFloat (balance, 'balance');
+            if (total !== undefined) {
+                total /= multiplier;
+            }
+            let used = this.safeFloat (balance, 'pendingFunds');
+            if (used !== undefined) {
+                used /= multiplier;
+            }
+            const account = this.account ();
+            account['used'] = used;
+            account['total'] = total;
             result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     {
+        //         "timestamp":1572307200000,
+        //         "open":1962218,
+        //         "high":1974850,
+        //         "low":1962208,
+        //         "close":1974850,
+        //         "volume":305211315,
+        //     }
+        //
         const multiplier = 100000000; // for price and volume
-        return [
-            ohlcv[0],
-            parseFloat (ohlcv[1]) / multiplier,
-            parseFloat (ohlcv[2]) / multiplier,
-            parseFloat (ohlcv[3]) / multiplier,
-            parseFloat (ohlcv[4]) / multiplier,
-            parseFloat (ohlcv[5]) / multiplier,
+        const keys = [ 'open', 'high', 'low', 'close', 'volume' ];
+        const result = [
+            this.safeInteger (ohlcv, 'timestamp'),
         ];
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            let value = this.safeFloat (ohlcv, key);
+            if (value !== undefined) {
+                value = value / multiplier;
+            }
+            result.push (value);
+        }
+        return result;
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -298,13 +329,37 @@ module.exports = class btcmarkets extends Exchange {
         const market = this.market (symbol);
         const request = {
             'id': market['id'],
-            'timeWindow': this.timeframes[timeframe],
+            'timeframe': this.timeframes[timeframe],
+            // set to true to see candles more recent than the timestamp in the
+            // since parameter, if a since parameter is used, default is false
+            'indexForward': true,
+            // set to true to see the earliest candles first in the list of
+            // returned candles in chronological order, default is false
+            'sortForward': true,
         };
         if (since !== undefined) {
             request['since'] = since;
         }
-        const response = await this.webGetMarketBTCMarketsIdTickByTime (this.extend (request, params));
-        return this.parseOHLCVs (response['ticks'], market, timeframe, since, limit);
+        if (limit !== undefined) {
+            request['limit'] = limit; // default is 3000
+        }
+        const response = await this.publicGetV2MarketIdTickByTimeTimeframe (this.extend (request, params));
+        //
+        //     {
+        //         "success":true,
+        //         "paging":{
+        //             "newer":"/v2/market/ETH/BTC/tickByTime/day?indexForward=true&since=1572307200000",
+        //             "older":"/v2/market/ETH/BTC/tickByTime/day?since=1457827200000"
+        //         },
+        //         "ticks":[
+        //             {"timestamp":1572307200000,"open":1962218,"high":1974850,"low":1962208,"close":1974850,"volume":305211315},
+        //             {"timestamp":1572220800000,"open":1924700,"high":1951276,"low":1909328,"close":1951276,"volume":1086067595},
+        //             {"timestamp":1572134400000,"open":1962155,"high":1962734,"low":1900905,"close":1930243,"volume":790141098},
+        //         ],
+        //     }
+        //
+        const ticks = this.safeValue (response, 'ticks', []);
+        return this.parseOHLCVs (ticks, market, timeframe, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -314,18 +369,12 @@ module.exports = class btcmarkets extends Exchange {
             'id': market['id'],
         };
         const response = await this.publicGetMarketIdOrderbook (this.extend (request, params));
-        let timestamp = this.safeInteger (response, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (response, 'timestamp');
         return this.parseOrderBook (response, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.safeInteger (ticker, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (ticker, 'timestamp');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -366,10 +415,7 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger (trade, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'timestamp');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -557,7 +603,7 @@ module.exports = class btcmarkets extends Exchange {
             cost = 0;
             for (let i = 0; i < numTrades; i++) {
                 const trade = trades[i];
-                cost = this.sum (cost, trade[i]['cost']);
+                cost = this.sum (cost, trade['cost']);
             }
             if (filled > 0) {
                 average = cost / filled;
@@ -692,7 +738,7 @@ module.exports = class btcmarkets extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return; // fallback to default error handler
         }

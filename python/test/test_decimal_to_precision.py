@@ -38,6 +38,9 @@ assert(number_to_string(7.9e27) == '7900000000000000000000000000')
 assert(number_to_string(-12.345) == '-12.345')
 assert(number_to_string(12.345) == '12.345')
 assert(number_to_string(0) == '0')
+# self line breaks the test
+# see https://github.com/ccxt/ccxt/issues/5744
+# assert(number_to_string(0.00000001) == '0.00000001')
 
 # ----------------------------------------------------------------------------
 # testDecimalToPrecisionTruncationToNDigitsAfterDot
@@ -218,6 +221,7 @@ assert(decimal_to_precision('-69.3', TRUNCATE, -2, DECIMAL_PLACES) == '0')
 assert(decimal_to_precision('69.3', TRUNCATE, -1, SIGNIFICANT_DIGITS) == '60')
 assert(decimal_to_precision('-69.3', TRUNCATE, -1, SIGNIFICANT_DIGITS) == '-60')
 assert(decimal_to_precision('69.3', TRUNCATE, -2, SIGNIFICANT_DIGITS) == '0')
+assert(decimal_to_precision('1602000000000000000000', TRUNCATE, 3, SIGNIFICANT_DIGITS) == '1600000000000000000000')
 
 # ----------------------------------------------------------------------------
 # testDecimalToPrecisionErrorHandling(todo)

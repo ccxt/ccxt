@@ -21,6 +21,7 @@ class btctradeua extends Exchange {
                 'fetchOpenOrders' => true,
             ),
             'urls' => array (
+                'referral' => 'https://btc-trade.com.ua/registration/22689',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
                 'api' => 'https://btc-trade.com.ua/api',
                 'www' => 'https://btc-trade.com.ua',
@@ -51,7 +52,7 @@ class btctradeua extends Exchange {
             ),
             'markets' => array (
                 'BCH/UAH' => array( 'id' => 'bch_uah', 'symbol' => 'BCH/UAH', 'base' => 'BCH', 'quote' => 'UAH', 'baseId' => 'bch', 'quoteId' => 'uah' ),
-                'BTC/UAH' => array( 'id' => 'btc_uah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'baseId' => 'btc', 'quoteId' => 'uah', 'precision' => array ( 'price' => 1 ), 'limits' => array( 'amount' => array ( 'min' => 0.0000000001 ))),
+                'BTC/UAH' => array( 'id' => 'btc_uah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'baseId' => 'btc', 'quoteId' => 'uah', 'precision' => array( 'price' => 1 ), 'limits' => array( 'amount' => array( 'min' => 0.0000000001 ))),
                 'DASH/BTC' => array( 'id' => 'dash_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC', 'baseId' => 'dash', 'quoteId' => 'btc' ),
                 'DASH/UAH' => array( 'id' => 'dash_uah', 'symbol' => 'DASH/UAH', 'base' => 'DASH', 'quote' => 'UAH', 'baseId' => 'dash', 'quoteId' => 'uah' ),
                 'DOGE/BTC' => array( 'id' => 'doge_btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC', 'baseId' => 'doge', 'quoteId' => 'btc' ),
@@ -93,17 +94,14 @@ class btctradeua extends Exchange {
         $this->load_markets();
         $response = $this->privatePostBalance ($params);
         $result = array( 'info' => $response );
-        $accounts = $this->safe_value($response, 'accounts');
-        for ($i = 0; $i < count ($accounts); $i++) {
-            $account = $accounts[$i];
-            $currencyId = $account['currency'];
-            $code = $this->common_currency_code($currencyId);
-            $balance = $this->safe_float($account, 'balance');
-            $result[$code] = array (
-                'free' => $balance,
-                'used' => 0.0,
-                'total' => $balance,
-            );
+        $balances = $this->safe_value($response, 'accounts');
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['total'] = $this->safe_float($balance, 'balance');
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }

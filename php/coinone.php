@@ -80,7 +80,7 @@ class coinone extends Exchange {
                 'ZRX/KRW' => array( 'id' => 'zrx', 'symbol' => 'ZRX/KRW', 'base' => 'ZRX', 'quote' => 'KRW', 'baseId' => 'zrx', 'quoteId' => 'krw' ),
                 'LUNA/KRW' => array( 'id' => 'luna', 'symbol' => 'LUNA/KRW', 'base' => 'LUNA', 'quote' => 'KRW', 'baseId' => 'luna', 'quoteId' => 'krw' ),
                 'ATOM/KRW' => array( 'id' => 'atom', 'symbol' => 'ATOM/KRW', 'base' => 'ATOM', 'quote' => 'KRW', 'baseId' => 'atom', 'quoteId' => 'krw' ),
-                'VNT/KRW' => array( 'id' => 'vnt', 'symbol' => 'vnt/KRW', 'base' => 'VNT', 'quote' => 'KRW', 'baseId' => 'vnt', 'quoteId' => 'krw' ),
+                'VNT/KRW' => array( 'id' => 'vnt', 'symbol' => 'VNT/KRW', 'base' => 'VNT', 'quote' => 'KRW', 'baseId' => 'vnt', 'quoteId' => 'krw' ),
             ),
             'fees' => array (
                 'trading' => array (
@@ -130,22 +130,14 @@ class coinone extends Exchange {
             'result',
             'normalWallets',
         ));
-        $ids = is_array($balances) ? array_keys($balances) : array();
-        for ($i = 0; $i < count ($ids); $i++) {
-            $id = $ids[$i];
-            $balance = $balances[$id];
-            $code = strtoupper($id);
-            if (is_array($this->currencies_by_id) && array_key_exists($id, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$id]['code'];
-            }
-            $free = $this->safe_float($balance, 'avail');
-            $total = $this->safe_float($balance, 'balance');
-            $used = $total - $free;
-            $account = array (
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
+        $currencyIds = is_array($balances) ? array_keys($balances) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $balance = $balances[$currencyId];
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'avail');
+            $account['total'] = $this->safe_float($balance, 'balance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -230,10 +222,7 @@ class coinone extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'timestamp');
         $symbol = ($market !== null) ? $market['symbol'] : null;
         $is_ask = $this->safe_string($trade, 'is_ask');
         $side = null;
@@ -367,11 +356,8 @@ class coinone extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $info = $this->safe_value($order, 'info');
-        $id = $this->safe_string($info, 'orderId');
-        if ($id !== null) {
-            $id = strtoupper($id);
-        }
-        $timestamp = $this->safe_integer($info, 'timestamp') * 1000;
+        $id = $this->safe_string_upper($info, 'orderId');
+        $timestamp = $this->safe_timestamp($info, 'timestamp');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $cost = null;
         $side = $this->safe_string($info, 'type');
@@ -500,7 +486,7 @@ class coinone extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }

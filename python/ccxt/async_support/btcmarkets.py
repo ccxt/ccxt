@@ -14,7 +14,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 
 
-class btcmarkets (Exchange):
+class btcmarkets(Exchange):
 
     def describe(self):
         return self.deep_extend(super(btcmarkets, self).describe(), {
@@ -91,6 +91,20 @@ class btcmarkets (Exchange):
                 '3': InvalidOrder,
                 '6': DDoSProtection,
             },
+            'fees': {
+                'percentage': True,
+                'tierBased': True,
+                'maker': -0.05 / 100,
+                'taker': 0.20 / 100,
+            },
+            'options': {
+                'fees': {
+                    'AUD': {
+                        'maker': 0.85 / 100,
+                        'taker': 0.85 / 100,
+                    },
+                },
+            },
         })
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
@@ -102,7 +116,7 @@ class btcmarkets (Exchange):
             request['since'] = since
         response = await self.privateGetFundtransferHistory(self.extend(request, params))
         transactions = response['fundTransfers']
-        return self.parseTransactions(transactions, None, since, limit)
+        return self.parse_transactions(transactions, None, since, limit)
 
     def parse_transaction_status(self, status):
         # todo: find more statuses
@@ -174,7 +188,7 @@ class btcmarkets (Exchange):
         fee = self.safe_float(item, 'fee')
         status = self.parse_transaction_status(self.safe_string(item, 'status'))
         ccy = self.safe_string(item, 'currency')
-        code = self.common_currency_code(ccy)
+        code = self.safe_currency_code(ccy)
         # todo: self logic is duplicated below
         amount = self.safe_float(item, 'amount')
         if amount is not None:
@@ -207,11 +221,10 @@ class btcmarkets (Exchange):
             baseId = self.safe_string(market, 'instrument')
             quoteId = self.safe_string(market, 'currency')
             id = baseId + '/' + quoteId
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            # todo: refactor self
-            fee = 0.0085 if (quote == 'AUD') else 0.0022
+            fees = self.safe_value(self.safe_value(self.options, 'fees', {}), quote, self.fees)
             pricePrecision = 2
             amountPrecision = 4
             minAmount = 0.001  # where does it come from?
@@ -248,8 +261,8 @@ class btcmarkets (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': None,
-                'maker': fee,
-                'taker': fee,
+                'maker': fees['maker'],
+                'taker': fees['taker'],
                 'limits': limits,
                 'precision': precision,
             })
@@ -262,41 +275,78 @@ class btcmarkets (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             multiplier = 100000000
-            total = self.safe_float(balance, 'balance') / multiplier
-            used = self.safe_float(balance, 'pendingFunds') / multiplier
-            free = total - used
-            account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+            total = self.safe_float(balance, 'balance')
+            if total is not None:
+                total /= multiplier
+            used = self.safe_float(balance, 'pendingFunds')
+            if used is not None:
+                used /= multiplier
+            account = self.account()
+            account['used'] = used
+            account['total'] = total
             result[code] = account
         return self.parse_balance(result)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        #
+        #     {
+        #         "timestamp":1572307200000,
+        #         "open":1962218,
+        #         "high":1974850,
+        #         "low":1962208,
+        #         "close":1974850,
+        #         "volume":305211315,
+        #     }
+        #
         multiplier = 100000000  # for price and volume
-        return [
-            ohlcv[0],
-            float(ohlcv[1]) / multiplier,
-            float(ohlcv[2]) / multiplier,
-            float(ohlcv[3]) / multiplier,
-            float(ohlcv[4]) / multiplier,
-            float(ohlcv[5]) / multiplier,
+        keys = ['open', 'high', 'low', 'close', 'volume']
+        result = [
+            self.safe_integer(ohlcv, 'timestamp'),
         ]
+        for i in range(0, len(keys)):
+            key = keys[i]
+            value = self.safe_float(ohlcv, key)
+            if value is not None:
+                value = value / multiplier
+            result.append(value)
+        return result
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'id': market['id'],
-            'timeWindow': self.timeframes[timeframe],
+            'timeframe': self.timeframes[timeframe],
+            # set to True to see candles more recent than the timestamp in the
+            # since parameter, if a since parameter is used, default is False
+            'indexForward': True,
+            # set to True to see the earliest candles first in the list of
+            # returned candles in chronological order, default is False
+            'sortForward': True,
         }
         if since is not None:
             request['since'] = since
-        response = await self.webGetMarketBTCMarketsIdTickByTime(self.extend(request, params))
-        return self.parse_ohlcvs(response['ticks'], market, timeframe, since, limit)
+        if limit is not None:
+            request['limit'] = limit  # default is 3000
+        response = await self.publicGetV2MarketIdTickByTimeTimeframe(self.extend(request, params))
+        #
+        #     {
+        #         "success":true,
+        #         "paging":{
+        #             "newer":"/v2/market/ETH/BTC/tickByTime/day?indexForward=true&since=1572307200000",
+        #             "older":"/v2/market/ETH/BTC/tickByTime/day?since=1457827200000"
+        #         },
+        #         "ticks":[
+        #             {"timestamp":1572307200000,"open":1962218,"high":1974850,"low":1962208,"close":1974850,"volume":305211315},
+        #             {"timestamp":1572220800000,"open":1924700,"high":1951276,"low":1909328,"close":1951276,"volume":1086067595},
+        #             {"timestamp":1572134400000,"open":1962155,"high":1962734,"low":1900905,"close":1930243,"volume":790141098},
+        #         ],
+        #     }
+        #
+        ticks = self.safe_value(response, 'ticks', [])
+        return self.parse_ohlcvs(ticks, market, timeframe, since, limit)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -305,15 +355,11 @@ class btcmarkets (Exchange):
             'id': market['id'],
         }
         response = await self.publicGetMarketIdOrderbook(self.extend(request, params))
-        timestamp = self.safe_integer(response, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(response, timestamp)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.safe_integer(ticker, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(ticker, 'timestamp')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -351,9 +397,7 @@ class btcmarkets (Exchange):
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(trade, 'timestamp')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -519,7 +563,7 @@ class btcmarkets (Exchange):
             cost = 0
             for i in range(0, numTrades):
                 trade = trades[i]
-                cost = self.sum(cost, trade[i]['cost'])
+                cost = self.sum(cost, trade['cost'])
             if filled > 0:
                 average = cost / filled
             lastTradeTimestamp = trades[numTrades - 1]['timestamp']
@@ -634,7 +678,7 @@ class btcmarkets (Exchange):
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         if 'success' in response:

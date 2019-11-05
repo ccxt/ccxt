@@ -42,7 +42,7 @@ class lbank extends Exchange {
                 'api' => 'https://api.lbank.info',
                 'www' => 'https://www.lbank.info',
                 'doc' => 'https://github.com/LBank-exchange/lbank-official-api-docs',
-                'fees' => 'https://lbankinfo.zendesk.com/hc/zh-cn/articles/115002295114--%E8%B4%B9%E7%8E%87%E8%AF%B4%E6%98%8E',
+                'fees' => 'https://lbankinfo.zendesk.com/hc/en-gb/articles/360012072873-Trading-Fees',
                 'referral' => 'https://www.lbex.io/invite?icode=7QCY',
             ),
             'api' => array (
@@ -129,8 +129,8 @@ class lbank extends Exchange {
                 $baseId = $parts[0];
                 $quoteId = $parts[1];
             }
-            $base = $this->common_currency_code(strtoupper($baseId));
-            $quote = $this->common_currency_code(strtoupper($quoteId));
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'quantityAccuracy'),
@@ -185,8 +185,8 @@ class lbank extends Exchange {
                     $baseId = $parts[0];
                     $quoteId = $parts[1];
                 }
-                $base = $this->common_currency_code(strtoupper($baseId));
-                $quote = $this->common_currency_code(strtoupper($quoteId));
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
@@ -388,12 +388,7 @@ class lbank extends Exchange {
         $currencyIds = is_array($free) ? array_keys($free) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code(strtoupper($currencyId));
-            }
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($free, $currencyId);
             $account['used'] = $this->safe_float($freeze, $currencyId);

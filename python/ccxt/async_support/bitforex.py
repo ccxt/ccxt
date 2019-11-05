@@ -18,7 +18,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 
 
-class bitforex (Exchange):
+class bitforex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitforex, self).describe(), {
@@ -237,8 +237,8 @@ class bitforex (Exchange):
             symbolParts = id.split('-')
             baseId = symbolParts[2]
             quoteId = symbolParts[1]
-            base = self.common_currency_code(baseId.upper())
-            quote = self.common_currency_code(quoteId.upper())
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             active = True
             precision = {
@@ -320,14 +320,14 @@ class bitforex (Exchange):
         data = response['data']
         result = {'info': response}
         for i in range(0, len(data)):
-            current = data[i]
-            currencyId = current['currency']
-            code = self.common_currency_code(currencyId.upper())
+            balance = data[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
             account = self.account()
+            account['used'] = self.safe_float(balance, 'frozen')
+            account['free'] = self.safe_float(balance, 'active')
+            account['total'] = self.safe_float(balance, 'fix')
             result[code] = account
-            result[code]['used'] = self.safe_float(current, 'frozen')
-            result[code]['free'] = self.safe_float(current, 'active')
-            result[code]['total'] = self.safe_float(current, 'fix')
         return self.parse_balance(result)
 
     async def fetch_ticker(self, symbol, params={}):
@@ -371,14 +371,9 @@ class bitforex (Exchange):
         if limit is not None:
             request['size'] = limit
         response = await self.publicGetApiV1MarketDepth(self.extend(request, params))
-        data = response['data']
-        timestamp = response['time']
-        bidsKey = 'bids'
-        asksKey = 'asks'
-        priceKey = 'price'
-        amountKey = 'amount'
-        orderbook = self.parse_order_book(data, timestamp, bidsKey, asksKey, priceKey, amountKey)
-        return orderbook
+        data = self.safe_value(response, 'data')
+        timestamp = self.safe_integer(response, 'time')
+        return self.parse_order_book(data, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_order_status(self, status):
         statuses = {
@@ -523,7 +518,7 @@ class bitforex (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):

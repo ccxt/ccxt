@@ -16,7 +16,7 @@ from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import NO_PADDING
 
 
-class dx (Exchange):
+class dx(Exchange):
 
     def describe(self):
         return self.deep_extend(super(dx, self).describe(), {
@@ -184,9 +184,9 @@ class dx (Exchange):
             base, quote = fullName.split('/')
             amountPrecision = 0
             if instrument['meQuantityMultiplier'] != 0:
-                amountPrecision = math.log10(instrument['meQuantityMultiplier'])
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+                amountPrecision = int(math.log10(instrument['meQuantityMultiplier']))
+            base = self.safe_currency_code(base)
+            quote = self.safe_currency_code(quote)
             baseId = self.safe_string(asset, 'baseCurrencyId')
             quoteId = self.safe_string(asset, 'quotedCurrencyId')
             baseNumericId = self.safe_integer(asset, 'baseCurrencyId')
@@ -268,8 +268,21 @@ class dx (Exchange):
         return self.parse_ticker(response['result']['tickers'], market)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        #
+        #     {
+        #         "date":1546878960,
+        #         "open":0.038064,
+        #         "high":0.038064,
+        #         "low":0.038064,
+        #         "close":0.038064,
+        #         "volume":0.00755418,
+        #         "id":169042,
+        #         "instrumentId":1015,
+        #         "type":"1m"
+        #     }
+        #
         return [
-            self.safe_float(ohlcv, 'date') * 1000,
+            self.safe_timestamp(ohlcv, 'date'),
             self.safe_float(ohlcv, 'open'),
             self.safe_float(ohlcv, 'high'),
             self.safe_float(ohlcv, 'low'),
@@ -291,6 +304,23 @@ class dx (Exchange):
             },
         }
         response = await self.publicPostAssetManagementHistory(self.extend(request, params))
+        #
+        #     {
+        #         "id":"1.565248994048e+12",
+        #         "result":{
+        #             "assets":[
+        #                 {"date":1546878960,"open":0.038064,"high":0.038064,"low":0.038064,"close":0.038064,"volume":0.00755418,"id":169042,"instrumentId":1015,"type":"1m"},
+        #                 {"date":1546878660,"open":0.037863,"high":0.037863,"low":0.037863,"close":0.037863,"volume":0.0075726,"id":169028,"instrumentId":1015,"type":"1m"},
+        #                 {"date":1546860360,"open":0.03864,"high":0.03864,"low":0.03864,"close":0.03864,"volume":0.0013524,"id":168924,"instrumentId":1015,"type":"1m"},
+        #                 {"date":1546848480,"open":0.038969,"high":0.038969,"low":0.038969,"close":0.038969,"volume":0.01654819,"id":168880,"instrumentId":1015,"type":"1m"},
+        #             ],
+        #             "total":{
+        #                 "count":52838
+        #             }
+        #         },
+        #         "error":null
+        #     }
+        #
         return self.parse_ohlcvs(response['result']['assets'], market, timeframe, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -350,7 +380,7 @@ class dx (Exchange):
         orderType = 'limit'
         if order['orderType'] == self.options['orderTypes']['market']:
             orderType = 'market'
-        timestamp = order['time'] * 1000
+        timestamp = self.safe_timestamp(order, 'time')
         quantity = self.object_to_number(order['quantity'])
         filledQuantity = self.object_to_number(order['filledQuantity'])
         id = self.safe_string(order, 'externalOrderId')
@@ -408,14 +438,13 @@ class dx (Exchange):
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             balance = self.safe_value(balances, currencyId, {})
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-                account = {
-                    'free': self.safe_float(balance, 'available'),
-                    'used': self.safe_float(balance, 'frozen'),
-                    'total': self.safe_float(balance, 'total'),
-                }
-                result[code] = account
+            code = self.safe_currency_code(currencyId)
+            account = {
+                'free': self.safe_float(balance, 'available'),
+                'used': self.safe_float(balance, 'frozen'),
+                'total': self.safe_float(balance, 'total'),
+            }
+            result[code] = account
         return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -476,7 +505,7 @@ class dx (Exchange):
             headers['Authorization'] = token
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
             return  # fallback to default error handler
         error = response['error']

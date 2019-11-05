@@ -103,8 +103,8 @@ class tidebit extends Exchange {
                 'trading' => array (
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.2 / 100,
-                    'taker' => 0.2 / 100,
+                    'maker' => 0.3 / 100,
+                    'taker' => 0.3 / 100,
                 ),
                 'funding' => array (
                     'tierBased' => false,
@@ -148,8 +148,8 @@ class tidebit extends Exchange {
             $id = $this->safe_string($market, 'id');
             $symbol = $this->safe_string($market, 'name');
             list($baseId, $quoteId) = explode('/', $symbol);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -171,12 +171,7 @@ class tidebit extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code(strtoupper($currencyId));
-            }
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'balance');
             $account['used'] = $this->safe_float($balance, 'locked');
@@ -196,18 +191,12 @@ class tidebit extends Exchange {
         }
         $request['market'] = $market['id'];
         $response = $this->publicGetDepth (array_merge ($request, $params));
-        $timestamp = $this->safe_integer($response, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($response, 'timestamp');
         return $this->parse_order_book($response, $timestamp);
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->safe_integer($ticker, 'at');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'at');
         $ticker = $this->safe_value($ticker, 'ticker', array());
         $symbol = null;
         if ($market !== null) {
@@ -253,10 +242,8 @@ class tidebit extends Exchange {
             } else {
                 $baseId = mb_substr($id, 0, 3 - 0);
                 $quoteId = mb_substr($id, 3, 6 - 3);
-                $base = strtoupper($baseId);
-                $quote = strtoupper($quoteId);
-                $base = $this->common_currency_code($base);
-                $quote = $this->common_currency_code($quote);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
             $ticker = $tickers[$id];
@@ -340,6 +327,9 @@ class tidebit extends Exchange {
             $request['timestamp'] = 1800000;
         }
         $response = $this->publicGetK (array_merge ($request, $params));
+        if ($response === 'null') {
+            return array();
+        }
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
@@ -436,7 +426,7 @@ class tidebit extends Exchange {
         $request = array (
             'id' => $id,
             'currency_type' => 'coin', // or 'cash'
-            'currency' => strtolower($currency),
+            'currency' => $currency['id'],
             'body' => $amount,
             // 'address' => $address, // they don't allow withdrawing to direct addresses?
         );
@@ -487,7 +477,7 @@ class tidebit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($code === 400) {
             $error = $this->safe_value($response, 'error');
             $errorCode = $this->safe_string($error, 'code');

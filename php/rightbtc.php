@@ -38,8 +38,7 @@ class rightbtc extends Exchange {
                 'api' => 'https://www.rightbtc.com/api',
                 'www' => 'https://www.rightbtc.com',
                 'doc' => array (
-                    'https://52.53.159.206/api/trader/',
-                    'https://support.rightbtc.com/hc/en-us/articles/360012809412',
+                    'https://docs.rightbtc.com/api/',
                 ),
                 // eslint-disable-next-line no-useless-escape
                 // 'fees' => 'https://www.rightbtc.com/\#\!/support/fee',
@@ -88,7 +87,7 @@ class rightbtc extends Exchange {
                     // 0.01 ETP
                     // 0.001 ETH
                     // 0.1 BITCNY
-                    'maker' => 0.2 / 100,
+                    'maker' => 0.1 / 100,
                     'taker' => 0.2 / 100,
                 ),
                 'funding' => array (
@@ -111,11 +110,11 @@ class rightbtc extends Exchange {
                         // 'BitCNY' => n => 0.1 . n * (1 / 100),
                         // 'MTX' => n => 1 . n * (1 / 100),
                         'ETP' => 0.01,
-                        'BTC' => 0.001,
-                        'ETH' => 0.01,
+                        'BTC' => 0.0005,
+                        'ETH' => 0.005,
                         'ETC' => 0.01,
                         'STORJ' => 3,
-                        'LTC' => 0.001,
+                        'LTC' => 0.01,
                         'ZEC' => 0.001,
                         'BCC' => 0.001,
                         'XRB' => 0,
@@ -138,9 +137,8 @@ class rightbtc extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->publicGetTradingPairs ($params);
         // $zh = $this->publicGetGetAssetsTradingPairsZh ();
-        $markets = array_merge ($response['status']['message']);
+        $markets = $this->publicGetTradingPairs ($params);
         $marketIds = is_array($markets) ? array_keys($markets) : array();
         $result = array();
         for ($i = 0; $i < count ($marketIds); $i++) {
@@ -148,8 +146,8 @@ class rightbtc extends Exchange {
             $market = $markets[$id];
             $baseId = $this->safe_string($market, 'bid_asset_symbol');
             $quoteId = $this->safe_string($market, 'ask_asset_symbol');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'bid_asset_decimals'),
@@ -233,7 +231,7 @@ class rightbtc extends Exchange {
         );
         $response = $this->publicGetTickerTradingPair (array_merge ($request, $params));
         $result = $this->safe_value($response, 'result');
-        if (!$result) {
+        if ($result === null) {
             throw new ExchangeError($this->id . ' fetchTicker returned an empty $response for $symbol ' . $symbol);
         }
         return $this->parse_ticker($result, $market);
@@ -322,8 +320,7 @@ class rightbtc extends Exchange {
         }
         $cost = $this->cost_to_precision($symbol, $price * $amount);
         $cost = floatval ($cost);
-        $side = $this->safe_string($trade, 'side');
-        $side = strtolower($side);
+        $side = $this->safe_string_lower($trade, 'side');
         if ($side === 'b') {
             $side = 'buy';
         } else if ($side === 's') {
@@ -408,12 +405,7 @@ class rightbtc extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'asset');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code($currencyId);
-            }
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             // https://github.com/ccxt/ccxt/issues/3873
             $account['free'] = $this->divide_safe_float ($balance, 'balance', 1e8);
@@ -535,10 +527,7 @@ class rightbtc extends Exchange {
             }
         }
         $type = 'limit';
-        $side = $this->safe_string($order, 'side');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($order, 'side');
         $feeCost = $this->divide_safe_float ($order, 'min_fee', 1e8);
         $fee = null;
         if ($feeCost !== null) {
@@ -754,14 +743,14 @@ class rightbtc extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }
         $status = $this->safe_value($response, 'status');
         if ($status !== null) {
             //
-            //     array("$status":{"$success":0,"$message":"ERR_USERTOKEN_NOT_FOUND")}
+            //     array("$status":array("$success":0,"$message":"ERR_USERTOKEN_NOT_FOUND"))
             //
             $success = $this->safe_string($status, 'success');
             if ($success !== '1') {

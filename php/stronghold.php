@@ -38,6 +38,7 @@ class stronghold extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchOrderBook' => true,
                 'fetchOpenOrders' => true,
+                'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchMyTrades' => true,
                 'fetchDepositAddress' => false,
@@ -134,7 +135,7 @@ class stronghold extends Exchange {
         if ($this->options['accountId'] !== null) {
             return $this->options['accountId'];
         }
-        $this->loadAccounts ();
+        $this->load_accounts();
         $numAccounts = is_array ($this->accounts) ? count ($this->accounts) : 0;
         if ($numAccounts > 0) {
             return $this->accounts[0]['id'];
@@ -199,8 +200,8 @@ class stronghold extends Exchange {
             $quoteId = $this->safe_string($entry, 'counterAssetId');
             $baseAssetId = explode('/', $baseId)[0];
             $quoteAssetId = explode('/', $quoteId)[0];
-            $base = $this->common_currency_code($baseAssetId);
-            $quote = $this->common_currency_code($quoteAssetId);
+            $base = $this->safe_currency_code($baseAssetId);
+            $quote = $this->safe_currency_code($quoteAssetId);
             $symbol = $base . '/' . $quote;
             $limits = array (
                 'amount' => array (
@@ -269,7 +270,7 @@ class stronghold extends Exchange {
             $entry = $data[$i];
             $assetId = $this->safe_string($entry, 'id');
             $currencyId = $this->safe_string($entry, 'code');
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $precision = $this->safe_integer($entry, 'displayDecimalsFull');
             $result[$code] = array (
                 'code' => $code,
@@ -423,7 +424,7 @@ class stronghold extends Exchange {
         if ($code !== null) {
             $currency = $this->currency ($code);
         }
-        return $this->parseTransactions ($response['result'], $currency, $since, $limit);
+        return $this->parse_transactions($response['result'], $currency, $since, $limit);
     }
 
     public function parse_transaction_status ($status) {
@@ -455,7 +456,7 @@ class stronghold extends Exchange {
         $code = null;
         if ($assetId !== null) {
             $currencyId = explode('/', $assetId)[0];
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safe_currency_code($currencyId);
         } else {
             if ($currency !== null) {
                 $code = $currency['code'];
@@ -622,12 +623,7 @@ class stronghold extends Exchange {
             $assetId = $this->safe_string($balance, 'assetId');
             if ($assetId !== null) {
                 $currencyId = explode('/', $assetId)[0];
-                $code = $currencyId;
-                if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                    $code = $this->currencies_by_id[$currencyId]['code'];
-                } else {
-                    $code = $this->common_currency_code($currencyId);
-                }
+                $code = $this->safe_currency_code($currencyId);
                 $account = array();
                 $account['total'] = $this->safe_float($balance, 'amount');
                 $account['free'] = $this->safe_float($balance, 'availableForTrade');
@@ -736,7 +732,7 @@ class stronghold extends Exchange {
         );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return; // fallback to base error handler by default
         }

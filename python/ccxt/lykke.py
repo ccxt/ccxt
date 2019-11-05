@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 import math
 
 
-class lykke (Exchange):
+class lykke(Exchange):
 
     def describe(self):
         return self.deep_extend(super(lykke, self).describe(), {
@@ -35,11 +35,11 @@ class lykke (Exchange):
                     'mobile': 'https://public-api.lykke.com/api',
                     'public': 'https://hft-api.lykke.com/api',
                     'private': 'https://hft-api.lykke.com/api',
-                    'test': {
-                        'mobile': 'https://public-api.lykke.com/api',
-                        'public': 'https://hft-service-dev.lykkex.net/api',
-                        'private': 'https://hft-service-dev.lykkex.net/api',
-                    },
+                },
+                'test': {
+                    'mobile': 'https://public-api.lykke.com/api',
+                    'public': 'https://hft-service-dev.lykkex.net/api',
+                    'private': 'https://hft-service-dev.lykkex.net/api',
                 },
                 'www': 'https://www.lykke.com',
                 'doc': [
@@ -95,6 +95,9 @@ class lykke (Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'XPD': 'Lykke XPD',
+            },
         })
 
     def parse_trade(self, trade, market):
@@ -119,9 +122,7 @@ class lykke (Exchange):
             symbol = market['symbol']
         id = self.safe_string(trade, 'id')
         timestamp = self.parse8601(self.safe_string(trade, 'dateTime'))
-        side = self.safe_string(trade, 'action')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(trade, 'action')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'volume')
         cost = price * amount
@@ -161,11 +162,7 @@ class lykke (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'AssetId')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['total'] = self.safe_float(balance, 'Balance')
             account['used'] = self.safe_float(balance, 'Reserved')
@@ -220,8 +217,8 @@ class lykke (Exchange):
             id = self.safe_string(market, 'Id')
             name = self.safe_string(market, 'Name')
             baseId, quoteId = name.split('/')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'Accuracy'),
@@ -292,11 +289,14 @@ class lykke (Exchange):
 
     def parse_order_status(self, status):
         statuses = {
+            'Open': 'open',
             'Pending': 'open',
             'InOrderBook': 'open',
             'Processing': 'open',
             'Matched': 'closed',
             'Cancelled': 'canceled',
+            'Rejected': 'rejected',
+            'Replaced': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
@@ -310,9 +310,9 @@ class lykke (Exchange):
             symbol = market['symbol']
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'LastMatchTime'))
         timestamp = None
-        if ('Registered' in list(order.keys())) and(order['Registered']):
+        if ('Registered' in list(order.keys())) and (order['Registered']):
             timestamp = self.parse8601(order['Registered'])
-        elif ('CreatedAt' in list(order.keys())) and(order['CreatedAt']):
+        elif ('CreatedAt' in list(order.keys())) and (order['CreatedAt']):
             timestamp = self.parse8601(order['CreatedAt'])
         price = self.safe_float(order, 'Price')
         amount = self.safe_float(order, 'Volume')

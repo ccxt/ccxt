@@ -186,8 +186,8 @@ class coincheck extends Exchange {
                 $symbol = $market['symbol'];
             } else {
                 list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
@@ -212,7 +212,7 @@ class coincheck extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         if ($symbol !== 'BTC/JPY') {
-            throw new NotSupported($this->id . ' fetchOrderBook () supports BTC/JPY only');
+            throw new BadSymbol($this->id . ' fetchOrderBook () supports BTC/JPY only');
         }
         $this->load_markets();
         $response = $this->publicGetOrderBooks ($params);
@@ -221,14 +221,11 @@ class coincheck extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         if ($symbol !== 'BTC/JPY') {
-            throw new NotSupported($this->id . ' fetchTicker () supports BTC/JPY only');
+            throw new BadSymbol($this->id . ' fetchTicker () supports BTC/JPY only');
         }
         $this->load_markets();
         $ticker = $this->publicGetTicker ($params);
-        $timestamp = $this->safe_integer($ticker, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -273,8 +270,8 @@ class coincheck extends Exchange {
                 $ids = explode('_', $marketId);
                 $baseId = $ids[0];
                 $quoteId = $ids[1];
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
@@ -342,7 +339,7 @@ class coincheck extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         if ($symbol !== 'BTC/JPY') {
-            throw new NotSupported($this->id . ' fetchTrades () supports BTC/JPY only');
+            throw new BadSymbol($this->id . ' fetchTrades () supports BTC/JPY only');
         }
         $this->load_markets();
         $market = $this->market ($symbol);

@@ -30,6 +30,14 @@ class bitso extends Exchange {
                 'fees' => 'https://bitso.com/fees?l=es',
                 'referral' => 'https://bitso.com/?ref=itej',
             ),
+            'options' => array (
+                'precision' => array (
+                    'XRP' => 6,
+                    'MXN' => 2,
+                    'TUSD' => 2,
+                ),
+                'defaultPrecision' => 8,
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
@@ -101,8 +109,8 @@ class bitso extends Exchange {
             list($baseId, $quoteId) = explode('_', $id);
             $base = strtoupper($baseId);
             $quote = strtoupper($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($base);
+            $quote = $this->safe_currency_code($quote);
             $symbol = $base . '/' . $quote;
             $limits = array (
                 'amount' => array (
@@ -119,8 +127,8 @@ class bitso extends Exchange {
                 ),
             );
             $precision = array (
-                'amount' => $this->precision_from_string($market['minimum_amount']),
-                'price' => $this->precision_from_string($market['minimum_price']),
+                'amount' => $this->safe_integer($this->options['precision'], $base, $this->options['defaultPrecision']),
+                'price' => $this->safe_integer($this->options['precision'], $quote, $this->options['defaultPrecision']),
             );
             $result[] = array (
                 'id' => $id,
@@ -145,12 +153,7 @@ class bitso extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = strtoupper($currencyId);
-            }
+            $code = $this->safe_currency_code($currencyId);
             $account = array (
                 'free' => $this->safe_float($balance, 'available'),
                 'used' => $this->safe_float($balance, 'locked'),
@@ -231,12 +234,8 @@ class bitso extends Exchange {
         $fee = null;
         $feeCost = $this->safe_float($trade, 'fees_amount');
         if ($feeCost !== null) {
-            $feeCurrency = $this->safe_string($trade, 'fees_currency');
-            if ($feeCurrency !== null) {
-                if (is_array($this->currencies_by_id) && array_key_exists($feeCurrency, $this->currencies_by_id)) {
-                    $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
-                }
-            }
+            $feeCurrencyId = $this->safe_string($trade, 'fees_currency');
+            $feeCurrency = $this->safe_currency_code($feeCurrencyId);
             $fee = array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrency,
@@ -350,8 +349,8 @@ class bitso extends Exchange {
                 $market = $this->markets_by_id[$marketId];
             } else {
                 list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->common_currency_code(strtoupper($baseId));
-                $quote = $this->common_currency_code(strtoupper($quoteId));
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
@@ -523,13 +522,13 @@ class bitso extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default $error handler
         }
         if (is_array($response) && array_key_exists('success', $response)) {
             //
-            //     array("$success":false,"$error":{"$code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237")}
+            //     array("$success":false,"$error":array("$code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"))
             //
             $success = $this->safe_value($response, 'success', false);
             if (gettype ($success) === 'string') {

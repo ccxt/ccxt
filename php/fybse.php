@@ -59,17 +59,11 @@ class fybse extends Exchange {
         $quote = $this->markets[$symbol]['quote'];
         $lowercase = strtolower($quote) . 'Bal';
         $fiat = $this->safe_float($response, $lowercase);
-        $crypto = array (
-            'free' => $btc,
-            'used' => 0.0,
-            'total' => $btc,
-        );
+        $crypto = $this->account ();
+        $crypto['total'] = $btc;
         $result = array( 'BTC' => $crypto );
-        $result[$quote] = array (
-            'free' => $fiat,
-            'used' => 0.0,
-            'total' => $fiat,
-        );
+        $result[$quote] = $this->account ();
+        $result[$quote]['total'] = $fiat;
         $result['info'] = $response;
         return $this->parse_balance($result);
     }
@@ -111,10 +105,7 @@ class fybse extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'date');
         $id = $this->safe_string($trade, 'tid');
         $symbol = null;
         if ($market !== null) {

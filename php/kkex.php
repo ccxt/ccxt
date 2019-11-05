@@ -147,10 +147,8 @@ class kkex extends Exchange {
                     );
                 }
             }
-            $base = strtoupper($baseId);
-            $quote = strtoupper($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -169,10 +167,7 @@ class kkex extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->safe_integer($ticker, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'date');
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -317,12 +312,7 @@ class kkex extends Exchange {
         $currencyIds = is_array($free) ? array_keys($free) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code(strtoupper($currencyId));
-            }
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($free, $currencyId);
             $account['used'] = $this->safe_float($freezed, $currencyId);
@@ -470,10 +460,10 @@ class kkex extends Exchange {
                     if ($price === null) {
                         throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
                     } else {
-                        $amount = $amount * $price;
+                        $request['amount'] = $this->cost_to_precision($symbol, floatval ($amount) * floatval ($price));
                     }
                 }
-                $request['price'] = $this->amount_to_precision($symbol, $amount);
+                $request['price'] = $this->cost_to_precision($symbol, $amount);
             } else {
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
             }

@@ -169,10 +169,7 @@ class _1btcxe extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'timestamp');
         $id = $this->safe_string($trade, 'id');
         $symbol = null;
         if ($market !== null) {

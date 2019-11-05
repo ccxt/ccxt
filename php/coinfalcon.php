@@ -73,8 +73,8 @@ class coinfalcon extends Exchange {
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             list($baseId, $quoteId) = explode('-', $market['name']);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'size_precision'),
@@ -190,10 +190,10 @@ class coinfalcon extends Exchange {
         $fee = null;
         $feeCost = $this->safe_float($trade, 'fee');
         if ($feeCost !== null) {
-            $feeCurrencyCode = null;
+            $feeCurrencyCode = $this->safe_string($trade, 'fee_currency_code');
             $fee = array (
                 'cost' => $feeCost,
-                'currency' => $feeCurrencyCode,
+                'currency' => $this->safe_currency_code($feeCurrencyCode),
             );
         }
         return array (
@@ -253,11 +253,7 @@ class coinfalcon extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency_code');
-            $uppercase = strtoupper($currencyId);
-            $code = $this->common_currency_code($uppercase);
-            if (is_array($this->currencies_by_id) && array_key_exists($uppercase, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$uppercase]['code'];
-            }
+            $code = $this->safe_currency_code($currencyId);
             $account = array (
                 'free' => $this->safe_float($balance, 'available_balance'),
                 'used' => $this->safe_float($balance, 'hold_balance'),
@@ -421,7 +417,7 @@ class coinfalcon extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($code < 400) {
             return;
         }

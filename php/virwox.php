@@ -93,8 +93,8 @@ class virwox extends Exchange {
             $id = $this->safe_string($market, 'instrumentID');
             $baseId = $this->safe_string($market, 'longCurrency');
             $quoteId = $this->safe_string($market, 'shortCurrency');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -117,13 +117,9 @@ class virwox extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->common_currency_code($currencyId);
-            $total = $this->safe_float($balance, 'balance');
-            $account = array (
-                'free' => $total,
-                'used' => 0.0,
-                'total' => $total,
-            );
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['total'] = $this->safe_float($balance, 'balance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -199,10 +195,7 @@ class virwox extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'time');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'time');
         $id = $this->safe_string($trade, 'tid');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'vol');
@@ -297,7 +290,7 @@ class virwox extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($code === 200) {
             if (($body[0] === '{') || ($body[0] === '[')) {
                 if (is_array($response) && array_key_exists('result', $response)) {

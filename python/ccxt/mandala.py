@@ -8,22 +8,24 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import ExchangeNotAvailable
 
 
-class mandala (Exchange):
+class mandala(Exchange):
 
     def describe(self):
         return self.deep_extend(super(mandala, self).describe(), {
             'id': 'mandala',
             'name': 'Mandala',
             'countries': ['MT'],
-            'version': 'v1.1',
+            'version': 'v2',
             'rateLimit': 1500,
-            'certified': False,
+            'certified': True,
             # new metainfo interface
             'has': {
                 'cancelAllOrders': True,
@@ -39,7 +41,7 @@ class mandala (Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
-                'fetchOrderStatus': True,
+                'fetchClosedOrders': True,
                 'fetchTickers': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
@@ -174,10 +176,25 @@ class mandala (Exchange):
                         'hmac',  # ?side=BUY&market=BTC&trade=ETH&type=STOPLIMIT&volume=0.025&rate=0.032&timeInForce=GTC&stop=2&'
                     ],
                     'post': [
+                        'my-order-history',
+                        'my-order-status',
                         'PlaceOrder',
                         'cancel-my-order',
                         'cancel-all-my-orders',
                         'get-balance',
+                        'v2/PlaceOrder',
+                        'v2/my-order-history',
+                        'v2/my-order-status',
+                        'v2/my-trade-history',
+                        'v2/cancel-my-order',
+                        'v2/cancel-all-my-orders',
+                        'v2/GetDeposits',
+                        'v2/GetWithdrawals',
+                        'v2/GenerateAddress',
+                        'v2/Get_User_Withdrawal_Limits',
+                        'v2/ListAllAddresses',
+                        'v2/RequestWithdraw',
+                        'v2/RequestWithdrawConfirmation',
                     ],
                 },
             },
@@ -185,8 +202,8 @@ class mandala (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.005,
-                    'taker': 0.005,
+                    'maker': 0.00,
+                    'taker': 0.001,
                 },
             },
             'exceptions': {
@@ -204,8 +221,11 @@ class mandala (Exchange):
                     'Invalid Type': BadRequest,  # on fetchOrders with a wrong type {"status":"Error","errorMessage":"Invalid Type","data":null}
                     'Exception_Invalid_CurrencyName': BadRequest,  # {"status":"BadRequest","message":"Exception_Invalid_CurrencyName","data":"Invalid Currency name"}
                     'Exception_BadRequest': BadRequest,  # {"status":"BadRequest","message":"Exception_BadRequest","data":"Invalid Payload"}
+                    'Blacklisted IP Address': PermissionDenied,  # {"status":"Error","errorMessage":"Blacklisted IP Address","data":null}
+                    'Trade_Invalid_Size': InvalidOrder,  # {"status":"Error","errorMessage":"Trade_Invalid_Size","data":"Invalid trade size."}
                 },
                 'broad': {
+                    'Some error occurred, try again later.': ExchangeNotAvailable,  # {"status":"Error","errorMessage":"Some error occurred, try again later.","data":null}
                 },
             },
             'options': {
@@ -346,7 +366,7 @@ class mandala (Exchange):
         for i in range(0, len(data)):
             currency = data[i]
             id = self.safe_string(currency, 'shortName')
-            code = self.common_currency_code(id)
+            code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'fullName')
             precision = self.safe_integer(currency, 'decimalPrecision')
             active = True
@@ -384,57 +404,199 @@ class mandala (Exchange):
         return result
 
     def fetch_markets(self, params={}):
-        currenciesResponse = self.fetch_currencies_from_cache(params)
-        currencies = self.safe_value(currenciesResponse, 'data', [])
-        currenciesById = self.index_by(currencies, 'shortName')
-        response = self.marketGetGetMarketSummary()
+        response = self.settingsGetGetSettings(params)
         #
         #     {
-        #         status: 'Success',
-        #         errorMessage: null,
+        #         status: "Success",
+        #         message: "Successnot ",
         #         data: {
-        #             BTC_BAT:
-        #                 Last: 0.00003431,
-        #                 LowestAsk: 0,
-        #                 HeighestBid: 0,
-        #                 PercentChange: 0,
-        #                 BaseVolume: 0,
-        #                 QuoteVolume: 0,
-        #                 High_24hr: 0,
-        #                 Low_24hr: 0,
+        #             server_Time_UTC:   "1567260547",
+        #             default_Pair:   "ETH_BTC",
+        #             disable_RM:   "False",
+        #             disable_TDM:   "False",
+        #             enable_TDM_Pay_IN_Exchange_Token:   "False",
+        #             disable_2FA:   "False",
+        #             disable_Login:   "False",
+        #             enable_AeraPass:   "False",
+        #             enable_InstaTrade:   "False",
+        #             enable_CopyTrade:   "False",
+        #             auto_Sell:   "False",
+        #             enable_CryptoForecasting:   "False",
+        #             enable_Simplex:   "False",
+        #             aeraPass_Url:   "False",
+        #             logo_Url:   "https://trade.mandalaex.com/assets/logo.png",
+        #             favIcon_Url:   "favicon.ico",
+        #             navBarLogo_Url:   "https://trade.mandalaex.com/assets/logo.png",
+        #             fiat_List:   "USD,RUB,AUD,EUR,ARS,CAD,COP,TRY,UGX,BRL",
+        #             exchange_IEO_Coins:   "XYZ,ABC",
+        #             mfa_Type: {
+        #                 name: "Google",
+        #                 codeLength:  6,
+        #                 downloadLink: "google.com"
         #             },
-        #             ETH_ZRX: {
-        #                 Last: 0.00213827,
-        #                 LowestAsk: 0,
-        #                 HeighestBid: 0,
-        #                 PercentChange: 0,
-        #                 BaseVolume: 0,
-        #                 QuoteVolume: 0,
-        #                 High_24hr: 0,
-        #                 Low_24hr: 0,
+        #             _CoName:   "Green Donuts",
+        #             exchangeName:   "Green Donuts",
+        #             _xrp_address:   "rBsqK5rzMvo5a4ViVoPudJkXd7NNPXKE9f",
+        #             tdM_Token_Name:   "MDX",
+        #             enable_DustConversion:   "True",
+        #             exchange_SupportDesk_URL:   "https://modulushelp.freshdesk.com",
+        #             kyc: {
+        #                 enable_GoKYC: "False",
+        #                 enable_SumSub_iframe: "True"
         #             },
-        #         },
+        #             markets: ["BTC", "ETH", "PAX"],
+        #             customErrorMessages: {
+        #                 exception_General: "Our servers are experiencing some glitch, please try again later.",
+        #                 exception_Email: "Unable to send an email. try again later",
+        #                 exception_BadRequest: "Invalid Payload",
+        #                 exception_HMAC_Missing: "Must provide the HMAC of the request body.",
+        #                 exception_HMAC_Validation: "HMAC validation failed.",
+        #                 exception_TimeStamp: "Invalid timestamp.",
+        #                 exception_RecvWindow: "Invalid recvWindow value.",
+        #                 exception_TimeStamp_Window_Invalid: "Timestamp for self request is outside of the recvWindow.",
+        #                 exception_Body_Missing: "Must provide the request body.",
+        #                 exception_Invalid_Body: "Request body was invalid.",
+        #                 exception_Invalid_Address: "Invalid Address.",
+        #                 exception_Invalid_OrderSide: "Invalid parameter \'side\', must be \'BUY\' or \'SELL\'",
+        #                 exception_Invalid_Orderid: "The OrderId or clientOrderId is required",
+        #                 exception_Invalid_CurrencyName: "Invalid Currency name",
+        #                 exception_Invalid_XRP_DTag_Required: "Must provide the addressTag for XRP address.",
+        #                 order_Trade_Suspended: "Sorrynot  Trade Suspended.",
+        #                 order_Invalid_Order_Type: "Invalid Order Type.",
+        #                 order_Invalid_Client_Order_ID: "Order with self client order id already exists.",
+        #                 order_Invalid_Pair: "Invalid Pair.",
+        #                 order_Invalid_Trade_Volume: "Invalid Trade Volume.",
+        #                 order_Cannot_Be_Served: "Volume Order cannot be served.",
+        #                 order_Invalid_Stop_Price: "Invalid Stop Price.",
+        #                 order_Invalid_Trade_Price: "Invalid Trade Price.",
+        #                 order_Invalid_Rate_Volume: "Invalid Rate/Volume.",
+        #                 exception_Link_Expired: "The current page url expired.",
+        #                 exception_Insufficient_Funds: "Insufficient Funds.",
+        #                 exception_Coin_Maintenance: "Sorrynot  Coin under maintenance.",
+        #                 exception_Account_Suspended: "Sorrynot  Account Suspended.",
+        #                 address_No_Unused_Address: "No unused address available.",
+        #                 withdrawal_Invalid_Amount: "Sorrynot  Invalid Withdrawal Amount.",
+        #                 withdrawal_Suspended: "Sorrynot  Withdrawals Suspended",
+        #                 success_General: "Successnot ",
+        #                 success_NoRowsFound: "No Rows Foundnot ",
+        #                 success_Saved: "Details Saved Successfully.",
+        #                 success_Deleted: "Details deleted Successfully.",
+        #                 error_Disabled_BY_Admin: "Feature disabled by admin.",
+        #                 failure_General: "Something went wrong. try again later",
+        #                 failure_GME: "GME Busy.. try later.",
+        #                 request_Invalid: "Invalid request.",
+        #                 trade_CurrencyType_Missing: "Must provide the trade currency.",
+        #                 trade_TradeType_Missing: "Must provide the trade type.",
+        #                 trade_TradeType_Invalid: "Invalid parameter \'type\'. Options are \'MARKET\', \'STOPLIMIT\' or \'LIMIT\'",
+        #                 trade_Volume_Invalid: "Invalid trade volume.",
+        #                 trade_Rate_Invalid: "Invalid trade rate.",
+        #                 trade_Stop_Invalid: "Invalid stop rate.",
+        #                 trade_MarketType_Missing: "Must provide the market currency.",
+        #                 trade_Invalid_Size: "Invalid trade size.",
+        #                 withdrawal_Error: "Must provide the market currency.",
+        #                 facility_Suspended: "This facility is blocked for your account.",
+        #                 feature_Disabled: "This feature is currently disabled.",
+        #                 coin_Maintenance: "Coin under maintenance.",
+        #                 insufficientFunds: "Insufficient funds.",
+        #                 signUp_Invalid_Referrer: "Referral Id does not exists.",
+        #                 signUp_Duplicate_Mobile: "Mobile number already exists.",
+        #                 signUp_Duplicate_Email: "Email already exists.",
+        #                 signUp_Phone_Error: "Phone already exists.",
+        #                 signIn_Authentication_Failed: "Invalid login credentials.",
+        #                 signIn_Invalid_OTP: "Invalid OTP",
+        #                 signIn_Missing_OTP: "Must provide the otp.",
+        #                 signIn_Unvarified_Email: "Email Unverified. Please reset your password.",
+        #                 signIn_Suspended_Account: "Account Suspended. Contact Support.",
+        #                 changePassword_Same_Error: "Your new password cannot be same as old password.",
+        #                 changePassword_Invalid_OldPassword: "Password provided doesn\'t match our records.",
+        #                 gAuth_Required: "Must provide the Google Auth Code.",
+        #                 gAuth_Enabled_Mandatory: "Enable Google two-factor authentication to use the endpoint.",
+        #                 gAuth_Two_Factor_Error: "Invalid Google 2FA Code.",
+        #                 gAuth_Two_Factor_Already_Enabled: "Google 2FA is already enabled.",
+        #                 kyC_Not_Approved: "You must be KYC approved in order to use self feature.",
+        #                 kyC_Custom_Error: "",
+        #                 kyC_Provider_Error: "KYC service provider not found.",
+        #                 kyC_Upload_Error: "Unable to Upload KYC.",
+        #                 kyC_Image_NotFound: "No Image Foundnot ",
+        #                 kyC_Approved_Error: "KYC already approved.",
+        #                 kyC_Pending_Error: "Your KYC is processing. We\'ll notify once it\'s processed.",
+        #                 kyC_Invalid_CID_Email: "Email or CID does not exists.",
+        #                 kyC_Not_Submitted: "KYC not submitted yet.",
+        #                 kyC_Form_NotFound: "KYC not submitted yet.",
+        #                 kyC_Form_Corrupted: "KYC form is corrupted.",
+        #                 kyC_Server_Down: "KYC server down.",
+        #                 payment_Amount_Missing: "There must be some amount.",
+        #                 payment_Gateway_Invalid: "Invalid payment gateway.",
+        #                 apI_Inavalid_IP: "Invalid IP Address(es)",
+        #                 apI_Key_Type_Required: "Invalid Key type. Allowed options are \'trade\',\'readonly\',\'all\'",
+        #                 apI_Secretkey_Required: "The Secret Key is missing in the Header.",
+        #                 invalid_Currency: "Invalid currency.",
+        #                 invalid_Fiat_PG_Currency: "Invalid Fiat PG currency.",
+        #                 depositDisabled: "Deposit disabled for self currency.",
+        #                 withdrawalLimitReached: "Withdrawal limit reached.",
+        #                 invalidLanguage: "Language not found.",
+        #                 transitiveFollowing: "Transitive-following not allowed.",
+        #                 selfFollowing: "Self-following not allowed.",
+        #                 invalidProTraderID: "Invalid ProTrader UserID.",
+        #                 multipleFollowing: "Multiple-following not allowed.",
+        #                 weakPassword: "Password must have 8 characters with at least 1 uppercase letter and 1 number.",
+        #                 withdrawalPending: "another withdrawal is pending already for same currency",
+        #                 depositPending: "another fiat deposit request is pending already for same currency",
+        #                 withdrawalLimitReachedExclusive: "{curr} withdrawal limit exceeds.",
+        #                 withdrawalLimitReachedAggregate: "Overall {curr} withdrawal limit exceeds.",
+        #                 readOnlyToken: "Read-only access token doesn\'t have the permission to perform self operation.",
+        #                 marginCall: "Placing new order is not allowed while a margin call is pending.",
+        #                 force_Liquidation: "Placing new order is not allowed while a force liquidation in process.",
+        #                 feature_Unavailable: "This feature is not available for your account.",
+        #                 chainAlysis_Blacklisted: "AML Risk Assessment Failed for self transaction."
+        #             },
+        #             themes:    null,
+        #             trade_setting: [
+        #                 {
+        #                     coinName: "BCH",
+        #                     marketName: "BTC",
+        #                     minTickSize:  1e-8,
+        #                     minTradeAmount:  1e-8,
+        #                     minOrderValue:  0.01,
+        #                     tradeEnabled:  True
+        #                 },
+        #                 {
+        #                     coinName: "MDX",
+        #                     marketName: "XRP",
+        #                     minTickSize:  1e-8,
+        #                     minTradeAmount:  1e-8,
+        #                     minOrderValue:  0.01,
+        #                     tradeEnabled:  True
+        #                 }
+        #             ],
+        #             seo: {
+        #                 google_Analytics_ID:   "None",
+        #                 google_Tag_Manager:   "None",
+        #                 reCaptchaKey:   "None",
+        #                 meta_Tags: []
+        #             },
+        #             market_groups: []
+        #         }
         #     }
         #
         result = []
         data = self.safe_value(response, 'data', {})
-        ids = list(data.keys())
-        for i in range(0, len(ids)):
-            id = ids[i]
-            market = data[id]
-            quoteId, baseId = id.split('_')  # they have base/quote reversed with some endpoints
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+        markets = self.safe_value(data, 'trade_setting')
+        for i in range(0, len(markets)):
+            market = markets[i]
+            baseId = self.safe_string(market, 'coinName')
+            quoteId = self.safe_string(market, 'marketName')
+            id = quoteId + '_' + baseId
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            baseCurrency = self.safe_value(currenciesById, baseId, {})
-            quoteCurrency = self.safe_value(currenciesById, quoteId, {})
+            minAmount = self.safe_float(market, 'minTradeAmount')
+            minPrice = self.safe_float(market, 'minTickSize')
             precision = {
-                'amount': self.safe_integer(baseCurrency, 'decimalPrecision', 8),
-                'price': self.safe_integer(quoteCurrency, 'decimalPrecision', 8),
+                'amount': self.precision_from_string(self.number_to_string(minAmount)),
+                'price': self.precision_from_string(self.number_to_string(minPrice)),
             }
-            baseTradeEnabled = self.safe_value(baseCurrency, 'tradeEnabled', True)
-            quoteTradeEnabled = self.safe_value(quoteCurrency, 'tradeEnabled', True)
-            active = baseTradeEnabled and quoteTradeEnabled
+            active = self.safe_value(market, 'tradeEnabled', True)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -447,11 +609,15 @@ class mandala (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
+                        'min': minAmount,
                         'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
+                        'min': minPrice,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.safe_float(market, 'minOrderValue'),
                         'max': None,
                     },
                 },
@@ -466,25 +632,21 @@ class mandala (Exchange):
         response = self.orderPostGetBalance(self.extend(request, params))
         #
         #     {
-        #         Status: 'Success',
-        #         Message: null,
-        #         Data: [
+        #         status: 'Success',
+        #         errorMessage: null,
+        #         data: [
         #             {currency: 'BCH', balance: 0, balanceInTrade: 0},
         #             {currency: 'BTC', balance: 0, balanceInTrade: 0},
         #             ...,
         #         ],
         #     }
         #
-        data = self.safe_value(response, 'Data', [])
+        data = self.safe_value(response, 'data', [])
         result = {'info': response}
         for i in range(0, len(data)):
             balance = data[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'balance')
             account['used'] = self.safe_float(balance, 'balanceInTrade')
@@ -675,15 +837,13 @@ class mandala (Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string_2(trade, 'Date', 'date'))
-        side = self.safe_string_2(trade, 'Type', 'side')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower_2(trade, 'Type', 'side')
         id = self.safe_string(trade, 'TradeID')
         symbol = None
         baseId = self.safe_string(trade, 'trade')
         quoteId = self.safe_string(trade, 'market')
-        base = self.common_currency_code(baseId)
-        quote = self.common_currency_code(quoteId)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         if base is not None and quote is not None:
             symbol = base + '/' + quote
         else:
@@ -779,12 +939,13 @@ class mandala (Exchange):
         offset = self.parse_timeframe(timeframe) * self.sum(limit, 1) * 1000
         if since is None:
             since = self.milliseconds() - offset
+        timestamp = self.sum(since, offset)
         request = {
             'interval': self.timeframes[timeframe],
-            'baseCurrency': market['baseId'],  # they have base/quote reversed with some endpoints
+            'baseCurrency': market['baseId'],
             'quoteCurrency': market['quoteId'],
             'limit': limit,
-            'timestamp': self.sum(since, offset),
+            'timestamp': timestamp,
         }
         response = self.marketGetGetChartData(self.extend(request, params))
         #
@@ -811,7 +972,7 @@ class mandala (Exchange):
         #         ],
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -836,17 +997,17 @@ class mandala (Exchange):
             'stop': 0,  # stop is always zero for limit and market orders
             # 'clientOrderId': self.uuid(),
         }
-        response = self.orderPostPlaceOrder(self.extend(request, params))
+        response = self.orderPostV2PlaceOrder(self.extend(request, params))
         #
         #     {
-        #         Status: 'Success',
-        #         Message: 'Successnot ',
-        #         Data: {
+        #         status: 'Success',
+        #         errorMessage: 'Success_General',
+        #         data: {
         #             orderId: 20000031,
         #         },
         #     }
         #
-        data = self.safe_value(response, 'Data', {})
+        data = self.safe_value(response, 'data', {})
         order = self.parse_order(data, market)
         return self.extend(order, {
             'symbol': symbol,
@@ -859,7 +1020,7 @@ class mandala (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        side = self.safe_string(params, 'side')
+        side = self.safe_string(params, 'side', 'ALL')
         if side is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires an order `side` extra parameter')
         params = self.omit(params, 'side')
@@ -868,23 +1029,22 @@ class mandala (Exchange):
             'orderId': id,
             'side': side.upper(),
         }
-        response = self.orderPostCancelMyOrder(self.extend(request, params))
+        response = self.orderPostV2CancelMyOrder(self.extend(request, params))
         #
         #     {
-        #         Status: 'Success',
-        #         Message: 'Success_General',
-        #         Data: 'Successnot '
+        #         status: "Success",
+        #         errorMessage: "Success_General",
+        #         data: "Request accepted"
         #     }
         #
-        return self.parse_order(response, {
+        return self.extend(self.parse_order(response), {
             'id': id,
             'symbol': symbol,
-            'side': side.lower(),
             'status': 'canceled',
         })
 
     def cancel_all_orders(self, symbols=None, params={}):
-        side = self.safe_string(params, 'side')
+        side = self.safe_string(params, 'side', 'ALL')
         if side is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires an order `side` extra parameter')
         params = self.omit(params, 'side')
@@ -899,58 +1059,60 @@ class mandala (Exchange):
             'side': side.upper(),
             'pair': self.market_id(symbol),
         }
-        return self.orderPostCancelAllMyOrders(self.extend(request, params))
+        return self.orderPostV2CancelAllMyOrders(self.extend(request, params))
 
     def parse_symbol(self, id):
         quote, base = id.split(self.options['symbolSeparator'])
-        base = self.common_currency_code(base)
-        quote = self.common_currency_code(quote)
+        base = self.safe_currency_code(base)
+        quote = self.safe_currency_code(quote)
         return base + '/' + quote
+
+    def parse_order_status(self, status):
+        statuses = {
+            'Pending': 'open',
+            'Filled': 'closed',
+            'Paritally-Filled': 'open',  # an actual typo in the response
+            'Partially-Filled': 'open',  # a correct string in case it's fixed
+            'Cancelled': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         #
-        # fetchOrders
+        # fetchClosedOrders, fetchOpenOrders
         #
         #     {
-        #         orderId: 20000038,
-        #         market: 'BTC',
-        #         trade: 'ETH',
-        #         volume: 1,
-        #         pendingVolume: 1,
-        #         orderStatus: False,
-        #         rate: 1,
-        #         amount: 1,
-        #         serviceCharge: 0,
-        #         placementDate: '2019-03-19T18:28:43.553',
-        #         completionDate: null
+        #         "orderId":29894309,
+        #         "market":"BTC",
+        #         "trade":"MDX",
+        #         "volume":370.00000000,
+        #         "pendingVolume":370.00000000,
+        #         "orderStatus":false,
+        #         "rate":0.00019530,
+        #         "amount":0.07226100,
+        #         "serviceCharge":0.00000000,
+        #         "placementDate":"2019-07-31T22:14:30.193",
+        #         "completionDate":null,
+        #         "side":"Buy"
         #     }
         #
-        # fetchOpenOrders
+        # fetchOrder
         #
         #     {
-        #         orderId: 20000038,
-        #         market: 'BTC',
-        #         trade: 'ETH',
-        #         volume: 1,
-        #         rate: 1,
-        #         side: 'SELL',
-        #         date: '2019-03-19T18:28:43.553',
-        #     }
-        #
-        # fetchOrderStatus
-        #
-        #     {
-        #         "PendingVolume": 0.7368974,
-        #         "Volume": 0.7368974,
-        #         "Price": 0.22921771,
-        #         "Status": True
+        #         "orderId":"29885793",
+        #         "side":"ALL",
+        #         "Volume":350.00000000,
+        #         "PendingVolume":300.00000000,
+        #         "Price":0.00020050,
+        #         "Status":false,
+        #         "status_string":"Paritally-Filled"
         #     }
         #
         id = self.safe_string(order, 'orderId')
         baseId = self.safe_string(order, 'trade')
         quoteId = self.safe_string(order, 'market')
-        base = self.common_currency_code(baseId)
-        quote = self.common_currency_code(quoteId)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         symbol = None
         if base is not None and quote is not None:
             symbol = base + '/' + quote
@@ -969,13 +1131,15 @@ class mandala (Exchange):
         if not price:
             if cost and filled:
                 price = cost / filled
-        status = self.safe_value_2(order, 'orderStatus', 'Status')
-        status = 'closed' if status else 'open'
+        status = self.parse_order_status(self.safe_string(order, 'status_string'))
+        if status is None:
+            status = self.safe_value_2(order, 'orderStatus', 'Status')
+            status = 'closed' if status else 'open'
         lastTradeTimestamp = None
         if filled > 0:
             lastTradeTimestamp = completionDate
-        if (filled is not None) and(amount is not None):
-            if (filled < amount) and(status == 'closed'):
+        if (filled is not None) and (amount is not None):
+            if (filled < amount) and (status == 'closed'):
                 status = 'canceled'
         feeCost = self.safe_value(order, 'serviceCharge')
         fee = None
@@ -984,6 +1148,7 @@ class mandala (Exchange):
                 'cost': feeCost,
                 'currency': quote,
             }
+        side = self.safe_string_lower(order, 'side')
         return {
             'info': order,
             'id': id,
@@ -992,7 +1157,7 @@ class mandala (Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': 'limit',
-            'side': None,
+            'side': side,
             'price': price,
             'cost': cost,
             'average': None,
@@ -1032,6 +1197,7 @@ class mandala (Exchange):
         #                 serviceCharge: 0,
         #                 placementDate: '2019-03-19T18:28:43.553',
         #                 completionDate: null
+        #                 side: 'Buy'
         #             },
         #             {
         #                 orderId: 20000037,
@@ -1045,6 +1211,7 @@ class mandala (Exchange):
         #                 serviceCharge: 0,
         #                 placementDate: '2019-03-19T18:27:51.087',
         #                 completionDate: '2019-03-19T18:28:16.07'
+        #                 side: 'Buy'
         #             }
         #         ]
         #     }
@@ -1055,42 +1222,89 @@ class mandala (Exchange):
             'side': side.lower(),
         })
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        side = self.safe_string(params, 'side', 'ALL')
+        side = self.safe_string(params, 'side', 'ALL')  # required by the endpoint on the exchange side
         params = self.omit(params, 'side')
         market = None
-        pair = 'ALL'
+        request = {
+            'openOrders': False,  # True returns open orders only, False returns filled & cancelled orders only, default is False
+            'side': side.upper(),  # required by the endpoint on the exchange side
+        }
         if symbol is not None:
             market = self.market(symbol)
-            pair = market['baseId'] + '-' + market['quoteId']
-        request = {
-            'side': side.upper(),
-            'pair': pair,
-        }
-        response = self.apiGetGetPendingOrders(self.extend(request, params))
+            request['pair'] = market['baseId'] + '-' + market['quoteId']
+        response = self.orderPostV2MyOrderHistory(self.extend(request, params))
         #
         #     {
-        #         status: 'Success',
-        #         message: 'Successnot ',
-        #         data: [
+        #         "status":"Success",
+        #         "errorMessage":null,
+        #         "data":[
         #             {
-        #                 orderId: 20000038,
-        #                 market: 'BTC',
-        #                 trade: 'ETH',
-        #                 volume: 1,
-        #                 rate: 1,
-        #                 side: 'SELL',
-        #                 date: '2019-03-19T18:28:43.553',
+        #                 "orderId":20991907,
+        #                 "market":"BTC",
+        #                 "trade":"ETH",
+        #                 "volume":1.00000000,
+        #                 "pendingVolume":0.00000000,
+        #                 "orderStatus":true,
+        #                 "rate":1.00000000,
+        #                 "amount":1.00000000,
+        #                 "serviceCharge":0.00000000,
+        #                 "placementDate":"2019-07-17T23:48:43.357",
+        #                 "completionDate":"2019-07-17T23:49:14.733",
+        #                 "side":"Buy"
         #             },
         #             {
-        #                 orderId: 20000039,
-        #                 market: 'BTC',
-        #                 trade: 'ETH',
-        #                 volume: 1,
-        #                 rate: 2,
-        #                 side: 'SELL',
-        #                 date: '2019-03-19T18:48:12.033',
+        #                 "orderId":20000048,
+        #                 "market":"ETH",
+        #                 "trade":"MDX",
+        #                 "volume":10.00000000,
+        #                 "pendingVolume":10.00000000,
+        #                 "orderStatus":true,
+        #                 "rate":3.00000000,
+        #                 "amount":30.00000000,
+        #                 "serviceCharge":0.00000000,
+        #                 "placementDate":"2019-06-23T18:16:06.2",
+        #                 "completionDate":"2019-06-23T18:16:06.247",
+        #                 "side":"Buy"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_orders(data, market, since, limit)
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        side = self.safe_string(params, 'side', 'ALL')  # required by the endpoint on the exchange side
+        params = self.omit(params, 'side')
+        market = None
+        request = {
+            'openOrders': True,  # True returns open orders only, False returns filled & cancelled orders only, default is False
+            'side': side.upper(),  # required by the endpoint on the exchange side
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+            request['pair'] = market['baseId'] + '-' + market['quoteId']
+        response = self.orderPostV2MyOrderHistory(self.extend(request, params))
+        #
+        #     {
+        #         "status":"Success",
+        #         "errorMessage":null,
+        #         "data":[
+        #             {
+        #                 "orderId":29894309,
+        #                 "market":"BTC",
+        #                 "trade":"MDX",
+        #                 "volume":370.00000000,
+        #                 "pendingVolume":370.00000000,
+        #                 "orderStatus":false,
+        #                 "rate":0.00019530,
+        #                 "amount":0.07226100,
+        #                 "serviceCharge":0.00000000,
+        #                 "placementDate":"2019-07-31T22:14:30.193",
+        #                 "completionDate":null,
+        #                 "side":"Buy"
         #             }
         #         ]
         #     }
@@ -1100,26 +1314,29 @@ class mandala (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        side = self.safe_string(params, 'side')
+        side = self.safe_string(params, 'side', 'ALL')
         if side is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires an order `side` extra parameter')
         params = self.omit(params, 'side')
         id = str(id)
         request = {
-            'key': self.apiKey,
+            # 'key': self.apiKey,
             'side': side.upper(),
             'orderId': id,
         }
-        response = self.orderGetMyOrderStatusKeySideOrderId(self.extend(request, params))
+        response = self.orderPostV2MyOrderStatus(self.extend(request, params))
         #
         #     {
-        #         "status": "Success",
-        #         "errorMessage": null,
-        #         "data": {
-        #             "PendingVolume": 0.7368974,
-        #             "Volume": 0.7368974,
-        #             "Price": 0.22921771,
-        #             "Status": True
+        #         "status":"Success",
+        #         "errorMessage":null,
+        #         "data":{
+        #             "orderId":"29885793",
+        #             "side":"ALL",
+        #             "Volume":350.00000000,
+        #             "PendingVolume":300.00000000,
+        #             "Price":0.00020050,
+        #             "Status":false,
+        #             "status_string":"Paritally-Filled"
         #         }
         #     }
         #
@@ -1131,25 +1348,22 @@ class mandala (Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        side = self.safe_string(params, 'side', 'ALL')
-        params = self.omit(params, 'side')
         market = None
-        pair = 'ALL'
+        pair = 'ALL'  # required by the endpoint on the exchange side
         if symbol is not None:
             market = self.market(symbol)
             pair = market['id']
         request = {
-            'side': side.upper(),
-            'pair': pair,
+            'pair': pair,  # required by the endpoint on the exchange side
             'orderID': -1,
             'apiKey': self.apiKey,
         }
-        response = self.orderGetMyTradeHistory(self.extend(request, params))
+        response = self.orderPostV2MyTradeHistory(self.extend(request, params))
         #
         #     {
-        #         Status: 'Success',
-        #         Message: null,
-        #         Data: [
+        #         status: 'Success',
+        #         errorMessage: null,
+        #         data: [
         #             {
         #                 orderId: 20000040,
         #                 market: 'ETH',
@@ -1186,7 +1400,7 @@ class mandala (Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'Data')
+        data = self.safe_value(response, 'data')
         return self.parse_trades(data, market, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
@@ -1199,23 +1413,31 @@ class mandala (Exchange):
         request = {
             'currency': requestCurrency,
         }
-        response = self.apiPostGetDeposits(self.extend(request, params))
+        response = self.orderPostV2GetDeposits(self.extend(request, params))
         #
         #     {
-        #         "status": "Success",
-        #         "message": null,
-        #         "data": {
-        #             "deposits": [
+        #         "status":"Success",
+        #         "errorMessage":"Successnot ",
+        #         "data":{
+        #             "Deposits":[
         #                 {
-        #                     ?
+        #                     "DepositType": "BTC",
+        #                     "DepositAddress": "2N4WaF2q7Gncazx7qDuEC13TNE6QicjgtaN",
+        #                     "DepositAmount": 1258.01337584,
+        #                     "TXNHash": "c71c0a24c63d43d077e238bdad7efc7a5b312f542caf097a6cd36f4fc5e15249",
+        #                     "DepositReqDate": "2019-07-20T08:08:05.413",
+        #                     "DepositConfirmDate": "2019-07-20T08:08:05.413",
+        #                     "CurrentTxnCount": 121914,
+        #                     "RequiredTxnCount": 5,
+        #                     "ExplorerURL": "https://live.blockcypher.com/btc-testnet/tx/c71c0a24c63d43d077e238bdad7efc7a5b312f542caf097a6cd36f4fc5e15249"
         #                 }
         #             ]
         #         }
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        deposits = self.safe_value(data, 'deposits', [])
-        return self.parseTransactions(deposits, currency, since, limit)
+        deposits = self.safe_value(data, 'Deposits', [])
+        return self.parse_transactions(deposits, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1227,29 +1449,31 @@ class mandala (Exchange):
         request = {
             'currency': requestCurrency,
         }
-        response = self.apiPostGetWithdrawals(self.extend(request, params))
+        response = self.orderPostV2GetWithdrawals(self.extend(request, params))
         #
         #     {
         #         "status": "Success",
-        #         "message": null,
+        #         "errorMessage": "Successnot ",
         #         "data": {
-        #             "withdrawals": [
+        #             "Withdrawals": [
         #                 {
-        #                     "withdrawalType": "ETH",
-        #                     "withdrawalAddress": "0xE28CE3A999d6035d042D1a87FAab389Cb0B78Db6",
-        #                     "withdrawalAmount": 0.071,
-        #                     "txnHash": null,
-        #                     "withdrawalReqDate": "2018-11-12T09:38:28.43",
-        #                     "withdrawalConfirmDate": null,
-        #                     "withdrawalStatus": "Pending"
-        #                 }
+        #                     "WithdrawalType": "BTC",
+        #                     "WithdrawalAddress": "mtHpWL1nyQa1CCTCSMD6aV1ycEHWCWD3WK",
+        #                     "WithdrawalAmount": 0.00990099,
+        #                     "TXNHash": "eb3a27b027d4004ff3fdad0b6f5d2dded9078e31527fb6fd5d18e0abf43e4e00",
+        #                     "WithdrawalReqDate": "2019-06-24T13:04:13.76",
+        #                     "WithdrawalConfirmDate": "2019-06-24T13:04:31.51",
+        #                     "WithdrawalStatus": "Processed",
+        #                     "RejectReason": "",
+        #                     "ExplorerURL": "https://live.blockcypher.com/btc-testnet/tx/eb3a27b027d4004ff3fdad0b6f5d2dded9078e31527fb6fd5d18e0abf43e4e00"
+        #                 },
         #             ]
         #         }
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        withdrawals = self.safe_value(data, 'withdrawals', [])
-        return self.parseTransactions(withdrawals, currency, since, limit)
+        withdrawals = self.safe_value(data, 'Withdrawals', [])
+        return self.parse_transactions(withdrawals, currency, since, limit)
 
     def parse_transaction_status(self, status):
         statuses = {
@@ -1262,37 +1486,49 @@ class mandala (Exchange):
         # fetchDeposits
         #
         #     {
-        #         ?
+        #         "DepositType": "BTC",
+        #         "DepositAddress": "2N4WaF2q7Gncazx7qDuEC13TNE6QicjgtaN",
+        #         "DepositAmount": 1258.01337584,
+        #         "TXNHash": "c71c0a24c63d43d077e238bdad7efc7a5b312f542caf097a6cd36f4fc5e15249",
+        #         "DepositReqDate": "2019-07-20T08:08:05.413",
+        #         "DepositConfirmDate": "2019-07-20T08:08:05.413",
+        #         "CurrentTxnCount": 121914,
+        #         "RequiredTxnCount": 5,
+        #         "ExplorerURL": "https://live.blockcypher.com/btc-testnet/tx/c71c0a24c63d43d077e238bdad7efc7a5b312f542caf097a6cd36f4fc5e15249"
         #     }
         #
         # fetchWithdrawals
         #
         #     {
-        #         "withdrawalType": "ETH",
-        #         "withdrawalAddress": "0xE28CE3A999d6035d042D1a87FAab389Cb0B78Db6",
-        #         "withdrawalAmount": 0.071,
-        #         "txnHash": null,
-        #         "withdrawalReqDate": "2018-11-12T09:38:28.43",
-        #         "withdrawalConfirmDate": null,
-        #         "withdrawalStatus": "Pending"
+        #         "WithdrawalType": "BTC",
+        #         "WithdrawalAddress": "mtHpWL1nyQa1CCTCSMD6aV1ycEHWCWD3WK",
+        #         "WithdrawalAmount": 0.00990099,
+        #         "TXNHash": "eb3a27b027d4004ff3fdad0b6f5d2dded9078e31527fb6fd5d18e0abf43e4e00",
+        #         "WithdrawalReqDate": "2019-06-24T13:04:13.76",
+        #         "WithdrawalConfirmDate": "2019-06-24T13:04:31.51",
+        #         "WithdrawalStatus": "Processed",
+        #         "RejectReason": "",
+        #         "ExplorerURL": "https://live.blockcypher.com/btc-testnet/tx/eb3a27b027d4004ff3fdad0b6f5d2dded9078e31527fb6fd5d18e0abf43e4e00"
         #     }
         #
         id = None
-        amount = self.safe_float(transaction, 'withdrawalAmount')
-        address = self.safe_string(transaction, 'withdrawalAddress')
-        tag = None
-        txid = self.safe_string(transaction, 'txnHash')
-        updated = self.parse8601(self.safe_value(transaction, 'withdrawalConfirmDate'))
-        timestamp = self.parse8601(self.safe_string(transaction, 'withdrawalReqDate', updated))
-        type = 'withdrawal' if ('withdrawalReqDate' in list(transaction.keys())) else 'deposit'
-        code = None
-        currencyId = self.safe_string(transaction, 'withdrawalType')
-        currency = self.safe_value(self.currencies_by_id, currencyId)
-        if currency is not None:
-            code = currency['code']
-        else:
-            code = self.common_currency_code(currencyId)
-        status = self.parse_transaction_status(self.safe_string(transaction, 'withdrawalStatus'))
+        amount = self.safe_float_2(transaction, 'WithdrawalAmount', 'DepositAmount')
+        txid = self.safe_string(transaction, 'TXNHash')
+        updated = self.parse8601(self.safe_string_2(transaction, 'WithdrawalConfirmDate', 'DepositConfirmDate'))
+        timestamp = self.parse8601(self.safe_string_2(transaction, 'WithdrawalReqDate', 'DepositReqDate', updated))
+        type = 'withdrawal' if ('WithdrawalReqDate' in list(transaction.keys())) else 'deposit'
+        currencyId = self.safe_string(transaction, 'WithdrawalType', 'DepositType')
+        code = self.safe_currency_code(currencyId, currency)
+        currency = self.currency(code)
+        addressString = self.safe_string_2(transaction, 'WithdrawalAddress', 'DepositAddress')
+        addressStructure = self.parse_address(addressString, currency)
+        address = addressStructure['address']
+        addressFrom = None
+        addressTo = address
+        tag = addressStructure['tag']
+        tagFrom = None
+        tagTo = tag
+        status = self.parse_transaction_status(self.safe_string(transaction, 'WithdrawalStatus'))
         feeCost = None
         if type == 'deposit':
             status = 'ok'
@@ -1309,7 +1545,11 @@ class mandala (Exchange):
             'currency': code,
             'amount': amount,
             'address': address,
+            'addressFrom': addressFrom,
+            'addressTo': addressTo,
             'tag': tag,
+            'tagFrom': tagFrom,
+            'tagTo': tagTo,
             'status': status,
             'type': type,
             'updated': updated,
@@ -1319,7 +1559,7 @@ class mandala (Exchange):
             'fee': fee,
         }
 
-    def parse_deposit_addresses(self, addresses):
+    def parse_addresses(self, addresses):
         result = []
         ids = list(addresses.keys())
         for i in range(0, len(ids)):
@@ -1327,43 +1567,29 @@ class mandala (Exchange):
             address = addresses[id]
             currencyId = id.upper()
             currency = self.safe_value(self.currencies_by_id, currencyId)
-            result.append(self.parse_deposit_address(address, currency))
+            result.append(self.parse_address(address, currency))
         return result
 
-    def fetch_deposit_addresses(self, codes=None, params={}):
-        self.load_markets()
-        response = self.apiGetListAllAddresses(params)
-        #
-        #     {
-        #         "status": "Success",
-        #         "message": null,
-        #         "data": {
-        #             "btc": "3PLKhwm59C21U3KN3YZVQmrQhoE3q1p1i8",
-        #             "eth": "0x8143c11ed6b100e5a96419994846c890598647cf",
-        #             "xrp": "rKHZQttBiDysDT4PtYL7RmLbGm6p5HBHfV:3931222419"
-        #         }
-        #     }
-        #
-        data = self.safe_value(response, 'data')
-        return self.parse_deposit_addresses(data)
-
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_address(self, depositAddress, currency=None):
         #
         #     "btc": "3PLKhwm59C21U3KN3YZVQmrQhoE3q1p1i8",
         #     "eth": "0x8143c11ed6b100e5a96419994846c890598647cf",
-        #     "xrp": "rKHZQttBiDysDT4PtYL7RmLbGm6p5HBHfV:3931222419"
+        #     "xrp": "rKHZQttBiDysDT4PtYL7RmLbGm6p5HBHfV?dt=3931222419"
         #
-        parts = depositAddress.split(':')
-        address = parts[0]
-        self.check_address(address)
+        info = self.safe_value(currency, 'info', {})
+        address = depositAddress
+        separator = self.safe_value(info, 'addressSeparator', '?dt=')
         tag = None
-        numParts = len(parts)
-        if numParts > 1:
-            tag = parts[1]
+        if len(separator) > 0:
+            parts = depositAddress.split(separator)
+            address = parts[0]
+            self.check_address(address)
+            numParts = len(parts)
+            if numParts > 1:
+                tag = parts[1]
         code = None
         if currency is not None:
             code = currency['code']
-        self.check_address(address)
         return {
             'currency': code,
             'address': address,
@@ -1371,59 +1597,70 @@ class mandala (Exchange):
             'info': depositAddress,
         }
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_addresses(self, codes=None, params={}):
+        self.load_markets()
+        response = self.orderPostV2ListAllAddresses(params)
+        #
+        #     {
+        #         "status": "Success",
+        #         "errorMessage": null,
+        #         "data": {
+        #             "btc": "3PLKhwm59C21U3KN3YZVQmrQhoE3q1p1i8",
+        #             "eth": "0x8143c11ed6b100e5a96419994846c890598647cf",
+        #             "xrp": "rKHZQttBiDysDT4PtYL7RmLbGm6p5HBHfV?dt=3931222419"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_addresses(data)
+
+    def generate_deposit_address(self, code, params={}):
+        # a common implementation of fetchDepositAddress and createDepositAddress
         self.load_markets()
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
         }
-        response = self.apiPostGenerateAddress(self.extend(request, params))
+        response = self.orderPostV2GenerateAddress(self.extend(request, params))
         #
         #     {
         #         status: 'Success',
-        #         message: '',
+        #         errorMessage: '',
         #         data: {
-        #             address: '0x13a1ac355bf1be5b157486f619169cf7f9ffed4e'
+        #             Address: '0x13a1ac355bf1be5b157486f619169cf7f9ffed4e'
         #         }
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        address = self.safe_string(data, 'address')
-        return self.parse_deposit_address(address, currency)
+        address = self.safe_string(data, 'Address')
+        return self.parse_address(address, currency)
+
+    def fetch_deposit_address(self, code, params={}):
+        return self.generate_deposit_address(code, params)
 
     def create_deposit_address(self, code, params={}):
-        self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'currency': currency['id'],
-        }
-        response = self.apiPostGenerateAddress(self.extend(request, params))
-        #
-        #     {
-        #         status: 'Success',
-        #         message: '',
-        #         data: {
-        #             address: '0x13a1ac355bf1be5b157486f619169cf7f9ffed4e'
-        #         }
-        #     }
-        #
-        data = self.safe_value(response, 'data', {})
-        address = self.safe_string(data, 'address')
-        return self.parse_deposit_address(address, currency)
+        return self.generate_deposit_address(code, params)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        withdrawalRequest = {
+        gauth_code = None
+        if self.twofa is not None:
+            gauth_code = self.oath()
+        gauth_code = self.safe_string(params, 'gauth_code', gauth_code)
+        if gauth_code is None:
+            raise ArgumentsRequired(self.id + ' withdraw() requires a `self.twofa` key or a 2FA code in the `gauth_code` parameter as a string.')
+        params = self.omit(params, 'gauth_code')
+        request = {
             'currency': currency['id'],
             'amount': float(amount),
             'address': address,
-            # 'addressTag': null,
+            'gauth_code': gauth_code,
         }
         if tag is not None:
-            withdrawalRequest['addressTag'] = tag
-        withdrawalResponse = self.apiPostRequestWithdraw(self.extend(withdrawalRequest, params))
+            request['addressTag'] = tag
+        response = self.apiPostRequestWithdraw(self.extend(request, params))
         #
         #     {
         #         "status": "Success",
@@ -1433,21 +1670,11 @@ class mandala (Exchange):
         #         }
         #     }
         #
-        data = self.safe_value(withdrawalResponse, 'data', {})
+        data = self.safe_value(response, 'data', {})
         id = self.safe_string(data, 'withdrawalId')
-        otp = None
-        if self.twofa is not None:
-            otp = self.oath()
-        otp = self.safe_string(params, 'emailToken', otp)
-        if otp is None:
-            raise AuthenticationError(self.id + ' signIn() requires self.twofa credential or a one-time 2FA "emailToken" parameter')
-        confirmationRequest = {
-            'EmailToken': otp,
-        }
-        confirmationResponse = self.apiPostRequestWithdrawConfirmation(self.extend(confirmationRequest, params))
-        timestamp = self.milliseconds()
+        timestamp = None
         return {
-            'info': [withdrawalResponse, confirmationResponse],
+            'info': response,
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1513,13 +1740,13 @@ class mandala (Exchange):
             if method == 'POST':
                 body = self.json(query)
                 headers['Content-Type'] = 'application/json'
-                headers['publicKey'] = self.apiKey
+                headers['apiKey'] = self.apiKey
             elif method == 'GET':
                 if query:
                     url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
             return  # fallback to default error handler
         #
@@ -1529,7 +1756,7 @@ class mandala (Exchange):
         #
         #
         status = self.safe_string_2(response, 'status', 'Status')
-        if (status is not None) and(status != 'Success'):
+        if (status is not None) and (status != 'Success'):
             message = self.safe_string_2(response, 'errorMessage', 'Message')
             message = self.safe_string(response, 'message', message)
             feedback = self.id + ' ' + self.json(response)

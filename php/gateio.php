@@ -110,6 +110,7 @@ class gateio extends Exchange {
                 '15' => '\\ccxt\\DDoSProtection',
                 '16' => '\\ccxt\\OrderNotFound',
                 '17' => '\\ccxt\\OrderNotFound',
+                '20' => '\\ccxt\\InvalidOrder',
                 '21' => '\\ccxt\\InsufficientFunds',
             ),
             // https://gate.io/api2#errCode
@@ -137,6 +138,7 @@ class gateio extends Exchange {
                 '21' => 'You don\'t have enough fund',
             ),
             'options' => array (
+                'fetchTradesMethod' => 'public_get_tradehistory_id', // 'public_get_tradehistory_id_tid'
                 'limits' => array (
                     'cost' => array (
                         'min' => array (
@@ -173,10 +175,8 @@ class gateio extends Exchange {
                 $baseId = $parts[0] . '_' . $parts[1];
                 $quoteId = $parts[2];
             }
-            $base = strtoupper($baseId);
-            $quote = strtoupper($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -232,7 +232,7 @@ class gateio extends Exchange {
         $currencyIds = is_array($available) ? array_keys($available) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $code = $this->common_currency_code(strtoupper($currencyId));
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($available, $currencyId);
             $account['used'] = $this->safe_float($locked, $currencyId);
@@ -280,7 +280,7 @@ class gateio extends Exchange {
         //     {
         //         "elapsed" => "15ms",
         //         "result" => "true",
-        //         "data" => array (
+        //         "$data" => array (
         //             array ( "1553930820000", "1.005299", "4081.05", "4086.18", "4081.05", "4086.18" ),
         //             array ( "1553930880000", "0.110923277", "4095.2", "4095.23", "4091.15", "4091.15" ),
         //             ...
@@ -288,7 +288,8 @@ class gateio extends Exchange {
         //         )
         //     }
         //
-        return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function parse_ticker ($ticker, $market = null) {
@@ -326,34 +327,10 @@ class gateio extends Exchange {
             'change' => $change,
             'percentage' => $percentage,
             'average' => $average,
-            'baseVolume' => $this->safe_float($ticker, 'baseVolume'),
-            'quoteVolume' => $this->safe_float($ticker, 'quoteVolume'),
+            'baseVolume' => $this->safe_float($ticker, 'quoteVolume'), // gateio has them reversed
+            'quoteVolume' => $this->safe_float($ticker, 'baseVolume'),
             'info' => $ticker,
         );
-    }
-
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
-        if ($response === null) {
-            return;
-        }
-        $resultString = $this->safe_string($response, 'result', '');
-        if ($resultString !== 'false') {
-            return;
-        }
-        $errorCode = $this->safe_string($response, 'code');
-        if ($errorCode !== null) {
-            $exceptions = $this->exceptions;
-            $errorCodeNames = $this->errorCodeNames;
-            if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
-                $message = '';
-                if (is_array($errorCodeNames) && array_key_exists($errorCode, $errorCodeNames)) {
-                    $message = $errorCodeNames[$errorCode];
-                } else {
-                    $message = $this->safe_string($response, 'message', '(unknown)');
-                }
-                throw new $exceptions[$errorCode]($message);
-            }
-        }
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
@@ -366,8 +343,8 @@ class gateio extends Exchange {
             list($baseId, $quoteId) = explode('_', $id);
             $base = strtoupper($baseId);
             $quote = strtoupper($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($base);
+            $quote = $this->safe_currency_code($quote);
             $symbol = $base . '/' . $quote;
             $market = null;
             if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
@@ -376,12 +353,7 @@ class gateio extends Exchange {
             if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
             }
-            $ticker = $this->parse_ticker($response[$id], $market);
-            // https://github.com/ccxt/ccxt/pull/5138
-            $baseVolume = $ticker['baseVolume'];
-            $ticker['baseVolume'] = $ticker['quoteVolume'];
-            $ticker['quoteVolume'] = $baseVolume;
-            $result[$symbol] = $ticker;
+            $result[$symbol] = $this->parse_ticker($response[$id], $market);
         }
         return $result;
     }
@@ -396,10 +368,7 @@ class gateio extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer_2($trade, 'timestamp', 'time_unix');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp_2($trade, 'timestamp', 'time_unix');
         $id = $this->safe_string_2($trade, 'tradeID', 'id');
         // take either of orderid or $orderId
         $orderId = $this->safe_string_2($trade, 'orderid', 'orderNumber');
@@ -439,7 +408,8 @@ class gateio extends Exchange {
         $request = array (
             'id' => $market['id'],
         );
-        $response = $this->publicGetTradeHistoryId (array_merge ($request, $params));
+        $method = $this->safe_string($this->options, 'fetchTradesMethod', 'public_get_tradehistory_id');
+        $response = $this->$method (array_merge ($request, $params));
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
@@ -495,27 +465,21 @@ class gateio extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_integer($order, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($order, 'timestamp');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $side = $this->safe_string($order, 'type');
-        $price = $this->safe_float($order, 'filledRate');
+        $price = $this->safe_float($order, 'initialRate');
+        $average = $this->safe_float($order, 'filledRate');
         $amount = $this->safe_float($order, 'initialAmount');
         $filled = $this->safe_float($order, 'filledAmount');
         // In the $order $status response, this field has a different name.
         $remaining = $this->safe_float_2($order, 'leftAmount', 'left');
         $feeCost = $this->safe_float($order, 'feeValue');
-        $feeCurrency = $this->safe_string($order, 'feeCurrency');
+        $feeCurrencyId = $this->safe_string($order, 'feeCurrency');
+        $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
         $feeRate = $this->safe_float($order, 'feePercentage');
         if ($feeRate !== null) {
             $feeRate = $feeRate / 100;
-        }
-        if ($feeCurrency !== null) {
-            if (is_array($this->currencies_by_id) && array_key_exists($feeCurrency, $this->currencies_by_id)) {
-                $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
-            }
         }
         return array (
             'id' => $id,
@@ -530,10 +494,11 @@ class gateio extends Exchange {
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
+            'average' => $average,
             'trades' => null,
             'fee' => array (
                 'cost' => $feeCost,
-                'currency' => $feeCurrency,
+                'currency' => $feeCurrencyCode,
                 'rate' => $feeRate,
             ),
             'info' => $order,
@@ -632,7 +597,7 @@ class gateio extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ExchangeError($this->id . ' fetchMyTrades requires $symbol param');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires $symbol param');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -704,7 +669,7 @@ class gateio extends Exchange {
         if ($code !== null) {
             $currency = $this->currency ($code);
         }
-        return $this->parseTransactions ($transactions, $currency, $since, $limit);
+        return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -747,23 +712,13 @@ class gateio extends Exchange {
         //         'type' => 'withdrawal'
         //     }
         //
-        $code = null;
         $currencyId = $this->safe_string($transaction, 'currency');
-        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
-        if ($currency === null) {
-            $code = $this->common_currency_code($currencyId);
-        }
-        if ($currency !== null) {
-            $code = $currency['code'];
-        }
+        $code = $this->safe_currency_code($currencyId, $currency);
         $id = $this->safe_string($transaction, 'id');
         $txid = $this->safe_string($transaction, 'txid');
         $amount = $this->safe_float($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
-        $timestamp = $this->safe_integer($transaction, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($transaction, 'timestamp');
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
         $type = $this->parse_transaction_type ($id[0]);
         return array (
@@ -800,22 +755,22 @@ class gateio extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array($response) && array_key_exists('result', $response)) {
-            $result = $response['result'];
-            $message = $this->id . ' ' . $this->json ($response);
-            if ($result === null) {
-                throw new ExchangeError($message);
-            }
-            if (gettype ($result) === 'string') {
-                if ($result !== 'true') {
-                    throw new ExchangeError($message);
-                }
-            } else if (!$result) {
-                throw new ExchangeError($message);
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return;
+        }
+        $resultString = $this->safe_string($response, 'result', '');
+        if ($resultString !== 'false') {
+            return;
+        }
+        $errorCode = $this->safe_string($response, 'code');
+        if ($errorCode !== null) {
+            $exceptions = $this->exceptions;
+            if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
+                $message = $this->safe_string($response, 'message', $body);
+                $feedback = $this->safe_string($this->errorCodeNames, $errorCode, $message);
+                throw new $exceptions[$errorCode]($feedback);
             }
         }
-        return $response;
     }
 }

@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import NotSupported
 
 
-class bitlish (Exchange):
+class bitlish(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitlish, self).describe(), {
@@ -30,6 +30,7 @@ class bitlish (Exchange):
                 'api': 'https://bitlish.com/api',
                 'www': 'https://bitlish.com',
                 'doc': 'https://bitlish.com/api',
+                'fees': 'https://bitlish.com/fees',
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -40,7 +41,7 @@ class bitlish (Exchange):
                     'tierBased': False,
                     'percentage': True,
                     'taker': 0.3 / 100,  # anonymous 0.3%, verified 0.2%
-                    'maker': 0,
+                    'maker': 0.2 / 100,  # anonymous 0.2%, verified 0.1%
                 },
                 'funding': {
                     'tierBased': False,
@@ -132,8 +133,8 @@ class bitlish (Exchange):
             id = self.safe_string(market, 'id')
             name = self.safe_string(market, 'name')
             baseId, quoteId = name.split('/')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -189,10 +190,8 @@ class bitlish (Exchange):
             else:
                 baseId = id[0:3]
                 quoteId = id[3:6]
-                base = baseId.upper()
-                quote = quoteId.upper()
-                base = self.common_currency_code(base)
-                quote = self.common_currency_code(quote)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
@@ -275,11 +274,7 @@ class bitlish (Exchange):
         currencyIds = list(response.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             balance = self.safe_value(response, currencyId, {})
             account['free'] = self.safe_float(balance, 'funds')
@@ -325,7 +320,7 @@ class bitlish (Exchange):
         await self.load_markets()
         currency = self.currency(code)
         request = {
-            'currency': currency.lower(),
+            'currency': currency['id'],
             'amount': float(amount),
             'account': address,
             'payment_method': 'bitcoin',  # they did not document other types...

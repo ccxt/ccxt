@@ -6,6 +6,8 @@ import re
 __all__ = [
     'TRUNCATE',
     'ROUND',
+    'ROUND_UP',
+    'ROUND_DOWN',
     'DECIMAL_PLACES',
     'SIGNIFICANT_DIGITS',
     'TICK_SIZE',
@@ -18,6 +20,8 @@ __all__ = [
 # rounding mode
 TRUNCATE = 0
 ROUND = 1
+ROUND_UP = 2
+ROUND_DOWN = 3
 
 # digits counting mode
 DECIMAL_PLACES = 2
@@ -117,7 +121,7 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
         elif counting_mode == SIGNIFICANT_DIGITS:
             if precision == 0:
                 return '0'
-            dot = string.index('.') if '.' in string else 0
+            dot = string.index('.') if '.' in string else len(string)
             start = dot - dec.adjusted()
             end = start + precision
             # need to clarify these conditionals

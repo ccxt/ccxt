@@ -75,8 +75,8 @@ class ice3x extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.01,
-                    'taker' => 0.01,
+                    'maker' => 0.005,
+                    'taker' => 0.005,
                 ),
             ),
             'precision' => array (
@@ -94,9 +94,8 @@ class ice3x extends Exchange {
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $this->safe_string($currency, 'currency_id');
-            $code = $this->safe_string($currency, 'iso');
-            $code = strtoupper($code);
-            $code = $this->common_currency_code($code);
+            $currencyId = $this->safe_string($currency, 'iso');
+            $code = $this->safe_currency_code($currencyId);
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
@@ -124,10 +123,10 @@ class ice3x extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        if (!$this->currencies) {
+        if ($this->currencies_by_id === null) {
             $this->currencies = $this->fetch_currencies();
+            $this->currencies_by_id = $this->index_by($this->currencies, 'id');
         }
-        $this->currencies_by_id = $this->index_by($this->currencies, 'id');
         $response = $this->publicGetPairList ($params);
         $markets = $this->safe_value($response['response'], 'entities');
         $result = array();
@@ -138,8 +137,8 @@ class ice3x extends Exchange {
             $quoteId = $this->safe_string($market, 'currency_id_to');
             $baseCurrency = $this->currencies_by_id[$baseId];
             $quoteCurrency = $this->currencies_by_id[$quoteId];
-            $base = $this->common_currency_code($baseCurrency['code']);
-            $quote = $this->common_currency_code($quoteCurrency['code']);
+            $base = $baseCurrency['code'];
+            $quote = $quoteCurrency['code'];
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -148,7 +147,7 @@ class ice3x extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'active' => true,
+                'active' => null,
                 'info' => $market,
             );
         }
@@ -231,10 +230,7 @@ class ice3x extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'created');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'created');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'volume');
         $cost = null;
@@ -295,10 +291,7 @@ class ice3x extends Exchange {
             $balance = $balances[$i];
             // currency ids are numeric strings
             $currencyId = $this->safe_string($balance, 'currency_id');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            }
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['total'] = $this->safe_float($balance, 'balance');
             $result[$code] = $account;
@@ -313,7 +306,7 @@ class ice3x extends Exchange {
             $market = $this->marketsById[$pairId];
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_integer($order, 'created') * 1000;
+        $timestamp = $this->safe_timestamp($order, 'created');
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'volume');
         $status = $this->safe_integer($order, 'active');

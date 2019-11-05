@@ -110,8 +110,12 @@ class poloniex extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.15 / 100,
-                    'taker' => 0.25 / 100,
+                    // https://github.com/ccxt/ccxt/issues/6064
+                    // starting from October 21, 2019 17:00 UTC
+                    // all spot trading fees will be reduced to 0.00%
+                    // until December 31, 2019 23:59 UTC
+                    'maker' => 0.0,
+                    'taker' => 0.0,
                 ),
                 'funding' => array(),
             ),
@@ -206,31 +210,36 @@ class poloniex extends Exchange {
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
-        return [
-            $ohlcv['date'] * 1000,
-            $ohlcv['open'],
-            $ohlcv['high'],
-            $ohlcv['low'],
-            $ohlcv['close'],
-            $ohlcv['quoteVolume'],
-        ];
+        return array (
+            $this->safe_timestamp($ohlcv, 'date'),
+            $this->safe_float($ohlcv, 'open'),
+            $this->safe_float($ohlcv, 'high'),
+            $this->safe_float($ohlcv, 'low'),
+            $this->safe_float($ohlcv, 'close'),
+            $this->safe_float($ohlcv, 'quoteVolume'),
+        );
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        if ($since === null) {
-            $since = 0;
-        }
         $request = array (
             'currencyPair' => $market['id'],
             'period' => $this->timeframes[$timeframe],
-            'start' => intval ($since / 1000),
         );
-        if ($limit !== null) {
-            $request['end'] = $this->sum ($request['start'], $limit * $this->timeframes[$timeframe]);
+        if ($since === null) {
+            $request['end'] = $this->seconds ();
+            if ($limit === null) {
+                $request['start'] = $request['end'] - $this->parse_timeframe('1w'); // max range = 1 week
+            } else {
+                $request['start'] = $request['end'] - $this->sum ($limit) * $this->parse_timeframe($timeframe);
+            }
         } else {
-            $request['end'] = $this->sum ($this->seconds (), 1);
+            $request['start'] = intval ($since / 1000);
+            if ($limit !== null) {
+                $end = $this->sum ($request['start'], $limit * $this->parse_timeframe($timeframe));
+                $request['end'] = $end;
+            }
         }
         $response = $this->publicGetReturnChartData (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
@@ -244,8 +253,8 @@ class poloniex extends Exchange {
             $id = $keys[$i];
             $market = $markets[$id];
             list($quoteId, $baseId) = explode('_', $id);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $limits = array_merge ($this->limits, array (
                 'cost' => array (
@@ -280,12 +289,7 @@ class poloniex extends Exchange {
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $balance = $this->safe_value($response, $currencyId, array());
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code($currencyId);
-            }
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'available');
             $account['used'] = $this->safe_float($balance, 'onOrders');
@@ -340,8 +344,8 @@ class poloniex extends Exchange {
                 $symbol = $this->markets_by_id[$marketId]['symbol'];
             } else {
                 list($quoteId, $baseId) = explode('_', $marketId);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
             $orderbook = $this->parse_order_book($response[$marketId]);
@@ -405,8 +409,8 @@ class poloniex extends Exchange {
                 $symbol = $market['symbol'];
             } else {
                 list($quoteId, $baseId) = explode('_', $id);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
                 $market = array( 'symbol' => $symbol );
             }
@@ -427,7 +431,7 @@ class poloniex extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $precision = 8; // default $precision, todo => fix "magic constants"
-            $code = $this->common_currency_code($id);
+            $code = $this->safe_currency_code($id);
             $active = ($currency['delisted'] === 0) && !$currency['disabled'];
             $result[$code] = array (
                 'id' => $id,
@@ -661,8 +665,8 @@ class poloniex extends Exchange {
                         }
                     } else {
                         list($quoteId, $baseId) = explode('_', $id);
-                        $base = $this->common_currency_code($baseId);
-                        $quote = $this->common_currency_code($quoteId);
+                        $base = $this->safe_currency_code($baseId);
+                        $quote = $this->safe_currency_code($quoteId);
                         $symbol = $base . '/' . $quote;
                         $trades = $response[$id];
                         for ($j = 0; $j < count ($trades); $j++) {
@@ -1196,8 +1200,8 @@ class poloniex extends Exchange {
         if ($code !== null) {
             $currency = $this->currency ($code);
         }
-        $withdrawals = $this->parseTransactions ($response['withdrawals'], $currency, $since, $limit);
-        $deposits = $this->parseTransactions ($response['deposits'], $currency, $since, $limit);
+        $withdrawals = $this->parse_transactions($response['withdrawals'], $currency, $since, $limit);
+        $deposits = $this->parse_transactions($response['deposits'], $currency, $since, $limit);
         $transactions = $this->array_concat($deposits, $withdrawals);
         return $this->filterByCurrencySinceLimit ($this->sort_by($transactions, 'timestamp'), $code, $since, $limit);
     }
@@ -1211,7 +1215,7 @@ class poloniex extends Exchange {
         if ($code !== null) {
             $currency = $this->currency ($code);
         }
-        $withdrawals = $this->parseTransactions ($response['withdrawals'], $currency, $since, $limit);
+        $withdrawals = $this->parse_transactions($response['withdrawals'], $currency, $since, $limit);
         return $this->filterByCurrencySinceLimit ($withdrawals, $code, $since, $limit);
     }
 
@@ -1224,7 +1228,7 @@ class poloniex extends Exchange {
         if ($code !== null) {
             $currency = $this->currency ($code);
         }
-        $deposits = $this->parseTransactions ($response['deposits'], $currency, $since, $limit);
+        $deposits = $this->parse_transactions($response['deposits'], $currency, $since, $limit);
         return $this->filterByCurrencySinceLimit ($deposits, $code, $since, $limit);
     }
 
@@ -1268,19 +1272,9 @@ class poloniex extends Exchange {
         //         "withdrawalNumber" => 11162900
         //     }
         //
-        $timestamp = $this->safe_integer($transaction, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
-        $code = null;
+        $timestamp = $this->safe_timestamp($transaction, 'timestamp');
         $currencyId = $this->safe_string($transaction, 'currency');
-        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
-        if ($currency === null) {
-            $code = $this->common_currency_code($currencyId);
-        }
-        if ($currency !== null) {
-            $code = $currency['code'];
-        }
+        $code = $this->safe_currency_code($currencyId);
         $status = $this->safe_string($transaction, 'status', 'pending');
         $txid = $this->safe_string($transaction, 'txid');
         if ($status !== null) {
@@ -1347,7 +1341,7 @@ class poloniex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }

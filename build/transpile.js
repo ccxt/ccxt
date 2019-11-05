@@ -1,40 +1,30 @@
 // ---------------------------------------------------------------------------
-// Usage:
-//
-//      npm run transpile
+// Usage: npm run transpile
 // ---------------------------------------------------------------------------
 
 "use strict";
 
-const fs   = require ('fs')
-    , path = require ('path')
-    , log  = require ('ololog')
+const fs = require ('fs')
+    , log = require ('ololog')
     , ansi = require ('ansicolor').nice
     , errors = require ('../js/base/errors.js')
-    , { unCamelCase } = require ('../js/base/functions.js')
-    , { precisionConstants } = require ('../js/base/functions/number.js')
-
-// ---------------------------------------------------------------------------
-
-const [ /* node */, /* script */, filename ] = process.argv
-
-// ---------------------------------------------------------------------------
-
-function replaceInFile (filename, regex, replacement) {
-    let contents = fs.readFileSync (filename, 'utf8')
-    const parts = contents.split (regex)
-    const newContents = parts[0] + replacement + parts[1]
-    fs.truncateSync (filename)
-    fs.writeFileSync (filename, newContents)
-}
+    , { unCamelCase, precisionConstants, safeString } = require ('../js/base/functions.js')
+    , { basename } = require ('path')
+    , {
+        createFolderRecursively,
+        replaceInFile,
+        overwriteFile,
+    } = require ('./fs.js')
 
 // ----------------------------------------------------------------------------
+// a helper to apply an array of regexes and substitutions to text
+// accepts and array like [ [ regex, substitution ], ... ]
 
 function regexAll (text, array) {
-
-    for (let i in array) {
+    for (const i in array) {
         let regex = array[i][0]
-        regex = typeof regex === 'string' ? new RegExp (regex, 'g') : new RegExp (regex)
+        const flags = (typeof regex === 'string') ? 'g' : undefined
+        regex = new RegExp (regex, flags)
         text = text.replace (regex, array[i][1])
     }
     return text
@@ -48,17 +38,26 @@ const commonRegexes = [
     [ /\.deepExtend\s/g, '.deep_extend'],
     [ /\.safeFloat2\s/g, '.safe_float_2'],
     [ /\.safeInteger2\s/g, '.safe_integer_2'],
+    [ /\.safeIntegerProduct2\s/g, '.safe_integer_product_2'],
+    [ /\.safeTimestamp2\s/g, '.safe_timestamp_2'],
     [ /\.safeString2\s/g, '.safe_string_2'],
+    [ /\.safeStringLower2\s/g, '.safe_string_lower_2'],
+    [ /\.safeStringUpper2\s/g, '.safe_string_upper_2'],
     [ /\.safeValue2\s/g, '.safe_value_2'],
     [ /\.safeFloat\s/g, '.safe_float'],
     [ /\.safeInteger\s/g, '.safe_integer'],
+    [ /\.safeIntegerProduct\s/g, '.safe_integer_product'],
+    [ /\.safeTimestamp\s/g, '.safe_timestamp'],
     [ /\.safeString\s/g, '.safe_string'],
+    [ /\.safeStringLower\s/g, '.safe_string_lower'],
+    [ /\.safeStringUpper\s/g, '.safe_string_upper'],
     [ /\.safeValue\s/g, '.safe_value'],
     [ /\.inArray\s/g, '.in_array'],
     [ /\.toArray\s/g, '.to_array'],
     [ /\.isEmpty\s/g, '.is_empty'],
     [ /\.arrayConcat\s/g, '.array_concat'],
     [ /\.binaryConcat\s/g, '.binary_concat'],
+    [ /\.binaryConcatArray\s/g, '.binary_concat_array'],
     [ /\.binaryToString\s/g, '.binary_to_string' ],
     [ /\.precisionFromString\s/g, '.precision_from_string'],
     [ /\.implodeParams\s/g, '.implode_params'],
@@ -75,6 +74,8 @@ const commonRegexes = [
     [ /\.parseTrades\s/g, '.parse_trades'],
     [ /\.parseTrade\s/g, '.parse_trade'],
     [ /\.parseTradingViewOHLCV\s/g, '.parse_trading_view_ohlcv'],
+    [ /\.parseTransaction\s/g, '.parse_transaction'],
+    [ /\.parseTransactions\s/g, '.parse_transactions'],
     [ /\.parseOrderBook\s/g, '.parse_order_book'],
     [ /\.parseBidsAsks\s/g, '.parse_bids_asks'],
     [ /\.parseBidAsk\s/g, '.parse_bid_ask'],
@@ -121,6 +122,7 @@ const commonRegexes = [
     [ /\.currencyToPrecision\s/g, '.currency_to_precision'],
     [ /\.costToPrecision\s/g, '.cost_to_precision'],
     [ /\.commonCurrencyCode\s/g, '.common_currency_code'],
+    [ /\.loadAccounts\s/g, '.load_accounts'],
     [ /\.loadFees\s/g, '.load_fees'],
     [ /\.loadMarkets\s/g, '.load_markets'],
     [ /\.fetchMarkets\s/g, '.fetch_markets'],
@@ -142,6 +144,14 @@ const commonRegexes = [
     [ /\.signBodyWithSecret\s/g, '.sign_body_with_secret'],
     [ /\.isJsonEncodedObject\s/g, '.is_json_encoded_object'],
     [ /\.setSandboxMode\s/g, '.set_sandbox_mode'],
+    [ /\.safeCurrencyCode\s/g, '.safe_currency_code'],
+    [ /\.roundTimeframe/g, '.round_timeframe'],
+    [ /\.integerDivide/g, '.integer_divide'],
+    [ /\.integerModulo/g, '.integer_modulo'],
+    [ /\.integerPow/g, '.integer_pow'],
+    [ /errorHierarchy/g, 'error_hierarchy'],
+    [ /\.base16ToBinary/g, '.base16_to_binary'],
+    [ /\'use strict\';?\s+/g, '' ],
 ]
 
 // ----------------------------------------------------------------------------
@@ -174,6 +184,7 @@ const pythonRegexes = [
     [ /\!\=\=?/g, '!=' ],
     [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
     [ /this\.stringToBase64\s/g, 'base64.b64encode' ],
+    [ /this\.binaryToBase16\s/g, 'base64.b16encode' ],
     [ /this\.base64ToBinary\s/g, 'base64.b64decode' ],
     [ /\.shift\s*\(\)/g, '.pop(0)' ],
 
@@ -183,9 +194,9 @@ const pythonRegexes = [
     // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
     [ /this\./g, 'self.' ],
     [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
-    [ /([^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
-    [ /([^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
-    [ /([^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
+    [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
+    [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
+    [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
     [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
     [ /Object\.keys\s*\((.*)\)/g, 'list($1.keys())' ],
     [ /\[([^\]]+)\]\.join\s*\(([^\)]+)\)/g, "$2.join([$1])" ],
@@ -208,10 +219,11 @@ const pythonRegexes = [
     [ /\s\|\|\s/g, ' or ' ],
     [ /\s\&\&\s/g, ' and ' ],
     [ /\!([^\=])/g, 'not $1'],
-    [ /([^\s]+)\.length/g, 'len($1)' ],
+    [ /([^\s(]+)\.length/g, 'len($1)' ],
     [ /\.push\s*\(([\s\S]+?)\);/g, '.append($1);' ],
     [ /^(\s*}\s*$)+/gm, '' ],
-    [ /;/g, '' ],
+    [ /\;(\s+?\/\/.+?)/g, '$1' ],
+    [ /\;$/gm, '' ],
     [ /\.toUpperCase\s*/g, '.upper' ],
     [ /\.toLowerCase\s*/g, '.lower' ],
     [ /JSON\.stringify\s*/g, 'json.dumps' ],
@@ -231,7 +243,7 @@ const pythonRegexes = [
     [ /Math\.round\s*\(([^\)]+)\)/g, 'int(round($1))' ],
     [ /Math\.ceil\s*\(([^\)]+)\)/g, 'int(math.ceil($1))' ],
     [ /Math\.log/g, 'math.log' ],
-    [ /(\([^\)]+\)|[^\s]+)\s*\?\s*([^\:]+)\s+\:\s*([^\n]+)/g, '$2 if $1 else $3'],
+    [ /([a-zA-Z0-9_\.]*\([^\)]+\)|[^\s]+)\s*\?\s*([^\:]+)\s+\:\s*([^\n]+)/g, '$2 if $1 else $3'],
     [ /(^|\s)\/\//g, '$1#' ],
     [ /([^\n\s]) #/g, '$1  #' ],   // PEP8 E261
     [ /\.indexOf/g, '.find'],
@@ -246,10 +258,13 @@ const pythonRegexes = [
     [ /console\.log\s/g, 'print' ],
     [ /process\.exit\s+/g, 'sys.exit' ],
     [ /([^:+=\/\*\s-]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
+    [ /\sand\(/g, ' and (' ],
+    [ /\sor\(/g, ' or (' ],
+    [ /\snot\(/g, ' not (' ],
     [ /\[ /g, '[' ],              // PEP8 E201 remove whitespaces after left [ square bracket
     [ /\{ /g, '{' ],              // PEP8 E201 remove whitespaces after left { bracket
-    [ /([^\s]+) \]/g, '$1]' ],    // PEP8 E202 remove whitespaces before right ] square bracket
-    [ /([^\s]+) \}/g, '$1}' ],    // PEP8 E202 remove whitespaces before right } bracket
+    [ /([^\s#]+) \]/g, '$1]' ],    // PEP8 E202 remove whitespaces before right ] square bracket
+    [ /([^\s#]+) \}/g, '$1}' ],    // PEP8 E202 remove whitespaces before right } bracket
     [ /([^a-z])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
     [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
 ])
@@ -263,7 +278,7 @@ const python2Regexes = [
 // ----------------------------------------------------------------------------
 
 const phpRegexes = [
-    [ /\{([a-zA-Z0-9_]+?)\}/g, '<$1>' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+    [ /\{([a-zA-Z0-9_]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
     [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype ($1) === 'array' && count (array_filter (array_keys ($1), 'is_string')) == 0" ],
 
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
@@ -289,6 +304,7 @@ const phpRegexes = [
     [ /this\.extend/g, 'array_merge' ],
     [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
     [ /this\.stringToBase64/g, 'base64_encode' ],
+    [ /this\.binaryToBase16\s/g, 'bin2hex' ],
     [ /this\.base64ToBinary/g, 'base64_decode' ],
     [ /this\.deepExtend/g, 'array_replace_recursive'],
     [ /(\w+)\.shift\s*\(\)/g, 'array_shift($1)' ],
@@ -302,10 +318,12 @@ const phpRegexes = [
     [ /([^'])this_\./g, '$1$this_->' ],
     [ /\{\}/g, 'array()' ],
     [ /\[\]/g, 'array()' ],
-    [ /\{([^\n\}]+)\}/g, 'array($1)' ],
-    [ /([^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list($2)' ],
-    [ /([^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}/g, '$1array_values(list($2))' ],
-    [ /([^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
+
+// add {}-array syntax conversions up to 20 levels deep in the same line
+]).concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
+    [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list($2)' ],
+    [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}/g, '$1array_values(list($2))' ],
+    [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
     [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
     [ /Object\.keys\s*\((.*)\)/g, 'is_array($1) ? array_keys($1) : array()' ],
     [ /([^\s]+\s*\(\))\.toString \(\)/g, '(string) $1' ],
@@ -365,10 +383,10 @@ const phpRegexes = [
     [ /console\.log/g, 'var_dump'],
     [ /process\.exit/g, 'exit'],
     [ /super\./g, 'parent::'],
-    [ /\<([a-zA-Z0-9_]+?)\>/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+    [ /\~([a-zA-Z0-9_]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
 ])
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 // one-time helpers
 
 function createPythonClass (className, baseClass, body, methods, async = false) {
@@ -380,11 +398,17 @@ function createPythonClass (className, baseClass, body, methods, async = false) 
         'json.loads': 'json',
     }
 
-    async = async ? 'async_support.' : ''
+    const baseClasses = {
+        'Exchange': 'base.exchange',
+    }
 
-    const importFrom = (baseClass == 'Exchange') ?
-        ('ccxt.' + async + 'base.exchange') :
-        ('ccxt.' + async + baseClass)
+    async = (async ? '.async_support' : '')
+
+    const ccxtImports = [
+        (baseClass.indexOf ('ccxt.') === 0) ?
+            ('import ccxt' + async + ' as ccxt') :
+            ('from ccxt' + async + '.' + safeString (baseClasses, baseClass, baseClass) + ' import ' + baseClass)
+    ]
 
     let bodyAsString = body.join ("\n")
 
@@ -392,7 +416,8 @@ function createPythonClass (className, baseClass, body, methods, async = false) 
         "# -*- coding: utf-8 -*-\n",
         "# PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:",
         "# https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n",
-        'from ' + importFrom + ' import ' + baseClass,
+        ... ccxtImports,
+        // 'from ' + importFrom + ' import ' + baseClass,
         ... (bodyAsString.match (/basestring/) ? [
             "\n# -----------------------------------------------------------------------------\n",
             "try:",
@@ -434,7 +459,7 @@ function createPythonClass (className, baseClass, body, methods, async = false) 
             (match, p1) => ('self.' + unCamelCase (p1) + '('))
     }
 
-    header.push ("\n\nclass " + className + ' (' + baseClass + '):')
+    header.push ("\n\nclass " + className + '(' + baseClass + '):')
 
     const footer = [
         '', // footer (last empty line)
@@ -447,9 +472,6 @@ function createPythonClass (className, baseClass, body, methods, async = false) 
 // ----------------------------------------------------------------------------
 
 function createPHPClass (className, baseClass, body, methods) {
-
-    const baseFolder = (baseClass == 'Exchange') ? 'base/' : ''
-    const baseFile =  baseFolder + baseClass + '.php'
 
     const header = [
         "<?php\n",
@@ -476,13 +498,7 @@ function createPHPClass (className, baseClass, body, methods) {
     return result
 }
 
-// ----------------------------------------------------------------------------
-
-const python2Folder = './python/ccxt/'
-const python3Folder = './python/ccxt/async_support/'
-const phpFolder     = './php/'
-
-// ----------------------------------------------------------------------------
+// ============================================================================
 
 function transpileJavaScriptToPython3 ({ js, className, removeEmptyLines }) {
 
@@ -503,7 +519,9 @@ function transpileJavaScriptToPython3 ({ js, className, removeEmptyLines }) {
     }
 
     // special case for Python super
-    python3Body = python3Body.replace (/super\./g, 'super(' + className + ', self).')
+    if (className) {
+        python3Body = python3Body.replace (/super\./g, 'super(' + className + ', self).')
+    }
 
     return python3Body
 }
@@ -523,7 +541,7 @@ function transpilePython3ToPython2 (py) {
 function transpileJavaScriptToPHP ({ js, variables }) {
 
     // match all local variables (let, const or var)
-    let localVariablesRegex = /[^a-zA-Z0-9_](?:let|const|var)\s+(?:\[([^\]]+)\]|([a-zA-Z0-9_]+))/g // local variables
+    let localVariablesRegex = /(?:^|[^a-zA-Z0-9_])(?:let|const|var)\s+(?:\[([^\]]+)\]|([a-zA-Z0-9_]+))/g // local variables
 
     let allVariables = (variables || []).map (x => x); // clone the array
     // process the variables created in destructuring assignments as well
@@ -547,12 +565,14 @@ function transpileJavaScriptToPHP ({ js, variables }) {
         allVariables.push (catchClauseMatches[1])
     }
 
+    allVariables = allVariables.map (error => regexAll(error, commonRegexes))
+
     // append $ to all variables in the method (PHP syntax demands $ at the beginning of a variable name)
-    let phpVariablesRegexes = allVariables.map (x => [ "([^$$a-zA-Z0-9\\.\\>'_/])" + x + "([^a-zA-Z0-9'_/])", '$1$$' + x + '$2' ])
+    let phpVariablesRegexes = allVariables.map (x => [ "(^|[^$$a-zA-Z0-9\\.\\>'_/])" + x + "([^a-zA-Z0-9'_/])", '$1$$' + x + '$2' ])
 
     // support for php syntax for object-pointer dereference
     // convert all $variable.property to $variable->property
-    let variablePropertiesRegexes = allVariables.map (x => [ "([^a-zA-Z0-9\\.\\>'_])" + x + '\\.', '$1' + x + '->' ])
+    let variablePropertiesRegexes = allVariables.map (x => [ "(^|[^a-zA-Z0-9\\.\\>'_])" + x + '\\.', '$1' + x + '->' ])
 
     // transpile JS → PHP
     let phpBody = regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes))
@@ -564,22 +584,55 @@ function transpileJavaScriptToPHP ({ js, variables }) {
 
 function transpileJavaScriptToPythonAndPHP (args) {
 
-    //-------------------------------------------------------------------------
-
     // transpile JS → Python 3
     let python3Body = transpileJavaScriptToPython3 (args)
 
-    //-------------------------------------------------------------------------
-
     // remove await from Python 2 body (transpile Python 3 → Python 2)
     let python2Body = transpilePython3ToPython2 (python3Body)
-
-    //-------------------------------------------------------------------------
 
     // transpile JS → PHP
     let phpBody = transpileJavaScriptToPHP (args)
 
     return { python3Body, python2Body, phpBody }
+}
+
+//-----------------------------------------------------------------------------
+
+function transpilePythonAsyncToSync (oldName, newName) {
+
+    log.magenta ('Transpiling ' + oldName.yellow + ' → ' + newName.yellow)
+    const fileContents = fs.readFileSync (oldName, 'utf8')
+    let lines = fileContents.split ("\n")
+
+    lines = lines.filter (line => ![ 'import asyncio' ].includes (line))
+                .map (line => {
+                    return (
+                        line.replace ('asyncio.get_event_loop().run_until_complete(main())', 'main()')
+                            .replace ('import ccxt.async_support as ccxt', 'import ccxt')
+                            .replace (/.*token\_bucket.*/g, '')
+                            .replace ('await asyncio.sleep', 'time.sleep')
+                            .replace ('async ', '')
+                            .replace ('await ', ''))
+                })
+
+    // lines.forEach (line => log (line))
+
+    function deleteFunction (f, from) {
+        // the following regexes make a technical error
+        // since it won't cut away a single function
+        // it will delete everything up to the beginning of the next comment
+        const re1 = new RegExp ('def ' + f + '[^\#]+', 'g')
+        const re2 = new RegExp ('[\\s]+' + f + '\\(exchange\\)', 'g')
+        return from.replace (re1, '').replace (re2, '')
+    }
+
+    let newContents = lines.join ('\n')
+
+    newContents = deleteFunction ('test_tickers_async', newContents)
+    newContents = deleteFunction ('test_l2_order_books_async', newContents)
+
+    fs.truncateSync (newName)
+    fs.writeFileSync (newName, newContents)
 }
 
 // ----------------------------------------------------------------------------
@@ -683,7 +736,7 @@ function transpileDerivedExchangeClass (contents) {
 
     return {
 
-        // altogether in PHP, Python 2 and 3
+        // altogether in PHP, Python 2 and 3 (async)
         python2: createPythonClass (className, baseClass, python2, methodNames),
         python3: createPythonClass (className, baseClass, python3, methodNames, true),
         php:     createPHPClass    (className, baseClass, php,     methodNames),
@@ -693,25 +746,29 @@ function transpileDerivedExchangeClass (contents) {
     }
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 
-function transpileDerivedExchangeFile (folder, filename) {
+function transpileDerivedExchangeFile (jsFolder, filename, options) {
+
+    // todo normalize jsFolder and other arguments
 
     try {
 
-        let contents = fs.readFileSync (folder + filename, 'utf8')
-
-        let { python2, python3, php, className, baseClass } = transpileDerivedExchangeClass (contents)
-
-        const python2Filename = python2Folder + filename.replace ('.js', '.py')
-        const python3Filename = python3Folder + filename.replace ('.js', '.py')
-        const phpFilename     = phpFolder     + filename.replace ('.js', '.php')
+        const { python2Folder, python3Folder, phpFolder } = options
+        const contents = fs.readFileSync (jsFolder + filename, 'utf8')
+        const { python2, python3, php, className, baseClass } = transpileDerivedExchangeClass (contents)
 
         log.cyan ('Transpiling from', filename.yellow)
 
-        overwriteFile (python2Filename, python2)
-        overwriteFile (python3Filename, python3)
-        overwriteFile (phpFilename,     php)
+        ;[
+            [ python2Folder, filename.replace ('.js', '.py'), python2 ],
+            [ python3Folder, filename.replace ('.js', '.py'), python3 ],
+            [ phpFolder, filename.replace ('.js', '.php'), php ],
+        ].forEach (([ folder, filename, code ]) => {
+            if (folder) {
+                overwriteFile (folder + filename, code)
+            }
+        })
 
         return { className, baseClass }
 
@@ -725,14 +782,18 @@ function transpileDerivedExchangeFile (folder, filename) {
 
 //-----------------------------------------------------------------------------
 
-function transpileDerivedExchangeFiles (folder, pattern = '.js') {
+function transpileDerivedExchangeFiles (jsFolder, options, pattern = '.js') {
+
+    // todo normalize jsFolder and other arguments
+
+    const { python2Folder, python3Folder, phpFolder } = options
 
     // exchanges.json accounts for ids included in exchanges.cfg
     const ids = require ('../exchanges.json').ids;
 
-    const classNames = fs.readdirSync (folder)
-        .filter (file => file.includes (pattern) && ids.includes (path.basename (file, pattern)))
-        .map (file => transpileDerivedExchangeFile (folder, file))
+    const classNames = fs.readdirSync (jsFolder)
+        .filter (file => file.includes (pattern) && ids.includes (basename (file, pattern)))
+        .map (file => transpileDerivedExchangeFile (jsFolder, file, options))
 
     if (classNames.length === 0)
         return null
@@ -742,86 +803,31 @@ function transpileDerivedExchangeFiles (folder, pattern = '.js') {
         classes[className] = baseClass
     })
 
+    function deleteOldTranspiledFiles (folder, pattern) {
+        fs.readdirSync (folder)
+            .filter (file =>
+                !fs.lstatSync (folder + file).isDirectory () &&
+                file.match (pattern) &&
+                !(file.replace (/\.[a-z]+$/, '') in classes) &&
+                !file.match (/^Exchange|errors|__init__|\\./))
+            .map (file => folder + file)
+            .forEach (file => log.red ('Deleting ' + file.yellow) && fs.unlinkSync (file))
+    }
+
+    [
+        [ python2Folder, /\.pyc?$/ ],
+        [ python3Folder, /\.pyc?$/ ],
+        [ phpFolder, /\.php$/ ],
+    ].forEach (([ folder, pattern ]) => {
+        if (folder) {
+            deleteOldTranspiledFiles (folder, pattern)
+        }
+    })
+
     return classes
 }
 
-//-----------------------------------------------------------------------------
-
-function copyFile (oldName, newName) {
-    let contents = fs.readFileSync (oldName, 'utf8')
-    fs.truncateSync (newName)
-    fs.writeFileSync (newName, contents)
-}
-
-//-----------------------------------------------------------------------------
-
-function overwriteFile (filename, contents) {
-    // log.cyan ('Overwriting → ' + filename.yellow)
-    fs.closeSync (fs.openSync (filename, 'a'));
-    fs.truncateSync (filename)
-    fs.writeFileSync (filename, contents)
-}
-
-//----------------------------------------------------------------------------
-
-function createFolder (folder) {
-    try {
-        fs.mkdirSync (folder)
-    } catch (err) {
-        if (err.code !== 'EEXIST') {
-            throw err
-        }
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-function createFolderRecursively (folder) {
-
-    const parts = folder.split (path.sep)
-
-    for (let i = 1; i <= parts.length; i++) {
-        createFolder (path.join.apply (null, parts.slice (0, i)))
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-function transpilePythonAsyncToSync (oldName, newName) {
-
-    log.magenta ('Transpiling ' + oldName.yellow + ' → ' + newName.yellow)
-    const fileContents = fs.readFileSync (oldName, 'utf8')
-    let lines = fileContents.split ("\n")
-
-    lines = lines.filter (line => ![ 'import asyncio' ].includes (line))
-                .map (line => {
-                    return (
-                        line.replace ('asyncio.get_event_loop().run_until_complete(main())', 'main()')
-                            .replace ('import ccxt.async_support as ccxt', 'import ccxt')
-                            .replace (/.*token\_bucket.*/g, '')
-                            .replace ('await asyncio.sleep', 'time.sleep')
-                            .replace ('async ', '')
-                            .replace ('await ', ''))
-                })
-
-    // lines.forEach (line => log (line))
-
-    function deleteFunction (f, from) {
-        const re1 = new RegExp ('def ' + f + '[^\#]+', 'g')
-        const re2 = new RegExp ('[\\s]+' + f + '\\(exchange\\)', 'g')
-        return from.replace (re1, '').replace (re2, '')
-    }
-
-    let newContents = lines.join ('\n')
-
-    newContents = deleteFunction ('test_tickers_async', newContents)
-    newContents = deleteFunction ('test_l2_order_books_async', newContents)
-
-    fs.truncateSync (newName)
-    fs.writeFileSync (newName, newContents)
-}
-
-//-----------------------------------------------------------------------------
+// ============================================================================
 
 function exportTypeScriptDeclarations (classes) {
 
@@ -833,6 +839,41 @@ function exportTypeScriptDeclarations (classes) {
     }).join ("\n") + "\n"
 
     replaceInFile (file, regex, replacement)
+}
+
+// ============================================================================
+
+function transpileErrorHierarchy () {
+
+    const errorHierarchyFilename = './js/base/errorHierarchy.js'
+
+    let js = fs.readFileSync (errorHierarchyFilename, 'utf8')
+
+    js = regexAll (js, [
+        [ /module\.exports = [^\;]+\;\n/s, '' ],
+    ]).trim ()
+
+    const { python3Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js })
+
+    const message = 'Transpiling error hierachy →'
+
+    const python = {
+        filename: './python/ccxt/base/errors.py',
+        regex: /error_hierarchy = .+?\n\}/s,
+        replacement: python3Body,
+    }
+
+    log.bright.cyan (message, python.filename.yellow)
+    replaceInFile (... Object.values (python))
+
+    const php = {
+        filename:'./php/base/errors.php',
+        regex: /\$error_hierarchy = .+?\n\)\;/s,
+        replacement: phpBody,
+    }
+
+    log.bright.cyan (message, php.filename.yellow)
+    replaceInFile (... Object.values (php))
 }
 
 //-----------------------------------------------------------------------------
@@ -854,8 +895,7 @@ sys.path.append(root)\n\
 const phpPreamble = "\
 <?php\n\
 namespace ccxt;\n\
-include_once (__DIR__.'/../Exchange.php');\n\
-\n\
+include_once (__DIR__.'/../../ccxt.php');\n\
 // ----------------------------------------------------------------------------\n\
 \n\
 // PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\
@@ -875,7 +915,6 @@ function transpileDateTimeTests () {
     let js = fs.readFileSync (jsFile).toString ()
 
     js = regexAll (js, [
-        [ /\'use strict\';?\s+/g, '' ],
         [ /[^\n]+require[^\n]+\n/g, '' ],
         [/^\/\*.*\s+/mg, ''],
     ])
@@ -887,6 +926,7 @@ function transpileDateTimeTests () {
     const pythonHeader =
 "\n\
 import ccxt  # noqa: F402\n\
+from ccxt.base.decimal_to_precision import ROUND_UP, ROUND_DOWN  # noqa F401\n\
 \n\
 # ----------------------------------------------------------------------------\n\
 \n"
@@ -900,6 +940,8 @@ import ccxt  # noqa: F402\n\
     overwriteFile (pyFile, python)
     overwriteFile (phpFile, php)
 }
+
+//-----------------------------------------------------------------------------
 
 function transpilePrecisionTests () {
 
@@ -970,25 +1012,142 @@ function number_to_string ($x) {\n\
 
 //-----------------------------------------------------------------------------
 
-createFolderRecursively (python2Folder)
-createFolderRecursively (python3Folder)
-createFolderRecursively (phpFolder)
+function transpileCryptoTests () {
+    const jsFile = './js/test/base/functions/test.crypto.js'
+    const pyFile = './python/test/test_crypto.py'
+    const phpFile = './php/test/test_crypto.php'
 
-const classes = transpileDerivedExchangeFiles ('./js/', filename)
+    log.magenta ('Transpiling from', jsFile.yellow)
+    let js = fs.readFileSync (jsFile).toString ()
 
-if (classes === null) {
-    log.bright.yellow ('0 files transpiled.')
-    return;
+    js = regexAll (js, [
+        [ /\'use strict\';?\s+/g, '' ],
+        [ /[^\n]+require[^\n]+\n/g, '' ],
+        [ /function equals \([\S\s]+?return true\n}\n/g, '' ],
+    ])
+
+    let { python3Body, python2Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+
+    const pythonHeader = `
+import ccxt  # noqa: F402
+
+Exchange = ccxt.Exchange
+hash = Exchange.hash
+ecdsa = Exchange.ecdsa
+jwt = Exchange.jwt
+encode = Exchange.encode
+
+
+def equals(a, b):
+    return a == b
+`
+    const phpHeader = `
+function hash(...$args) {
+    return Exchange::hash(...$args);
 }
 
-// HINT: if we're going to support specific class definitions this process won't work anymore as it will override the definitions.
-exportTypeScriptDeclarations (classes)  // we use typescript?
+function encode(...$args) {
+    return Exchange::encode(...$args);
+}
 
-transpilePrecisionTests ()
-transpileDateTimeTests ()
-transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
-// transpilePrecisionTests ('./js/test/base/functions/test.number.js', './python/test/test_decimal_to_precision.py', './php/test/decimal_to_precision.php')
+function ecdsa(...$args) {
+    return Exchange::ecdsa(...$args);
+}
 
-//-----------------------------------------------------------------------------
+function jwt(...$args) {
+    return Exchange::jwt(...$args);
+}
 
-log.bright.green ('Transpiled successfully.')
+function equals($a, $b) {
+    return $a === $b;
+}`
+
+    const python = pyPreamble + pythonHeader + python2Body
+    const php = phpPreamble + phpHeader + phpBody
+
+    log.magenta ('→', pyFile.yellow)
+    log.magenta ('→', phpFile.yellow)
+
+    overwriteFile (pyFile, python)
+    overwriteFile (phpFile, php)
+}
+
+// ============================================================================
+
+function transpileEverything () {
+
+    // default pattern is '.js'
+    const [ /* node */, /* script */, pattern ] = process.argv
+        , python2Folder = './python/ccxt/'
+        , python3Folder = './python/ccxt/async_support/'
+        , phpFolder     = './php/'
+        , options = { python2Folder, python3Folder, phpFolder }
+
+    createFolderRecursively (python2Folder)
+    createFolderRecursively (python3Folder)
+    createFolderRecursively (phpFolder)
+
+    const classes = transpileDerivedExchangeFiles ('./js/', options, pattern)
+
+    if (classes === null) {
+        log.bright.yellow ('0 files transpiled.')
+        return;
+    }
+
+    // HINT: if we're going to support specific class definitions
+    // this process won't work anymore as it will override the definitions
+    exportTypeScriptDeclarations (classes)
+
+    transpileErrorHierarchy ()
+
+    transpilePrecisionTests ()
+    transpileDateTimeTests ()
+    transpileCryptoTests ()
+
+    transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
+
+    log.bright.green ('Transpiled successfully.')
+}
+
+// ============================================================================
+// main entry point
+
+if (require.main === module) { // called directly like `node module`
+
+    transpileEverything ()
+
+} else { // if required as a module
+
+    // do nothing
+}
+
+// ============================================================================
+
+module.exports = {
+    commonRegexes,
+    pythonRegexes,
+    python2Regexes,
+    phpRegexes,
+    // ........................................................................
+    createPythonClass,
+    createPHPClass,
+    // ........................................................................
+    transpileJavaScriptToPython3,
+    transpilePython3ToPython2,
+    transpileJavaScriptToPHP,
+    transpileJavaScriptToPythonAndPHP,
+    transpilePythonAsyncToSync,
+    transpileDerivedExchangeClass,
+    // ........................................................................
+    transpileDerivedExchangeFile,
+    transpileDerivedExchangeFiles,
+    // ........................................................................
+    exportTypeScriptDeclarations,
+    transpileErrorHierarchy,
+    // ........................................................................
+    transpileDateTimeTests,
+    transpilePrecisionTests,
+    transpileCryptoTests,
+    // ........................................................................
+    transpileEverything,
+}

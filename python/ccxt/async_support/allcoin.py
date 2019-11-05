@@ -6,7 +6,7 @@
 from ccxt.async_support.okcoinusd import okcoinusd
 
 
-class allcoin (okcoinusd):
+class allcoin(okcoinusd):
 
     def describe(self):
         return self.deep_extend(super(allcoin, self).describe(), {
@@ -76,8 +76,8 @@ class allcoin (okcoinusd):
                 quote = self.safe_string(market, 'Secondary')
                 baseId = base.lower()
                 quoteId = quote.lower()
-                base = self.common_currency_code(base)
-                quote = self.common_currency_code(quote)
+                base = self.safe_currency_code(base)
+                quote = self.safe_currency_code(quote)
                 id = baseId + '_' + quoteId
                 symbol = base + '/' + quote
                 active = market['TradeEnabled'] and market['BuyEnabled'] and market['SellEnabled']
