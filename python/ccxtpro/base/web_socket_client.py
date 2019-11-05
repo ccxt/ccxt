@@ -3,14 +3,13 @@ import json
 import ccxt
 import websockets
 import websockets.exceptions
-from ccxt.async_support.base.future import Future
-from ccxt.async_support.base.websocketclient_interface import AbstractWebSocketClient
+from ccxtpro.base.future import Future
 
 # @author frosty00
 # @email carlo.revelli@berkeley.edu
 
 
-class WebSocketClient(AbstractWebSocketClient):
+class WebSocketClient(object):
     clients = {}
 
     def __init__(self, url, handler, loop=None, timeout=5000):

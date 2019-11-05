@@ -12,15 +12,11 @@ import socket
 import time
 import math
 import random
-import certifi
-import aiohttp
-import ssl
 import sys
-import yarl
 
 # -----------------------------------------------------------------------------
 
-from ccxt.async_support.base.web_socket_client import WebSocketClient
+from ccxtpro.base.web_socket_client import WebSocketClient
 from ccxt.async_support.base.exchange import Exchange as BaseExchange
 
 # -----------------------------------------------------------------------------

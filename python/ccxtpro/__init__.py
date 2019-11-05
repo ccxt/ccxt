@@ -8,7 +8,9 @@ __version__ = '1.0.0'
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.exchange import Exchange                   # noqa: F401
+from ccxtpro.base.exchange import Exchange                   # noqa: F401
+
+# -----------------------------------------------------------------------------
 
 from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa: F401
 from ccxt.base.decimal_to_precision import TRUNCATE              # noqa: F401

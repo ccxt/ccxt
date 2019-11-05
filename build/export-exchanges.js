@@ -10,6 +10,7 @@ const log = require ('ololog').unlimited
     , ansi = require ('ansicolor').nice
     , {
         // cloneGitHubWiki,
+        getIncludedExchangeIds,
         exportExchanges,
         createExchanges,
         // exportSupportedAndCertifiedExchanges,
@@ -22,6 +23,36 @@ const log = require ('ololog').unlimited
 
 function exportEverything () {
 
+    const js      = { folder: '.', file: '/ccxt.js' }
+        , python3 = { folder: './python/ccxtpro', file: '/__init__.py' }
+        , php     = { folder: './php', file: '/base/Exchange.php' }
+
+    const ids = getIncludedExchangeIds ()
+
+    const replacements = [
+        Object.assign ({}, js, {
+            regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
+            replacement: "const exchanges = {\n" + ids.map (id => ("    '" + id + "':").padEnd (30) + " require ('./js/" + id + ".js'),").join ("\n") + "    \n}",
+        }),
+        Object.assign ({}, python3, {
+            regex: /(?:from ccxtpro\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+            replacement: ids.map (id => ('from ccxtpro.' + id + ' import ' + id).padEnd (74) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+        }),
+        Object.assign ({}, python3, {
+            regex: /exchanges \= \[[^\]]+\]/,
+            replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
+        }),
+        Object.assign ({}, php, {
+            regex: /public static \$exchanges \= array\s*\([^\)]+\)/,
+            replacement: "public static $exchanges = array(\n        '" + ids.join ("',\n        '") + "',\n    )",
+        }),
+    ]
+
+    exportExchanges (replacements)
+
+
+
+
     // const wikiPath = 'wiki'
     //     , gitWikiPath = 'build/ccxt.wiki'
 
@@ -33,12 +64,12 @@ function exportEverything () {
     //     phpFolder: './php'
     // })
 
-    const ids = exportExchanges ({
-        js:      { folder: '.', file: '/ccxt.pro.js' },
-        python2: { folder: './python/ccxtpro', file: '/__init__.py' },
-        // python3: { folder: './python/ccxtpro', file: '/__init__.py' },
-        php:     { folder: './php', file: '/base/Exchange.php' },
-    })
+    // const ids = exportExchanges ({
+    //     js:      { folder: '.', file: '/ccxt.pro.js' },
+    //     python2: { folder: './python/ccxtpro', file: '/__init__.py' },
+    //     // python3: { folder: './python/ccxtpro', file: '/__init__.py' },
+    //     php:     { folder: './php', file: '/base/Exchange.php' },
+    // })
 
 
     // strategically placed exactly here (we can require it AFTER the export)
