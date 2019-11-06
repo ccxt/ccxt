@@ -246,7 +246,7 @@ class poloniex extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $markets = $this->publicGetReturnTicker ();
+        $markets = $this->publicGetReturnTicker ($params);
         $keys = is_array($markets) ? array_keys($markets) : array();
         $result = array();
         for ($i = 0; $i < count ($keys); $i++) {
@@ -263,8 +263,10 @@ class poloniex extends Exchange {
             ));
             $isFrozen = $this->safe_string($market, 'isFrozen');
             $active = ($isFrozen !== '1');
-            $result[] = array_merge ($this->fees['trading'], array (
+            $numericId = $this->safe_integer($market, 'id');
+            $result[] = array (
                 'id' => $id,
+                'numericId' => $numericId,
                 'symbol' => $symbol,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
@@ -273,7 +275,7 @@ class poloniex extends Exchange {
                 'active' => $active,
                 'limits' => $limits,
                 'info' => $market,
-            ));
+            );
         }
         return $result;
     }
