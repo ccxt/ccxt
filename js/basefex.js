@@ -30,7 +30,7 @@ module.exports = class basefex extends Exchange {
         fetchTradingFees: false,
         fetchTicker: true,
         fetchOrderBook: true,
-        fetchTrades: false,
+        fetchTrades: true,
         fetchOHLCV: false,
         fetchBalance: false,
         createOrder: false,
@@ -64,7 +64,8 @@ module.exports = class basefex extends Exchange {
             "symbols",
             "spec/kvs",
             "candlesticks/{type}@{symbol}/history",
-            "depth@{symbol}/snapshot"
+            "depth@{symbol}/snapshot",
+            "v1/trades/{symbol}"
           ]
         },
         private: {
@@ -137,6 +138,17 @@ module.exports = class basefex extends Exchange {
     });
 
     return this.convertOrderBook(orderbookSource);
+  }
+
+  async fetchTrades(symbol) {
+    /*
+    fetchTrades (symbol[, since[, [limit, [params]]]]): Fetch recent trades for a particular trading symbol.
+    */
+    const trades = await this.publicGetV1TradesSymbol({
+      path: { symbol: this.translateBaseFEXSymbol(symbol) }
+    });
+
+    return trades.map(this.convertTrade.bind(this, symbol));
   }
 
   sign(
@@ -277,6 +289,21 @@ module.exports = class basefex extends Exchange {
       asks: sortBook(source.bids, false),
       timestamp: undefined, // Unix Timestamp in milliseconds (seconds * 1000)
       datetime: undefined // ISO8601 datetime string with milliseconds
+    };
+  }
+
+  convertTrade(symbol, trade) {
+    return {
+      info: trade, // the original decoded JSON as is
+      id: trade.id, // string trade id
+      timestamp: trade.matchedAt, // Unix timestamp in milliseconds
+      datetime: this.iso8601(trade.matchedAt), // ISO8601 datetime with milliseconds
+      symbol: symbol, // symbol
+      order: undefined, // string order id or undefined/None/null
+      type: undefined, // order type, 'market', 'limit' or undefined/None/null
+      side: trade.side.toLowerCase(), // direction of the trade, 'buy' or 'sell'
+      price: trade.price, // float price in quote currency
+      amount: trade.size // amount of base currency
     };
   }
 
