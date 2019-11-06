@@ -48,8 +48,23 @@ function subclass (BaseClass, classes, namespace = {}) {
                 toString () {
                     return this.message
                 }
-            }
 
+                get message () {
+                    // delay string concatenation until error is thrown
+                    let message = [this.exchangeId, this.httpMethod, this.url, this.httpStatusCode, this.httpStatusText, this.errorMessage].filter (x => x !== undefined).join (' ')
+                    if (this.verbose) {
+                        if (this.responseHeaders) {
+                            message += '\n' + JSON.stringify (this.responseHeaders, undefined, 2)
+                        }
+                        if (this.responseJson) {
+                            message += '\n' + JSON.stringify (this.responseJson, undefined, 2)
+                        } else if (this.responseBody) {
+                            message += '\n' + this.responseBody
+                        }
+                    }
+                    return message
+                }
+            }
         })[className]
 
         subclass (Class, subclasses, namespace)
@@ -82,22 +97,5 @@ for (const property of Object.getOwnPropertyNames (instance)) {
         })
     }
 }
-// delay string concatenation until error is thrown
-Object.defineProperty (BaseError.prototype, 'message', {
-    get () {
-        let message = [this.exchangeId, this.httpMethod, this.url, this.httpStatusCode, this.httpStatusText, this.errorMessage].filter (x => x !== undefined).join (' ')
-        if (this.verbose) {
-            if (this.responseHeaders) {
-                message += '\n' + JSON.stringify (this.responseHeaders, undefined, 2)
-            }
-            if (this.responseJson) {
-                message += '\n' + JSON.stringify (this.responseJson, undefined, 2)
-            } else if (this.responseBody) {
-                message += '\n' + this.responseBody
-            }
-        }
-        return message
-    },
-})
 
 module.exports = Errors
