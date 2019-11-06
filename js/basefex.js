@@ -31,7 +31,7 @@ module.exports = class basefex extends Exchange {
         fetchTicker: true,
         fetchOrderBook: true,
         fetchTrades: true,
-        fetchOHLCV: false,
+        fetchOHLCV: true,
         fetchBalance: false,
         createOrder: false,
         cancelOrder: false,
@@ -76,11 +76,18 @@ module.exports = class basefex extends Exchange {
         }
       },
       timeframes: {
-        "1m": "1m",
-        "5m": "5m",
-        "1h": "1h",
-        "1d": "1d"
-      }, // redefine if the exchange has.fetchOHLCV . TODO
+        "1m": "1MIN",
+        "3m": "3MIN",
+        "5m": "5MIN",
+        "15m": "15MIN",
+        "30m": "30MIN",
+        "1h": "1H",
+        "2h": "2H",
+        "4h": "4H",
+        "6h": "6H",
+        "12h": "12H",
+        "1d": "1DAY"
+      }, // redefine if the exchange has.fetchOHLCV
       exceptions: {}, // TODO
       httpExceptions: {
         "498": AuthenticationError
@@ -104,7 +111,7 @@ module.exports = class basefex extends Exchange {
     fetchMarkets (): Fetches a list of all available markets from an exchange and returns an array of markets (objects with properties such as symbol, base, quote etc.). Some exchanges do not have means for obtaining a list of markets via their online API. For those, the list of markets is hardcoded.
     */
     const symbols = await this.publicGetSymbols();
-    return symbols.map(this.convertMarket.bind(this));
+    return symbols.map(this.castMarket.bind(this));
   }
 
   async fetchTradingFees(params = {}) {
@@ -117,14 +124,14 @@ module.exports = class basefex extends Exchange {
     */
     const candlesticks = await this.publicGetCandlesticksTypeSymbolHistory({
       path: {
-        type: "12H",
+        type: "1DAY",
         symbol: this.translateBaseFEXSymbol(symbol)
       },
       query: {
         limit: 1
       }
     });
-    return this.convertTicker(symbol, candlesticks[0]);
+    return this.castTicker(symbol, candlesticks[0]);
   }
 
   async fetchOrderBook(symbol) {
@@ -137,7 +144,7 @@ module.exports = class basefex extends Exchange {
       }
     });
 
-    return this.convertOrderBook(orderbookSource);
+    return this.castOrderBook(orderbookSource);
   }
 
   async fetchTrades(symbol) {
@@ -148,7 +155,36 @@ module.exports = class basefex extends Exchange {
       path: { symbol: this.translateBaseFEXSymbol(symbol) }
     });
 
-    return trades.map(this.convertTrade.bind(this, symbol));
+    return trades.map(this.castTrade.bind(this, symbol));
+  }
+
+  async fetchOHLCV(
+    symbol,
+    timeframe = "1m",
+    since = undefined,
+    limit = undefined
+  ) {
+    let from = undefined;
+    let to = undefined;
+    if (since > 0) {
+      from = this.ymdhms(since);
+      to = this.ymdhms(this.milliseconds());
+    }
+    const ohlcv = await this.publicGetCandlesticksTypeSymbolHistory({
+      path: {
+        type: this.timeframes[timeframe],
+        symbol: this.translateBaseFEXSymbol(symbol)
+      },
+      query: {
+        limit,
+        from,
+        to
+      }
+    });
+
+    const result = ohlcv.map(this.castOHLCV.bind(this));
+    result.reverse();
+    return result;
   }
 
   sign(
@@ -201,7 +237,7 @@ module.exports = class basefex extends Exchange {
     return super.request(path, type, method, params, headers, body);
   }
 
-  convertMarket(symbol) {
+  castMarket(symbol) {
     return {
       id: symbol.symbol, // string literal for referencing within an exchange
       symbol: this.translateSymbol(symbol.baseCurrency, symbol.quoteCurrency), // uppercase string literal of a pair of currencies
@@ -229,7 +265,7 @@ module.exports = class basefex extends Exchange {
     };
   }
 
-  convertFee(kvs) {
+  castFee(kvs) {
     return {
       // type: takerOrMaker,
       // currency: "BTC", // the unified fee currency code
@@ -238,7 +274,7 @@ module.exports = class basefex extends Exchange {
     };
   }
 
-  convertTicker(symbol, candlestick) {
+  castTicker(symbol, candlestick) {
     const open = candlestick.open;
     const close = candlestick.close;
     const last = close;
@@ -269,7 +305,7 @@ module.exports = class basefex extends Exchange {
     };
   }
 
-  convertOrderBook(source) {
+  castOrderBook(source) {
     const sortBook = function(book, desc) {
       const sortedKeyPairs = Object.keys(book).map(key => [
         key,
@@ -292,7 +328,7 @@ module.exports = class basefex extends Exchange {
     };
   }
 
-  convertTrade(symbol, trade) {
+  castTrade(symbol, trade) {
     return {
       info: trade, // the original decoded JSON as is
       id: trade.id, // string trade id
@@ -305,6 +341,17 @@ module.exports = class basefex extends Exchange {
       price: trade.price, // float price in quote currency
       amount: trade.size // amount of base currency
     };
+  }
+
+  castOHLCV(candlestick) {
+    return [
+      candlestick.time, // UTC timestamp in milliseconds, integer
+      candlestick.open, // (O)pen price, float
+      candlestick.high, // (H)ighest price, float
+      candlestick.low, // (L)owest price, float
+      candlestick.close, // (C)losing price, float
+      candlestick.volume // (V)olume (in terms of the base currency), float
+    ];
   }
 
   translateSymbol(base, quote) {
