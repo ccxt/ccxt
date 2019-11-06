@@ -29,7 +29,7 @@ module.exports = class basefex extends Exchange {
         fetchMarkets: true,
         fetchTradingFees: false,
         fetchTicker: true,
-        fetchOrderBook: false,
+        fetchOrderBook: true,
         fetchTrades: false,
         fetchOHLCV: false,
         fetchBalance: false,
@@ -94,6 +94,9 @@ module.exports = class basefex extends Exchange {
   }
 
   async fetchMarkets() {
+    /*
+    fetchMarkets (): Fetches a list of all available markets from an exchange and returns an array of markets (objects with properties such as symbol, base, quote etc.). Some exchanges do not have means for obtaining a list of markets via their online API. For those, the list of markets is hardcoded.
+    */
     const symbols = await this.publicGetSymbols();
     return symbols.map(this.convertMarkets.bind(this));
   }
@@ -103,6 +106,9 @@ module.exports = class basefex extends Exchange {
   }
 
   async fetchTicker(symbol) {
+    /*
+    fetchTicker (symbol): Fetch latest ticker data by trading symbol.
+    */
     const candlesticks = await this.publicGetCandlesticksTypeSymbolHistory({
       path: {
         type: "12H",
@@ -115,6 +121,12 @@ module.exports = class basefex extends Exchange {
       }
     });
     return this.convertTicker(symbol, candlesticks[0]);
+  }
+
+  async fetchOrderBook(symbol, limit = undefined) {
+    /*
+    fetchOrderBook (symbol[, limit = undefined[, params = {}]]): Fetch L2/L3 order book for a particular market trading symbol.
+    */
   }
 
   sign(
@@ -232,6 +244,17 @@ module.exports = class basefex extends Exchange {
       average: average, // average price, `(last + open) / 2`
       baseVolume: undefined, // volume of base currency traded for last 24 hours
       quoteVolume: undefined // volume of quote currency traded for last 24 hours
+    };
+  }
+
+  convertOrderBook() {
+    return {
+      bids: [
+        // [ price, amount ], // [ float, float ]
+      ],
+      asks: [],
+      timestamp: 1499280391811, // Unix Timestamp in milliseconds (seconds * 1000)
+      datetime: "2017-07-05T18:47:14.692Z" // ISO8601 datetime string with milliseconds
     };
   }
 
