@@ -655,29 +655,38 @@ class bittrex extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type !== 'limit') {
-            throw new ExchangeError($this->id . ' allows limit orders only');
-        }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $method = 'marketGet' . $this->capitalize ($side) . $type;
+        // v2 $base and quotes in reverse order, swapping back for v3, see fetchMarkets for more details
+        [$quote, $base] = explode($this->options['symbolSeparator'], $market['id']);
         $request = array (
-            'market' => $market['id'],
+            'marketSymbol' => $base . $this->options['symbolSeparator'] . $quote,
+            'direction' => strtoupper($side),
+            'type' => strtoupper($type),
             'quantity' => $this->amount_to_precision($symbol, $amount),
-            'rate' => $this->price_to_precision($symbol, $price),
         );
-        // if ($type == 'limit')
-        //     order['rate'] = $this->price_to_precision($symbol, $price);
-        $response = $this->$method (array_merge ($request, $params));
-        $orderIdField = $this->get_order_id_field ();
-        $orderId = $this->safe_string($response['result'], $orderIdField);
+        $timeInForceParam = $this->safe_value($params, 'timeInForce');
+        if ($timeInForceParam) {
+            $request['timeInForce'] = $timeInForceParam;
+        }
+        if ($type === 'market') {
+            if (!$request['timeInForce']) {
+                $request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
+            }
+        } else {
+            if (!$request['timeInForce']) {
+                $request['timeInForce'] = 'GOOD_TIL_CANCELLED';
+            }
+            $request['limit'] = $this->price_to_precision($symbol, $price);
+        }
+        $response = $this->v3PostOrders ($request);
         return array (
             'info' => $response,
-            'id' => $orderId,
+            'id' => $this->safe_string($response, 'id'),
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'status' => 'open',
+            'status' => strtolower($this->safe_string($response, 'status')),
         );
     }
 
@@ -1312,10 +1321,19 @@ class bittrex extends Exchange {
             }
         } else if ($api === 'v3') {
             $url .= $path;
-            if ($params) {
-                $url .= '?' . $this->rawencode ($params);
+            $content = $this->encode ('');
+            if ($method === 'GET') {
+                if ($params) {
+                    $url .= '?' . $this->rawencode ($params);
+                }
+            } else {
+                $content = $this->json ($params);
+                $body = $this->json ($params);
+                $headers = array (
+                    'Content-Type' => 'application/json',
+                );
             }
-            $contentHash = $this->hash ($this->encode (''), 'sha512', 'hex');
+            $contentHash = $this->hash ($content, 'sha512', 'hex');
             $timestamp = (string) $this->milliseconds ();
             $auth = $timestamp . $url . $method . $contentHash;
             $subaccountId = $this->safe_value($this->options, 'subaccountId');
@@ -1323,12 +1341,10 @@ class bittrex extends Exchange {
                 $auth .= $subaccountId;
             }
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512');
-            $headers = array (
-                'Api-Key' => $this->apiKey,
-                'Api-Timestamp' => $timestamp,
-                'Api-Content-Hash' => $contentHash,
-                'Api-Signature' => $signature,
-            );
+            $headers['Api-Key'] = $this->apiKey;
+            $headers['Api-Timestamp'] = $timestamp;
+            $headers['Api-Content-Hash'] = $contentHash;
+            $headers['Api-Signature'] = $signature;
             if ($subaccountId !== null) {
                 $headers['Api-Subaccount-Id'] = $subaccountId;
             }
@@ -1361,14 +1377,15 @@ class bittrex extends Exchange {
         //
         if ($body[0] === '{') {
             $success = $this->safe_value($response, 'success');
-            if ($success === null) {
+            $code = $this->safe_value($response, 'code');
+            if (($success !== null && !$success) || $code !== null) {
                 throw new ExchangeError($this->id . ' => malformed $response => ' . $this->json ($response));
             }
             if (gettype ($success) === 'string') {
                 // bleutrade uses string instead of boolean
                 $success = ($success === 'true') ? true : false;
             }
-            if (!$success) {
+            if (($success !== null && !$success)) {
                 $message = $this->safe_string($response, 'message');
                 $feedback = $this->id . ' ' . $this->json ($response);
                 $exceptions = $this->exceptions;

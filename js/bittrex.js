@@ -655,29 +655,38 @@ module.exports = class bittrex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const method = 'marketGet' + this.capitalize (side) + type;
+        // v2 base and quotes in reverse order, swapping back for v3, see fetchMarkets for more details
+        const [quote, base] = market['id'].split (this.options['symbolSeparator']);
         const request = {
-            'market': market['id'],
+            'marketSymbol': base + this.options['symbolSeparator'] + quote,
+            'direction': side.toUpperCase (),
+            'type': type.toUpperCase (),
             'quantity': this.amountToPrecision (symbol, amount),
-            'rate': this.priceToPrecision (symbol, price),
         };
-        // if (type == 'limit')
-        //     order['rate'] = this.priceToPrecision (symbol, price);
-        const response = await this[method] (this.extend (request, params));
-        const orderIdField = this.getOrderIdField ();
-        const orderId = this.safeString (response['result'], orderIdField);
+        const timeInForceParam = this.safeValue (params, 'timeInForce');
+        if (timeInForceParam) {
+            request['timeInForce'] = timeInForceParam;
+        }
+        if (type === 'market') {
+            if (!request['timeInForce']) {
+                request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
+            }
+        } else {
+            if (!request['timeInForce']) {
+                request['timeInForce'] = 'GOOD_TIL_CANCELLED';
+            }
+            request['limit'] = this.priceToPrecision (symbol, price);
+        }
+        const response = await this.v3PostOrders (request);
         return {
             'info': response,
-            'id': orderId,
+            'id': this.safeString (response, 'id'),
             'symbol': symbol,
             'type': type,
             'side': side,
-            'status': 'open',
+            'status': this.safeString (response, 'status').toLowerCase (),
         };
     }
 
@@ -1312,10 +1321,19 @@ module.exports = class bittrex extends Exchange {
             }
         } else if (api === 'v3') {
             url += path;
-            if (Object.keys (params).length) {
-                url += '?' + this.rawencode (params);
+            let content = this.encode ('');
+            if (method === 'GET') {
+                if (Object.keys (params).length) {
+                    url += '?' + this.rawencode (params);
+                }
+            } else {
+                content = this.json (params);
+                body = this.json (params);
+                headers = {
+                    'Content-Type': 'application/json',
+                };
             }
-            const contentHash = this.hash (this.encode (''), 'sha512', 'hex');
+            const contentHash = this.hash (content, 'sha512', 'hex');
             const timestamp = this.milliseconds ().toString ();
             let auth = timestamp + url + method + contentHash;
             const subaccountId = this.safeValue (this.options, 'subaccountId');
@@ -1323,12 +1341,10 @@ module.exports = class bittrex extends Exchange {
                 auth += subaccountId;
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
-            headers = {
-                'Api-Key': this.apiKey,
-                'Api-Timestamp': timestamp,
-                'Api-Content-Hash': contentHash,
-                'Api-Signature': signature,
-            };
+            headers['Api-Key'] = this.apiKey;
+            headers['Api-Timestamp'] = timestamp;
+            headers['Api-Content-Hash'] = contentHash;
+            headers['Api-Signature'] = signature;
             if (subaccountId !== undefined) {
                 headers['Api-Subaccount-Id'] = subaccountId;
             }
@@ -1361,14 +1377,15 @@ module.exports = class bittrex extends Exchange {
         //
         if (body[0] === '{') {
             let success = this.safeValue (response, 'success');
-            if (success === undefined) {
+            const code = this.safeValue (response, 'code');
+            if ((success !== undefined && !success) || code !== undefined) {
                 throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
             }
             if (typeof success === 'string') {
                 // bleutrade uses string instead of boolean
                 success = (success === 'true') ? true : false;
             }
-            if (!success) {
+            if ((success !== undefined && !success)) {
                 const message = this.safeString (response, 'message');
                 const feedback = this.id + ' ' + this.json (response);
                 const exceptions = this.exceptions;
