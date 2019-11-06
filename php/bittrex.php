@@ -655,29 +655,38 @@ class bittrex extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type !== 'limit') {
-            throw new ExchangeError($this->id . ' allows limit orders only');
-        }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $method = 'marketGet' . $this->capitalize ($side) . $type;
+        // v2 $base and quotes in reverse order, swapping back for v3, see fetchMarkets for more details
+        [$quote, $base] = explode($this->options['symbolSeparator'], $market['id']);
         $request = array (
-            'market' => $market['id'],
+            'marketSymbol' => $base . $this->options['symbolSeparator'] . $quote,
+            'direction' => strtoupper($side),
+            'type' => strtoupper($type),
             'quantity' => $this->amount_to_precision($symbol, $amount),
-            'rate' => $this->price_to_precision($symbol, $price),
         );
-        // if ($type == 'limit')
-        //     order['rate'] = $this->price_to_precision($symbol, $price);
-        $response = $this->$method (array_merge ($request, $params));
-        $orderIdField = $this->get_order_id_field ();
-        $orderId = $this->safe_string($response['result'], $orderIdField);
+        $timeInForceParam = $this->safe_value($params, 'timeInForce');
+        if ($timeInForceParam) {
+            $request['timeInForce'] = $timeInForceParam;
+        }
+        if ($type === 'market') {
+            if (!$request['timeInForce']) {
+                $request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
+            }
+        } else {
+            if (!$request['timeInForce']) {
+                $request['timeInForce'] = 'GOOD_TIL_CANCELLED';
+            }
+            $request['limit'] = $this->price_to_precision($symbol, $price);
+        }
+        $response = $this->v3PostOrders ($request);
         return array (
             'info' => $response,
-            'id' => $orderId,
+            'id' => $this->safe_string($response, 'id'),
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'status' => 'open',
+            'status' => strtolower($this->safe_string($response, 'status')),
         );
     }
 

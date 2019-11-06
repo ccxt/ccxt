@@ -640,28 +640,34 @@ class bittrex (Exchange):
         return self.filter_by_symbol(orders, symbol)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if type != 'limit':
-            raise ExchangeError(self.id + ' allows limit orders only')
         await self.load_markets()
         market = self.market(symbol)
-        method = 'marketGet' + self.capitalize(side) + type
+        # v2 base and quotes in reverse order, swapping back for v3, see fetchMarkets for more details
+        [quote, base] = market['id'].split(self.options['symbolSeparator'])
         request = {
-            'market': market['id'],
+            'marketSymbol': base + self.options['symbolSeparator'] + quote,
+            'direction': side.upper(),
+            'type': type.upper(),
             'quantity': self.amount_to_precision(symbol, amount),
-            'rate': self.price_to_precision(symbol, price),
         }
-        # if type == 'limit':
-        #     order['rate'] = self.price_to_precision(symbol, price)
-        response = await getattr(self, method)(self.extend(request, params))
-        orderIdField = self.get_order_id_field()
-        orderId = self.safe_string(response['result'], orderIdField)
+        timeInForceParam = self.safe_value(params, 'timeInForce')
+        if timeInForceParam:
+            request['timeInForce'] = timeInForceParam
+        if type == 'market':
+            if not request['timeInForce']:
+                request['timeInForce'] = 'IMMEDIATE_OR_CANCEL'
+        else:
+            if not request['timeInForce']:
+                request['timeInForce'] = 'GOOD_TIL_CANCELLED'
+            request['limit'] = self.price_to_precision(symbol, price)
+        response = await self.v3PostOrders(request)
         return {
             'info': response,
-            'id': orderId,
+            'id': self.safe_string(response, 'id'),
             'symbol': symbol,
             'type': type,
             'side': side,
-            'status': 'open',
+            'status': self.safe_string(response, 'status').lower(),
         }
 
     def get_order_id_field(self):

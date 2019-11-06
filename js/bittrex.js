@@ -655,29 +655,38 @@ module.exports = class bittrex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const method = 'marketGet' + this.capitalize (side) + type;
+        // v2 base and quotes in reverse order, swapping back for v3, see fetchMarkets for more details
+        const [quote, base] = market['id'].split (this.options['symbolSeparator']);
         const request = {
-            'market': market['id'],
+            'marketSymbol': base + this.options['symbolSeparator'] + quote,
+            'direction': side.toUpperCase (),
+            'type': type.toUpperCase (),
             'quantity': this.amountToPrecision (symbol, amount),
-            'rate': this.priceToPrecision (symbol, price),
         };
-        // if (type == 'limit')
-        //     order['rate'] = this.priceToPrecision (symbol, price);
-        const response = await this[method] (this.extend (request, params));
-        const orderIdField = this.getOrderIdField ();
-        const orderId = this.safeString (response['result'], orderIdField);
+        const timeInForceParam = this.safeValue (params, 'timeInForce');
+        if (timeInForceParam) {
+            request['timeInForce'] = timeInForceParam;
+        }
+        if (type === 'market') {
+            if (!request['timeInForce']) {
+                request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
+            }
+        } else {
+            if (!request['timeInForce']) {
+                request['timeInForce'] = 'GOOD_TIL_CANCELLED';
+            }
+            request['limit'] = this.priceToPrecision (symbol, price);
+        }
+        const response = await this.v3PostOrders (request);
         return {
             'info': response,
-            'id': orderId,
+            'id': this.safeString (response, 'id'),
             'symbol': symbol,
             'type': type,
             'side': side,
-            'status': 'open',
+            'status': this.safeString (response, 'status').toLowerCase (),
         };
     }
 
