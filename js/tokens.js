@@ -16,11 +16,11 @@ module.exports = class tokens extends Exchange {
             'rateLimit': 1000,
             'certified': false,
             'has': {
-                // 'CORS': false,
-                // 'publicAPI': true,
-                // 'privateAPI': true,
                 'fetchMarkets': true,
+                'fetchTickers': true,
                 'fetchTicker': true,
+                'fetchCurrencies': true,
+                'fetchOrderBook': true,
             },
             'urls': {
                 'api': 'https://api.tokens.net/',
@@ -38,22 +38,21 @@ module.exports = class tokens extends Exchange {
                         'public/trading-pairs/get/all/',
                         'public/ticker/all/',
                         'public/ticker/{pair}/',
-                        'public/ticker/{time}/{pair}/',
-                        'public/trades/{time}/{pair}/',
+                        'public/currency/all/',
                         'public/order-book/{pair}/',
                     ],
                 },
                 'private': {
                     'get': [
-                        'private/balance/{code}/',
-                        'private/orders/get/all/',
-                        'private/orders/get/{id}/',
-                        'private/orders/get/{pair}/',
-                        'private/orders/get/all/',
+                        // 'private/balance/{code}/',
+                        // 'private/orders/get/all/',
+                        // 'private/orders/get/{id}/',
+                        // 'private/orders/get/{pair}/',
+                        // 'private/orders/get/all/',
                     ],
                     'post': [
-                        'private/orders/add/limit/',
-                        'private/orders/cancel/{id}/',
+                        // 'private/orders/add/limit/',
+                        // 'private/orders/cancel/{id}/',
                     ],
                 },
             },
@@ -163,21 +162,21 @@ module.exports = class tokens extends Exchange {
         const result = [];
         const keys = Object.keys (markets);
         for (let i = 0; i < keys.length; i += 1) {
-            const symbolId = keys[i];
             const market = markets[keys[i]];
-            const symbol = market['title'];
-            const baseId = market['baseCurrency'];
-            const base = baseId.toUpperCase ();
-            const quoteId = market['counterCurrency'];
-            const quote = quoteId.toUpperCase ();
+            const id = keys[i];
+            const baseId = this.safeStringUpper (market, 'baseCurrency');
+            const base = this.safeCurrencyCode (baseId);
+            const quoteId = this.safeStringUpper (market, 'counterCurrency');
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
             const precision = {
                 'price': market['priceDecimals'],
                 'amount': market['amountDecimals'],
                 'cost': market['amountDecimals'],
             };
-            const cost = market['minAmount'];
+            const cost = this.safeFloat (market, 'minAmount');
             result.push ({
-                'id': symbolId,
+                'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -206,8 +205,11 @@ module.exports = class tokens extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        const tickers = await this.publicGetPublicTickerGetAll ();
+        await this.loadMarkets ();
+        const tickers = await this.publicGetPublicTickerAll ();
         // {
+        //     "status": "ok",
+        //     "timestamp": 1572945773,
         //     "btcusdt": {
         //         "last": "9381.24",
         //         "volume_usdt": "272264.02067160",
@@ -221,18 +223,26 @@ module.exports = class tokens extends Exchange {
         //     },
         //     ...
         // }
-        const result = {};
-        for (let i = 0; i < tickers.length; i++) {
-            const ticker = this.parseTicker (tickers[i]);
-            const symbol = this.safeString (ticker, 'symbol');
-            if (symbol !== undefined) {
-                result[symbol] = ticker;
+        const result = [];
+        const keys = Object.keys (tickers);
+        for (let i = 0; i < keys.length; i += 1) {
+            const symbolId = keys[i];
+            const ticker = tickers[symbolId];
+            if (symbolId !== 'status' && symbolId !== 'timestamp') {
+                const symbol = this.findSymbol (symbolId);
+                const market = this.markets[symbol];
+                result.push (this.parseTicker (ticker, market));
             }
         }
-        return result;
+        return this.indexBy (result, 'symbol');
     }
 
-    parseTicker (ticker, market = undefined) {
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.markets[symbol];
+        const ticker = await this.publicGetPublicTickerPair (this.extend ({
+            'pair': this.marketId (symbol),
+        }, params));
         // {
         //     "vwap": "9536.47798478",
         //     "volume_usdt": "272264.02067160",
@@ -246,35 +256,73 @@ module.exports = class tokens extends Exchange {
         //     "last": "9381.24",
         //     "low": "9340.37"
         // }
+        return this.parseTicker (ticker, market);
+    }
 
-        // let percentage = this.safeFloat (ticker, 'changeRate');
-        // if (percentage !== undefined) {
-        //     percentage = percentage * 100;
-        // }
-        // const last = this.safeFloat (ticker, 'last');
-        // let symbol = undefined;
-        // const marketId = this.safeString (ticker, 'symbol');
-        //  if (marketId !== undefined) {
-        //     if (marketId in this.markets_by_id) {
-        //         market = this.markets_by_id[marketId];
-        //         symbol = market['symbol'];
-        //     } else {
-        //         const [ baseId, quoteId ] = marketId.split ('-');
-        //         const base = this.safeCurrencyCode (baseId);
-        //         const quote = this.safeCurrencyCode (quoteId);
-        //         symbol = base + '/' + quote;
-        //     }
-        // }
-        // if (symbol === undefined) {
-        //     if (market !== undefined) {
-        //         symbol = market['symbol'];
-        //     }
-        // }
+    async fetchCurrencies (params = {}) {
+        const currenciesResponse = await this.publicGetPublicCurrencyAll ();
+        // {
+        //     "status": "ok",
+        //     "timestamp": 1572945773,
+        //     "currencies": {
+        //         "BTC": {
+        //             "canWithdraw": true,
+        //             "ethValue": "50.00000000",
+        //             "namePlural": "Bitcoins",
+        //             "minimalOrder": "0.0001",
+        //             "withdrawalFee": "0.0003",
+        //             "btcValue": "1.00000000",
+        //             "decimals": 8,
+        //             "name": "Bitcoin",
+        //             "usdtValue": "9302.93000000"
+        //         },
+        //         ...
+        //     },
+        // },
+        const currencies = currenciesResponse['currencies'];
+        // Currencies are returned as a dict (historical reasons)
+        const keys = Object.keys (currencies);
+        const result = {};
+        for (let i = 0; i < keys.length; i += 1) {
+            const currencySymbol = keys[i];
+            const currency = currencies[currencySymbol];
+            result[currencySymbol] = {
+                'id': currencySymbol,
+                'name': this.safeString (currency, 'name'),
+                'code': currencySymbol,
+                'precision': this.safeInteger (currency, 'decimals'),
+                'info': currency,
+            };
+        }
+        return result;
+    }
 
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const orderbook = await this.publicGetPublicOrderBookPair (this.extend ({
+            'pair': market['id'],
+        }, params));
+        const timestamp = this.safeTimestamp (orderbook, 'timestamp');
+        const parsedOrderbook = this.parseOrderBook (orderbook, timestamp);
+        parsedOrderbook['nonce'] = this.nonce ();
+        return parsedOrderbook;
+    }
+
+    parseTicker (ticker, market = undefined) {
+        const symbol = this.findSymbol (this.safeString (market, 'symbol'));
+        const lastPrice = this.safeFloat (ticker, 'last');
+        const openPrice = this.safeFloat (ticker, 'open');
+        const change = lastPrice - openPrice;
+        let percentage = 0;
+        if (openPrice !== 0) {
+            percentage = (change / openPrice) * 100;
+        }
+        const timestamp = this.safeTimestamp (ticker, 'timestamp');
         return {
-            'symbol': undefined,
-            'timestamp': this.safeInteger (ticker, 'timestamp'),
-            'datetime': undefined,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'bid'),
@@ -282,15 +330,15 @@ module.exports = class tokens extends Exchange {
             'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': this.safeFloat (ticker, 'vwap'),
-            'open': this.safeFloat (ticker, 'open'),
-            'close': this.safeFloat (ticker, 'last'),
-            'last': this.safeFloat (ticker, 'last'),
+            'open': openPrice,
+            'close': lastPrice,
+            'last': lastPrice,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'changePrice'),
+            'change': change,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': this.safeFloat (ticker, 'volValue'),
+            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }

@@ -13,22 +13,45 @@ let tokens = new ccxt.tokens ({
 
 let printMarkets = async () => {
     log.green ('printMarkets:', '--- start ----')
-    let markets = await tokens.loadMarkets ()
-    log(markets)
+    let response = await tokens.loadMarkets ()
+    log(response)
+}
+
+let printTickers = async () => {
+    log.green ('printTicker:', '--- start ----')
+    let response = await tokens.fetchTickers ()
+    log(response)
 }
 
 let printTicker = async () => {
     log.green ('printTicker:', '--- start ----')
-    let markets = await tokens.loadTickers ()
-    log(markets)
+    let response = await tokens.fetchTicker ('BTC/USDT')
+    log(response)
 }
 
-;(async function main () {
+let printCurrencies = async () => {
+    log.green ('printCurrencies:', '--- start ----')
+    let response = await tokens.fetchCurrencies ()
+    log(response)
+}
+
+let printOrderBook = async () => {
+    log.green ('printTicker:', '--- start ----')
+    let response = await tokens.fetchOrderBook ('BTC/USDT')
+    log(response)
+    log ('Bids:')
+    log (asTable (response['bids']))
+}
+
+
+(async function main () {
     // await printMarkets ()
-    await printTicker ()
+    // await printTickers ()
+    // await printTicker ()
+    // await printCurrencies ()
+    await printOrderBook ()
 
 
     process.exit ()
 
 }) ()
-
