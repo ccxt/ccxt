@@ -35,7 +35,7 @@ function monkeyPatchExchange (exchange, Exchange, keys) {
 
 // ----------------------------------------------------------------------------
 
-function getChildKeysWithConstructor (parentClass, childClass) {
+function getChildKeys (parentClass, childClass) {
     const parentKeys = Reflect.ownKeys (parentClass.prototype)
     const childKeys = Reflect.ownKeys (childClass.prototype)
     return childKeys.reduce ((previous, current, i) => {
@@ -50,7 +50,7 @@ function getChildKeysWithConstructor (parentClass, childClass) {
 // ----------------------------------------------------------------------------
 
 function monkeyPatchAllExchanges (exchanges, Exchange, ccxt) {
-    const diffKeys = getChildKeysWithConstructor (ccxt.Exchange, Exchange)
+    const diffKeys = getChildKeys (ccxt.Exchange, Exchange)
     const ids = Object.keys (exchanges)
     const result = {}
     for (let i = 0; i < ids.length; i++) {
