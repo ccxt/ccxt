@@ -53,16 +53,6 @@ function error_factory($array, $parent) {
 }
 
 
-function un_camel_case($string) {
-    if (preg_match('/^[A-Z-9_]+$/', $string)) {
-        return $string;
-    }
-    $first = preg_replace('/([a-z0-9])([A-Z])/', '$1_$2', $string);
-    $second = preg_replace('/([A-Z0-9])([A-Z0-9][a-z])/', '$1_$2', $first);
-    return strtolower($second);
-}
-
-
 class BaseError extends Exception {
     public $message;
     public $error_message;
@@ -124,6 +114,7 @@ class BaseError extends Exception {
         // called for properties that do not exist in class, i.e. camelCase
         // getMessage is final, so we make an entry point here
         if ($name === 'message') {
+            echo 'here';
             return $this->__toString();
         }
         if (array_key_exists($name, $this->camel_case)) {
