@@ -78,8 +78,8 @@ class BaseError extends Exception {
     public $camel_case;
 
     public function __construct($error_message, $exchange = null, $http_code = null, $http_status_text = null, $url = null, $http_method = null, $response_headers = null, $response_body = null, $response_json = null, ...$args) {
-        $verbose = null;
-        $exchange_id = null;
+        $this->verbose = null;
+        $this->exchange_id = null;
         if ($exchange) {
             $this->verbose = $exchange->verbose;
             $this->exchange_id = $exchange->id;
