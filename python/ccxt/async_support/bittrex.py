@@ -1220,21 +1220,27 @@ class bittrex (Exchange):
                 url += '?' + self.urlencode(params)
         elif api == 'v3':
             url += path
-            if params:
-                url += '?' + self.rawencode(params)
-            contentHash = self.hash(self.encode(''), 'sha512', 'hex')
+            content = self.encode('')
+            if method == 'GET':
+                if params:
+                    url += '?' + self.rawencode(params)
+            else:
+                content = self.json(params)
+                body = self.json(params)
+                headers = {
+                    'Content-Type': 'application/json',
+                }
+            contentHash = self.hash(content, 'sha512', 'hex')
             timestamp = str(self.milliseconds())
             auth = timestamp + url + method + contentHash
             subaccountId = self.safe_value(self.options, 'subaccountId')
             if subaccountId is not None:
                 auth += subaccountId
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
-            headers = {
-                'Api-Key': self.apiKey,
-                'Api-Timestamp': timestamp,
-                'Api-Content-Hash': contentHash,
-                'Api-Signature': signature,
-            }
+            headers['Api-Key'] = self.apiKey
+            headers['Api-Timestamp'] = timestamp
+            headers['Api-Content-Hash'] = contentHash
+            headers['Api-Signature'] = signature
             if subaccountId is not None:
                 headers['Api-Subaccount-Id'] = subaccountId
         else:
@@ -1261,12 +1267,13 @@ class bittrex (Exchange):
         #
         if body[0] == '{':
             success = self.safe_value(response, 'success')
-            if success is None:
+            code = self.safe_value(response, 'code')
+            if (success is not None and not success) or code is not None:
                 raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
             if isinstance(success, basestring):
                 # bleutrade uses string instead of boolean
                 success = True if (success == 'true') else False
-            if not success:
+            if (success is not None and not success):
                 message = self.safe_string(response, 'message')
                 feedback = self.id + ' ' + self.json(response)
                 exceptions = self.exceptions
