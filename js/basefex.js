@@ -18,7 +18,7 @@ const localTool = {
 //  ---------------------------------------------------------------------------
 module.exports = class basefex extends Exchange {
   describe() {
-    return {
+    return this.deepExtend(super.describe(), {
       id: "basefex",
       name: "BaseFEX",
       countries: ["SC"], // TODO
@@ -60,7 +60,7 @@ module.exports = class basefex extends Exchange {
       },
       api: {
         public: {
-          get: ["symbols"]
+          get: ["symbols", "spec/kvs"]
         },
         private: {
           get: [],
@@ -81,14 +81,25 @@ module.exports = class basefex extends Exchange {
       },
       // 'precisionMode': DECIMAL_PLACES, // TODO
       options: {
-        "api-expires": 10 // in seconds
+        "api-expires": 10, // in seconds
+        "kvs-key": [
+          "maker-fee-rate",
+          "taker-fee-rate",
+          "long-funding-rate",
+          "short-funding-rate",
+          "funding-interval"
+        ]
       }
-    };
+    });
   }
 
   async fetchMarkets() {
     const symbols = await this.publicGetSymbols();
     return symbols.map(this.convertMarkets.bind(this));
+  }
+
+  async fetchTradingFees() {
+    // await this.loadMarkets(false);
   }
 
   convertMarkets(symbol) {
@@ -119,6 +130,8 @@ module.exports = class basefex extends Exchange {
     };
   }
 
+  convertFee() {}
+
   sign(
     path,
     api = "public",
@@ -130,7 +143,7 @@ module.exports = class basefex extends Exchange {
     const url = this.urls["api"] + path;
     if (api === "private" && this.apiKey && this.secret) {
       let auth = method + path;
-      let expires = this.safeInteger(this.options, "api-expires");
+      let expires = this.options["api-expires"];
       expires = this.sum(this.seconds(), expires).toString();
       auth += expires;
       if (method === "POST" || method === "PUT" || method === "DELETE") {
