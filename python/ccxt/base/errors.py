@@ -93,11 +93,11 @@ class BaseError(Exception):
     def __getattr__(self, item):
         # __getattr__ is called for attributes that are not found on the object
         item = BaseError.camel_case.get(item, item)
-        return super(BaseError, self).__getattribute__(item)
+        return super(BaseError, self).__getattribute__(item)  # we must do this to avoid a recursion error
 
     def __setattr__(self, key, value):
         key = BaseError.camel_case.get(key, key)
-        return super(BaseError, self).__setattr__(key, value)
+        return super(BaseError, self).__setattr__(key, value)  # we must do this to avoid a recursion error
 
     def __str__(self):
         message = ' '.join(str(i) for i in [self.exchange_id, self.http_method, self.url, self.http_code,
