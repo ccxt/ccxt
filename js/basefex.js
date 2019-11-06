@@ -60,7 +60,12 @@ module.exports = class basefex extends Exchange {
       },
       api: {
         public: {
-          get: ["symbols", "spec/kvs", "candlesticks/{type}@{symbol}/history"]
+          get: [
+            "symbols",
+            "spec/kvs",
+            "candlesticks/{type}@{symbol}/history",
+            "depth@{symbol}/snapshot"
+          ]
         },
         private: {
           get: [],
@@ -98,7 +103,7 @@ module.exports = class basefex extends Exchange {
     fetchMarkets (): Fetches a list of all available markets from an exchange and returns an array of markets (objects with properties such as symbol, base, quote etc.). Some exchanges do not have means for obtaining a list of markets via their online API. For those, the list of markets is hardcoded.
     */
     const symbols = await this.publicGetSymbols();
-    return symbols.map(this.convertMarkets.bind(this));
+    return symbols.map(this.convertMarket.bind(this));
   }
 
   async fetchTradingFees(params = {}) {
@@ -112,9 +117,7 @@ module.exports = class basefex extends Exchange {
     const candlesticks = await this.publicGetCandlesticksTypeSymbolHistory({
       path: {
         type: "12H",
-        symbol: String(symbol)
-          .replace("/", "")
-          .toUpperCase()
+        symbol: this.translateBaseFEXSymbol(symbol)
       },
       query: {
         limit: 1
@@ -123,10 +126,17 @@ module.exports = class basefex extends Exchange {
     return this.convertTicker(symbol, candlesticks[0]);
   }
 
-  async fetchOrderBook(symbol, limit = undefined) {
+  async fetchOrderBook(symbol) {
     /*
     fetchOrderBook (symbol[, limit = undefined[, params = {}]]): Fetch L2/L3 order book for a particular market trading symbol.
     */
+    const orderbookSource = await this.publicGetDepthSymbolSnapshot({
+      path: {
+        symbol: this.translateBaseFEXSymbol(symbol)
+      }
+    });
+
+    return this.convertOrderBook(orderbookSource);
   }
 
   sign(
@@ -179,7 +189,7 @@ module.exports = class basefex extends Exchange {
     return super.request(path, type, method, params, headers, body);
   }
 
-  convertMarkets(symbol) {
+  convertMarket(symbol) {
     return {
       id: symbol.symbol, // string literal for referencing within an exchange
       symbol: this.translateSymbol(symbol.baseCurrency, symbol.quoteCurrency), // uppercase string literal of a pair of currencies
@@ -247,18 +257,36 @@ module.exports = class basefex extends Exchange {
     };
   }
 
-  convertOrderBook() {
+  convertOrderBook(source) {
+    const sortBook = function(book, desc) {
+      const sortedKeyPairs = Object.keys(book).map(key => [
+        key,
+        Number.parseFloat(key)
+      ]);
+      sortedKeyPairs.sort(([, a], [, b]) => a - b);
+      if (desc) {
+        sortedKeyPairs.reverse();
+      }
+      return sortedKeyPairs.map(([key, price]) => [price, book[key]]);
+    };
+
     return {
-      bids: [
-        // [ price, amount ], // [ float, float ]
-      ],
-      asks: [],
-      timestamp: 1499280391811, // Unix Timestamp in milliseconds (seconds * 1000)
-      datetime: "2017-07-05T18:47:14.692Z" // ISO8601 datetime string with milliseconds
+      // [ price, amount ]
+      // [ float, float ]
+      bids: sortBook(source.bids, true),
+      asks: sortBook(source.bids, false),
+      timestamp: undefined, // Unix Timestamp in milliseconds (seconds * 1000)
+      datetime: undefined // ISO8601 datetime string with milliseconds
     };
   }
 
   translateSymbol(base, quote) {
     return `${String(base).toUpperCase()}/${String(quote).toUpperCase()}`;
+  }
+
+  translateBaseFEXSymbol(symbol) {
+    return String(symbol)
+      .replace("/", "")
+      .toUpperCase();
   }
 };
