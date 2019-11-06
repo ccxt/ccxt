@@ -2519,7 +2519,9 @@ module.exports = class okex3 extends Exchange {
         //         },
         //     ]
         //
-        const entries = (type === 'margin') ? response[0] : response;
+        const isArray = Array.isArray (response[0]);
+        const isMargin = (type === 'margin');
+        const entries = (isMargin && isArray) ? response[0] : response;
         return this.parseLedger (entries, currency, since, limit);
     }
 

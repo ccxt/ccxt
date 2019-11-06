@@ -407,7 +407,12 @@ class coinfloor extends Exchange {
             'symbol' => $market['id'],
             'id' => $id,
         );
-        return $this->privatePostSymbolCancelOrder ($request);
+        $response = $this->privatePostSymbolCancelOrder ($request);
+        if ($response === 'false') {
+            // unfortunately the exchange does not give much info in the $response
+            throw new InvalidOrder($this->id . ' cancel was rejected');
+        }
+        return $response;
     }
 
     public function parse_order ($order, $market = null) {

@@ -136,6 +136,7 @@ class bitmart extends Exchange {
                     'Place order error' => '\\ccxt\\InvalidOrder', // array("message":"Place order error")
                     'Not found' => '\\ccxt\\OrderNotFound', // array("message":"Not found")
                     'Visit too often, please try again later' => '\\ccxt\\DDoSProtection', // array("code":-30,"msg":"Visit too often, please try again later","subMsg":"","data":array())
+                    'Unknown symbol' => '\\ccxt\\BadSymbol', // array("message":"Unknown symbol")
                 ),
                 'broad' => array (
                     'Maximum price is' => '\\ccxt\\InvalidOrder', // array("message":"Maximum price is 0.112695")

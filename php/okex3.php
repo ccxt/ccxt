@@ -2520,7 +2520,9 @@ class okex3 extends Exchange {
         //         ),
         //     )
         //
-        $entries = ($type === 'margin') ? $response[0] : $response;
+        $isArray = gettype ($response[0]) === 'array' && count (array_filter (array_keys ($response[0]), 'is_string')) == 0;
+        $isMargin = ($type === 'margin');
+        $entries = ($isMargin && $isArray) ? $response[0] : $response;
         return $this->parse_ledger($entries, $currency, $since, $limit);
     }
 
