@@ -28,7 +28,7 @@ module.exports = class basefex extends Exchange {
         CORS: false,
         fetchMarkets: true,
         fetchTradingFees: false,
-        fetchTicker: false,
+        fetchTicker: true,
         fetchOrderBook: false,
         fetchTrades: false,
         fetchOHLCV: false,
