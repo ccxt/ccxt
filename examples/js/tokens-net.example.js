@@ -36,20 +36,26 @@ let printCurrencies = async () => {
 }
 
 let printOrderBook = async () => {
-    log.green ('printTicker:', '--- start ----')
+    log.green ('printOrderBook:', '--- start ----')
     let response = await tokens.fetchOrderBook ('BTC/USDT')
     log(response)
     log ('Bids:')
     log (asTable (response['bids']))
 }
 
+let printTrades = async () => {
+    log.green ('printTrades:', '--- start ----')
+    let response = await tokens.fetchTrades ('BTC/USDT')
+    log(response)
+}
 
 (async function main () {
     // await printMarkets ()
     // await printTickers ()
     // await printTicker ()
     // await printCurrencies ()
-    await printOrderBook ()
+    // await printOrderBook ()
+    await printTrades ()
 
 
     process.exit ()

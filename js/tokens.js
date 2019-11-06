@@ -21,6 +21,7 @@ module.exports = class tokens extends Exchange {
                 'fetchTicker': true,
                 'fetchCurrencies': true,
                 'fetchOrderBook': true,
+                'fetchTrades': true,
             },
             'urls': {
                 'api': 'https://api.tokens.net/',
@@ -40,6 +41,7 @@ module.exports = class tokens extends Exchange {
                         'public/ticker/{pair}/',
                         'public/currency/all/',
                         'public/order-book/{pair}/',
+                        'public/trades/hour/{pair}/',
                     ],
                 },
                 'private': {
@@ -303,11 +305,63 @@ module.exports = class tokens extends Exchange {
         const orderbook = await this.publicGetPublicOrderBookPair (this.extend ({
             'pair': market['id'],
         }, params));
+        // {
+        //     "timestamp":1573031500,
+        //     "status":"ok",
+        //     "asks":[
+        //         [
+        //             "0.02126453",
+        //             "192.94"
+        //         ],
+        //         [
+        //             "0.02322024",
+        //             "192.95"
+        //         ],
+        //         ...
+        //     ],
+        //     "bids":[
+        //         [
+        //             "0.00486816",
+        //             "192.75"
+        //         ],
+        //         [
+        //             "0.02811401",
+        //             "192.56"
+        //         ],
+        //         ...
+        //     ]
+        // }
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
         const parsedOrderbook = this.parseOrderBook (orderbook, timestamp);
         parsedOrderbook['nonce'] = this.nonce ();
         return parsedOrderbook;
     }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const response = await this.publicGetPublicTradesHourPair (this.extend ({
+            'pair': market['id'],
+        }, params));
+        // {
+        //     "timestamp":1573031391,
+        //     "trades":[
+        //         {
+        //             "datetime":1573028240,
+        //             "price":"192.93",
+        //             "id":3655654,
+        //             "amount":"1.51166933",
+        //             "type":"buy"
+        //         },
+        //         ...
+        //     ],
+        //     "status":"ok"
+        // }
+        console.log (response['trades']);
+        return this.parseTrades (response['trades'], market, since, limit);
+    }
+
+    /* Parse functions */
 
     parseTicker (ticker, market = undefined) {
         const symbol = this.findSymbol (this.safeString (market, 'symbol'));
@@ -340,6 +394,33 @@ module.exports = class tokens extends Exchange {
             'baseVolume': this.safeFloat (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
+        };
+    }
+
+    parseTrade (trade, market = undefined) {
+        const timestamp = this.safeTimestamp (trade, 'datetime');
+        const id = this.safeString (trade, 'id');
+        const side = this.safeString (trade, 'type');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = this.safeString (market, 'symbol');
+        }
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': id,
+            'symbol': symbol,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': price * amount,
+            'info': trade,
+            'order': undefined,
+            'takerOrMaker': undefined,
+            'type': undefined,
+            'fee': undefined,
         };
     }
 };
