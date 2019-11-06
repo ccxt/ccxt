@@ -60,7 +60,7 @@ module.exports = class basefex extends Exchange {
       },
       api: {
         public: {
-          get: ["symbols", "spec/kvs"]
+          get: ["symbols", "spec/kvs", "candlesticks/{type}@{symbol}/history"]
         },
         private: {
           get: [],
@@ -98,39 +98,24 @@ module.exports = class basefex extends Exchange {
     return symbols.map(this.convertMarkets.bind(this));
   }
 
-  async fetchTradingFees() {
-    // await this.loadMarkets(false);
+  async fetchTradingFees(params = {}) {
+    throw new NotSupported(this.id + " fetchTradingFees not supported yet");
   }
 
-  convertMarkets(symbol) {
-    return {
-      id: symbol.symbol, // string literal for referencing within an exchange
-      symbol: `${symbol.baseCurrency}/${symbol.quoteCurrency}`, // uppercase string literal of a pair of currencies
-      base: this.safe_string_upper(symbol, "baseCurrency"), // uppercase string, unified base currency code, 3 or more letters
-      quote: this.safe_string_upper(symbol, "quoteCurrency"), // uppercase string, unified quote currency code, 3 or more letters
-      baseId: symbol.baseCurrency, // any string, exchange-specific base currency id
-      quoteId: symbol.quoteCurrency, // any string, exchange-specific quote currency id
-      active: symbol.enable, // boolean, market status
-      precision: {
-        // number of decimal digits "after the dot"
-        price: symbol.priceStep // integer or float for TICK_SIZE roundingMode, might be missing if not supplied by the exchange
-        // amount: 8, // integer, might be missing if not supplied by the exchange
-        // cost: 8 // integer, very few exchanges actually have it
+  async fetchTicker(symbol) {
+    const candlesticks = await this.publicGetCandlesticksTypeSymbolHistory({
+      path: {
+        type: "12H",
+        symbol: String(symbol)
+          .replace("/", "")
+          .toUpperCase()
       },
-      limits: {
-        // value limits when placing orders on this market
-        // amount: {
-        //   min: 0.01, // order amount should be > min
-        //   max: 1000 // order amount should be < max
-        // },
-        // price: {}, // same min/max limits for the price of the order
-        // cost: {} // same limits for order cost = price * amount
-      },
-      info: symbol // the original unparsed market info from the exchange
-    };
+      query: {
+        limit: 1
+      }
+    });
+    return this.convertTicker(symbol, candlesticks[0]);
   }
-
-  convertFee() {}
 
   sign(
     path,
@@ -180,5 +165,77 @@ module.exports = class basefex extends Exchange {
       path += `?${this.urlencode(queryObj)}`;
     }
     return super.request(path, type, method, params, headers, body);
+  }
+
+  convertMarkets(symbol) {
+    return {
+      id: symbol.symbol, // string literal for referencing within an exchange
+      symbol: this.translateSymbol(symbol.baseCurrency, symbol.quoteCurrency), // uppercase string literal of a pair of currencies
+      base: this.safeStringUpper(symbol, "baseCurrency"), // uppercase string, unified base currency code, 3 or more letters
+      quote: this.safeStringUpper(symbol, "quoteCurrency"), // uppercase string, unified quote currency code, 3 or more letters
+      baseId: symbol.baseCurrency, // any string, exchange-specific base currency id
+      quoteId: symbol.quoteCurrency, // any string, exchange-specific quote currency id
+      active: symbol.enable, // boolean, market status
+      precision: {
+        // number of decimal digits "after the dot"
+        price: symbol.priceStep // integer or float for TICK_SIZE roundingMode, might be missing if not supplied by the exchange
+        // amount: 8, // integer, might be missing if not supplied by the exchange
+        // cost: 8 // integer, very few exchanges actually have it
+      },
+      limits: {
+        // value limits when placing orders on this market
+        // amount: {
+        //   min: 0.01, // order amount should be > min
+        //   max: 1000 // order amount should be < max
+        // },
+        // price: {}, // same min/max limits for the price of the order
+        // cost: {} // same limits for order cost = price * amount
+      },
+      info: symbol // the original unparsed market info from the exchange
+    };
+  }
+
+  convertFee(kvs) {
+    return {
+      // type: takerOrMaker,
+      // currency: "BTC", // the unified fee currency code
+      // rate: percentage, // the fee rate, 0.05% = 0.0005, 1% = 0.01, ...
+      // cost: feePaid // the fee cost (amount * fee rate)
+    };
+  }
+
+  convertTicker(symbol, candlestick) {
+    const open = candlestick.open;
+    const close = candlestick.close;
+    const last = close;
+    const change = last - open;
+    const percentage = (change / open) * 100;
+    const average = (last + open) / 2;
+    return {
+      symbol: symbol, //string symbol of the market ('BTC/USD', 'ETH/BTC', ...)
+      info: candlestick, // the original non-modified unparsed reply from exchange API
+      timestamp: candlestick.time, // int (64-bit Unix Timestamp in milliseconds since Epoch 1 Jan 1970)
+      datetime: this.iso8601(candlestick.time), //ISO8601 datetime string with milliseconds
+      high: candlestick.high, // highest price
+      low: candlestick.low, // lowest price
+      bid: undefined, // current best bid (buy) price
+      bidVolume: undefined, // current best bid (buy) amount (may be missing or undefined)
+      ask: undefined, // current best ask (sell) price
+      askVolume: undefined, // current best ask (sell) amount (may be missing or undefined)
+      vwap: candlestick.volume, // volume weighed average price
+      open: open, // opening price
+      close: close, // price of last trade (closing price for current period)
+      last: last, // same as `close`, duplicated for convenience
+      previousClose: undefined, // closing price for the previous period
+      change: change, // absolute change, `last - open`
+      percentage: percentage, // relative change, `(change/open) * 100`
+      average: average, // average price, `(last + open) / 2`
+      baseVolume: undefined, // volume of base currency traded for last 24 hours
+      quoteVolume: undefined // volume of quote currency traded for last 24 hours
+    };
+  }
+
+  translateSymbol(base, quote) {
+    return `${String(base).toUpperCase()}/${String(quote).toUpperCase()}`;
   }
 };
