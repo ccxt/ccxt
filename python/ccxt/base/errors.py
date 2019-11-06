@@ -42,7 +42,7 @@ error_hierarchy = {
 __all__ = []
 
 import re  # noqa
-import json # noqa
+import json  # noqa
 
 
 def un_camel_case(string):
@@ -62,39 +62,44 @@ def error_factory(dictionary, super_class):
 
 
 class BaseError(Exception):
+    camel_case = {
+        'exchangeId': 'exchange_id',
+        'errorMessage': 'error_message',
+        'httpCode': 'http_code',
+        'httpStatusText': 'http_status_text',
+        'httpMethod': 'http_method',
+        'responseHeaders': 'response_headers',
+        'responseBody': 'response_body',
+        'responseJson': 'response_json',
+    }
+
     def __init__(self, error_message, exchange=None, http_code=None, http_status_text=None, url=None, http_method=None, response_headers=None, response_body=None, response_json=None):
-        super(BaseError, self).__init__()
+        super(BaseError, self).__init__(error_message, exchange, http_code, http_status_text, url, http_method, response_headers, response_body, response_json)
         if exchange:
-            self.__dict__['verbose'] = exchange.verbose
-            self.__dict__['exchange_id'] = exchange.id
+            self.verbose = exchange.verbose
+            self.exchange_id = exchange.id
         else:
-            self.__dict__['verbose'] = True
-            self.__dict__['exchange_id'] = None
-        self.__dict__['error_message'] = error_message
-        self.__dict__['http_code'] = http_code
-        self.__dict__['http_status_text'] = http_status_text
-        self.__dict__['url'] = url
-        self.__dict__['http_method'] = http_method
-        self.__dict__['response_headers'] = response_headers
-        self.__dict__['response_body'] = response_body
-        self.__dict__['response_json'] = response_json
+            self.verbose = True
+            self.exchange_id = None
+        self.error_message = error_message
+        self.http_code = http_code
+        self.http_status_text = http_status_text
+        self.url = url
+        self.http_method = http_method
+        self.response_headers = response_headers
+        self.response_body = response_body
+        self.response_json = response_json
 
     def __getattr__(self, item):
         # __getattr__ is called for attributes that are not found on the object
-        underscore = un_camel_case(item)
-        if item == underscore:
-            raise AttributeError("{} object has no attribute {}".format(type(self).__name__, item))
-        return getattr(self, underscore)
+        item = BaseError.camel_case.get(item, item)
+        return super(BaseError, self).__getattribute__(item)
 
     def __setattr__(self, key, value):
-        underscore = un_camel_case(key)
-        if hasattr(self, underscore):
-            return super(BaseError, self).__setattr__(underscore, value)
-        else:
-            raise AttributeError('Cannot set attribute ' + key)
+        key = BaseError.camel_case.get(key, key)
+        return super(BaseError, self).__setattr__(key, value)
 
-    @property
-    def args(self):
+    def __str__(self):
         message = ' '.join(str(i) for i in [self.exchange_id, self.http_method, self.url, self.http_code,
                                             self.http_status_text, self.error_message] if i is not None)
         if self.verbose:
@@ -104,10 +109,7 @@ class BaseError(Exception):
                 message += '\n' + json.dumps(self.response_json, indent=2)
             elif self.response_body:
                 message += '\n' + self.response_body
-        return (message,)
-
-    def __str__(self):
-        return self.args[0]
+        return message
 
 
 error_factory(error_hierarchy['BaseError'], BaseError)

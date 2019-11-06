@@ -74,29 +74,19 @@ class BaseError extends Exception {
     public $response_headers;
     public $response_body;
     public $response_json;
+    public $verbose;
+    public $camel_case;
 
-    public function __construct($error_message, $exchange = null, $http_code = null, $http_status_text = null, $url = null, $http_method = null, $response_headers = null, $response_body = null, $response_json = null) {
+    public function __construct($error_message, $exchange = null, $http_code = null, $http_status_text = null, $url = null, $http_method = null, $response_headers = null, $response_body = null, $response_json = null, ...$args) {
         $verbose = null;
         $exchange_id = null;
         if ($exchange) {
-            $verbose = $exchange->verbose;
-            $exchange_id = $exchange->id;
+            $this->verbose = $exchange->verbose;
+            $this->exchange_id = $exchange->id;
         }
-
-        $message = implode(' ', array_map('strval', array_filter(array($exchange_id, $http_method, $url, $http_code, $http_status_text, $error_message), 'is_string')));
-        if ($verbose) {
-            if ($response_headers) {
-                $message .= "\n" . print_r($response_headers, true);
-            }
-            if ($response_json) {
-                $message .= "\n" . print_r($response_json, true);
-            } else if ($response_body) {
-                $message .= "\n" . $response_body;
-            }
-        }
-        parent::__construct($message, 0, null);
+        parent::__construct($this->message, ...$args);
+        unset($this->message);
         $this->error_message = $error_message;
-        $this->exchange_id = $exchange_id;
         $this->http_code = $http_code;
         $this->http_status_text = $http_status_text;
         $this->url = $url;
@@ -104,25 +94,51 @@ class BaseError extends Exception {
         $this->response_headers = $response_headers;
         $this->response_body = $response_body;
         $this->response_json = $response_json;
+        $this->camel_case = array(
+            'exchangeId' => 'exchange_id',
+            'httpCode' => 'http_code',
+            'httpStatusText' => 'http_status_text',
+            'httpMethod' => 'http_method',
+            'responseHeaders' => 'response_headers',
+            'responseBody' => 'response_body',
+            'responseJson' => 'response_json',
+        );
     }
 
     public function __toString() {
-        return $this->getMessage();
+        $this->message = implode(' ', array_map('strval', array_filter(array($this->exchange_id, $this->http_method, $this->url, $this->http_code, $this->http_status_text, $this->error_message), 'is_string')));
+        if ($this->verbose) {
+            if ($this->response_headers) {
+                $this->message .= "\n" . print_r($this->response_headers, true);
+            }
+            if ($this->response_json) {
+                $this->message .= "\n" . print_r($this->response_json, true);
+            } else if ($this->response_body) {
+                $this->message .= "\n" . $this->response_body;
+            }
+        }
+        return $this->message;
     }
 
     public function __get($name) {
         // called for properties that do not exist in class, i.e. camelCase
-        $underscore = un_camel_case($name);
-        return $this->$underscore;
+        // getMessage is final, so we make an entry point here
+        if ($name === 'message') {
+            return $this->__toString();
+        }
+        if (array_key_exists($name, $this->camel_case)) {
+            $underscore = $this->camel_case[$name];
+            return $this->$underscore;
+        }
+        return $this->$name;  // trigger error
     }
 
     public function __set($name, $value) {
-        $underscore = un_camel_case($value);
-        if (property_exists($this, $underscore)) {
-            $this->$underscore = $value;
-        } else {
-            throw new \InvalidArgumentException('Cannot set $name');
+        $underscore = $name;
+        if (array_key_exists($name, $this->camel_case)) {
+            $underscore = $this->camel_case[$name];
         }
+        $this->$underscore = $value;
     }
 };
 
