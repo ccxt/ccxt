@@ -1238,7 +1238,7 @@ class bittrex (Exchange):
                 headers = {
                     'Content-Type': 'application/json',
                 }
-            contentHash = self.hash(content, 'sha512', 'hex')
+            contentHash = self.hash(self.encode(content), 'sha512', 'hex')
             timestamp = str(self.milliseconds())
             auth = timestamp + url + method + contentHash
             subaccountId = self.safe_value(self.options, 'subaccountId')

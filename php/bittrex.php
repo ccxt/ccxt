@@ -1335,7 +1335,7 @@ class bittrex extends Exchange {
                     'Content-Type' => 'application/json',
                 );
             }
-            $contentHash = $this->hash ($content, 'sha512', 'hex');
+            $contentHash = $this->hash ($this->encode ($content), 'sha512', 'hex');
             $timestamp = (string) $this->milliseconds ();
             $auth = $timestamp . $url . $method . $contentHash;
             $subaccountId = $this->safe_value($this->options, 'subaccountId');

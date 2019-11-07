@@ -1335,7 +1335,7 @@ module.exports = class bittrex extends Exchange {
                     'Content-Type': 'application/json',
                 };
             }
-            const contentHash = this.hash (content, 'sha512', 'hex');
+            const contentHash = this.hash (this.encode (content), 'sha512', 'hex');
             const timestamp = this.milliseconds ().toString ();
             let auth = timestamp + url + method + contentHash;
             const subaccountId = this.safeValue (this.options, 'subaccountId');
