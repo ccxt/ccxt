@@ -13,7 +13,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
 
 
-class coinone (Exchange):
+class coinone(Exchange):
 
     def describe(self):
         return self.deep_extend(super(coinone, self).describe(), {

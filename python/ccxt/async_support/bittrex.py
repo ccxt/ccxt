@@ -28,7 +28,7 @@ from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 
-class bittrex (Exchange):
+class bittrex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bittrex, self).describe(), {
@@ -1087,6 +1087,7 @@ class bittrex (Exchange):
             'id': self.safe_string(order, 'id'),
             'side': self.safe_string(order, 'side'),
             'order': self.safe_string(order, 'id'),
+            'type': self.safe_string(order, 'type'),
             'price': self.safe_float(order, 'average'),
             'amount': self.safe_float(order, 'filled'),
             'cost': self.safe_float(order, 'cost'),

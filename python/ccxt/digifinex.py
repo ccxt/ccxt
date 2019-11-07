@@ -19,7 +19,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
 
 
-class digifinex (Exchange):
+class digifinex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(digifinex, self).describe(), {

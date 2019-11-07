@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1365'
+__version__ = '1.19.17'
 
 # -----------------------------------------------------------------------------
 
@@ -171,7 +171,9 @@ class Exchange(BaseExchange):
         self.handle_rest_response(http_response, json_response, url, method)
         if json_response is not None:
             return json_response
-        return http_response
+        if self.is_text_response(headers):
+            return http_response
+        return response.content
 
     async def load_markets(self, reload=False, params={}):
         if not reload:

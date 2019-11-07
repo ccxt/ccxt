@@ -16,7 +16,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class bitmex (Exchange):
+class bitmex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitmex, self).describe(), {

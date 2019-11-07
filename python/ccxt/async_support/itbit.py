@@ -9,7 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
 
-class itbit (Exchange):
+class itbit(Exchange):
 
     def describe(self):
         return self.deep_extend(super(itbit, self).describe(), {

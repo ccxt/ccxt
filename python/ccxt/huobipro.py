@@ -17,7 +17,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
 
 
-class huobipro (Exchange):
+class huobipro(Exchange):
 
     def describe(self):
         return self.deep_extend(super(huobipro, self).describe(), {
@@ -52,6 +52,7 @@ class huobipro (Exchange):
                 '15m': '15min',
                 '30m': '30min',
                 '1h': '60min',
+                '4h': '4hour',
                 '1d': '1day',
                 '1w': '1week',
                 '1M': '1mon',
@@ -173,6 +174,10 @@ class huobipro (Exchange):
                 'language': 'en-US',
             },
             'commonCurrencies': {
+                # https://github.com/ccxt/ccxt/issues/6081
+                # https://github.com/ccxt/ccxt/issues/3365
+                # https://github.com/ccxt/ccxt/issues/2873
+                'GET': 'Themis',  # conflict with GET(Guaranteed Entrance Token, GET Protocol)
                 'HOT': 'Hydro Protocol',  # conflict with HOT(Holo) https://github.com/ccxt/ccxt/issues/4929
             },
         })

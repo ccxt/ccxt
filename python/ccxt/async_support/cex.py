@@ -23,7 +23,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 
 
-class cex (Exchange):
+class cex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(cex, self).describe(), {

@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import NotSupported
 
 
-class bitlish (Exchange):
+class bitlish(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitlish, self).describe(), {

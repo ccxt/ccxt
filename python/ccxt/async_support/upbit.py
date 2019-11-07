@@ -14,7 +14,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
-class upbit (Exchange):
+class upbit(Exchange):
 
     def describe(self):
         return self.deep_extend(super(upbit, self).describe(), {
@@ -149,9 +149,6 @@ class upbit (Exchange):
                 'tradingFeesByQuoteCurrency': {
                     'KRW': 0.0005,
                 },
-            },
-            'commonCurrencies': {
-                'CPT': 'Contents Protocol',  # conflict with CPT(Cryptaur) https://github.com/ccxt/ccxt/issues/4920
             },
         })
 

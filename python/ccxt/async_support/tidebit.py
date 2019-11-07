@@ -9,7 +9,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 
 
-class tidebit (Exchange):
+class tidebit(Exchange):
 
     def describe(self):
         return self.deep_extend(super(tidebit, self).describe(), {

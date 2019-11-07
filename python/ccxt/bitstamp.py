@@ -23,7 +23,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
 
 
-class bitstamp (Exchange):
+class bitstamp(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitstamp, self).describe(), {

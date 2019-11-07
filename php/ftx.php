@@ -83,6 +83,7 @@ class ftx extends Exchange {
                         'orders/history', // ?market={market}
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
+                        'conditional_orders', // ?market={market}
                         'fills', // ?market={market}
                         'funding_payments',
                         'lt/balances',
@@ -101,6 +102,7 @@ class ftx extends Exchange {
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'orders',
+                        'conditional_orders/{order_id}',
                     ),
                 ),
             ),

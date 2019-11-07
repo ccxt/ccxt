@@ -6,7 +6,7 @@
 from ccxt.async_support.okcoinusd import okcoinusd
 
 
-class okex (okcoinusd):
+class okex(okcoinusd):
 
     def describe(self):
         return self.deep_extend(super(okex, self).describe(), {

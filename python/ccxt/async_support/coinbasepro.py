@@ -23,7 +23,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 
 
-class coinbasepro (Exchange):
+class coinbasepro(Exchange):
 
     def describe(self):
         return self.deep_extend(super(coinbasepro, self).describe(), {

@@ -21,7 +21,7 @@ from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 
 
-class bitfinex (Exchange):
+class bitfinex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitfinex, self).describe(), {
