@@ -1323,7 +1323,7 @@ class bittrex extends Exchange {
             }
         } else if ($api === 'v3') {
             $url .= $path;
-            $content = $this->encode ('');
+            $content = '';
             $headers = array (
                 'Content-Type' => 'application/json',
             );

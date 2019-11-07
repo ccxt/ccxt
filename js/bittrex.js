@@ -1323,7 +1323,7 @@ module.exports = class bittrex extends Exchange {
             }
         } else if (api === 'v3') {
             url += path;
-            let content = this.encode ('');
+            let content = '';
             headers = {
                 'Content-Type': 'application/json',
             };

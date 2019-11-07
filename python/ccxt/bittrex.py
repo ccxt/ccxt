@@ -1228,7 +1228,7 @@ class bittrex (Exchange):
                 url += '?' + self.urlencode(params)
         elif api == 'v3':
             url += path
-            content = self.encode('')
+            content = ''
             headers = {
                 'Content-Type': 'application/json',
             }
