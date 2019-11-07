@@ -69,7 +69,7 @@ module.exports = class basefex extends Exchange {
           ]
         },
         private: {
-          get: ["accounts"],
+          get: ["accounts", "orders/{id}", "orders"],
           post: ["orders"],
           put: [],
           delete: ["orders/{id}"]
@@ -169,7 +169,7 @@ module.exports = class basefex extends Exchange {
     return trades.map(this.castTrade.bind(this, symbol));
   }
 
-  async fetchOHLCV(symbol, timeframe = "1m", since, limit) {
+  async fetchOHLCV(symbol, timeframe = "1m", since, limit, params = {}) {
     /*
     fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {})
     */
@@ -179,16 +179,18 @@ module.exports = class basefex extends Exchange {
       from = this.ymdhms(since);
       to = this.ymdhms(this.milliseconds());
     }
+    const query = {
+      limit,
+      from,
+      to
+    };
+
     const ohlcv = await this.publicGetCandlesticksTypeSymbolHistory({
       path: {
         type: this.timeframes[timeframe],
         symbol: this.translateBaseFEXSymbol(symbol)
       },
-      query: {
-        limit,
-        from,
-        to
-      }
+      query: this.extend(query, params.query)
     });
 
     const result = ohlcv.map(this.castOHLCV.bind(this));
@@ -234,16 +236,34 @@ module.exports = class basefex extends Exchange {
     });
   }
 
-  async fetchOrder() {
+  async fetchOrder(id, symbol) {
     /*
     fetchOrder (id[, symbol[, params]])
     */
+    const order = await this.privateGetOrdersId({
+      path: {
+        id
+      }
+    });
+
+    return this.castOrder(symbol, order);
   }
 
-  async fetchOpenOrders() {
+  async fetchOpenOrders(symbol, since, limit, params = {}) {
     /*
     fetchMyTrades ([symbol[, since[, limit[, params]]]])
     */
+    const query = {
+      symbol: this.translateBaseFEXSymbol(symbol),
+      limit: limit
+    };
+    const orders = await this.privateGetOrders({
+      query: this.extend(query, params.query)
+    });
+
+    return orders
+      .filter(order => this.options["order-status"][order.status] === "open")
+      .map(this.castOrder.bind(this, symbol));
   }
 
   sign(path, api = "public", method = "GET", params = {}, headers = {}, body) {
