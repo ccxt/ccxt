@@ -38,7 +38,7 @@ module.exports = class basefex extends Exchange {
         editOrder: "emulated",
         fetchOrder: true,
         fetchOpenOrders: true,
-        fetchMyTrades: false,
+        fetchMyTrades: true,
         fetchDepositAddress: false,
         fetchDeposits: false,
         fetchWithdrawals: false,
