@@ -670,11 +670,13 @@ module.exports = class bittrex extends Exchange {
             request['timeInForce'] = timeInForceParam;
         }
         if (type === 'market') {
-            if (!request['timeInForce']) {
+            const timeInForceFromParams = this.safeValue (request, 'timeInForce');
+            if (timeInForceFromParams === undefined) {
                 request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
             }
         } else {
-            if (!request['timeInForce']) {
+            const timeInForceFromParams = this.safeValue (request, 'timeInForce');
+            if (timeInForceFromParams === undefined) {
                 request['timeInForce'] = 'GOOD_TIL_CANCELLED';
             }
             request['limit'] = this.priceToPrecision (symbol, price);

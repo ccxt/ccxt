@@ -670,11 +670,13 @@ class bittrex extends Exchange {
             $request['timeInForce'] = $timeInForceParam;
         }
         if ($type === 'market') {
-            if (!$request['timeInForce']) {
+            $timeInForceFromParams = $this->safe_value($request, 'timeInForce');
+            if ($timeInForceFromParams === null) {
                 $request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
             }
         } else {
-            if (!$request['timeInForce']) {
+            $timeInForceFromParams = $this->safe_value($request, 'timeInForce');
+            if ($timeInForceFromParams === null) {
                 $request['timeInForce'] = 'GOOD_TIL_CANCELLED';
             }
             $request['limit'] = $this->price_to_precision($symbol, $price);

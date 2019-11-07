@@ -654,10 +654,12 @@ class bittrex (Exchange):
         if timeInForceParam:
             request['timeInForce'] = timeInForceParam
         if type == 'market':
-            if not request['timeInForce']:
+            timeInForceFromParams = self.safe_value(request, 'timeInForce')
+            if timeInForceFromParams is None:
                 request['timeInForce'] = 'IMMEDIATE_OR_CANCEL'
         else:
-            if not request['timeInForce']:
+            timeInForceFromParams = self.safe_value(request, 'timeInForce')
+            if timeInForceFromParams is None:
                 request['timeInForce'] = 'GOOD_TIL_CANCELLED'
             request['limit'] = self.price_to_precision(symbol, price)
         response = await self.v3PostOrders(request)
