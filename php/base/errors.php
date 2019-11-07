@@ -114,7 +114,6 @@ class BaseError extends Exception {
         // called for properties that do not exist in class, i.e. camelCase
         // getMessage is final, so we make an entry point here
         if ($name === 'message') {
-            echo 'here';
             return $this->__toString();
         }
         if (array_key_exists($name, $this->camel_case)) {
