@@ -1,6 +1,7 @@
 'use strict';
 
 const errorHierarchy = require ('./errorHierarchy')
+const { unCamelCase } = require ('./functions/string')
 
 /*  ------------------------------------------------------------------------ */
 
