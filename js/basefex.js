@@ -70,9 +70,9 @@ module.exports = class basefex extends Exchange {
         },
         private: {
           get: ["accounts"],
-          post: [],
+          post: ["orders"],
           put: [],
-          delete: []
+          delete: ["orders/{id}"]
         }
       },
       timeframes: {
@@ -101,7 +101,18 @@ module.exports = class basefex extends Exchange {
           "long-funding-rate",
           "short-funding-rate",
           "funding-interval"
-        ]
+        ],
+        "order-status": {
+          NEW: "open",
+          INFORCE: "open",
+          PARTIALLY_FILLED: "open",
+          PARTIALLY_CANCELED: "canceled",
+          FILLED: "closed",
+          CANCELED: "canceled",
+          PENDING_CANCEL: "open",
+          REJECTED: "rejected",
+          UNTRIGGERED: "open"
+        }
       }
     });
   }
@@ -193,16 +204,34 @@ module.exports = class basefex extends Exchange {
     return this.castBalance(accounts);
   }
 
-  async createOrder() {
+  async createOrder(symbol, type, side, amount, price, params = {}) {
     /*
     createOrder (symbol, type, side, amount[, price[, params]])
     */
+    const body = {
+      symbol: this.translateBaseFEXSymbol(symbol),
+      type: this.translateBaseFEXOrderType(type),
+      side: this.translateBaseFEXOrderSide(side),
+      size: amount,
+      price: price
+    };
+
+    const order = await this.privatePostOrders({
+      body: this.extend(body, params.body)
+    });
+
+    return this.castOrder(symbol, order);
   }
 
-  async cancelOrder() {
+  async cancelOrder(id) {
     /*
     cancelOrder (id[, symbol[, params]])
     */
+    await this.privateDeleteOrdersId({
+      path: {
+        id
+      }
+    });
   }
 
   async fetchOrder() {
@@ -372,7 +401,7 @@ module.exports = class basefex extends Exchange {
       symbol: symbol, // symbol
       order: undefined, // string order id or undefined/None/null
       type: undefined, // order type, 'market', 'limit' or undefined/None/null
-      side: trade.side.toLowerCase(), // direction of the trade, 'buy' or 'sell'
+      side: this.translateOrderSide(trade.side), // direction of the trade, 'buy' or 'sell'
       price: trade.price, // float price in quote currency
       amount: trade.size // amount of base currency
     };
@@ -445,29 +474,35 @@ module.exports = class basefex extends Exchange {
     return balance;
   }
 
-  castOrder() {
+  castOrder(symbol, order) {
+    const price = order.price;
+    const amount = order.size;
+    const filled = order.filled;
+    const remaining = amount - filled;
+    const cost = filled * price;
     return {
-      id: "12345-67890:09876/54321", // string
-      datetime: "2017-08-17 12:42:48.000", // ISO8601 datetime of 'timestamp' with milliseconds
-      timestamp: 1502962946216, // order placing/opening Unix timestamp in milliseconds
-      lastTradeTimestamp: 1502962956216, // Unix timestamp of the most recent trade on this order
-      status: "open", // 'open', 'closed', 'canceled'
-      symbol: "ETH/BTC", // symbol
-      type: "limit", // 'market', 'limit'
-      side: "buy", // 'buy', 'sell'
-      price: 0.06917684, // float price in quote currency
-      amount: 1.5, // ordered amount of base currency
-      filled: 1.1, // filled amount of base currency
-      remaining: 0.4, // remaining amount to fill
-      cost: 0.076094524, // 'filled' * 'price' (filling price used where available)
-      trades: [], // a list of order trades/executions
-      fee: {
-        // fee info, if available
-        currency: "BTC", // which currency the fee is (usually quote)
-        cost: 0.0009, // the fee amount in that currency
-        rate: 0.002 // the fee rate (if available)
-      },
-      info: {} // the original unparsed order structure as is
+      id: order.id, // string
+      datetime: this.iso8601(order.ts), // ISO8601 datetime of 'timestamp' with milliseconds
+      timestamp: order.ts, // order placing/opening Unix timestamp in milliseconds
+      lastTradeTimestamp: undefined, // Unix timestamp of the most recent trade on this order
+      status: this.options["order-status"][order.status], // 'open', 'closed', 'canceled'
+      symbol: symbol, // symbol
+      type: this.translateOrderType(order.type), // 'market', 'limit'
+      side: this.translateOrderSide(order.side), // 'buy', 'sell'
+      price: price, // float price in quote currency
+      amount: amount, // ordered amount of base currency
+      filled: filled, // filled amount of base currency
+      remaining: remaining, // remaining amount to fill
+      cost: cost, // 'filled' * 'price' (filling price used where available)
+      trades: undefined, // a list of order trades/executions
+      fee: undefined,
+      // {
+      //   // fee info, if available
+      //   currency: "BTC", // which currency the fee is (usually quote)
+      //   cost: 0.0009, // the fee amount in that currency
+      //   rate: 0.002 // the fee rate (if available)
+      // },
+      info: order // the original unparsed order structure as is
     };
   }
 
@@ -479,5 +514,21 @@ module.exports = class basefex extends Exchange {
     return String(symbol)
       .replace("/", "")
       .toUpperCase();
+  }
+
+  translateOrderSide(side) {
+    return String(side).toLowerCase();
+  }
+
+  translateBaseFEXOrderSide(side) {
+    return String(side).toUpperCase();
+  }
+
+  translateOrderType(type) {
+    return String(type).toLowerCase();
+  }
+
+  translateBaseFEXOrderType(type) {
+    return String(type).toUpperCase();
   }
 };
