@@ -1324,6 +1324,9 @@ module.exports = class bittrex extends Exchange {
         } else if (api === 'v3') {
             url += path;
             let content = this.encode ('');
+            headers = {
+                'Content-Type': 'application/json',
+            };
             if (method === 'GET') {
                 if (Object.keys (params).length) {
                     url += '?' + this.rawencode (params);
@@ -1331,9 +1334,6 @@ module.exports = class bittrex extends Exchange {
             } else {
                 content = this.json (params);
                 body = this.json (params);
-                headers = {
-                    'Content-Type': 'application/json',
-                };
             }
             const contentHash = this.hash (this.encode (content), 'sha512', 'hex');
             const timestamp = this.milliseconds ().toString ();

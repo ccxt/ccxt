@@ -1229,15 +1229,15 @@ class bittrex (Exchange):
         elif api == 'v3':
             url += path
             content = self.encode('')
+            headers = {
+                'Content-Type': 'application/json',
+            }
             if method == 'GET':
                 if params:
                     url += '?' + self.rawencode(params)
             else:
                 content = self.json(params)
                 body = self.json(params)
-                headers = {
-                    'Content-Type': 'application/json',
-                }
             contentHash = self.hash(self.encode(content), 'sha512', 'hex')
             timestamp = str(self.milliseconds())
             auth = timestamp + url + method + contentHash

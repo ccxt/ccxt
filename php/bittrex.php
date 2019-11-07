@@ -1324,6 +1324,9 @@ class bittrex extends Exchange {
         } else if ($api === 'v3') {
             $url .= $path;
             $content = $this->encode ('');
+            $headers = array (
+                'Content-Type' => 'application/json',
+            );
             if ($method === 'GET') {
                 if ($params) {
                     $url .= '?' . $this->rawencode ($params);
@@ -1331,9 +1334,6 @@ class bittrex extends Exchange {
             } else {
                 $content = $this->json ($params);
                 $body = $this->json ($params);
-                $headers = array (
-                    'Content-Type' => 'application/json',
-                );
             }
             $contentHash = $this->hash ($this->encode ($content), 'sha512', 'hex');
             $timestamp = (string) $this->milliseconds ();
