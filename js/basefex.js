@@ -217,14 +217,7 @@ module.exports = class basefex extends Exchange {
     */
   }
 
-  sign(
-    path,
-    api = "public",
-    method = "GET",
-    params = {},
-    headers = {},
-    body = undefined
-  ) {
+  sign(path, api = "public", method = "GET", params = {}, headers = {}, body) {
     const url = this.urls["api"] + path;
     if (api === "private" && this.apiKey && this.secret) {
       let auth = method + path;
@@ -247,24 +240,35 @@ module.exports = class basefex extends Exchange {
     return { url: url, method: method, body: body, headers: headers };
   }
 
-  request(
-    path,
-    type = "public",
-    method = "GET",
-    params = {},
-    headers = {},
-    body = undefined
+  handleErrors(
+    statusCode,
+    statusText,
+    url,
+    method,
+    responseHeaders,
+    responseBody,
+    response,
+    requestHeaders,
+    requestBody
   ) {
-    path = "/" + path;
-    headers["Content-Type"] = "application/json";
+    // override me
+  }
 
-    const { path: pathObj, query: queryObj } = params;
-    if (pathObj) {
-      path = localTool.makePath(path, pathObj);
+  request(path, type = "public", method = "GET", params = {}) {
+    //params={path,query,headers,body}
+    path = "/" + path;
+    if (params.path) {
+      path = localTool.makePath(path, params.path);
     }
-    if (queryObj) {
-      path += `?${this.urlencode(queryObj)}`;
+    if (params.query) {
+      path += `?${this.urlencode(params.query)}`;
     }
+    const headers = this.extend(
+      { "Content-Type": "application/json" },
+      params.headers
+    );
+    const body = params.body;
+
     return super.request(path, type, method, params, headers, body);
   }
 
