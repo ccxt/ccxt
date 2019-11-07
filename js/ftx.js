@@ -101,6 +101,7 @@ module.exports = class ftx extends Exchange {
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'orders',
+                        'conditional_orders/{order_id}',
                     ],
                 },
             },
