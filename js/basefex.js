@@ -69,7 +69,7 @@ module.exports = class basefex extends Exchange {
           ]
         },
         private: {
-          get: ["accounts", "orders/{id}", "orders"],
+          get: ["accounts", "orders/{id}", "orders", "trades"],
           post: ["orders"],
           put: [],
           delete: ["orders/{id}"]
@@ -251,7 +251,7 @@ module.exports = class basefex extends Exchange {
 
   async fetchOpenOrders(symbol, since, limit, params = {}) {
     /*
-    fetchMyTrades ([symbol[, since[, limit[, params]]]])
+    fetchOpenOrders ([symbol[, since, limit, params]]]])
     */
     const query = {
       symbol: this.translateBaseFEXSymbol(symbol),
@@ -264,6 +264,20 @@ module.exports = class basefex extends Exchange {
     return orders
       .filter(order => this.options["order-status"][order.status] === "open")
       .map(this.castOrder.bind(this, symbol));
+  }
+
+  async fetchMyTrades(symbol, since, limit, params = {}) {
+    /*
+    fetchMyTrades ([symbol[, since[, limit[, params]]]])
+    */
+    const query = {
+      symbol: this.translateBaseFEXSymbol(symbol),
+      limit: limit
+    };
+    const trades = await this.privateGetTrades({
+      query: this.extend(query, params.query)
+    });
+    return trades.map(this.castMyTrade.bind(this, symbol));
   }
 
   sign(path, api = "public", method = "GET", params = {}, headers = {}, body) {
@@ -523,6 +537,21 @@ module.exports = class basefex extends Exchange {
       //   rate: 0.002 // the fee rate (if available)
       // },
       info: order // the original unparsed order structure as is
+    };
+  }
+
+  castMyTrade(symbol, trade) {
+    return {
+      info: trade, // the original decoded JSON as is
+      id: trade.id, // string trade id
+      timestamp: trade.ts, // Unix timestamp in milliseconds
+      datetime: this.iso8601(trade.ts), // ISO8601 datetime with milliseconds
+      symbol: symbol, // symbol
+      order: trade.orderId, // string order id or undefined/None/null
+      type: trade.order && this.translateOrderType(trade.order.type), // order type, 'market', 'limit' or undefined/None/null
+      side: this.translateOrderSide(trade.side), // direction of the trade, 'buy' or 'sell'
+      price: trade.price, // float price in quote currency
+      amount: trade.size // amount of base currency
     };
   }
 
