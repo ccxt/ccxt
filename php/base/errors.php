@@ -111,8 +111,8 @@ class BaseError extends Exception {
     }
 
     public function __get($name) {
-        // called for properties that do not exist in class, i.e. camelCase
-        // getMessage is final, so we make an entry point here
+        // called for properties that do not exist in class,
+        // i.e. camelCase getMessage is final, so we make an entry point here
         if ($name === 'message') {
             return $this->__toString();
         }
