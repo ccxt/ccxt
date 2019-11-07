@@ -39,12 +39,12 @@ module.exports = class basefex extends Exchange {
         fetchOrder: true,
         fetchOpenOrders: true,
         fetchMyTrades: true,
-        fetchDepositAddress: false,
-        fetchDeposits: false,
-        fetchWithdrawals: false,
-        fetchTransactions: false,
+        fetchDepositAddress: true,
+        fetchDeposits: true,
+        fetchWithdrawals: true,
+        fetchTransactions: true,
         fetchLedger: false,
-        withdraw: false
+        withdraw: true
       },
       urls: {
         logo:
@@ -69,7 +69,13 @@ module.exports = class basefex extends Exchange {
           ]
         },
         private: {
-          get: ["accounts", "orders/{id}", "orders", "trades"],
+          get: [
+            "accounts",
+            "orders/{id}",
+            "orders",
+            "trades",
+            "accounts/deposits/{currency}/address"
+          ],
           post: ["orders"],
           put: [],
           delete: ["orders/{id}"]
@@ -278,6 +284,20 @@ module.exports = class basefex extends Exchange {
       query: this.extend(query, params.query)
     });
     return trades.map(this.castMyTrade.bind(this, symbol));
+  }
+
+  async fetchDepositAddress(code) {
+    /*
+    fetchDepositAddress (code, params = {})
+    */
+    const depositAddress = await this.privateGetAccountsDepositsCurrencyAddress(
+      {
+        path: {
+          currency: code
+        }
+      }
+    );
+    return this.castDepositAddress(code, depositAddress);
   }
 
   sign(path, api = "public", method = "GET", params = {}, headers = {}, body) {
@@ -552,6 +572,15 @@ module.exports = class basefex extends Exchange {
       side: this.translateOrderSide(trade.side), // direction of the trade, 'buy' or 'sell'
       price: trade.price, // float price in quote currency
       amount: trade.size // amount of base currency
+    };
+  }
+
+  castDepositAddress(currency, address) {
+    return {
+      currency: currency, // currency code
+      address: address.address, // address in terms of requested currency
+      tag: undefined, // tag / memo / paymentId for particular currencies (XRP, XMR, ...)
+      info: address // raw unparsed data as returned from the exchange
     };
   }
 
