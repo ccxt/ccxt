@@ -32,7 +32,7 @@ module.exports = class basefex extends Exchange {
         fetchOrderBook: true,
         fetchTrades: true,
         fetchOHLCV: true,
-        fetchBalance: false,
+        fetchBalance: true,
         createOrder: false,
         cancelOrder: false,
         editOrder: false,
@@ -69,7 +69,7 @@ module.exports = class basefex extends Exchange {
           ]
         },
         private: {
-          get: [],
+          get: ["accounts"],
           post: [],
           put: [],
           delete: []
@@ -185,6 +185,14 @@ module.exports = class basefex extends Exchange {
     const result = ohlcv.map(this.castOHLCV.bind(this));
     result.reverse();
     return result;
+  }
+
+  async fetchBalance() {
+    /*
+    fetchBalance (): Fetch Balance.
+    */
+    const accounts = await this.privateGetAccounts();
+    return this.castBalance(accounts);
   }
 
   sign(
@@ -352,6 +360,62 @@ module.exports = class basefex extends Exchange {
       candlestick.close, // (C)losing price, float
       candlestick.volume // (V)olume (in terms of the base currency), float
     ];
+  }
+
+  castBalance(accounts) {
+    accounts = accounts.map(item => item.cash);
+    const balance = {
+      info: accounts, // the original untouched non-parsed reply with details
+
+      //-------------------------------------------------------------------------
+      // indexed by availability of funds first, then by currency
+
+      free: {
+        // money, available for trading, by currency
+        // BTC: 321.0, // floats...
+        // USD: 123.0
+      },
+
+      used: {}, // money on hold, locked, frozen, or pending, by currency
+
+      total: {} // total (free + used), by currency
+
+      //-------------------------------------------------------------------------
+      // indexed by currency first, then by availability of funds
+
+      // BTC: {
+      //   // string, three-letter currency code, uppercase
+      //   free: 321.0, // float, money available for trading
+      //   used: 234.0, // float, money on hold, locked, frozen or pending
+      //   total: 555.0 // float, total balance (free + used)
+      // },
+
+      // USD: {
+      //   // ...
+      //   free: 123.0, // ...
+      //   used: 456.0,
+      //   total: 579.0
+      // }
+    };
+
+    for (const cash of accounts) {
+      const currency = cash.currency;
+      const total = cash.marginBalances;
+      const free = cash.available;
+      const used = total - free;
+
+      balance.free[currency] = free;
+      balance.used[currency] = used;
+      balance.total[currency] = total;
+
+      balance[currency] = {
+        free,
+        used,
+        total
+      };
+    }
+
+    return balance;
   }
 
   translateSymbol(base, quote) {
