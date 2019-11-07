@@ -158,12 +158,10 @@ module.exports = class basefex extends Exchange {
     return trades.map(this.castTrade.bind(this, symbol));
   }
 
-  async fetchOHLCV(
-    symbol,
-    timeframe = "1m",
-    since = undefined,
-    limit = undefined
-  ) {
+  async fetchOHLCV(symbol, timeframe = "1m", since, limit) {
+    /*
+    fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {})
+    */
     let from = undefined;
     let to = undefined;
     if (since > 0) {
