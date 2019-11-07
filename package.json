@@ -48,7 +48,9 @@
     "tokens-test": "npm run export-exchanges && npm run check-js-syntax && npm run transpile"
   },
   "types": "./ccxt.d.ts",
-  "dependencies": {},
+  "dependencies": {
+    "dotenv": "^8.2.0"
+  },
   "devDependencies": {
     "ansicolor": "1.1.81",
     "as-table": "1.0.37",
@@ -61,6 +63,7 @@
     "eslint-plugin-import": "2.16.0",
     "istanbul": "0.4.5",
     "mocha": "5.2.0",
+    "node-env-run": "^3.0.2",
     "nyc": "^14.1.1",
     "ololog": "1.1.121"
   },
