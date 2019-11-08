@@ -5,7 +5,7 @@
 const ccxt = require ('ccxt')
     , { deepExtend } = ccxt
     , Exchange  = require ('./js/base/Exchange')
-    // , functions = require ('ccxt/js/base/functions')
+    , { unique } = require ('ccxt/js/base/functions')
     // , errors    = require ('ccxt/js/base/errors')
 
 //-----------------------------------------------------------------------------
@@ -20,7 +20,7 @@ const version = '1.0.0'
 const exchanges = {
     'binance':                 require ('./js/binance.js'),
     'bitfinex':                require ('./js/bitfinex.js'),
-    'poloniex':                require ('./js/poloniex.js'),    
+    'poloniex':                require ('./js/poloniex.js'),
 }
 
 // ----------------------------------------------------------------------------
@@ -68,5 +68,5 @@ function monkeyPatchAllExchanges (exchanges, Exchange, ccxt) {
 module.exports = deepExtend (ccxt, {
     version,
     Exchange,
-    exchanges: ccxt.exchanges.concat (Object.keys (exchanges)),
+    exchanges: unique (ccxt.exchanges.concat (Object.keys (exchanges))).sort (),
 }, monkeyPatchAllExchanges (exchanges, Exchange, ccxt))
