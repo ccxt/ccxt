@@ -102,7 +102,7 @@ module.exports = class tokens extends Exchange {
         });
     }
 
-    /* Public fetch functions */
+    // Public fetch functions
 
     async fetchMarkets (params = {}) {
         const markets = await this.publicGetPublicTradingPairsGetAll (params);
@@ -316,7 +316,7 @@ module.exports = class tokens extends Exchange {
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
-    /* Private fetch functions */
+    // Private fetch functions
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -490,7 +490,8 @@ module.exports = class tokens extends Exchange {
         const trades = this.safeValue (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
-    /* Helper functions */
+
+    // Helper functions
 
     parseTicker (ticker, market = undefined) {
         const symbol = this.findSymbol (this.safeString (market, 'symbol'));
