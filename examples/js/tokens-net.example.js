@@ -40,6 +40,8 @@ let printOrderBook = async () => {
     log(response);
     log ('Bids:');
     log (asTable (response['bids']));
+    log ('Asks:');
+    log (asTable (response['asks']));
 }
 
 let printTrades = async () => {
@@ -105,56 +107,6 @@ let printMyTradesDtrUsdt = async () => {
     log (asTable (response));
 }
 
-let test = async () => {
-    let exchange = tokens;
-
-    let markets = await exchange.loadMarkets ();
-
-    let symbols = [
-        'BTC/CNY',
-        'BTC/USD',
-        'BTC/USDT',
-        'BTC/EUR',
-        'BTC/ETH',
-        'ETH/BTC',
-        'BTC/JPY',
-        'ETH/EUR',
-        'ETH/JPY',
-        'ETH/CNY',
-        'LTC/CNY',
-        'DASH/BTC',
-        'DOGE/BTC',
-        'BTC/AUD',
-        'BTC/PLN',
-        'USD/SLL',
-        'BTC/RUB',
-        'BTC/UAH',
-        'LTC/BTC',
-    ]
-
-    let result = exchange.symbols.filter (symbol => symbols.indexOf (symbol) >= 0)
-
-    if (result.length > 0)
-        if (exchange.symbols.length > result.length)
-            result = result.join (', ') + ' + more...'
-        else
-            result = result.join (', ')
-
-    // log ('symbols', exchange.symbols.length)
-
-    const xx = await tokens.fetchTicker ('t')
-
-    /*for (let i=0;i<symbols.length; i++) {
-    log.green ('Ticker:', symbols[i]);
-         let response = await tokens.fetchTicker (symbols[i]);
-        log(response)
-    }*/
-    // let result = exchange.symbols.filter (symbol => symbols.indexOf (symbol) >= 0)
-
-    // console.log(result);
-
-}
-
 (async function main () {
     // await printMarkets ();
     // await printTickers ();
@@ -170,8 +122,6 @@ let test = async () => {
     // await printCancelOrder();
     // await printMyTrades();
     // await printMyTradesDtrUsdt();
-
-    // await test();
 
     process.exit ();
 }) ()

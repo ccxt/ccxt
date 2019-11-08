@@ -104,17 +104,17 @@ module.exports = class tokensnet extends Exchange {
 
     async fetchMarkets (params = {}) {
         const markets = await this.publicGetPublicTradingPairsGetAll (params);
-        // {
-        //     "xtzeurs": {
-        //         "counterCurrency": "eurs",
-        //         "priceDecimals": 4,
-        //         "baseCurrency": "xtz",
-        //         "amountDecimals": 6,
-        //         "minAmount": "1",
-        //         "title": "XTZ/EURS"
-        //     },
-        //     ...
-        // }
+        //    {
+        //        "xtzeurs": {
+        //            "counterCurrency": "eurs",
+        //            "priceDecimals": 4,
+        //            "baseCurrency": "xtz",
+        //            "amountDecimals": 6,
+        //            "minAmount": "1",
+        //            "title": "XTZ/EURS"
+        //         },
+        //         ...
+        //    }
         const result = [];
         const keys = Object.keys (markets);
         for (let i = 0; i < keys.length; i += 1) {
@@ -163,22 +163,22 @@ module.exports = class tokensnet extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const tickers = await this.publicGetPublicTickerAll (params);
-        // {
-        //     "status": "ok",
-        //     "timestamp": 1572945773,
-        //     "btcusdt": {
-        //         "last": "9381.24",
-        //         "volume_usdt": "272264.02067160",
-        //         "open": "9616.58",
-        //         "volume": "28.54974563",
-        //         "ask": "9381.25",
-        //         "low": "9340.37",
-        //         "bid": "9371.87",
-        //         "vwap": "9536.47798478",
-        //         "high": "9702.76"
-        //     },
-        //     ...
-        // }
+        //    {
+        //        "status": "ok",
+        //        "timestamp": 1572945773,
+        //        "btcusdt": {
+        //            "last": "9381.24",
+        //            "volume_usdt": "272264.02067160",
+        //            "open": "9616.58",
+        //            "volume": "28.54974563",
+        //            "ask": "9381.25",
+        //            "low": "9340.37",
+        //            "bid": "9371.87",
+        //            "vwap": "9536.47798478",
+        //            "high": "9702.76"
+        //        },
+        //        ...
+        //    }
         const result = [];
         const keys = Object.keys (tickers);
         for (let i = 0; i < keys.length; i += 1) {
@@ -199,42 +199,42 @@ module.exports = class tokensnet extends Exchange {
         const ticker = await this.publicGetPublicTickerPair (this.extend ({
             'pair': this.marketId (symbol),
         }, params));
-        // {
-        //     "vwap": "9536.47798478",
-        //     "volume_usdt": "272264.02067160",
-        //     "open": "9616.58",
-        //     "ask": "9381.25",
-        //     "status": "ok",
-        //     "high": "9702.76",
-        //     "timestamp": 1572265101,
-        //     "volume": "28.54974563",
-        //     "bid": "9371.87",
-        //     "last": "9381.24",
-        //     "low": "9340.37"
-        // }
+        //    {
+        //        "vwap": "9536.47798478",
+        //        "volume_usdt": "272264.02067160",
+        //        "open": "9616.58",
+        //        "ask": "9381.25",
+        //        "status": "ok",
+        //        "high": "9702.76",
+        //        "timestamp": 1572265101,
+        //        "volume": "28.54974563",
+        //        "bid": "9371.87",
+        //        "last": "9381.24",
+        //        "low": "9340.37"
+        //    }
         return this.parseTicker (ticker, market);
     }
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetPublicCurrencyAll (params);
-        // {
-        //     "status": "ok",
-        //     "timestamp": 1572945773,
-        //     "currencies": {
-        //         "BTC": {
-        //             "canWithdraw": true,
-        //             "ethValue": "50.00000000",
-        //             "namePlural": "Bitcoins",
-        //             "minimalOrder": "0.0001",
-        //             "withdrawalFee": "0.0003",
-        //             "btcValue": "1.00000000",
-        //             "decimals": 8,
-        //             "name": "Bitcoin",
-        //             "usdtValue": "9302.93000000"
-        //         },
-        //         ...
-        //     },
-        // },
+        //    {
+        //        "status": "ok",
+        //        "timestamp": 1572945773,
+        //        "currencies": {
+        //            "BTC": {
+        //                "canWithdraw": true,
+        //                "ethValue": "50.00000000",
+        //                "namePlural": "Bitcoins",
+        //                "minimalOrder": "0.0001",
+        //                "withdrawalFee": "0.0003",
+        //                "btcValue": "1.00000000",
+        //                "decimals": 8,
+        //                "name": "Bitcoin",
+        //                "usdtValue": "9302.93000000"
+        //            },
+        //            ...
+        //        },
+        //    },
         const currencies = this.safeValue (response, 'currencies', []);
         // Currencies are returned as a dict (historical reasons)
         const keys = Object.keys (currencies);
@@ -259,34 +259,34 @@ module.exports = class tokensnet extends Exchange {
         const orderbook = await this.publicGetPublicOrderBookPair (this.extend ({
             'pair': market['id'],
         }, params));
-        // {
-        //     "timestamp":1573031500,
-        //     "status":"ok",
-        //     "asks":[
-        //         [
-        //             "0.02126453",
-        //             "192.94"
-        //         ],
-        //         [
-        //             "0.02322024",
-        //             "192.95"
-        //         ],
-        //         ...
-        //     ],
-        //     "bids":[
-        //         [
-        //             "0.00486816",
-        //             "192.75"
-        //         ],
-        //         [
-        //             "0.02811401",
-        //             "192.56"
-        //         ],
-        //         ...
-        //     ]
-        // }
+        //    {
+        //        "timestamp":1573031500,
+        //        "status":"ok",
+        //        "asks":[
+        //            [
+        //                "0.02126453",
+        //                "192.94"
+        //            ],
+        //            [
+        //                "0.02322024",
+        //                "192.95"
+        //            ],
+        //            ...
+        //        ],
+        //        "bids":[
+        //            [
+        //                "0.00486816",
+        //                "192.75"
+        //            ],
+        //            [
+        //                "0.02811401",
+        //                "192.56"
+        //            ],
+        //            ...
+        //        ]
+        //    }
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
-        const parsedOrderbook = this.parseOrderBook (orderbook, timestamp);
+        const parsedOrderbook = this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 1, 0);
         parsedOrderbook['nonce'] = this.nonce ();
         return parsedOrderbook;
     }
@@ -297,41 +297,43 @@ module.exports = class tokensnet extends Exchange {
         const response = await this.publicGetPublicTradesHourPair (this.extend ({
             'pair': market['id'],
         }, params));
-        // {
-        //     "timestamp":1573031391,
-        //     "trades":[
-        //         {
-        //             "datetime":1573028240,
-        //             "price":"192.93",
-        //             "id":3655654,
-        //             "amount":"1.51166933",
-        //             "type":"buy"
-        //         },
-        //         ...
-        //     ],
-        //     "status":"ok"
-        // }
+        //    {
+        //        "timestamp":1573031391,
+        //        "trades":[
+        //            {
+        //                "datetime":1573028240,
+        //                "price":"192.93",
+        //                "id":3655654,
+        //                "amount":"1.51166933",
+        //                "type":"buy"
+        //            },
+        //            ...
+        //        ],
+        //        "status":"ok"
+        //    }
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetPrivateBalanceAll (params);
-        // {
-        //   timestamp: 1573045496,
-        //   status: 'ok',
-        //   balances: {
-        //     BTC: {
-        //       available: '0.00009176',
-        //       usdtValue: '40.60',
-        //       btcValue: '0.00433932',
-        //       total: '0.00433932'
-        //     },
-        //     ...
-        // }
+        //    {
+        //      timestamp: 1573045496,
+        //      status: 'ok',
+        //      balances: {
+        //        BTC: {
+        //          available: '0.00009176',
+        //          usdtValue: '40.60',
+        //          btcValue: '0.00433932',
+        //          total: '0.00433932'
+        //        },
+        //        ...
+        //    }
         const balances = this.safeValue (response, 'balances', []);
         const keys = Object.keys (balances);
-        const result = { 'info': null };
+        const result = {
+            'info': response,
+        };
         for (let i = 0; i < keys.length; i += 1) {
             const currencySymbol = keys[i];
             const balance = balances[currencySymbol];
@@ -354,23 +356,23 @@ module.exports = class tokensnet extends Exchange {
         } else {
             response = await this.privateGetPrivateOrdersGetPair ();
         }
-        // {
-        //   timestamp: 1573045496,
-        //   status: 'ok',
-        //   openOrders: [
-        //     {
-        //       id: '682aeee9-2826-416c-a15a-7e95c1645495',
-        //       price: '0.00000448',
-        //       type: 'sell',
-        //       takeProfit: null,
-        //       created: 1571145633,
-        //       currencyPair: 'dtrbtc',
-        //       remainingAmount: '30.00000000',
-        //       amount: '30.00000000'
-        //     },
-        //     ...
-        //     ],
-        // }
+        //    {
+        //        timestamp: 1573045496,
+        //        status: 'ok',
+        //        openOrders: [
+        //            {
+        //                id: '682aeee9-2826-416c-a15a-7e95c1645495',
+        //                price: '0.00000448',
+        //                type: 'sell',
+        //                takeProfit: null,
+        //                created: 1571145633,
+        //                currencyPair: 'dtrbtc',
+        //                remainingAmount: '30.00000000',
+        //                amount: '30.00000000'
+        //            },
+        //            ...
+        //        ],
+        //    }
         const orders = this.safeValue (response, 'openOrders', []);
         const result = [];
         for (let i = 0; i < orders.length; i++) {
@@ -389,29 +391,30 @@ module.exports = class tokensnet extends Exchange {
         const response = await this.privateGetPrivateOrdersGetId (this.extend ({
             'id': id,
         }, params));
-        // {
-        //   id: '821e4178-5b97-4ead-8f29-85cd16d3f891',
-        //   price: '0.00000444',
-        //   amount: '30.00000000',
-        //   timestamp: 1573129169,
-        //   status: 'ok',
-        //   takeProfit: '0.00000448',
-        //   type: 'buy',
-        //   remainingAmount: '0.00000000',
-        //   currencyPair: 'dtrbtc',
-        //   orderStatus: 'filled',
-        //   created: 1571145631,
-        //   trades: [
-        //     {
-        //       value: '0.00013320',
-        //       type: 'sell',
-        //       price: '0.00000444',
-        //       amount: '30.00000000',
-        //       datetime: 1571145632,
-        //       id: 3509679
-        //     }
-        //   ]
-        // }
+        //    {
+        //      id: '821e4178-5b97-4ead-8f29-85cd16d3f891',
+        //      price: '0.00000444',
+        //      amount: '30.00000000',
+        //      timestamp: 1573129169,
+        //      status: 'ok',
+        //      takeProfit: '0.00000448',
+        //      type: 'buy',
+        //      remainingAmount: '0.00000000',
+        //      currencyPair: 'dtrbtc',
+        //      orderStatus: 'filled',
+        //      created: 1571145631,
+        //      trades: [
+        //          {
+        //              value: '0.00013320',
+        //              type: 'sell',
+        //              price: '0.00000444',
+        //              amount: '30.00000000',
+        //              datetime: 1571145632,
+        //              id: 3509679
+        //          },
+        //          ...
+        //      ]
+        //    }
         return this.parseOrder (response);
     }
 
@@ -465,24 +468,24 @@ module.exports = class tokensnet extends Exchange {
                 'page': '1',
             }, params));
         }
-        // {
-        //   trades: [
-        //     {
-        //       id: 3625965,
-        //       datetime: 1572720454,
-        //       type: 'sell',
-        //       amount: '30.00000000',
-        //       currencyPair: 'dtrbtc',
-        //       price: '0.00000311',
-        //       fee: '0.00000000'
-        //     },
-        //     ...
-        //   ],
-        //   timestamp: 1573134052,
-        //   page: 1,
-        //   status: 'ok',
-        //   pages: 9
-        // }
+        //    {
+        //        trades: [
+        //            {
+        //                id: 3625965,
+        //                datetime: 1572720454,
+        //                type: 'sell',
+        //                amount: '30.00000000',
+        //                currencyPair: 'dtrbtc',
+        //                price: '0.00000311',
+        //                fee: '0.00000000'
+        //            },
+        //            ...
+        //        ],
+        //        timestamp: 1573134052,
+        //        page: 1,
+        //        status: 'ok',
+        //        pages: 9
+        //    }
         const trades = this.safeValue (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
@@ -497,6 +500,9 @@ module.exports = class tokensnet extends Exchange {
             percentage = (change / openPrice) * 100;
         }
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
+        const baseVolume = this.safeFloat (ticker, 'volume');
+        const vwap = this.safeFloat (ticker, 'vwap');
+        const quoteVolume = baseVolume * vwap;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -507,7 +513,7 @@ module.exports = class tokensnet extends Exchange {
             'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
-            'vwap': this.safeFloat (ticker, 'vwap'),
+            'vwap': vwap,
             'open': openPrice,
             'close': lastPrice,
             'last': lastPrice,
@@ -516,7 +522,7 @@ module.exports = class tokensnet extends Exchange {
             'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': undefined,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
