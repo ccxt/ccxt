@@ -3367,6 +3367,7 @@ try {
 
 Some errors raised by ccxt will have properties that you test for and handle appropriately. Currently these are the exposed properties:
 
+- `errorMessage` // a CCXT defined error message
 - `verbose` // will throwing the error lead to verbose output
 - `exchangeId` // the exchange.id property of the error throwing exchange
 - `httpCode` // the http status code
@@ -3376,6 +3377,7 @@ Some errors raised by ccxt will have properties that you test for and handle app
 - `responseHeaders` // an associated array (hashmap) of the response headers
 - `responseBody` // the response body as a string
 - `responseJson` // the response body decoded as json, as an associated array
+- more unified error properties will be added as needed
 
 Initially support for these properties will limited, and not all errors thrown by ccxt will have these properties defined. We plan on unifying all errors soon.
 
