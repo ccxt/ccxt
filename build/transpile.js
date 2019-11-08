@@ -1136,32 +1136,3 @@ if (require.main === module) { // called directly like `node module`
 // ============================================================================
 
 module.exports = Transpiler
-
-// {
-//     commonRegexes,
-//     pythonRegexes,
-//     python2Regexes,
-//     phpRegexes,
-//     // ........................................................................
-//     createPythonClass,
-//     createPHPClass,
-//     // ........................................................................
-//     transpileJavaScriptToPython3,
-//     transpilePython3ToPython2,
-//     transpileJavaScriptToPHP,
-//     transpileJavaScriptToPythonAndPHP,
-//     transpilePythonAsyncToSync,
-//     transpileDerivedExchangeClass,
-//     // ........................................................................
-//     transpileDerivedExchangeFile,
-//     transpileDerivedExchangeFiles,
-//     // ........................................................................
-//     exportTypeScriptDeclarations,
-//     transpileErrorHierarchy,
-//     // ........................................................................
-//     transpileDateTimeTests,
-//     transpilePrecisionTests,
-//     transpileCryptoTests,
-//     // ........................................................................
-//     transpileEverything,
-// }
