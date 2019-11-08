@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.1293'
+__version__ = '1.19.18'
 
 # ----------------------------------------------------------------------------
 
@@ -53,8 +53,10 @@ from ccxt.base.errors import DuplicateOrderId               # noqa: F401
 from ccxt.base.errors import CancelPending                  # noqa: F401
 from ccxt.base.errors import NetworkError                   # noqa: F401
 from ccxt.base.errors import DDoSProtection                 # noqa: F401
+from ccxt.base.errors import RateLimitExceeded              # noqa: F401
 from ccxt.base.errors import RequestTimeout                 # noqa: F401
 from ccxt.base.errors import ExchangeNotAvailable           # noqa: F401
+from ccxt.base.errors import OnMaintenance                  # noqa: F401
 from ccxt.base.errors import InvalidAddress                 # noqa: F401
 from ccxt.base.errors import AddressPending                 # noqa: F401
 from ccxt.base.errors import ArgumentsRequired              # noqa: F401
@@ -106,6 +108,7 @@ from ccxt.btctradeim import btctradeim                      # noqa: F401
 from ccxt.btctradeua import btctradeua                      # noqa: F401
 from ccxt.btcturk import btcturk                            # noqa: F401
 from ccxt.buda import buda                                  # noqa: F401
+from ccxt.bytetrade import bytetrade                        # noqa: F401
 from ccxt.cex import cex                                    # noqa: F401
 from ccxt.chilebit import chilebit                          # noqa: F401
 from ccxt.cobinhood import cobinhood                        # noqa: F401
@@ -137,6 +140,7 @@ from ccxt.fcoin import fcoin                                # noqa: F401
 from ccxt.fcoinjp import fcoinjp                            # noqa: F401
 from ccxt.flowbtc import flowbtc                            # noqa: F401
 from ccxt.foxbit import foxbit                              # noqa: F401
+from ccxt.ftx import ftx                                    # noqa: F401
 from ccxt.fybse import fybse                                # noqa: F401
 from ccxt.gateio import gateio                              # noqa: F401
 from ccxt.gemini import gemini                              # noqa: F401
@@ -152,7 +156,6 @@ from ccxt.itbit import itbit                                # noqa: F401
 from ccxt.kkex import kkex                                  # noqa: F401
 from ccxt.kraken import kraken                              # noqa: F401
 from ccxt.kucoin import kucoin                              # noqa: F401
-from ccxt.kucoin2 import kucoin2                            # noqa: F401
 from ccxt.kuna import kuna                                  # noqa: F401
 from ccxt.lakebtc import lakebtc                            # noqa: F401
 from ccxt.latoken import latoken                            # noqa: F401
@@ -232,6 +235,7 @@ exchanges = [
     'btctradeua',
     'btcturk',
     'buda',
+    'bytetrade',
     'cex',
     'chilebit',
     'cobinhood',
@@ -263,6 +267,7 @@ exchanges = [
     'fcoinjp',
     'flowbtc',
     'foxbit',
+    'ftx',
     'fybse',
     'gateio',
     'gemini',
@@ -278,7 +283,6 @@ exchanges = [
     'kkex',
     'kraken',
     'kucoin',
-    'kucoin2',
     'kuna',
     'lakebtc',
     'latoken',

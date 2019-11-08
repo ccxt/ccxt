@@ -16,7 +16,7 @@ from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 
-class hitbtc2 (hitbtc):
+class hitbtc2(hitbtc):
 
     def describe(self):
         return self.deep_extend(super(hitbtc2, self).describe(), {

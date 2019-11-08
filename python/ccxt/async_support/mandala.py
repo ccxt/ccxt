@@ -16,7 +16,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import ExchangeNotAvailable
 
 
-class mandala (Exchange):
+class mandala(Exchange):
 
     def describe(self):
         return self.deep_extend(super(mandala, self).describe(), {
@@ -202,8 +202,8 @@ class mandala (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.005,
-                    'taker': 0.005,
+                    'maker': 0.00,
+                    'taker': 0.001,
                 },
             },
             'exceptions': {

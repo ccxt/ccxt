@@ -21,7 +21,7 @@ from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 
 
-class bitfinex (Exchange):
+class bitfinex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitfinex, self).describe(), {
@@ -290,6 +290,7 @@ class bitfinex (Exchange):
             'commonCurrencies': {
                 'ABS': 'ABYSS',
                 'AIO': 'AION',
+                'ALG': 'ALGO',  # https://github.com/ccxt/ccxt/issues/6034
                 'AMP': 'AMPL',
                 'ATM': 'ATMI',
                 'ATO': 'ATOM',  # https://github.com/ccxt/ccxt/issues/5118
@@ -409,7 +410,11 @@ class bitfinex (Exchange):
                     'USD': 'wire',
                     'USDC': 'udc',  # https://github.com/ccxt/ccxt/issues/5833
                     'UTK': 'utk',
-                    'USDT': 'tetheruso',  # undocumented
+                    'USDT': 'tetheruso',  # Tether on Omni
+                    # 'USDT': 'tetheruse',  # Tether on ERC20
+                    # 'USDT': 'tetherusl',  # Tether on Liquid
+                    # 'USDT': 'tetherusx',  # Tether on Tron
+                    # 'USDT': 'tetheruss',  # Tether on EOS
                     'VEE': 'vee',
                     'WAX': 'wax',
                     'XLM': 'xlm',
@@ -564,7 +569,7 @@ class bitfinex (Exchange):
                 # we need a workaround here so that the old BCH balance
                 # would not override the new BAB balance(BAB is unified to BCH)
                 # https://github.com/ccxt/ccxt/issues/4989
-                if not(code in list(result.keys())):
+                if not (code in list(result.keys())):
                     account = self.account()
                     account['free'] = self.safe_float(balance, 'available')
                     account['total'] = self.safe_float(balance, 'amount')
@@ -806,7 +811,7 @@ class bitfinex (Exchange):
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         if symbol is not None:
-            if not(symbol in list(self.markets.keys())):
+            if not (symbol in list(self.markets.keys())):
                 raise ExchangeError(self.id + ' has no symbol ' + symbol)
         response = self.privatePostOrders(params)
         orders = self.parse_orders(response, None, since, limit)

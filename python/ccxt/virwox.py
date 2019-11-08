@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 
 
-class virwox (Exchange):
+class virwox(Exchange):
 
     def describe(self):
         return self.deep_extend(super(virwox, self).describe(), {

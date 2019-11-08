@@ -90,6 +90,7 @@ module.exports = class okex3 extends Exchange {
                         'orders/{order_id}',
                         'orders/{client_oid}',
                         'fills',
+                        'algo',
                         // public
                         'instruments',
                         'instruments/{instrument_id}/book',
@@ -99,10 +100,12 @@ module.exports = class okex3 extends Exchange {
                         'instruments/{instrument_id}/candles',
                     ],
                     'post': [
+                        'order_algo',
                         'orders',
                         'batch_orders',
                         'cancel_orders/{order_id}',
                         'cancel_orders/{client_oid}',
+                        'cancel_batch_algos',
                         'cancel_batch_orders',
                     ],
                 },
@@ -301,7 +304,7 @@ module.exports = class okex3 extends Exchange {
                     '30029': AccountSuspended, // { "code": 30029, "message": "account suspended" }
                     '30030': ExchangeError, // { "code": 30030, "message": "endpoint request failed. Please try again" }
                     '30031': BadRequest, // { "code": 30031, "message": "token does not exist" }
-                    '30032': ExchangeError, // { "code": 30032, "message": "pair does not exist" }
+                    '30032': BadSymbol, // { "code": 30032, "message": "pair does not exist" }
                     '30033': BadRequest, // { "code": 30033, "message": "exchange domain does not exist" }
                     '30034': ExchangeError, // { "code": 30034, "message": "exchange ID does not exist" }
                     '30035': ExchangeError, // { "code": 30035, "message": "trading is not supported in this website" }
@@ -548,12 +551,14 @@ module.exports = class okex3 extends Exchange {
         let future = false;
         let swap = false;
         let baseId = this.safeString (market, 'base_currency');
-        if (baseId === undefined) {
+        const contractVal = this.safeFloat (market, 'contract_val');
+        if (contractVal !== undefined) {
             marketType = 'swap';
             spot = false;
             swap = true;
             baseId = this.safeString (market, 'coin');
-            if (baseId === undefined) {
+            const futuresAlias = this.safeString (market, 'alias');
+            if (futuresAlias !== undefined) {
                 swap = false;
                 future = true;
                 marketType = 'futures';
@@ -933,7 +938,10 @@ module.exports = class okex3 extends Exchange {
         const feeCost = this.safeFloat (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
-            const feeCurrency = undefined;
+            let feeCurrency = undefined;
+            if (market !== undefined) {
+                feeCurrency = side === 'buy' ? market['base'] : market['quote'];
+            }
             fee = {
                 // fee is either a positive number (invitation rebate)
                 // or a negative number (transaction fee deduction)
@@ -2511,7 +2519,9 @@ module.exports = class okex3 extends Exchange {
         //         },
         //     ]
         //
-        const entries = (type === 'margin') ? response[0] : response;
+        const isArray = Array.isArray (response[0]);
+        const isMargin = (type === 'margin');
+        const entries = (isMargin && isArray) ? response[0] : response;
         return this.parseLedger (entries, currency, since, limit);
     }
 

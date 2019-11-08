@@ -84,6 +84,20 @@ class btcmarkets extends Exchange {
                 '3' => '\\ccxt\\InvalidOrder',
                 '6' => '\\ccxt\\DDoSProtection',
             ),
+            'fees' => array (
+                'percentage' => true,
+                'tierBased' => true,
+                'maker' => -0.05 / 100,
+                'taker' => 0.20 / 100,
+            ),
+            'options' => array (
+                'fees' => array (
+                    'AUD' => array (
+                        'maker' => 0.85 / 100,
+                        'taker' => 0.85 / 100,
+                    ),
+                ),
+            ),
         ));
     }
 
@@ -211,8 +225,7 @@ class btcmarkets extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            // todo => refactor this
-            $fee = ($quote === 'AUD') ? 0.0085 : 0.0022;
+            $fees = $this->safe_value($this->safe_value($this->options, 'fees', array()), $quote, $this->fees);
             $pricePrecision = 2;
             $amountPrecision = 4;
             $minAmount = 0.001; // where does it come from?
@@ -251,8 +264,8 @@ class btcmarkets extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => null,
-                'maker' => $fee,
-                'taker' => $fee,
+                'maker' => $fees['maker'],
+                'taker' => $fees['taker'],
                 'limits' => $limits,
                 'precision' => $precision,
             );
@@ -286,15 +299,30 @@ class btcmarkets extends Exchange {
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        //
+        //     {
+        //         "timestamp":1572307200000,
+        //         "open":1962218,
+        //         "high":1974850,
+        //         "low":1962208,
+        //         "close":1974850,
+        //         "volume":305211315,
+        //     }
+        //
         $multiplier = 100000000; // for price and volume
-        return [
-            $ohlcv[0],
-            floatval ($ohlcv[1]) / $multiplier,
-            floatval ($ohlcv[2]) / $multiplier,
-            floatval ($ohlcv[3]) / $multiplier,
-            floatval ($ohlcv[4]) / $multiplier,
-            floatval ($ohlcv[5]) / $multiplier,
-        ];
+        $keys = array ( 'open', 'high', 'low', 'close', 'volume' );
+        $result = array (
+            $this->safe_integer($ohlcv, 'timestamp'),
+        );
+        for ($i = 0; $i < count ($keys); $i++) {
+            $key = $keys[$i];
+            $value = $this->safe_float($ohlcv, $key);
+            if ($value !== null) {
+                $value = $value / $multiplier;
+            }
+            $result[] = $value;
+        }
+        return $result;
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -302,13 +330,37 @@ class btcmarkets extends Exchange {
         $market = $this->market ($symbol);
         $request = array (
             'id' => $market['id'],
-            'timeWindow' => $this->timeframes[$timeframe],
+            'timeframe' => $this->timeframes[$timeframe],
+            // set to true to see candles more recent than the timestamp in the
+            // $since parameter, if a $since parameter is used, default is false
+            'indexForward' => true,
+            // set to true to see the earliest candles first in the list of
+            // returned candles in chronological order, default is false
+            'sortForward' => true,
         );
         if ($since !== null) {
             $request['since'] = $since;
         }
-        $response = $this->webGetMarketBTCMarketsIdTickByTime (array_merge ($request, $params));
-        return $this->parse_ohlcvs($response['ticks'], $market, $timeframe, $since, $limit);
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default is 3000
+        }
+        $response = $this->publicGetV2MarketIdTickByTimeTimeframe (array_merge ($request, $params));
+        //
+        //     {
+        //         "success":true,
+        //         "paging":array (
+        //             "newer":"/v2/market/ETH/BTC/tickByTime/day?indexForward=true&$since=1572307200000",
+        //             "older":"/v2/market/ETH/BTC/tickByTime/day?$since=1457827200000"
+        //         ),
+        //         "$ticks":array (
+        //             array("timestamp":1572307200000,"open":1962218,"high":1974850,"low":1962208,"close":1974850,"volume":305211315),
+        //             array("timestamp":1572220800000,"open":1924700,"high":1951276,"low":1909328,"close":1951276,"volume":1086067595),
+        //             array("timestamp":1572134400000,"open":1962155,"high":1962734,"low":1900905,"close":1930243,"volume":790141098),
+        //         ),
+        //     }
+        //
+        $ticks = $this->safe_value($response, 'ticks', array());
+        return $this->parse_ohlcvs($ticks, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {

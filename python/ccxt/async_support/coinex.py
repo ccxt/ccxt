@@ -13,7 +13,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
-class coinex (Exchange):
+class coinex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(coinex, self).describe(), {
@@ -468,24 +468,26 @@ class coinex (Exchange):
         }
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        amount = float(amount)  # self line is deprecated
-        if type == 'market':
-            # for market buy it requires the amount of quote currency to spend
-            if side == 'buy':
-                if self.options['createMarketBuyOrderRequiresPrice']:
-                    if price is None:
-                        raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
-                    else:
-                        price = float(price)  # self line is deprecated
-                        amount = amount * price
         await self.load_markets()
         method = 'privatePostOrder' + self.capitalize(type)
         market = self.market(symbol)
         request = {
             'market': market['id'],
-            'amount': self.amount_to_precision(symbol, amount),
             'type': side,
         }
+        amount = float(amount)
+        # for market buy it requires the amount of quote currency to spend
+        if (type == 'market') and (side == 'buy'):
+            if self.options['createMarketBuyOrderRequiresPrice']:
+                if price is None:
+                    raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
+                else:
+                    price = float(price)
+                    request['amount'] = self.cost_to_precision(symbol, amount * price)
+            else:
+                request['amount'] = self.cost_to_precision(symbol, amount)
+        else:
+            request['amount'] = self.amount_to_precision(symbol, amount)
         if (type == 'limit') or (type == 'ioc'):
             request['price'] = self.price_to_precision(symbol, price)
         response = await getattr(self, method)(self.extend(request, params))

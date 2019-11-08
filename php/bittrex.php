@@ -1157,6 +1157,7 @@ class bittrex extends Exchange {
             'id' => $this->safe_string($order, 'id'),
             'side' => $this->safe_string($order, 'side'),
             'order' => $this->safe_string($order, 'id'),
+            'type' => $this->safe_string($order, 'type'),
             'price' => $this->safe_float($order, 'average'),
             'amount' => $this->safe_float($order, 'filled'),
             'cost' => $this->safe_float($order, 'cost'),

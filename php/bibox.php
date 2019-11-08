@@ -109,6 +109,7 @@ class bibox extends Exchange {
             ),
             'commonCurrencies' => array (
                 'KEY' => 'Bihu',
+                'MTC' => 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
                 'PAI' => 'PCHAIN',
             ),
         ));
@@ -815,8 +816,14 @@ class bibox extends Exchange {
             ), $params),
         );
         $response = $this->privatePostTransfer ($request);
-        $address = $this->safe_string($response, 'result');
-        $tag = null; // todo => figure this out
+        //
+        //     {
+        //         "$result":"array(\"account\":\"PERSONALLY OMITTED\",\"memo\":\"PERSONALLY OMITTED\")","cmd":"transfer/transferIn"
+        //     }
+        //
+        $result = json_decode($this->safe_string($response, 'result', $as_associative_array = true));
+        $address = $this->safe_string($result, 'account');
+        $tag = $this->safe_string($result, 'memo');
         return array (
             'currency' => $code,
             'address' => $address,
@@ -933,7 +940,7 @@ class bibox extends Exchange {
                     throw new ExchangeError($feedback);
                 }
             }
-            throw new ExchangeError($this->id . ' => "error" in $response => ' . $body);
+            throw new ExchangeError($this->id . ' ' . $body);
         }
         if (!(is_array($response) && array_key_exists('result', $response))) {
             throw new ExchangeError($this->id . ' ' . $body);

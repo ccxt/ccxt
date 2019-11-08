@@ -22,7 +22,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
 
 
-class btcbox (Exchange):
+class btcbox(Exchange):
 
     def describe(self):
         return self.deep_extend(super(btcbox, self).describe(), {

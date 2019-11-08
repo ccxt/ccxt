@@ -491,6 +491,7 @@ declare module 'ccxt' {
     export class btctradeua extends Exchange {}
     export class btcturk extends Exchange {}
     export class buda extends Exchange {}
+    export class bytetrade extends Exchange {}
     export class cex extends Exchange {}
     export class chilebit extends foxbit {}
     export class cobinhood extends Exchange {}
@@ -522,6 +523,7 @@ declare module 'ccxt' {
     export class fcoinjp extends fcoin {}
     export class flowbtc extends Exchange {}
     export class foxbit extends Exchange {}
+    export class ftx extends Exchange {}
     export class fybse extends Exchange {}
     export class gateio extends Exchange {}
     export class gemini extends Exchange {}
@@ -537,7 +539,6 @@ declare module 'ccxt' {
     export class kkex extends Exchange {}
     export class kraken extends Exchange {}
     export class kucoin extends Exchange {}
-    export class kucoin2 extends kucoin {}
     export class kuna extends acx {}
     export class lakebtc extends Exchange {}
     export class latoken extends Exchange {}

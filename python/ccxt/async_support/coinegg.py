@@ -14,7 +14,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
 
 
-class coinegg (Exchange):
+class coinegg(Exchange):
 
     def describe(self):
         return self.deep_extend(super(coinegg, self).describe(), {
@@ -312,7 +312,7 @@ class coinegg (Exchange):
             key = keys[i]
             currencyId, accountType = key.split('_')
             code = self.safe_currency_code(currencyId)
-            if not(code in list(result.keys())):
+            if not (code in list(result.keys())):
                 result[code] = self.account()
             type = 'used' if (accountType == 'lock') else 'free'
             result[code][type] = self.safe_float(balances, key)

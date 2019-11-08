@@ -8,7 +8,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 
 
-class fybse (Exchange):
+class fybse(Exchange):
 
     def describe(self):
         return self.deep_extend(super(fybse, self).describe(), {

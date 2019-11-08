@@ -331,7 +331,7 @@ class bit2c extends Exchange {
             $timestamp = $this->safe_timestamp($trade, 'ticks');
             $price = $this->safe_float($trade, 'price');
             $amount = $this->safe_float($trade, 'firstAmount');
-            $reference_parts = explode('|', $reference); // $reference contains => 'pair|$orderId|tradeId'
+            $reference_parts = explode('|', $reference); // $reference contains 'pair|$orderId|tradeId'
             if ($market === null) {
                 $marketId = $this->safe_string($trade, 'pair');
                 if (is_array($this->markets_by_id[$marketId]) && array_key_exists($marketId, $this->markets_by_id[$marketId])) {

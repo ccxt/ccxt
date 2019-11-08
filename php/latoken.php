@@ -21,7 +21,7 @@ class latoken extends Exchange {
             'has' => array (
                 'CORS' => false,
                 'publicAPI' => true,
-                'pivateAPI' => true,
+                'privateAPI' => true,
                 'cancelOrder' => true,
                 'cancelAllOrders' => true,
                 'createMarketOrder' => false,

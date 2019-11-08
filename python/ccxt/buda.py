@@ -14,7 +14,7 @@ from ccxt.base.errors import AddressPending
 from ccxt.base.errors import NotSupported
 
 
-class buda (Exchange):
+class buda(Exchange):
 
     def describe(self):
         return self.deep_extend(super(buda, self).describe(), {

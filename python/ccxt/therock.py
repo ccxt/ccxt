@@ -12,7 +12,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import OrderNotFound
 
 
-class therock (Exchange):
+class therock(Exchange):
 
     def describe(self):
         return self.deep_extend(super(therock, self).describe(), {

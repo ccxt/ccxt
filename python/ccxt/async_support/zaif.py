@@ -10,7 +10,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 
 
-class zaif (Exchange):
+class zaif(Exchange):
 
     def describe(self):
         return self.deep_extend(super(zaif, self).describe(), {

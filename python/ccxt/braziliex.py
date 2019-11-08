@@ -19,7 +19,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
 
 
-class braziliex (Exchange):
+class braziliex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(braziliex, self).describe(), {
@@ -573,7 +573,7 @@ class braziliex (Exchange):
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
-        if (isinstance(response, basestring)) and len((response) < 1):
+        if (isinstance(response, basestring)) and (len(response) < 1):
             raise ExchangeError(self.id + ' returned empty response')
         if 'success' in response:
             success = self.safe_integer(response, 'success')

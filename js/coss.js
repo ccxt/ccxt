@@ -119,6 +119,9 @@ module.exports = class coss extends Exchange {
                     'deposit': {},
                 },
             },
+            'commonCurrencies': {
+                'COS': 'COSS',
+            },
         });
     }
 

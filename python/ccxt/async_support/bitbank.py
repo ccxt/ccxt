@@ -13,7 +13,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
 
 
-class bitbank (Exchange):
+class bitbank(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitbank, self).describe(), {
@@ -402,7 +402,7 @@ class bitbank (Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
-        if not('uuid' in list(params.keys())):
+        if not ('uuid' in list(params.keys())):
             raise ExchangeError(self.id + ' uuid is required for withdrawal')
         await self.load_markets()
         currency = self.currency(code)

@@ -9,7 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
 
-class itbit (Exchange):
+class itbit(Exchange):
 
     def describe(self):
         return self.deep_extend(super(itbit, self).describe(), {
@@ -229,8 +229,8 @@ class itbit (Exchange):
                     'cost': feeCost,
                     'currency': feeCurrency,
                 }
-        if not('fee' in list(result.keys())):
-            if not('fees' in list(result.keys())):
+        if not ('fee' in list(result.keys())):
+            if not ('fees' in list(result.keys())):
                 result['fee'] = None
         return result
 

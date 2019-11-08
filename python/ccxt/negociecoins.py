@@ -9,7 +9,7 @@ import hashlib
 from ccxt.base.errors import ArgumentsRequired
 
 
-class negociecoins (Exchange):
+class negociecoins(Exchange):
 
     def describe(self):
         return self.deep_extend(super(negociecoins, self).describe(), {

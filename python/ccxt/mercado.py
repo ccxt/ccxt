@@ -10,7 +10,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
 
 
-class mercado (Exchange):
+class mercado(Exchange):
 
     def describe(self):
         return self.deep_extend(super(mercado, self).describe(), {
@@ -383,7 +383,7 @@ class mercado (Exchange):
                 raise ExchangeError(self.id + ' requires tx_fee parameter to withdraw ' + code)
             if code == 'XRP':
                 if tag is None:
-                    if not('destination_tag' in list(params.keys())):
+                    if not ('destination_tag' in list(params.keys())):
                         raise ExchangeError(self.id + ' requires a tag argument or destination_tag parameter to withdraw ' + code)
                 else:
                     request['destination_tag'] = tag

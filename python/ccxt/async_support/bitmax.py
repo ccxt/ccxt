@@ -14,7 +14,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.decimal_to_precision import ROUND
 
 
-class bitmax (Exchange):
+class bitmax(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitmax, self).describe(), {
@@ -895,7 +895,7 @@ class bitmax (Exchange):
         if since is not None:
             request['startTime'] = since
         if limit is not None:
-            request['pageSize'] = limit
+            request['n'] = limit  # default 15, max 50
         response = await self.privateGetOrderHistory(self.extend(request, params))
         #
         #     {
@@ -1070,7 +1070,10 @@ class bitmax (Exchange):
                 headers['x-auth-coid'] = coid
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             headers['x-auth-signature'] = signature
-            if method != 'GET':
+            if method == 'GET':
+                if query:
+                    url += '?' + self.urlencode(query)
+            else:
                 body = self.json(query)
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

@@ -6,7 +6,7 @@
 from ccxt.zb import zb
 
 
-class bitkk (zb):
+class bitkk(zb):
 
     def describe(self):
         return self.deep_extend(super(bitkk, self).describe(), {

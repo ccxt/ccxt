@@ -21,7 +21,7 @@ from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 
 
-class poloniex (Exchange):
+class poloniex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(poloniex, self).describe(), {
@@ -124,8 +124,12 @@ class poloniex (Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.15 / 100,
-                    'taker': 0.25 / 100,
+                    # https://github.com/ccxt/ccxt/issues/6064
+                    # starting from October 21, 2019 17:00 UTC
+                    # all spot trading fees will be reduced to 0.00%
+                    # until December 31, 2019 23:59 UTC
+                    'maker': 0.0,
+                    'taker': 0.0,
                 },
                 'funding': {},
             },
@@ -229,22 +233,26 @@ class poloniex (Exchange):
     def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        if since is None:
-            since = 0
         request = {
             'currencyPair': market['id'],
             'period': self.timeframes[timeframe],
-            'start': int(since / 1000),
         }
-        if limit is not None:
-            request['end'] = self.sum(request['start'], limit * self.timeframes[timeframe])
+        if since is None:
+            request['end'] = self.seconds()
+            if limit is None:
+                request['start'] = request['end'] - self.parse_timeframe('1w')  # max range = 1 week
+            else:
+                request['start'] = request['end'] - self.sum(limit) * self.parse_timeframe(timeframe)
         else:
-            request['end'] = self.sum(self.seconds(), 1)
+            request['start'] = int(since / 1000)
+            if limit is not None:
+                end = self.sum(request['start'], limit * self.parse_timeframe(timeframe))
+                request['end'] = end
         response = self.publicGetReturnChartData(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetReturnTicker()
+        markets = self.publicGetReturnTicker(params)
         keys = list(markets.keys())
         result = []
         for i in range(0, len(keys)):
@@ -261,8 +269,10 @@ class poloniex (Exchange):
             })
             isFrozen = self.safe_string(market, 'isFrozen')
             active = (isFrozen != '1')
-            result.append(self.extend(self.fees['trading'], {
+            numericId = self.safe_integer(market, 'id')
+            result.append({
                 'id': id,
+                'numericId': numericId,
                 'symbol': symbol,
                 'baseId': baseId,
                 'quoteId': quoteId,
@@ -271,7 +281,7 @@ class poloniex (Exchange):
                 'active': active,
                 'limits': limits,
                 'info': market,
-            }))
+            })
         return result
 
     def fetch_balance(self, params={}):
