@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.19.3",
+            "version": "1.19.17",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "c6bda0378b9bf2097460fec2f95cb0cdc17067e7"
+                "reference": "fefd8a55d67c5f427b5315c13ecf05564a39b1f0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/c6bda0378b9bf2097460fec2f95cb0cdc17067e7",
-                "reference": "c6bda0378b9bf2097460fec2f95cb0cdc17067e7",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/fefd8a55d67c5f427b5315c13ecf05564a39b1f0",
+                "reference": "fefd8a55d67c5f427b5315c13ecf05564a39b1f0",
                 "shasum": ""
             },
             "require": {
@@ -272,7 +272,7 @@
                 "zec",
                 "zerocoin"
             ],
-            "time": "2019-11-02T16:31:32+00:00"
+            "time": "2019-11-07T06:13:18+00:00"
         },
         {
             "name": "pear/console_table",

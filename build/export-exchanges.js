@@ -55,8 +55,8 @@ function exportEverything () {
         // },
         {
             file: './php/base/Exchange.php',
-            regex: /public static \$exchanges \= array\s*\([^\)]+\)/,
-            replacement: "public static $exchanges = array(\n        '" + ids.join ("',\n        '") + "',\n    )",
+            regex: /Exchange::\$exchanges \= array\s*\([^\)]+\)/,
+            replacement: "Exchange::$exchanges = array(\n    '" + ids.join ("',\n    '") + "',\n)",
         },
     ]
 
