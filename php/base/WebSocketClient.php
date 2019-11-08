@@ -4,7 +4,7 @@
 // @email carlo.revelli@berkeley.edu
 
 
-namespace ccxt;
+namespace ccxtpro;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -20,7 +20,7 @@ register_shutdown_function(function () {
 });
 
 
-class WebSocketClient implements WebsocketClientInterface {
+class WebSocketClient {
     public $url;
     public $futures;
     public static $clients = array ();
