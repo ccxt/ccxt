@@ -2,6 +2,9 @@
 
 const errorHierarchy = require ('./errorHierarchy')
 const { unCamelCase } = require ('./functions/string')
+const { omit } = require ('./functions/generic')
+
+const properties = ['errorMessage', 'verbose', 'exchangeId', 'httpStatusCode', 'httpStatusText', 'url', 'httpMethod', 'responseHeaders', 'responseBody', 'responseJson']
 
 /*  ------------------------------------------------------------------------ */
 
@@ -20,6 +23,12 @@ function subclass (BaseClass, classes, namespace = {}) {
 
                 constructor (errorMessage, exchange = undefined, httpStatusCode = undefined, httpStatusText = undefined, url = undefined, httpMethod = undefined, responseHeaders = undefined, responseBody = undefined, responseJson = undefined) {
                     super ()
+                    for (const property of properties) {
+                        Object.defineProperty (this, property, {
+                            enumerable: false,  // hide these properties from stack trace
+                            writable: true,
+                        })
+                    }
                     if (exchange) {
                         this.verbose = exchange.verbose
                         this.exchangeId = exchange.id
@@ -83,8 +92,7 @@ const Errors = subclass (
 )
 
 const BaseError = Errors['BaseError']
-const instance = new BaseError ()
-for (const property of Object.getOwnPropertyNames (instance)) {
+for (const property of properties) {
     const underscore = unCamelCase (property)
     if (underscore !== property) {
         Object.defineProperty (BaseError.prototype, underscore, {
