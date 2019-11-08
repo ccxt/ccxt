@@ -2,7 +2,6 @@
 
 const errorHierarchy = require ('./errorHierarchy')
 const { unCamelCase } = require ('./functions/string')
-const { omit } = require ('./functions/generic')
 
 const properties = ['errorMessage', 'verbose', 'exchangeId', 'httpStatusCode', 'httpStatusText', 'url', 'httpMethod', 'responseHeaders', 'responseBody', 'responseJson']
 
