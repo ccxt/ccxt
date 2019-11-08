@@ -471,8 +471,7 @@ module.exports = class bitpanda extends Exchange {
             request['max_page_size'] = limit;
         }
         const response = await this.privateGetAccountOrders (this.extend (request, params));
-        const orderHistory = this.safeValue (response, 'order_history');
-        const orders = this.safeValue (orderHistory, 'orders');
+        const orders = this.safeValue (response, 'order_history');
         return this.parseOrders (orders, market, since, limit, params);
     }
 
@@ -566,10 +565,11 @@ module.exports = class bitpanda extends Exchange {
         ];
     }
 
-    parseOrder (order) {
+    parseOrder (order, market = undefined) {
+        order = this.safeValue (order, 'order', order);
+        market = this.markets_by_id[this.safeString (order, 'instrument_code')];
         const id = this.safeString (order, 'order_id');
         const time = this.safeString (order, 'time');
-        const market = this.markets_by_id[this.safeString (order, 'instrument_code')];
         const type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
         const status = this.safeString (order, 'status');
