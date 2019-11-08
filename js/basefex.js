@@ -44,7 +44,7 @@ module.exports = class basefex extends Exchange {
         fetchWithdrawals: true,
         fetchTransactions: true,
         fetchLedger: false,
-        withdraw: true
+        withdraw: false
       },
       urls: {
         logo:
@@ -74,7 +74,8 @@ module.exports = class basefex extends Exchange {
             "orders/{id}",
             "orders",
             "trades",
-            "accounts/deposits/{currency}/address"
+            "accounts/deposits/{currency}/address",
+            "accounts/transactions"
           ],
           post: ["orders"],
           put: [],
@@ -118,6 +119,19 @@ module.exports = class basefex extends Exchange {
           PENDING_CANCEL: "open",
           REJECTED: "rejected",
           UNTRIGGERED: "open"
+        },
+        "deposit-status": {
+          NEW: "pending",
+          COMPLETED: "ok"
+        },
+        "withdrawal-status": {
+          NEW: "pending",
+          REJECTED: "failed",
+          AUDITED: "pending",
+          PROCESSED: "pending",
+          COMPLETED: "ok",
+          CANCELED: "canceled",
+          PENDING: "pending"
         }
       }
     });
@@ -300,6 +314,44 @@ module.exports = class basefex extends Exchange {
     return this.castDepositAddress(code, depositAddress);
   }
 
+  async fetchDeposits(code, since, limit, params = {}) {
+    /*
+    fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {})
+    */
+    const query = {
+      type: "DEPOSIT"
+    };
+    params = this.extend({ query }, params);
+    return this.fetchTransactions(code, since, limit, params);
+  }
+
+  async fetchWithdrawals(code, since, limit, params = {}) {
+    /*
+    fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {})
+    */
+    const query = {
+      type: "WITHDRAW"
+    };
+    params = this.extend({ query }, params);
+    return this.fetchTransactions(code, since, limit, params);
+  }
+
+  async fetchTransactions(code, since, limit, params = {}) {
+    /*
+    fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {})
+    */
+    const query = {
+      limit
+    };
+    let transactions = await this.privateGetAccountsTransactions({
+      query: this.extend(query, params.query)
+    });
+    if (code) {
+      transactions = transactions.filter(item => item.currency === code);
+    }
+    return transactions.map(this.castTransaction.bind(this));
+  }
+
   sign(path, api = "public", method = "GET", params = {}, headers = {}, body) {
     const url = this.urls["api"] + path;
     if (api === "private" && this.apiKey && this.secret) {
@@ -344,7 +396,10 @@ module.exports = class basefex extends Exchange {
       path = localTool.makePath(path, params.path);
     }
     if (params.query) {
-      path += `?${this.urlencode(params.query)}`;
+      const query = this.urlencode(params.query);
+      if (query !== "") {
+        path += `?${query}`;
+      }
     }
     const headers = this.extend(
       { "Content-Type": "application/json" },
@@ -584,6 +639,35 @@ module.exports = class basefex extends Exchange {
     };
   }
 
+  castTransaction(transaction) {
+    const type = this.translateTransactionType(transaction.type);
+    return {
+      info: transaction, // the JSON response from the exchange as is
+      id: transaction.id, // exchange-specific transaction id, string
+      txid: transaction.foreignTxId,
+      timestamp: transaction.ts, // timestamp in milliseconds
+      datetime: this.iso8601(transaction.ts), // ISO8601 string of the timestamp
+      addressFrom: undefined, // sender
+      address: transaction.address, // "from" or "to"
+      addressTo: undefined, // receiver
+      tagFrom: undefined, // "tag" or "memo" or "payment_id" associated with the sender
+      tag: undefined, // "tag" or "memo" or "payment_id" associated with the address
+      tagTo: undefined, // "tag" or "memo" or "payment_id" associated with the receiver
+      type: type, // or 'withdrawal', string
+      amount: transaction.amount, // float (does not include the fee)
+      currency: transaction.currency, // a common unified currency code, string
+      status: this.options[`${type}-status`][transaction.status], // 'ok', 'failed', 'canceled', string
+      updated: undefined, // UTC timestamp of most recent status change in ms
+      comment: transaction.node,
+      fee: {
+        // the entire fee structure may be undefined
+        currency: transaction.currency, // a unified fee currency code
+        cost: transaction.fee, // float
+        rate: undefined // approximately, fee['cost'] / amount, float
+      }
+    };
+  }
+
   translateSymbol(base, quote) {
     return `${String(base).toUpperCase()}/${String(quote).toUpperCase()}`;
   }
@@ -608,5 +692,23 @@ module.exports = class basefex extends Exchange {
 
   translateBaseFEXOrderType(type) {
     return String(type).toUpperCase();
+  }
+
+  translateTransactionType(type) {
+    switch (type) {
+      case "WITHDRAW":
+        return "withdrawal";
+      case "DEPOSIT":
+        return "deposit";
+    }
+  }
+
+  translateBaseFEXTransactionType(type) {
+    switch (type) {
+      case "withdrawal":
+        return "WITHDRAW";
+      case "deposit":
+        return "DEPOSIT";
+    }
   }
 };
