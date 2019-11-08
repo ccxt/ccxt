@@ -49,8 +49,7 @@ const { Agent } = require ('https')
 const agent = new Agent ({
     ecdhCurve: 'auto',
 })
-// console.log('aaa');
-console.log((ccxt).tokens);
+
 const exchange = new (ccxt)[exchangeId] ({
     agent,
     verbose,
