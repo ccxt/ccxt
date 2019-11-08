@@ -7,7 +7,7 @@ const { ExchangeError, PermissionDenied, ArgumentsRequired, BadRequest, InvalidN
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class tokens extends Exchange {
+module.exports = class tokensnet extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'tokensnet',
