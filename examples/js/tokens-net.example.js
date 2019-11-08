@@ -171,7 +171,7 @@ let test = async () => {
     // await printMyTrades();
     // await printMyTradesDtrUsdt();
 
-    await test();
+    // await test();
 
     process.exit ();
 }) ()

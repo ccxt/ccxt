@@ -102,8 +102,6 @@ module.exports = class tokensnet extends Exchange {
         });
     }
 
-    // Public fetch functions
-
     async fetchMarkets (params = {}) {
         const markets = await this.publicGetPublicTradingPairsGetAll (params);
         // {
@@ -316,8 +314,6 @@ module.exports = class tokensnet extends Exchange {
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
-    // Private fetch functions
-
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetPrivateBalanceAll (params);
@@ -491,8 +487,6 @@ module.exports = class tokensnet extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    // Helper functions
-
     parseTicker (ticker, market = undefined) {
         const symbol = this.findSymbol (this.safeString (market, 'symbol'));
         const lastPrice = this.safeFloat (ticker, 'last');
@@ -554,23 +548,6 @@ module.exports = class tokensnet extends Exchange {
         };
     }
 
-    // {
-    //   timestamp: 1573045496,
-    //   status: 'ok',
-    //   openOrders: [
-    //     {
-    //       id: '682aeee9-2826-416c-a15a-7e95c1645495',
-    //       price: '0.00000448',
-    //       type: 'sell',
-    //       takeProfit: null,
-    //       created: 1571145633,
-    //       currencyPair: 'dtrbtc',
-    //       remainingAmount: '30.00000000',
-    //       amount: '30.00000000'
-    //     },
-    //     ...
-    //     ],
-    // }
     async parseOrder (order, market = undefined) {
         const id = this.safeString (order, 'id');
         const timestamp = this.safeTimestamp (order, 'created');

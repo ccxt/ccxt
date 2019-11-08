@@ -568,6 +568,7 @@ declare module 'ccxt' {
     export class therock extends Exchange {}
     export class tidebit extends Exchange {}
     export class tidex extends Exchange {}
+    export class tokensnet extends Exchange {}
     export class upbit extends Exchange {}
     export class vaultoro extends Exchange {}
     export class vbtc extends foxbit {}
