@@ -61,6 +61,7 @@ class latoken extends Exchange {
                         'MarketData/tickers',
                         'MarketData/ticker/{symbol}',
                         'MarketData/orderBook/{symbol}',
+                        'MarketData/orderBook/{symbol}/{limit}',
                         'MarketData/trades/{symbol}',
                         'MarketData/trades/{symbol}/{limit}',
                     ),
@@ -313,22 +314,26 @@ class latoken extends Exchange {
         $market = $this->market ($symbol);
         $request = array (
             'symbol' => $market['id'],
+            'limit' => 10,
         );
-        $response = $this->publicGetMarketDataOrderBookSymbol (array_merge ($request, $params));
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 10, max 100
+        }
+        $response = $this->publicGetMarketDataOrderBookSymbolLimit (array_merge ($request, $params));
         //
         //     {
         //         "pairId" => 502,
         //         "$symbol" => "LAETH",
         //         "spread" => 0.07,
         //         "asks" => array (
-        //             array( "price" => 136.3, "amount" => 7.024 )
+        //             array( "price" => 136.3, "quantity" => 7.024 )
         //         ),
         //         "bids" => array (
-        //             array( "price" => 136.2, "amount" => 6.554 )
+        //             array( "price" => 136.2, "quantity" => 6.554 )
         //         )
         //     }
         //
-        return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'quantity');
     }
 
     public function parse_ticker ($ticker, $market = null) {
