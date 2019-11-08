@@ -509,7 +509,7 @@ class Transpiler {
             "// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code",
             "use Exception; // a common import",
             'class ' + className + ' extends ' + baseClass + ' {',
-        ].join ("\n")
+        ]
 
         let bodyAsString = body.join ("\n")
 
