@@ -1,9 +1,21 @@
 'use strict';
 
 const errorHierarchy = require ('./errorHierarchy')
-const { unCamelCase } = require ('./functions/string')
-
-const properties = ['errorMessage', 'verbose', 'exchangeId', 'httpStatusCode', 'httpStatusText', 'url', 'httpMethod', 'responseHeaders', 'responseBody', 'responseJson']
+// const { unCamelCase } = require ('./functions/string')
+// keep camelCase mapping static to avoid wasting a few cycles at runtime
+const propertyMap = {
+    'errorMessage': 'error_message',
+    'verbose': 'verbose',
+    'exchangeId': 'exchange_id',
+    'httpStatusCode': 'http_status_code',
+    'httpStatusText': 'http_status_text',
+    'url': 'url',
+    'httpMethod': 'http_method',
+    'responseHeaders': 'response_headers',
+    'responseBody': 'response_body',
+    'responseJson': 'response_json',
+}
+const properties = Object.keys (propertyMap)
 
 /*  ------------------------------------------------------------------------ */
 
@@ -92,17 +104,15 @@ const Errors = subclass (
 
 const BaseError = Errors['BaseError']
 for (const property of properties) {
-    const underscore = unCamelCase (property)
-    if (underscore !== property) {
-        Object.defineProperty (BaseError.prototype, underscore, {
-            get () {
-                return this[property]
-            },
-            set (value) {
-                this[property] = value
-            },
-        })
-    }
+    const underscore = propertyMap[property]
+    Object.defineProperty (BaseError.prototype, underscore, {
+        get () {
+            return this[property]
+        },
+        set (value) {
+            this[property] = value
+        },
+    })
 }
 
 module.exports = Errors
