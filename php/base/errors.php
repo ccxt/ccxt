@@ -65,7 +65,15 @@ class BaseError extends Exception {
     public $response_body;
     public $response_json;
     public $verbose;
-    public $camel_case;
+    public static $camel_case = array(
+        'exchangeId' => 'exchange_id',
+        'httpCode' => 'http_code',
+        'httpStatusText' => 'http_status_text',
+        'httpMethod' => 'http_method',
+        'responseHeaders' => 'response_headers',
+        'responseBody' => 'response_body',
+        'responseJson' => 'response_json',
+    );
 
     public function __construct($error_message, $exchange = null, $http_code = null, $http_status_text = null, $url = null, $http_method = null, $response_headers = null, $response_body = null, $response_json = null, ...$args) {
         $this->verbose = null;
@@ -84,15 +92,6 @@ class BaseError extends Exception {
         $this->response_headers = $response_headers;
         $this->response_body = $response_body;
         $this->response_json = $response_json;
-        $this->camel_case = array(
-            'exchangeId' => 'exchange_id',
-            'httpCode' => 'http_code',
-            'httpStatusText' => 'http_status_text',
-            'httpMethod' => 'http_method',
-            'responseHeaders' => 'response_headers',
-            'responseBody' => 'response_body',
-            'responseJson' => 'response_json',
-        );
     }
 
     public function __toString() {
@@ -116,7 +115,7 @@ class BaseError extends Exception {
         if ($name === 'message') {
             return $this->__toString();
         }
-        if (array_key_exists($name, $this->camel_case)) {
+        if (array_key_exists($name, static::$camel_case)) {
             $underscore = $this->camel_case[$name];
             return $this->$underscore;
         }
@@ -125,8 +124,8 @@ class BaseError extends Exception {
 
     public function __set($name, $value) {
         $underscore = $name;
-        if (array_key_exists($name, $this->camel_case)) {
-            $underscore = $this->camel_case[$name];
+        if (array_key_exists($name, static::$camel_case)) {
+            $underscore = static::$camel_case[$name];
         }
         $this->$underscore = $value;
     }
