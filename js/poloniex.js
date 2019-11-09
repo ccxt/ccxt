@@ -245,7 +245,7 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const markets = await this.publicGetReturnTicker ();
+        const markets = await this.publicGetReturnTicker (params);
         const keys = Object.keys (markets);
         const result = [];
         for (let i = 0; i < keys.length; i++) {
@@ -262,8 +262,10 @@ module.exports = class poloniex extends Exchange {
             });
             const isFrozen = this.safeString (market, 'isFrozen');
             const active = (isFrozen !== '1');
-            result.push (this.extend (this.fees['trading'], {
+            const numericId = this.safeInteger (market, 'id');
+            result.push ({
                 'id': id,
+                'numericId': numericId,
                 'symbol': symbol,
                 'baseId': baseId,
                 'quoteId': quoteId,
@@ -272,7 +274,7 @@ module.exports = class poloniex extends Exchange {
                 'active': active,
                 'limits': limits,
                 'info': market,
-            }));
+            });
         }
         return result;
     }

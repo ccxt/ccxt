@@ -705,7 +705,7 @@ class binance(Exchange):
             if filled:
                 average = cost / filled
                 if self.options['parseOrderToPrecision']:
-                    average = float(self.amount_to_precision(symbol, average))
+                    average = float(self.price_to_precision(symbol, average))
             if self.options['parseOrderToPrecision']:
                 cost = float(self.cost_to_precision(symbol, cost))
         return {
