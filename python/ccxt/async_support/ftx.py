@@ -268,9 +268,12 @@ class ftx(Exchange):
             # check if a market is a spot or future market
             symbol = self.safe_string(market, 'name') if (type == 'future') else (base + '/' + quote)
             active = self.safe_value(market, 'enabled')
+            # workaround for https://github.com/ccxt/ccxt/issues/6103
+            sizeIncrement = self.safe_value(market, 'sizeIncrement')
+            priceIncrement = self.safe_value(market, 'priceIncrement')
             precision = {
-                'amount': self.precision_from_string(self.safe_string(market, 'sizeIncrement')),
-                'price': self.precision_from_string(self.safe_string(market, 'priceIncrement')),
+                'amount': self.precision_from_string(self.number_to_string(sizeIncrement)),
+                'price': self.precision_from_string(self.number_to_string(priceIncrement)),
             }
             entry = {
                 'id': id,

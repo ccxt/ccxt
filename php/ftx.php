@@ -223,10 +223,10 @@ class ftx extends Exchange {
         //                 "last":170.37,
         //                 "name":"ETH-PERP",
         //                 "price":170.37,
-        //                 "priceIncrement":0.01,
+        //                 "$priceIncrement":0.01,
         //                 "quoteCurrency":null,
         //                 "quoteVolume24h":7742164.59889,
-        //                 "sizeIncrement":0.001,
+        //                 "$sizeIncrement":0.001,
         //                 "$type":"future",
         //                 "underlying":"ETH",
         //                 "volumeUsd24h":7742164.59889
@@ -242,10 +242,10 @@ class ftx extends Exchange {
         //                 "last":172.72,
         //                 "name":"ETH/USD",
         //                 "price":170.44,
-        //                 "priceIncrement":0.01,
+        //                 "$priceIncrement":0.01,
         //                 "quoteCurrency":"USD",
         //                 "quoteVolume24h":382802.0252,
-        //                 "sizeIncrement":0.001,
+        //                 "$sizeIncrement":0.001,
         //                 "$type":"spot",
         //                 "underlying":null,
         //                 "volumeUsd24h":382802.0252
@@ -266,9 +266,12 @@ class ftx extends Exchange {
             // check if a $market is a spot or future $market
             $symbol = ($type === 'future') ? $this->safe_string($market, 'name') : ($base . '/' . $quote);
             $active = $this->safe_value($market, 'enabled');
+            // workaround for https://github.com/ccxt/ccxt/issues/6103
+            $sizeIncrement = $this->safe_value($market, 'sizeIncrement');
+            $priceIncrement = $this->safe_value($market, 'priceIncrement');
             $precision = array (
-                'amount' => $this->precision_from_string($this->safe_string($market, 'sizeIncrement')),
-                'price' => $this->precision_from_string($this->safe_string($market, 'priceIncrement')),
+                'amount' => $this->precision_from_string($this->number_to_string($sizeIncrement)),
+                'price' => $this->precision_from_string($this->number_to_string($priceIncrement)),
             );
             $entry = array (
                 'id' => $id,
