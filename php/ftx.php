@@ -151,6 +151,7 @@ class ftx extends Exchange {
                     'An unexpected error occurred' => '\\ccxt\\ExchangeError', // array("error":"An unexpected error occurred, please try again later (58BC21C795).","success":false)
                 ),
             ),
+            'roundingMode' => TICK_SIZE,
         ));
     }
 
@@ -266,12 +267,11 @@ class ftx extends Exchange {
             // check if a $market is a spot or future $market
             $symbol = ($type === 'future') ? $this->safe_string($market, 'name') : ($base . '/' . $quote);
             $active = $this->safe_value($market, 'enabled');
-            // workaround for https://github.com/ccxt/ccxt/issues/6103
-            $sizeIncrement = $this->safe_value($market, 'sizeIncrement');
-            $priceIncrement = $this->safe_value($market, 'priceIncrement');
+            $sizeIncrement = $this->safe_float($market, 'sizeIncrement');
+            $priceIncrement = $this->safe_float($market, 'priceIncrement');
             $precision = array (
-                'amount' => $this->precision_from_string($this->number_to_string($sizeIncrement)),
-                'price' => $this->precision_from_string($this->number_to_string($priceIncrement)),
+                'amount' => $sizeIncrement,
+                'price' => $priceIncrement,
             );
             $entry = array (
                 'id' => $id,
@@ -287,11 +287,11 @@ class ftx extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $this->safe_float($market, 'sizeIncrement'),
+                        'min' => $sizeIncrement,
                         'max' => null,
                     ),
                     'price' => array (
-                        'min' => $this->safe_float($market, 'priceIncrement'),
+                        'min' => $priceIncrement,
                         'max' => null,
                     ),
                     'cost' => array (
