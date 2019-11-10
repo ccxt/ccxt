@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { TICK_SIZE } = require ('./base/functions/number');
 const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
@@ -150,6 +151,7 @@ module.exports = class ftx extends Exchange {
                     'An unexpected error occurred': ExchangeError, // {"error":"An unexpected error occurred, please try again later (58BC21C795).","success":false}
                 },
             },
+            'roundingMode': TICK_SIZE,
         });
     }
 
@@ -265,12 +267,11 @@ module.exports = class ftx extends Exchange {
             // check if a market is a spot or future market
             const symbol = (type === 'future') ? this.safeString (market, 'name') : (base + '/' + quote);
             const active = this.safeValue (market, 'enabled');
-            // workaround for https://github.com/ccxt/ccxt/issues/6103
-            const sizeIncrement = this.safeValue (market, 'sizeIncrement');
-            const priceIncrement = this.safeValue (market, 'priceIncrement');
+            const sizeIncrement = this.safeFloat (market, 'sizeIncrement');
+            const priceIncrement = this.safeFloat (market, 'priceIncrement');
             const precision = {
-                'amount': this.precisionFromString (this.numberToString (sizeIncrement)),
-                'price': this.precisionFromString (this.numberToString (priceIncrement)),
+                'amount': sizeIncrement,
+                'price': priceIncrement,
             };
             const entry = {
                 'id': id,
@@ -286,11 +287,11 @@ module.exports = class ftx extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'sizeIncrement'),
+                        'min': sizeIncrement,
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.safeFloat (market, 'priceIncrement'),
+                        'min': priceIncrement,
                         'max': undefined,
                     },
                     'cost': {
