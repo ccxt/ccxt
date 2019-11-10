@@ -203,8 +203,8 @@ class idex extends Exchange {
             'change' => null,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $baseVolume,
-            'quoteVolume' => $quoteVolume,
+            'baseVolume' => $quoteVolume,
+            'quoteVolume' => $baseVolume,
             'info' => $ticker,
         );
     }
