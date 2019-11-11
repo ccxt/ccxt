@@ -41,8 +41,7 @@ do {
     } else {
         break;
     }
-    $cb_after = $exchange->safe_integer($exchange->last_response_headers, 'cb-after');
-    $params['after'] = $exchange->last_response_headers['cb-after'][0];
+    @$params['after'] = $exchange->last_response_headers['cb-after'][0];
 
 // uncomment one of the following:
 // } while (true); // fetch all results forever
