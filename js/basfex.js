@@ -128,4 +128,130 @@ module.exports = class basefex extends Exchange {
       }
     });
   }
+
+  async fetchMarkets() {
+    const symbols = await this.publicGetSymbols();
+    return this.fnMap(this, symbols, this.castMarket);
+  }
+
+  sign(path, api = "public", method = "GET", params = {}, headers = {}, body) {
+    const url = this.urls["api"] + path;
+    if (api === "private" && this.apiKey && this.secret) {
+      let auth = method + path;
+      let expires = this.options["api-expires"];
+      expires = this.sum(this.seconds(), expires).toString();
+      auth += expires;
+      if (method === "POST" || method === "PUT" || method === "DELETE") {
+        if (body && this.keys(body).length > 0) {
+          body = this.json(body);
+          auth += body;
+        }
+      }
+      headers["api-key"] = this.apiKey;
+      headers["api-expires"] = expires;
+      headers["api-signature"] = this.hmac(
+        this.encode(auth),
+        this.encode(this.secret)
+      );
+    }
+    return { url: url, method: method, body: body, headers: headers };
+  }
+
+  handleErrors(
+    statusCode,
+    statusText,
+    url,
+    method,
+    responseHeaders,
+    responseBody,
+    response,
+    requestHeaders,
+    requestBody
+  ) {
+    // override me
+  }
+
+  request(path, type = "public", method = "GET", params = {}) {
+    //params={path,query,headers,body}
+    const pathObj = this.safeValue(params, "path");
+    if (pathObj) {
+      path = this.implodeParams(path, pathObj);
+    }
+    path = "/" + path;
+    const queryObj = this.safeValue(params, "query");
+    if (queryObj) {
+      const query = this.urlencode(queryObj);
+      if (query !== "") {
+        path += "?" + query;
+      }
+    }
+    const headersObj = this.safeValue(params, "headers");
+    const headers = this.extend(
+      { "Content-Type": "application/json" },
+      headersObj
+    );
+    const body = this.safeValue(params, "body");
+
+    return super.request(path, type, method, params, headers, body);
+  }
+
+  castMarket(itself = this, symbol) {
+    const _base = itself.safeString(symbol, "baseCurrency");
+    const _quote = itself.safeString(symbol, "quoteCurrency");
+    return {
+      id: itself.safeString(symbol, "symbol"), // string literal for referencing within an exchange
+      symbol: itself.translateSymbol(itself, _base, _quote), // uppercase string literal of a pair of currencies
+      base: itself.capitalize(_base), // uppercase string, unified base currency code, 3 or more letters
+      quote: itself.capitalize(_quote), // uppercase string, unified quote currency code, 3 or more letters
+      baseId: _base, // any string, exchange-specific base currency id
+      quoteId: _quote, // any string, exchange-specific quote currency id
+      active: itself.safeValue(symbol, "enable"), // boolean, market status
+      precision: {
+        // number of decimal digits "after the dot"
+        price: itself.safeInteger(symbol, "priceStep") // integer or float for TICK_SIZE roundingMode, might be missing if not supplied by the exchange
+        // amount: 8, // integer, might be missing if not supplied by the exchange
+        // cost: 8 // integer, very few exchanges actually have it
+      },
+      limits: {
+        // value limits when placing orders on this market
+        // amount: {
+        //   min: 0.01, // order amount should be > min
+        //   max: 1000 // order amount should be < max
+        // },
+        // price: {}, // same min/max limits for the price of the order
+        // cost: {} // same limits for order cost = price * amount
+      },
+      info: symbol // the original unparsed market info from the exchange
+    };
+  }
+
+  translateSymbol(itself = this, base, quote) {
+    return itself.capitalize(base) + "/" + itself.capitalize(quote);
+  }
+
+  fnMap(itself = this, _array, callback, params) {
+    const result = [];
+    for (let i = 0; i < _array.length; i++) {
+      result.push(callback(itself, _array[i], params));
+    }
+    return result;
+  }
+
+  fnFilter(itself = this, _array, predicate, params) {
+    const result = [];
+    for (let i = 0; i < _array.length; i++) {
+      if (predicate(itself, _array[i], params)) {
+        result.push(_array[i]);
+      }
+    }
+    return result;
+  }
+
+  fnReverse(itself = this, _array) {
+    const result = [];
+    for (let i = _array.length - 1; i >= 0; i--) {
+      result.push(_array[i]);
+    }
+    return result;
+  }
 };
