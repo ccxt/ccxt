@@ -134,6 +134,23 @@ module.exports = class basefex extends Exchange {
     return this.fnMap(this, symbols, this.castMarket);
   }
 
+  async fetchTradingFees(params = {}) {
+    throw new NotSupported(this.id + " fetchTradingFees not supported yet");
+  }
+
+  async fetchTicker(symbol) {
+    const candlesticks = await this.publicGetCandlesticksTypeSymbolHistory({
+      path: {
+        type: "1DAY",
+        symbol: this.translateBaseFEXSymbol(this, symbol)
+      },
+      query: {
+        limit: 1
+      }
+    });
+    return this.castTicker(this, symbol, candlesticks[0]);
+  }
+
   sign(path, api = "public", method = "GET", params = {}, headers = {}, body) {
     const url = this.urls["api"] + path;
     if (api === "private" && this.apiKey && this.secret) {
@@ -225,8 +242,45 @@ module.exports = class basefex extends Exchange {
     };
   }
 
+  castTicker(itself = this, symbol, candlestick) {
+    const timestamp = itself.safeInteger(candlestick, "time");
+    const open = itself.safeFloat(candlestick, "open");
+    const close = itself.safeFloat(candlestick, "close");
+    const last = close;
+    const change = itself.sum(last, -open);
+    const percentage = (change / open) * 100;
+    const average = itself.sum(last, open) / 2;
+    return {
+      symbol: symbol, //string symbol of the market ('BTC/USD', 'ETH/BTC', ...)
+      info: candlestick, // the original non-modified unparsed reply from exchange API
+      timestamp: timestamp, // int (64-bit Unix Timestamp in milliseconds since Epoch 1 Jan 1970)
+      datetime: itself.iso8601(timestamp), //ISO8601 datetime string with milliseconds
+      high: itself.safeFloat(candlestick, "high"), // highest price
+      low: itself.safeFloat(candlestick, "low"), // lowest price
+      bid: undefined, // current best bid (buy) price
+      bidVolume: undefined, // current best bid (buy) amount (may be missing or undefined)
+      ask: undefined, // current best ask (sell) price
+      askVolume: undefined, // current best ask (sell) amount (may be missing or undefined)
+      vwap: itself.safeFloat(candlestick, "volume"), // volume weighed average price
+      open: open, // opening price
+      close: close, // price of last trade (closing price for current period)
+      last: last, // same as `close`, duplicated for convenience
+      previousClose: undefined, // closing price for the previous period
+      change: change, // absolute change, `last - open`
+      percentage: percentage, // relative change, `(change/open) * 100`
+      average: average, // average price, `(last + open) / 2`
+      baseVolume: undefined, // volume of base currency traded for last 24 hours
+      quoteVolume: undefined // volume of quote currency traded for last 24 hours
+    };
+  }
+
   translateSymbol(itself = this, base, quote) {
     return itself.capitalize(base) + "/" + itself.capitalize(quote);
+  }
+
+  translateBaseFEXSymbol(itself = this, symbol) {
+    const semi = symbol.replace("/", "");
+    return itself.capitalizeP(semi);
   }
 
   fnMap(itself = this, _array, callback, params) {
