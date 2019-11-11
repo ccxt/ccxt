@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, AuthenticationError, ExchangeError, OrderNotFound, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, DDoSProtection, ExchangeError, OrderNotFound, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -71,7 +71,9 @@ module.exports = class coinsbit extends Exchange {
                 'balance not enough': InsufficientFunds,
                 'amount is less than': InvalidOrder,
                 'Total is less than': InvalidOrder,
+                'validation.total': InvalidOrder,
                 'This action is unauthorized.': AuthenticationError,
+                'Too many requests': DDoSProtection,
             },
         });
     }
@@ -351,12 +353,13 @@ module.exports = class coinsbit extends Exchange {
                 const success = this.safeValue (response, 'success', true);
                 const errorMessage = this.safeValue (response, 'message', [[]]);
                 if (!success && errorMessage) {
+                    let message = '';
                     if (Array.isArray (errorMessage)) {
-                        const message = errorMessage.toString ();
-                        throw new ExchangeError (this.id + ' Error ' + message);
+                        message = errorMessage.toString ();
+                    } else {
+                        const messageKey = Object.keys (errorMessage)[0];
+                        message = errorMessage[messageKey][0];
                     }
-                    const messageKey = Object.keys (errorMessage)[0];
-                    const message = errorMessage[messageKey][0];
                     const exceptionMessages = Object.keys (this.exceptions);
                     for (let i = 0; i < exceptionMessages.length; i++) {
                         const exceptionMessage = exceptionMessages[i];
