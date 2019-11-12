@@ -311,8 +311,8 @@ module.exports = class basefex extends Exchange {
     return {
       id: itself.safeString(symbol, "symbol"),
       symbol: itself.translateSymbol(itself, _base, _quote),
-      base: itself.capitalize(_base),
-      quote: itself.capitalize(_quote),
+      base: _base.toUpperCase(),
+      quote: _quote.toUpperCase(),
       baseId: _base,
       quoteId: _quote,
       active: itself.safeValue(symbol, "enable"),
@@ -391,7 +391,7 @@ module.exports = class basefex extends Exchange {
       total: {}
     };
     for (let i = 0; i < accounts.length; i++) {
-      const cash = accounts[0];
+      const cash = accounts[i];
       const currency = itself.safeString(cash, "currency");
       const total = itself.safeFloat(cash, "marginBalances");
       const free = itself.safeFloat(cash, "available");
@@ -450,7 +450,7 @@ module.exports = class basefex extends Exchange {
       symbol: symbol,
       order: itself.safeString(trade, "orderId"),
       type: _type,
-      side: itself.translateOrderSide(itself, itself.safeString(_order, "side")),
+      side: itself.translateOrderSide(itself, itself.safeString(trade, "side")),
       price: itself.safeFloat(trade, "price"),
       amount: itself.safeFloat(trade, "size")
     };
@@ -495,28 +495,28 @@ module.exports = class basefex extends Exchange {
   }
 
   translateSymbol(itself, base, quote) {
-    return itself.capitalize(base) + "/" + itself.capitalize(quote);
+    return base.toUpperCase() + "/" + quote.toUpperCase();
   }
 
   translateBaseFEXSymbol(itself, symbol) {
     const semi = symbol.replace("/", "");
-    return itself.capitalize(semi);
+    return semi.toUpperCase();
   }
 
   translateOrderSide(itself, side) {
-    return itself.unCamelCase(side);
+    return side.toLowerCase();
   }
 
   translateBaseFEXOrderSide(itself, side) {
-    return itself.capitalize(side);
+    return side.toUpperCase();
   }
 
   translateOrderType(itself, type) {
-    return itself.unCamelCase(type);
+    return type.toLowerCase();
   }
 
   translateBaseFEXOrderType(itself, type) {
-    return itself.capitalize(type);
+    return type.toUpperCase();
   }
 
   translateTransactionType(itself, type) {
