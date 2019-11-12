@@ -832,18 +832,11 @@ class Exchange(object):
         return string
 
     @staticmethod
-    def url(path, params={}):
-        result = Exchange.implode_params(path, params)
-        query = Exchange.omit(params, Exchange.extract_params(path))
-        if query:
-            result += '?' + _urlencode.urlencode(query)
-        return result
-
-    @staticmethod
     def urlencode(params={}):
-        if (type(params) is dict) or isinstance(params, collections.OrderedDict):
-            return _urlencode.urlencode(params)
-        return params
+        for key, value in params.items():
+            if isinstance(value, bool):
+                params[key] = str(value).lower()
+        return _urlencode.urlencode(params)
 
     @staticmethod
     def rawencode(params={}):
