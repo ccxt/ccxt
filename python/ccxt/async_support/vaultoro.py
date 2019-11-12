@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 
 
-class vaultoro (Exchange):
+class vaultoro(Exchange):
 
     def describe(self):
         return self.deep_extend(super(vaultoro, self).describe(), {

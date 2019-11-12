@@ -4,25 +4,19 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 
 
-class gateio (Exchange):
+class gateio(Exchange):
 
     def describe(self):
         return self.deep_extend(super(gateio, self).describe(), {
@@ -125,6 +119,7 @@ class gateio (Exchange):
                 '15': DDoSProtection,
                 '16': OrderNotFound,
                 '17': OrderNotFound,
+                '20': InvalidOrder,
                 '21': InsufficientFunds,
             },
             # https://gate.io/api2#errCode
@@ -332,24 +327,6 @@ class gateio (Exchange):
             'info': ticker,
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
-        if response is None:
-            return
-        resultString = self.safe_string(response, 'result', '')
-        if resultString != 'false':
-            return
-        errorCode = self.safe_string(response, 'code')
-        if errorCode is not None:
-            exceptions = self.exceptions
-            errorCodeNames = self.errorCodeNames
-            if errorCode in exceptions:
-                message = ''
-                if errorCode in errorCodeNames:
-                    message = errorCodeNames[errorCode]
-                else:
-                    message = self.safe_string(response, 'message', '(unknown)')
-                raise exceptions[errorCode](message)
-
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
         response = self.publicGetTickers(params)
@@ -470,7 +447,8 @@ class gateio (Exchange):
         timestamp = self.safe_timestamp(order, 'timestamp')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'type')
-        price = self.safe_float(order, 'filledRate')
+        price = self.safe_float(order, 'initialRate')
+        average = self.safe_float(order, 'filledRate')
         amount = self.safe_float(order, 'initialAmount')
         filled = self.safe_float(order, 'filledAmount')
         # In the order status response, self field has a different name.
@@ -494,6 +472,7 @@ class gateio (Exchange):
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
+            'average': average,
             'trades': None,
             'fee': {
                 'cost': feeCost,
@@ -644,7 +623,7 @@ class gateio (Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        return self.parseTransactions(transactions, currency, since, limit)
+        return self.parse_transactions(transactions, currency, since, limit)
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         return self.fetch_transactions_by_type(None, code, since, limit, params)
@@ -723,16 +702,16 @@ class gateio (Exchange):
         }
         return self.safe_string(types, type, type)
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'result' in response:
-            result = response['result']
-            message = self.id + ' ' + self.json(response)
-            if result is None:
-                raise ExchangeError(message)
-            if isinstance(result, basestring):
-                if result != 'true':
-                    raise ExchangeError(message)
-            elif not result:
-                raise ExchangeError(message)
-        return response
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return
+        resultString = self.safe_string(response, 'result', '')
+        if resultString != 'false':
+            return
+        errorCode = self.safe_string(response, 'code')
+        if errorCode is not None:
+            exceptions = self.exceptions
+            if errorCode in exceptions:
+                message = self.safe_string(response, 'message', body)
+                feedback = self.safe_string(self.errorCodeNames, errorCode, message)
+                raise exceptions[errorCode](feedback)

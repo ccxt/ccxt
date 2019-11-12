@@ -12,7 +12,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 
 
-class bleutrade (bittrex):
+class bleutrade(bittrex):
 
     def describe(self):
         timeframes = {
@@ -314,7 +314,7 @@ class bleutrade (bittrex):
         self.load_markets()
         method = 'accountGetDeposithistory' if (type == 'deposit') else 'accountGetWithdrawhistory'
         response = getattr(self, method)(params)
-        result = self.parseTransactions(response['result'])
+        result = self.parse_transactions(response['result'])
         return self.filterByCurrencySinceLimit(result, code, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):

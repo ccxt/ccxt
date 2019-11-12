@@ -24,7 +24,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
 
-class dsx (Exchange):
+class dsx(Exchange):
 
     def describe(self):
         return self.deep_extend(super(dsx, self).describe(), {
@@ -984,7 +984,7 @@ class dsx (Exchange):
         #     }
         #
         transactions = self.safe_value(response, 'return', [])
-        return self.parseTransactions(transactions, currency, since, limit)
+        return self.parse_transactions(transactions, currency, since, limit)
 
     def parse_transaction_status(self, status):
         statuses = {

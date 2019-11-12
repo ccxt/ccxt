@@ -15,7 +15,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 
 
-class okcoinusd (Exchange):
+class okcoinusd(Exchange):
 
     def describe(self):
         return self.deep_extend(super(okcoinusd, self).describe(), {
@@ -52,6 +52,11 @@ class okcoinusd (Exchange):
                 '1w': '1week',
             },
             'api': {
+                'v3': {
+                    'get': [
+                        'futures/pc/market/futuresCoin',
+                    ],
+                },
                 'web': {
                     'get': [
                         'futures/pc/market/marketOverview',
@@ -131,6 +136,7 @@ class okcoinusd (Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api': {
+                    'v3': 'https://www.okcoin.com/v3',
                     'web': 'https://www.okcoin.com/v2',
                     'public': 'https://www.okcoin.com/api',
                     'private': 'https://www.okcoin.com',
@@ -141,12 +147,13 @@ class okcoinusd (Exchange):
                     'https://www.npmjs.com/package/okcoin.com',
                 ],
                 'referral': 'https://www.okcoin.com/account/register?flag=activity&channelId=600001513',
+                'fees': 'https://support.okcoin.com/hc/en-us/articles/360015261532-OKCoin-Fee-Rates',
             },
             # these are okcoin.com fees, okex fees are in okex.js
             'fees': {
                 'trading': {
-                    'taker': 0.001,
-                    'maker': 0.0005,
+                    'taker': 0.002,
+                    'maker': 0.001,
                 },
             },
             'exceptions': {
@@ -374,7 +381,9 @@ class okcoinusd (Exchange):
         spotMarkets = self.safe_value(spotResponse, 'data', [])
         markets = spotMarkets
         if self.has['futures']:
-            futuresResponse = await self.webPostFuturesPcMarketFuturesCoin()
+            futuresResponse = await self.v3GetFuturesPcMarketFuturesCoin({
+                'currencyCode': 0,
+            })
             #
             #     {
             #         "msg":"success",
@@ -408,7 +417,8 @@ class okcoinusd (Exchange):
             #         ]
             #     }
             #
-            futuresMarkets = self.safe_value(futuresResponse, 'data', [])
+            data = self.safe_value(futuresResponse, 'data', {})
+            futuresMarkets = self.safe_value(data, 'usd', [])
             markets = self.array_concat(spotMarkets, futuresMarkets)
         for i in range(0, len(markets)):
             market = markets[i]
@@ -442,8 +452,8 @@ class okcoinusd (Exchange):
                 contracts = [{}]
             else:
                 # futures markets
-                quoteId = self.safe_string(market, 'quote')
-                uppercaseBaseId = self.safe_string(market, 'symbolDesc')
+                quoteId = self.safe_string_lower_2(market, 'quote', 'denomination')
+                uppercaseBaseId = self.safe_string_lower(market, 'symbolDesc')
                 baseId = uppercaseBaseId.lower()
                 lowercaseId = baseId + '_' + quoteId
                 base = self.safe_currency_code(uppercaseBaseId)
@@ -712,7 +722,7 @@ class okcoinusd (Exchange):
         usedField = 'freezed'
         # wtf, okex?
         # https://github.com/okcoin-okex/API-docs-OKEx.com/commit/01cf9dd57b1f984a8737ef76a037d4d3795d2ac7
-        if not(usedField in list(balances.keys())):
+        if not (usedField in list(balances.keys())):
             usedField = 'holds'
         usedKeys = list(balances[usedField].keys())
         ids = self.array_concat(ids, usedKeys)
@@ -983,10 +993,11 @@ class okcoinusd (Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/'
-        if api != 'web':
+        isWebApi = (api == 'web') or (api == 'v3')
+        if not isWebApi:
             url += self.version + '/'
         url += path
-        if api != 'web':
+        if not isWebApi:
             url += self.extension
         if api == 'private':
             self.check_required_credentials()

@@ -10,7 +10,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
 
-class ice3x (Exchange):
+class ice3x(Exchange):
 
     def describe(self):
         return self.deep_extend(super(ice3x, self).describe(), {
@@ -78,8 +78,8 @@ class ice3x (Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.01,
-                    'taker': 0.01,
+                    'maker': 0.005,
+                    'taker': 0.005,
                 },
             },
             'precision': {

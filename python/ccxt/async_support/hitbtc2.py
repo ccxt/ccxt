@@ -16,7 +16,7 @@ from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 
-class hitbtc2 (hitbtc):
+class hitbtc2(hitbtc):
 
     def describe(self):
         return self.deep_extend(super(hitbtc2, self).describe(), {
@@ -882,7 +882,7 @@ class hitbtc2 (hitbtc):
         if since is not None:
             request['startTime'] = since
         response = await self.privateGetAccountTransactions(self.extend(request, params))
-        return self.parseTransactions(response, currency, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
         #
@@ -1147,7 +1147,10 @@ class hitbtc2 (hitbtc):
                 if feeCost is None:
                     feeCost = 0
                 tradesCost = self.sum(tradesCost, trades[i]['cost'])
-                feeCost = self.sum(feeCost, trades[i]['fee']['cost'])
+                tradeFee = self.safe_value(trades[i], 'fee', {})
+                tradeFeeCost = self.safe_float(tradeFee, 'cost')
+                if tradeFeeCost is not None:
+                    feeCost = self.sum(feeCost, tradeFeeCost)
             cost = tradesCost
             if (filled is not None) and (filled > 0):
                 average = cost / filled

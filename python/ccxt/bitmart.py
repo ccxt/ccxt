@@ -9,11 +9,13 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import DDoSProtection
 
 
-class bitmart (Exchange):
+class bitmart(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitmart, self).describe(), {
@@ -111,7 +113,7 @@ class bitmart (Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'taker': 0.001,
+                    'taker': 0.002,
                     'maker': 0.001,
                     'tiers': {
                         'taker': [
@@ -141,6 +143,8 @@ class bitmart (Exchange):
                 'exact': {
                     'Place order error': InvalidOrder,  # {"message":"Place order error"}
                     'Not found': OrderNotFound,  # {"message":"Not found"}
+                    'Visit too often, please try again later': DDoSProtection,  # {"code":-30,"msg":"Visit too often, please try again later","subMsg":"","data":{}}
+                    'Unknown symbol': BadSymbol,  # {"message":"Unknown symbol"}
                 },
                 'broad': {
                     'Maximum price is': InvalidOrder,  # {"message":"Maximum price is 0.112695"}
@@ -472,7 +476,7 @@ class bitmart (Exchange):
             'symbol': market['id'],
             # 'offset': 0,  # current page, starts from 0
         }
-        if limit is None:
+        if limit is not None:
             request['limit'] = limit  # default 500, max 1000
         response = self.privateGetTrades(self.extend(request, params))
         #
@@ -828,7 +832,7 @@ class bitmart (Exchange):
         #     {"message":"Place order error"}
         #
         feedback = self.id + ' ' + body
-        message = self.safe_string(response, 'message')
+        message = self.safe_string_2(response, 'message', 'msg')
         if message is not None:
             exact = self.exceptions['exact']
             if message in exact:

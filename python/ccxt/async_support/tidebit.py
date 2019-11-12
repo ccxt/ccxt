@@ -9,7 +9,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 
 
-class tidebit (Exchange):
+class tidebit(Exchange):
 
     def describe(self):
         return self.deep_extend(super(tidebit, self).describe(), {
@@ -105,8 +105,8 @@ class tidebit (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': 0.3 / 100,
+                    'taker': 0.3 / 100,
                 },
                 'funding': {
                     'tierBased': False,
@@ -438,10 +438,12 @@ class tidebit (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
-        if code == 400:
+        if (code == 400) or (response is None):
+            feedback = self.id + ' ' + body
+            if response is None:
+                raise ExchangeError(feedback)
             error = self.safe_value(response, 'error')
             errorCode = self.safe_string(error, 'code')
-            feedback = self.id + ' ' + self.json(response)
             exceptions = self.exceptions
             if errorCode in exceptions:
                 raise exceptions[errorCode](feedback)

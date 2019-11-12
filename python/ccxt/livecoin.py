@@ -19,7 +19,7 @@ from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 
-class livecoin (Exchange):
+class livecoin(Exchange):
 
     def describe(self):
         return self.deep_extend(super(livecoin, self).describe(), {
@@ -105,6 +105,7 @@ class livecoin (Exchange):
             'commonCurrencies': {
                 'BTCH': 'Bithash',
                 'CPC': 'Capricoin',
+                'CPT': 'Cryptos',  # conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
                 'EDR': 'E-Dinar Coin',  # conflicts with EDR for Endor Protocol and EDRCoin
                 'eETT': 'EETT',
                 'FirstBlood': '1ST',
@@ -756,7 +757,7 @@ class livecoin (Exchange):
         if limit is not None:
             request['limit'] = limit  # default is 100
         response = self.privateGetPaymentHistoryTransactions(self.extend(request, params))
-        return self.parseTransactions(response, currency, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -775,7 +776,7 @@ class livecoin (Exchange):
         if since is not None:
             request['start'] = since
         response = self.privateGetPaymentHistoryTransactions(self.extend(request, params))
-        return self.parseTransactions(response, currency, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     def fetch_deposit_address(self, currency, params={}):
         request = {

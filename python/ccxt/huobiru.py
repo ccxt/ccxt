@@ -6,7 +6,7 @@
 from ccxt.huobipro import huobipro
 
 
-class huobiru (huobipro):
+class huobiru(huobipro):
 
     def describe(self):
         return self.deep_extend(super(huobiru, self).describe(), {

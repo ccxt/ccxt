@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 
 
-class independentreserve (Exchange):
+class independentreserve(Exchange):
 
     def describe(self):
         return self.deep_extend(super(independentreserve, self).describe(), {

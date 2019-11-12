@@ -17,7 +17,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 
 
-class anxpro (Exchange):
+class anxpro(Exchange):
 
     def describe(self):
         return self.deep_extend(super(anxpro, self).describe(), {
@@ -216,7 +216,7 @@ class anxpro (Exchange):
         transactions = self.safe_value(response, 'transactions', [])
         grouped = self.group_by(transactions, 'transactionType', [])
         depositsAndWithdrawals = self.array_concat(self.safe_value(grouped, 'DEPOSIT', []), self.safe_value(grouped, 'WITHDRAWAL', []))
-        return self.parseTransactions(depositsAndWithdrawals, currency, since, limit)
+        return self.parse_transactions(depositsAndWithdrawals, currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
         #
@@ -868,6 +868,8 @@ class anxpro (Exchange):
             'ACTIVE': 'open',
             'FULL_FILL': 'closed',
             'CANCEL': 'canceled',
+            'USER_CANCEL_PARTIAL': 'canceled',
+            'PARTIAL_FILL': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1107,6 +1109,7 @@ class anxpro (Exchange):
         return {
             'currency': code,
             'address': address,
+            'tag': None,
             'info': response,
         }
 

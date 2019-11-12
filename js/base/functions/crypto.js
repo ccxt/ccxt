@@ -6,9 +6,10 @@ const CryptoJS = require ('../../static_dependencies/crypto-js/crypto-js')
 const { capitalize } = require ('./string')
 const { stringToBase64, utf16ToBase64, urlencodeBase64 } = require ('./encode')
 const NodeRSA = require ('./../../static_dependencies/node-rsa/NodeRSA')
+const { numberToLE } = require ('./encode')
 const EC = require ('./../../static_dependencies/elliptic/lib/elliptic').ec
 const { ArgumentsRequired } = require ('./../errors')
-
+const BN = require ('../../static_dependencies/BN/bn.js')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -75,13 +76,19 @@ function jwt (request, secret, alg = 'HS256') {
     return [ token, signature ].join ('.')
 }
 
-function ecdsa (request, secret, algorithm = 'p256', hashFunction = undefined) {
+function ecdsa (request, secret, algorithm = 'p256', hashFunction = undefined, fixedLength = false) {
     let digest = request
     if (hashFunction !== undefined) {
         digest = hash (request, hashFunction, 'hex')
     }
     const curve = new EC (algorithm)
-    const signature = curve.sign (digest, secret, 'hex',  { 'canonical': true })
+    let signature = curve.sign (digest, secret, 'hex',  { 'canonical': true })
+    let counter = new BN ('0')
+    const minimum_size = new BN ('1').shln (8 * 31).sub (new BN ('1'))
+    while (fixedLength && (signature.r.gt (curve.nh) || signature.r.lte (minimum_size) || signature.s.lte (minimum_size))) {
+        signature = curve.sign (digest, secret, 'hex',  { 'canonical': true, 'extraEntropy': counter.toArray ('le', 32)})
+        counter = counter.add (new BN ('1'))
+    }
     return {
         'r': signature.r.toString (16).padStart (64, '0'),
         's': signature.s.toString (16).padStart (64, '0'),

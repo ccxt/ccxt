@@ -17,7 +17,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
 
 
-class bitso (Exchange):
+class bitso(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitso, self).describe(), {
@@ -39,6 +39,14 @@ class bitso (Exchange):
                 'doc': 'https://bitso.com/api_info',
                 'fees': 'https://bitso.com/fees?l=es',
                 'referral': 'https://bitso.com/?ref=itej',
+            },
+            'options': {
+                'precision': {
+                    'XRP': 6,
+                    'MXN': 2,
+                    'TUSD': 2,
+                },
+                'defaultPrecision': 8,
             },
             'api': {
                 'public': {
@@ -128,8 +136,8 @@ class bitso (Exchange):
                 },
             }
             precision = {
-                'amount': self.precision_from_string(market['minimum_amount']),
-                'price': self.precision_from_string(market['minimum_price']),
+                'amount': self.safe_integer(self.options['precision'], base, self.options['defaultPrecision']),
+                'price': self.safe_integer(self.options['precision'], quote, self.options['defaultPrecision']),
             }
             result.append({
                 'id': id,

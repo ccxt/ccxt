@@ -12,7 +12,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import OrderNotFound
 
 
-class therock (Exchange):
+class therock(Exchange):
 
     def describe(self):
         return self.deep_extend(super(therock, self).describe(), {
@@ -835,7 +835,7 @@ class therock (Exchange):
         transactions = self.safe_value(response, 'transactions', [])
         transactionTypes = ['withdraw', 'atm_payment']
         depositsAndWithdrawals = self.filter_by_array(transactions, 'type', transactionTypes, False)
-        return self.parseTransactions(depositsAndWithdrawals, currency, since, limit)
+        return self.parse_transactions(depositsAndWithdrawals, currency, since, limit)
 
     def parse_order_status(self, status):
         statuses = {

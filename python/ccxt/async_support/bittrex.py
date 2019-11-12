@@ -28,7 +28,7 @@ from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 
-class bittrex (Exchange):
+class bittrex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bittrex, self).describe(), {
@@ -438,11 +438,11 @@ class bittrex (Exchange):
                 'limits': {
                     'amount': {
                         'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
+                        'max': None,
                     },
                     'price': {
                         'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
+                        'max': None,
                     },
                     'cost': {
                         'min': None,
@@ -450,7 +450,7 @@ class bittrex (Exchange):
                     },
                     'withdraw': {
                         'min': fee,
-                        'max': math.pow(10, precision),
+                        'max': None,
                     },
                 },
             }
@@ -708,8 +708,8 @@ class bittrex (Exchange):
         #
         # we cannot filter by `since` timestamp, as it isn't set by Bittrex
         # see https://github.com/ccxt/ccxt/issues/4067
-        # return self.parseTransactions(response['result'], currency, since, limit)
-        return self.parseTransactions(response['result'], currency, None, limit)
+        # return self.parse_transactions(response['result'], currency, since, limit)
+        return self.parse_transactions(response['result'], currency, None, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -752,7 +752,7 @@ class bittrex (Exchange):
         #         ]
         #     }
         #
-        return self.parseTransactions(response['result'], currency, since, limit)
+        return self.parse_transactions(response['result'], currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
         #
@@ -1087,6 +1087,7 @@ class bittrex (Exchange):
             'id': self.safe_string(order, 'id'),
             'side': self.safe_string(order, 'side'),
             'order': self.safe_string(order, 'id'),
+            'type': self.safe_string(order, 'type'),
             'price': self.safe_float(order, 'average'),
             'amount': self.safe_float(order, 'filled'),
             'cost': self.safe_float(order, 'cost'),

@@ -13,7 +13,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
 
 
-class bitbay (Exchange):
+class bitbay(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitbay, self).describe(), {
@@ -288,11 +288,12 @@ class bitbay (Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        markets = [self.market_id(symbol)] if symbol else []
-        request = {
-            'markets': markets,
-        }
-        response = self.v1_01PrivateGetTradingHistoryTransactions(self.extend({'query': self.json(request)}, params))
+        request = {}
+        if symbol:
+            markets = [self.market_id(symbol)]
+            request['markets'] = markets
+        query = {'query': self.json(self.extend(request, params))}
+        response = self.v1_01PrivateGetTradingHistoryTransactions(query)
         #
         #     {
         #         status: 'Ok',
@@ -721,14 +722,7 @@ class bitbay (Exchange):
         }
         return self.safe_string(types, type, type)
 
-    def parse_trade(self, trade, market):
-        if 'tid' in trade:
-            return self.parse_public_trade(trade, market)
-        else:
-            return self.parse_my_trade(trade, market)
-
-    def parse_my_trade(self, trade, market=None):
-        #
+    def parse_trade(self, trade, market=None):
         #     {
         #         amount: "0.29285199",
         #         commissionValue: "0.00125927",
@@ -741,14 +735,22 @@ class bitbay (Exchange):
         #         userAction: "Buy",
         #         wasTaker: True,
         #     }
-        #
-        timestamp = self.safe_integer(trade, 'time')
+        # Public trades
+        #     {id: 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
+        #          t: '1570108958831',
+        #          a: '0.04776653',
+        #          r: '0.02145854',
+        #          ty: 'Sell'
+        #      }
+        timestamp = self.safe_integer_2(trade, 'time', 't')
         userAction = self.safe_string(trade, 'userAction')
         side = 'buy' if (userAction == 'Buy') else 'sell'
         wasTaker = self.safe_value(trade, 'wasTaker')
-        takerOrMaker = 'taker' if wasTaker else 'maker'
-        price = self.safe_float(trade, 'rate')
-        amount = self.safe_float(trade, 'amount')
+        takerOrMaker = None
+        if wasTaker is not None:
+            takerOrMaker = 'taker' if wasTaker else 'maker'
+        price = self.safe_float_2(trade, 'rate', 'r')
+        amount = self.safe_float_2(trade, 'amount', 'a')
         cost = None
         if amount is not None:
             if price is not None:
@@ -756,12 +758,14 @@ class bitbay (Exchange):
         feeCost = self.safe_float(trade, 'commissionValue')
         marketId = self.safe_string(trade, 'market')
         base = None
+        quote = None
         symbol = None
         if marketId is not None:
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
                 symbol = market['symbol']
                 base = market['base']
+                quote = market['quote']
             else:
                 baseId, quoteId = marketId.split('-')
                 base = self.safe_currency_code(baseId)
@@ -774,13 +778,16 @@ class bitbay (Exchange):
                 base = market['base']
         fee = None
         if feeCost is not None:
+            feeCcy = side == base if 'buy' else quote
             fee = {
-                'currency': base,
+                'currency': feeCcy,
                 'cost': feeCost,
             }
         order = self.safe_string(trade, 'offerId')
         # todo: check self logic
-        type = 'limit' if order else 'market'
+        type = None
+        if order is not None:
+            type = 'limit' if order else 'market'
         return {
             'id': self.safe_string(trade, 'id'),
             'order': order,
@@ -797,78 +804,20 @@ class bitbay (Exchange):
             'info': trade,
         }
 
-    def parse_public_trade(self, trade, market=None):
-        #
-        #     {
-        #         "date":1459608665,
-        #         "price":0.02722571,
-        #         "type":"sell",
-        #         "amount":1.08112001,
-        #         "tid":"0"
-        #     }
-        #
-        timestamp = self.safe_timestamp(trade, 'date')
-        id = self.safe_string(trade, 'tid')
-        type = None
-        side = self.safe_string(trade, 'type')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = price * amount
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        return {
-            'id': id,
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'order': None,
-            'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': None,
-        }
-
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
+        tradingSymbol = market['baseId'] + '-' + market['quoteId']
         request = {
-            'id': market['id'],
+            'symbol': tradingSymbol,
         }
-        response = self.publicGetIdTrades(self.extend(request, params))
-        #
-        #     [
-        #         {
-        #             "date":1459608665,
-        #             "price":0.02722571,
-        #             "type":"sell",
-        #             "amount":1.08112001,
-        #             "tid":"0"
-        #         },
-        #         {
-        #             "date":1459698930,
-        #             "price":0.029,
-        #             "type":"buy",
-        #             "amount":0.444188,
-        #             "tid":"1"
-        #         },
-        #         {
-        #             "date":1459726670,
-        #             "price":0.029,
-        #             "type":"buy",
-        #             "amount":0.25459599,
-        #             "tid":"2"
-        #         }
-        #     ]
-        #
-        return self.parse_trades(response, market, since, limit)
+        if since is not None:
+            request['fromTime'] = since - 1  # result does not include exactly `since` time therefore decrease by 1
+        if limit is not None:
+            request['limit'] = limit  # default - 10, max - 300
+        response = self.v1_01PublicGetTradingTransactionsSymbol(self.extend(request, params))
+        items = self.safe_value(response, 'items')
+        return self.parse_trades(items, symbol, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -963,7 +912,7 @@ class bitbay (Exchange):
             self.check_required_credentials()
             query = self.omit(params, self.extract_params(path))
             url += '/' + self.implode_params(path, params)
-            nonce = self.milliseconds()
+            nonce = str(self.milliseconds())
             payload = None
             if method != 'POST':
                 if query:

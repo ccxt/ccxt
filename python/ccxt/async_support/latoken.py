@@ -16,7 +16,7 @@ from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import ROUND
 
 
-class latoken (Exchange):
+class latoken(Exchange):
 
     def describe(self):
         return self.deep_extend(super(latoken, self).describe(), {
@@ -30,7 +30,7 @@ class latoken (Exchange):
             'has': {
                 'CORS': False,
                 'publicAPI': True,
-                'pivateAPI': True,
+                'privateAPI': True,
                 'cancelOrder': True,
                 'cancelAllOrders': True,
                 'createMarketOrder': False,
@@ -70,6 +70,7 @@ class latoken (Exchange):
                         'MarketData/tickers',
                         'MarketData/ticker/{symbol}',
                         'MarketData/orderBook/{symbol}',
+                        'MarketData/orderBook/{symbol}/{limit}',
                         'MarketData/trades/{symbol}',
                         'MarketData/trades/{symbol}/{limit}',
                     ],
@@ -311,22 +312,25 @@ class latoken (Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
+            'limit': 10,
         }
-        response = await self.publicGetMarketDataOrderBookSymbol(self.extend(request, params))
+        if limit is not None:
+            request['limit'] = limit  # default 10, max 100
+        response = await self.publicGetMarketDataOrderBookSymbolLimit(self.extend(request, params))
         #
         #     {
         #         "pairId": 502,
         #         "symbol": "LAETH",
         #         "spread": 0.07,
         #         "asks": [
-        #             {"price": 136.3, "amount": 7.024}
+        #             {"price": 136.3, "quantity": 7.024}
         #         ],
         #         "bids": [
-        #             {"price": 136.2, "amount": 6.554}
+        #             {"price": 136.2, "quantity": 6.554}
         #         ]
         #     }
         #
-        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'quantity')
 
     def parse_ticker(self, ticker, market=None):
         symbol = self.find_symbol(self.safe_string(ticker, 'symbol'), market)

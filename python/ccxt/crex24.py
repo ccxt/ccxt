@@ -20,7 +20,7 @@ from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 
 
-class crex24 (Exchange):
+class crex24(Exchange):
 
     def describe(self):
         return self.deep_extend(super(crex24, self).describe(), {
@@ -44,7 +44,7 @@ class crex24 (Exchange):
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
-                'fetchOrders': False,
+                'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchTickers': True,
                 'fetchTradingFee': False,  # actually, True, but will be implemented later
@@ -87,6 +87,7 @@ class crex24 (Exchange):
                 'trading': {
                     'get': [
                         'orderStatus',
+                        'orderTrades',
                         'activeOrders',
                         'orderHistory',
                         'tradeHistory',
@@ -121,7 +122,7 @@ class crex24 (Exchange):
                     'tierBased': True,
                     'percentage': True,
                     'taker': 0.001,
-                    'maker': -0.01,
+                    'maker': -0.0001,
                 },
                 # should be deleted, these are outdated and inaccurate
                 'funding': {
@@ -137,6 +138,8 @@ class crex24 (Exchange):
             },
             # exchange-specific options
             'options': {
+                'fetchOrdersMethod': 'tradingGetOrderHistory',  # or 'tradingGetActiveOrders'
+                'fetchClosedOrdersMethod': 'tradingGetOrderHistory',  # or 'tradingGetActiveOrders'
                 'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType': 'limit',  # or 'limit_maker'
@@ -769,6 +772,41 @@ class crex24 (Exchange):
             raise OrderNotFound(self.id + ' fetchOrder could not fetch order id ' + id)
         return self.parse_order(response[0])
 
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        if since is not None:
+            request['from'] = self.ymdhms(since, 'T')
+        if limit is not None:
+            request['limit'] = limit
+        if symbol is not None:
+            market = self.market(symbol)
+            request['instrument'] = market['id']
+        method = self.safe_string(self.options, 'fetchOrdersMethod', 'tradingGetOrderHistory')
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "id": 468535711,
+        #             "timestamp": "2018-06-02T16:42:40Z",
+        #             "instrument": "BTC-EUR",
+        #             "side": "sell",
+        #             "type": "limit",
+        #             "status": "submitting",
+        #             "cancellationReason": null,
+        #             "timeInForce": "GTC",
+        #             "volume": 0.00770733,
+        #             "price": 6724.9,
+        #             "stopPrice": null,
+        #             "remainingVolume": 0.00770733,
+        #             "lastUpdate": "2018-06-02T16:42:40Z",
+        #             "parentOrderId": null,
+        #             "childOrderId": null
+        #         }
+        #     ]
+        #
+        return self.parse_orders(response)
+
     def fetch_orders_by_ids(self, ids=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {
@@ -858,7 +896,8 @@ class crex24 (Exchange):
             request['from'] = self.ymdhms(since, 'T')
         if limit is not None:
             request['limit'] = limit  # min 1, max 1000, default 100
-        response = self.tradingGetActiveOrders(self.extend(request, params))
+        method = self.safe_string(self.options, 'fetchClosedOrdersMethod', 'tradingGetOrderHistory')
+        response = getattr(self, method)(self.extend(request, params))
         #     [
         #         {
         #             "id": 468535711,
@@ -1013,7 +1052,7 @@ class crex24 (Exchange):
         #         ...
         #     ]
         #
-        return self.parseTransactions(response, currency, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         request = {

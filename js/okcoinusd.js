@@ -43,6 +43,11 @@ module.exports = class okcoinusd extends Exchange {
                 '1w': '1week',
             },
             'api': {
+                'v3': {
+                    'get': [
+                        'futures/pc/market/futuresCoin',
+                    ],
+                },
                 'web': {
                     'get': [
                         'futures/pc/market/marketOverview',
@@ -122,6 +127,7 @@ module.exports = class okcoinusd extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api': {
+                    'v3': 'https://www.okcoin.com/v3',
                     'web': 'https://www.okcoin.com/v2',
                     'public': 'https://www.okcoin.com/api',
                     'private': 'https://www.okcoin.com',
@@ -132,12 +138,13 @@ module.exports = class okcoinusd extends Exchange {
                     'https://www.npmjs.com/package/okcoin.com',
                 ],
                 'referral': 'https://www.okcoin.com/account/register?flag=activity&channelId=600001513',
+                'fees': 'https://support.okcoin.com/hc/en-us/articles/360015261532-OKCoin-Fee-Rates',
             },
             // these are okcoin.com fees, okex fees are in okex.js
             'fees': {
                 'trading': {
-                    'taker': 0.001,
-                    'maker': 0.0005,
+                    'taker': 0.002,
+                    'maker': 0.001,
                 },
             },
             'exceptions': {
@@ -366,7 +373,9 @@ module.exports = class okcoinusd extends Exchange {
         const spotMarkets = this.safeValue (spotResponse, 'data', []);
         let markets = spotMarkets;
         if (this.has['futures']) {
-            const futuresResponse = await this.webPostFuturesPcMarketFuturesCoin ();
+            const futuresResponse = await this.v3GetFuturesPcMarketFuturesCoin ({
+                'currencyCode': 0,
+            });
             //
             //     {
             //         "msg":"success",
@@ -400,7 +409,8 @@ module.exports = class okcoinusd extends Exchange {
             //         ]
             //     }
             //
-            const futuresMarkets = this.safeValue (futuresResponse, 'data', []);
+            const data = this.safeValue (futuresResponse, 'data', {});
+            const futuresMarkets = this.safeValue (data, 'usd', []);
             markets = this.arrayConcat (spotMarkets, futuresMarkets);
         }
         for (let i = 0; i < markets.length; i++) {
@@ -435,8 +445,8 @@ module.exports = class okcoinusd extends Exchange {
                 contracts = [{}];
             } else {
                 // futures markets
-                quoteId = this.safeString (market, 'quote');
-                uppercaseBaseId = this.safeString (market, 'symbolDesc');
+                quoteId = this.safeStringLower2 (market, 'quote', 'denomination');
+                uppercaseBaseId = this.safeStringLower (market, 'symbolDesc');
                 baseId = uppercaseBaseId.toLowerCase ();
                 lowercaseId = baseId + '_' + quoteId;
                 base = this.safeCurrencyCode (uppercaseBaseId);
@@ -1048,11 +1058,12 @@ module.exports = class okcoinusd extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
-        if (api !== 'web') {
+        const isWebApi = (api === 'web') || (api === 'v3');
+        if (!isWebApi) {
             url += this.version + '/';
         }
         url += path;
-        if (api !== 'web') {
+        if (!isWebApi) {
             url += this.extension;
         }
         if (api === 'private') {
