@@ -166,13 +166,12 @@ module.exports = class basefex extends Exchange {
     return result;
   }
 
-  async fetchBalance() {
+  async fetchBalance(params = {}) {
     const accounts = await this.privateGetAccounts();
     return this.castBalance(this, accounts);
   }
 
-  async createOrder(symbol, type, side, amount, price, params = {}) {
-    // createOrder (symbol, type, side, amount[, price[, params]])
+  async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
     const body = {
       symbol: this.translateBaseFEXSymbol(this, symbol),
       type: this.translateBaseFEXOrderType(this, type),
@@ -186,7 +185,7 @@ module.exports = class basefex extends Exchange {
     return this.castOrder(this, order, symbol);
   }
 
-  async cancelOrder(id) {
+  async cancelOrder(id, symbol = undefined, params = {}) {
     await this.privateDeleteOrdersId({
       path: {
         id
@@ -226,7 +225,7 @@ module.exports = class basefex extends Exchange {
     return this.fnMap(this, trades, this.castMyTrade, symbol);
   }
 
-  async fetchDepositAddress(code) {
+  async fetchDepositAddress(code, params = {}) {
     const depositAddress = await this.privateGetAccountsDepositsCurrencyAddress({
       path: {
         currency: code
