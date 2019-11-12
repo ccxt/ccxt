@@ -635,6 +635,8 @@ module.exports = class ftx extends Exchange {
         };
         if (since !== undefined) {
             request['start_time'] = parseInt (since / 1000);
+            // start_time doesn't work without end_time
+            request['end_time'] = this.seconds ();
         }
         if (limit !== undefined) {
             request['limit'] = limit;
