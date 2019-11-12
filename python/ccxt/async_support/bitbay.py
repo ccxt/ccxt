@@ -284,6 +284,7 @@ class bitbay(Exchange):
             'remaining': remaining,
             'average': None,
             'fee': None,
+            'trades': None,
         }
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -723,6 +724,16 @@ class bitbay(Exchange):
         return self.safe_string(types, type, type)
 
     def parse_trade(self, trade, market=None):
+        #
+        # createOrder trades
+        #
+        #     {
+        #         "rate": "0.02195928",
+        #         "amount": "0.00167952"
+        #     }
+        #
+        # fetchMyTrades(private)
+        #
         #     {
         #         amount: "0.29285199",
         #         commissionValue: "0.00125927",
@@ -735,13 +746,17 @@ class bitbay(Exchange):
         #         userAction: "Buy",
         #         wasTaker: True,
         #     }
-        # Public trades
-        #     {id: 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
+        #
+        # fetchTrades(public)
+        #
+        #     {
+        #          id: 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
         #          t: '1570108958831',
         #          a: '0.04776653',
         #          r: '0.02145854',
         #          ty: 'Sell'
-        #      }
+        #     }
+        #
         timestamp = self.safe_integer_2(trade, 'time', 't')
         userAction = self.safe_string(trade, 'userAction')
         side = 'buy' if (userAction == 'Buy') else 'sell'
@@ -778,7 +793,7 @@ class bitbay(Exchange):
                 base = market['base']
         fee = None
         if feeCost is not None:
-            feeCcy = side == base if 'buy' else quote
+            feeCcy = base if (side == 'buy') else quote
             fee = {
                 'currency': feeCcy,
                 'cost': feeCost,
@@ -831,16 +846,101 @@ class bitbay(Exchange):
         }
         if type == 'limit':
             request['rate'] = price
+        response = await self.v1_01PrivatePostTradingOfferSymbol(self.extend(request, params))
+        #
+        # unfilled(open order)
+        #
         #     {
         #         status: 'Ok',
         #         completed: False,  # can deduce status from here
         #         offerId: 'ce9cc72e-d61c-11e9-9248-0242ac110005',
         #         transactions: [],  # can deduce order info from here
         #     }
-        response = await self.v1_01PrivatePostTradingOfferSymbol(self.extend(request, params))
+        #
+        # filled(closed order)
+        #
+        #     {
+        #         "status": "Ok",
+        #         "offerId": "942a4a3e-e922-11e9-8c19-0242ac11000a",
+        #         "completed": True,
+        #         "transactions": [
+        #           {
+        #             "rate": "0.02195928",
+        #             "amount": "0.00167952"
+        #           },
+        #           {
+        #             "rate": "0.02195928",
+        #             "amount": "0.00167952"
+        #           },
+        #           {
+        #             "rate": "0.02196207",
+        #             "amount": "0.27704177"
+        #           }
+        #         ]
+        #     }
+        #
+        # partially-filled(open order)
+        #
+        #     {
+        #         "status": "Ok",
+        #         "offerId": "d0ebefab-f4d7-11e9-8c19-0242ac11000a",
+        #         "completed": False,
+        #         "transactions": [
+        #           {
+        #             "rate": "0.02106404",
+        #             "amount": "0.0019625"
+        #           },
+        #           {
+        #             "rate": "0.02106404",
+        #             "amount": "0.0019625"
+        #           },
+        #           {
+        #             "rate": "0.02105901",
+        #             "amount": "0.00975256"
+        #           }
+        #         ]
+        #     }
+        #
+        timestamp = self.milliseconds()  # the real timestamp is missing in the response
+        id = self.safe_string(response, 'offerId')
+        completed = self.safe_value(response, 'completed', False)
+        status = 'closed' if completed else 'open'
+        filled = 0
+        cost = None
+        transactions = self.safe_value(response, 'transactions')
+        trades = None
+        if transactions is not None:
+            trades = self.parse_trades(transactions, market, None, None, {
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'symbol': symbol,
+                'side': side,
+                'type': type,
+                'orderId': id,
+            })
+            cost = 0
+            for i in range(0, len(trades)):
+                filled = self.sum(filled, trades[i]['amount'])
+                cost = self.sum(cost, trades[i]['cost'])
+        remaining = amount - filled
         return {
-            'id': self.safe_string(response, 'offerId'),
+            'id': id,
             'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'filled': filled,
+            'remaining': remaining,
+            'average': None,
+            'fee': None,
+            'trades': trades,
         }
 
     async def cancel_order(self, id, symbol=None, params={}):

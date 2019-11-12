@@ -288,6 +288,7 @@ class bitbay extends Exchange {
             'remaining' => $remaining,
             'average' => null,
             'fee' => null,
+            'trades' => null,
         );
     }
 
@@ -744,6 +745,16 @@ class bitbay extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
+        //
+        // createOrder trades
+        //
+        //     {
+        //         "rate" => "0.02195928",
+        //         "$amount" => "0.00167952"
+        //     }
+        //
+        // fetchMyTrades (private)
+        //
         //     {
         //         $amount => "0.29285199",
         //         commissionValue => "0.00125927",
@@ -756,13 +767,17 @@ class bitbay extends Exchange {
         //         $userAction => "Buy",
         //         $wasTaker => true,
         //     }
-        // Public trades
-        //     { id => 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //          id => 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
         //          t => '1570108958831',
         //          a => '0.04776653',
         //          r => '0.02145854',
         //          ty => 'Sell'
-        //      }
+        //     }
+        //
         $timestamp = $this->safe_integer_2($trade, 'time', 't');
         $userAction = $this->safe_string($trade, 'userAction');
         $side = ($userAction === 'Buy') ? 'buy' : 'sell';
@@ -807,7 +822,7 @@ class bitbay extends Exchange {
         }
         $fee = null;
         if ($feeCost !== null) {
-            $feeCcy = $side === 'buy' ? $base : $quote;
+            $feeCcy = ($side === 'buy') ? $base : $quote;
             $fee = array (
                 'currency' => $feeCcy,
                 'cost' => $feeCost,
@@ -867,16 +882,103 @@ class bitbay extends Exchange {
         if ($type === 'limit') {
             $request['rate'] = $price;
         }
-        //     {
-        //         status => 'Ok',
-        //         completed => false, // can deduce status from here
-        //         offerId => 'ce9cc72e-d61c-11e9-9248-0242ac110005',
-        //         transactions => array(), // can deduce order info from here
-        //     }
         $response = $this->v1_01PrivatePostTradingOfferSymbol (array_merge ($request, $params));
+        //
+        // unfilled (open order)
+        //
+        //     {
+        //         $status => 'Ok',
+        //         $completed => false, // can deduce $status from here
+        //         offerId => 'ce9cc72e-d61c-11e9-9248-0242ac110005',
+        //         $transactions => array(), // can deduce order info from here
+        //     }
+        //
+        // $filled (closed order)
+        //
+        //     {
+        //         "$status" => "Ok",
+        //         "offerId" => "942a4a3e-e922-11e9-8c19-0242ac11000a",
+        //         "$completed" => true,
+        //         "$transactions" => array (
+        //           array (
+        //             "rate" => "0.02195928",
+        //             "$amount" => "0.00167952"
+        //           ),
+        //           array (
+        //             "rate" => "0.02195928",
+        //             "$amount" => "0.00167952"
+        //           ),
+        //           {
+        //             "rate" => "0.02196207",
+        //             "$amount" => "0.27704177"
+        //           }
+        //         )
+        //     }
+        //
+        // partially-$filled (open order)
+        //
+        //     {
+        //         "$status" => "Ok",
+        //         "offerId" => "d0ebefab-f4d7-11e9-8c19-0242ac11000a",
+        //         "$completed" => false,
+        //         "$transactions" => array (
+        //           array (
+        //             "rate" => "0.02106404",
+        //             "$amount" => "0.0019625"
+        //           ),
+        //           array (
+        //             "rate" => "0.02106404",
+        //             "$amount" => "0.0019625"
+        //           ),
+        //           {
+        //             "rate" => "0.02105901",
+        //             "$amount" => "0.00975256"
+        //           }
+        //         )
+        //     }
+        //
+        $timestamp = $this->milliseconds (); // the real $timestamp is missing in the $response
+        $id = $this->safe_string($response, 'offerId');
+        $completed = $this->safe_value($response, 'completed', false);
+        $status = $completed ? 'closed' : 'open';
+        $filled = 0;
+        $cost = null;
+        $transactions = $this->safe_value($response, 'transactions');
+        $trades = null;
+        if ($transactions !== null) {
+            $trades = $this->parse_trades($transactions, $market, null, null, array (
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601 ($timestamp),
+                'symbol' => $symbol,
+                'side' => $side,
+                'type' => $type,
+                'orderId' => $id,
+            ));
+            $cost = 0;
+            for ($i = 0; $i < count ($trades); $i++) {
+                $filled = $this->sum ($filled, $trades[$i]['amount']);
+                $cost = $this->sum ($cost, $trades[$i]['cost']);
+            }
+        }
+        $remaining = $amount - $filled;
         return array (
-            'id' => $this->safe_string($response, 'offerId'),
+            'id' => $id,
             'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
+            'status' => $status,
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'average' => null,
+            'fee' => null,
+            'trades' => $trades,
         );
     }
 
