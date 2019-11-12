@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import math
 
 
-class lykke (Exchange):
+class lykke(Exchange):
 
     def describe(self):
         return self.deep_extend(super(lykke, self).describe(), {

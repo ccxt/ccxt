@@ -23,7 +23,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
 
-class yobit (Exchange):
+class yobit(Exchange):
 
     def describe(self):
         return self.deep_extend(super(yobit, self).describe(), {
@@ -626,7 +626,7 @@ class yobit (Exchange):
             # - symbol mismatch(e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
             cachedOrderId = cachedOrderIds[k]
             cachedOrder = self.orders[cachedOrderId]
-            if not(cachedOrderId in list(openOrdersIndexedById.keys())):
+            if not (cachedOrderId in list(openOrdersIndexedById.keys())):
                 # cached order is not in open orders array
                 # if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
                 if symbol is not None and symbol != cachedOrder['symbol']:

@@ -19,7 +19,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
 
-class fcoin (Exchange):
+class fcoin(Exchange):
 
     def describe(self):
         return self.deep_extend(super(fcoin, self).describe(), {
@@ -585,16 +585,20 @@ class fcoin (Exchange):
             self.safe_float(ohlcv, 'base_vol'),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=100, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
-        if limit is None:
-            raise ExchangeError(self.id + ' fetchOHLCV requires a limit argument')
         market = self.market(symbol)
+        if limit is None:
+            limit = 20  # default is 20
         request = {
             'symbol': market['id'],
             'timeframe': self.timeframes[timeframe],
             'limit': limit,
         }
+        if since is not None:
+            sinceInSeconds = int(since / 1000)
+            timerange = limit * self.parse_timeframe(timeframe)
+            request['before'] = self.sum(sinceInSeconds, timerange) - 1
         response = self.marketGetCandlesTimeframeSymbol(self.extend(request, params))
         return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
 

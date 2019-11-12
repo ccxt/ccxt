@@ -13,6 +13,12 @@ module.exports =
     { json:   (data, params = undefined) => JSON.stringify (data)
     , unjson: JSON.parse
 
+    , isJsonEncodedObject: object => (
+        (typeof object === 'string') &&
+        (object.length >= 2) &&
+        ((object[0] === '{') || (object[0] === '['))
+    )
+
     , stringToBinary (str) {
         const arr = new Uint8Array (str.length)
         for (let i = 0; i < str.length; i++) { arr[i] = str.charCodeAt (i); }
@@ -27,6 +33,7 @@ module.exports =
     , base16ToBinary: string => CryptoJS.enc.Hex.parse (string)
     , binaryToBase16: binary => binary.toString (CryptoJS.enc.Hex)
     , binaryConcat: (...args) => args.reduce ((a, b) => a.concat (b))
+    , binaryConcatArray: (arr) => arr.reduce ((a, b) => a.concat (b))
 
     , urlencode: object => qs.stringify (object)
     , rawencode: object => qs.stringify (object, { encode: false })

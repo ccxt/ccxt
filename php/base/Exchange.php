@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.18.1315';
+$version = '1.19.34';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.1315';
+    const VERSION = '1.19.34';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -157,6 +157,7 @@ class Exchange {
         'fcoinjp',
         'flowbtc',
         'foxbit',
+        'ftx',
         'fybse',
         'gateio',
         'gemini',
@@ -172,7 +173,6 @@ class Exchange {
         'kkex',
         'kraken',
         'kucoin',
-        'kucoin2',
         'kuna',
         'lakebtc',
         'latoken',
@@ -353,6 +353,8 @@ class Exchange {
             $scale = 60 * 60;
         } elseif ($unit === 'm') {
             $scale = 60;
+        } elseif ($unit === 's') {
+            $scale = 1;
         } else {
             throw new NotSupported('timeframe unit ' . $unit . ' is not supported');
         }
@@ -591,12 +593,17 @@ class Exchange {
         return preg_replace(array('#[=]+$#u', '#\+#u', '#\\/#'), array('', '-', '_'), \base64_encode($string));
     }
 
-    public function urlencode($string) {
-        return http_build_query($string, '', $this->urlencode_glue);
+    public function urlencode($array) {
+        foreach ($array as $key => $value) {
+            if (is_bool($value)) {
+                $array[$key] = var_export($value, true);
+            }
+        }
+        return http_build_query($array, '', $this->urlencode_glue);
     }
 
-    public function rawencode($string) {
-        return urldecode(http_build_query($string, '', $this->urlencode_glue));
+    public function rawencode($array) {
+        return urldecode($this->urlencode($array));
     }
 
     public function encode_uri_component($string) {
@@ -693,6 +700,9 @@ class Exchange {
         return implode('', func_get_args());
     }
 
+    public static function binary_concat_array($arr) {
+        return implode('', $arr);
+    }
 
     public static function binary_to_base64($binary) {
         return \base64_encode($binary);
@@ -766,6 +776,10 @@ class Exchange {
 
     public function describe() {
         return array();
+    }
+
+    public function __destruct() {
+        curl_close ($this->curl);
     }
 
     public function __construct($options = array()) {
@@ -1213,6 +1227,12 @@ class Exchange {
 
         $verbose_headers = $headers;
 
+        // https://github.com/ccxt/ccxt/issues/5914
+        // we don't do a reset here to save those cookies in between the calls
+        // if the user wants to reset the curl handle between his requests
+        // then curl_reset can be called manually in userland
+        // curl_reset($this->curl);
+
         curl_setopt($this->curl, CURLOPT_URL, $url);
 
         if ($this->timeout) {
@@ -1340,9 +1360,6 @@ class Exchange {
         $curl_errno = curl_errno($this->curl);
         $curl_error = curl_error($this->curl);
         $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
-
-        // Reset curl opts
-        curl_reset($this->curl);
 
         if ($this->verbose) {
             print_r("\nResponse:\n");
@@ -2749,7 +2766,7 @@ class Exchange {
     }
 
     public function soliditySha3 ($array) {
-        return @Solidity::sha3 (... $array);
+        return @call_user_func_array('\\kornrunner\Solidity::sha3', $array);
     }
 
     public static function totp($key) {
@@ -2795,15 +2812,15 @@ class Exchange {
         return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $b . $a; });
     }
 
-    public static function divide($a, $b) {
+    public static function integer_divide($a, $b) {
         return (new BN ($a))->div (new BN ($b));
     }
 
-    public static function modulo($a, $b) {
+    public static function integer_modulo($a, $b) {
         return (new BN ($a))->mod (new BN ($b));
     }
 
-    public static function pow($a, $b) {
+    public static function integer_pow($a, $b) {
         return (new BN ($a))->pow (new BN ($b));
     }
 }

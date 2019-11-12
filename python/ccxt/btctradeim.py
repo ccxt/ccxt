@@ -7,7 +7,7 @@ from ccxt.coinegg import coinegg
 from ccxt.base.errors import ExchangeError
 
 
-class btctradeim (coinegg):
+class btctradeim(coinegg):
 
     def describe(self):
         result = self.deep_extend(super(btctradeim, self).describe(), {

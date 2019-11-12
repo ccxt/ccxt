@@ -11,7 +11,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ExchangeNotAvailable
 
 
-class exx (Exchange):
+class exx(Exchange):
 
     def describe(self):
         return self.deep_extend(super(exx, self).describe(), {
@@ -183,7 +183,7 @@ class exx (Exchange):
         ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            if not(id in list(self.marketsById.keys())):
+            if not (id in list(self.marketsById.keys())):
                 continue
             market = self.marketsById[id]
             symbol = market['symbol']

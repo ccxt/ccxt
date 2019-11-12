@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1315'
+__version__ = '1.19.34'
 
 # -----------------------------------------------------------------------------
 
@@ -34,8 +34,10 @@ from ccxt.base.errors import DuplicateOrderId                   # noqa: F401
 from ccxt.base.errors import CancelPending                      # noqa: F401
 from ccxt.base.errors import NetworkError                       # noqa: F401
 from ccxt.base.errors import DDoSProtection                     # noqa: F401
+from ccxt.base.errors import RateLimitExceeded                  # noqa: F401
 from ccxt.base.errors import RequestTimeout                     # noqa: F401
 from ccxt.base.errors import ExchangeNotAvailable               # noqa: F401
+from ccxt.base.errors import OnMaintenance                      # noqa: F401
 from ccxt.base.errors import InvalidAddress                     # noqa: F401
 from ccxt.base.errors import AddressPending                     # noqa: F401
 from ccxt.base.errors import ArgumentsRequired                  # noqa: F401
@@ -119,6 +121,7 @@ from ccxt.async_support.fcoin import fcoin                                # noqa
 from ccxt.async_support.fcoinjp import fcoinjp                            # noqa: F401
 from ccxt.async_support.flowbtc import flowbtc                            # noqa: F401
 from ccxt.async_support.foxbit import foxbit                              # noqa: F401
+from ccxt.async_support.ftx import ftx                                    # noqa: F401
 from ccxt.async_support.fybse import fybse                                # noqa: F401
 from ccxt.async_support.gateio import gateio                              # noqa: F401
 from ccxt.async_support.gemini import gemini                              # noqa: F401
@@ -134,7 +137,6 @@ from ccxt.async_support.itbit import itbit                                # noqa
 from ccxt.async_support.kkex import kkex                                  # noqa: F401
 from ccxt.async_support.kraken import kraken                              # noqa: F401
 from ccxt.async_support.kucoin import kucoin                              # noqa: F401
-from ccxt.async_support.kucoin2 import kucoin2                            # noqa: F401
 from ccxt.async_support.kuna import kuna                                  # noqa: F401
 from ccxt.async_support.lakebtc import lakebtc                            # noqa: F401
 from ccxt.async_support.latoken import latoken                            # noqa: F401
@@ -246,6 +248,7 @@ exchanges = [
     'fcoinjp',
     'flowbtc',
     'foxbit',
+    'ftx',
     'fybse',
     'gateio',
     'gemini',
@@ -261,7 +264,6 @@ exchanges = [
     'kkex',
     'kraken',
     'kucoin',
-    'kucoin2',
     'kuna',
     'lakebtc',
     'latoken',

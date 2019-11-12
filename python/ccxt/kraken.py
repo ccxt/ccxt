@@ -31,7 +31,7 @@ from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 
-class kraken (Exchange):
+class kraken(Exchange):
 
     def describe(self):
         return self.deep_extend(super(kraken, self).describe(), {
@@ -1219,7 +1219,7 @@ class kraken (Exchange):
         if method is None:
             if self.options['cacheDepositMethodsOnFetchDepositAddress']:
                 # cache depositMethods
-                if not(code in list(self.options['depositMethods'].keys())):
+                if not (code in list(self.options['depositMethods'].keys())):
                     self.options['depositMethods'][code] = self.fetch_deposit_methods(code)
                 method = self.options['depositMethods'][code][0]['method']
             else:

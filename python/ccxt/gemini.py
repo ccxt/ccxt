@@ -28,7 +28,7 @@ from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 
 
-class gemini (Exchange):
+class gemini(Exchange):
 
     def describe(self):
         return self.deep_extend(super(gemini, self).describe(), {

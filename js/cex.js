@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, NullResponse, InvalidOrder, NotSupported, InsufficientFunds, InvalidNonce, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, NullResponse, InvalidOrder, NotSupported, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -125,6 +125,7 @@ module.exports = class cex extends Exchange {
                     'Nonce must be incremented': InvalidNonce,
                     'Invalid Order': InvalidOrder,
                     'Order not found': OrderNotFound,
+                    'Rate limit exceeded': RateLimitExceeded,
                 },
             },
             'options': {

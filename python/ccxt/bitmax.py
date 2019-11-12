@@ -9,12 +9,13 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.decimal_to_precision import ROUND
 
 
-class bitmax (Exchange):
+class bitmax(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitmax, self).describe(), {
@@ -127,6 +128,7 @@ class bitmax (Exchange):
             'exceptions': {
                 'exact': {
                     '2100': AuthenticationError,  # {"code":2100,"message":"ApiKeyFailure"}
+                    '5002': BadSymbol,  # {"code":5002,"message":"Invalid Symbol"}
                     '6010': InsufficientFunds,  # {'code': 6010, 'message': 'Not enough balance.'}
                     '60060': InvalidOrder,  # {'code': 60060, 'message': 'The order is already filled or canceled.'}
                     '600503': InvalidOrder,  # {"code":600503,"message":"Notional is too small."}
@@ -895,7 +897,7 @@ class bitmax (Exchange):
         if since is not None:
             request['startTime'] = since
         if limit is not None:
-            request['pageSize'] = limit
+            request['n'] = limit  # default 15, max 50
         response = self.privateGetOrderHistory(self.extend(request, params))
         #
         #     {
@@ -1070,7 +1072,10 @@ class bitmax (Exchange):
                 headers['x-auth-coid'] = coid
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             headers['x-auth-signature'] = signature
-            if method != 'GET':
+            if method == 'GET':
+                if query:
+                    url += '?' + self.urlencode(query)
+            else:
                 body = self.json(query)
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

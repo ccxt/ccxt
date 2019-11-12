@@ -17,11 +17,13 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NullResponse
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 
 
-class cex (Exchange):
+class cex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(cex, self).describe(), {
@@ -138,6 +140,9 @@ class cex (Exchange):
                 'broad': {
                     'Insufficient funds': InsufficientFunds,
                     'Nonce must be incremented': InvalidNonce,
+                    'Invalid Order': InvalidOrder,
+                    'Order not found': OrderNotFound,
+                    'Rate limit exceeded': RateLimitExceeded,
                 },
             },
             'options': {

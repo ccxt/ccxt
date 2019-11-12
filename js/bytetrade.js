@@ -223,7 +223,6 @@ module.exports = class bytetrade extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'symbol');
-            // there may be duplicate codes
             let base = this.safeString (market, 'baseName');
             let quote = this.safeString (market, 'quoteName');
             const baseId = this.safeString (market, 'base');
@@ -404,16 +403,16 @@ module.exports = class bytetrade extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeInteger2 (trade, 'timestamp', 'timestamp');
-        const price = this.safeFloat2 (trade, 'price', 'price');
-        const amount = this.safeFloat2 (trade, 'amount', 'amount');
-        const cost = this.safeFloat2 (trade, 'cost', 'cost');
-        const id = this.safeString2 (trade, 'id', 'id');
-        const type = this.safeString2 (trade, 'type', 'type');
-        const takerOrMaker = this.safeString2 (trade, 'takerOrMaker', 'takerOrMaker');
-        const side = this.safeString2 (trade, 'side', 'side');
-        const datetime = this.safeString2 (trade, 'datetime', 'datetime');
-        const order = this.safeString2 (trade, 'order', 'order');
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        const cost = this.safeFloat (trade, 'cost');
+        const id = this.safeString (trade, 'id');
+        const type = this.safeString (trade, 'type');
+        const takerOrMaker = this.safeString (trade, 'takerOrMaker');
+        const side = this.safeString (trade, 'side');
+        const datetime = this.safeString (trade, 'datetime');
+        const order = this.safeString (trade, 'order');
         const fee = this.safeValue (trade, 'fee');
         let symbol = undefined;
         if (market === undefined) {
@@ -529,8 +528,8 @@ module.exports = class bytetrade extends Exchange {
         const chainName = 'Sagittarius';
         const defaultFee = this.safeString (this.options, 'fee', '300000000000000');
         const fee = this.safeString (params, 'fee', defaultFee);
-        const eightBytes = this.pow ('2', '64');
-        const byteStringArray = [
+        const eightBytes = this.integerPow ('2', '64');
+        const allByteStringArray = [
             this.numberToBE (1, 32),
             this.numberToLE (Math.floor (now / 1000), 4),
             this.numberToLE (1, 1),
@@ -545,10 +544,10 @@ module.exports = class bytetrade extends Exchange {
             this.numberToLE (typeNum, 1),
             this.numberToLE (normalSymbol.length, 1),
             this.stringToBinary (this.encode (normalSymbol)),
-            this.numberToLE (this.divide (amountChain, eightBytes), 8),
-            this.numberToLE (this.modulo (amountChain, eightBytes), 8),
-            this.numberToLE (this.divide (priceChain, eightBytes), 8),
-            this.numberToLE (this.modulo (priceChain, eightBytes), 8),
+            this.numberToLE (this.integerDivide (amountChain, eightBytes), 8),
+            this.numberToLE (this.integerModulo (amountChain, eightBytes), 8),
+            this.numberToLE (this.integerDivide (priceChain, eightBytes), 8),
+            this.numberToLE (this.integerModulo (priceChain, eightBytes), 8),
             this.numberToLE (0, 2),
             this.numberToLE (Math.floor (now / 1000), 4),
             this.numberToLE (Math.floor (expiration / 1000), 4),
@@ -561,10 +560,48 @@ module.exports = class bytetrade extends Exchange {
             this.stringToBinary (this.encode (chainName)),
             this.numberToLE (0, 1),
         ];
-        let bytestring = byteStringArray[0];
-        for (let i = 1; i < byteStringArray.length; i++) {
-            bytestring = this.binaryConcat (bytestring, byteStringArray[i]);
-        }
+        const txByteStringArray = [
+            this.numberToLE (Math.floor (now / 1000), 4),
+            this.numberToLE (1, 1),
+            this.numberToLE (Math.floor (expiration / 1000), 4),
+            this.numberToLE (1, 1),
+            this.numberToLE (32, 1),
+            this.numberToLE (0, 8),
+            this.numberToLE (fee, 8),  // string for 32 bit php
+            this.numberToLE (this.apiKey.length, 1),
+            this.stringToBinary (this.encode (this.apiKey)),
+            this.numberToLE (sideNum, 1),
+            this.numberToLE (typeNum, 1),
+            this.numberToLE (normalSymbol.length, 1),
+            this.stringToBinary (this.encode (normalSymbol)),
+            this.numberToLE (this.integerDivide (amountChain, eightBytes), 8),
+            this.numberToLE (this.integerModulo (amountChain, eightBytes), 8),
+            this.numberToLE (this.integerDivide (priceChain, eightBytes), 8),
+            this.numberToLE (this.integerModulo (priceChain, eightBytes), 8),
+            this.numberToLE (0, 2),
+            this.numberToLE (Math.floor (now / 1000), 4),
+            this.numberToLE (Math.floor (expiration / 1000), 4),
+            this.numberToLE (0, 2),
+            this.numberToLE (parseInt (quoteId), 4),
+            this.numberToLE (parseInt (baseId), 4),
+            this.numberToLE (0, 1),
+            this.numberToLE (1, 1),
+            this.numberToLE (chainName.length, 1),
+            this.stringToBinary (this.encode (chainName)),
+            this.numberToLE (0, 1),
+        ];
+        const txbytestring = this.binaryConcatArray (txByteStringArray);
+        const txidhash = this.hash (txbytestring, 'sha256', 'hex');
+        const txid = txidhash.slice (0, 40);
+        const orderidByteStringArray = [
+            this.numberToLE (txid.length, 1),
+            this.stringToBinary (this.encode (txid)),
+            this.numberToBE (0, 4),
+        ];
+        const orderidbytestring = this.binaryConcatArray (orderidByteStringArray);
+        const orderidhash = this.hash (orderidbytestring, 'sha256', 'hex');
+        const orderid = orderidhash.slice (0, 40);
+        const bytestring = this.binaryConcatArray (allByteStringArray);
         const hash = this.hash (bytestring, 'sha256', 'hex');
         const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined, true);
         const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (this.sum (signature['v'], 31), 1)));
@@ -607,7 +644,7 @@ module.exports = class bytetrade extends Exchange {
         const status = (statusCode === '0') ? 'open' : 'failed';
         return {
             'info': response,
-            'id': undefined,
+            'id': orderid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -630,13 +667,10 @@ module.exports = class bytetrade extends Exchange {
             throw new ArgumentsRequired ('fetchOrder requires this.apiKey or userid argument');
         }
         await this.loadMarkets ();
-        const request = {};
+        const request = {
+            'userid': this.apiKey,
+        };
         let market = undefined;
-        if ('userid' in params) {
-            request['userid'] = params['userid'];
-        } else {
-            request['userid'] = this.apiKey;
-        }
         if (symbol !== undefined) {
             market = this.markets[symbol];
             request['symbol'] = market['id'];
@@ -651,13 +685,10 @@ module.exports = class bytetrade extends Exchange {
             throw new ArgumentsRequired ('fetchOpenOrders requires this.apiKey or userid argument');
         }
         await this.loadMarkets ();
+        const request = {
+            'userid': this.apiKey,
+        };
         let market = undefined;
-        const request = {};
-        if ('userid' in params) {
-            request['userid'] = params['userid'];
-        } else {
-            request['userid'] = this.apiKey;
-        }
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -675,12 +706,9 @@ module.exports = class bytetrade extends Exchange {
         }
         await this.loadMarkets ();
         let market = undefined;
-        const request = { };
-        if ('userid' in params) {
-            request['userid'] = params['userid'];
-        } else {
-            request['userid'] = this.apiKey;
-        }
+        const request = {
+            'userid': this.apiKey,
+        };
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -698,12 +726,9 @@ module.exports = class bytetrade extends Exchange {
         }
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
-        if ('userid' in params) {
-            request['userid'] = params['userid'];
-        } else {
-            request['userid'] = this.apiKey;
-        }
+        const request = {
+            'userid': this.apiKey,
+        };
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -757,10 +782,7 @@ module.exports = class bytetrade extends Exchange {
             this.stringToBinary (this.encode (chainName)),
             this.numberToLE (0, 1),
         ];
-        let bytestring = byteStringArray[0];
-        for (let i = 1; i < byteStringArray.length; i++) {
-            bytestring = this.binaryConcat (bytestring, byteStringArray[i]);
-        }
+        const bytestring = this.binaryConcatArray (byteStringArray);
         const hash = this.hash (bytestring, 'sha256', 'hex');
         const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined, true);
         const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (this.sum (signature['v'], 31), 1)));
@@ -797,7 +819,7 @@ module.exports = class bytetrade extends Exchange {
         const status = (statusCode === '0') ? 'canceled' : 'failed';
         return {
             'info': response,
-            'id': '',
+            'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -833,7 +855,7 @@ module.exports = class bytetrade extends Exchange {
         expirationDatetime = expirationDatetime.split ('.')[0];
         const feeAmount = '300000000000000';
         const chainName = 'Sagittarius';
-        const eightBytes = this.pow ('2', '64');
+        const eightBytes = this.integerPow ('2', '64');
         const byteStringArray = [
             this.numberToBE (1, 32),
             this.numberToLE (Math.floor (now / 1000), 4),
@@ -848,18 +870,15 @@ module.exports = class bytetrade extends Exchange {
             this.numberToLE (address.length, 1),
             this.stringToBinary (this.encode (address)),
             this.numberToLE (assetType, 4),
-            this.numberToLE (this.divide (amountChain, eightBytes), 8),
-            this.numberToLE (this.modulo (amountChain, eightBytes), 8),
+            this.numberToLE (this.integerDivide (amountChain, eightBytes), 8),
+            this.numberToLE (this.integerModulo (amountChain, eightBytes), 8),
             this.numberToLE (0, 1),
             this.numberToLE (1, 1),
             this.numberToLE (chainName.length, 1),
             this.stringToBinary (this.encode (chainName)),
             this.numberToLE (0, 1),
         ];
-        let bytestring = byteStringArray[0];
-        for (let i = 1; i < byteStringArray.length; i++) {
-            bytestring = this.binaryConcat (bytestring, byteStringArray[i]);
-        }
+        const bytestring = this.binaryConcatArray (byteStringArray);
         const hash = this.hash (bytestring, 'sha256', 'hex');
         const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined, true);
         const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (this.sum (signature['v'], 31), 1)));
@@ -923,12 +942,9 @@ module.exports = class bytetrade extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {};
-        if ('userid' in params) {
-            request['userid'] = params['userid'];
-        } else {
-            request['userid'] = this.apiKey;
-        }
+        const request = {
+            'userid': this.apiKey,
+        };
         if (symbol !== undefined) {
             request['symbol'] = market['id'];
         }
@@ -945,12 +961,9 @@ module.exports = class bytetrade extends Exchange {
             throw new ArgumentsRequired ('fetchDeposits requires this.apiKey or userid argument');
         }
         let currency = undefined;
-        const request = { };
-        if ('userid' in params) {
-            request['userid'] = params['userid'];
-        } else {
-            request['userid'] = this.apiKey;
-        }
+        const request = {
+            'userid': this.apiKey,
+        };
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -971,12 +984,9 @@ module.exports = class bytetrade extends Exchange {
             throw new ArgumentsRequired ('fetchWithdrawals requires this.apiKey or userid argument');
         }
         let currency = undefined;
-        const request = {};
-        if ('userid' in params) {
-            request['userid'] = params['userid'];
-        } else {
-            request['userid'] = this.apiKey;
-        }
+        const request = {
+            'userid': this.apiKey,
+        };
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -991,16 +1001,23 @@ module.exports = class bytetrade extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status) {
-        if ((status === 'DEPOSIT_FAILED') || (status === 'FEE_SEND_FAILED') || (status === 'FEE_FAILED') || (status === 'PAY_SEND_FAILED') || (status === 'PAY_FAILED') || (status === 'BTT_FAILED') || (status === 'WITHDDRAW_FAILED') || (status === 'USER_FAILED')) {
-            return 'failed';
-        } else if ((status === 'FEE_EXECUED') || (status === 'PAY_EXECUED') || (status === 'WITHDDRAW_EXECUTED') || (status === 'USER_EXECUED')) {
-            return 'pending';
-        } else if (status === 'BTT_SUCCED') {
-            return 'ok';
-        } else {
-            return status;
-        }
+    parseTransactionStatus (status) {
+        const statuses = {
+            'DEPOSIT_FAILED': 'failed',
+            'FEE_SEND_FAILED': 'failed',
+            'FEE_FAILED': 'failed',
+            'PAY_SEND_FAILED': 'failed',
+            'PAY_FAILED': 'failed',
+            'BTT_FAILED': 'failed',
+            'WITHDDRAW_FAILED': 'failed',
+            'USER_FAILED': 'failed',
+            'FEE_EXECUED': 'pending',
+            'PAY_EXECUED': 'pending',
+            'WITHDDRAW_EXECUTED': 'pending',
+            'USER_EXECUED': 'pending',
+            'BTT_SUCCED': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -1018,7 +1035,7 @@ module.exports = class bytetrade extends Exchange {
         const timestamp = this.safeInteger (transaction, 'timestamp');
         const datetime = this.safeString (transaction, 'datetime');
         const type = this.safeString (transaction, 'type');
-        const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const amount = this.safeFloat (transaction, 'amount');
         const feeInfo = this.safeValue (transaction, 'fee');
         const feeCost = this.safeFloat (feeInfo, 'cost');
@@ -1051,13 +1068,10 @@ module.exports = class bytetrade extends Exchange {
             throw new ArgumentsRequired ('fetchDepositAddress requires this.apiKey or userid argument');
         }
         const currency = this.currency (code);
-        const request = { };
-        if ('userid' in params) {
-            request['userid'] = params['userid'];
-        } else {
-            request['userid'] = this.apiKey;
-        }
-        request['code'] = currency['id'];
+        const request = {
+            'userid': this.apiKey,
+            'code': currency['id'],
+        };
         const response = await this.publicGetDepositaddress (request);
         const address = this.safeString (response[0], 'address');
         const tag = this.safeString (response[0], 'addressTag');
@@ -1108,7 +1122,7 @@ module.exports = class bytetrade extends Exchange {
         const coinId = currency['id'];
         const amountTruncate = this.decimalToPrecision (amount, TRUNCATE, currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING);
         const amountChain = this.toWei (amountTruncate, 'ether', currency['info']['externalPrecision']);
-        const eightBytes = this.pow ('2', '64');
+        const eightBytes = this.integerPow ('2', '64');
         let assetFee = 0;
         let byteStringArray = [];
         if (chainTypeString === 'bitcoin') {
@@ -1127,11 +1141,11 @@ module.exports = class bytetrade extends Exchange {
                 this.numberToLE (address.length, 1),
                 this.stringToBinary (this.encode (address)),
                 this.numberToLE (parseInt (coinId), 4),
-                this.numberToLE (Math.floor (parseInt (parseFloat (this.divide (amountChain, eightBytes)))), 8),
-                this.numberToLE (this.modulo (amountChain, eightBytes), 8),
+                this.numberToLE (Math.floor (parseInt (parseFloat (this.integerDivide (amountChain, eightBytes)))), 8),
+                this.numberToLE (this.integerModulo (amountChain, eightBytes), 8),
                 this.numberToLE (1, 1),
-                this.numberToLE (this.divide (assetFee, eightBytes), 8),
-                this.numberToLE (this.modulo (assetFee, eightBytes), 8),
+                this.numberToLE (this.integerDivide (assetFee, eightBytes), 8),
+                this.numberToLE (this.integerModulo (assetFee, eightBytes), 8),
                 this.numberToLE (0, 1),
                 this.numberToLE (1, 1),
                 this.numberToLE (chainName.length, 1),
@@ -1160,8 +1174,8 @@ module.exports = class bytetrade extends Exchange {
                 this.numberToLE (middleAddress.length, 1),
                 this.stringToBinary (this.encode (middleAddress)),
                 this.numberToLE (parseInt (coinId), 4),
-                this.numberToLE (Math.floor (parseInt (parseFloat (this.divide (amountChain, eightBytes)))), 8),
-                this.numberToLE (this.modulo (amountChain, eightBytes), 8),
+                this.numberToLE (Math.floor (parseInt (parseFloat (this.integerDivide (amountChain, eightBytes)))), 8),
+                this.numberToLE (this.integerModulo (amountChain, eightBytes), 8),
                 this.numberToLE (0, 1),
                 this.numberToLE (1, 1),
                 this.numberToLE (chainName.length, 1),
@@ -1169,17 +1183,14 @@ module.exports = class bytetrade extends Exchange {
                 this.numberToLE (0, 1),
             ];
         }
-        let bytestring = byteStringArray[0];
-        for (let i = 1; i < byteStringArray.length; i++) {
-            bytestring = this.binaryConcat (bytestring, byteStringArray[i]);
-        }
+        const bytestring = this.binaryConcatArray (byteStringArray);
         const hash = this.hash (bytestring, 'sha256', 'hex');
         const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined, true);
         const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (this.sum (signature['v'], 31), 1)));
         const mySignature = recoveryParam + signature['r'] + signature['s'];
-        let fatty = { };
-        let request = { };
-        let operation = { };
+        let fatty = undefined;
+        let request = undefined;
+        let operation = undefined;
         const chainContractAddress = this.safeString (currency['info'], 'chainContractAddress');
         if (chainTypeString === 'bitcoin') {
             operation = {
@@ -1266,7 +1277,7 @@ module.exports = class bytetrade extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if ((code === 503)) {
+        if (code === 503) {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         }
         if (response === undefined) {

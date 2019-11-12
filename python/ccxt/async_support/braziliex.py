@@ -19,7 +19,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
 
 
-class braziliex (Exchange):
+class braziliex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(braziliex, self).describe(), {

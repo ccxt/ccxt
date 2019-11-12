@@ -750,7 +750,7 @@ module.exports = class binance extends Exchange {
             if (filled) {
                 average = cost / filled;
                 if (this.options['parseOrderToPrecision']) {
-                    average = parseFloat (this.amountToPrecision (symbol, average));
+                    average = parseFloat (this.priceToPrecision (symbol, average));
                 }
             }
             if (this.options['parseOrderToPrecision']) {

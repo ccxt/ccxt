@@ -620,17 +620,22 @@ module.exports = class fcoin extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 100, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (limit === undefined) {
-            throw new ExchangeError (this.id + ' fetchOHLCV requires a limit argument');
-        }
         const market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 20; // default is 20
+        }
         const request = {
             'symbol': market['id'],
             'timeframe': this.timeframes[timeframe],
             'limit': limit,
         };
+        if (since !== undefined) {
+            const sinceInSeconds = parseInt (since / 1000);
+            const timerange = limit * this.parseTimeframe (timeframe);
+            request['before'] = this.sum (sinceInSeconds, timerange) - 1;
+        }
         const response = await this.marketGetCandlesTimeframeSymbol (this.extend (request, params));
         return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     }

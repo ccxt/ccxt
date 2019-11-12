@@ -8,13 +8,13 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
-from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
-class indodax (Exchange):
+class indodax(Exchange):
 
     def describe(self):
         return self.deep_extend(super(indodax, self).describe(), {
@@ -143,7 +143,7 @@ class indodax (Exchange):
             },
             'exceptions': {
                 'exact': {
-                    'invalid_pair': BadRequest,  # {"error":"invalid_pair","error_description":"Invalid Pair"}
+                    'invalid_pair': BadSymbol,  # {"error":"invalid_pair","error_description":"Invalid Pair"}
                     'Insufficient balance.': InsufficientFunds,
                     'invalid order.': OrderNotFound,
                     'Invalid credentials. API not found or session has expired.': AuthenticationError,
@@ -491,11 +491,11 @@ class indodax (Exchange):
         if isinstance(response, list):
             return  # public endpoints may return []-arrays
         error = self.safe_value(response, 'error', '')
-        if not('success' in list(response.keys())) and error == '':
+        if not ('success' in list(response.keys())) and error == '':
             return  # no 'success' property on public responses
         if self.safe_integer(response, 'success', 0) == 1:
             # {success: 1, return: {orders: []}}
-            if not('return' in list(response.keys())):
+            if not ('return' in list(response.keys())):
                 raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
             else:
                 return

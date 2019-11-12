@@ -14,7 +14,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.decimal_to_precision import ROUND
 
 
-class rightbtc (Exchange):
+class rightbtc(Exchange):
 
     def describe(self):
         return self.deep_extend(super(rightbtc, self).describe(), {
@@ -244,7 +244,7 @@ class rightbtc (Exchange):
         for i in range(0, len(tickers)):
             ticker = tickers[i]
             id = ticker['market']
-            if not(id in list(self.marketsById.keys())):
+            if not (id in list(self.marketsById.keys())):
                 continue
             market = self.marketsById[id]
             symbol = market['symbol']
@@ -555,7 +555,7 @@ class rightbtc (Exchange):
         #
         orders = self.parse_orders(response['result'], market)
         ordersById = self.index_by(orders, 'id')
-        if not(id in list(ordersById.keys())):
+        if not (id in list(ordersById.keys())):
             raise OrderNotFound(self.id + ' fetchOrder could not find order ' + str(id) + ' in open orders.')
         return ordersById[id]
 

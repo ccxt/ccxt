@@ -19,11 +19,11 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 
 
-class exmo (Exchange):
+class exmo(Exchange):
 
     def describe(self):
         return self.deep_extend(super(exmo, self).describe(), {
@@ -398,7 +398,7 @@ class exmo (Exchange):
                 '40005': AuthenticationError,  # Authorization error, incorrect signature
                 '40009': InvalidNonce,  #
                 '40015': ExchangeError,  # API function do not exist
-                '40016': ExchangeNotAvailable,  # Maintenance work in progress
+                '40016': OnMaintenance,  # {"result":false,"error":"Error 40016: Maintenance work in progress"}
                 '40017': AuthenticationError,  # Wrong API Key
                 '50052': InsufficientFunds,
                 '50054': InsufficientFunds,
@@ -894,7 +894,7 @@ class exmo (Exchange):
             # - symbol mismatch(e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
             id = cachedOrderIds[k]
             order = self.orders[id]
-            if not(id in list(openOrdersIndexedById.keys())):
+            if not (id in list(openOrdersIndexedById.keys())):
                 # cached order is not in open orders array
                 # if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
                 if symbol is not None and symbol != order['symbol']:

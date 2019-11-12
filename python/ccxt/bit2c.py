@@ -16,7 +16,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 
 
-class bit2c (Exchange):
+class bit2c(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bit2c, self).describe(), {
@@ -317,7 +317,7 @@ class bit2c (Exchange):
             timestamp = self.safe_timestamp(trade, 'ticks')
             price = self.safe_float(trade, 'price')
             amount = self.safe_float(trade, 'firstAmount')
-            reference_parts = reference.split('|')  # reference contains: 'pair|orderId|tradeId'
+            reference_parts = reference.split('|')  # reference contains 'pair|orderId|tradeId'
             if market is None:
                 marketId = self.safe_string(trade, 'pair')
                 if marketId in self.markets_by_id[marketId]:

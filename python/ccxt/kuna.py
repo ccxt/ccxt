@@ -8,7 +8,7 @@ import math
 from ccxt.base.errors import ArgumentsRequired
 
 
-class kuna (acx):
+class kuna(acx):
 
     def describe(self):
         return self.deep_extend(super(kuna, self).describe(), {

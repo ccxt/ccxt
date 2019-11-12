@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1315'
+__version__ = '1.19.34'
 
 # -----------------------------------------------------------------------------
 
@@ -53,7 +53,6 @@ class Exchange(BaseExchange):
         self.verify = config.get('verify', self.verify)
         self.own_session = 'session' not in config
         self.cafile = config.get('cafile', certifi.where())
-        self.open()
         super(Exchange, self).__init__(config)
         self.init_rest_rate_limiter()
 
@@ -127,6 +126,7 @@ class Exchange(BaseExchange):
 
         request_body = body
         encoded_body = body.encode() if body else None
+        self.open()
         session_method = getattr(self.session, method.lower())
 
         http_response = None
@@ -171,7 +171,9 @@ class Exchange(BaseExchange):
         self.handle_rest_response(http_response, json_response, url, method)
         if json_response is not None:
             return json_response
-        return http_response
+        if self.is_text_response(headers):
+            return http_response
+        return response.content
 
     async def load_markets(self, reload=False, params={}):
         if not reload:

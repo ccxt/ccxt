@@ -15,7 +15,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 
 
-class okcoinusd (Exchange):
+class okcoinusd(Exchange):
 
     def describe(self):
         return self.deep_extend(super(okcoinusd, self).describe(), {
@@ -713,7 +713,7 @@ class okcoinusd (Exchange):
         usedField = 'freezed'
         # wtf, okex?
         # https://github.com/okcoin-okex/API-docs-OKEx.com/commit/01cf9dd57b1f984a8737ef76a037d4d3795d2ac7
-        if not(usedField in list(balances.keys())):
+        if not (usedField in list(balances.keys())):
             usedField = 'holds'
         usedKeys = list(balances[usedField].keys())
         ids = self.array_concat(ids, usedKeys)

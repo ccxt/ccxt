@@ -16,7 +16,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
 
 
-class liquid (Exchange):
+class liquid(Exchange):
 
     def describe(self):
         return self.deep_extend(super(liquid, self).describe(), {

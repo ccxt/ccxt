@@ -108,6 +108,7 @@ module.exports = class bibox extends Exchange {
             },
             'commonCurrencies': {
                 'KEY': 'Bihu',
+                'MTC': 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
                 'PAI': 'PCHAIN',
             },
         });
@@ -938,7 +939,7 @@ module.exports = class bibox extends Exchange {
                     throw new ExchangeError (feedback);
                 }
             }
-            throw new ExchangeError (this.id + ': "error" in response: ' + body);
+            throw new ExchangeError (this.id + ' ' + body);
         }
         if (!('result' in response)) {
             throw new ExchangeError (this.id + ' ' + body);

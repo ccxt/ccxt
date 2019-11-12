@@ -10,7 +10,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import NotSupported
 
 
-class xbtce (Exchange):
+class xbtce(Exchange):
 
     def describe(self):
         return self.deep_extend(super(xbtce, self).describe(), {

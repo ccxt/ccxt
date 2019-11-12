@@ -12,10 +12,11 @@ try:
 except NameError:
     basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import DDoSProtection
 
 
-class whitebit (Exchange):
+class whitebit(Exchange):
 
     def describe(self):
         return self.deep_extend(super(whitebit, self).describe(), {
@@ -113,6 +114,13 @@ class whitebit (Exchange):
             },
             'options': {
                 'fetchTradesMethod': 'fetchTradesV1',
+            },
+            'exceptions': {
+                'exact': {
+                },
+                'broad': {
+                    'Market is not available': BadSymbol,  # {"success":false,"message":{"market":["Market is not available"]},"result":[]}
+                },
             },
         })
 
@@ -583,9 +591,14 @@ class whitebit (Exchange):
         if response is not None:
             success = self.safe_value(response, 'success')
             if not success:
-                message = response['message']
-                if message:
-                    raise ExchangeError(message)
-                else:
-                    feedback = self.id + ' ' + self.json(response)
-                    raise ExchangeError(feedback)
+                feedback = self.id + ' ' + body
+                message = self.safe_value(response, 'message')
+                if isinstance(message, basestring):
+                    exact = self.safe_value(self.exceptions, 'exact', {})
+                    if message in exact:
+                        raise exact[message](feedback)
+                broad = self.safe_value(self.exceptions, 'broad', {})
+                broadKey = self.findBroadlyMatchedKey(broad, body)
+                if broadKey is not None:
+                    raise broad[broadKey](feedback)
+                raise ExchangeError(feedback)

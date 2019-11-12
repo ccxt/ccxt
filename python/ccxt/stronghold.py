@@ -15,7 +15,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
 
 
-class stronghold (Exchange):
+class stronghold(Exchange):
 
     def describe(self):
         return self.deep_extend(super(stronghold, self).describe(), {
@@ -580,7 +580,7 @@ class stronghold (Exchange):
             'venueId': self.options['venueId'],
             'accountId': self.get_active_account(),
         }, params)
-        if not('accountId' in list(request.keys())):
+        if not ('accountId' in list(request.keys())):
             raise ArgumentsRequired(self.id + " fetchBalance requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.")
         response = self.privateGetVenuesVenueIdAccountsAccountId(request)
         balances = self.safe_value(response['result'], 'balances')
