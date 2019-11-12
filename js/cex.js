@@ -123,8 +123,8 @@ module.exports = class cex extends Exchange {
                 'broad': {
                     'Insufficient funds': InsufficientFunds,
                     'Nonce must be incremented': InvalidNonce,
-                    'There was an error while canceling your order: Invalid Order ID': InvalidOrder,
-                    'Error: Order not found': OrderNotFound,
+                    'Invalid Order': InvalidOrder,
+                    'Order not found': OrderNotFound,
                 },
             },
             'options': {
