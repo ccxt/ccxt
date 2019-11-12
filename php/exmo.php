@@ -382,7 +382,7 @@ class exmo extends Exchange {
                 '40005' => '\\ccxt\\AuthenticationError', // Authorization error, incorrect signature
                 '40009' => '\\ccxt\\InvalidNonce', //
                 '40015' => '\\ccxt\\ExchangeError', // API function do not exist
-                '40016' => '\\ccxt\\ExchangeNotAvailable', // Maintenance work in progress
+                '40016' => '\\ccxt\\OnMaintenance', // array("result":false,"error":"Error 40016 => Maintenance work in progress")
                 '40017' => '\\ccxt\\AuthenticationError', // Wrong API Key
                 '50052' => '\\ccxt\\InsufficientFunds',
                 '50054' => '\\ccxt\\InsufficientFunds',
