@@ -52,6 +52,11 @@ class okcoinusd(Exchange):
                 '1w': '1week',
             },
             'api': {
+                'v3': {
+                    'get': [
+                        'futures/pc/market/futuresCoin',
+                    ],
+                },
                 'web': {
                     'get': [
                         'futures/pc/market/marketOverview',
@@ -131,6 +136,7 @@ class okcoinusd(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api': {
+                    'v3': 'https://www.okcoin.com/v3',
                     'web': 'https://www.okcoin.com/v2',
                     'public': 'https://www.okcoin.com/api',
                     'private': 'https://www.okcoin.com',
@@ -375,7 +381,9 @@ class okcoinusd(Exchange):
         spotMarkets = self.safe_value(spotResponse, 'data', [])
         markets = spotMarkets
         if self.has['futures']:
-            futuresResponse = await self.webPostFuturesPcMarketFuturesCoin()
+            futuresResponse = await self.v3GetFuturesPcMarketFuturesCoin({
+                'currencyCode': 0,
+            })
             #
             #     {
             #         "msg":"success",
@@ -409,7 +417,8 @@ class okcoinusd(Exchange):
             #         ]
             #     }
             #
-            futuresMarkets = self.safe_value(futuresResponse, 'data', [])
+            data = self.safe_value(futuresResponse, 'data', {})
+            futuresMarkets = self.safe_value(data, 'usd', [])
             markets = self.array_concat(spotMarkets, futuresMarkets)
         for i in range(0, len(markets)):
             market = markets[i]
@@ -443,8 +452,8 @@ class okcoinusd(Exchange):
                 contracts = [{}]
             else:
                 # futures markets
-                quoteId = self.safe_string(market, 'quote')
-                uppercaseBaseId = self.safe_string(market, 'symbolDesc')
+                quoteId = self.safe_string_lower_2(market, 'quote', 'denomination')
+                uppercaseBaseId = self.safe_string_lower(market, 'symbolDesc')
                 baseId = uppercaseBaseId.lower()
                 lowercaseId = baseId + '_' + quoteId
                 base = self.safe_currency_code(uppercaseBaseId)
@@ -984,10 +993,11 @@ class okcoinusd(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/'
-        if api != 'web':
+        isWebApi = (api == 'web') or (api == 'v3')
+        if not isWebApi:
             url += self.version + '/'
         url += path
-        if api != 'web':
+        if not isWebApi:
             url += self.extension
         if api == 'private':
             self.check_required_credentials()

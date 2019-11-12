@@ -44,6 +44,11 @@ class okcoinusd extends Exchange {
                 '1w' => '1week',
             ),
             'api' => array (
+                'v3' => array (
+                    'get' => array (
+                        'futures/pc/market/futuresCoin',
+                    ),
+                ),
                 'web' => array (
                     'get' => array (
                         'futures/pc/market/marketOverview',
@@ -123,6 +128,7 @@ class okcoinusd extends Exchange {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api' => array (
+                    'v3' => 'https://www.okcoin.com/v3',
                     'web' => 'https://www.okcoin.com/v2',
                     'public' => 'https://www.okcoin.com/api',
                     'private' => 'https://www.okcoin.com',
@@ -334,7 +340,7 @@ class okcoinusd extends Exchange {
         //
         //     {
         //         "code" => 0,
-        //         "data" => array (
+        //         "$data" => array (
         //             array (
         //                 "baseCurrency":0,
         //                 "brokerId":0,
@@ -368,13 +374,15 @@ class okcoinusd extends Exchange {
         $spotMarkets = $this->safe_value($spotResponse, 'data', array());
         $markets = $spotMarkets;
         if ($this->has['futures']) {
-            $futuresResponse = $this->webPostFuturesPcMarketFuturesCoin ();
+            $futuresResponse = $this->v3GetFuturesPcMarketFuturesCoin (array (
+                'currencyCode' => 0,
+            ));
             //
             //     {
             //         "msg":"success",
             //         "code":0,
             //         "detailMsg":"",
-            //         "data" => [
+            //         "$data" => [
             //             array (
             //                 "symbolId":0,
             //                 "$symbol":"f_usd_btc",
@@ -402,7 +410,8 @@ class okcoinusd extends Exchange {
             //         ]
             //     }
             //
-            $futuresMarkets = $this->safe_value($futuresResponse, 'data', array());
+            $data = $this->safe_value($futuresResponse, 'data', array());
+            $futuresMarkets = $this->safe_value($data, 'usd', array());
             $markets = $this->array_concat($spotMarkets, $futuresMarkets);
         }
         for ($i = 0; $i < count ($markets); $i++) {
@@ -437,8 +446,8 @@ class okcoinusd extends Exchange {
                 $contracts = [array()];
             } else {
                 // futures $markets
-                $quoteId = $this->safe_string($market, 'quote');
-                $uppercaseBaseId = $this->safe_string($market, 'symbolDesc');
+                $quoteId = $this->safe_string_lower_2($market, 'quote', 'denomination');
+                $uppercaseBaseId = $this->safe_string_lower($market, 'symbolDesc');
                 $baseId = strtolower($uppercaseBaseId);
                 $lowercaseId = $baseId . '_' . $quoteId;
                 $base = $this->safe_currency_code($uppercaseBaseId);
@@ -1050,11 +1059,12 @@ class okcoinusd extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/';
-        if ($api !== 'web') {
+        $isWebApi = ($api === 'web') || ($api === 'v3');
+        if (!$isWebApi) {
             $url .= $this->version . '/';
         }
         $url .= $path;
-        if ($api !== 'web') {
+        if (!$isWebApi) {
             $url .= $this->extension;
         }
         if ($api === 'private') {
