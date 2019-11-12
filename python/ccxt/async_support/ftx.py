@@ -615,7 +615,9 @@ class ftx(Exchange):
             'market_name': market['id'],
         }
         if since is not None:
-            request['start_time'] = since
+            request['start_time'] = int(since / 1000)
+            # start_time doesn't work without end_time
+            request['end_time'] = self.seconds()
         if limit is not None:
             request['limit'] = limit
         response = await self.publicGetMarketsMarketNameTrades(self.extend(request, params))

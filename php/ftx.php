@@ -634,7 +634,9 @@ class ftx extends Exchange {
             'market_name' => $market['id'],
         );
         if ($since !== null) {
-            $request['start_time'] = $since;
+            $request['start_time'] = intval ($since / 1000);
+            // start_time doesn't work without end_time
+            $request['end_time'] = $this->seconds ();
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
