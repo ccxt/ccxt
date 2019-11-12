@@ -274,7 +274,7 @@ module.exports = class sfox extends Exchange {
 
   parseOrderStatus (status) {
     const statuses = {
-      'Done': 'closed'
+      'Done': 'closed',
       'Started': 'open',
       'Pending': 'open',
       'Moving': 'open',
