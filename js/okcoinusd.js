@@ -43,6 +43,11 @@ module.exports = class okcoinusd extends Exchange {
                 '1w': '1week',
             },
             'api': {
+                'v3': {
+                    'get': [
+                        'futures/pc/market/futuresCoin',
+                    ],
+                },
                 'web': {
                     'get': [
                         'futures/pc/market/marketOverview',
@@ -122,6 +127,7 @@ module.exports = class okcoinusd extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api': {
+                    'v3': 'https://www.okcoin.com/v3',
                     'web': 'https://www.okcoin.com/v2',
                     'public': 'https://www.okcoin.com/api',
                     'private': 'https://www.okcoin.com',
@@ -367,7 +373,9 @@ module.exports = class okcoinusd extends Exchange {
         const spotMarkets = this.safeValue (spotResponse, 'data', []);
         let markets = spotMarkets;
         if (this.has['futures']) {
-            const futuresResponse = await this.webPostFuturesPcMarketFuturesCoin ();
+            const futuresResponse = await this.v3GetFuturesPcMarketFuturesCoin ({
+                'currencyCode': 0,
+            });
             //
             //     {
             //         "msg":"success",
@@ -401,7 +409,8 @@ module.exports = class okcoinusd extends Exchange {
             //         ]
             //     }
             //
-            const futuresMarkets = this.safeValue (futuresResponse, 'data', []);
+            const data = this.safeValue (futuresResponse, 'data', {});
+            const futuresMarkets = this.safeValue (data, 'usd', []);
             markets = this.arrayConcat (spotMarkets, futuresMarkets);
         }
         for (let i = 0; i < markets.length; i++) {
@@ -1049,11 +1058,12 @@ module.exports = class okcoinusd extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
-        if (api !== 'web') {
+        const isWebApi = (api === 'web') || (api === 'v3');
+        if (!isWebApi) {
             url += this.version + '/';
         }
         url += path;
-        if (api !== 'web') {
+        if (!isWebApi) {
             url += this.extension;
         }
         if (api === 'private') {
