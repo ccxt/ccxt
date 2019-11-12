@@ -445,8 +445,8 @@ module.exports = class okcoinusd extends Exchange {
                 contracts = [{}];
             } else {
                 // futures markets
-                quoteId = this.safeString (market, 'quote');
-                uppercaseBaseId = this.safeString (market, 'symbolDesc');
+                quoteId = this.safeStringLower2 (market, 'quote', 'denomination');
+                uppercaseBaseId = this.safeStringLower (market, 'symbolDesc');
                 baseId = uppercaseBaseId.toLowerCase ();
                 lowercaseId = baseId + '_' + quoteId;
                 base = this.safeCurrencyCode (uppercaseBaseId);
