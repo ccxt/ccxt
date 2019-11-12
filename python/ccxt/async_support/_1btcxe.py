@@ -15,7 +15,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ExchangeNotAvailable
 
 
-class _1btcxe (Exchange):
+class _1btcxe(Exchange):
 
     def describe(self):
         return self.deep_extend(super(_1btcxe, self).describe(), {

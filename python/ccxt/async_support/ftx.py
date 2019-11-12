@@ -10,9 +10,10 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class ftx (Exchange):
+class ftx(Exchange):
 
     def describe(self):
         return self.deep_extend(super(ftx, self).describe(), {
@@ -88,6 +89,7 @@ class ftx (Exchange):
                         'orders/history',  # ?market={market}
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
+                        'conditional_orders',  # ?market={market}
                         'fills',  # ?market={market}
                         'funding_payments',
                         'lt/balances',
@@ -106,6 +108,7 @@ class ftx (Exchange):
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'orders',
+                        'conditional_orders/{order_id}',
                     ],
                 },
             },
@@ -154,6 +157,7 @@ class ftx (Exchange):
                     'An unexpected error occurred': ExchangeError,  # {"error":"An unexpected error occurred, please try again later(58BC21C795).","success":false}
                 },
             },
+            'roundingMode': TICK_SIZE,
         })
 
     async def fetch_currencies(self, params={}):
@@ -266,9 +270,11 @@ class ftx (Exchange):
             # check if a market is a spot or future market
             symbol = self.safe_string(market, 'name') if (type == 'future') else (base + '/' + quote)
             active = self.safe_value(market, 'enabled')
+            sizeIncrement = self.safe_float(market, 'sizeIncrement')
+            priceIncrement = self.safe_float(market, 'priceIncrement')
             precision = {
-                'amount': self.precision_from_string(self.safe_string(market, 'sizeIncrement')),
-                'price': self.precision_from_string(self.safe_string(market, 'priceIncrement')),
+                'amount': sizeIncrement,
+                'price': priceIncrement,
             }
             entry = {
                 'id': id,
@@ -284,11 +290,11 @@ class ftx (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'sizeIncrement'),
+                        'min': sizeIncrement,
                         'max': None,
                     },
                     'price': {
-                        'min': self.safe_float(market, 'priceIncrement'),
+                        'min': priceIncrement,
                         'max': None,
                     },
                     'cost': {
@@ -609,7 +615,9 @@ class ftx (Exchange):
             'market_name': market['id'],
         }
         if since is not None:
-            request['start_time'] = since
+            request['start_time'] = int(since / 1000)
+            # start_time doesn't work without end_time
+            request['end_time'] = self.seconds()
         if limit is not None:
             request['limit'] = limit
         response = await self.publicGetMarketsMarketNameTrades(self.extend(request, params))

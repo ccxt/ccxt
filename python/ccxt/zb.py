@@ -16,7 +16,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 
 
-class zb (Exchange):
+class zb(Exchange):
 
     def describe(self):
         return self.deep_extend(super(zb, self).describe(), {

@@ -16,7 +16,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 
 
-class gateio (Exchange):
+class gateio(Exchange):
 
     def describe(self):
         return self.deep_extend(super(gateio, self).describe(), {

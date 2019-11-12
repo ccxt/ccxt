@@ -16,7 +16,7 @@ from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import NO_PADDING
 
 
-class bytetrade (Exchange):
+class bytetrade(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bytetrade, self).describe(), {
@@ -226,7 +226,6 @@ class bytetrade (Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'symbol')
-            # there may be duplicate codes
             base = self.safe_string(market, 'baseName')
             quote = self.safe_string(market, 'quoteName')
             baseId = self.safe_string(market, 'base')
@@ -503,7 +502,7 @@ class bytetrade (Exchange):
         defaultFee = self.safe_string(self.options, 'fee', '300000000000000')
         fee = self.safe_string(params, 'fee', defaultFee)
         eightBytes = self.integer_pow('2', '64')
-        byteStringArray = [
+        allByteStringArray = [
             self.numberToBE(1, 32),
             self.numberToLE(int(math.floor(now / 1000)), 4),
             self.numberToLE(1, 1),
@@ -534,7 +533,48 @@ class bytetrade (Exchange):
             self.encode(chainName),
             self.numberToLE(0, 1),
         ]
-        bytestring = self.binary_concat_array(byteStringArray)
+        txByteStringArray = [
+            self.numberToLE(int(math.floor(now / 1000)), 4),
+            self.numberToLE(1, 1),
+            self.numberToLE(int(math.floor(expiration / 1000)), 4),
+            self.numberToLE(1, 1),
+            self.numberToLE(32, 1),
+            self.numberToLE(0, 8),
+            self.numberToLE(fee, 8),  # string for 32 bit php
+            self.numberToLE(len(self.apiKey), 1),
+            self.encode(self.apiKey),
+            self.numberToLE(sideNum, 1),
+            self.numberToLE(typeNum, 1),
+            self.numberToLE(len(normalSymbol), 1),
+            self.encode(normalSymbol),
+            self.numberToLE(self.integer_divide(amountChain, eightBytes), 8),
+            self.numberToLE(self.integer_modulo(amountChain, eightBytes), 8),
+            self.numberToLE(self.integer_divide(priceChain, eightBytes), 8),
+            self.numberToLE(self.integer_modulo(priceChain, eightBytes), 8),
+            self.numberToLE(0, 2),
+            self.numberToLE(int(math.floor(now / 1000)), 4),
+            self.numberToLE(int(math.floor(expiration / 1000)), 4),
+            self.numberToLE(0, 2),
+            self.numberToLE(int(quoteId), 4),
+            self.numberToLE(int(baseId), 4),
+            self.numberToLE(0, 1),
+            self.numberToLE(1, 1),
+            self.numberToLE(len(chainName), 1),
+            self.encode(chainName),
+            self.numberToLE(0, 1),
+        ]
+        txbytestring = self.binary_concat_array(txByteStringArray)
+        txidhash = self.hash(txbytestring, 'sha256', 'hex')
+        txid = txidhash[0:40]
+        orderidByteStringArray = [
+            self.numberToLE(len(txid), 1),
+            self.encode(txid),
+            self.numberToBE(0, 4),
+        ]
+        orderidbytestring = self.binary_concat_array(orderidByteStringArray)
+        orderidhash = self.hash(orderidbytestring, 'sha256', 'hex')
+        orderid = orderidhash[0:40]
+        bytestring = self.binary_concat_array(allByteStringArray)
         hash = self.hash(bytestring, 'sha256', 'hex')
         signature = self.ecdsa(hash, self.secret, 'secp256k1', None, True)
         recoveryParam = self.decode(base64.b16encode(self.numberToLE(self.sum(signature['v'], 31), 1)))
@@ -577,7 +617,7 @@ class bytetrade (Exchange):
         status = 'open' if (statusCode == '0') else 'failed'
         return {
             'info': response,
-            'id': None,
+            'id': orderid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -598,12 +638,10 @@ class bytetrade (Exchange):
         if not ('userid' in list(params.keys())) and (self.apiKey is None):
             raise ArgumentsRequired('fetchOrder requires self.apiKey or userid argument')
         self.load_markets()
-        request = {}
+        request = {
+            'userid': self.apiKey,
+        }
         market = None
-        if 'userid' in params:
-            request['userid'] = params['userid']
-        else:
-            request['userid'] = self.apiKey
         if symbol is not None:
             market = self.markets[symbol]
             request['symbol'] = market['id']
@@ -615,12 +653,10 @@ class bytetrade (Exchange):
         if not ('userid' in list(params.keys())) and (self.apiKey is None):
             raise ArgumentsRequired('fetchOpenOrders requires self.apiKey or userid argument')
         self.load_markets()
+        request = {
+            'userid': self.apiKey,
+        }
         market = None
-        request = {}
-        if 'userid' in params:
-            request['userid'] = params['userid']
-        else:
-            request['userid'] = self.apiKey
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -634,11 +670,9 @@ class bytetrade (Exchange):
             raise ArgumentsRequired('fetchClosedOrders requires self.apiKey or userid argument')
         self.load_markets()
         market = None
-        request = {}
-        if 'userid' in params:
-            request['userid'] = params['userid']
-        else:
-            request['userid'] = self.apiKey
+        request = {
+            'userid': self.apiKey,
+        }
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -652,11 +686,9 @@ class bytetrade (Exchange):
             raise ArgumentsRequired('fetchOrders requires self.apiKey or userid argument')
         self.load_markets()
         market = None
-        request = {}
-        if 'userid' in params:
-            request['userid'] = params['userid']
-        else:
-            request['userid'] = self.apiKey
+        request = {
+            'userid': self.apiKey,
+        }
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -742,7 +774,7 @@ class bytetrade (Exchange):
         status = 'canceled' if (statusCode == '0') else 'failed'
         return {
             'info': response,
-            'id': '',
+            'id': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -860,11 +892,9 @@ class bytetrade (Exchange):
             raise ArgumentsRequired('fetchMyTrades requires self.apiKey or userid argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {}
-        if 'userid' in params:
-            request['userid'] = params['userid']
-        else:
-            request['userid'] = self.apiKey
+        request = {
+            'userid': self.apiKey,
+        }
         if symbol is not None:
             request['symbol'] = market['id']
         if limit is not None:
@@ -877,11 +907,9 @@ class bytetrade (Exchange):
         if not ('userid' in list(params.keys())) and (self.apiKey is None):
             raise ArgumentsRequired('fetchDeposits requires self.apiKey or userid argument')
         currency = None
-        request = {}
-        if 'userid' in params:
-            request['userid'] = params['userid']
-        else:
-            request['userid'] = self.apiKey
+        request = {
+            'userid': self.apiKey,
+        }
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -897,11 +925,9 @@ class bytetrade (Exchange):
         if not ('userid' in list(params.keys())) and (self.apiKey is None):
             raise ArgumentsRequired('fetchWithdrawals requires self.apiKey or userid argument')
         currency = None
-        request = {}
-        if 'userid' in params:
-            request['userid'] = params['userid']
-        else:
-            request['userid'] = self.apiKey
+        request = {
+            'userid': self.apiKey,
+        }
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -974,12 +1000,10 @@ class bytetrade (Exchange):
         if not ('userid' in list(params.keys())) and (self.apiKey is None):
             raise ArgumentsRequired('fetchDepositAddress requires self.apiKey or userid argument')
         currency = self.currency(code)
-        request = {}
-        if 'userid' in params:
-            request['userid'] = params['userid']
-        else:
-            request['userid'] = self.apiKey
-        request['code'] = currency['id']
+        request = {
+            'userid': self.apiKey,
+            'code': currency['id'],
+        }
         response = self.publicGetDepositaddress(request)
         address = self.safe_string(response[0], 'address')
         tag = self.safe_string(response[0], 'addressTag')
@@ -1092,9 +1116,9 @@ class bytetrade (Exchange):
         signature = self.ecdsa(hash, self.secret, 'secp256k1', None, True)
         recoveryParam = self.decode(base64.b16encode(self.numberToLE(self.sum(signature['v'], 31), 1)))
         mySignature = recoveryParam + signature['r'] + signature['s']
-        fatty = {}
-        request = {}
-        operation = {}
+        fatty = None
+        request = None
+        operation = None
         chainContractAddress = self.safe_string(currency['info'], 'chainContractAddress')
         if chainTypeString == 'bitcoin':
             operation = {
@@ -1177,7 +1201,7 @@ class bytetrade (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
-        if (code == 503):
+        if code == 503:
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
         if response is None:
             return  # fallback to default error handler

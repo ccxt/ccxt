@@ -61,6 +61,7 @@ module.exports = class latoken extends Exchange {
                         'MarketData/tickers',
                         'MarketData/ticker/{symbol}',
                         'MarketData/orderBook/{symbol}',
+                        'MarketData/orderBook/{symbol}/{limit}',
                         'MarketData/trades/{symbol}',
                         'MarketData/trades/{symbol}/{limit}',
                     ],
@@ -313,22 +314,26 @@ module.exports = class latoken extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
+            'limit': 10,
         };
-        const response = await this.publicGetMarketDataOrderBookSymbol (this.extend (request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 10, max 100
+        }
+        const response = await this.publicGetMarketDataOrderBookSymbolLimit (this.extend (request, params));
         //
         //     {
         //         "pairId": 502,
         //         "symbol": "LAETH",
         //         "spread": 0.07,
         //         "asks": [
-        //             { "price": 136.3, "amount": 7.024 }
+        //             { "price": 136.3, "quantity": 7.024 }
         //         ],
         //         "bids": [
-        //             { "price": 136.2, "amount": 6.554 }
+        //             { "price": 136.2, "quantity": 6.554 }
         //         ]
         //     }
         //
-        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'quantity');
     }
 
     parseTicker (ticker, market = undefined) {

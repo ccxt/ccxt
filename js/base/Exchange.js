@@ -589,12 +589,6 @@ module.exports = class Exchange {
         }
     }
 
-    isJsonEncodedObject (object) {
-        return ((typeof object === 'string') &&
-                (object.length >= 2) &&
-                ((object[0] === '{') || (object[0] === '[')))
-    }
-
     getResponseHeaders (response) {
         const result = {}
         response.headers.forEach ((value, key) => {

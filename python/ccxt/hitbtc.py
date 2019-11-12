@@ -12,7 +12,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
-class hitbtc (Exchange):
+class hitbtc(Exchange):
 
     def describe(self):
         return self.deep_extend(super(hitbtc, self).describe(), {
@@ -492,6 +492,7 @@ class hitbtc (Exchange):
             'commonCurrencies': {
                 'BET': 'DAO.Casino',
                 'CAT': 'BitClave',
+                'CPT': 'Cryptaur',  # conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
                 'DRK': 'DASH',
                 'EMGO': 'MGO',
                 'GET': 'Themis',

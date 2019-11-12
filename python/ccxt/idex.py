@@ -12,7 +12,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 
 
-class idex (Exchange):
+class idex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(idex, self).describe(), {
@@ -202,8 +202,8 @@ class idex (Exchange):
             'change': None,
             'percentage': percentage,
             'average': None,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'baseVolume': quoteVolume,
+            'quoteVolume': baseVolume,
             'info': ticker,
         }
 

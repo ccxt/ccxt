@@ -9,12 +9,13 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 
 
-class bitmart (Exchange):
+class bitmart(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitmart, self).describe(), {
@@ -143,6 +144,7 @@ class bitmart (Exchange):
                     'Place order error': InvalidOrder,  # {"message":"Place order error"}
                     'Not found': OrderNotFound,  # {"message":"Not found"}
                     'Visit too often, please try again later': DDoSProtection,  # {"code":-30,"msg":"Visit too often, please try again later","subMsg":"","data":{}}
+                    'Unknown symbol': BadSymbol,  # {"message":"Unknown symbol"}
                 },
                 'broad': {
                     'Maximum price is': InvalidOrder,  # {"message":"Maximum price is 0.112695"}

@@ -16,7 +16,7 @@ from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import NO_PADDING
 
 
-class dx (Exchange):
+class dx(Exchange):
 
     def describe(self):
         return self.deep_extend(super(dx, self).describe(), {

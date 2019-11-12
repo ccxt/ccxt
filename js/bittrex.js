@@ -1157,6 +1157,7 @@ module.exports = class bittrex extends Exchange {
             'id': this.safeString (order, 'id'),
             'side': this.safeString (order, 'side'),
             'order': this.safeString (order, 'id'),
+            'type': this.safeString (order, 'type'),
             'price': this.safeFloat (order, 'average'),
             'amount': this.safeFloat (order, 'filled'),
             'cost': this.safeFloat (order, 'cost'),

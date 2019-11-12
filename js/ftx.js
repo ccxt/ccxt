@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { TICK_SIZE } = require ('./base/functions/number');
 const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
@@ -82,6 +83,7 @@ module.exports = class ftx extends Exchange {
                         'orders/history', // ?market={market}
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
+                        'conditional_orders', // ?market={market}
                         'fills', // ?market={market}
                         'funding_payments',
                         'lt/balances',
@@ -100,6 +102,7 @@ module.exports = class ftx extends Exchange {
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'orders',
+                        'conditional_orders/{order_id}',
                     ],
                 },
             },
@@ -148,6 +151,7 @@ module.exports = class ftx extends Exchange {
                     'An unexpected error occurred': ExchangeError, // {"error":"An unexpected error occurred, please try again later (58BC21C795).","success":false}
                 },
             },
+            'roundingMode': TICK_SIZE,
         });
     }
 
@@ -263,9 +267,11 @@ module.exports = class ftx extends Exchange {
             // check if a market is a spot or future market
             const symbol = (type === 'future') ? this.safeString (market, 'name') : (base + '/' + quote);
             const active = this.safeValue (market, 'enabled');
+            const sizeIncrement = this.safeFloat (market, 'sizeIncrement');
+            const priceIncrement = this.safeFloat (market, 'priceIncrement');
             const precision = {
-                'amount': this.precisionFromString (this.safeString (market, 'sizeIncrement')),
-                'price': this.precisionFromString (this.safeString (market, 'priceIncrement')),
+                'amount': sizeIncrement,
+                'price': priceIncrement,
             };
             const entry = {
                 'id': id,
@@ -281,11 +287,11 @@ module.exports = class ftx extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'sizeIncrement'),
+                        'min': sizeIncrement,
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.safeFloat (market, 'priceIncrement'),
+                        'min': priceIncrement,
                         'max': undefined,
                     },
                     'cost': {
@@ -628,7 +634,9 @@ module.exports = class ftx extends Exchange {
             'market_name': market['id'],
         };
         if (since !== undefined) {
-            request['start_time'] = since;
+            request['start_time'] = parseInt (since / 1000);
+            // start_time doesn't work without end_time
+            request['end_time'] = this.seconds ();
         }
         if (limit !== undefined) {
             request['limit'] = limit;

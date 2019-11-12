@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1362'
+__version__ = '1.19.34'
 
 # -----------------------------------------------------------------------------
 
@@ -34,8 +34,10 @@ from ccxt.base.errors import DuplicateOrderId                   # noqa: F401
 from ccxt.base.errors import CancelPending                      # noqa: F401
 from ccxt.base.errors import NetworkError                       # noqa: F401
 from ccxt.base.errors import DDoSProtection                     # noqa: F401
+from ccxt.base.errors import RateLimitExceeded                  # noqa: F401
 from ccxt.base.errors import RequestTimeout                     # noqa: F401
 from ccxt.base.errors import ExchangeNotAvailable               # noqa: F401
+from ccxt.base.errors import OnMaintenance                      # noqa: F401
 from ccxt.base.errors import InvalidAddress                     # noqa: F401
 from ccxt.base.errors import AddressPending                     # noqa: F401
 from ccxt.base.errors import ArgumentsRequired                  # noqa: F401

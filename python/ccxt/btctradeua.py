@@ -8,7 +8,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 
 
-class btctradeua (Exchange):
+class btctradeua(Exchange):
 
     def describe(self):
         return self.deep_extend(super(btctradeua, self).describe(), {
