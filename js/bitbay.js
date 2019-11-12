@@ -287,6 +287,7 @@ module.exports = class bitbay extends Exchange {
             'remaining': remaining,
             'average': undefined,
             'fee': undefined,
+            'trades': undefined,
         };
     }
 
@@ -743,6 +744,16 @@ module.exports = class bitbay extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // createOrder trades
+        //
+        //     {
+        //         "rate": "0.02195928",
+        //         "amount": "0.00167952"
+        //     }
+        //
+        // fetchMyTrades (private)
+        //
         //     {
         //         amount: "0.29285199",
         //         commissionValue: "0.00125927",
@@ -755,13 +766,17 @@ module.exports = class bitbay extends Exchange {
         //         userAction: "Buy",
         //         wasTaker: true,
         //     }
-        // Public trades
-        //     { id: 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //          id: 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
         //          t: '1570108958831',
         //          a: '0.04776653',
         //          r: '0.02145854',
         //          ty: 'Sell'
-        //      }
+        //     }
+        //
         const timestamp = this.safeInteger2 (trade, 'time', 't');
         const userAction = this.safeString (trade, 'userAction');
         const side = (userAction === 'Buy') ? 'buy' : 'sell';
@@ -866,6 +881,8 @@ module.exports = class bitbay extends Exchange {
         if (type === 'limit') {
             request['rate'] = price;
         }
+        const response = await this.v1_01PrivatePostTradingOfferSymbol (this.extend (request, params));
+        //
         // unfilled (open order)
         //
         //     {
@@ -919,29 +936,48 @@ module.exports = class bitbay extends Exchange {
         //         ]
         //     }
         //
-        const timestamp = this.milliseconds (); // the *real* timestamp isn't in the response unfortunately
-        const response = await this.v1_01PrivatePostTradingOfferSymbol (this.extend (request, params));
+        const timestamp = this.milliseconds (); // the real timestamp is missing in the response
+        const id = this.safeString (response, 'offerId');
         const completed = this.safeValue (response, 'completed', false);
         const status = completed ? 'closed' : 'open';
         let filled = 0;
-        const trades = this.safeValue (response, 'transactions');
-        for (let i = 0; i < trades.length; i++) {
-            const tradeAmount = this.safeFloat (trades[i], 'amount');
-            filled = this.sum (filled, tradeAmount);
+        let cost = undefined;
+        const transactions = this.safeValue (response, 'transactions');
+        let trades = undefined;
+        if (transactions !== undefined) {
+            trades = this.parseTrades (transactions, market, undefined, undefined, {
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'symbol': symbol,
+                'side': side,
+                'type': type,
+                'orderId': id,
+            });
+            cost = 0;
+            for (let i = 0; i < trades.length; i++) {
+                filled = this.sum (filled, trades[i]['amount']);
+                cost = this.sum (cost, trades[i]['cost']);
+            }
         }
+        const remaining = amount - filled;
         return {
-            'id': this.safeString (response, 'offerId'),
+            'id': id,
+            'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
+            'type': type,
             'side': side,
             'price': price,
             'amount': amount,
+            'cost': cost,
             'filled': filled,
-            'remaining': amount - filled,
-            'type': type,
-            'info': response,
+            'remaining': remaining,
+            'average': undefined,
+            'fee': undefined,
+            'trades': trades,
         };
     }
 
