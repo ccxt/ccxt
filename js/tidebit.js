@@ -477,9 +477,9 @@ module.exports = class tidebit extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (code === 400 || !response) {
-            const feedback = this.id + ' ' + this.json (response);
-            if (!response) {
+        if ((code === 400) || (response === undefined)) {
+            const feedback = this.id + ' ' + body;
+            if (response === undefined) {
                 throw new ExchangeError (feedback);
             }
             const error = this.safeValue (response, 'error');
