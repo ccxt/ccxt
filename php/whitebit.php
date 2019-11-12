@@ -106,6 +106,13 @@ class whitebit extends Exchange {
             'options' => array (
                 'fetchTradesMethod' => 'fetchTradesV1',
             ),
+            'exceptions' => array (
+                'exact' => array (
+                ),
+                'broad' => array (
+                    'Market is not available' => '\\ccxt\\BadSymbol', // array("success":false,"message":array("market":["Market is not available"]),"result":array())
+                ),
+            ),
         ));
     }
 
@@ -617,11 +624,11 @@ class whitebit extends Exchange {
                     if (is_array($exact) && array_key_exists($message, $exact)) {
                         throw new $exact[$message]($feedback);
                     }
-                    $broad = $this->safe_value($this->exceptions, 'broad', array());
-                    $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
-                    if ($broadKey !== null) {
-                        throw new $broad[$broadKey]($feedback);
-                    }
+                }
+                $broad = $this->safe_value($this->exceptions, 'broad', array());
+                $broadKey = $this->findBroadlyMatchedKey ($broad, $body);
+                if ($broadKey !== null) {
+                    throw new $broad[$broadKey]($feedback);
                 }
                 throw new ExchangeError($feedback);
             }
