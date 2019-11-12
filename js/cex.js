@@ -858,6 +858,9 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires an id argument');
+        }
         await this.loadMarkets ();
         const request = {
             'id': id.toString (),
