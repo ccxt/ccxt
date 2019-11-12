@@ -248,6 +248,51 @@ module.exports = class sfox extends Exchange {
     // fetchClosedOrders (symbol, since, limit, params)
     // fetchMyTrades (symbol, since, limit, params)
 
+    async deposit(code, amount, address, params = {}) {
+      if (code === "usd") {
+        const request = {
+          'amount': amount,
+        };
+
+        const result = await this.privatePostUserBankDeposit(request);
+        return {
+            'info': result,
+            'currency': 'usd',
+            'id': result['tx_status'],
+        };
+      }
+    }
+
+    async createDepositAddress (code, params = {}) {
+        const response = await this.privatePostUserDepositAddressCurrency({ 'currency': currency });
+        const address = this.safeString (response, 'address');
+        return {
+            'currency': code,
+            'address': address,
+            'info': response,
+        };
+    }
+
+  async fetchDepositAddress(code, params = {}) {
+      const addresses = await this.privateGetUserDepositAddressCurrency({ 'currency': code });
+      const address = addresses[code][addresses[code].length - 1];
+
+      return {
+          'currency': this.safeString (address, 'currency'),
+          'address': this.safeString (address, 'address'),
+          'info': addresses,
+      };
+  }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        const request = {
+          'amount': amount,
+          'address': address,
+          'currency': code,
+        };
+        return this.privatePostUserWithdraw(request);
+    }
+
     parseOrder (order, market = undefined) {
       const status = this.parseOrderStatus (this.safeString (order, 'status'))
       const timestamp = this.safeString (order, 'dateupdated')
