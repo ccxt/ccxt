@@ -123,7 +123,7 @@ module.exports = class basefex extends Exchange {
         limit: 1
       }
     });
-    return this.castTicker(this, symbol, candlesticks[0]);
+    return this.castTicker(this, candlesticks[0], symbol);
   }
 
   async fetchOrderBook(symbol) {
@@ -133,6 +133,135 @@ module.exports = class basefex extends Exchange {
       }
     });
     return this.castOrderBook(this, orderbookSource);
+  }
+
+  async fetchTrades(symbol) {
+    const trades = await this.publicGetV1TradesSymbol({
+      path: { symbol: this.translateBaseFEXSymbol(this, symbol) }
+    });
+    return this.fnMap(this, trades, this.castTrade, symbol);
+  }
+
+  async fetchOHLCV(symbol, timeframe = "1m", since = undefined, limit = undefined, params = {}) {
+    let _from = undefined;
+    let _to = undefined;
+    if (since > 0) {
+      _from = this.ymdhms(since);
+      _to = this.ymdhms(this.milliseconds());
+    }
+    const query = {
+      limit: limit,
+      from: _from,
+      to: _to
+    };
+    const ohlcv = await this.publicGetCandlesticksTypeSymbolHistory({
+      path: {
+        type: this.timeframes[timeframe],
+        symbol: this.translateBaseFEXSymbol(this, symbol)
+      },
+      query: this.extend(query, params.query)
+    });
+    let result = this.fnMap(this, ohlcv, this.castOHLCV);
+    result = this.fnReverse(this, result);
+    return result;
+  }
+
+  async fetchBalance() {
+    const accounts = await this.privateGetAccounts();
+    return this.castBalance(this, accounts);
+  }
+
+  async createOrder(symbol, type, side, amount, price, params = {}) {
+    // createOrder (symbol, type, side, amount[, price[, params]])
+    const body = {
+      symbol: this.translateBaseFEXSymbol(this, symbol),
+      type: this.translateBaseFEXOrderType(this, type),
+      side: this.translateBaseFEXOrderSide(this, side),
+      size: amount,
+      price: price
+    };
+    const order = await this.privatePostOrders({
+      body: this.extend(body, params.body)
+    });
+    return this.castOrder(this, order, symbol);
+  }
+
+  async cancelOrder(id) {
+    await this.privateDeleteOrdersId({
+      path: {
+        id
+      }
+    });
+  }
+
+  async fetchOrder(id, symbol = undefined, params = {}) {
+    const order = await this.privateGetOrdersId({
+      path: {
+        id
+      }
+    });
+    return this.castOrder(this, order, symbol);
+  }
+
+  async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    const query = {
+      symbol: this.translateBaseFEXSymbol(this, symbol),
+      limit: limit
+    };
+    let orders = await this.privateGetOrders({
+      query: this.extend(query, params.query)
+    });
+    orders = this.fnFilter(this, orders, this.loIsOpenOrder);
+    return this.fnMap(this, orders, this.castOrder, symbol);
+  }
+
+  async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    const query = {
+      symbol: this.translateBaseFEXSymbol(this, symbol),
+      limit: limit
+    };
+    const trades = await this.privateGetTrades({
+      query: this.extend(query, params.query)
+    });
+    return this.fnMap(this, trades, this.castMyTrade, symbol);
+  }
+
+  async fetchDepositAddress(code) {
+    const depositAddress = await this.privateGetAccountsDepositsCurrencyAddress({
+      path: {
+        currency: code
+      }
+    });
+    return this.castDepositAddress(this, depositAddress, code);
+  }
+
+  async fetchDeposits(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    const query = {
+      type: "DEPOSIT"
+    };
+    params = this.extend({ query }, params);
+    return this.fetchTransactions(symbol, since, limit, params);
+  }
+
+  async fetchWithdrawals(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    const query = {
+      type: "WITHDRAW"
+    };
+    params = this.extend({ query }, params);
+    return this.fetchTransactions(symbol, since, limit, params);
+  }
+
+  async fetchTransactions(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    const query = {
+      limit: limit
+    };
+    let transactions = await this.privateGetAccountsTransactions({
+      query: this.extend(query, params.query)
+    });
+    if (symbol) {
+      transactions = this.fnFilter(this, transactions, this.loCurrencyEqual, symbol);
+    }
+    return this.fnMap(this, transactions, this.castTransaction);
   }
 
   sign(path, api = "public", method = "GET", params = {}, headers = undefined, body = undefined) {
@@ -196,7 +325,7 @@ module.exports = class basefex extends Exchange {
     };
   }
 
-  castTicker(itself, symbol, candlestick) {
+  castTicker(itself, candlestick, symbol) {
     const timestamp = itself.safeInteger(candlestick, "time");
     const open = itself.safeFloat(candlestick, "open");
     const close = itself.safeFloat(candlestick, "close");
@@ -234,13 +363,177 @@ module.exports = class basefex extends Exchange {
     return itself.parseOrderBook(source);
   }
 
+  castTrade(itself, trade, symbol) {
+    const _timestamp = itself.safeInteger(trade, "matchedAt");
+    return {
+      info: trade,
+      id: itself.safeString(trade, "id"),
+      timestamp: _timestamp,
+      datetime: itself.iso8601(_timestamp),
+      symbol: symbol,
+      order: undefined,
+      type: undefined,
+      side: itself.translateOrderSide(itself, itself.safeString(trade, "side")),
+      price: itself.safeFloat(trade, "price"),
+      amount: itself.safeFloat(trade, "size")
+    };
+  }
+
+  castOHLCV(itself, candlestick) {
+    return [itself.safeInteger(candlestick, "time"), itself.safeFloat(candlestick, "open"), itself.safeFloat(candlestick, "high"), itself.safeFloat(candlestick, "low"), itself.safeFloat(candlestick, "close"), itself.safeFloat(candlestick, "volume")];
+  }
+
+  castBalance(itself, accounts) {
+    accounts = itself.fnMap(itself, accounts, itself.fnPick, "cash");
+    const balance = {
+      info: accounts,
+      free: {},
+      used: {},
+      total: {}
+    };
+    for (let i = 0; i < accounts.length; i++) {
+      const cash = accounts[0];
+      const currency = itself.safeString(cash, "currency");
+      const total = itself.safeFloat(cash, "marginBalances");
+      const free = itself.safeFloat(cash, "available");
+      const used = itself.sum(total, -free);
+      balance.free[currency] = free;
+      balance.used[currency] = used;
+      balance.total[currency] = total;
+      balance[currency] = {
+        free,
+        used,
+        total
+      };
+    }
+    return balance;
+  }
+
+  castOrder(itself, order, symbol) {
+    const _timestamp = itself.safeInteger(order, "ts");
+    const price = itself.safeFloat(order, "price");
+    const amount = itself.safeFloat(order, "size");
+    const filled = itself.safeFloat(order, "filled");
+    const remaining = itself.sum(amount, -filled);
+    const cost = filled * price;
+    return {
+      id: order.id,
+      datetime: itself.iso8601(_timestamp),
+      timestamp: _timestamp,
+      lastTradeTimestamp: undefined,
+      status: itself.options["order-status"][order.status],
+      symbol: symbol,
+      type: itself.translateOrderType(itself, itself.safeString(order, "type")),
+      side: itself.translateOrderSide(itself, itself.safeString(order, "side")),
+      price: price,
+      amount: amount,
+      filled: filled,
+      remaining: remaining,
+      cost: cost,
+      trades: undefined,
+      fee: undefined,
+      info: order
+    };
+  }
+
+  castMyTrade(itself, trade, symbol) {
+    const _timestamp = itself.safeInteger(trade, "ts");
+    const _order = itself.safeValue(trade, "order");
+    let _type = undefined;
+    if (_order) {
+      _type = itself.translateOrderType(itself, itself.safeString(_order, "type"));
+    }
+    return {
+      info: trade,
+      id: itself.safeString(trade, "id"),
+      timestamp: _timestamp,
+      datetime: itself.iso8601(_timestamp),
+      symbol: symbol,
+      order: itself.safeString(trade, "orderId"),
+      type: _type,
+      side: itself.translateOrderSide(itself, itself.safeString(_order, "side")),
+      price: itself.safeFloat(trade, "price"),
+      amount: itself.safeFloat(trade, "size")
+    };
+  }
+
+  castDepositAddress(itself, address, currency) {
+    return {
+      currency: currency,
+      address: itself.safeString(address, "address"),
+      tag: undefined,
+      info: address
+    };
+  }
+
+  castTransaction(itself, transaction) {
+    const _type = itself.translateTransactionType(itself, itself.safeString(transaction, "type"));
+    const _timestamp = itself.safeInteger(transaction, "ts");
+    return {
+      info: transaction,
+      id: itself.safeString(transaction, "id"),
+      txid: itself.safeString(transaction, "foreignTxId"),
+      timestamp: _timestamp,
+      datetime: itself.iso8601(_timestamp),
+      addressFrom: undefined,
+      address: itself.safeString(transaction, "address"),
+      addressTo: undefined,
+      tagFrom: undefined,
+      tag: undefined,
+      tagTo: undefined,
+      type: _type,
+      amount: itself.safeFloat(transaction, "amount"),
+      currency: itself.safeString(transaction, "currency"),
+      status: itself.options[_type + "-status"][itself.safeString(transaction, "status")],
+      updated: undefined,
+      comment: itself.safeString(transaction, "node"),
+      fee: {
+        currency: itself.safeString(transaction, "currency"),
+        cost: itself.safeFloat(transaction, "fee"),
+        rate: undefined
+      }
+    };
+  }
+
   translateSymbol(itself, base, quote) {
     return itself.capitalize(base) + "/" + itself.capitalize(quote);
   }
 
   translateBaseFEXSymbol(itself, symbol) {
     const semi = symbol.replace("/", "");
-    return itself.capitalizeP(semi);
+    return itself.capitalize(semi);
+  }
+
+  translateOrderSide(itself, side) {
+    return itself.unCamelCase(side);
+  }
+
+  translateBaseFEXOrderSide(itself, side) {
+    return itself.capitalize(side);
+  }
+
+  translateOrderType(itself, type) {
+    return itself.unCamelCase(type);
+  }
+
+  translateBaseFEXOrderType(itself, type) {
+    return itself.capitalize(type);
+  }
+
+  translateTransactionType(itself, type) {
+    if (type === "WITHDRAW") {
+      return "withdrawal";
+    } else if (type === "DEPOSIT") {
+      return "deposit";
+    }
+  }
+
+  translateBaseFEXTransactionType(itself, type) {
+    if (type === "withdrawal") {
+      return "WITHDRAW";
+    } else if (type === "deposit") {
+      return "DEPOSIT";
+    }
   }
 
   fnMap(itself, _array, callback, params) {
@@ -277,5 +570,21 @@ module.exports = class basefex extends Exchange {
 
   fnEntity(itself, _key, _object) {
     return [_key, _object[_key]];
+  }
+
+  fnPick(itself, _object, _key) {
+    return _object[_key];
+  }
+
+  fnEqual(itself, a, b) {
+    return a === b;
+  }
+
+  loIsOpenOrder(itself, order) {
+    return itself.options["order-status"][itself.safeString(order, "status")] === "open";
+  }
+
+  loCurrencyEqual(itself, _object, currency) {
+    return itself.safeString(_object, "currency") === currency;
   }
 };
