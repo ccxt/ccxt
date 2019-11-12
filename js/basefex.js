@@ -146,8 +146,8 @@ module.exports = class basefex extends Exchange {
     let _from = undefined;
     let _to = undefined;
     if (since > 0) {
-      _from = this.ymdhms(since);
-      _to = this.ymdhms(this.milliseconds());
+      _from = this.iso8601(since);
+      _to = this.iso8601(this.milliseconds());
     }
     const query = {
       limit: limit,
@@ -364,6 +364,9 @@ module.exports = class basefex extends Exchange {
 
   castTrade(itself, trade, symbol) {
     const _timestamp = itself.safeInteger(trade, "matchedAt");
+    const price = itself.safeFloat(trade, "price");
+    const amount = itself.safeFloat(trade, "size");
+    const cost = price * amount;
     return {
       info: trade,
       id: itself.safeString(trade, "id"),
@@ -373,8 +376,11 @@ module.exports = class basefex extends Exchange {
       order: undefined,
       type: undefined,
       side: itself.translateOrderSide(itself, itself.safeString(trade, "side")),
-      price: itself.safeFloat(trade, "price"),
-      amount: itself.safeFloat(trade, "size")
+      takerOrMaker: undefined,
+      price: price,
+      amount: amount,
+      cost: cost,
+      fee: undefined
     };
   }
 
