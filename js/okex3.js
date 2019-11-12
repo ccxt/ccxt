@@ -269,8 +269,7 @@ module.exports = class okex3 extends Exchange {
                 'exact': {
                     '1': ExchangeError, // { "code": 1, "message": "System error" }
                     // undocumented
-                    'failure to get a peer from the ring-balancer': ExchangeError, // { "message": "failure to get a peer from the ring-balancer" }
-                    '"instrument_id" is an invalid parameter': BadSymbol, // {"code":30024,"message":"\"instrument_id\" is an invalid parameter"}
+                    'failure to get a peer from the ring-balancer': ExchangeNotAvailable, // { "message": "failure to get a peer from the ring-balancer" }
                     '4010': PermissionDenied, // { "code": 4010, "message": "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings " }
                     // common
                     '30001': AuthenticationError, // { "code": 30001, "message": 'request header "OK_ACCESS_KEY" cannot be blank'}
@@ -296,7 +295,7 @@ module.exports = class okex3 extends Exchange {
                     '30021': BadRequest, // { "code": 30021, "message": "Json data format error" }, { "code": 30021, "message": "json data format error" }
                     '30022': PermissionDenied, // { "code": 30022, "message": "Api has been frozen" }
                     '30023': BadRequest, // { "code": 30023, "message": "{0} parameter cannot be blank" }
-                    '30024': BadRequest, // { "code": 30024, "message": "{0} parameter value error" }
+                    '30024': BadSymbol, // {"code":30024,"message":"\"instrument_id\" is an invalid parameter"}
                     '30025': BadRequest, // { "code": 30025, "message": "{0} parameter category error" }
                     '30026': DDoSProtection, // { "code": 30026, "message": "requested too frequent" }
                     '30027': AuthenticationError, // { "code": 30027, "message": "login failure" }

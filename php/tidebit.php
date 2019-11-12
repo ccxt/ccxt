@@ -478,10 +478,13 @@ class tidebit extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
-        if ($code === 400) {
+        if (($code === 400) || ($response === null)) {
+            $feedback = $this->id . ' ' . $body;
+            if ($response === null) {
+                throw new ExchangeError($feedback);
+            }
             $error = $this->safe_value($response, 'error');
             $errorCode = $this->safe_string($error, 'code');
-            $feedback = $this->id . ' ' . $this->json ($response);
             $exceptions = $this->exceptions;
             if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
                 throw new $exceptions[$errorCode]($feedback);

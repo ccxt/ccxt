@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.19.21';
+$version = '1.19.34';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.19.21';
+    const VERSION = '1.19.34';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -593,12 +593,17 @@ class Exchange {
         return preg_replace(array('#[=]+$#u', '#\+#u', '#\\/#'), array('', '-', '_'), \base64_encode($string));
     }
 
-    public function urlencode($string) {
-        return http_build_query($string, '', $this->urlencode_glue);
+    public function urlencode($array) {
+        foreach ($array as $key => $value) {
+            if (is_bool($value)) {
+                $array[$key] = var_export($value, true);
+            }
+        }
+        return http_build_query($array, '', $this->urlencode_glue);
     }
 
-    public function rawencode($string) {
-        return urldecode(http_build_query($string, '', $this->urlencode_glue));
+    public function rawencode($array) {
+        return urldecode($this->urlencode($array));
     }
 
     public function encode_uri_component($string) {

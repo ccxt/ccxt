@@ -270,8 +270,7 @@ class okex3 extends Exchange {
                 'exact' => array (
                     '1' => '\\ccxt\\ExchangeError', // array( "code" => 1, "message" => "System error" )
                     // undocumented
-                    'failure to get a peer from the ring-balancer' => '\\ccxt\\ExchangeError', // array( "message" => "failure to get a peer from the ring-balancer" )
-                    '"instrument_id" is an invalid parameter' => '\\ccxt\\BadSymbol', // array("code":30024,"message":"\"instrument_id\" is an invalid parameter")
+                    'failure to get a peer from the ring-balancer' => '\\ccxt\\ExchangeNotAvailable', // array( "message" => "failure to get a peer from the ring-balancer" )
                     '4010' => '\\ccxt\\PermissionDenied', // array( "code" => 4010, "message" => "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings " )
                     // common
                     '30001' => '\\ccxt\\AuthenticationError', // array( "code" => 30001, "message" => 'request header "OK_ACCESS_KEY" cannot be blank')
@@ -297,7 +296,7 @@ class okex3 extends Exchange {
                     '30021' => '\\ccxt\\BadRequest', // array( "code" => 30021, "message" => "Json data format error" ), array( "code" => 30021, "message" => "json data format error" )
                     '30022' => '\\ccxt\\PermissionDenied', // array( "code" => 30022, "message" => "Api has been frozen" )
                     '30023' => '\\ccxt\\BadRequest', // array( "code" => 30023, "message" => "{0} parameter cannot be blank" )
-                    '30024' => '\\ccxt\\BadRequest', // array( "code" => 30024, "message" => "{0} parameter value error" )
+                    '30024' => '\\ccxt\\BadSymbol', // array("code":30024,"message":"\"instrument_id\" is an invalid parameter")
                     '30025' => '\\ccxt\\BadRequest', // array( "code" => 30025, "message" => "{0} parameter category error" )
                     '30026' => '\\ccxt\\DDoSProtection', // array( "code" => 30026, "message" => "requested too frequent" )
                     '30027' => '\\ccxt\\AuthenticationError', // array( "code" => 30027, "message" => "login failure" )
