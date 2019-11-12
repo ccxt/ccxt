@@ -875,8 +875,6 @@ module.exports = class bitbay extends Exchange {
         //     }
         //     filled (closed order):
         //     {
-        //       "id": "942a4a3e-e922-11e9-8c19-0242ac11000a",
-        //       "info": {
         //         "status": "Ok",
         //         "offerId": "942a4a3e-e922-11e9-8c19-0242ac11000a",
         //         "completed": true,
@@ -894,12 +892,9 @@ module.exports = class bitbay extends Exchange {
         //             "amount": "0.27704177"
         //           }
         //         ]
-        //       }
         //     }
-        //     filled (open order):
+        //     partially-filled (open order):
         //     {
-        //       "id": "d0ebefab-f4d7-11e9-8c19-0242ac11000a",
-        //       "info": {
         //         "status": "Ok",
         //         "offerId": "d0ebefab-f4d7-11e9-8c19-0242ac11000a",
         //         "completed": false,
@@ -917,11 +912,32 @@ module.exports = class bitbay extends Exchange {
         //             "amount": "0.00975256"
         //           }
         //         ]
-        //       }
         //     }
+        const timestamp = Date.now();// the *real* timestamp isn't in the response unfortunately
         const response = await this.v1_01PrivatePostTradingOfferSymbol (this.extend (request, params));
+        let status = 'open';
+        if (this.safeString (response, 'completed') === "true") {
+            status = 'closed';
+        }
+        let filled = 0;
+        const transactions = this.safeValue (response, 'transactions');
+        for (let i = 0; i < transactions.length; i++) {
+            const transaction = transactions[i];
+            const tradeAmount = this.safeFloat(transaction, 'amount');
+            filled = this.sum (filled, tradeAmount);
+        }
         return {
             'id': this.safeString (response, 'offerId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'status': status,
+            'symbol': symbol,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': amount - filled,
+            'type': type,
             'info': response,
         };
     }
