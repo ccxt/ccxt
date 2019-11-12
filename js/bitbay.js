@@ -866,14 +866,17 @@ module.exports = class bitbay extends Exchange {
         if (type === 'limit') {
             request['rate'] = price;
         }
-        //     unfilled (open order):
+        // unfilled (open order)
+        //
         //     {
         //         status: 'Ok',
         //         completed: false, // can deduce status from here
         //         offerId: 'ce9cc72e-d61c-11e9-9248-0242ac110005',
         //         transactions: [], // can deduce order info from here
         //     }
-        //     filled (closed order):
+        //
+        // filled (closed order)
+        //
         //     {
         //         "status": "Ok",
         //         "offerId": "942a4a3e-e922-11e9-8c19-0242ac11000a",
@@ -893,7 +896,9 @@ module.exports = class bitbay extends Exchange {
         //           }
         //         ]
         //     }
-        //     partially-filled (open order):
+        //
+        // partially-filled (open order)
+        //
         //     {
         //         "status": "Ok",
         //         "offerId": "d0ebefab-f4d7-11e9-8c19-0242ac11000a",
@@ -913,17 +918,15 @@ module.exports = class bitbay extends Exchange {
         //           }
         //         ]
         //     }
-        const timestamp = Date.now();// the *real* timestamp isn't in the response unfortunately
+        //
+        const timestamp = this.milliseconds (); // the *real* timestamp isn't in the response unfortunately
         const response = await this.v1_01PrivatePostTradingOfferSymbol (this.extend (request, params));
-        let status = 'open';
-        if (this.safeString (response, 'completed') === "true") {
-            status = 'closed';
-        }
+        const completed = this.safeValue (response, 'completed', false);
+        const status = completed ? 'closed' : 'open';
         let filled = 0;
-        const transactions = this.safeValue (response, 'transactions');
-        for (let i = 0; i < transactions.length; i++) {
-            const transaction = transactions[i];
-            const tradeAmount = this.safeFloat(transaction, 'amount');
+        const trades = this.safeValue (response, 'transactions');
+        for (let i = 0; i < trades.length; i++) {
+            const tradeAmount = this.safeFloat (trades[i], 'amount');
             filled = this.sum (filled, tradeAmount);
         }
         return {
