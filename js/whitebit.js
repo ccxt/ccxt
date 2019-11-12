@@ -617,7 +617,7 @@ module.exports = class whitebit extends Exchange {
             const success = this.safeValue (response, 'success');
             if (!success) {
                 const feedback = this.id + ' ' + body;
-                let message = this.safeValue (response, 'message');
+                const message = this.safeValue (response, 'message');
                 if (typeof message === 'string') {
                     const exact = this.safeValue (this.exceptions, 'exact', {});
                     if (message in exact) {
