@@ -806,7 +806,7 @@ module.exports = class bitbay extends Exchange {
         }
         let fee = undefined;
         if (feeCost !== undefined) {
-            const feeCcy = side === 'buy' ? base : quote;
+            const feeCcy = (side === 'buy') ? base : quote;
             fee = {
                 'currency': feeCcy,
                 'cost': feeCost,
