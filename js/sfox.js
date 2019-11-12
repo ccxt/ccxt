@@ -239,7 +239,12 @@ module.exports = class sfox extends Exchange {
     }
 
     // fetchOrders (symbol, since, limit, params = {})
-    // fetchOpenOrders (symbol, since, limi, params = {})
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+      const orders = await this.privateGetOrders();
+      return this.parseOrders (orders);
+    }
+
     // fetchClosedOrders (symbol, since, limit, params)
     // fetchMyTrades (symbol, since, limit, params)
 
