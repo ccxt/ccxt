@@ -581,12 +581,14 @@ class kucoin extends Exchange {
         //   bids => array ( array ( '5c419328ef83c75456bd615c', '0.9', '0.09' ), ... ), }
         //
         $data = $response['data'];
-        $timestamp = $this->safe_integer($data, 'sequence');
+        $timestamp = $this->safe_integer($data, 'time');
         // $level can be a string such as 2_20 or 2_100
         $levelString = $this->safe_string($request, 'level');
         $levelParts = explode('_', $levelString);
         $level = intval ($levelParts[0]);
-        return $this->parse_order_book($data, $timestamp, 'bids', 'asks', $level - 2, $level - 1);
+        $orderbook = $this->parse_order_book($data, $timestamp, 'bids', 'asks', $level - 2, $level - 1);
+        $orderbook['nonce'] = $this->safe_integer($data, 'sequence');
+        return $orderbook;
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
