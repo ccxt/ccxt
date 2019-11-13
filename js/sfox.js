@@ -162,22 +162,8 @@ module.exports = class sfox extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         const response = await this.publicGetMarketsOrderbook ({ 'pair': symbol });
-        const bids = [];
-        for (let i = 0; i < response['bids'].length; i++) {
-            const bid = response['bids'][i];
-            bids.push ([bid[0], bid[1]]);
-        }
-        const asks = [];
-        for (let i = 0; i < response['asks'].length; i++) {
-            const ask = response['asks'][i];
-            asks.push ([ask[0], ask[1]]);
-        }
-        return {
-            'bids': bids,
-            'asks': asks,
-            'timestamp': response['lastupdated'],
-            'datetime': this.iso8601 (response['lastupdated']),
-        };
+        const timestamp = this.safeInteger (response, 'lastupdated');
+        return this.parseOrderBook (response, timestamp);
     }
 
     async fetchBalance (params = {}) {
