@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.19.35'
+__version__ = '1.19.37'
 
 # -----------------------------------------------------------------------------
 
@@ -835,7 +835,7 @@ class Exchange(object):
     def urlencode(params={}):
         for key, value in params.items():
             if isinstance(value, bool):
-                params[key] = str(value).lower()
+                params[key] = 'true' if value else 'false'
         return _urlencode.urlencode(params)
 
     @staticmethod
