@@ -580,7 +580,7 @@ module.exports = class kucoin extends Exchange {
         //   bids: [ [ '5c419328ef83c75456bd615c', '0.9', '0.09' ], ... ], }
         //
         const data = response['data'];
-        const timestamp = this.safeInteger (data, 'sequence');
+        const timestamp = this.safeInteger (data, 'time');
         // level can be a string such as 2_20 or 2_100
         const levelString = this.safeString (request, 'level');
         const levelParts = levelString.split ('_');
