@@ -299,7 +299,7 @@ module.exports = class sfox extends Exchange {
             'symbol': this.safeString (order, 'pair'),
             'type': this.safeString (order, 'action'),
             'side': this.safeString (order, 'action'),
-            'amount': amount;
+            'amount': amount,
             'price': this.safeFloat (order, 'price'),
             'cost': this.safeFloat (order, 'net_proceeds'),
             'filled': filled,
