@@ -72,8 +72,8 @@ module.exports = class coinsbit extends Exchange {
                 'amount is less than': InvalidOrder,
                 'Total is less than': InvalidOrder,
                 'validation.total': InvalidOrder,
-                'This action is unauthorized.': AuthenticationError,
                 'Too many requests': DDoSProtection,
+                'This action is unauthorized.': AuthenticationError,
             },
         });
     }
