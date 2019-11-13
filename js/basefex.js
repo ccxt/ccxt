@@ -13,8 +13,6 @@ module.exports = class basefex extends Exchange {
             'id': 'basefex',
             'name': 'BaseFEX',
             'countries': ['SC'],
-            'enableRateLimit': true,
-            'rateLimit': 2000,
             'has': {
                 'CORS': false,
                 'fetchMarkets': true,
@@ -38,8 +36,8 @@ module.exports = class basefex extends Exchange {
                 'withdraw': false,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
-                'api': 'https://next-api.basefex.com',
+                'logo': 'https://user-images.githubusercontent.com/56343370/68750543-00886f80-063b-11ea-8bbd-8f53201602a8.png',
+                'api': 'https://api.basefex.com',
                 'www': 'https://www.basefex.com',
                 'doc': ['https://github.com/BaseFEX/basefex-api-docs', 'https://github.com/BaseFEX/basefex-api-docs/blob/master/api-doc_en.md'],
                 'fees': 'https://www.basefex.com/docs/fees',
