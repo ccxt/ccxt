@@ -457,7 +457,7 @@ module.exports = class itbit extends Exchange {
             'walletId': walletId,
         };
         const response = await this.privateGetWalletsWalletIdOrders (this.extend (request, params));
-        return this.parseOrders (response, symbol, since, limit);
+        return this.parseOrders (response, market, since, limit);
     }
 
     parseOrderStatus (status) {
