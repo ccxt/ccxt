@@ -200,7 +200,8 @@ class exx(Exchange):
             'currency': self.market_id(symbol),
         }
         response = self.publicGetDepth(self.extend(request, params))
-        return self.parse_order_book(response, response['timestamp'])
+        timestamp = self.safe_timestamp(response, 'timestamp')
+        return self.parse_order_book(response, timestamp)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_timestamp(trade, 'date')
