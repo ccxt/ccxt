@@ -585,7 +585,9 @@ module.exports = class kucoin extends Exchange {
         const levelString = this.safeString (request, 'level');
         const levelParts = levelString.split ('_');
         const level = parseInt (levelParts[0]);
-        return this.parseOrderBook (data, timestamp, 'bids', 'asks', level - 2, level - 1);
+        const orderbook = this.parseOrderBook (data, timestamp, 'bids', 'asks', level - 2, level - 1);
+        orderbook['nonce'] = this.safeInteger (data, 'sequence');
+        return orderbook;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
