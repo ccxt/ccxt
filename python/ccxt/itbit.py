@@ -382,6 +382,7 @@ class itbit(Exchange):
         return self.parse_balance(result)
 
     def fetch_wallets(self, params={}):
+        self.load_markets()
         if not self.uid:
             raise AuthenticationError(self.id + ' fetchWallets requires uid API credential')
         request = {
@@ -390,6 +391,7 @@ class itbit(Exchange):
         return self.privateGetWallets(self.extend(request, params))
 
     def fetch_wallet(self, walletId, params={}):
+        self.load_markets()
         request = {
             'walletId': walletId,
         }
@@ -408,6 +410,10 @@ class itbit(Exchange):
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         walletIdInParams = ('walletId' in list(params.keys()))
         if not walletIdInParams:
             raise ExchangeError(self.id + ' fetchOrders requires a walletId parameter')
@@ -416,8 +422,17 @@ class itbit(Exchange):
             'walletId': walletId,
         }
         response = self.privateGetWalletsWalletIdOrders(self.extend(request, params))
-        orders = self.parse_orders(response, None, since, limit)
-        return orders
+        return self.parse_orders(response, market, since, limit)
+
+    def parse_order_status(self, status):
+        statuses = {
+            'submitted': 'open',  # order pending book entry
+            'open': 'open',
+            'filled': 'closed',
+            'cancelled': 'canceled',
+            'rejected': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         side = order['side']
@@ -437,7 +452,7 @@ class itbit(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'status': order['status'],
+            'status': self.parse_order_status(self.safe_string(order, 'status')),
             'symbol': symbol,
             'type': type,
             'side': side,
@@ -455,6 +470,7 @@ class itbit(Exchange):
         return self.milliseconds()
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         walletIdInParams = ('walletId' in list(params.keys()))
@@ -479,6 +495,7 @@ class itbit(Exchange):
         }
 
     def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
         walletIdInParams = ('walletId' in list(params.keys()))
         if not walletIdInParams:
             raise ExchangeError(self.id + ' fetchOrder requires a walletId parameter')
