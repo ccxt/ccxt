@@ -256,7 +256,10 @@ module.exports = class sfox extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         const addresses = await this.privateGetUserDepositAddressCurrency ({ 'currency': code });
-        const address = addresses[code][addresses[code].length - 1];
+        if (addresses.length === 0) {
+            return {};
+        }
+        const address = addresses.pop ();
         return {
             'currency': this.safeString (address, 'currency'),
             'address': this.safeString (address, 'address'),
