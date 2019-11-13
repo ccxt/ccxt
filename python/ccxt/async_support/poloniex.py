@@ -830,7 +830,7 @@ class poloniex(Exchange):
         return self.filter_orders_by_status(orders, 'closed')
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if type == 'market':
+        if type != 'limit':
             raise ExchangeError(self.id + ' allows limit orders only')
         await self.load_markets()
         method = 'privatePost' + self.capitalize(side)
