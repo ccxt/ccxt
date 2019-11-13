@@ -95,7 +95,7 @@ module.exports = class sfox extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         return [
             {
                 'id': 'bchbtc',
