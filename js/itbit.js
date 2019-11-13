@@ -450,8 +450,18 @@ module.exports = class itbit extends Exchange {
             'walletId': walletId,
         };
         const response = await this.privateGetWalletsWalletIdOrders (this.extend (request, params));
-        const orders = this.parseOrders (response, undefined, since, limit);
-        return orders;
+        return this.parseOrders (response, undefined, since, limit);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'submitted': 'open', // order pending book entry
+            'open': 'open',
+            'filled': 'closed',
+            'cancelled': 'canceled',
+            'rejected': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
@@ -472,7 +482,7 @@ module.exports = class itbit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'status': order['status'],
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'symbol': symbol,
             'type': type,
             'side': side,
