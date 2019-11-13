@@ -21,9 +21,11 @@ module.exports = class bkex extends Exchange {
                 'fetchOrders': false,
                 'fetchOpenOrders': false,
                 'fetchCurrencies': false,
-                'fetchTicker': false,
+                'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchOHLCV': false,
+                'fetchOrderBook': false,
+                'fetchL2OrderBook': false,
                 'fetchTrades': false,
             },
             'urls': {
@@ -127,6 +129,39 @@ module.exports = class bkex extends Exchange {
         return result;
     }
 
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const timestamp = this.milliseconds ();
+        const market = this.market (symbol);
+        const request = this.extend ({
+            'pair': market['id'],
+        }, params);
+        const response = await this.publicGetQTicker (request);
+        const ticker = this.safeValue (response, 'data');
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'h'),
+            'low': this.safeFloat (ticker, 'l'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'previousClose': undefined,
+            'open': this.safeFloat (ticker, 'o'),
+            'close': this.safeFloat (ticker, 'c'),
+            'last': this.safeFloat (ticker, 'c'),
+            'percentage': undefined,
+            'change': this.safeFloat (ticker, 'r'),
+            'average': undefined,
+            'baseVolume': this.safeFloat (ticker, 'a'),
+            'quoteVolume': undefined,
+            'info': ticker,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
@@ -159,8 +194,11 @@ module.exports = class bkex extends Exchange {
         if (response === undefined) {
             return;
         }
-        if (code >= 400 || httpCode >= 400) {
-            const message = this.safeValue (response, 'msg');
+        if (code >= 400) {
+            throw new ExchangeError (this.id + ' HTTP Error ' + code + ' reason: ' + reason);
+        }
+        if (httpCode >= 400) {
+            const message = this.safeValue (response, 'msg', '');
             throw new ExchangeError (this.id + ' HTTP Error ' + httpCode + ' message: ' + message);
         }
     }
