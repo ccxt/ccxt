@@ -77,7 +77,7 @@ class southxchange extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $id = $symbol;
+            $id = $baseId . '/' . $quoteId;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
