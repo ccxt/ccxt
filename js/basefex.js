@@ -106,7 +106,7 @@ module.exports = class basefex extends Exchange {
 
   async fetchMarkets(params = {}) {
     const symbols = await this.publicGetSymbols();
-    return this.fnMap(this, symbols, this.castMarket);
+    return this.fnMap(symbols, "cast_market");
   }
 
   async fetchTradingFees(params = {}) {
@@ -117,29 +117,29 @@ module.exports = class basefex extends Exchange {
     const candlesticks = await this.publicGetCandlesticksTypeSymbolHistory({
       path: {
         type: "1DAY",
-        symbol: this.translateBaseFEXSymbol(this, symbol)
+        symbol: this.translateBaseFEXSymbol(symbol)
       },
       query: {
         limit: 1
       }
     });
-    return this.castTicker(this, candlesticks[0], symbol);
+    return this.castTicker(candlesticks[0], symbol);
   }
 
   async fetchOrderBook(symbol) {
     const orderbookSource = await this.publicGetDepthSymbolSnapshot({
       path: {
-        symbol: this.translateBaseFEXSymbol(this, symbol)
+        symbol: this.translateBaseFEXSymbol(symbol)
       }
     });
-    return this.castOrderBook(this, orderbookSource);
+    return this.castOrderBook(orderbookSource);
   }
 
   async fetchTrades(symbol) {
     const trades = await this.publicGetV1TradesSymbol({
-      path: { symbol: this.translateBaseFEXSymbol(this, symbol) }
+      path: { symbol: this.translateBaseFEXSymbol(symbol) }
     });
-    return this.fnMap(this, trades, this.castTrade, symbol);
+    return this.fnMap(trades, "cast_trade", symbol);
   }
 
   async fetchOHLCV(symbol, timeframe = "1m", since = undefined, limit = undefined, params = {}) {
@@ -157,38 +157,38 @@ module.exports = class basefex extends Exchange {
     const ohlcv = await this.publicGetCandlesticksTypeSymbolHistory({
       path: {
         type: this.timeframes[timeframe],
-        symbol: this.translateBaseFEXSymbol(this, symbol)
+        symbol: this.translateBaseFEXSymbol(symbol)
       },
-      query: this.extend(query, params.query)
+      query: this.extend(query, this.safeValue(params, "query", {}))
     });
-    let result = this.fnMap(this, ohlcv, this.castOHLCV);
-    result = this.fnReverse(this, result);
+    let result = this.fnMap(ohlcv, "cast_ohlcv");
+    result = this.fnReverse(result);
     return result;
   }
 
   async fetchBalance(params = {}) {
     const accounts = await this.privateGetAccounts();
-    return this.castBalance(this, accounts);
+    return this.castBalance(accounts);
   }
 
   async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
     const body = {
-      symbol: this.translateBaseFEXSymbol(this, symbol),
-      type: this.translateBaseFEXOrderType(this, type),
-      side: this.translateBaseFEXOrderSide(this, side),
+      symbol: this.translateBaseFEXSymbol(symbol),
+      type: this.translateBaseFEXOrderType(type),
+      side: this.translateBaseFEXOrderSide(side),
       size: amount,
       price: price
     };
     const order = await this.privatePostOrders({
-      body: this.extend(body, params.body)
+      body: this.extend(body, this.safeValue(params, "body", {}))
     });
-    return this.castOrder(this, order, symbol);
+    return this.castOrder(order, symbol);
   }
 
   async cancelOrder(id, symbol = undefined, params = {}) {
     await this.privateDeleteOrdersId({
       path: {
-        id
+        id: id
       }
     });
   }
@@ -196,33 +196,33 @@ module.exports = class basefex extends Exchange {
   async fetchOrder(id, symbol = undefined, params = {}) {
     const order = await this.privateGetOrdersId({
       path: {
-        id
+        id: id
       }
     });
-    return this.castOrder(this, order, symbol);
+    return this.castOrder(order, symbol);
   }
 
   async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
     const query = {
-      symbol: this.translateBaseFEXSymbol(this, symbol),
+      symbol: this.translateBaseFEXSymbol(symbol),
       limit: limit
     };
     let orders = await this.privateGetOrders({
-      query: this.extend(query, params.query)
+      query: this.extend(query, this.safeValue(params, "query", {}))
     });
-    orders = this.fnFilter(this, orders, this.loIsOpenOrder);
-    return this.fnMap(this, orders, this.castOrder, symbol);
+    orders = this.fnFilter(orders, "lo_is_open_order");
+    return this.fnMap(orders, "cast_order", symbol);
   }
 
   async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
     const query = {
-      symbol: this.translateBaseFEXSymbol(this, symbol),
+      symbol: this.translateBaseFEXSymbol(symbol),
       limit: limit
     };
     const trades = await this.privateGetTrades({
-      query: this.extend(query, params.query)
+      query: this.extend(query, this.safeValue(params, "query", {}))
     });
-    return this.fnMap(this, trades, this.castMyTrade, symbol);
+    return this.fnMap(trades, "cast_my_trade", symbol);
   }
 
   async fetchDepositAddress(code, params = {}) {
@@ -231,14 +231,14 @@ module.exports = class basefex extends Exchange {
         currency: code
       }
     });
-    return this.castDepositAddress(this, depositAddress, code);
+    return this.castDepositAddress(depositAddress, code);
   }
 
   async fetchDeposits(symbol = undefined, since = undefined, limit = undefined, params = {}) {
     const query = {
       type: "DEPOSIT"
     };
-    params = this.extend({ query }, params);
+    params = this.extend({ query: query }, params);
     return this.fetchTransactions(symbol, since, limit, params);
   }
 
@@ -246,7 +246,7 @@ module.exports = class basefex extends Exchange {
     const query = {
       type: "WITHDRAW"
     };
-    params = this.extend({ query }, params);
+    params = this.extend({ query: query }, params);
     return this.fetchTransactions(symbol, since, limit, params);
   }
 
@@ -255,12 +255,12 @@ module.exports = class basefex extends Exchange {
       limit: limit
     };
     let transactions = await this.privateGetAccountsTransactions({
-      query: this.extend(query, params.query)
+      query: this.extend(query, this.safeValue(params, "query", {}))
     });
     if (symbol) {
-      transactions = this.fnFilter(this, transactions, this.loCurrencyEqual, symbol);
+      transactions = this.fnFilter(transactions, "lo_currency_equal", symbol);
     }
-    return this.fnMap(this, transactions, this.castTransaction);
+    return this.fnMap(transactions, "cast_transaction");
   }
 
   sign(path, api = "public", method = "GET", params = {}, headers = undefined, body = undefined) {
@@ -271,7 +271,7 @@ module.exports = class basefex extends Exchange {
       expires = this.sum(this.seconds(), expires).toString();
       auth += expires;
       if (method === "POST" || method === "PUT" || method === "DELETE") {
-        if (body && this.keys(body).length > 0) {
+        if (body && Object.keys(body).length > 0) {
           body = this.json(body);
           auth += body;
         }
@@ -286,7 +286,7 @@ module.exports = class basefex extends Exchange {
     return { url: url, method: method, body: body, headers: headers };
   }
 
-  request(path, type = "public", method = "GET", params = {}, headers = undefined, body = undefined) {
+  request(path, api = "public", method = "GET", params = {}, headers = undefined, body = undefined) {
     const pathObj = this.safeValue(params, "path");
     if (pathObj) {
       path = this.implodeParams(path, pathObj);
@@ -299,51 +299,51 @@ module.exports = class basefex extends Exchange {
         path += "?" + query;
       }
     }
-    const headersObj = this.safeValue(params, "headers");
+    const headersObj = this.safeValue(params, "headers", {});
     headers = this.extend({ "Content-Type": "application/json" }, headersObj);
     body = this.safeValue(params, "body");
-    return super.request(path, type, method, params, headers, body);
+    return super.request(path, api, method, params, headers, body);
   }
 
-  castMarket(itself, symbol) {
-    const _base = itself.safeString(symbol, "baseCurrency");
-    const _quote = itself.safeString(symbol, "quoteCurrency");
+  castMarket(symbol, params) {
+    const _base = this.safeString(symbol, "baseCurrency");
+    const _quote = this.safeString(symbol, "quoteCurrency");
     return {
-      id: itself.safeString(symbol, "symbol"),
-      symbol: itself.translateSymbol(itself, _base, _quote),
+      id: this.safeString(symbol, "symbol"),
+      symbol: this.translateSymbol(_base, _quote),
       base: _base.toUpperCase(),
       quote: _quote.toUpperCase(),
       baseId: _base,
       quoteId: _quote,
-      active: itself.safeValue(symbol, "enable"),
+      active: this.safeValue(symbol, "enable"),
       precision: {
-        price: itself.safeInteger(symbol, "priceStep")
+        price: this.safeInteger(symbol, "priceStep")
       },
       limits: {},
       info: symbol
     };
   }
 
-  castTicker(itself, candlestick, symbol) {
-    const timestamp = itself.safeInteger(candlestick, "time");
-    const open = itself.safeFloat(candlestick, "open");
-    const close = itself.safeFloat(candlestick, "close");
+  castTicker(candlestick, symbol) {
+    const timestamp = this.safeInteger(candlestick, "time");
+    const open = this.safeFloat(candlestick, "open");
+    const close = this.safeFloat(candlestick, "close");
     const last = close;
-    const change = itself.sum(last, -open);
+    const change = this.sum(last, -open);
     const percentage = (change / open) * 100;
-    const average = itself.sum(last, open) / 2;
+    const average = this.sum(last, open) / 2;
     return {
       symbol: symbol,
       info: candlestick,
       timestamp: timestamp,
-      datetime: itself.iso8601(timestamp),
-      high: itself.safeFloat(candlestick, "high"),
-      low: itself.safeFloat(candlestick, "low"),
+      datetime: this.iso8601(timestamp),
+      high: this.safeFloat(candlestick, "high"),
+      low: this.safeFloat(candlestick, "low"),
       bid: undefined,
       bidVolume: undefined,
       ask: undefined,
       askVolume: undefined,
-      vwap: itself.safeFloat(candlestick, "volume"),
+      vwap: this.safeFloat(candlestick, "volume"),
       open: open,
       close: close,
       last: last,
@@ -356,26 +356,26 @@ module.exports = class basefex extends Exchange {
     };
   }
 
-  castOrderBook(itself, source) {
-    source.bids = itself.fnEntites(itself, itself.safeValue(source, "bids"));
-    source.asks = itself.fnEntites(itself, itself.safeValue(source, "asks"));
-    return itself.parseOrderBook(source);
+  castOrderBook(source) {
+    const bids = this.fnEntites(this.safeValue(source, "bids"));
+    const asks = this.fnEntites(this.safeValue(source, "asks"));
+    return this.parseOrderBook({ bids: bids, asks: asks });
   }
 
-  castTrade(itself, trade, symbol) {
-    const _timestamp = itself.safeInteger(trade, "matchedAt");
-    const price = itself.safeFloat(trade, "price");
-    const amount = itself.safeFloat(trade, "size");
+  castTrade(trade, symbol) {
+    const _timestamp = this.safeInteger(trade, "matchedAt");
+    const price = this.safeFloat(trade, "price");
+    const amount = this.safeFloat(trade, "size");
     const cost = price * amount;
     return {
       info: trade,
-      id: itself.safeString(trade, "id"),
+      id: this.safeString(trade, "id"),
       timestamp: _timestamp,
-      datetime: itself.iso8601(_timestamp),
+      datetime: this.iso8601(_timestamp),
       symbol: symbol,
       order: undefined,
       type: undefined,
-      side: itself.translateOrderSide(itself, itself.safeString(trade, "side")),
+      side: this.translateOrderSide(this.safeString(trade, "side")),
       takerOrMaker: undefined,
       price: price,
       amount: amount,
@@ -384,12 +384,12 @@ module.exports = class basefex extends Exchange {
     };
   }
 
-  castOHLCV(itself, candlestick) {
-    return [itself.safeInteger(candlestick, "time"), itself.safeFloat(candlestick, "open"), itself.safeFloat(candlestick, "high"), itself.safeFloat(candlestick, "low"), itself.safeFloat(candlestick, "close"), itself.safeFloat(candlestick, "volume")];
+  castOHLCV(candlestick, params) {
+    return [this.safeInteger(candlestick, "time"), this.safeFloat(candlestick, "open"), this.safeFloat(candlestick, "high"), this.safeFloat(candlestick, "low"), this.safeFloat(candlestick, "close"), this.safeFloat(candlestick, "volume")];
   }
 
-  castBalance(itself, accounts) {
-    accounts = itself.fnMap(itself, accounts, itself.fnPick, "cash");
+  castBalance(accounts) {
+    accounts = this.fnMap(accounts, "fn_pick", "cash");
     const balance = {
       info: accounts,
       free: {},
@@ -398,38 +398,38 @@ module.exports = class basefex extends Exchange {
     };
     for (let i = 0; i < accounts.length; i++) {
       const cash = accounts[i];
-      const currency = itself.safeString(cash, "currency");
-      const total = itself.safeFloat(cash, "marginBalances");
-      const free = itself.safeFloat(cash, "available");
-      const used = itself.sum(total, -free);
+      const currency = this.safeString(cash, "currency");
+      const total = this.safeFloat(cash, "marginBalances");
+      const free = this.safeFloat(cash, "available");
+      const used = this.sum(total, -free);
       balance.free[currency] = free;
       balance.used[currency] = used;
       balance.total[currency] = total;
       balance[currency] = {
-        free,
-        used,
-        total
+        free: free,
+        used: used,
+        total: total
       };
     }
     return balance;
   }
 
-  castOrder(itself, order, symbol) {
-    const _timestamp = itself.safeInteger(order, "ts");
-    const price = itself.safeFloat(order, "price");
-    const amount = itself.safeFloat(order, "size");
-    const filled = itself.safeFloat(order, "filled");
-    const remaining = itself.sum(amount, -filled);
+  castOrder(order, symbol) {
+    const _timestamp = this.safeInteger(order, "ts");
+    const price = this.safeFloat(order, "price");
+    const amount = this.safeFloat(order, "size");
+    const filled = this.safeFloat(order, "filled");
+    const remaining = this.sum(amount, -filled);
     const cost = filled * price;
     return {
       id: order.id,
-      datetime: itself.iso8601(_timestamp),
+      datetime: this.iso8601(_timestamp),
       timestamp: _timestamp,
       lastTradeTimestamp: undefined,
-      status: itself.options["order-status"][order.status],
+      status: this.options["order-status"][order.status],
       symbol: symbol,
-      type: itself.translateOrderType(itself, itself.safeString(order, "type")),
-      side: itself.translateOrderSide(itself, itself.safeString(order, "side")),
+      type: this.translateOrderType(this.safeString(order, "type")),
+      side: this.translateOrderSide(this.safeString(order, "side")),
       price: price,
       amount: amount,
       filled: filled,
@@ -441,91 +441,91 @@ module.exports = class basefex extends Exchange {
     };
   }
 
-  castMyTrade(itself, trade, symbol) {
-    const _timestamp = itself.safeInteger(trade, "ts");
-    const _order = itself.safeValue(trade, "order");
+  castMyTrade(trade, symbol) {
+    const _timestamp = this.safeInteger(trade, "ts");
+    const _order = this.safeValue(trade, "order");
     let _type = undefined;
     if (_order) {
-      _type = itself.translateOrderType(itself, itself.safeString(_order, "type"));
+      _type = this.translateOrderType(this.safeString(_order, "type"));
     }
     return {
       info: trade,
-      id: itself.safeString(trade, "id"),
+      id: this.safeString(trade, "id"),
       timestamp: _timestamp,
-      datetime: itself.iso8601(_timestamp),
+      datetime: this.iso8601(_timestamp),
       symbol: symbol,
-      order: itself.safeString(trade, "orderId"),
+      order: this.safeString(trade, "orderId"),
       type: _type,
-      side: itself.translateOrderSide(itself, itself.safeString(trade, "side")),
-      price: itself.safeFloat(trade, "price"),
-      amount: itself.safeFloat(trade, "size")
+      side: this.translateOrderSide(this.safeString(trade, "side")),
+      price: this.safeFloat(trade, "price"),
+      amount: this.safeFloat(trade, "size")
     };
   }
 
-  castDepositAddress(itself, address, currency) {
+  castDepositAddress(address, currency) {
     return {
       currency: currency,
-      address: itself.safeString(address, "address"),
+      address: this.safeString(address, "address"),
       tag: undefined,
       info: address
     };
   }
 
-  castTransaction(itself, transaction) {
-    const _type = itself.translateTransactionType(itself, itself.safeString(transaction, "type"));
-    const _timestamp = itself.safeInteger(transaction, "ts");
+  castTransaction(transaction, params) {
+    const _type = this.translateTransactionType(this.safeString(transaction, "type"));
+    const _timestamp = this.safeInteger(transaction, "ts");
     return {
       info: transaction,
-      id: itself.safeString(transaction, "id"),
-      txid: itself.safeString(transaction, "foreignTxId"),
+      id: this.safeString(transaction, "id"),
+      txid: this.safeString(transaction, "foreignTxId"),
       timestamp: _timestamp,
-      datetime: itself.iso8601(_timestamp),
+      datetime: this.iso8601(_timestamp),
       addressFrom: undefined,
-      address: itself.safeString(transaction, "address"),
+      address: this.safeString(transaction, "address"),
       addressTo: undefined,
       tagFrom: undefined,
       tag: undefined,
       tagTo: undefined,
       type: _type,
-      amount: itself.safeFloat(transaction, "amount"),
-      currency: itself.safeString(transaction, "currency"),
-      status: itself.options[_type + "-status"][itself.safeString(transaction, "status")],
+      amount: this.safeFloat(transaction, "amount"),
+      currency: this.safeString(transaction, "currency"),
+      status: this.options[_type + "-status"][this.safeString(transaction, "status")],
       updated: undefined,
-      comment: itself.safeString(transaction, "node"),
+      comment: this.safeString(transaction, "node"),
       fee: {
-        currency: itself.safeString(transaction, "currency"),
-        cost: itself.safeFloat(transaction, "fee"),
+        currency: this.safeString(transaction, "currency"),
+        cost: this.safeFloat(transaction, "fee"),
         rate: undefined
       }
     };
   }
 
-  translateSymbol(itself, base, quote) {
+  translateSymbol(base, quote) {
     return base.toUpperCase() + "/" + quote.toUpperCase();
   }
 
-  translateBaseFEXSymbol(itself, symbol) {
+  translateBaseFEXSymbol(symbol) {
     const semi = symbol.replace("/", "");
     return semi.toUpperCase();
   }
 
-  translateOrderSide(itself, side) {
+  translateOrderSide(side) {
     return side.toLowerCase();
   }
 
-  translateBaseFEXOrderSide(itself, side) {
+  translateBaseFEXOrderSide(side) {
     return side.toUpperCase();
   }
 
-  translateOrderType(itself, type) {
+  translateOrderType(type) {
     return type.toLowerCase();
   }
 
-  translateBaseFEXOrderType(itself, type) {
+  translateBaseFEXOrderType(type) {
     return type.toUpperCase();
   }
 
-  translateTransactionType(itself, type) {
+  translateTransactionType(type) {
     if (type === "WITHDRAW") {
       return "withdrawal";
     } else if (type === "DEPOSIT") {
@@ -533,7 +533,7 @@ module.exports = class basefex extends Exchange {
     }
   }
 
-  translateBaseFEXTransactionType(itself, type) {
+  translateBaseFEXTransactionType(type) {
     if (type === "withdrawal") {
       return "WITHDRAW";
     } else if (type === "deposit") {
@@ -541,25 +541,25 @@ module.exports = class basefex extends Exchange {
     }
   }
 
-  fnMap(itself, _array, callback, params) {
+  fnMap(_array, _callback, params = {}) {
     const result = [];
     for (let i = 0; i < _array.length; i++) {
-      result.push(callback(itself, _array[i], params));
+      result.push(this[_callback](_array[i], params));
     }
     return result;
   }
 
-  fnFilter(itself, _array, predicate, params) {
+  fnFilter(_array, _predicate, params = {}) {
     const result = [];
     for (let i = 0; i < _array.length; i++) {
-      if (predicate(itself, _array[i], params)) {
+      if (this[_predicate](_array[i], params)) {
         result.push(_array[i]);
       }
     }
     return result;
   }
 
-  fnReverse(itself, _array) {
+  fnReverse(_array) {
     const _last = _array.length - 1;
     const result = [];
     for (let i = 0; i < _array.length; i++) {
@@ -568,28 +568,28 @@ module.exports = class basefex extends Exchange {
     return result;
   }
 
-  fnEntites(itself, _object) {
-    const _keys = itself.keys(_object);
-    return itself.fnMap(itself, _keys, itself.fnEntity, _object);
+  fnEntites(_object) {
+    const _keys = Object.keys(_object);
+    return this.fnMap(_keys, "fn_entity", _object);
   }
 
-  fnEntity(itself, _key, _object) {
+  fnEntity(_key, _object) {
     return [_key, _object[_key]];
   }
 
-  fnPick(itself, _object, _key) {
+  fnPick(_object, _key) {
     return _object[_key];
   }
 
-  fnEqual(itself, a, b) {
+  fnEqual(a, b) {
     return a === b;
   }
 
-  loIsOpenOrder(itself, order) {
-    return itself.options["order-status"][itself.safeString(order, "status")] === "open";
+  loIsOpenOrder(order, params) {
+    return this.options["order-status"][this.safeString(order, "status")] === "open";
   }
 
-  loCurrencyEqual(itself, _object, currency) {
-    return itself.safeString(_object, "currency") === currency;
+  loCurrencyEqual(_object, currency) {
+    return this.safeString(_object, "currency") === currency;
   }
 };
