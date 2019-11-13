@@ -276,7 +276,19 @@ module.exports = class sfox extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timestamp = this.safeString (order, 'dateupdated');
         const filled = this.safeFloat (order, 'filled');
-        const quantity = this.safeFloat (order, 'quantity');
+        const amount = this.safeFloat (order, 'quantity');
+        let remaining = undefined;
+        if ((amount !== undefined) && (filled !== undefined)) {
+            remaining = amount - filled;
+        }
+        let fee = undefined;
+        const feeCost = this.safeFloat (order, 'fees');
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': undefined,
+                'cost': feeCost,
+            };
+        }
         return {
             'id': order['id'],
             'info': order,
@@ -287,11 +299,13 @@ module.exports = class sfox extends Exchange {
             'symbol': this.safeString (order, 'pair'),
             'type': this.safeString (order, 'action'),
             'side': this.safeString (order, 'action'),
+            'amount': amount;
             'price': this.safeFloat (order, 'price'),
             'cost': this.safeFloat (order, 'net_proceeds'),
             'filled': filled,
-            'remaining': quantity - filled,
-            'fee': this.safeFloat (order, 'fees'),
+            'remaining': remaining,
+            'fee': fee,
+            'trades': undefined,
         };
     }
 
