@@ -153,4 +153,15 @@ module.exports = class bkex extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        const httpCode = this.safeInteger (response, 'code', 200);
+        if (response === undefined) {
+            return;
+        }
+        if (code >= 400 || httpCode >= 400) {
+            const message = this.safeValue (response, 'msg');
+            throw new ExchangeError (this.id + ' HTTP Error ' + httpCode + ' message: ' + message);
+        }
+    }
 };
