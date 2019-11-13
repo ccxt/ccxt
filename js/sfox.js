@@ -161,12 +161,14 @@ module.exports = class sfox extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         const response = await this.publicGetMarketsOrderbook ({ 'pair': symbol });
         const timestamp = this.safeInteger (response, 'lastupdated');
         return this.parseOrderBook (response, timestamp);
     }
 
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
         const response = await this.privateGetUserBalance ();
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
@@ -202,21 +204,25 @@ module.exports = class sfox extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         const order = await this.privateDeleteOrdersOrderId ({ 'order_id': id });
         return this.parseOrder (order);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         const order = await this.privateGetOrdersOrderId ({ 'order_id': id });
         return this.parseOrder (order);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         const orders = await this.privateGetOrders ();
         return this.parseOrders (orders);
     }
 
     async deposit (code, amount, address, params = {}) {
+        await this.loadMarkets ();
         if (code === 'usd') {
             const request = {
                 'amount': amount,
@@ -231,6 +237,7 @@ module.exports = class sfox extends Exchange {
     }
 
     async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
         const response = await this.privatePostUserDepositAddressCurrency ({ 'currency': code });
         const address = this.safeString (response, 'address');
         return {
@@ -256,6 +263,7 @@ module.exports = class sfox extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        await this.loadMarkets ();
         const request = {
             'amount': amount,
             'address': address,
