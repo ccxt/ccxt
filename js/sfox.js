@@ -241,8 +241,10 @@ module.exports = class sfox extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
         const addresses = await this.privateGetUserDepositAddressCurrency ({ 'currency': code });
-        if (addresses.length === 0) {
+        const numAddresses = addresses.length;
+        if (numAddresses === 0) {
             return {};
         }
         const address = addresses.pop ();
