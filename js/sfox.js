@@ -27,6 +27,7 @@ module.exports = class sfox extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderTrades': false,
                 'fetchOrders': false,
+                'fetchTicker': false,
                 'fetchTime': false,
                 'fetchTransactions': true,
                 'withdraw': true,
