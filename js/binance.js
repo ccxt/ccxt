@@ -95,10 +95,10 @@ module.exports = class binance extends ccxt.binance {
         return this.marketsById[message['s']]['symbol'];
     }
 
-    handleWsDropped (client, response, messageHash) {
+    handleWsDropped (client, message, messageHash) {
         const orderBookHash = 'wss://stream.binance.com:9443/ws/ethbtc@depth';
         if (messageHash !== undefined && messageHash.startsWith (orderBookHash)) {
-            this.handleWsOrderBook (response);
+            this.handleWsOrderBook (message);
         }
     }
 };

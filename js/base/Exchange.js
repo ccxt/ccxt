@@ -1,20 +1,50 @@
 "use strict";
 
 const ccxt = require ('ccxt')
-const WebSocketClient = require ('./WebSocketClient')
+    , WebSocketClient = require ('./WebSocketClient')
+    , {
+        ExternallyResolvablePromise,
+        externallyResolvablePromise
+    } = require ('./MultiPromise')
+    , log = require ('ololog').unlimited
 
 module.exports = class Exchange extends ccxt.Exchange {
 
+    async sendWsMessage (handler, url, messageHash, subscribe = undefined) {
+        if (!this.clients) {
+            this.clients = {}
+        }
+        if (!this.clients[url]) {
+            this.clients[url] = new WebSocketClient (url, this.handleWsMessage.bind (this))
+        }
+        const client = this.clients[url]
+        if (!client.deferred[messageHash]) {
+            client.deferred[messageHash] = externallyResolvablePromise ()
+        }
+        const promise = client.deferred[messageHash]
+        if (!subscribe) {
+            await client.connected
+        } else if (!client.subscriptions[messageHash]) {
+            client.subscriptions[messageHash] = true
+            client.send (subscribe)
+        }
+        const response = await promise
+        log.yellow ('were here again')
+        process.exit ()
+        return handler.apply (this, response)
+    }
+
     handleWsDropped (client, response, messageHash) {}
 
-    handleWsMessage (client, response) {
-        const messageHash = this.getWsMessageHash (client, response);
-        if (!(messageHash in client.futures)) {
-            this.handleWsDropped (client, response, messageHash);
-            return;
+    handleWsMessage (client, message) {
+        const messageHash = this.getWsMessageHash (client, message);
+        if (client.deferred[messageHash]) {
+            const promise = client.deferred[messageHash];
+            promise.resolve (message);
+            delete client.deferred[messageHash]
+        } else {
+            this.handleWsDropped (client, message, messageHash);
         }
-        const future = client.futures[messageHash];
-        future.resolve (response);
     }
 
     defineWsApi (has) {
@@ -22,11 +52,29 @@ module.exports = class Exchange extends ccxt.Exchange {
             .map (key => key.slice (key.indexOf ('Ws')))
 
         const _this = this
-        for (let method of methods) {
+        for (let i = 0; i < methods.length; i++) {
+            const method = methods[i]
             this[method + 'Message'] = async (url, messageHash, subscribe = undefined) => {
-                const result = await WebSocketClient.registerFuture (url, messageHash, _this.handleWsMessage.bind (_this), _this.apiKey, subscribe)
+                const result = await this.registerFuture (url, messageHash, _this.handleWsMessage.bind (_this), _this.apiKey, subscribe)
                 return _this['handle' + method] (result)
             }
         }
+    }
+
+    async registerFuture (url, messageHash, callback, apiKey, subscribe = undefined) {
+        const index = url + (apiKey ? apiKey : '')
+        console.log (index)
+        process.exit ()
+        const client = this.clients[index] || (WebSocketClient.clients[index] = new WebSocketClient (url, callback))
+        const future = client.futures[messageHash] || (client.futures[messageHash] = new Future ())
+        if (subscribe === undefined) {
+            await client.connect ()
+        } else if (!client.subscriptions[messageHash]) {
+            client.send (subscribe)
+            client.subscriptions[messageHash] = true
+        }
+        const result = await future.promise ()
+        delete client.futures[messageHash]
+        return result
     }
 }

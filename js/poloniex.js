@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-// const IncrementalOrderBook = require ('./base/IncrementalOrderBook');
+const IncrementalOrderBook = require ('./base/OrderBook');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,7 +16,7 @@ module.exports = class poloniex extends ccxt.poloniex {
             },
             'urls': {
                 'api': {
-                    'wss': 'wss://api2.poloniex.com/',
+                    'ws': 'wss://api2.poloniex.com/',
                 },
             },
         });
@@ -56,7 +56,6 @@ module.exports = class poloniex extends ccxt.poloniex {
 
     async fetchWsTicker (symbol) {
         await this.loadMarkets ();
-        this.marketsByNumericId ();
         const market = this.market (symbol);
         const numericId = market['info']['id'].toString ();
         const url = this.urls['api']['websocket']['public'];
@@ -66,49 +65,96 @@ module.exports = class poloniex extends ccxt.poloniex {
         });
     }
 
-    marketsByNumericId () {
-        if (this.options['marketsByNumericId'] === undefined) {
-            const keys = Object.keys (this.markets);
-            this.options['marketsByNumericId'] = {};
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i];
-                const market = this.markets[key];
-                const numericId = market['info']['id'].toString ();
-                this.options['marketsByNumericId'][numericId] = market;
+    async loadMarkets (reload = false, params = {}) {
+        const markets = await super.loadMarkets (reload, params);
+        let marketsByNumericId = this.safeValue (this.options, 'marketsByNumericId');
+        if ((marketsByNumericId === undefined) || reload) {
+            marketsByNumericId = {};
+            for (let i = 0; i < this.symbols.length; i++) {
+                const symbol = this.symbols[i];
+                const market = this.markets[symbol];
+                const numericId = this.safeString (market, 'numericId');
+                marketsByNumericId[numericId] = market;
             }
+            this.options['marketsByNumericId'] = marketsByNumericId;
         }
+        return markets;
     }
 
     async fetchWsOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        this.marketsByNumericId ();
         const market = this.market (symbol);
-        const numericId = market['info']['id'].toString ();
-        const url = this.urls['api']['websocket']['public'];
-        return await this.WsOrderBookMessage (url, numericId, {
+        const numericId = this.safeString (market, 'numericId');
+        const url = this.urls['api']['ws'];
+        return await this.sendWsMessage (this.handleWsOrderBook, url, numericId, {
             'command': 'subscribe',
             'channel': numericId,
         });
+        // return await this.WsOrderBookMessage (url, numericId, {
+        //     'command': 'subscribe',
+        //     'channel': numericId,
+        // });
     }
 
-    handleWsOrderBook (orderBook) {
+    handleWsOrderBook (orderbook) {
+        //
+        // first response
+        //
+        //     [
+        //         14, // channelId === market['numericId']
+        //         8767, // nonce
+        //         [
+        //             [
+        //                 "i", // initial snapshot
+        //                 {
+        //                     "currencyPair": "BTC_BTS",
+        //                     "orderBook": [
+        //                         { // asks
+        //                             "0.00001853": "2537.5637", // price, size
+        //                             "0.00001854": "1567238.172367"
+        //                         },
+        //                         { // bids
+        //                             "0.00001841": "3645.3647",
+        //                             "0.00001840": "1637.3647"
+        //                         }
+        //                     ]
+        //                 }
+        //             ]
+        //         ]
+        //     ]
+        //
+        // subsequent updates
+        //
+        //     [
+        //         14,
+        //         8768,
+        //         [
+        //             [ "o", 1, "0.00001823", "5534.6474" ], // orderbook delta, bids, price, size
+        //             [ "o", 0, "0.00001824", "6575.464" ], // orderbook delta, asks, price, size
+        //             [ "t", "42706057", 1, "0.05567134", "0.00181421", 1522877119 ] // trade, id, sell, price, size, timestamp
+        //         ]
+        //     ]
+        //
         // TODO: handle incremental trades too
-        const data = orderBook[2];
+        const marketId = orderbook[0].toString ();
+        const nonce = orderbook[1];
+        const data = orderbook[2];
+        const market = this.safeValue (this.options['marketsByNumericId'], marketId);
+        const symbol = this.safeString (market, 'symbol');
         const deltas = [];
         for (let i = 0; i < data.length; i++) {
             let delta = data[i];
             if (delta[0] === 'i') {
-                const rawBook = delta[1]['orderBook'];
-                const bids = rawBook[1];
-                const asks = rawBook[0];
-                delta = {
+                const snapshot = delta[1]['orderBook'];
+                const asks = snapshot[0];
+                const bids = snapshot[1];
+                this.orderbooks[symbol] = new IncrementalOrderBook ({
                     'bids': this.parseBidAsk (bids),
                     'asks': this.parseBidAsk (asks),
                     'nonce': undefined,
                     'timestamp': undefined,
                     'datetime': undefined,
-                };
-                deltas.push (delta);
+                });
             } else if (delta[0] === 'o') {
                 const price = parseFloat (delta[2]);
                 const amount = parseFloat (delta[3]);
@@ -118,10 +164,9 @@ module.exports = class poloniex extends ccxt.poloniex {
                 deltas.push (delta);
             }
         }
-        const market = this.safeValue (this.options['marketsByNumericId'], orderBook[0].toString ());
-        const symbol = this.safeString (market, 'symbol');
+
         // if (!(symbol in this.orderBooks)) {
-        //     this.orderBooks[symbol] = new IncrementalOrderBook (deltas.shift ());
+        //
         // }
         const incrementalBook = this.orderBooks[symbol];
         incrementalBook.update (deltas);
@@ -135,14 +180,14 @@ module.exports = class poloniex extends ccxt.poloniex {
         for (let i = 0; i < prices.length; i++) {
             const price = prices[i];
             const amount = bidasks[price];
-            result.push ([parseFloat (price), parseFloat (amount)]);
+            result.push ([ parseFloat (price), parseFloat (amount) ]);
         }
         return result;
     }
 
-    handleWsDropped (client, response, messageHash) {
+    handleWsDropped (client, message, messageHash) {
         if (messageHash !== undefined && parseInt (messageHash) < 1000) {
-            this.handleWsOrderBook (response);
+            this.handleWsOrderBook (message);
         }
     }
 };

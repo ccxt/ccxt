@@ -113,21 +113,21 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         return [undefined, operation, side, price, amount];
     }
 
-    handleWsDropped (client, response, messageHash) {
-        if (this.safeString (response, 'event') === 'subscribed') {
-            const channel = response['channel'];
-            const marketId = response['pair'];
-            const channelId = response['chanId'];
+    handleWsDropped (client, message, messageHash) {
+        if (this.safeString (message, 'event') === 'subscribed') {
+            const channel = message['channel'];
+            const marketId = message['pair'];
+            const channelId = message['chanId'];
             this.options['channels'][channelId] = channel + '/' + marketId;
             return;
         }
         if (messageHash !== undefined && messageHash.startsWith ('book')) {
-            this.handleWsOrderBook (response);
+            this.handleWsOrderBook (message);
         }
     }
 
-    parseSymbol (response) {
-        const channelId = response[0];
+    parseSymbol (message) {
+        const channelId = message[0];
         const marketId = this.options['channels'][channelId].split ('/')[1];
         return this.marketsById[marketId]['symbol'];
     }

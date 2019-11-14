@@ -20,7 +20,7 @@ class poloniex extends \ccxt\poloniex {
             ),
             'urls' => array (
                 'api' => array (
-                    'wss' => 'wss://api2.poloniex.com/',
+                    'ws' => 'wss://api2.poloniex.com/',
                 ),
             ),
         ));
@@ -60,7 +60,7 @@ class poloniex extends \ccxt\poloniex {
 
     public function fetch_ws_ticker ($symbol) {
         $this->load_markets();
-        $this->markets_by_numeric_id ();
+        $this->marketsByNumericId ();
         $market = $this->market ($symbol);
         $numericId = (string) $market['info']['id'];
         $url = $this->urls['api']['websocket']['public'];
@@ -70,26 +70,28 @@ class poloniex extends \ccxt\poloniex {
         ));
     }
 
-    public function markets_by_numeric_id () {
-        if ($this->options['marketsByNumericId'] === null) {
-            $keys = is_array($this->markets) ? array_keys($this->markets) : array();
-            $this->options['marketsByNumericId'] = array();
-            for ($i = 0; $i < count ($keys); $i++) {
-                $key = $keys[$i];
-                $market = $this->markets[$key];
-                $numericId = (string) $market['info']['id'];
-                $this->options['marketsByNumericId'][$numericId] = $market;
+    public function load_markets ($reload = false, $params = array ()) {
+        $markets = parent::load_markets($reload, $params);
+        $marketsByNumericId = $this->safe_value($this->options, 'marketsByNumericId');
+        if (($marketsByNumericId === null) || $reload) {
+            $marketsByNumericId = array();
+            for ($i = 0; $i < count ($this->symbols); $i++) {
+                $symbol = $this->symbols[$i];
+                $market = $this->markets[$symbol];
+                $numericId = $this->safe_string($market, 'numericId');
+                $marketsByNumericId[$numericId] = $market;
             }
+            $this->options['marketsByNumericId'] = $marketsByNumericId;
         }
+        return $markets;
     }
 
     public function fetch_ws_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $this->markets_by_numeric_id ();
         $market = $this->market ($symbol);
-        $numericId = (string) $market['info']['id'];
-        $url = $this->urls['api']['websocket']['public'];
-        return $this->WsOrderBookMessage ($url, $numericId, array (
+        $numericId = $this->safe_string($market, 'numericId');
+        $url = $this->urls['api']['ws'];
+        return $this->WsOrderBookMessage ($this->handleWsOrderBook, $url, $numericId, array (
             'command' => 'subscribe',
             'channel' => $numericId,
         ));

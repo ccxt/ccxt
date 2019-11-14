@@ -16,7 +16,7 @@ class poloniex(ccxt.poloniex):
             },
             'urls': {
                 'api': {
-                    'wss': 'wss://api2.poloniex.com/',
+                    'ws': 'wss://api2.poloniex.com/',
                 },
             },
         })
@@ -51,7 +51,7 @@ class poloniex(ccxt.poloniex):
 
     async def fetch_ws_ticker(self, symbol):
         await self.load_markets()
-        self.markets_by_numeric_id()
+        self.marketsByNumericId()
         market = self.market(symbol)
         numericId = str(market['info']['id'])
         url = self.urls['api']['websocket']['public']
@@ -60,23 +60,25 @@ class poloniex(ccxt.poloniex):
             'channel': 1002,
         })
 
-    def markets_by_numeric_id(self):
-        if self.options['marketsByNumericId'] is None:
-            keys = list(self.markets.keys())
-            self.options['marketsByNumericId'] = {}
-            for i in range(0, len(keys)):
-                key = keys[i]
-                market = self.markets[key]
-                numericId = str(market['info']['id'])
-                self.options['marketsByNumericId'][numericId] = market
+    async def load_markets(self, reload=False, params={}):
+        markets = await super(poloniex, self).load_markets(reload, params)
+        marketsByNumericId = self.safe_value(self.options, 'marketsByNumericId')
+        if (marketsByNumericId is None) or reload:
+            marketsByNumericId = {}
+            for i in range(0, len(self.symbols)):
+                symbol = self.symbols[i]
+                market = self.markets[symbol]
+                numericId = self.safe_string(market, 'numericId')
+                marketsByNumericId[numericId] = market
+            self.options['marketsByNumericId'] = marketsByNumericId
+        return markets
 
     async def fetch_ws_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        self.markets_by_numeric_id()
         market = self.market(symbol)
-        numericId = str(market['info']['id'])
-        url = self.urls['api']['websocket']['public']
-        return await self.WsOrderBookMessage(url, numericId, {
+        numericId = self.safe_string(market, 'numericId')
+        url = self.urls['api']['ws']
+        return await self.WsOrderBookMessage(self.handleWsOrderBook, url, numericId, {
             'command': 'subscribe',
             'channel': numericId,
         })

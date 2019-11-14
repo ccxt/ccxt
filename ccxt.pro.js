@@ -20,7 +20,7 @@ const version = '1.0.0'
 const exchanges = {
     'binance':                 require ('./js/binance.js'),
     'bitfinex':                require ('./js/bitfinex.js'),
-    'poloniex':                require ('./js/poloniex.js'),
+    'poloniex':                require ('./js/poloniex.js'),    
 }
 
 // ----------------------------------------------------------------------------

@@ -6,13 +6,17 @@
 
 class OrderBookSide extends Array {
 
-    constructor (... params) {
-        super (... params)
+    constructor (deltas = []) {
+        super (deltas.length)
         // a string-keyed dictionary of price levels / ids / indices
         Object.defineProperty (this, 'index', {
             __proto__: null,
             value: {},
         })
+        if (deltas.length) {
+            this.update (deltas)
+        }
+        console.log (this.length)
     }
 
     // called for each orderbook update/frame/nonce with new incoming deltas
