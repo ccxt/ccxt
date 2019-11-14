@@ -204,7 +204,8 @@ class exx extends Exchange {
             'currency' => $this->market_id($symbol),
         );
         $response = $this->publicGetDepth (array_merge ($request, $params));
-        return $this->parse_order_book($response, $response['timestamp']);
+        $timestamp = $this->safe_timestamp($response, 'timestamp');
+        return $this->parse_order_book($response, $timestamp);
     }
 
     public function parse_trade ($trade, $market = null) {
