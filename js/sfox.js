@@ -80,6 +80,9 @@ module.exports = class sfox extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        if (headers === undefined) {
+            headers = {};
+        }
         let fullPath = '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
@@ -93,6 +96,12 @@ module.exports = class sfox extends Exchange {
             headers = {
                 'Authorization': 'Bearer ' + this.apiKey,
             };
+        }
+        if ((method !== 'GET') && (method !== 'DELETE')) {
+            headers['Content-Type'] = 'application/json';
+            if (Object.keys (query).length) {
+                body = this.json (query);
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -175,12 +184,15 @@ module.exports = class sfox extends Exchange {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
+            const free = this.safeFloat (balance, 'available');
+            const total = this.safeFloat (balance, 'balance');
+            const used = total - free;
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             result[code] = {
-                'free': this.safeFloat (balance, 'available'),
-                'used': this.safeFloat (balance, 'available'),
-                'total': this.safeFloat (balance, 'balance'),
+                'free': free,
+                'used': used,
+                'total': total,
             };
         }
         return result;
@@ -193,7 +205,7 @@ module.exports = class sfox extends Exchange {
             'currency_pair': this.marketId (symbol),
         };
         if (type === 'limit') {
-            request['algo_id'] = 200;  // smart routing
+            request['algorithm_id'] = 200;  // smart routing
             request['price'] = price;
         }
         let order = undefined;
