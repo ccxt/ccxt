@@ -151,7 +151,7 @@ class ftx extends Exchange {
                     'An unexpected error occurred' => '\\ccxt\\ExchangeError', // array("error":"An unexpected error occurred, please try again later (58BC21C795).","success":false)
                 ),
             ),
-            'roundingMode' => TICK_SIZE,
+            'precisionMode' => TICK_SIZE,
         ));
     }
 
