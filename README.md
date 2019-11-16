@@ -15,7 +15,7 @@ The access to the CCXT Pro repository is prepaid and restricted (by invitation o
 
 ## Licensing Summary
 
-The CCXT Pro License does not include mechanisms that enforce technical limitations on the user or any other other restrictions that would affect direct communication between the users and the exchanges without intermediaries.
+The CCXT Pro License does not include mechanisms that enforce technical limitations on the user or any other restrictions that would affect direct communication between the users and the exchanges without intermediaries.
 
 ## The Technical Overview
 
@@ -35,7 +35,7 @@ The CCXT Pro stack uses mixins in JS and Python to extend the core CCXT, and in 
     │                              .                              |
     +=============================================================+
     │                              .                              |
-    |  The Underlying Exchange-Specific APIs and Implicit Methods |
+    |            The Underlying Exchange-Specific APIs            |
     |         (Derived Classes And Their Implicit Methods)        |
     │                              .                              |
     +=============================================================+

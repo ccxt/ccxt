@@ -60,7 +60,6 @@ class poloniex extends \ccxt\poloniex {
 
     public function fetch_ws_ticker ($symbol) {
         $this->load_markets();
-        $this->marketsByNumericId ();
         $market = $this->market ($symbol);
         $numericId = (string) $market['info']['id'];
         $url = $this->urls['api']['websocket']['public'];
@@ -91,30 +90,110 @@ class poloniex extends \ccxt\poloniex {
         $market = $this->market ($symbol);
         $numericId = $this->safe_string($market, 'numericId');
         $url = $this->urls['api']['ws'];
-        return $this->WsOrderBookMessage ($this->handleWsOrderBook, $url, $numericId, array (
+        $orderbook = $this->sendWsMessage ($this->handleWsOrderBook, $url, $numericId, array (
             'command' => 'subscribe',
             'channel' => $numericId,
         ));
+        return $orderbook->limit ($limit)
+        // // add $limit method
+        // return array_merge ($orderbook, array (
+        //     'bids' => mb_substr($orderbook['bids'], 0, $limit - 0),
+        //     'asks' => mb_substr($orderbook['asks'], 0, $limit - 0),
+        // ));
+        // return $this->WsOrderBookMessage ($url, $numericId, array (
+        //     'command' => 'subscribe',
+        //     'channel' => $numericId,
+        // ));
     }
 
-    public function handle_ws_order_book ($orderBook) {
+    public function handle_ws_order_book ($message) {
+        //
+        // first response
+        //
+        //     [
+        //         14, // channelId === $market['numericId']
+        //         8767, // $nonce
+        //         array (
+        //             array (
+        //                 "$i", // initial $snapshot
+        //                 {
+        //                     "currencyPair" => "BTC_BTS",
+        //                     "orderBook" => array (
+        //                         array ( // $asks
+        //                             "0.00001853" => "2537.5637", // $price, size
+        //                             "0.00001854" => "1567238.172367"
+        //                         ),
+        //                         { // $bids
+        //                             "0.00001841" => "3645.3647",
+        //                             "0.00001840" => "1637.3647"
+        //                         }
+        //                     )
+        //                 }
+        //             )
+        //         )
+        //     ]
+        //
+        // subsequent updates
+        //
+        //     array (
+        //         14,
+        //         8768,
+        //         array (
+        //             array ( "o", 1, "0.00001823", "5534.6474" ), // $orderbook $delta, $bids, $price, size
+        //             array ( "o", 0, "0.00001824", "6575.464" ), // $orderbook $delta, $asks, $price, size
+        //             array ( "t", "42706057", 1, "0.05567134", "0.00181421", 1522877119 ) // trade, id, sell, $price, size, timestamp
+        //         )
+        //     )
+        //
         // TODO => handle incremental trades too
-        $data = $orderBook[2];
+        // var_dump ('were here again', $orderbook)
+        // exit ()
+        $marketId = (string) $message[0];
+        $nonce = $message[1];
+        $data = $message[2];
+        $market = $this->safe_value($this->options['marketsByNumericId'], $marketId);
+        $symbol = $this->safe_string($market, 'symbol');
         $deltas = array();
         for ($i = 0; $i < count ($data); $i++) {
             $delta = $data[$i];
             if ($delta[0] === 'i') {
-                $rawBook = $delta[1]['orderBook'];
-                $bids = $rawBook[1];
-                $asks = $rawBook[0];
-                $delta = array (
-                    'bids' => $this->parse_bid_ask($bids),
-                    'asks' => $this->parse_bid_ask($asks),
-                    'nonce' => null,
-                    'timestamp' => null,
-                    'datetime' => null,
-                );
-                $deltas[] = $delta;
+                $snapshot = $this->safe_value($delta[1], 'orderBook', array());
+                $sides = array ( 'asks', 'bids' );
+                $orderbook = $this->orderbook ($symbol);
+                for ($j = 0; $j < count ($snapshot); $j++) {
+                    $orders = $snapshot[$j];
+                    $side = $sides[$j];
+                    $prices = is_array($orders) ? array_keys($orders) : array();
+                    $bookside = $orderbook[$side];
+                    for ($k = 0; $k < count ($prices); $k++) {
+                        $price = $prices[$k];
+                        $amount = floatval ($orders[$price]);
+                        $bookside->store ($price, $amount);
+                    }
+                    $bookside->reset ($bookside->index);
+                }
+                $orderbook['nonce'] = $nonce;
+                return $orderbook;
+                var_dump ($orderbook);
+                exit ();
+                // $asks = $snapshot[0];
+                // $bids = $snapshot[1];
+                // $prices = is_array($asks) ? array_keys($asks) : array();
+                // for ($j = 0; $j < count ($prices); $j++) {
+                //     $price = $prices[$i];
+                //     $amount = floatval ($asks[$price]);
+                //     $orderbook['asks'].store (array ( $price, $amount ));
+                // }
+                // for ($j = 0; $j < count ($asks); $j++) {
+                //     $orderbook->asks.store ();
+                // }
+                // $this->orderbooks[$symbol] = new IncrementalOrderBook (array (
+                //     'bids' => $this->parse_bid_ask($bids),
+                //     'asks' => $this->parse_bid_ask($asks),
+                //     'nonce' => $nonce,
+                //     'timestamp' => null,
+                //     'datetime' => null,
+                // ));
             } else if ($delta[0] === 'o') {
                 $price = floatval ($delta[2]);
                 $amount = floatval ($delta[3]);
@@ -124,15 +203,13 @@ class poloniex extends \ccxt\poloniex {
                 $deltas[] = $delta;
             }
         }
-        $market = $this->safe_value($this->options['marketsByNumericId'], (string) $orderBook[0]);
-        $symbol = $this->safe_string($market, 'symbol');
         // if (!(is_array($this->orderBooks) && array_key_exists($symbol, $this->orderBooks))) {
-        //     $this->orderBooks[$symbol] = new IncrementalOrderBook (array_shift($deltas));
+        //
         // }
-        $incrementalBook = $this->orderBooks[$symbol];
-        $incrementalBook->update ($deltas);
-        $incrementalBook->orderBook['nonce'] = $orderBook[1];
-        return $incrementalBook->orderBook;
+        // $incrementalBook = $this->orderBooks[$symbol];
+        // $incrementalBook->update ($deltas);
+        // $incrementalBook->orderBook['nonce'] = $orderbook[1];
+        // return $incrementalBook->orderBook;
     }
 
     public function parse_bid_ask ($bidasks) {
@@ -141,14 +218,15 @@ class poloniex extends \ccxt\poloniex {
         for ($i = 0; $i < count ($prices); $i++) {
             $price = $prices[$i];
             $amount = $bidasks[$price];
-            $result[] = [floatval ($price), floatval ($amount)];
+            $result[] = array ( floatval ($price), floatval ($amount) );
         }
         return $result;
     }
 
-    public function handle_ws_dropped ($client, $response, $messageHash) {
+    public function handle_ws_dropped ($client, $message, $messageHash) {
+        var_dump ('??');
         if ($messageHash !== null && intval ($messageHash) < 1000) {
-            $this->handle_ws_order_book ($response);
+            $this->handle_ws_order_book ($message);
         }
     }
 }

@@ -6,9 +6,16 @@ const ccxt = require ('ccxt')
         ExternallyResolvablePromise,
         externallyResolvablePromise
     } = require ('./MultiPromise')
+    , {
+        OrderBook
+    } = require ('./OrderBook')
     , log = require ('ololog').unlimited
 
 module.exports = class Exchange extends ccxt.Exchange {
+
+    orderbook () {
+        return new OrderBook ()
+    }
 
     async sendWsMessage (handler, url, messageHash, subscribe = undefined) {
         if (!this.clients) {
@@ -29,21 +36,30 @@ module.exports = class Exchange extends ccxt.Exchange {
             client.send (subscribe)
         }
         const response = await promise
-        log.yellow ('were here again')
-        process.exit ()
-        return handler.apply (this, response)
+        return handler.apply (this, [ response ])
     }
 
-    handleWsDropped (client, response, messageHash) {}
+    // handleWsDropped (client, response, messageHash) {}
 
-    handleWsMessage (client, message) {
+    handleWsMessage3 (client, message) {
         const messageHash = this.getWsMessageHash (client, message);
         if (client.deferred[messageHash]) {
             const promise = client.deferred[messageHash];
             promise.resolve (message);
             delete client.deferred[messageHash]
         } else {
+            console.log (message)
             this.handleWsDropped (client, message, messageHash);
+        }
+    }
+
+    handleWsMessage2 (client, message) {
+        const messageHash = this.getWsMessageHash (client, message);
+        const response = this.parseWsMessage (client, message, messageHash);
+        if (client.deferred[messageHash]) {
+            const promise = client.deferred[messageHash];
+            promise.resolve (response);
+            delete client.deferred[messageHash]
         }
     }
 

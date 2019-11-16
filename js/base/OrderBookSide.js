@@ -6,30 +6,29 @@
 
 class OrderBookSide extends Array {
 
+    // static get [Symbol.species] () { return Array }
+
     constructor (deltas = []) {
         super (deltas.length)
         // a string-keyed dictionary of price levels / ids / indices
         Object.defineProperty (this, 'index', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: {},
         })
         if (deltas.length) {
             this.update (deltas)
         }
-        console.log (this.length)
     }
 
     // called for each orderbook update/frame/nonce with new incoming deltas
     update (deltas) {
         for (let i = 0; i < deltas.length; i++) {
-            this.store (deltas[i])
+            this.storeArray (deltas[i])
         }
-        return this.reset (this.index)
+        return this.limit ()
     }
 
-    // index an incoming delta in the string-keyed dictionary
-    store (delta) {
-        const [ price, size ] = delta
+    store (price, size) {
         if (size) {
             this.index[price] = size // absolute volume at price level
         } else {
@@ -37,10 +36,40 @@ class OrderBookSide extends Array {
         }
     }
 
+    // index an incoming delta in the string-price-keyed dictionary
+    storeArray (delta) {
+        // const [ price, size ] = delta
+        const price = delta[0]
+        const size = delta[1]
+        this.store (price, size)
+    }
+
+    // limit (n, array = undefined) {
+    //     array = Object.entries (array || this.index)
+    //     array.length = Math.min (array.length, n)
+    //     array = array.map (this.convert).sort (this.compare)
+    //     for (let i = 0; i < array.length; i++) {
+    //         this[i] = array[i]
+    //     }
+    //     this.length = array.length
+    //     return this
+    // }
+
     // replace stored orders with new values
-    reset (array) {
-        array = Object.entries (array).map (this.convert).sort (this.compare)
-        return this.splice (0, this.length, ... array)
+    limit (n = undefined) {
+        const array = Object.entries (this.index).map (this.convert).sort (this.compare)
+        n = Math.min (n || Number.MAX_SAFE_INTEGER, array.length)
+        // the following lines could be written as
+        //     this.splice (0, this.length, ... array)
+        // however, both .splice and .slice copy-construct the arrays
+        // so we assign the elements manually in favor of splice and slice
+        for (let i = 0; i < n; i++) {
+            this[i] = array[i]
+        }
+        // truncate the array by setting the length
+        // which is a legitimate operation in JS
+        this.length = n
+        return this
     }
 
     // convert from string-keyed dict values to human types for userland
@@ -55,7 +84,19 @@ class OrderBookSide extends Array {
 
 class CountedOrderBookSide extends OrderBookSide {
 
-    store (delta) {
+    store (price, size, count) {
+        if (count) {
+            if (size) {
+                this.index[price] = [ price, size, count ]
+            } else {
+                delete this.index[price]
+            }
+        } else {
+            delete this.index[price]
+        }
+    }
+
+    storeArray (delta) {
         const [ price, size, count ] = delta
         if (count) {
             if (size) {
@@ -78,8 +119,19 @@ class CountedOrderBookSide extends OrderBookSide {
 
 class IndexedOrderBookSide extends OrderBookSide {
 
-    store (delta) {
-        const [ price, size, id ] = delta
+    store (price, size, id) {
+        if (size) {
+            this.index[id] = [ price, size, id ]
+        } else {
+            delete this.index[id]
+        }
+    }
+
+    storeArray (delta) {
+        // const [ price, size, id ] = delta
+        // const price = delta[0]
+        const size = delta[1]
+            , id = delta[2]
         if (size) {
             this.index[id] = delta
         } else {
@@ -87,7 +139,7 @@ class IndexedOrderBookSide extends OrderBookSide {
         }
     }
 
-    convert ([ id, [ price, size, _ ]]) {
+    convert ([ _, [ price, size, id ]]) {
         return [ price, size, id ]
     }
 }
@@ -97,8 +149,7 @@ class IndexedOrderBookSide extends OrderBookSide {
 
 class IncrementalOrderBookSide extends OrderBookSide {
 
-    store (delta) {
-        const [ price, size ] = delta
+    store (price, size) {
         if (size) {
             this.index[price] = (this.index[price] || 0) + size
             if (!this.index[price]) {
@@ -115,18 +166,25 @@ class IncrementalOrderBookSide extends OrderBookSide {
 
 class IncrementalIndexedOrderBookSide extends IndexedOrderBookSide {
 
-    store (delta) {
-        const [ price, size, id ] = delta
+    store (price, size, id) {
         if (size) {
-            const after = (this.index[id] ? this.index[id][1] : 0) + size
-            if (after) {
-                this.index[id] = [ price, after, id ]
+            size = (this.index[id] ? this.index[id][1] : 0) + size
+            if (size) {
+                this.index[id] = [ price, size, id ]
             } else {
                 delete this.index[id]
             }
         } else {
             delete this.index[id]
         }
+    }
+
+    storeArray (delta) {
+        // const [ price, size, id ] = delta
+        const price = delta[0]
+            , size = delta[1]
+            , id = delta[2]
+        this.store (price, size, id)
     }
 }
 

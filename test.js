@@ -5,7 +5,12 @@ const ccxtpro = require ('./ccxt.pro.js')
 ;(async () => {
 
     const exchange = new ccxtpro.poloniex ()
-    const orderbook = await exchange.fetchWsOrderBook ('ETH/BTC')
+    for (let i = 0; i < 2; i++) {
+        const orderbook = await exchange.fetchWsOrderBook ('ETH/BTC', 4)
+        console.log (new Date (), orderbook)
+        await exchange.sleep (5000)
+        process.exit ()
+    }
 
     // try {
     //     const exchange = new ccxtpro.poloniex ()

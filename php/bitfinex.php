@@ -117,21 +117,21 @@ class bitfinex extends \ccxt\bitfinex {
         return [null, $operation, $side, $price, $amount];
     }
 
-    public function handle_ws_dropped ($client, $response, $messageHash) {
-        if ($this->safe_string($response, 'event') === 'subscribed') {
-            $channel = $response['channel'];
-            $marketId = $response['pair'];
-            $channelId = $response['chanId'];
+    public function handle_ws_dropped ($client, $message, $messageHash) {
+        if ($this->safe_string($message, 'event') === 'subscribed') {
+            $channel = $message['channel'];
+            $marketId = $message['pair'];
+            $channelId = $message['chanId'];
             $this->options['channels'][$channelId] = $channel . '/' . $marketId;
             return;
         }
         if ($messageHash !== null && $messageHash->startsWith ('book')) {
-            $this->handle_ws_order_book ($response);
+            $this->handle_ws_order_book ($message);
         }
     }
 
-    public function parse_symbol ($response) {
-        $channelId = $response[0];
+    public function parse_symbol ($message) {
+        $channelId = $message[0];
         $marketId = explode('/', $this->options['channels'][$channelId])[1];
         return $this->marketsById[$marketId]['symbol'];
     }

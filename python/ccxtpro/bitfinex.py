@@ -101,17 +101,17 @@ class bitfinex(ccxt.bitfinex):
             operation = 'delete'
         return [None, operation, side, price, amount]
 
-    def handle_ws_dropped(self, client, response, messageHash):
-        if self.safe_string(response, 'event') == 'subscribed':
-            channel = response['channel']
-            marketId = response['pair']
-            channelId = response['chanId']
+    def handle_ws_dropped(self, client, message, messageHash):
+        if self.safe_string(message, 'event') == 'subscribed':
+            channel = message['channel']
+            marketId = message['pair']
+            channelId = message['chanId']
             self.options['channels'][channelId] = channel + '/' + marketId
             return
         if messageHash is not None and messageHash.startsWith('book'):
-            self.handle_ws_order_book(response)
+            self.handle_ws_order_book(message)
 
-    def parse_symbol(self, response):
-        channelId = response[0]
+    def parse_symbol(self, message):
+        channelId = message[0]
         marketId = self.options['channels'][channelId].split('/')[1]
         return self.marketsById[marketId]['symbol']

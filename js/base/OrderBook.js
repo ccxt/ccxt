@@ -1,6 +1,6 @@
 'use strict';
 
-const { extend, deepExtend } = require ('./functions/generic.js')
+const { extend, deepExtend } = require ('ccxt/js/base/functions/generic.js')
     , {
         Asks,
         Bids,
@@ -43,6 +43,12 @@ class OrderBook {
         if (this.bids.constructor.name === 'Array') {
             this.bids = new Bids (this.bids)
         }
+    }
+
+    limit (n = undefined) {
+        this.asks.limit (n)
+        this.bids.limit (n)
+        return this
     }
 
     update (nonce, timestamp, asks, bids) {

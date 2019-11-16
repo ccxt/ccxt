@@ -84,7 +84,7 @@ class binance(ccxt.binance):
     def parse_symbol(self, message):
         return self.marketsById[message['s']]['symbol']
 
-    def handle_ws_dropped(self, client, response, messageHash):
+    def handle_ws_dropped(self, client, message, messageHash):
         orderBookHash = 'wss://stream.binance.com:9443/ws/ethbtc@depth'
         if messageHash is not None and messageHash.startsWith(orderBookHash):
-            self.handle_ws_order_book(response)
+            self.handle_ws_order_book(message)

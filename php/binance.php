@@ -99,10 +99,10 @@ class binance extends \ccxt\binance {
         return $this->marketsById[$message['s']]['symbol'];
     }
 
-    public function handle_ws_dropped ($client, $response, $messageHash) {
+    public function handle_ws_dropped ($client, $message, $messageHash) {
         $orderBookHash = 'wss://stream.binance.com:9443/ws/ethbtc@depth';
         if ($messageHash !== null && $messageHash->startsWith ($orderBookHash)) {
-            $this->handle_ws_order_book ($response);
+            $this->handle_ws_order_book ($message);
         }
     }
 }

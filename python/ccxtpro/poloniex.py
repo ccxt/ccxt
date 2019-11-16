@@ -51,7 +51,6 @@ class poloniex(ccxt.poloniex):
 
     async def fetch_ws_ticker(self, symbol):
         await self.load_markets()
-        self.marketsByNumericId()
         market = self.market(symbol)
         numericId = str(market['info']['id'])
         url = self.urls['api']['websocket']['public']
@@ -78,29 +77,107 @@ class poloniex(ccxt.poloniex):
         market = self.market(symbol)
         numericId = self.safe_string(market, 'numericId')
         url = self.urls['api']['ws']
-        return await self.WsOrderBookMessage(self.handleWsOrderBook, url, numericId, {
+        orderbook = await self.sendWsMessage(self.handleWsOrderBook, url, numericId, {
             'command': 'subscribe',
             'channel': numericId,
         })
+        return orderbook.limit(limit)
+        #  # add limit method
+        # return self.extend(orderbook, {
+        #     'bids': orderbook['bids'][0:limit],
+        #     'asks': orderbook['asks'][0:limit],
+        # })
+        # return await self.WsOrderBookMessage(url, numericId, {
+        #     'command': 'subscribe',
+        #     'channel': numericId,
+        # })
 
-    def handle_ws_order_book(self, orderBook):
+    def handle_ws_order_book(self, message):
+        #
+        # first response
+        #
+        #     [
+        #         14,  # channelId == market['numericId']
+        #         8767,  # nonce
+        #         [
+        #             [
+        #                 "i",  # initial snapshot
+        #                 {
+        #                     "currencyPair": "BTC_BTS",
+        #                     "orderBook": [
+        #                         { # asks
+        #                             "0.00001853": "2537.5637",  # price, size
+        #                             "0.00001854": "1567238.172367"
+        #                         },
+        #                         { # bids
+        #                             "0.00001841": "3645.3647",
+        #                             "0.00001840": "1637.3647"
+        #                         }
+        #                     ]
+        #                 }
+        #             ]
+        #         ]
+        #     ]
+        #
+        # subsequent updates
+        #
+        #     [
+        #         14,
+        #         8768,
+        #         [
+        #             ["o", 1, "0.00001823", "5534.6474"],  # orderbook delta, bids, price, size
+        #             ["o", 0, "0.00001824", "6575.464"],  # orderbook delta, asks, price, size
+        #             ["t", "42706057", 1, "0.05567134", "0.00181421", 1522877119]  # trade, id, sell, price, size, timestamp
+        #         ]
+        #     ]
+        #
         # TODO: handle incremental trades too
-        data = orderBook[2]
+        # print('were here again', orderbook)
+        # sys.exit()
+        marketId = str(message[0])
+        nonce = message[1]
+        data = message[2]
+        market = self.safe_value(self.options['marketsByNumericId'], marketId)
+        symbol = self.safe_string(market, 'symbol')
         deltas = []
         for i in range(0, len(data)):
             delta = data[i]
             if delta[0] == 'i':
-                rawBook = delta[1]['orderBook']
-                bids = rawBook[1]
-                asks = rawBook[0]
-                delta = {
-                    'bids': self.parse_bid_ask(bids),
-                    'asks': self.parse_bid_ask(asks),
-                    'nonce': None,
-                    'timestamp': None,
-                    'datetime': None,
-                }
-                deltas.append(delta)
+                snapshot = self.safe_value(delta[1], 'orderBook', [])
+                sides = ['asks', 'bids']
+                orderbook = self.orderbook(symbol)
+                for j in range(0, len(snapshot)):
+                    orders = snapshot[j]
+                    side = sides[j]
+                    prices = list(orders.keys())
+                    bookside = orderbook[side]
+                    for k in range(0, len(prices)):
+                        price = prices[k]
+                        amount = float(orders[price])
+                        bookside.store(price, amount)
+                    bookside.reset(bookside.index)
+                orderbook['nonce'] = nonce
+                return orderbook
+                print(orderbook)
+                sys.exit()
+                # asks = snapshot[0]
+                # bids = snapshot[1]
+                # prices = list(asks.keys())
+                # for j in range(0, len(prices)):
+                #     price = prices[i]
+                #     amount = float(asks[price])
+                #     orderbook['asks'].store([price, amount])
+                # }
+                # for j in range(0, len(asks)):
+                #     orderbook.asks.store()
+                # }
+                # self.orderbooks[symbol] = IncrementalOrderBook({
+                #     'bids': self.parse_bid_ask(bids),
+                #     'asks': self.parse_bid_ask(asks),
+                #     'nonce': nonce,
+                #     'timestamp': None,
+                #     'datetime': None,
+                # })
             elif delta[0] == 'o':
                 price = float(delta[2])
                 amount = float(delta[3])
@@ -108,15 +185,13 @@ class poloniex(ccxt.poloniex):
                 side = 'bids' if delta[1] else 'asks'
                 delta = [None, operation, side, price, amount]
                 deltas.append(delta)
-        market = self.safe_value(self.options['marketsByNumericId'], str(orderBook[0]))
-        symbol = self.safe_string(market, 'symbol')
         # if not (symbol in list(self.orderBooks.keys())):
-        #     self.orderBooks[symbol] = IncrementalOrderBook(deltas.pop(0))
+        #
         # }
-        incrementalBook = self.orderBooks[symbol]
-        incrementalBook.update(deltas)
-        incrementalBook.orderBook['nonce'] = orderBook[1]
-        return incrementalBook.orderBook
+        # incrementalBook = self.orderBooks[symbol]
+        # incrementalBook.update(deltas)
+        # incrementalBook.orderBook['nonce'] = orderbook[1]
+        # return incrementalBook.orderBook
 
     def parse_bid_ask(self, bidasks):
         prices = list(bidasks.keys())
@@ -127,6 +202,7 @@ class poloniex(ccxt.poloniex):
             result.append([float(price), float(amount)])
         return result
 
-    def handle_ws_dropped(self, client, response, messageHash):
+    def handle_ws_dropped(self, client, message, messageHash):
+        print('??')
         if messageHash is not None and int(messageHash) < 1000:
-            self.handle_ws_order_book(response)
+            self.handle_ws_order_book(message)

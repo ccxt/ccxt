@@ -86,17 +86,23 @@ module.exports = class poloniex extends ccxt.poloniex {
         const market = this.market (symbol);
         const numericId = this.safeString (market, 'numericId');
         const url = this.urls['api']['ws'];
-        return await this.sendWsMessage (this.handleWsOrderBook, url, numericId, {
+        const orderbook = await this.sendWsMessage (this.handleWsOrderBook, url, numericId, {
             'command': 'subscribe',
             'channel': numericId,
         });
+        return orderbook.limit (limit);
+        // // add limit method
+        // return this.extend (orderbook, {
+        //     'bids': orderbook['bids'].slice (0, limit),
+        //     'asks': orderbook['asks'].slice (0, limit),
+        // });
         // return await this.WsOrderBookMessage (url, numericId, {
         //     'command': 'subscribe',
         //     'channel': numericId,
         // });
     }
 
-    handleWsOrderBook (orderbook) {
+    handleWsOrderBook (message) {
         //
         // first response
         //
@@ -136,56 +142,87 @@ module.exports = class poloniex extends ccxt.poloniex {
         //     ]
         //
         // TODO: handle incremental trades too
-        const marketId = orderbook[0].toString ();
-        const nonce = orderbook[1];
-        const data = orderbook[2];
+        // console.log ('were here again', orderbook)
+        // process.exit ()
+        const marketId = message[0].toString ();
+        const nonce = message[1];
+        const data = message[2];
         const market = this.safeValue (this.options['marketsByNumericId'], marketId);
         const symbol = this.safeString (market, 'symbol');
-        const deltas = [];
         for (let i = 0; i < data.length; i++) {
-            let delta = data[i];
+            const delta = data[i];
             if (delta[0] === 'i') {
-                const snapshot = delta[1]['orderBook'];
-                const asks = snapshot[0];
-                const bids = snapshot[1];
-                this.orderbooks[symbol] = new IncrementalOrderBook ({
-                    'bids': this.parseBidAsk (bids),
-                    'asks': this.parseBidAsk (asks),
-                    'nonce': undefined,
-                    'timestamp': undefined,
-                    'datetime': undefined,
-                });
+                const snapshot = this.safeValue (delta[1], 'orderBook', []);
+                const sides = [ 'asks', 'bids' ];
+                this.orderbooks[symbol] = this.orderbook ();
+                const orderbook = this.orderbooks[symbol];
+                for (let j = 0; j < snapshot.length; j++) {
+                    const side = sides[j];
+                    const bookside = orderbook[side];
+                    const orders = snapshot[j];
+                    const prices = Object.keys (orders);
+                    for (let k = 0; k < prices.length; k++) {
+                        const price = prices[k];
+                        const amount = parseFloat (orders[price]);
+                        bookside.store (price, amount);
+                    }
+                }
+                orderbook['nonce'] = nonce;
+                return orderbook;
+                // const asks = snapshot[0];
+                // const bids = snapshot[1];
+                // const prices = Object.keys (asks);
+                // for (let j = 0; j < prices.length; j++) {
+                //     const price = prices[i];
+                //     const amount = parseFloat (asks[price]);
+                //     orderbook['asks'].store ([ price, amount ]);
+                // }
+                // for (let j = 0; j < asks.length; j++) {
+                //     orderbook.asks.store ();
+                // }
+                // this.orderbooks[symbol] = new IncrementalOrderBook ({
+                //     'bids': this.parseBidAsk (bids),
+                //     'asks': this.parseBidAsk (asks),
+                //     'nonce': nonce,
+                //     'timestamp': undefined,
+                //     'datetime': undefined,
+                // });
             } else if (delta[0] === 'o') {
-                const price = parseFloat (delta[2]);
-                const amount = parseFloat (delta[3]);
-                const operation = (amount === 0) ? 'delete' : 'add';
+                console.log (delta);
+                process.exit ();
+                const orderbook = this.orderbooks[symbol];
                 const side = delta[1] ? 'bids' : 'asks';
-                delta = [undefined, operation, side, price, amount];
-                deltas.push (delta);
+                const bookside = orderbook[side];
+                const price = delta[2];
+                const amount = parseFloat (delta[3]);
+                bookside.store (price, amount);
+                // delta = [undefined, operation, side, price, amount];
+                // deltas.push (delta);
             }
         }
-
         // if (!(symbol in this.orderBooks)) {
         //
         // }
-        const incrementalBook = this.orderBooks[symbol];
-        incrementalBook.update (deltas);
-        incrementalBook.orderBook['nonce'] = orderBook[1];
-        return incrementalBook.orderBook;
+        // const incrementalBook = this.orderBooks[symbol];
+        // incrementalBook.update (deltas);
+        // incrementalBook.orderBook['nonce'] = orderbook[1];
+        // return incrementalBook.orderBook;
     }
 
-    parseBidAsk (bidasks) {
-        const prices = Object.keys (bidasks);
-        const result = [];
-        for (let i = 0; i < prices.length; i++) {
-            const price = prices[i];
-            const amount = bidasks[price];
-            result.push ([ parseFloat (price), parseFloat (amount) ]);
-        }
-        return result;
-    }
+    // parseBidAsk (bidasks) {
+    //     const prices = Object.keys (bidasks);
+    //     const result = [];
+    //     for (let i = 0; i < prices.length; i++) {
+    //         const price = prices[i];
+    //         const amount = bidasks[price];
+    //         result.push ([ parseFloat (price), parseFloat (amount) ]);
+    //     }
+    //     return result;
+    // }
 
     handleWsDropped (client, message, messageHash) {
+        console.log (message, messageHash);
+        process.exit ();
         if (messageHash !== undefined && parseInt (messageHash) < 1000) {
             this.handleWsOrderBook (message);
         }
