@@ -27,19 +27,6 @@ class poloniex extends \ccxt\poloniex {
         ));
     }
 
-    public function get_ws_message_hash ($client, $response) {
-    //     $channelId = (string) $response[0];
-    //     $length = is_array ($response) ? count ($response) : 0;
-    //     if ($length <= 2) {
-    //         return;
-    //     }
-    //     if ($channelId === '1002') {
-    //         return $channelId . (string) $response[2][0];
-    //     } else {
-    //         return $channelId;
-    //     }
-    }
-
     public function handle_ws_ticker ($client, $response) {
         $data = $response[2];
         $market = $this->safe_value($this->options['marketsByNumericId'], (string) $data[0]);
@@ -59,15 +46,30 @@ class poloniex extends \ccxt\poloniex {
         );
     }
 
-    public function fetch_ws_tickers ($symbol) {
+    public function fetch_ws_balance ($params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $numericId = (string) $market['info']['id'];
-        $url = $this->urls['api']['websocket']['public'];
-        return $this->WsTickerMessage ($url, '1002' . $numericId, array (
+        $this->balance = $this->fetchBalance ($params);
+        $channelId = '1000';
+        $subscribe = array (
             'command' => 'subscribe',
-            'channel' => 1002,
-        ));
+            'channel' => $channelId,
+        );
+        $messageHash = $channelId . ':b:e';
+        $url = $this->urls['api']['ws'];
+        return $this->sendWsMessage ($url, $messageHash, $subscribe, $channelId);
+    }
+
+    public function fetch_ws_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        // rewrite
+        throw new NotImplemented($this->id . 'fetchWsTickers not implemented yet');
+        // $market = $this->market (symbol);
+        // $numericId = (string) $market['info']['id'];
+        // $url = $this->urls['api']['websocket']['public'];
+        // return $this->WsTickerMessage ($url, '1002' . $numericId, array (
+        //     'command' => 'subscribe',
+        //     'channel' => 1002,
+        // ));
     }
 
     public function load_markets ($reload = false, $params = array ()) {
@@ -124,15 +126,19 @@ class poloniex extends \ccxt\poloniex {
         return $this->sendWsMessage ($url, $channelId);
     }
 
-    public function sign_ws_message ($message, $params = array ()) {
-        $nonce = $this->nonce ();
-        $payload = $this->urlencode (array( 'nonce' => $nonce ))
-        $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha512');
-        $message = array_merge ($message, array (
-            'key' => $this->apiKey,
-            'payload' => $payload,
-            'sign' => $signature,
-        ));
+    public function sign_ws_message ($client, $messageHash, $message, $params = array ()) {
+        if (mb_strpos($messageHash, '1000') === 0) {
+            if ($this->check_required_credentials(false)) {
+                $nonce = $this->nonce ();
+                $payload = $this->urlencode (array( 'nonce' => $nonce ));
+                $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha512');
+                $message = array_merge ($message, array (
+                    'key' => $this->apiKey,
+                    'payload' => $payload,
+                    'sign' => $signature,
+                ));
+            }
+        }
         return $message;
     }
 
@@ -144,6 +150,45 @@ class poloniex extends \ccxt\poloniex {
         //
         $channelId = '1010';
         $this->resolveWsFuture ($client, $channelId, $message);
+    }
+
+    public function parse_ws_trade ($client, $trade, $market = null) {
+        //
+        // public trades
+        //
+        //     array (
+        //         "t", // $trade
+        //         "42706057", // $id
+        //         1, // 1 = buy, 0 = sell
+        //         "0.05567134", // $price
+        //         "0.00181421", // $amount
+        //         1522877119, // $timestamp
+        //     )
+        //
+        $id = (string) $trade[1];
+        $side = $trade[2] ? 'buy' : 'sell';
+        $price = floatval ($trade[3]);
+        $amount = floatval ($trade[4]);
+        $timestamp = $trade[5] * 1000;
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
+        return array (
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'id' => $id,
+            'order' => null,
+            'type' => null,
+            'takerOrMaker' => null,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $price * $amount,
+            'fee' => null,
+        );
     }
 
     public function handle_ws_order_book_and_trades ($client, $message) {
@@ -175,7 +220,7 @@ class poloniex extends \ccxt\poloniex {
         //         array (
         //             array ( "o", 1, "0.00001823", "5534.6474" ), // $orderbook $delta, bids, $price, size
         //             array ( "o", 0, "0.00001824", "6575.464" ), // $orderbook $delta, asks, $price, size
-        //             array ( "t", "42706057", 1, "0.05567134", "0.00181421", 1522877119 ) // $trade, id, sell, $price, size, timestamp
+        //             array ( "t", "42706057", 1, "0.05567134", "0.00181421", 1522877119 ) // $trade, id, $side (1 for buy, 0 for sell), $price, size, timestamp
         //         )
         //     )
         //
@@ -215,7 +260,7 @@ class poloniex extends \ccxt\poloniex {
                 $bookside->store ($price, $amount);
                 $orderbookUpdatesCount .= 1;
             } else if ($delta[0] === 't') {
-                $trade = $this->parseWsTrade ($delta);
+                $trade = $this->parse_ws_trade ($client, $delta, $market);
                 $this->trades[] = $trade;
                 $tradesCount .= 1;
             }
@@ -223,7 +268,8 @@ class poloniex extends \ccxt\poloniex {
         if ($orderbookUpdatesCount) {
             // resolve the $orderbook future
             $messageHash = $marketId . ':orderbook';
-            $this->resolveWsFuture ($client, $messageHash, $this->orderbooks[$symbol]);
+            $orderbook = $this->orderbooks[$symbol];
+            $this->resolveWsFuture ($client, $messageHash, $orderbook->limit ());
         }
         if ($tradesCount) {
             // resolve the trades future
@@ -232,13 +278,19 @@ class poloniex extends \ccxt\poloniex {
         }
     }
 
+    public function handle_account_notifications ($client, $message) {
+        var_dump ('Received', $message);
+        var_dump ('Private WS not implemented yet (wip)');
+        exit ();
+    }
+
     public function handle_ws_message ($client, $message) {
         $channelId = (string) $message[0];
         $market = $this->safe_value($this->options['marketsByNumericId'], $channelId);
         if ($market === null) {
             $methods = array (
                 // '<numericId>' => 'handleWsOrderBookAndTrades', // Price Aggregated Book
-                '1000' => 'handleWsPrivateAccountNotifications', // (Beta)
+                '1000' => 'handleWsAccountNotifications', // Beta
                 '1002' => 'handleWsTicker', // Ticker Data
                 // '1003' => null, // 24 Hour Exchange Volume
                 '1010' => 'handleWsHeartbeat',
@@ -252,22 +304,5 @@ class poloniex extends \ccxt\poloniex {
         } else {
             return $this->handle_ws_order_book_and_trades ($client, $message);
         }
-        // if (is_array($this->options['marketsByNumericId']) && array_key_exists($channelId, $this->options['marketsByNumericId'])) {
-        //     return $this->handle_ws_order_book_and_trades ($message);
-        // } else {
-        //     $methods = array (
-        //         // '<numericId>' => 'handleWsOrderBookAndTrades', // Price Aggregated Book
-        //         '1000' => 'handleWsPrivateAccountNotifications', // (Beta)
-        //         '1002' => 'handleWsTicker', // Ticker Data
-        //         // '1003' => null, // 24 Hour Exchange Volume
-        //         '1010' => 'handleWsHeartbeat',
-        //     );
-        //     $method = $this->safe_string($methods, $channelId);
-        //     if ($method === null) {
-        //         return $message;
-        //     } else {
-        //         return $this->$method ($message);
-        //     }
-        // }
     }
 }

@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
+const { NotImplemented } = require ('ccxt/js/base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -56,13 +57,15 @@ module.exports = class poloniex extends ccxt.poloniex {
 
     async fetchWsTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const numericId = market['info']['id'].toString ();
-        const url = this.urls['api']['websocket']['public'];
-        return await this.WsTickerMessage (url, '1002' + numericId, {
-            'command': 'subscribe',
-            'channel': 1002,
-        });
+        // rewrite
+        throw new NotImplemented (this.id + 'fetchWsTickers not implemented yet');
+        // const market = this.market (symbol);
+        // const numericId = market['info']['id'].toString ();
+        // const url = this.urls['api']['websocket']['public'];
+        // return await this.WsTickerMessage (url, '1002' + numericId, {
+        //     'command': 'subscribe',
+        //     'channel': 1002,
+        // });
     }
 
     async loadMarkets (reload = false, params = {}) {
@@ -272,7 +275,8 @@ module.exports = class poloniex extends ccxt.poloniex {
     }
 
     handleAccountNotifications (client, message) {
-        console.log (message);
+        console.log ('Received', message);
+        console.log ('Private WS not implemented yet (wip)');
         process.exit ();
     }
 
@@ -282,7 +286,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         if (market === undefined) {
             const methods = {
                 // '<numericId>': 'handleWsOrderBookAndTrades', // Price Aggregated Book
-                '1000': 'handleWsAccountNotifications', // (Beta)
+                '1000': 'handleWsAccountNotifications', // Beta
                 '1002': 'handleWsTicker', // Ticker Data
                 // '1003': undefined, // 24 Hour Exchange Volume
                 '1010': 'handleWsHeartbeat',

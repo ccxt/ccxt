@@ -23,18 +23,6 @@ class poloniex(ccxt.poloniex):
             },
         })
 
-    def get_ws_message_hash(self, client, response):
-    #     channelId = str(response[0])
-    #     length = len(response)
-    #     if length <= 2:
-    #         return
-    #     }
-    #     if channelId == '1002':
-    #         return channelId + str(response[2][0])
-    #     else:
-    #         return channelId
-    #     }
-
     def handle_ws_ticker(self, client, response):
         data = response[2]
         market = self.safe_value(self.options['marketsByNumericId'], str(data[0]))
@@ -53,15 +41,29 @@ class poloniex(ccxt.poloniex):
             'low': float(data[9]),
         }
 
-    async def fetch_ws_tickers(self, symbol):
+    async def fetch_ws_balance(self, params={}):
         await self.load_markets()
-        market = self.market(symbol)
-        numericId = str(market['info']['id'])
-        url = self.urls['api']['websocket']['public']
-        return await self.WsTickerMessage(url, '1002' + numericId, {
+        self.balance = await self.fetchBalance(params)
+        channelId = '1000'
+        subscribe = {
             'command': 'subscribe',
-            'channel': 1002,
-        })
+            'channel': channelId,
+        }
+        messageHash = channelId + ':b:e'
+        url = self.urls['api']['ws']
+        return self.sendWsMessage(url, messageHash, subscribe, channelId)
+
+    async def fetch_ws_tickers(self, symbols=None, params={}):
+        await self.load_markets()
+        # rewrite
+        raise NotImplemented(self.id + 'fetchWsTickers not implemented yet')
+        # market = self.market(symbol)
+        # numericId = str(market['info']['id'])
+        # url = self.urls['api']['websocket']['public']
+        # return await self.WsTickerMessage(url, '1002' + numericId, {
+        #     'command': 'subscribe',
+        #     'channel': 1002,
+        # })
 
     async def load_markets(self, reload=False, params={}):
         markets = await super(poloniex, self).load_markets(reload, params)
@@ -111,15 +113,17 @@ class poloniex(ccxt.poloniex):
         url = self.urls['api']['ws']
         return self.sendWsMessage(url, channelId)
 
-    def sign_ws_message(self, message, params={}):
-        nonce = self.nonce()
-        payload = self.urlencode({'nonce': nonce})
-        signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
-        message = self.extend(message, {
-            'key': self.apiKey,
-            'payload': payload,
-            'sign': signature,
-        })
+    def sign_ws_message(self, client, messageHash, message, params={}):
+        if messageHash.find('1000') == 0:
+            if self.check_required_credentials(false):
+                nonce = self.nonce()
+                payload = self.urlencode({'nonce': nonce})
+                signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
+                message = self.extend(message, {
+                    'key': self.apiKey,
+                    'payload': payload,
+                    'sign': signature,
+                })
         return message
 
     def handle_ws_heartbeat(self, client, message):
@@ -130,6 +134,43 @@ class poloniex(ccxt.poloniex):
         #
         channelId = '1010'
         self.resolveWsFuture(client, channelId, message)
+
+    def parse_ws_trade(self, client, trade, market=None):
+        #
+        # public trades
+        #
+        #     [
+        #         "t",  # trade
+        #         "42706057",  # id
+        #         1,  # 1 = buy, 0 = sell
+        #         "0.05567134",  # price
+        #         "0.00181421",  # amount
+        #         1522877119,  # timestamp
+        #     ]
+        #
+        id = str(trade[1])
+        side = 'buy' if trade[2] else 'sell'
+        price = float(trade[3])
+        amount = float(trade[4])
+        timestamp = trade[5] * 1000
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'id': id,
+            'order': None,
+            'type': None,
+            'takerOrMaker': None,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': price * amount,
+            'fee': None,
+        }
 
     def handle_ws_order_book_and_trades(self, client, message):
         #
@@ -160,7 +201,7 @@ class poloniex(ccxt.poloniex):
         #         [
         #             ["o", 1, "0.00001823", "5534.6474"],  # orderbook delta, bids, price, size
         #             ["o", 0, "0.00001824", "6575.464"],  # orderbook delta, asks, price, size
-        #             ["t", "42706057", 1, "0.05567134", "0.00181421", 1522877119]  # trade, id, sell, price, size, timestamp
+        #             ["t", "42706057", 1, "0.05567134", "0.00181421", 1522877119]  # trade, id, side(1 for buy, 0 for sell), price, size, timestamp
         #         ]
         #     ]
         #
@@ -198,17 +239,23 @@ class poloniex(ccxt.poloniex):
                 bookside.store(price, amount)
                 orderbookUpdatesCount += 1
             elif delta[0] == 't':
-                trade = self.parseWsTrade(delta)
+                trade = self.parse_ws_trade(client, delta, market)
                 self.trades.append(trade)
                 tradesCount += 1
         if orderbookUpdatesCount:
             # resolve the orderbook future
             messageHash = marketId + ':orderbook'
-            self.resolveWsFuture(client, messageHash, self.orderbooks[symbol])
+            orderbook = self.orderbooks[symbol]
+            self.resolveWsFuture(client, messageHash, orderbook.limit())
         if tradesCount:
             # resolve the trades future
             messageHash = marketId + ':trades'
             self.resolveWsFuture(client, messageHash, self.trades)
+
+    def handle_account_notifications(self, client, message):
+        print('Received', message)
+        print('Private WS not implemented yet(wip)')
+        sys.exit()
 
     def handle_ws_message(self, client, message):
         channelId = str(message[0])
@@ -216,7 +263,7 @@ class poloniex(ccxt.poloniex):
         if market is None:
             methods = {
                 # '<numericId>': 'handleWsOrderBookAndTrades',  # Price Aggregated Book
-                '1000': 'handleWsPrivateAccountNotifications',  #(Beta)
+                '1000': 'handleWsAccountNotifications',  # Beta
                 '1002': 'handleWsTicker',  # Ticker Data
                 # '1003': None,  # 24 Hour Exchange Volume
                 '1010': 'handleWsHeartbeat',
@@ -228,20 +275,3 @@ class poloniex(ccxt.poloniex):
                 return getattr(self, method)(client, message)
         else:
             return self.handle_ws_order_book_and_trades(client, message)
-        # if channelId in self.options['marketsByNumericId']:
-        #     return self.handle_ws_order_book_and_trades(message)
-        # else:
-        #     methods = {
-        #         # '<numericId>': 'handleWsOrderBookAndTrades',  # Price Aggregated Book
-        #         '1000': 'handleWsPrivateAccountNotifications',  #(Beta)
-        #         '1002': 'handleWsTicker',  # Ticker Data
-        #         # '1003': None,  # 24 Hour Exchange Volume
-        #         '1010': 'handleWsHeartbeat',
-        #     }
-        #     method = self.safe_string(methods, channelId)
-        #     if method is None:
-        #         return message
-        #     else:
-        #         return getattr(self, method)(message)
-        #     }
-        # }
