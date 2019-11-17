@@ -33,6 +33,9 @@ module.exports = class Exchange extends ccxt.Exchange {
         }
         if (message && !client.subscriptions[subscribeHash]) {
             client.subscriptions[subscribeHash] = true
+            message = this.signWsMessage (client, messageHash, message)
+            console.log (message)
+            process.exit ()
             client.send (message)
         }
         return client.futures[messageHash]

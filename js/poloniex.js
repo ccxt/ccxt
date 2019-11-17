@@ -22,19 +22,6 @@ module.exports = class poloniex extends ccxt.poloniex {
         });
     }
 
-    // getWsMessageHash (client, response) {
-    //     const channelId = response[0].toString ();
-    //     const length = response.length;
-    //     if (length <= 2) {
-    //         return;
-    //     }
-    //     if (channelId === '1002') {
-    //         return channelId + response[2][0].toString ();
-    //     } else {
-    //         return channelId;
-    //     }
-    // }
-
     handleWsTicker (client, response) {
         const data = response[2];
         const market = this.safeValue (this.options['marketsByNumericId'], data[0].toString ());
@@ -54,7 +41,20 @@ module.exports = class poloniex extends ccxt.poloniex {
         };
     }
 
-    async fetchWsTickers (symbol) {
+    async fetchWsBalance (params = {}) {
+        await this.loadMarkets ();
+        this.balance = await this.fetchBalance (params);
+        const channelId = '1000';
+        const subscribe = {
+            'command': 'subscribe',
+            'channel': channelId,
+        };
+        const messageHash = channelId + ':b:e';
+        const url = this.urls['api']['ws'];
+        return this.sendWsMessage (url, messageHash, subscribe, channelId);
+    }
+
+    async fetchWsTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const numericId = market['info']['id'].toString ();
@@ -119,15 +119,19 @@ module.exports = class poloniex extends ccxt.poloniex {
         return this.sendWsMessage (url, channelId);
     }
 
-    signWsMessage (message, params = {}) {
-        const nonce = this.nonce ();
-        const payload = this.urlencode ({ 'nonce': nonce })
-        const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha512');
-        message = this.extend (message, {
-            'key': this.apiKey,
-            'payload': payload,
-            'sign': signature,
-        });
+    signWsMessage (client, messageHash, message, params = {}) {
+        if (messageHash.indexOf ('1000') === 0) {
+            if (this.checkRequiredCredentials (false)) {
+                const nonce = this.nonce ();
+                const payload = this.urlencode ({ 'nonce': nonce });
+                const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha512');
+                message = this.extend (message, {
+                    'key': this.apiKey,
+                    'payload': payload,
+                    'sign': signature,
+                });
+            }
+        }
         return message;
     }
 
@@ -267,13 +271,18 @@ module.exports = class poloniex extends ccxt.poloniex {
         }
     }
 
+    handleAccountNotifications (client, message) {
+        console.log (message);
+        process.exit ();
+    }
+
     handleWsMessage (client, message) {
         const channelId = message[0].toString ();
         const market = this.safeValue (this.options['marketsByNumericId'], channelId);
         if (market === undefined) {
             const methods = {
                 // '<numericId>': 'handleWsOrderBookAndTrades', // Price Aggregated Book
-                '1000': 'handleWsPrivateAccountNotifications', // (Beta)
+                '1000': 'handleWsAccountNotifications', // (Beta)
                 '1002': 'handleWsTicker', // Ticker Data
                 // '1003': undefined, // 24 Hour Exchange Volume
                 '1010': 'handleWsHeartbeat',
@@ -287,22 +296,5 @@ module.exports = class poloniex extends ccxt.poloniex {
         } else {
             return this.handleWsOrderBookAndTrades (client, message);
         }
-        // if (channelId in this.options['marketsByNumericId']) {
-        //     return this.handleWsOrderBookAndTrades (message);
-        // } else {
-        //     const methods = {
-        //         // '<numericId>': 'handleWsOrderBookAndTrades', // Price Aggregated Book
-        //         '1000': 'handleWsPrivateAccountNotifications', // (Beta)
-        //         '1002': 'handleWsTicker', // Ticker Data
-        //         // '1003': undefined, // 24 Hour Exchange Volume
-        //         '1010': 'handleWsHeartbeat',
-        //     };
-        //     const method = this.safeString (methods, channelId);
-        //     if (method === undefined) {
-        //         return message;
-        //     } else {
-        //         return this[method] (message);
-        //     }
-        // }
     }
 };
