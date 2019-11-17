@@ -17,80 +17,36 @@ module.exports = class Exchange extends ccxt.Exchange {
         return new OrderBook ()
     }
 
-    async sendWsMessage (handler, url, messageHash, subscribe = undefined) {
-        if (!this.clients) {
-            this.clients = {}
-        }
+    websocket (url) {
+        this.clients = this.clients || {}
         if (!this.clients[url]) {
-            this.clients[url] = new WebSocketClient (url, this.handleWsMessage.bind (this))
+            const callback = this.handleWsMessage.bind (this)
+            this.clients[url] = new WebSocketClient (url, callback)
         }
         const client = this.clients[url]
+    }
+
+    async sendWsMessage (url, messageHash, subscribe = undefined) {
+        const client = this.websocket (url)
         if (!client.deferred[messageHash]) {
             client.deferred[messageHash] = externallyResolvablePromise ()
         }
-        const promise = client.deferred[messageHash]
-        if (!subscribe) {
-            await client.connected
-        } else if (!client.subscriptions[messageHash]) {
+        await client.connected
+        if (subscribe && !client.subscriptions[messageHash]) {
             client.subscriptions[messageHash] = true
             client.send (subscribe)
         }
-        const response = await promise
-        return handler.apply (this, [ response ])
+        return client.deferred[messageHash]
     }
 
-    // handleWsDropped (client, response, messageHash) {}
-
-    handleWsMessage3 (client, message) {
+    handleWsMessage (client, message) {
         const messageHash = this.getWsMessageHash (client, message);
+        const result = this.parseWsMessage (client, message, messageHash);
         if (client.deferred[messageHash]) {
             const promise = client.deferred[messageHash];
-            promise.resolve (message);
-            delete client.deferred[messageHash]
-        } else {
-            console.log (message)
-            this.handleWsDropped (client, message, messageHash);
-        }
-    }
-
-    handleWsMessage2 (client, message) {
-        const messageHash = this.getWsMessageHash (client, message);
-        const response = this.parseWsMessage (client, message, messageHash);
-        if (client.deferred[messageHash]) {
-            const promise = client.deferred[messageHash];
-            promise.resolve (response);
+            promise.resolve (result);
             delete client.deferred[messageHash]
         }
-    }
-
-    defineWsApi (has) {
-        const methods = Object.keys (has).filter (key => key.includes ('Ws'))
-            .map (key => key.slice (key.indexOf ('Ws')))
-
-        const _this = this
-        for (let i = 0; i < methods.length; i++) {
-            const method = methods[i]
-            this[method + 'Message'] = async (url, messageHash, subscribe = undefined) => {
-                const result = await this.registerFuture (url, messageHash, _this.handleWsMessage.bind (_this), _this.apiKey, subscribe)
-                return _this['handle' + method] (result)
-            }
-        }
-    }
-
-    async registerFuture (url, messageHash, callback, apiKey, subscribe = undefined) {
-        const index = url + (apiKey ? apiKey : '')
-        console.log (index)
-        process.exit ()
-        const client = this.clients[index] || (WebSocketClient.clients[index] = new WebSocketClient (url, callback))
-        const future = client.futures[messageHash] || (client.futures[messageHash] = new Future ())
-        if (subscribe === undefined) {
-            await client.connect ()
-        } else if (!client.subscriptions[messageHash]) {
-            client.send (subscribe)
-            client.subscriptions[messageHash] = true
-        }
-        const result = await future.promise ()
-        delete client.futures[messageHash]
         return result
     }
 }
