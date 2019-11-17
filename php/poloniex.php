@@ -435,8 +435,10 @@ class poloniex extends Exchange {
             $precision = 8; // default $precision, todo => fix "magic constants"
             $code = $this->safe_currency_code($id);
             $active = ($currency['delisted'] === 0) && !$currency['disabled'];
+            $numericId = $this->safe_integer($currency, 'id');
             $result[$code] = array (
                 'id' => $id,
+                'numericId' => $numericId,
                 'code' => $code,
                 'info' => $currency,
                 'name' => $currency['name'],
