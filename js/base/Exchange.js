@@ -23,29 +23,26 @@ module.exports = class Exchange extends ccxt.Exchange {
             const callback = this.handleWsMessage.bind (this)
             this.clients[url] = new WebSocketClient (url, callback)
         }
-        const client = this.clients[url]
+        return this.clients[url]
     }
 
-    async sendWsMessage (url, messageHash, subscribe = undefined) {
+    sendWsMessage (url, messageHash, message = undefined, subscribeHash = undefined) {
         const client = this.websocket (url)
-        if (!client.deferred[messageHash]) {
-            client.deferred[messageHash] = externallyResolvablePromise ()
+        if (!client.futures[messageHash]) {
+            client.futures[messageHash] = externallyResolvablePromise ()
         }
-        await client.connected
-        if (subscribe && !client.subscriptions[messageHash]) {
-            client.subscriptions[messageHash] = true
-            client.send (subscribe)
+        if (message && !client.subscriptions[subscribeHash]) {
+            client.subscriptions[subscribeHash] = true
+            client.send (message)
         }
-        return client.deferred[messageHash]
+        return client.futures[messageHash]
     }
 
-    handleWsMessage (client, message) {
-        const messageHash = this.getWsMessageHash (client, message);
-        const result = this.parseWsMessage (client, message, messageHash);
-        if (client.deferred[messageHash]) {
-            const promise = client.deferred[messageHash];
+    resolveWsFuture (client, messageHash, result) {
+        if (client.futures[messageHash]) {
+            const promise = client.futures[messageHash];
             promise.resolve (result);
-            delete client.deferred[messageHash]
+            delete client.futures[messageHash]
         }
         return result
     }
