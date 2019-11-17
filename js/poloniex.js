@@ -35,7 +35,7 @@ module.exports = class poloniex extends ccxt.poloniex {
     //     }
     // }
 
-    handleWsTicker (response) {
+    handleWsTicker (client, response) {
         const data = response[2];
         const market = this.safeValue (this.options['marketsByNumericId'], data[0].toString ());
         const symbol = this.safeString (market, 'symbol');
@@ -81,28 +81,106 @@ module.exports = class poloniex extends ccxt.poloniex {
         return markets;
     }
 
+    async fetchWsTrades (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const numericId = this.safeString (market, 'numericId');
+        const messageHash = numericId + ':trades';
+        const url = this.urls['api']['ws'];
+        const subscribe = {
+            'command': 'subscribe',
+            'channel': numericId,
+        };
+        return this.sendWsMessage (url, messageHash, subscribe, numericId);
+    }
+
     async fetchWsOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const numericId = this.safeString (market, 'numericId');
+        const messageHash = numericId + ':orderbook';
         const url = this.urls['api']['ws'];
-        const orderbook = await this.sendWsMessage (url, numericId, {
+        const subscribe = {
             'command': 'subscribe',
             'channel': numericId,
-        });
-        return orderbook.limit (limit);
+        };
+        // const orderbook = await this.sendWsMessage (url, messageHash, {
+        //     'command': 'subscribe',
+        //     'channel': numericId,
+        // });
+        // return orderbook.limit (limit);
+        return this.sendWsMessage (url, messageHash, subscribe, numericId);
     }
 
-    handleWsHeartbeat (message) {
+    async fetchWsHeartbeat (params = {}) {
+        await this.loadMarkets ();
+        const channelId = '1010';
+        const url = this.urls['api']['ws'];
+        return this.sendWsMessage (url, channelId);
+    }
+
+    signWsMessage (message, params = {}) {
+        const nonce = this.nonce ();
+        const payload = this.urlencode ({ 'nonce': nonce })
+        const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha512');
+        message = this.extend (message, {
+            'key': this.apiKey,
+            'payload': payload,
+            'sign': signature,
+        });
+        return message;
+    }
+
+    handleWsHeartbeat (client, message) {
         //
         // every second
         //
         //     [ 1010 ]
         //
-        return message;
+        const channelId = '1010';
+        this.resolveWsFuture (client, channelId, message);
     }
 
-    handleWsOrderBookAndTrades (message) {
+    parseWsTrade (client, trade, market = undefined) {
+        //
+        // public trades
+        //
+        //     [
+        //         "t", // trade
+        //         "42706057", // id
+        //         1, // 1 = buy, 0 = sell
+        //         "0.05567134", // price
+        //         "0.00181421", // amount
+        //         1522877119, // timestamp
+        //     ]
+        //
+        const id = trade[1].toString ();
+        const side = trade[2] ? 'buy' : 'sell';
+        const price = parseFloat (trade[3]);
+        const amount = parseFloat (trade[4]);
+        const timestamp = trade[5] * 1000;
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': id,
+            'order': undefined,
+            'type': undefined,
+            'takerOrMaker': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': price * amount,
+            'fee': undefined,
+        };
+    }
+
+    handleWsOrderBookAndTrades (client, message) {
         //
         // first response
         //
@@ -131,17 +209,16 @@ module.exports = class poloniex extends ccxt.poloniex {
         //         [
         //             [ "o", 1, "0.00001823", "5534.6474" ], // orderbook delta, bids, price, size
         //             [ "o", 0, "0.00001824", "6575.464" ], // orderbook delta, asks, price, size
-        //             [ "t", "42706057", 1, "0.05567134", "0.00181421", 1522877119 ] // trade, id, sell, price, size, timestamp
+        //             [ "t", "42706057", 1, "0.05567134", "0.00181421", 1522877119 ] // trade, id, side (1 for buy, 0 for sell), price, size, timestamp
         //         ]
         //     ]
         //
-        // TODO: handle incremental trades too
         const marketId = message[0].toString ();
         const nonce = message[1];
         const data = message[2];
         const market = this.safeValue (this.options['marketsByNumericId'], marketId);
         const symbol = this.safeString (market, 'symbol');
-        let orderbookCount = 0;
+        let orderbookUpdatesCount = 0;
         let tradesCount = 0;
         for (let i = 0; i < data.length; i++) {
             const delta = data[i];
@@ -162,7 +239,7 @@ module.exports = class poloniex extends ccxt.poloniex {
                     }
                 }
                 orderbook['nonce'] = nonce;
-                orderbookCount += 1;
+                orderbookUpdatesCount += 1;
             } else if (delta[0] === 'o') {
                 const orderbook = this.orderbooks[symbol];
                 const side = delta[1] ? 'bids' : 'asks';
@@ -170,18 +247,23 @@ module.exports = class poloniex extends ccxt.poloniex {
                 const price = delta[2];
                 const amount = parseFloat (delta[3]);
                 bookside.store (price, amount);
-                orderbookCount += 1;
+                orderbookUpdatesCount += 1;
             } else if (delta[0] === 't') {
-                const trade = this.parseWsTrade (delta);
+                const trade = this.parseWsTrade (client, delta, market);
                 this.trades.push (trade);
                 tradesCount += 1;
             }
         }
-        if (orderbookCount) {
+        if (orderbookUpdatesCount) {
             // resolve the orderbook future
+            const messageHash = marketId + ':orderbook';
+            const orderbook = this.orderbooks[symbol];
+            this.resolveWsFuture (client, messageHash, orderbook.limit ());
         }
         if (tradesCount) {
             // resolve the trades future
+            const messageHash = marketId + ':trades';
+            this.resolveWsFuture (client, messageHash, this.trades);
         }
     }
 
@@ -200,10 +282,10 @@ module.exports = class poloniex extends ccxt.poloniex {
             if (method === undefined) {
                 return message;
             } else {
-                return this[method] (message);
+                return this[method] (client, message);
             }
         } else {
-            return this.handleWsOrderBookAndTrades (message);
+            return this.handleWsOrderBookAndTrades (client, message);
         }
         // if (channelId in this.options['marketsByNumericId']) {
         //     return this.handleWsOrderBookAndTrades (message);
