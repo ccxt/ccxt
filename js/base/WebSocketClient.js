@@ -26,7 +26,7 @@ module.exports = class WebSocketClient {
             reconnect: false,
             reconnectDelay: 1000, // not used atm
             timers: {},
-            deferred: {},
+            futures: {},
             subscriptions: {},
             timeouts: {
                 // delay should be equal to the interval at which your
@@ -100,6 +100,7 @@ module.exports = class WebSocketClient {
     }
 
     async send (message) {
+        await this.connected
         this.ws.send (JSON.stringify (message))
     }
 
