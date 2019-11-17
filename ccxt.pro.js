@@ -20,7 +20,7 @@ const version = '1.0.0'
 const exchanges = {
     'binance':                 require ('./js/binance.js'),
     'bitfinex':                require ('./js/bitfinex.js'),
-    'poloniex':                require ('./js/poloniex.js'),    
+    'poloniex':                require ('./js/poloniex.js'),
 }
 
 // ----------------------------------------------------------------------------
@@ -28,7 +28,9 @@ const exchanges = {
 function monkeyPatchExchange (exchange, Exchange, keys) {
     for (let j = 0; j < keys.length; j++) {
         const key = keys[j]
-        exchange.prototype[key] = Exchange.prototype[key]
+        if (!exchange.prototype[key]) {
+            exchange.prototype[key] = Exchange.prototype[key]
+        }
     }
     return exchange
 }
