@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support as ccxt
+import hashlib
 
 
 class poloniex(ccxt.poloniex):
@@ -34,7 +35,7 @@ class poloniex(ccxt.poloniex):
     #         return channelId
     #     }
 
-    def handle_ws_ticker(self, response):
+    def handle_ws_ticker(self, client, response):
         data = response[2]
         market = self.safe_value(self.options['marketsByNumericId'], str(data[0]))
         symbol = self.safe_string(market, 'symbol')
@@ -75,26 +76,62 @@ class poloniex(ccxt.poloniex):
             self.options['marketsByNumericId'] = marketsByNumericId
         return markets
 
+    async def fetch_ws_trades(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        numericId = self.safe_string(market, 'numericId')
+        messageHash = numericId + ':trades'
+        url = self.urls['api']['ws']
+        subscribe = {
+            'command': 'subscribe',
+            'channel': numericId,
+        }
+        return self.sendWsMessage(url, messageHash, subscribe, numericId)
+
     async def fetch_ws_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         numericId = self.safe_string(market, 'numericId')
+        messageHash = numericId + ':orderbook'
         url = self.urls['api']['ws']
-        orderbook = await self.sendWsMessage(url, numericId, {
+        subscribe = {
             'command': 'subscribe',
             'channel': numericId,
-        })
-        return orderbook.limit(limit)
+        }
+        # orderbook = await self.sendWsMessage(url, messageHash, {
+        #     'command': 'subscribe',
+        #     'channel': numericId,
+        # })
+        # return orderbook.limit(limit)
+        return self.sendWsMessage(url, messageHash, subscribe, numericId)
 
-    def handle_ws_heartbeat(self, message):
+    async def fetch_ws_heartbeat(self, params={}):
+        await self.load_markets()
+        channelId = '1010'
+        url = self.urls['api']['ws']
+        return self.sendWsMessage(url, channelId)
+
+    def sign_ws_message(self, message, params={}):
+        nonce = self.nonce()
+        payload = self.urlencode({'nonce': nonce})
+        signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
+        message = self.extend(message, {
+            'key': self.apiKey,
+            'payload': payload,
+            'sign': signature,
+        })
+        return message
+
+    def handle_ws_heartbeat(self, client, message):
         #
         # every second
         #
         #     [1010]
         #
-        return message
+        channelId = '1010'
+        self.resolveWsFuture(client, channelId, message)
 
-    def handle_ws_order_book_and_trades(self, message):
+    def handle_ws_order_book_and_trades(self, client, message):
         #
         # first response
         #
@@ -127,13 +164,12 @@ class poloniex(ccxt.poloniex):
         #         ]
         #     ]
         #
-        # TODO: handle incremental trades too
         marketId = str(message[0])
         nonce = message[1]
         data = message[2]
         market = self.safe_value(self.options['marketsByNumericId'], marketId)
         symbol = self.safe_string(market, 'symbol')
-        orderbookCount = 0
+        orderbookUpdatesCount = 0
         tradesCount = 0
         for i in range(0, len(data)):
             delta = data[i]
@@ -152,7 +188,7 @@ class poloniex(ccxt.poloniex):
                         amount = float(orders[price])
                         bookside.store(price, amount)
                 orderbook['nonce'] = nonce
-                orderbookCount += 1
+                orderbookUpdatesCount += 1
             elif delta[0] == 'o':
                 orderbook = self.orderbooks[symbol]
                 side = 'bids' if delta[1] else 'asks'
@@ -160,15 +196,19 @@ class poloniex(ccxt.poloniex):
                 price = delta[2]
                 amount = float(delta[3])
                 bookside.store(price, amount)
-                orderbookCount += 1
+                orderbookUpdatesCount += 1
             elif delta[0] == 't':
                 trade = self.parseWsTrade(delta)
                 self.trades.append(trade)
                 tradesCount += 1
-        if orderbookCount:
+        if orderbookUpdatesCount:
             # resolve the orderbook future
+            messageHash = marketId + ':orderbook'
+            self.resolveWsFuture(client, messageHash, self.orderbooks[symbol])
         if tradesCount:
             # resolve the trades future
+            messageHash = marketId + ':trades'
+            self.resolveWsFuture(client, messageHash, self.trades)
 
     def handle_ws_message(self, client, message):
         channelId = str(message[0])
@@ -185,9 +225,9 @@ class poloniex(ccxt.poloniex):
             if method is None:
                 return message
             else:
-                return getattr(self, method)(message)
+                return getattr(self, method)(client, message)
         else:
-            return self.handle_ws_order_book_and_trades(message)
+            return self.handle_ws_order_book_and_trades(client, message)
         # if channelId in self.options['marketsByNumericId']:
         #     return self.handle_ws_order_book_and_trades(message)
         # else:

@@ -5,12 +5,48 @@ const ccxtpro = require ('./ccxt.pro.js')
 ;(async () => {
 
     const exchange = new ccxtpro.poloniex ()
-    for (let i = 0; i < 2; i++) {
-        const orderbook = await exchange.fetchWsOrderBook ('ETH/BTC', 4)
-        console.log (new Date (), orderbook)
-        await exchange.sleep (5000)
-        process.exit ()
-    }
+    // while (true) {
+    //     const response = await exchange.fetchWsHeartbeat ()
+    //     console.log (new Date (), response);
+    // }
+
+    const symbol = 'ETH/BTC'
+
+    Promise.all ([
+        (async () => {
+            while (true) {
+                let response = undefined
+                for (let i = 0; i < 10; i++) {
+                    response = await exchange.fetchWsOrderBook (symbol)
+                }
+                console.log (new Date (), response.asks.length, 'asks', response.asks[0], response.bids.length, 'bids', response.bids[0])
+            }
+        }) (),
+        (async () => {
+            const symbol = 'ETH/BTC'
+            while (true) {
+                let response = await exchange.fetchWsTrades (symbol)
+                console.log (new Date (), response)
+            }
+        }) (),
+        (async () => {
+            while (true) {
+                const response = await exchange.fetchWsHeartbeat ()
+                // console.log (new Date (), response);
+            }
+        }) (),
+    ])
+
+    // process.exit ();
+    // for (let i = 0; i < 2; i++) {
+    //     const response = await exchange.fetchWsTrades ('ETH/BTC');
+    //     console.log (new Date (), response);
+    //     process.exit ();
+    //     // const orderbook = await exchange.fetchWsOrderBook ('ETH/BTC')
+    //     // console.log (new Date (), orderbook.limit (5))
+    //     // await exchange.sleep (5000)
+    //     // process.exit ()
+    // }
 
     // try {
     //     const exchange = new ccxtpro.poloniex ()
