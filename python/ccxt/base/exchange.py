@@ -771,6 +771,7 @@ class Exchange(object):
 
     @staticmethod
     def filter_by(array, key, value=None):
+        array = Exchange.to_array(array)
         return list(filter(lambda x: x[key] == value, array))
 
     @staticmethod
