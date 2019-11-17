@@ -354,6 +354,7 @@ module.exports = class Exchange {
                 }
             }
         })
+        return true
     }
 
     checkAddress (address) {
