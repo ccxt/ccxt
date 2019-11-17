@@ -1146,6 +1146,7 @@ class Exchange(object):
                     raise AuthenticationError('requires `' + key + '`')
                 else:
                     return error
+        return True
 
     def check_address(self, address):
         """Checks an address is not the same character repeated or an empty sequence"""
