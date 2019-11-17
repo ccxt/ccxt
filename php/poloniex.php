@@ -15,6 +15,7 @@ class poloniex extends \ccxt\poloniex {
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
             'has' => array (
+                'ws' => true,
                 'fetchWsTicker' => true,
                 'fetchWsOrderBook' => true,
             ),
@@ -27,16 +28,16 @@ class poloniex extends \ccxt\poloniex {
     }
 
     public function get_ws_message_hash ($client, $response) {
-        $channelId = (string) $response[0];
-        $length = is_array ($response) ? count ($response) : 0;
-        if ($length <= 2) {
-            return;
-        }
-        if ($channelId === '1002') {
-            return $channelId . (string) $response[2][0];
-        } else {
-            return $channelId;
-        }
+    //     $channelId = (string) $response[0];
+    //     $length = is_array ($response) ? count ($response) : 0;
+    //     if ($length <= 2) {
+    //         return;
+    //     }
+    //     if ($channelId === '1002') {
+    //         return $channelId . (string) $response[2][0];
+    //     } else {
+    //         return $channelId;
+    //     }
     }
 
     public function handle_ws_ticker ($response) {
@@ -58,7 +59,7 @@ class poloniex extends \ccxt\poloniex {
         );
     }
 
-    public function fetch_ws_ticker ($symbol) {
+    public function fetch_ws_tickers ($symbol) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $numericId = (string) $market['info']['id'];
@@ -90,23 +91,23 @@ class poloniex extends \ccxt\poloniex {
         $market = $this->market ($symbol);
         $numericId = $this->safe_string($market, 'numericId');
         $url = $this->urls['api']['ws'];
-        $orderbook = $this->sendWsMessage ($this->handleWsOrderBook, $url, $numericId, array (
+        $orderbook = $this->sendWsMessage ($url, $numericId, array (
             'command' => 'subscribe',
             'channel' => $numericId,
         ));
-        return $orderbook->limit ($limit)
-        // // add $limit method
-        // return array_merge ($orderbook, array (
-        //     'bids' => mb_substr($orderbook['bids'], 0, $limit - 0),
-        //     'asks' => mb_substr($orderbook['asks'], 0, $limit - 0),
-        // ));
-        // return $this->WsOrderBookMessage ($url, $numericId, array (
-        //     'command' => 'subscribe',
-        //     'channel' => $numericId,
-        // ));
+        return $orderbook->limit ($limit);
     }
 
-    public function handle_ws_order_book ($message) {
+    public function handle_ws_heartbeat ($message) {
+        //
+        // every second
+        //
+        //     array ( 1010 )
+        //
+        return $message;
+    }
+
+    public function handle_ws_order_book_and_trades ($message) {
         //
         // first response
         //
@@ -119,14 +120,8 @@ class poloniex extends \ccxt\poloniex {
         //                 {
         //                     "currencyPair" => "BTC_BTS",
         //                     "orderBook" => array (
-        //                         array ( // $asks
-        //                             "0.00001853" => "2537.5637", // $price, size
-        //                             "0.00001854" => "1567238.172367"
-        //                         ),
-        //                         { // $bids
-        //                             "0.00001841" => "3645.3647",
-        //                             "0.00001840" => "1637.3647"
-        //                         }
+        //                         array( "0.00001853" => "2537.5637", "0.00001854" => "1567238.172367" ), // asks, $price, size
+        //                         array( "0.00001841" => "3645.3647", "0.00001840" => "1637.3647" ) // bids
         //                     )
         //                 }
         //             )
@@ -139,94 +134,98 @@ class poloniex extends \ccxt\poloniex {
         //         14,
         //         8768,
         //         array (
-        //             array ( "o", 1, "0.00001823", "5534.6474" ), // $orderbook $delta, $bids, $price, size
-        //             array ( "o", 0, "0.00001824", "6575.464" ), // $orderbook $delta, $asks, $price, size
-        //             array ( "t", "42706057", 1, "0.05567134", "0.00181421", 1522877119 ) // trade, id, sell, $price, size, timestamp
+        //             array ( "o", 1, "0.00001823", "5534.6474" ), // $orderbook $delta, bids, $price, size
+        //             array ( "o", 0, "0.00001824", "6575.464" ), // $orderbook $delta, asks, $price, size
+        //             array ( "t", "42706057", 1, "0.05567134", "0.00181421", 1522877119 ) // $trade, id, sell, $price, size, timestamp
         //         )
         //     )
         //
         // TODO => handle incremental trades too
-        // var_dump ('were here again', $orderbook)
-        // exit ()
         $marketId = (string) $message[0];
         $nonce = $message[1];
         $data = $message[2];
         $market = $this->safe_value($this->options['marketsByNumericId'], $marketId);
         $symbol = $this->safe_string($market, 'symbol');
-        $deltas = array();
+        $orderbookCount = 0;
+        $tradesCount = 0;
         for ($i = 0; $i < count ($data); $i++) {
             $delta = $data[$i];
             if ($delta[0] === 'i') {
                 $snapshot = $this->safe_value($delta[1], 'orderBook', array());
                 $sides = array ( 'asks', 'bids' );
-                $orderbook = $this->orderbook ($symbol);
+                $this->orderbooks[$symbol] = $this->orderbook ();
+                $orderbook = $this->orderbooks[$symbol];
                 for ($j = 0; $j < count ($snapshot); $j++) {
-                    $orders = $snapshot[$j];
                     $side = $sides[$j];
-                    $prices = is_array($orders) ? array_keys($orders) : array();
                     $bookside = $orderbook[$side];
+                    $orders = $snapshot[$j];
+                    $prices = is_array($orders) ? array_keys($orders) : array();
                     for ($k = 0; $k < count ($prices); $k++) {
                         $price = $prices[$k];
                         $amount = floatval ($orders[$price]);
                         $bookside->store ($price, $amount);
                     }
-                    $bookside->reset ($bookside->index);
                 }
                 $orderbook['nonce'] = $nonce;
-                return $orderbook;
-                var_dump ($orderbook);
-                exit ();
-                // $asks = $snapshot[0];
-                // $bids = $snapshot[1];
-                // $prices = is_array($asks) ? array_keys($asks) : array();
-                // for ($j = 0; $j < count ($prices); $j++) {
-                //     $price = $prices[$i];
-                //     $amount = floatval ($asks[$price]);
-                //     $orderbook['asks'].store (array ( $price, $amount ));
-                // }
-                // for ($j = 0; $j < count ($asks); $j++) {
-                //     $orderbook->asks.store ();
-                // }
-                // $this->orderbooks[$symbol] = new IncrementalOrderBook (array (
-                //     'bids' => $this->parse_bid_ask($bids),
-                //     'asks' => $this->parse_bid_ask($asks),
-                //     'nonce' => $nonce,
-                //     'timestamp' => null,
-                //     'datetime' => null,
-                // ));
+                $orderbookCount .= 1;
             } else if ($delta[0] === 'o') {
-                $price = floatval ($delta[2]);
-                $amount = floatval ($delta[3]);
-                $operation = ($amount === 0) ? 'delete' : 'add';
+                $orderbook = $this->orderbooks[$symbol];
                 $side = $delta[1] ? 'bids' : 'asks';
-                $delta = [null, $operation, $side, $price, $amount];
-                $deltas[] = $delta;
+                $bookside = $orderbook[$side];
+                $price = $delta[2];
+                $amount = floatval ($delta[3]);
+                $bookside->store ($price, $amount);
+                $orderbookCount .= 1;
+            } else if ($delta[0] === 't') {
+                $trade = $this->parseWsTrade ($delta);
+                $this->trades[] = $trade;
+                $tradesCount .= 1;
             }
         }
-        // if (!(is_array($this->orderBooks) && array_key_exists($symbol, $this->orderBooks))) {
-        //
+        if ($orderbookCount) {
+            // resolve the $orderbook future
+        }
+        if ($tradesCount) {
+            // resolve the trades future
+        }
+    }
+
+    public function handle_ws_message ($client, $message) {
+        $channelId = (string) $message[0];
+        $market = $this->safe_value($this->options['marketsByNumericId'], $channelId);
+        if ($market === null) {
+            $methods = array (
+                // '<numericId>' => 'handleWsOrderBookAndTrades', // Price Aggregated Book
+                '1000' => 'handleWsPrivateAccountNotifications', // (Beta)
+                '1002' => 'handleWsTicker', // Ticker Data
+                // '1003' => null, // 24 Hour Exchange Volume
+                '1010' => 'handleWsHeartbeat',
+            );
+            $method = $this->safe_string($methods, $channelId);
+            if ($method === null) {
+                return $message;
+            } else {
+                return $this->$method ($message);
+            }
+        } else {
+            return $this->handle_ws_order_book_and_trades ($message);
+        }
+        // if (is_array($this->options['marketsByNumericId']) && array_key_exists($channelId, $this->options['marketsByNumericId'])) {
+        //     return $this->handle_ws_order_book_and_trades ($message);
+        // } else {
+        //     $methods = array (
+        //         // '<numericId>' => 'handleWsOrderBookAndTrades', // Price Aggregated Book
+        //         '1000' => 'handleWsPrivateAccountNotifications', // (Beta)
+        //         '1002' => 'handleWsTicker', // Ticker Data
+        //         // '1003' => null, // 24 Hour Exchange Volume
+        //         '1010' => 'handleWsHeartbeat',
+        //     );
+        //     $method = $this->safe_string($methods, $channelId);
+        //     if ($method === null) {
+        //         return $message;
+        //     } else {
+        //         return $this->$method ($message);
+        //     }
         // }
-        // $incrementalBook = $this->orderBooks[$symbol];
-        // $incrementalBook->update ($deltas);
-        // $incrementalBook->orderBook['nonce'] = $orderbook[1];
-        // return $incrementalBook->orderBook;
-    }
-
-    public function parse_bid_ask ($bidasks) {
-        $prices = is_array($bidasks) ? array_keys($bidasks) : array();
-        $result = array();
-        for ($i = 0; $i < count ($prices); $i++) {
-            $price = $prices[$i];
-            $amount = $bidasks[$price];
-            $result[] = array ( floatval ($price), floatval ($amount) );
-        }
-        return $result;
-    }
-
-    public function handle_ws_dropped ($client, $message, $messageHash) {
-        var_dump ('??');
-        if ($messageHash !== null && intval ($messageHash) < 1000) {
-            $this->handle_ws_order_book ($message);
-        }
     }
 }

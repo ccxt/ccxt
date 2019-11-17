@@ -11,6 +11,7 @@ class poloniex(ccxt.poloniex):
     def describe(self):
         return self.deep_extend(super(poloniex, self).describe(), {
             'has': {
+                'ws': True,
                 'fetchWsTicker': True,
                 'fetchWsOrderBook': True,
             },
@@ -22,14 +23,16 @@ class poloniex(ccxt.poloniex):
         })
 
     def get_ws_message_hash(self, client, response):
-        channelId = str(response[0])
-        length = len(response)
-        if length <= 2:
-            return
-        if channelId == '1002':
-            return channelId + str(response[2][0])
-        else:
-            return channelId
+    #     channelId = str(response[0])
+    #     length = len(response)
+    #     if length <= 2:
+    #         return
+    #     }
+    #     if channelId == '1002':
+    #         return channelId + str(response[2][0])
+    #     else:
+    #         return channelId
+    #     }
 
     def handle_ws_ticker(self, response):
         data = response[2]
@@ -49,7 +52,7 @@ class poloniex(ccxt.poloniex):
             'low': float(data[9]),
         }
 
-    async def fetch_ws_ticker(self, symbol):
+    async def fetch_ws_tickers(self, symbol):
         await self.load_markets()
         market = self.market(symbol)
         numericId = str(market['info']['id'])
@@ -77,22 +80,21 @@ class poloniex(ccxt.poloniex):
         market = self.market(symbol)
         numericId = self.safe_string(market, 'numericId')
         url = self.urls['api']['ws']
-        orderbook = await self.sendWsMessage(self.handleWsOrderBook, url, numericId, {
+        orderbook = await self.sendWsMessage(url, numericId, {
             'command': 'subscribe',
             'channel': numericId,
         })
         return orderbook.limit(limit)
-        #  # add limit method
-        # return self.extend(orderbook, {
-        #     'bids': orderbook['bids'][0:limit],
-        #     'asks': orderbook['asks'][0:limit],
-        # })
-        # return await self.WsOrderBookMessage(url, numericId, {
-        #     'command': 'subscribe',
-        #     'channel': numericId,
-        # })
 
-    def handle_ws_order_book(self, message):
+    def handle_ws_heartbeat(self, message):
+        #
+        # every second
+        #
+        #     [1010]
+        #
+        return message
+
+    def handle_ws_order_book_and_trades(self, message):
         #
         # first response
         #
@@ -105,14 +107,8 @@ class poloniex(ccxt.poloniex):
         #                 {
         #                     "currencyPair": "BTC_BTS",
         #                     "orderBook": [
-        #                         { # asks
-        #                             "0.00001853": "2537.5637",  # price, size
-        #                             "0.00001854": "1567238.172367"
-        #                         },
-        #                         { # bids
-        #                             "0.00001841": "3645.3647",
-        #                             "0.00001840": "1637.3647"
-        #                         }
+        #                         {"0.00001853": "2537.5637", "0.00001854": "1567238.172367"},  # asks, price, size
+        #                         {"0.00001841": "3645.3647", "0.00001840": "1637.3647"}  # bids
         #                     ]
         #                 }
         #             ]
@@ -132,77 +128,80 @@ class poloniex(ccxt.poloniex):
         #     ]
         #
         # TODO: handle incremental trades too
-        # print('were here again', orderbook)
-        # sys.exit()
         marketId = str(message[0])
         nonce = message[1]
         data = message[2]
         market = self.safe_value(self.options['marketsByNumericId'], marketId)
         symbol = self.safe_string(market, 'symbol')
-        deltas = []
+        orderbookCount = 0
+        tradesCount = 0
         for i in range(0, len(data)):
             delta = data[i]
             if delta[0] == 'i':
                 snapshot = self.safe_value(delta[1], 'orderBook', [])
                 sides = ['asks', 'bids']
-                orderbook = self.orderbook(symbol)
+                self.orderbooks[symbol] = self.orderbook()
+                orderbook = self.orderbooks[symbol]
                 for j in range(0, len(snapshot)):
-                    orders = snapshot[j]
                     side = sides[j]
-                    prices = list(orders.keys())
                     bookside = orderbook[side]
+                    orders = snapshot[j]
+                    prices = list(orders.keys())
                     for k in range(0, len(prices)):
                         price = prices[k]
                         amount = float(orders[price])
                         bookside.store(price, amount)
-                    bookside.reset(bookside.index)
                 orderbook['nonce'] = nonce
-                return orderbook
-                print(orderbook)
-                sys.exit()
-                # asks = snapshot[0]
-                # bids = snapshot[1]
-                # prices = list(asks.keys())
-                # for j in range(0, len(prices)):
-                #     price = prices[i]
-                #     amount = float(asks[price])
-                #     orderbook['asks'].store([price, amount])
-                # }
-                # for j in range(0, len(asks)):
-                #     orderbook.asks.store()
-                # }
-                # self.orderbooks[symbol] = IncrementalOrderBook({
-                #     'bids': self.parse_bid_ask(bids),
-                #     'asks': self.parse_bid_ask(asks),
-                #     'nonce': nonce,
-                #     'timestamp': None,
-                #     'datetime': None,
-                # })
+                orderbookCount += 1
             elif delta[0] == 'o':
-                price = float(delta[2])
-                amount = float(delta[3])
-                operation = 'delete' if (amount == 0) else 'add'
+                orderbook = self.orderbooks[symbol]
                 side = 'bids' if delta[1] else 'asks'
-                delta = [None, operation, side, price, amount]
-                deltas.append(delta)
-        # if not (symbol in list(self.orderBooks.keys())):
-        #
+                bookside = orderbook[side]
+                price = delta[2]
+                amount = float(delta[3])
+                bookside.store(price, amount)
+                orderbookCount += 1
+            elif delta[0] == 't':
+                trade = self.parseWsTrade(delta)
+                self.trades.append(trade)
+                tradesCount += 1
+        if orderbookCount:
+            # resolve the orderbook future
+        if tradesCount:
+            # resolve the trades future
+
+    def handle_ws_message(self, client, message):
+        channelId = str(message[0])
+        market = self.safe_value(self.options['marketsByNumericId'], channelId)
+        if market is None:
+            methods = {
+                # '<numericId>': 'handleWsOrderBookAndTrades',  # Price Aggregated Book
+                '1000': 'handleWsPrivateAccountNotifications',  #(Beta)
+                '1002': 'handleWsTicker',  # Ticker Data
+                # '1003': None,  # 24 Hour Exchange Volume
+                '1010': 'handleWsHeartbeat',
+            }
+            method = self.safe_string(methods, channelId)
+            if method is None:
+                return message
+            else:
+                return getattr(self, method)(message)
+        else:
+            return self.handle_ws_order_book_and_trades(message)
+        # if channelId in self.options['marketsByNumericId']:
+        #     return self.handle_ws_order_book_and_trades(message)
+        # else:
+        #     methods = {
+        #         # '<numericId>': 'handleWsOrderBookAndTrades',  # Price Aggregated Book
+        #         '1000': 'handleWsPrivateAccountNotifications',  #(Beta)
+        #         '1002': 'handleWsTicker',  # Ticker Data
+        #         # '1003': None,  # 24 Hour Exchange Volume
+        #         '1010': 'handleWsHeartbeat',
+        #     }
+        #     method = self.safe_string(methods, channelId)
+        #     if method is None:
+        #         return message
+        #     else:
+        #         return getattr(self, method)(message)
+        #     }
         # }
-        # incrementalBook = self.orderBooks[symbol]
-        # incrementalBook.update(deltas)
-        # incrementalBook.orderBook['nonce'] = orderbook[1]
-        # return incrementalBook.orderBook
-
-    def parse_bid_ask(self, bidasks):
-        prices = list(bidasks.keys())
-        result = []
-        for i in range(0, len(prices)):
-            price = prices[i]
-            amount = bidasks[price]
-            result.append([float(price), float(amount)])
-        return result
-
-    def handle_ws_dropped(self, client, message, messageHash):
-        print('??')
-        if messageHash is not None and int(messageHash) < 1000:
-            self.handle_ws_order_book(message)
