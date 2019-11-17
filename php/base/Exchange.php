@@ -754,6 +754,7 @@ class Exchange {
                 }
             }
         }
+        return true;
     }
 
     public function check_address($address) {
