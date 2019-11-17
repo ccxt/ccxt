@@ -100,7 +100,6 @@ module.exports = class WebSocketClient {
     }
 
     async send (message) {
-        await this.connected
         this.ws.send (JSON.stringify (message))
     }
 
@@ -160,14 +159,6 @@ module.exports = class WebSocketClient {
             // throw json encoding error
         }
         this.callback (this, message)
-        // const channel = message[0];
-        // // const [ channel, ... rest ] = parsedMessage
-        // console.log (new Date (), 'message', message)
-        // if (channel === 1010) {
-        //     // do nothing
-        // } else {
-        //     process.exit ()
-        // }
     }
 }
 
