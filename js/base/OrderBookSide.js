@@ -79,6 +79,29 @@ class OrderBookSide extends Array {
 }
 
 // ----------------------------------------------------------------------------
+//
+//
+
+class LimitedOrderBookSide extends OrderBookSide {
+
+    constructor (deltas = [], limit = undefined) {
+        super (deltas)
+        Object.defineProperty (this, 'limit', {
+            __proto__: null, // make it invisible
+            value: limit,
+        })
+    }
+
+    limit (n = undefined) {
+        if (n) {
+            return super.limit (Math.min (this.limit || Number.MAX_SAFE_INTEGER, n))
+        } else {
+            return super.limit (this.limit)
+        }
+    }
+}
+
+// ----------------------------------------------------------------------------
 // overwrites absolute volumes at price levels
 // or deletes price levels based on order counts (3rd value in a bidask delta)
 
@@ -193,6 +216,8 @@ class IncrementalIndexedOrderBookSide extends IndexedOrderBookSide {
 
 class Asks extends OrderBookSide { compare (a, b) { return a[0] - b[0] }}
 class Bids extends OrderBookSide { compare (a, b) { return b[0] - a[0] }}
+class LimitedAsks extends LimitedOrderBookSide { compare (a, b) { return a[0] - b[0] }}
+class LimitedBids extends LimitedOrderBookSide { compare (a, b) { return b[0] - a[0] }}
 class CountedAsks extends CountedOrderBookSide { compare (a, b) { return a[0] - b[0] }}
 class CountedBids extends CountedOrderBookSide { compare (a, b) { return b[0] - a[0] }}
 class IndexedAsks extends IndexedOrderBookSide { compare (a, b) { return a[0] - b[0] }}
@@ -210,6 +235,11 @@ module.exports = {
     Asks,
     Bids,
     OrderBookSide,
+
+    // limited
+    LimitedAsks,
+    LimitedBids,
+    LimitedOrderBookSide,
 
     // count-based
     CountedAsks,
