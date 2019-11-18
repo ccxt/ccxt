@@ -79,8 +79,8 @@ class OrderBookSide extends Array {
 }
 
 // ----------------------------------------------------------------------------
-//
-//
+// some exchanges limit the number of bids/asks in the aggregated orderbook
+// orders beyond the limit threshold should not be returned to the user
 
 class LimitedOrderBookSide extends OrderBookSide {
 
