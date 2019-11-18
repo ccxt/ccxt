@@ -15,10 +15,9 @@ module.exports = class qtrade extends Exchange {
             'name': 'qTrade',
             'countries': [ 'US' ],
             'rateLimit': 1000,
-            'version': '1',
-            'certified': true,
+            'version': 'v1',
             'urls': {
-                'logo': '', // need to fill
+                'logo': 'https://raw.githubusercontent.com/qtrade-exchange/media-assets/6dafa59/logos/logo_inline_text/logo-full-white.png',
                 'api': 'https://api.qtrade.io',
                 'www': 'https://qtrade.io',
                 'doc': 'https://qtrade-exchange.github.io/qtrade-docs',
@@ -102,7 +101,7 @@ module.exports = class qtrade extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetExchangeInfo (params);
+        const response = await this.publicGetCommon (params);
         //
         //     {        timezone:   "UTC",
         //           server_time:    1545171487108,
@@ -130,40 +129,38 @@ module.exports = class qtrade extends Exchange {
         //                                   allow_trading:  true       }     ]               }
         //
         const result = [];
-        const markets = this.safeValue (response, 'symbols', []);
-        const baseCurrencies = this.safeValue (response, 'base_currencies', []);
-        const baseCurrenciesByIds = this.indexBy (baseCurrencies, 'currency_code');
-        const currencies = this.safeValue (response, 'coins', []);
-        const currenciesByIds = this.indexBy (currencies, 'currency_code');
+        const markets = this.safeValue (response.data, 'markets', []);
+        const currencies = this.safeValue (response.data, 'currencies', []);
+        const currenciesByCode = this.indexBy (currencies, 'code');
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const marketId = market['symbol'];
-            const [ baseId, quoteId ] = marketId.split ('_');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
+            const marketId = market['id'];
+            const base = this.safeCurrencyCode (market['base_currency']);
+            const quote = this.safeCurrencyCode (market['market_currency']);
+            const baseCurrency = this.safeValue (currenciesByCode, base, {});
+            const quoteCurrency = this.safeValue (currenciesByCode, base, {});
             const symbol = base + '/' + quote;
             const precision = {
-                'amount': this.safeInteger (market, 'amount_limit_decimal'),
-                'price': this.safeInteger (market, 'price_limit_decimal'),
+                'amount': this.safeInteger (baseCurrency, 'precision'),
+                'price': this.safeInteger (quoteCurrency, 'precision'),
             };
             const active = this.safeValue (market, 'allow_trading', false);
-            const baseCurrency = this.safeValue (baseCurrenciesByIds, baseId, {});
-            const minCost = this.safeFloat (baseCurrency, 'minimum_total_order');
-            const currency = this.safeValue (currenciesByIds, baseId, {});
-            const defaultMinAmount = Math.pow (10, -precision['amount']);
-            const minAmount = this.safeFloat (currency, 'minimum_order_amount', defaultMinAmount);
+            // TODO: backend needs imp work
+            // const minCost = this.safeFloat (baseCurrency, 'minimum_total_order');
+            // const defaultMinAmount = Math.pow (10, -precision['amount']);
+            // const minAmount = this.safeFloat (currency, 'minimum_order_amount', defaultMinAmount);
             result.push ({
                 'symbol': symbol,
                 'id': marketId,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'baseId': base,
+                'quoteId': quote,
                 'base': base,
                 'quote': quote,
                 'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': minAmount,
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
@@ -171,7 +168,7 @@ module.exports = class qtrade extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': minCost,
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
@@ -852,31 +849,7 @@ module.exports = class qtrade extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + path;
-        if (api === 'trade') {
-            this.checkRequiredCredentials ();
-            const timestamp = this.nonce ();
-            const query = this.extend ({
-                'timestamp': timestamp, // required (int64)
-                // 'recvWindow': 10000, // optional (int32)
-            }, params);
-            let request = undefined;
-            if (method === 'GET') {
-                request = this.urlencode (query);
-                url += '?' + request;
-            } else {
-                request = this.json (query);
-                body = request;
-            }
-            headers = {
-                'Signature': this.hmac (this.encode (request), this.encode (this.secret)),
-                'Authorization': this.apiKey,
-            };
-        } else {
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
-            }
-        }
+        let url = this.urls['api'] + '/' + this.version + '/' + path;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
