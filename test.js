@@ -7,7 +7,8 @@ const ccxtpro = require ('./ccxt.pro.js')
     const kraken = new ccxtpro.kraken ({
     })
 
-    process.exit ();
+    console.log (await kraken.fetchWsOrderBook ('ETH/BTC'))
+    process.exit ()
 
     const exchange = new ccxtpro.poloniex ({
         // 'verbose': true,

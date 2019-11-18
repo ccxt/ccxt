@@ -17,9 +17,9 @@ module.exports = class kraken extends ccxt.kraken {
             },
             'urls': {
                 'api': {
-                    'ws': 'ws.kraken.com',
-                    'wsauth': 'ws-auth.kraken.com',
-                    'betaws': 'beta-ws.kraken.com',
+                    'ws': 'wss://ws.kraken.com',
+                    'wsauth': 'wss://ws-auth.kraken.com',
+                    'betaws': 'wss://beta-ws.kraken.com',
                 },
             },
         });
