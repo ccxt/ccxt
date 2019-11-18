@@ -84,19 +84,19 @@ class OrderBookSide extends Array {
 
 class LimitedOrderBookSide extends OrderBookSide {
 
-    constructor (deltas = [], limit = undefined) {
+    constructor (deltas = [], depth = undefined) {
         super (deltas)
-        Object.defineProperty (this, 'limit', {
+        Object.defineProperty (this, 'depth', {
             __proto__: null, // make it invisible
-            value: limit,
+            value: depth,
         })
     }
 
     limit (n = undefined) {
         if (n) {
-            return super.limit (Math.min (this.limit || Number.MAX_SAFE_INTEGER, n))
+            return super.limit (Math.min (this.depth || Number.MAX_SAFE_INTEGER, n))
         } else {
-            return super.limit (this.limit)
+            return super.limit (this.depth)
         }
     }
 }
