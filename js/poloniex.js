@@ -107,6 +107,9 @@ module.exports = class poloniex extends ccxt.poloniex {
             'command': 'subscribe',
             'channel': numericId,
         };
+        // the commented lines below won't work in sync php
+        // todo: figure out a way to wrap it in a base method
+        //
         // const orderbook = await this.sendWsMessage (url, messageHash, {
         //     'command': 'subscribe',
         //     'channel': numericId,
