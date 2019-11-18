@@ -247,7 +247,8 @@ module.exports = class kraken extends ccxt.kraken {
         const symbol = market['symbol'];
         console.log (message);
         if ('as' in message[1]) {
-            this.orderbooks[symbol] = this.orderbook ();
+            // todo get depth from marketsByWsName
+            this.orderbooks[symbol] = this.limitedOrderBook ({}, 10);
             const orderbook = this.orderbooks[symbol];
             let timestamp = undefined;
             const sides = {
@@ -272,6 +273,7 @@ module.exports = class kraken extends ccxt.kraken {
             const messageHash = wsName + ':book';
             this.resolveWsFuture (client, messageHash, orderbook.limit ());
         } else {
+            //
         }
         const nonce = message[1];
         const data = message[2];
@@ -284,7 +286,6 @@ module.exports = class kraken extends ccxt.kraken {
             if (delta[0] === 'i') {
                 const snapshot = this.safeValue (delta[1], 'orderBook', []);
                 const sides = [ 'asks', 'bids' ];
-                this.orderbooks[symbol] = this.orderbook ();
                 const orderbook = this.orderbooks[symbol];
                 for (let j = 0; j < snapshot.length; j++) {
                     const side = sides[j];
