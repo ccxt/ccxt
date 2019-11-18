@@ -7,14 +7,19 @@ const ccxt = require ('ccxt')
         externallyResolvablePromise
     } = require ('./MultiPromise')
     , {
-        OrderBook
+        OrderBook,
+        LimitedOrderBook,
     } = require ('./OrderBook')
     , log = require ('ololog').unlimited
 
 module.exports = class Exchange extends ccxt.Exchange {
 
     orderbook () {
-        return new OrderBook ()
+        return new OrderBook (arguments)
+    }
+
+    limitedOrderBook () {
+        return new LimitedOrderBook (arguments)
     }
 
     websocket (url) {
