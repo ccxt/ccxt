@@ -23,7 +23,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         });
     }
 
-    handleWsTicker (client, response) {
+    handleWsTickers (client, response) {
         const data = response[2];
         const market = this.safeValue (this.options['marketsByNumericId'], data[0].toString ());
         const symbol = this.safeString (market, 'symbol');
@@ -274,7 +274,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         }
     }
 
-    handleAccountNotifications (client, message) {
+    handleWsAccountNotifications (client, message) {
         console.log ('Received', message);
         console.log ('Private WS not implemented yet (wip)');
         process.exit ();
@@ -287,7 +287,7 @@ module.exports = class poloniex extends ccxt.poloniex {
             const methods = {
                 // '<numericId>': 'handleWsOrderBookAndTrades', // Price Aggregated Book
                 '1000': 'handleWsAccountNotifications', // Beta
-                '1002': 'handleWsTicker', // Ticker Data
+                '1002': 'handleWsTickers', // Ticker Data
                 // '1003': undefined, // 24 Hour Exchange Volume
                 '1010': 'handleWsHeartbeat',
             };

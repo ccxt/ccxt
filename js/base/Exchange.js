@@ -41,8 +41,8 @@ module.exports = class Exchange extends ccxt.Exchange {
 
     resolveWsFuture (client, messageHash, result) {
         if (client.futures[messageHash]) {
-            const promise = client.futures[messageHash];
-            promise.resolve (result);
+            const promise = client.futures[messageHash]
+            promise.resolve (result)
             delete client.futures[messageHash]
         }
         return result
