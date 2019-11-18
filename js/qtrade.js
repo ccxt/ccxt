@@ -15,10 +15,9 @@ module.exports = class qtrade extends Exchange {
             'name': 'qTrade',
             'countries': [ 'US' ],
             'rateLimit': 1000,
-            'version': '1',
-            'certified': true,
+            'version': 'v1',
             'urls': {
-                'logo': '', // need to fill
+                'logo': 'https://raw.githubusercontent.com/qtrade-exchange/media-assets/6dafa59/logos/logo_inline_text/logo-full-white.png',
                 'api': 'https://api.qtrade.io',
                 'www': 'https://qtrade.io',
                 'doc': 'https://qtrade-exchange.github.io/qtrade-docs',
@@ -102,7 +101,7 @@ module.exports = class qtrade extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetExchangeInfo (params);
+        const response = await this.publicGetMarkets (params);
         //
         //     {        timezone:   "UTC",
         //           server_time:    1545171487108,
@@ -852,31 +851,7 @@ module.exports = class qtrade extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + path;
-        if (api === 'trade') {
-            this.checkRequiredCredentials ();
-            const timestamp = this.nonce ();
-            const query = this.extend ({
-                'timestamp': timestamp, // required (int64)
-                // 'recvWindow': 10000, // optional (int32)
-            }, params);
-            let request = undefined;
-            if (method === 'GET') {
-                request = this.urlencode (query);
-                url += '?' + request;
-            } else {
-                request = this.json (query);
-                body = request;
-            }
-            headers = {
-                'Signature': this.hmac (this.encode (request), this.encode (this.secret)),
-                'Authorization': this.apiKey,
-            };
-        } else {
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
-            }
-        }
+        let url = this.urls['api'] + '/' + this.version + '/' + path;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
