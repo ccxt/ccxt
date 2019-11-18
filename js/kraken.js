@@ -289,6 +289,8 @@ module.exports = class kraken extends ccxt.kraken {
     }
 
     handleWsMessage (client, message) {
+        console.log (message);
+        process.exit ();
         const channelId = message[0].toString ();
         const market = this.safeValue (this.options['marketsByNumericId'], channelId);
         if (market === undefined) {

@@ -7,10 +7,10 @@ import ccxt.async_support as ccxt
 import hashlib
 
 
-class poloniex(ccxt.poloniex):
+class kraken(ccxt.kraken):
 
     def describe(self):
-        return self.deep_extend(super(poloniex, self).describe(), {
+        return self.deep_extend(super(kraken, self).describe(), {
             'has': {
                 'ws': True,
                 'fetchWsTicker': True,
@@ -18,12 +18,14 @@ class poloniex(ccxt.poloniex):
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://api2.poloniex.com/',
+                    'ws': 'ws.kraken.com',
+                    'wsauth': 'ws-auth.kraken.com',
+                    'betaws': 'beta-ws.kraken.com',
                 },
             },
         })
 
-    def handle_ws_tickers(self, client, response):
+    def handle_ws_ticker(self, client, response):
         data = response[2]
         market = self.safe_value(self.options['marketsByNumericId'], str(data[0]))
         symbol = self.safe_string(market, 'symbol')
@@ -65,19 +67,6 @@ class poloniex(ccxt.poloniex):
         #     'channel': 1002,
         # })
 
-    async def load_markets(self, reload=False, params={}):
-        markets = await super(poloniex, self).load_markets(reload, params)
-        marketsByNumericId = self.safe_value(self.options, 'marketsByNumericId')
-        if (marketsByNumericId is None) or reload:
-            marketsByNumericId = {}
-            for i in range(0, len(self.symbols)):
-                symbol = self.symbols[i]
-                market = self.markets[symbol]
-                numericId = self.safe_string(market, 'numericId')
-                marketsByNumericId[numericId] = market
-            self.options['marketsByNumericId'] = marketsByNumericId
-        return markets
-
     async def fetch_ws_trades(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -90,25 +79,39 @@ class poloniex(ccxt.poloniex):
         }
         return self.sendWsMessage(url, messageHash, subscribe, numericId)
 
+    async def load_markets(self, reload=False, params={}):
+        markets = await super(kraken, self).load_markets(reload, params)
+        marketsByWsName = self.safe_value(self.options, 'marketsByWsName')
+        if (marketsByWsName is None) or reload:
+            marketsByWsName = {}
+            for i in range(0, len(self.symbols)):
+                symbol = self.symbols[i]
+                market = self.markets[symbol]
+                info = self.safe_value(market, 'info', {})
+                wsName = self.safe_string(info, 'wsname')
+                marketsByWsName[wsName] = market
+            self.options['marketsByWsName'] = marketsByWsName
+        return markets
+
     async def fetch_ws_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        numericId = self.safe_string(market, 'numericId')
-        messageHash = numericId + ':orderbook'
+        wsName = self.safe_value(market['info'], 'wsname')
+        name = 'book'
+        messageHash = wsName + ':' + name
         url = self.urls['api']['ws']
         subscribe = {
-            'command': 'subscribe',
-            'channel': numericId,
+            'event': 'subscribe',
+            'pair': [
+                wsName,
+            ],
+            'subscription': {
+                'name': name,
+            },
         }
-        # the commented lines below won't work in sync php
-        # todo: figure out a way to wrap it in a base method
-        #
-        # orderbook = await self.sendWsMessage(url, messageHash, {
-        #     'command': 'subscribe',
-        #     'channel': numericId,
-        # })
-        # return orderbook.limit(limit)
-        return self.sendWsMessage(url, messageHash, subscribe, numericId)
+        if limit is not None:
+            subscribe['subscription']['depth'] = limit  # default 10, valid options 10, 25, 100, 500, 1000
+        return self.sendWsMessage(url, messageHash, subscribe, messageHash)
 
     async def fetch_ws_heartbeat(self, params={}):
         await self.load_markets()
@@ -242,7 +245,6 @@ class poloniex(ccxt.poloniex):
                 bookside.store(price, amount)
                 orderbookUpdatesCount += 1
             elif delta[0] == 't':
-                # todo: add max limit to the dequeue of trades, unshift and push
                 trade = self.parse_ws_trade(client, delta, market)
                 self.trades.append(trade)
                 tradesCount += 1
@@ -254,9 +256,10 @@ class poloniex(ccxt.poloniex):
         if tradesCount:
             # resolve the trades future
             messageHash = marketId + ':trades'
+            # todo clear self.trades after they are read
             self.resolveWsFuture(client, messageHash, self.trades)
 
-    def handle_ws_account_notifications(self, client, message):
+    def handle_account_notifications(self, client, message):
         print('Received', message)
         print('Private WS not implemented yet(wip)')
         sys.exit()

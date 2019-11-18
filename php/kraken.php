@@ -8,7 +8,7 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\WebSocketTrait; // websocket functionality
 
-class poloniex extends \ccxt\poloniex {
+class kraken extends \ccxt\kraken {
 
     use WebSocketTrait;
 
@@ -21,13 +21,15 @@ class poloniex extends \ccxt\poloniex {
             ),
             'urls' => array (
                 'api' => array (
-                    'ws' => 'wss://api2.poloniex.com/',
+                    'ws' => 'ws.kraken.com',
+                    'wsauth' => 'ws-auth.kraken.com',
+                    'betaws' => 'beta-ws.kraken.com',
                 ),
             ),
         ));
     }
 
-    public function handle_ws_tickers ($client, $response) {
+    public function handle_ws_ticker ($client, $response) {
         $data = $response[2];
         $market = $this->safe_value($this->options['marketsByNumericId'], (string) $data[0]);
         $symbol = $this->safe_string($market, 'symbol');
@@ -72,22 +74,6 @@ class poloniex extends \ccxt\poloniex {
         // ));
     }
 
-    public function load_markets ($reload = false, $params = array ()) {
-        $markets = parent::load_markets($reload, $params);
-        $marketsByNumericId = $this->safe_value($this->options, 'marketsByNumericId');
-        if (($marketsByNumericId === null) || $reload) {
-            $marketsByNumericId = array();
-            for ($i = 0; $i < count ($this->symbols); $i++) {
-                $symbol = $this->symbols[$i];
-                $market = $this->markets[$symbol];
-                $numericId = $this->safe_string($market, 'numericId');
-                $marketsByNumericId[$numericId] = $market;
-            }
-            $this->options['marketsByNumericId'] = $marketsByNumericId;
-        }
-        return $markets;
-    }
-
     public function fetch_ws_trades ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -101,25 +87,43 @@ class poloniex extends \ccxt\poloniex {
         return $this->sendWsMessage ($url, $messageHash, $subscribe, $numericId);
     }
 
+    public function load_markets ($reload = false, $params = array ()) {
+        $markets = parent::load_markets($reload, $params);
+        $marketsByWsName = $this->safe_value($this->options, 'marketsByWsName');
+        if (($marketsByWsName === null) || $reload) {
+            $marketsByWsName = array();
+            for ($i = 0; $i < count ($this->symbols); $i++) {
+                $symbol = $this->symbols[$i];
+                $market = $this->markets[$symbol];
+                $info = $this->safe_value($market, 'info', array());
+                $wsName = $this->safe_string($info, 'wsname');
+                $marketsByWsName[$wsName] = $market;
+            }
+            $this->options['marketsByWsName'] = $marketsByWsName;
+        }
+        return $markets;
+    }
+
     public function fetch_ws_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $numericId = $this->safe_string($market, 'numericId');
-        $messageHash = $numericId . ':orderbook';
+        $wsName = $this->safe_value($market['info'], 'wsname');
+        $name = 'book';
+        $messageHash = $wsName . ':' . $name;
         $url = $this->urls['api']['ws'];
         $subscribe = array (
-            'command' => 'subscribe',
-            'channel' => $numericId,
+            'event' => 'subscribe',
+            'pair' => array (
+                $wsName,
+            ),
+            'subscription' => array (
+                'name' => $name,
+            ),
         );
-        // the commented lines below won't work in sync php
-        // todo => figure out a way to wrap it in a base method
-        //
-        // $orderbook = $this->sendWsMessage ($url, $messageHash, array (
-        //     'command' => 'subscribe',
-        //     'channel' => $numericId,
-        // ));
-        // return $orderbook->limit ($limit);
-        return $this->sendWsMessage ($url, $messageHash, $subscribe, $numericId);
+        if ($limit !== null) {
+            $subscribe['subscription']['depth'] = $limit; // default 10, valid options 10, 25, 100, 500, 1000
+        }
+        return $this->sendWsMessage ($url, $messageHash, $subscribe, $messageHash);
     }
 
     public function fetch_ws_heartbeat ($params = array ()) {
@@ -263,7 +267,6 @@ class poloniex extends \ccxt\poloniex {
                 $bookside->store ($price, $amount);
                 $orderbookUpdatesCount .= 1;
             } else if ($delta[0] === 't') {
-                // todo => add max limit to the dequeue of trades, unshift and push
                 $trade = $this->parse_ws_trade ($client, $delta, $market);
                 $this->trades[] = $trade;
                 $tradesCount .= 1;
@@ -278,11 +281,12 @@ class poloniex extends \ccxt\poloniex {
         if ($tradesCount) {
             // resolve the trades future
             $messageHash = $marketId . ':trades';
+            // todo clear $this->trades after they are read
             $this->resolveWsFuture ($client, $messageHash, $this->trades);
         }
     }
 
-    public function handle_ws_account_notifications ($client, $message) {
+    public function handle_account_notifications ($client, $message) {
         var_dump ('Received', $message);
         var_dump ('Private WS not implemented yet (wip)');
         exit ();
