@@ -256,6 +256,7 @@ module.exports = class poloniex extends ccxt.poloniex {
                 bookside.store (price, amount);
                 orderbookUpdatesCount += 1;
             } else if (delta[0] === 't') {
+                // todo: add max limit to the dequeue of trades, unshift and push
                 const trade = this.parseWsTrade (client, delta, market);
                 this.trades.push (trade);
                 tradesCount += 1;
