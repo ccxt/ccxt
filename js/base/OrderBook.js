@@ -4,6 +4,8 @@ const { extend, deepExtend } = require ('ccxt/js/base/functions/generic.js')
     , {
         Asks,
         Bids,
+        LimitedAsks,
+        LimitedBids,
         CountedAsks,
         CountedBids,
         IndexedAsks,
@@ -67,6 +69,19 @@ class OrderBook {
 }
 
 // ----------------------------------------------------------------------------
+//
+//
+
+class LimitedOrderBook extends OrderBook {
+    constructor (snapshot = {}) {
+        super ({
+            'asks': new LimitedAsks (snapshot.asks || []),
+            'bids': new LimitedBids (snapshot.bids || []),
+        })
+    }
+}
+
+// ----------------------------------------------------------------------------
 // overwrites absolute volumes at price levels
 // or deletes price levels based on order counts (3rd value in a bidask delta)
 
@@ -119,6 +134,7 @@ class IncrementalIndexedOrderBook extends OrderBook {
 
 module.exports = {
     OrderBook,
+    LimitedOrderBook,
     CountedOrderBook,
     IndexedOrderBook,
     IncrementalOrderBook,
