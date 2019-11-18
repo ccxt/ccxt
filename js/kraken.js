@@ -22,6 +22,12 @@ module.exports = class kraken extends ccxt.kraken {
                     'betaws': 'wss://beta-ws.kraken.com',
                 },
             },
+            'versions': {
+                'ws': '0.2.0',
+            },
+            'options': {
+                'subscriptionStatusByChannelId': {},
+            },
         });
     }
 
@@ -194,46 +200,85 @@ module.exports = class kraken extends ccxt.kraken {
         };
     }
 
-    handleWsOrderBookAndTrades (client, message) {
+    handleWsOrderBook (client, message) {
         //
-        // first response
+        // first message (snapshot)
         //
         //     [
-        //         14, // channelId === market['numericId']
-        //         8767, // nonce
-        //         [
-        //             [
-        //                 "i", // initial snapshot
-        //                 {
-        //                     "currencyPair": "BTC_BTS",
-        //                     "orderBook": [
-        //                         { "0.00001853": "2537.5637", "0.00001854": "1567238.172367" }, // asks, price, size
-        //                         { "0.00001841": "3645.3647", "0.00001840": "1637.3647" } // bids
-        //                     ]
-        //                 }
+        //         0, // channelID
+        //         {
+        //             "as": [
+        //                 [ "5541.30000", "2.50700000", "1534614248.123678" ],
+        //                 [ "5541.80000", "0.33000000", "1534614098.345543" ],
+        //                 [ "5542.70000", "0.64700000", "1534614244.654432" ]
+        //             ],
+        //             "bs": [
+        //                 [ "5541.20000", "1.52900000", "1534614248.765567" ],
+        //                 [ "5539.90000", "0.30000000", "1534614241.769870" ],
+        //                 [ "5539.50000", "5.00000000", "1534613831.243486" ]
         //             ]
-        //         ]
+        //         },
+        //         "book-100",
+        //         "XBT/USD"
         //     ]
         //
         // subsequent updates
         //
         //     [
-        //         14,
-        //         8768,
-        //         [
-        //             [ "o", 1, "0.00001823", "5534.6474" ], // orderbook delta, bids, price, size
-        //             [ "o", 0, "0.00001824", "6575.464" ], // orderbook delta, asks, price, size
-        //             [ "t", "42706057", 1, "0.05567134", "0.00181421", 1522877119 ] // trade, id, side (1 for buy, 0 for sell), price, size, timestamp
-        //         ]
+        //         1234,
+        //         { // optional
+        //             "a": [
+        //                 [ "5541.30000", "2.50700000", "1534614248.456738" ],
+        //                 [ "5542.50000", "0.40100000", "1534614248.456738" ]
+        //             ]
+        //         },
+        //         { // optional
+        //             "b": [
+        //                 [ "5541.30000", "0.00000000", "1534614335.345903" ]
+        //             ]
+        //         },
+        //         "book-10",
+        //         "XBT/USD"
         //     ]
         //
-        const marketId = message[0].toString ();
+        const messageLength = message.length;
+        const wsName = message[messageLength - 1];
+        const market = this.safeValue (this.options['marketsByWsName'], wsName);
+        const symbol = market['symbol'];
+        console.log (message);
+        if ('as' in message[1]) {
+            this.orderbooks[symbol] = this.orderbook ();
+            const orderbook = this.orderbooks[symbol];
+            let timestamp = undefined;
+            const sides = {
+                'as': 'asks',
+                'bs': 'bids',
+            };
+            const keys = Object.keys (sides);
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                const side = sides[key];
+                const bookside = orderbook[side];
+                const deltas = this.safeValue (message[1], key, []);
+                for (let j = 0; j < deltas.length; j++) {
+                    const delta = deltas[j];
+                    const price = delta[0]; // no need to conver the price here
+                    const amount = parseFloat (delta[1]);
+                    timestamp = Math.max (timestamp || 0, parseInt (delta[2] * 1000));
+                    bookside.store (price, amount);
+                }
+            }
+            orderbook['timestamp'] = timestamp;
+            const messageHash = wsName + ':book';
+            this.resolveWsFuture (client, messageHash, orderbook.limit ());
+        } else {
+        }
         const nonce = message[1];
         const data = message[2];
-        const market = this.safeValue (this.options['marketsByNumericId'], marketId);
-        const symbol = this.safeString (market, 'symbol');
-        let orderbookUpdatesCount = 0;
-        let tradesCount = 0;
+        // const market = this.safeValue (this.options['marketsByNumericId'], marketId);
+        // const symbol = this.safeString (market, 'symbol');
+        // let orderbookUpdatesCount = 0;
+        // let tradesCount = 0;
         for (let i = 0; i < data.length; i++) {
             const delta = data[i];
             if (delta[0] === 'i') {
@@ -253,7 +298,7 @@ module.exports = class kraken extends ccxt.kraken {
                     }
                 }
                 orderbook['nonce'] = nonce;
-                orderbookUpdatesCount += 1;
+                // orderbookUpdatesCount += 1;
             } else if (delta[0] === 'o') {
                 const orderbook = this.orderbooks[symbol];
                 const side = delta[1] ? 'bids' : 'asks';
@@ -261,25 +306,25 @@ module.exports = class kraken extends ccxt.kraken {
                 const price = delta[2];
                 const amount = parseFloat (delta[3]);
                 bookside.store (price, amount);
-                orderbookUpdatesCount += 1;
+                // orderbookUpdatesCount += 1;
             } else if (delta[0] === 't') {
                 const trade = this.parseWsTrade (client, delta, market);
                 this.trades.push (trade);
-                tradesCount += 1;
+                // tradesCount += 1;
             }
         }
-        if (orderbookUpdatesCount) {
-            // resolve the orderbook future
-            const messageHash = marketId + ':orderbook';
-            const orderbook = this.orderbooks[symbol];
-            this.resolveWsFuture (client, messageHash, orderbook.limit ());
-        }
-        if (tradesCount) {
-            // resolve the trades future
-            const messageHash = marketId + ':trades';
-            // todo clear this.trades after they are read
-            this.resolveWsFuture (client, messageHash, this.trades);
-        }
+        // if (orderbookUpdatesCount) {
+        //     // resolve the orderbook future
+        //     const messageHash = marketId + ':orderbook';
+        //     const orderbook = this.orderbooks[symbol];
+        //     this.resolveWsFuture (client, messageHash, orderbook.limit ());
+        // }
+        // if (tradesCount) {
+        //     // resolve the trades future
+        //     const messageHash = marketId + ':trades';
+        //     // todo clear this.trades after they are read
+        //     this.resolveWsFuture (client, messageHash, this.trades);
+        // }
     }
 
     handleAccountNotifications (client, message) {
@@ -288,27 +333,63 @@ module.exports = class kraken extends ccxt.kraken {
         process.exit ();
     }
 
+    handleWsSystemStatus (client, message) {
+        //
+        //     {
+        //         connectionID: 15527282728335292000,
+        //         event: 'systemStatus',
+        //         status: 'online',
+        //         version: '0.2.0'
+        //     }
+        //
+        return true;
+    }
+
+    handleWsSubscriptionStatus (client, message) {
+        //
+        //     {
+        //         channelID: 210,
+        //         channelName: 'book-10',
+        //         event: 'subscriptionStatus',
+        //         pair: 'ETH/XBT',
+        //         status: 'subscribed',
+        //         subscription: { depth: 10, name: 'book' }
+        //     }
+        //
+        const channelId = this.safeString (message, 'channelID');
+        this.options['subscriptionStatusByChannelId'][channelId] = message;
+        return message;
+    }
+
     handleWsMessage (client, message) {
-        console.log (message);
-        process.exit ();
-        const channelId = message[0].toString ();
-        const market = this.safeValue (this.options['marketsByNumericId'], channelId);
-        if (market === undefined) {
+        if (Array.isArray (message)) {
+            const channelId = message[0].toString ();
+            const subscriptionStatus = this.safeValue (this.options['subscriptionStatusByChannelId'], channelId);
+            if (subscriptionStatus !== undefined) {
+                const subscription = this.safeValue (subscriptionStatus, 'subscription', {});
+                const name = this.safeString (subscription, 'name');
+                const methods = {
+                    'book': 'handleWsOrderBook',
+                };
+                const method = this.safeString (methods, name);
+                if (method === undefined) {
+                    return message;
+                } else {
+                    return this[method] (client, message);
+                }
+            }
+        } else {
+            const event = this.safeString (message, 'event');
             const methods = {
-                // '<numericId>': 'handleWsOrderBookAndTrades', // Price Aggregated Book
-                '1000': 'handleWsAccountNotifications', // Beta
-                '1002': 'handleWsTickers', // Ticker Data
-                // '1003': undefined, // 24 Hour Exchange Volume
-                '1010': 'handleWsHeartbeat',
+                'systemStatus': 'handleWsSystemStatus',
+                'subscriptionStatus': 'handleWsSubscriptionStatus',
             };
-            const method = this.safeString (methods, channelId);
+            const method = this.safeString (methods, event);
             if (method === undefined) {
                 return message;
             } else {
                 return this[method] (client, message);
             }
-        } else {
-            return this.handleWsOrderBookAndTrades (client, message);
         }
     }
 };
