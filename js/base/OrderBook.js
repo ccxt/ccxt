@@ -73,10 +73,10 @@ class OrderBook {
 //
 
 class LimitedOrderBook extends OrderBook {
-    constructor (snapshot = {}) {
+    constructor (snapshot = {}, depth = undefined) {
         super ({
-            'asks': new LimitedAsks (snapshot.asks || []),
-            'bids': new LimitedBids (snapshot.bids || []),
+            'asks': new LimitedAsks (snapshot.asks || [], depth),
+            'bids': new LimitedBids (snapshot.bids || [], depth),
         })
     }
 }
