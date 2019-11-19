@@ -69,8 +69,9 @@ class OrderBook {
 }
 
 // ----------------------------------------------------------------------------
-//
-//
+// some exchanges limit the number of bids/asks in the aggregated orderbook
+// orders beyond the limit threshold are not updated with new ws deltas
+// those orders should not be returned to the user, they are outdated quickly
 
 class LimitedOrderBook extends OrderBook {
     constructor (snapshot = {}, depth = undefined) {
