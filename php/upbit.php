@@ -48,9 +48,10 @@ class upbit extends Exchange {
                 '1w' => 'weeks',
                 '1M' => 'months',
             ),
+            'hostname' => 'api.upbit.com',
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg',
-                'api' => 'https://api.upbit.com',
+                'api' => 'https://{hostname}',
                 'www' => 'https://upbit.com',
                 'doc' => 'https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C',
                 'fees' => 'https://upbit.com/service_center/guide',
@@ -1462,7 +1463,10 @@ class upbit extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $url = $this->implode_params($this->urls['api'], array (
+            'hostname' => $this->hostname,
+        ));
+        $url .= '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($method === 'GET') {
             if ($query) {

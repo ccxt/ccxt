@@ -267,6 +267,7 @@ class huobipro(Exchange):
             maker = 0 if (base == 'OMG') else 0.2 / 100
             taker = 0 if (base == 'OMG') else 0.2 / 100
             minAmount = self.safe_float(market, 'min-order-amt', math.pow(10, -precision['amount']))
+            maxAmount = self.safe_float(market, 'max-order-amt')
             minCost = self.safe_float(market, 'min-order-value', 0)
             state = self.safe_string(market, 'state')
             active = (state == 'online')
@@ -284,7 +285,7 @@ class huobipro(Exchange):
                 'limits': {
                     'amount': {
                         'min': minAmount,
-                        'max': None,
+                        'max': maxAmount,
                     },
                     'price': {
                         'min': math.pow(10, -precision['price']),
