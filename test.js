@@ -10,12 +10,11 @@ const ccxtpro = require ('./ccxt.pro.js')
         'enableRateLimit': true,
     })
 
-    for (let i = 0; i < 2; i++) {
+    while (true) {
         let response = await kraken.fetchWsOrderBook (symbol)
         console.log (new Date (), response.asks.length, 'asks', response.asks[0], response.bids.length, 'bids', response.bids[0])
     }
 
-    console.log (await kraken.fetchWsOrderBook ('ETH/BTC'))
     process.exit ()
 
     const exchange = new ccxtpro.poloniex ({
