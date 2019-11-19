@@ -52,4 +52,13 @@ module.exports = class Exchange extends ccxt.Exchange {
         }
         return result
     }
+
+    rejectWsFuture (client, messageHash, result) {
+        if (client.futures[messageHash]) {
+            const promise = client.futures[messageHash]
+            promise.reject (result)
+            delete client.futures[messageHash]
+        }
+        return result
+    }
 }
