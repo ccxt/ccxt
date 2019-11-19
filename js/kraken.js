@@ -245,12 +245,13 @@ module.exports = class kraken extends ccxt.kraken {
         const wsName = message[messageLength - 1];
         const market = this.safeValue (this.options['marketsByWsName'], wsName);
         const symbol = market['symbol'];
-        console.log (message);
+        let timestamp = undefined;
+        const messageHash = wsName + ':book';
+        // if this is a snapshot
         if ('as' in message[1]) {
             // todo get depth from marketsByWsName
             this.orderbooks[symbol] = this.limitedOrderBook ({}, 10);
             const orderbook = this.orderbooks[symbol];
-            let timestamp = undefined;
             const sides = {
                 'as': 'asks',
                 'bs': 'bids',
@@ -261,77 +262,45 @@ module.exports = class kraken extends ccxt.kraken {
                 const side = sides[key];
                 const bookside = orderbook[side];
                 const deltas = this.safeValue (message[1], key, []);
-                for (let j = 0; j < deltas.length; j++) {
-                    const delta = deltas[j];
-                    const price = delta[0]; // no need to conver the price here
-                    const amount = parseFloat (delta[1]);
-                    timestamp = Math.max (timestamp || 0, parseInt (delta[2] * 1000));
-                    bookside.store (price, amount);
-                }
+                timestamp = this.handleWsDeltas (deltas, bookside, timestamp);
             }
             orderbook['timestamp'] = timestamp;
-            const messageHash = wsName + ':book';
             this.resolveWsFuture (client, messageHash, orderbook.limit ());
         } else {
-            //
-        }
-        const nonce = message[1];
-        const data = message[2];
-        // const market = this.safeValue (this.options['marketsByNumericId'], marketId);
-        // const symbol = this.safeString (market, 'symbol');
-        // let orderbookUpdatesCount = 0;
-        // let tradesCount = 0;
-        for (let i = 0; i < data.length; i++) {
-            const delta = data[i];
-            if (delta[0] === 'i') {
-                const snapshot = this.safeValue (delta[1], 'orderBook', []);
-                const sides = [ 'asks', 'bids' ];
-                const orderbook = this.orderbooks[symbol];
-                for (let j = 0; j < snapshot.length; j++) {
-                    const side = sides[j];
-                    const bookside = orderbook[side];
-                    const orders = snapshot[j];
-                    const prices = Object.keys (orders);
-                    for (let k = 0; k < prices.length; k++) {
-                        const price = prices[k];
-                        const amount = parseFloat (orders[price]);
-                        bookside.store (price, amount);
-                    }
+            const orderbook = this.orderbooks[symbol];
+            // else, if this is an orderbook update
+            let a = undefined;
+            let b = undefined;
+            if (messageLength === 5) {
+                a = this.safeValue (message[1], 'a', []);
+                b = this.safeValue (message[2], 'b', []);
+            } else {
+                if ('a' in message[1]) {
+                    a = this.safeValue (message[1], 'a', []);
+                } else {
+                    b = this.safeValue (message[1], 'b', []);
                 }
-                orderbook['nonce'] = nonce;
-                // orderbookUpdatesCount += 1;
-            } else if (delta[0] === 'o') {
-                const orderbook = this.orderbooks[symbol];
-                const side = delta[1] ? 'bids' : 'asks';
-                const bookside = orderbook[side];
-                const price = delta[2];
-                const amount = parseFloat (delta[3]);
-                bookside.store (price, amount);
-                // orderbookUpdatesCount += 1;
-            } else if (delta[0] === 't') {
-                const trade = this.parseWsTrade (client, delta, market);
-                this.trades.push (trade);
-                // tradesCount += 1;
             }
+            if (a !== undefined) {
+                timestamp = this.handleWsDeltas (a, orderbook['asks'], timestamp);
+            }
+            if (b !== undefined) {
+                timestamp = this.handleWsDeltas (b, orderbook['bids'], timestamp);
+            }
+            orderbook['timestamp'] = timestamp;
+            this.resolveWsFuture (client, messageHash, orderbook.limit ());
         }
-        // if (orderbookUpdatesCount) {
-        //     // resolve the orderbook future
-        //     const messageHash = marketId + ':orderbook';
-        //     const orderbook = this.orderbooks[symbol];
-        //     this.resolveWsFuture (client, messageHash, orderbook.limit ());
-        // }
-        // if (tradesCount) {
-        //     // resolve the trades future
-        //     const messageHash = marketId + ':trades';
-        //     // todo clear this.trades after they are read
-        //     this.resolveWsFuture (client, messageHash, this.trades);
-        // }
     }
 
-    handleAccountNotifications (client, message) {
-        console.log ('Received', message);
-        console.log ('Private WS not implemented yet (wip)');
-        process.exit ();
+    handleWsDeltas (deltas, bookside, timestamp) {
+        for (let j = 0; j < deltas.length; j++) {
+            const delta = deltas[j];
+            const price = delta[0]; // no need to conver the price here
+            const amount = parseFloat (delta[1]);
+            timestamp = Math.max (timestamp || 0, parseInt (delta[2] * 1000));
+            bookside.store (price, amount);
+        }
+        return timestamp;
     }
 
     handleWsSystemStatus (client, message) {
@@ -343,7 +312,6 @@ module.exports = class kraken extends ccxt.kraken {
         //         version: '0.2.0'
         //     }
         //
-        return true;
     }
 
     handleWsSubscriptionStatus (client, message) {
@@ -359,7 +327,6 @@ module.exports = class kraken extends ccxt.kraken {
         //
         const channelId = this.safeString (message, 'channelID');
         this.options['subscriptionStatusByChannelId'][channelId] = message;
-        return message;
     }
 
     handleWsMessage (client, message) {
