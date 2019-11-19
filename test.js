@@ -4,13 +4,22 @@ const ccxtpro = require ('./ccxt.pro.js')
 
 ;(async () => {
 
+    const symbol = 'ETH/BTC'
+
     const kraken = new ccxtpro.kraken ({
+        'enableRateLimit': true,
     })
+
+    for (let i = 0; i < 2; i++) {
+        let response = await kraken.fetchWsOrderBook (symbol)
+        console.log (new Date (), response.asks.length, 'asks', response.asks[0], response.bids.length, 'bids', response.bids[0])
+    }
 
     console.log (await kraken.fetchWsOrderBook ('ETH/BTC'))
     process.exit ()
 
     const exchange = new ccxtpro.poloniex ({
+        'enableRateLimit': true,
         // 'verbose': true,
         "apiKey": "DQBV78EH-V5P2POGG-WQVAGGDJ-QWCQ5ZV9",
         "secret": "81be57971d2dad74676cef6b223b042d3e2fa6d436cf6b246756be731216e93e7d0a16540201b89f96bb73f8defcdf8e6b35af8dfa17cfa0de8480e525af85c1"
@@ -23,8 +32,6 @@ const ccxtpro = require ('./ccxt.pro.js')
 
     console.log (await exchange.fetchWsBalance ());
 
-    const symbol = 'ETH/BTC'
-
     Promise.all ([
         (async () => {
             while (true) {
@@ -36,7 +43,6 @@ const ccxtpro = require ('./ccxt.pro.js')
             }
         }) (),
         (async () => {
-            const symbol = 'ETH/BTC'
             while (true) {
                 let response = await exchange.fetchWsTrades (symbol)
                 console.log (new Date (), response)
