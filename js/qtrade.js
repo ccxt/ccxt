@@ -281,16 +281,16 @@ module.exports = class qtrade extends Exchange {
         const marketId = this.marketId (symbol);
         const request = { 'market_string': marketId };
         const response = await this.publicGetOrderbookMarketString (this.extend (request, params));
-        const orderbook = { 'bids': [], 'asks': [], 'timestamp': undefined, 'datetime': undefined, 'nonce': undefined};
+        const orderbook = { 'bids': [], 'asks': [], 'timestamp': undefined, 'datetime': undefined, 'nonce': undefined };
         for (let i = 0; i < Object.keys (response['data']['buy']).length; i++) {
             const price = parseFloat (Object.keys (response['data']['buy'])[i]);
             const amount = parseFloat (Object.values (response['data']['buy'])[i]);
             orderbook['bids'].push ([price, amount]);
         }
         for (let i = 0; i < Object.keys (response['data']['sell']).length; i++) {
-            const price = parseFloat (Object.keys (response['data']['sell'])[i])
-            const amount = parseFloat (Object.values (response['data']['sell'])[i])
-            orderbook['asks'].push ([price, amount])
+            const price = parseFloat (Object.keys (response['data']['sell'])[i]);
+            const amount = parseFloat (Object.values (response['data']['sell'])[i]);
+            orderbook['asks'].push ([price, amount]);
         }
         return orderbook;
     }
@@ -315,8 +315,8 @@ module.exports = class qtrade extends Exchange {
         }
         const previous = this.safeFloat (ticker, 'day_open');
         const last = this.safeFloat (ticker, 'last');
-        let change = this.safeFloat (ticker, 'day_change') * previous;
-        let percentage = this.safeFloat (ticker, 'day_change') * 100;
+        const change = this.safeFloat (ticker, 'day_change') * previous;
+        const percentage = this.safeFloat (ticker, 'day_change') * 100;
         return {
             'symbol': symbol,
             'timestamp': undefined,
@@ -334,7 +334,7 @@ module.exports = class qtrade extends Exchange {
             'previousClose': undefined,
             'change': change,
             'percentage': percentage,
-            'average': (last + previous)/2,
+            'average': (last + previous) / 2,
             'baseVolume': this.safeFloat (ticker, 'day_volume_base'),
             'quoteVolume': this.safeFloat (ticker, 'day_volume_market'),
             'info': ticker,
@@ -363,34 +363,22 @@ module.exports = class qtrade extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'market_string': market['id'],
         };
-        const response = await this.engineGetHt (this.extend (request, params));
-        return this.parseTrades (response['history'], market, since, limit);
-    }
-
-    parseTradeFee (fee) {
-        if (fee === undefined) {
-            return fee;
-        }
-        const parts = fee.split (' ');
-        const numParts = parts.length;
-        const cost = parts[0];
-        let code = undefined;
-        if (numParts > 1) {
-            code = this.safeCurrencyCode (parts[1]);
-        }
-        return {
-            'cost': cost,
-            'currency': code,
-        };
+        const response = await this.publicGetMarketMarketStringTrades (this.extend (request, params));
+        return this.parseTrades (response['data']['trades'], market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
         const id = this.safeString (trade, 'id');
-        const timestamp = this.safeInteger (trade, 'time');
+        const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         const orderId = this.safeString (trade, 'order_id');
-        const side = this.safeStringLower (trade, 'order_side');
+        let side = undefined;
+        if (trade['seller_taker'] === true) {
+            side = 'sell';
+        } else {
+            side = 'buy';
+        }
         let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
         if (marketId !== undefined) {
@@ -406,7 +394,7 @@ module.exports = class qtrade extends Exchange {
         }
         let cost = undefined;
         const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat2 (trade, 'qty', 'quantity');
+        const amount = this.safeFloat (trade, 'amount');
         if (amount !== undefined) {
             if (price !== undefined) {
                 cost = price * amount;
@@ -427,18 +415,6 @@ module.exports = class qtrade extends Exchange {
             'cost': cost,
             'fee': undefined,
         };
-        const fee = this.parseTradeFee (this.safeString (trade, 'fee'));
-        if (fee !== undefined) {
-            const additionalFee = this.parseTradeFee (this.safeString (trade, 'additional_fee'));
-            if (additionalFee === undefined) {
-                result['fee'] = fee;
-            } else {
-                result['fees'] = [
-                    fee,
-                    additionalFee,
-                ];
-            }
-        }
         return result;
     }
 
@@ -447,7 +423,7 @@ module.exports = class qtrade extends Exchange {
         // const response = await this.privateGetOrders ({ 'queryParams': { 'open': 'true' } });
         // const response = await this.privatePostSellLimit ({ 'amount': 12, 'market_id': 1 });
         console.log (JSON.stringify (response, null, 4));
-        return {}
+        return {};
     }
 
     nonce () {
