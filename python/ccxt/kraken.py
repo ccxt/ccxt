@@ -200,6 +200,7 @@ class kraken(Exchange):
                         'DepositMethods',
                         'DepositStatus',
                         'ExportStatus',
+                        'GetWebSocketsToken',
                         'Ledgers',
                         'OpenOrders',
                         'OpenPositions',
