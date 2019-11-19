@@ -2,6 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
+const crypto = require ('crypto');
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired } = require ('./base/errors');
 const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound } = require ('./base/errors');
@@ -67,7 +68,7 @@ module.exports = class qtrade extends Exchange {
                 'private': {
                     'get': [
                         'me',
-                        'user/balances',
+                        'balances',
                         'market/{market_id}',
                         'orders',
                         'order/{order_id}',
@@ -441,13 +442,54 @@ module.exports = class qtrade extends Exchange {
         return result;
     }
 
+    async fetchBalance (params = {}) {
+        const response = await this.privateGetBalances (params);
+        // const response = await this.privateGetOrders ({ 'queryParams': { 'open': 'true' } });
+        // const response = await this.privatePostSellLimit ({ 'amount': 12, 'market_id': 1 });
+        console.log (JSON.stringify (response, null, 4));
+        return {}
+    }
+
     nonce () {
         return this.milliseconds ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        var url = this.urls['api'] + '/' + this.version + '/' + path;
-        url = this.implodeParams (url, params);
+        path = this.implodeParams (path, params);
+        if (method === 'GET') {
+            const queryParams = params.queryParams || {};
+            if (queryParams) {
+                path = path + '?' + this.urlencode (queryParams);
+            }
+            delete params.queryParams;
+        } else {
+            body = JSON.stringify (params);
+        }
+        let endpoint = '';
+        if (api === 'private') {
+            endpoint = '/' + this.version + '/user/' + path;
+        } else {
+            endpoint = '/' + this.version + '/' + path;
+        }
+        const url = this.urls['api'] + endpoint;
+        if (api === 'private') {
+            const split = this.apiKey.split (':');
+            const keyID = split[0];
+            const key = split[1];
+            const timestamp = Math.floor (Date.now () / 1000);
+            // Create hmac sig
+            let sig_text = method + '\n';
+            sig_text += endpoint + '\n';
+            sig_text += timestamp + '\n';
+            sig_text += (body || '') + '\n';
+            sig_text += key;
+            const hash = crypto.createHash ('sha256').update (sig_text, 'utf8').digest ().toString ('base64');
+            headers = this.extend (headers, {
+                'Content-Type': 'application/json; charset=utf-8',
+                'Authorization': 'HMAC-SHA256 ' + keyID + ':' + hash,
+                'HMAC-Timestamp': timestamp,
+            });
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
