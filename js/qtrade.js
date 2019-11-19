@@ -69,6 +69,7 @@ module.exports = class qtrade extends Exchange {
                     'get': [
                         'me',
                         'balances',
+                        'balances_all',
                         'market/{market_id}',
                         'orders',
                         'order/{order_id}',
@@ -419,11 +420,37 @@ module.exports = class qtrade extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        const response = await this.privateGetBalances (params);
+        const response = await this.privateGetBalancesAll (params);
         // const response = await this.privateGetOrders ({ 'queryParams': { 'open': 'true' } });
         // const response = await this.privatePostSellLimit ({ 'amount': 12, 'market_id': 1 });
-        console.log (JSON.stringify (response, null, 4));
-        return {};
+        let free = {};
+        let bs = response['data']['balances'];
+        for (let i = 0; i < bs.length; i++) {
+            free[bs[i]['currency']] = this.safeFloat (bs[i], 'balance');
+        }
+        let used = {};
+        bs = response['data']['order_balances'];
+        for (let i = 0; i < bs.length; i++) {
+            used[bs[i]['currency']] = this.safeFloat (bs[i], 'balance');
+        }
+        let result = {'free': free, 'used': used, 'info': response['data']};
+        for (let i = 0; i < Object.keys (free).length; i++) {
+            let byCoin = {};
+            byCoin['free'] = Object.values (free)[i];
+            result[Object.keys (free)[i]] = byCoin;
+        }
+        for (let i = 0; i < Object.keys (used).length; i++) {
+            let byCoin = {};
+            if (Object.keys (used)[i] in result) {
+                byCoin = result[Object.keys (used)[i]];
+            } else {
+                byCoin['free'] = 0;
+            }
+            byCoin['used'] = Object.values (used)[i];
+            byCoin['total'] = byCoin['used'] + byCoin['free'];
+            result[Object.keys (used)[i]] = byCoin;
+        }
+        return result;
     }
 
     nonce () {
