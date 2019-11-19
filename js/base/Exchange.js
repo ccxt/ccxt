@@ -14,12 +14,12 @@ const ccxt = require ('ccxt')
 
 module.exports = class Exchange extends ccxt.Exchange {
 
-    orderbook () {
-        return new OrderBook (arguments)
+    orderbook (snapshot = {}) {
+        return new OrderBook (snapshot)
     }
 
-    limitedOrderBook () {
-        return new LimitedOrderBook (arguments)
+    limitedOrderBook (snapshot = {}, depth = undefined) {
+        return new LimitedOrderBook (snapshot, depth)
     }
 
     websocket (url) {
