@@ -1178,12 +1178,14 @@ class mandala extends Exchange {
             $status = $status ? 'closed' : 'open';
         }
         $lastTradeTimestamp = null;
-        if ($filled > 0) {
-            $lastTradeTimestamp = $completionDate;
-        }
-        if (($filled !== null) && ($amount !== null)) {
-            if (($filled < $amount) && ($status === 'closed')) {
-                $status = 'canceled';
+        if ($filled !== null) {
+            if ($filled > 0) {
+                $lastTradeTimestamp = $completionDate;
+            }
+            if ($amount !== null) {
+                if (($filled < $amount) && ($status === 'closed')) {
+                    $status = 'canceled';
+                }
             }
         }
         $feeCost = $this->safe_value($order, 'serviceCharge');
