@@ -740,6 +740,7 @@ module.exports = class gateio extends Exchange {
         const statuses = {
             'PEND': 'pending',
             'REQUEST': 'pending',
+            'DMOVE': 'pending',
             'CANCEL': 'failed',
             'DONE': 'ok',
         };
