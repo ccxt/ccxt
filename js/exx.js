@@ -203,7 +203,8 @@ module.exports = class exx extends Exchange {
             'currency': this.marketId (symbol),
         };
         const response = await this.publicGetDepth (this.extend (request, params));
-        return this.parseOrderBook (response, response['timestamp']);
+        const timestamp = this.safeTimestamp (response, 'timestamp');
+        return this.parseOrderBook (response, timestamp);
     }
 
     parseTrade (trade, market = undefined) {

@@ -435,8 +435,10 @@ class poloniex extends Exchange {
             $precision = 8; // default $precision, todo => fix "magic constants"
             $code = $this->safe_currency_code($id);
             $active = ($currency['delisted'] === 0) && !$currency['disabled'];
+            $numericId = $this->safe_integer($currency, 'id');
             $result[$code] = array (
                 'id' => $id,
+                'numericId' => $numericId,
                 'code' => $code,
                 'info' => $currency,
                 'name' => $currency['name'],
@@ -896,7 +898,7 @@ class poloniex extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type === 'market') {
+        if ($type !== 'limit') {
             throw new ExchangeError($this->id . ' allows limit orders only');
         }
         $this->load_markets();

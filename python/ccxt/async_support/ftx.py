@@ -157,7 +157,7 @@ class ftx(Exchange):
                     'An unexpected error occurred': ExchangeError,  # {"error":"An unexpected error occurred, please try again later(58BC21C795).","success":false}
                 },
             },
-            'roundingMode': TICK_SIZE,
+            'precisionMode': TICK_SIZE,
         })
 
     async def fetch_currencies(self, params={}):

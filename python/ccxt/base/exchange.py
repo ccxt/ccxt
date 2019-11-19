@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.19.34'
+__version__ = '1.19.57'
 
 # -----------------------------------------------------------------------------
 
@@ -315,7 +315,7 @@ class Exchange(object):
         self.balance = dict() if self.balance is None else self.balance
         self.orderbooks = dict() if self.orderbooks is None else self.orderbooks
         self.orders = dict() if self.orders is None else self.orders
-        self.trades = dict() if self.trades is None else self.trades
+        self.trades = list() if self.trades is None else self.trades
         self.transactions = dict() if self.transactions is None else self.transactions
         self.currencies = dict() if self.currencies is None else self.currencies
         self.options = dict() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
@@ -771,6 +771,7 @@ class Exchange(object):
 
     @staticmethod
     def filter_by(array, key, value=None):
+        array = Exchange.to_array(array)
         return list(filter(lambda x: x[key] == value, array))
 
     @staticmethod
@@ -835,7 +836,7 @@ class Exchange(object):
     def urlencode(params={}):
         for key, value in params.items():
             if isinstance(value, bool):
-                params[key] = str(value).lower()
+                params[key] = 'true' if value else 'false'
         return _urlencode.urlencode(params)
 
     @staticmethod
@@ -1149,6 +1150,7 @@ class Exchange(object):
                     raise AuthenticationError('requires `' + key + '`')
                 else:
                     return error
+        return True
 
     def check_address(self, address):
         """Checks an address is not the same character repeated or an empty sequence"""

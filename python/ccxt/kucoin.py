@@ -567,12 +567,14 @@ class kucoin(Exchange):
         #   bids: [['5c419328ef83c75456bd615c', '0.9', '0.09'], ...],}
         #
         data = response['data']
-        timestamp = self.safe_integer(data, 'sequence')
+        timestamp = self.safe_integer(data, 'time')
         # level can be a string such as 2_20 or 2_100
         levelString = self.safe_string(request, 'level')
         levelParts = levelString.split('_')
         level = int(levelParts[0])
-        return self.parse_order_book(data, timestamp, 'bids', 'asks', level - 2, level - 1)
+        orderbook = self.parse_order_book(data, timestamp, 'bids', 'asks', level - 2, level - 1)
+        orderbook['nonce'] = self.safe_integer(data, 'sequence')
+        return orderbook
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

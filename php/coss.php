@@ -122,6 +122,7 @@ class coss extends Exchange {
             ),
             'commonCurrencies' => array (
                 'COS' => 'COSS',
+                'COSS' => 'COSS.io',
             ),
         ));
     }
