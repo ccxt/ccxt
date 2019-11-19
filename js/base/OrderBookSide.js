@@ -44,17 +44,6 @@ class OrderBookSide extends Array {
         this.store (price, size)
     }
 
-    // limit (n, array = undefined) {
-    //     array = Object.entries (array || this.index)
-    //     array.length = Math.min (array.length, n)
-    //     array = array.map (this.convert).sort (this.compare)
-    //     for (let i = 0; i < array.length; i++) {
-    //         this[i] = array[i]
-    //     }
-    //     this.length = array.length
-    //     return this
-    // }
-
     // replace stored orders with new values
     limit (n = undefined) {
         const array = Object.entries (this.index).map (this.convert).sort (this.compare)

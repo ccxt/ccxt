@@ -281,6 +281,7 @@ module.exports = class poloniex extends ccxt.poloniex {
 
     handleWsAccountNotifications (client, message) {
         // not implemented yet
+        // throw new NotImplemented (this.id + 'fetchWsTickers not implemented yet');
         return message;
     }
 
