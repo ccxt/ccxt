@@ -31,49 +31,80 @@ module.exports = class kraken extends ccxt.kraken {
         });
     }
 
-    handleWsTicker (client, response) {
-        const data = response[2];
-        const market = this.safeValue (this.options['marketsByNumericId'], data[0].toString ());
-        const symbol = this.safeString (market, 'symbol');
-        return {
-            'info': response,
-            'symbol': symbol,
-            'last': parseFloat (data[1]),
-            'ask': parseFloat (data[2]),
-            'bid': parseFloat (data[3]),
-            'change': parseFloat (data[4]),
-            'baseVolume': parseFloat (data[5]),
-            'quoteVolume': parseFloat (data[6]),
-            'active': data[7] ? false : true,
-            'high': parseFloat (data[8]),
-            'low': parseFloat (data[9]),
-        };
+    handleWsTicker (client, message) {
+        //
+        //     [
+        //         0, // channelID
+        //         {
+        //             "a": [ "5525.40000", 1, "1.000" ], // ask, wholeAskVolume, askVolume
+        //             "b": [ "5525.10000", 1, "1.000" ], // bid, wholeBidVolume, bidVolume
+        //             "c": [ "5525.10000", "0.00398963" ], // closing price, volume
+        //             "h": [ "5783.00000", "5783.00000" ], // high price today, high price 24h ago
+        //             "l": [ "5505.00000", "5505.00000" ], // low price today, low price 24h ago
+        //             "o": [ "5760.70000", "5763.40000" ], // open price today, open price 24h ago
+        //             "p": [ "5631.44067", "5653.78939" ], // vwap today, vwap 24h ago
+        //             "t": [ 11493, 16267 ], // number of trades today, 24 hours ago
+        //             "v": [ "2634.11501494", "3591.17907851" ], // volume today, volume 24 hours ago
+        //         },
+        //         "ticker",
+        //         "XBT/USD"
+        //     ]
+        //
+        console.log (message);
+        console.log (client.futures);
+        console.log (this.options['subscriptionStatusByChannelId']);
+        console.log ('--------------------------------------------------------')
+        // process.exit ();
+        // const data = message[2];
+        // const market = this.safeValue (this.options['marketsByNumericId'], data[0].toString ());
+        // const symbol = this.safeString (market, 'symbol');
+        // return {
+        //     'symbol': symbol,
+        //     'timestamp': timestamp,
+        //     'datetime': this.iso8601 (timestamp),
+        //     'high': parseFloat (ticker['h'][1]),
+        //     'low': parseFloat (ticker['l'][1]),
+        //     'bid': parseFloat (ticker['b'][0]),
+        //     'bidVolume': undefined,
+        //     'ask': parseFloat (ticker['a'][0]),
+        //     'askVolume': undefined,
+        //     'vwap': vwap,
+        //     'open': this.safeFloat (ticker, 'o'),
+        //     'close': last,
+        //     'last': last,
+        //     'previousClose': undefined,
+        //     'change': undefined,
+        //     'percentage': undefined,
+        //     'average': undefined,
+        //     'baseVolume': baseVolume,
+        //     'quoteVolume': quoteVolume,
+        //     'info': ticker,
+        // };
     }
 
     async fetchWsBalance (params = {}) {
         await this.loadMarkets ();
-        this.balance = await this.fetchBalance (params);
-        const channelId = '1000';
-        const subscribe = {
-            'command': 'subscribe',
-            'channel': channelId,
-        };
-        const messageHash = channelId + ':b:e';
-        const url = this.urls['api']['ws'];
-        return this.sendWsMessage (url, messageHash, subscribe, channelId);
+        throw new NotImplemented (this.id + ' fetchWsBalance() not implemented yet');
     }
 
-    async fetchWsTickers (symbols = undefined, params = {}) {
+    async fetchWsTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        // rewrite
-        throw new NotImplemented (this.id + 'fetchWsTickers not implemented yet');
-        // const market = this.market (symbol);
-        // const numericId = market['info']['id'].toString ();
-        // const url = this.urls['api']['websocket']['public'];
-        // return await this.WsTickerMessage (url, '1002' + numericId, {
-        //     'command': 'subscribe',
-        //     'channel': 1002,
-        // });
+        const market = this.market (symbol);
+        const wsName = this.safeValue (market['info'], 'wsname');
+        const name = 'ticker';
+        const messageHash = wsName + ':' + name;
+        const url = this.urls['api']['ws'];
+        const subscribe = {
+            'event': 'subscribe',
+            'pair': [
+                'ETH/USD',
+                wsName,
+            ],
+            'subscription': {
+                'name': name,
+            },
+        };
+        return this.sendWsMessage (url, messageHash, this.extend (subscribe, params), messageHash);
     }
 
     async fetchWsTrades (symbol, params = {}) {
@@ -97,9 +128,11 @@ module.exports = class kraken extends ccxt.kraken {
             for (let i = 0; i < this.symbols.length; i++) {
                 const symbol = this.symbols[i];
                 const market = this.markets[symbol];
-                const info = this.safeValue (market, 'info', {});
-                const wsName = this.safeString (info, 'wsname');
-                marketsByWsName[wsName] = market;
+                if (!market['darkpool']) {
+                    const info = this.safeValue (market, 'info', {});
+                    const wsName = this.safeString (info, 'wsname');
+                    marketsByWsName[wsName] = market;
+                }
             }
             this.options['marketsByWsName'] = marketsByWsName;
         }
@@ -340,6 +373,7 @@ module.exports = class kraken extends ccxt.kraken {
                 const name = this.safeString (subscription, 'name');
                 const methods = {
                     'book': 'handleWsOrderBook',
+                    'ticker': 'handleWsTicker',
                 };
                 const method = this.safeString (methods, name);
                 if (method === undefined) {

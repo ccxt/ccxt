@@ -23,7 +23,7 @@ module.exports = class WebSocketClient {
             callback,             // onMessage callback
             protocols: undefined, // ws protocols
             options: undefined,   // ws options
-            reconnect: false,
+            reconnect: false, // reconnect on connection loss, not really needed here
             reconnectDelay: 1000, // not used atm
             timers: {},
             futures: {},
@@ -100,7 +100,8 @@ module.exports = class WebSocketClient {
     }
 
     async send (message) {
-        await this.connected
+        // await this.connect () // for auto-reconnecting
+        await this.connected // for one-time connections
         this.ws.send (JSON.stringify (message))
     }
 

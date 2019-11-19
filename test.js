@@ -11,6 +11,11 @@ const ccxtpro = require ('./ccxt.pro.js')
     })
 
     while (true) {
+        let response = await kraken.fetchWsTicker (symbol)
+        console.log (new Date (), response)
+    }
+
+    while (true) {
         let response = await kraken.fetchWsOrderBook (symbol)
         console.log (new Date (), response.asks.length, 'asks', response.asks[0], response.bids.length, 'bids', response.bids[0])
     }
