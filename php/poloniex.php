@@ -131,7 +131,8 @@ class poloniex extends \ccxt\poloniex {
 
     public function sign_ws_message ($client, $messageHash, $message, $params = array ()) {
         if (mb_strpos($messageHash, '1000') === 0) {
-            if ($this->check_required_credentials(false)) {
+            $reload = false;
+            if ($this->check_required_credentials($reload)) {
                 $nonce = $this->nonce ();
                 $payload = $this->urlencode (array( 'nonce' => $nonce ));
                 $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha512');
@@ -247,7 +248,7 @@ class poloniex extends \ccxt\poloniex {
                     $orders = $snapshot[$j];
                     $prices = is_array($orders) ? array_keys($orders) : array();
                     for ($k = 0; $k < count ($prices); $k++) {
-                        $price = $prices[$k];
+                        $price = $prices[$k]; // no need to conver the $price here
                         $amount = floatval ($orders[$price]);
                         $bookside->store ($price, $amount);
                     }
@@ -258,7 +259,7 @@ class poloniex extends \ccxt\poloniex {
                 $orderbook = $this->orderbooks[$symbol];
                 $side = $delta[1] ? 'bids' : 'asks';
                 $bookside = $orderbook[$side];
-                $price = $delta[2];
+                $price = $delta[2]; // no need to conver the $price here
                 $amount = floatval ($delta[3]);
                 $bookside->store ($price, $amount);
                 $orderbookUpdatesCount .= 1;
@@ -283,9 +284,8 @@ class poloniex extends \ccxt\poloniex {
     }
 
     public function handle_ws_account_notifications ($client, $message) {
-        var_dump ('Received', $message);
-        var_dump ('Private WS not implemented yet (wip)');
-        exit ();
+        // not implemented yet
+        return $message;
     }
 
     public function handle_ws_message ($client, $message) {

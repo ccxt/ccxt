@@ -21,10 +21,16 @@ class kraken extends \ccxt\kraken {
             ),
             'urls' => array (
                 'api' => array (
-                    'ws' => 'ws.kraken.com',
-                    'wsauth' => 'ws-auth.kraken.com',
-                    'betaws' => 'beta-ws.kraken.com',
+                    'ws' => 'wss://ws.kraken.com',
+                    'wsauth' => 'wss://ws-auth.kraken.com',
+                    'betaws' => 'wss://beta-ws.kraken.com',
                 ),
+            ),
+            'versions' => array (
+                'ws' => '0.2.0',
+            ),
+            'options' => array (
+                'subscriptionStatusByChannelId' => array(),
             ),
         ));
     }
@@ -135,7 +141,8 @@ class kraken extends \ccxt\kraken {
 
     public function sign_ws_message ($client, $messageHash, $message, $params = array ()) {
         if (mb_strpos($messageHash, '1000') === 0) {
-            if ($this->check_required_credentials(false)) {
+            $reload = false;
+            if ($this->check_required_credentials($reload)) {
                 $nonce = $this->nonce ();
                 $payload = $this->urlencode (array( 'nonce' => $nonce ));
                 $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha512');
@@ -198,119 +205,165 @@ class kraken extends \ccxt\kraken {
         );
     }
 
-    public function handle_ws_order_book_and_trades ($client, $message) {
+    public function handle_ws_order_book ($client, $message) {
         //
-        // first response
+        // first $message (snapshot)
         //
-        //     [
-        //         14, // channelId === $market['numericId']
-        //         8767, // $nonce
+        //     array (
+        //         0, // channelID
         //         array (
-        //             array (
-        //                 "$i", // initial $snapshot
-        //                 {
-        //                     "currencyPair" => "BTC_BTS",
-        //                     "orderBook" => array (
-        //                         array( "0.00001853" => "2537.5637", "0.00001854" => "1567238.172367" ), // asks, $price, size
-        //                         array( "0.00001841" => "3645.3647", "0.00001840" => "1637.3647" ) // bids
-        //                     )
-        //                 }
+        //             "as" => array (
+        //                 array ( "5541.30000", "2.50700000", "1534614248.123678" ),
+        //                 array ( "5541.80000", "0.33000000", "1534614098.345543" ),
+        //                 array ( "5542.70000", "0.64700000", "1534614244.654432" )
+        //             ),
+        //             "bs" => array (
+        //                 array ( "5541.20000", "1.52900000", "1534614248.765567" ),
+        //                 array ( "5539.90000", "0.30000000", "1534614241.769870" ),
+        //                 array ( "5539.50000", "5.00000000", "1534613831.243486" )
         //             )
-        //         )
-        //     ]
+        //         ),
+        //         "book-100",
+        //         "XBT/USD"
+        //     )
         //
         // subsequent updates
         //
         //     array (
-        //         14,
-        //         8768,
-        //         array (
-        //             array ( "o", 1, "0.00001823", "5534.6474" ), // $orderbook $delta, bids, $price, size
-        //             array ( "o", 0, "0.00001824", "6575.464" ), // $orderbook $delta, asks, $price, size
-        //             array ( "t", "42706057", 1, "0.05567134", "0.00181421", 1522877119 ) // $trade, id, $side (1 for buy, 0 for sell), $price, size, timestamp
-        //         )
+        //         1234,
+        //         array ( // optional
+        //             "$a" => array (
+        //                 array ( "5541.30000", "2.50700000", "1534614248.456738" ),
+        //                 array ( "5542.50000", "0.40100000", "1534614248.456738" )
+        //             )
+        //         ),
+        //         array ( // optional
+        //             "$b" => array (
+        //                 array ( "5541.30000", "0.00000000", "1534614335.345903" )
+        //             )
+        //         ),
+        //         "book-10",
+        //         "XBT/USD"
         //     )
         //
-        $marketId = (string) $message[0];
-        $nonce = $message[1];
-        $data = $message[2];
-        $market = $this->safe_value($this->options['marketsByNumericId'], $marketId);
-        $symbol = $this->safe_string($market, 'symbol');
-        $orderbookUpdatesCount = 0;
-        $tradesCount = 0;
-        for ($i = 0; $i < count ($data); $i++) {
-            $delta = $data[$i];
-            if ($delta[0] === 'i') {
-                $snapshot = $this->safe_value($delta[1], 'orderBook', array());
-                $sides = array ( 'asks', 'bids' );
-                $this->orderbooks[$symbol] = $this->orderbook ();
-                $orderbook = $this->orderbooks[$symbol];
-                for ($j = 0; $j < count ($snapshot); $j++) {
-                    $side = $sides[$j];
-                    $bookside = $orderbook[$side];
-                    $orders = $snapshot[$j];
-                    $prices = is_array($orders) ? array_keys($orders) : array();
-                    for ($k = 0; $k < count ($prices); $k++) {
-                        $price = $prices[$k];
-                        $amount = floatval ($orders[$price]);
-                        $bookside->store ($price, $amount);
-                    }
-                }
-                $orderbook['nonce'] = $nonce;
-                $orderbookUpdatesCount .= 1;
-            } else if ($delta[0] === 'o') {
-                $orderbook = $this->orderbooks[$symbol];
-                $side = $delta[1] ? 'bids' : 'asks';
-                $bookside = $orderbook[$side];
-                $price = $delta[2];
-                $amount = floatval ($delta[3]);
-                $bookside->store ($price, $amount);
-                $orderbookUpdatesCount .= 1;
-            } else if ($delta[0] === 't') {
-                $trade = $this->parse_ws_trade ($client, $delta, $market);
-                $this->trades[] = $trade;
-                $tradesCount .= 1;
-            }
-        }
-        if ($orderbookUpdatesCount) {
-            // resolve the $orderbook future
-            $messageHash = $marketId . ':orderbook';
+        $messageLength = is_array ($message) ? count ($message) : 0;
+        $wsName = $message[$messageLength - 1];
+        $market = $this->safe_value($this->options['marketsByWsName'], $wsName);
+        $symbol = $market['symbol'];
+        $timestamp = null;
+        $messageHash = $wsName . ':book';
+        // if this is $a snapshot
+        if (is_array($message[1]) && array_key_exists('as', $message[1])) {
+            // todo get depth from marketsByWsName
+            $this->orderbooks[$symbol] = $this->limitedOrderBook (array(), 10);
             $orderbook = $this->orderbooks[$symbol];
+            $sides = array (
+                'as' => 'asks',
+                'bs' => 'bids',
+            );
+            $keys = is_array($sides) ? array_keys($sides) : array();
+            for ($i = 0; $i < count ($keys); $i++) {
+                $key = $keys[$i];
+                $side = $sides[$key];
+                $bookside = $orderbook[$side];
+                $deltas = $this->safe_value($message[1], $key, array());
+                $timestamp = $this->handle_ws_deltas ($deltas, $bookside, $timestamp);
+            }
+            $orderbook['timestamp'] = $timestamp;
             $this->resolveWsFuture ($client, $messageHash, $orderbook->limit ());
-        }
-        if ($tradesCount) {
-            // resolve the trades future
-            $messageHash = $marketId . ':trades';
-            // todo clear $this->trades after they are read
-            $this->resolveWsFuture ($client, $messageHash, $this->trades);
+        } else {
+            $orderbook = $this->orderbooks[$symbol];
+            // else, if this is an $orderbook update
+            $a = null;
+            $b = null;
+            if ($messageLength === 5) {
+                $a = $this->safe_value($message[1], 'a', array());
+                $b = $this->safe_value($message[2], 'b', array());
+            } else {
+                if (is_array($message[1]) && array_key_exists('a', $message[1])) {
+                    $a = $this->safe_value($message[1], 'a', array());
+                } else {
+                    $b = $this->safe_value($message[1], 'b', array());
+                }
+            }
+            if ($a !== null) {
+                $timestamp = $this->handle_ws_deltas ($a, $orderbook['asks'], $timestamp);
+            }
+            if ($b !== null) {
+                $timestamp = $this->handle_ws_deltas ($b, $orderbook['bids'], $timestamp);
+            }
+            $orderbook['timestamp'] = $timestamp;
+            $this->resolveWsFuture ($client, $messageHash, $orderbook->limit ());
         }
     }
 
-    public function handle_account_notifications ($client, $message) {
-        var_dump ('Received', $message);
-        var_dump ('Private WS not implemented yet (wip)');
-        exit ();
+    public function handle_ws_deltas ($deltas, $bookside, $timestamp) {
+        for ($j = 0; $j < count ($deltas); $j++) {
+            $delta = $deltas[$j];
+            $price = $delta[0]; // no need to conver the $price here
+            $amount = floatval ($delta[1]);
+            $timestamp = max ($timestamp || 0, intval ($delta[2] * 1000));
+            $bookside->store ($price, $amount);
+        }
+        return $timestamp;
+    }
+
+    public function handle_ws_system_status ($client, $message) {
+        //
+        //     {
+        //         connectionID => 15527282728335292000,
+        //         event => 'systemStatus',
+        //         status => 'online',
+        //         version => '0.2.0'
+        //     }
+        //
+        return $message;
+    }
+
+    public function handle_ws_subscription_status ($client, $message) {
+        //
+        //     {
+        //         channelID => 210,
+        //         channelName => 'book-10',
+        //         event => 'subscriptionStatus',
+        //         pair => 'ETH/XBT',
+        //         status => 'subscribed',
+        //         subscription => array( depth => 10, name => 'book' )
+        //     }
+        //
+        $channelId = $this->safe_string($message, 'channelID');
+        $this->options['subscriptionStatusByChannelId'][$channelId] = $message;
     }
 
     public function handle_ws_message ($client, $message) {
-        $channelId = (string) $message[0];
-        $market = $this->safe_value($this->options['marketsByNumericId'], $channelId);
-        if ($market === null) {
+        if (gettype ($message) === 'array' && count (array_filter (array_keys ($message), 'is_string')) == 0) {
+            $channelId = (string) $message[0];
+            $subscriptionStatus = $this->safe_value($this->options['subscriptionStatusByChannelId'], $channelId);
+            if ($subscriptionStatus !== null) {
+                $subscription = $this->safe_value($subscriptionStatus, 'subscription', array());
+                $name = $this->safe_string($subscription, 'name');
+                $methods = array (
+                    'book' => 'handleWsOrderBook',
+                );
+                $method = $this->safe_string($methods, $name);
+                if ($method === null) {
+                    return $message;
+                } else {
+                    return $this->$method ($client, $message);
+                }
+            }
+        } else {
+            $event = $this->safe_string($message, 'event');
             $methods = array (
-                // '<numericId>' => 'handleWsOrderBookAndTrades', // Price Aggregated Book
-                '1000' => 'handleWsAccountNotifications', // Beta
-                '1002' => 'handleWsTickers', // Ticker Data
-                // '1003' => null, // 24 Hour Exchange Volume
-                '1010' => 'handleWsHeartbeat',
+                'systemStatus' => 'handleWsSystemStatus',
+                'subscriptionStatus' => 'handleWsSubscriptionStatus',
             );
-            $method = $this->safe_string($methods, $channelId);
+            $method = $this->safe_string($methods, $event);
             if ($method === null) {
                 return $message;
             } else {
                 return $this->$method ($client, $message);
             }
-        } else {
-            return $this->handle_ws_order_book_and_trades ($client, $message);
         }
     }
 }

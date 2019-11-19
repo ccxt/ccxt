@@ -137,7 +137,8 @@ module.exports = class kraken extends ccxt.kraken {
 
     signWsMessage (client, messageHash, message, params = {}) {
         if (messageHash.indexOf ('1000') === 0) {
-            if (this.checkRequiredCredentials (false)) {
+            const reload = false;
+            if (this.checkRequiredCredentials (reload)) {
                 const nonce = this.nonce ();
                 const payload = this.urlencode ({ 'nonce': nonce });
                 const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha512');
@@ -312,6 +313,7 @@ module.exports = class kraken extends ccxt.kraken {
         //         version: '0.2.0'
         //     }
         //
+        return message;
     }
 
     handleWsSubscriptionStatus (client, message) {

@@ -127,7 +127,8 @@ module.exports = class poloniex extends ccxt.poloniex {
 
     signWsMessage (client, messageHash, message, params = {}) {
         if (messageHash.indexOf ('1000') === 0) {
-            if (this.checkRequiredCredentials (false)) {
+            const reload = false;
+            if (this.checkRequiredCredentials (reload)) {
                 const nonce = this.nonce ();
                 const payload = this.urlencode ({ 'nonce': nonce });
                 const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha512');
@@ -279,9 +280,8 @@ module.exports = class poloniex extends ccxt.poloniex {
     }
 
     handleWsAccountNotifications (client, message) {
-        console.log ('Received', message);
-        console.log ('Private WS not implemented yet (wip)');
-        process.exit ();
+        // not implemented yet
+        return message;
     }
 
     handleWsMessage (client, message) {

@@ -18,10 +18,16 @@ class kraken(ccxt.kraken):
             },
             'urls': {
                 'api': {
-                    'ws': 'ws.kraken.com',
-                    'wsauth': 'ws-auth.kraken.com',
-                    'betaws': 'beta-ws.kraken.com',
+                    'ws': 'wss://ws.kraken.com',
+                    'wsauth': 'wss://ws-auth.kraken.com',
+                    'betaws': 'wss://beta-ws.kraken.com',
                 },
+            },
+            'versions': {
+                'ws': '0.2.0',
+            },
+            'options': {
+                'subscriptionStatusByChannelId': {},
             },
         })
 
@@ -121,7 +127,8 @@ class kraken(ccxt.kraken):
 
     def sign_ws_message(self, client, messageHash, message, params={}):
         if messageHash.find('1000') == 0:
-            if self.check_required_credentials(false):
+            reload = False
+            if self.check_required_credentials(reload):
                 nonce = self.nonce()
                 payload = self.urlencode({'nonce': nonce})
                 signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
@@ -178,107 +185,148 @@ class kraken(ccxt.kraken):
             'fee': None,
         }
 
-    def handle_ws_order_book_and_trades(self, client, message):
+    def handle_ws_order_book(self, client, message):
         #
-        # first response
+        # first message(snapshot)
         #
         #     [
-        #         14,  # channelId == market['numericId']
-        #         8767,  # nonce
-        #         [
-        #             [
-        #                 "i",  # initial snapshot
-        #                 {
-        #                     "currencyPair": "BTC_BTS",
-        #                     "orderBook": [
-        #                         {"0.00001853": "2537.5637", "0.00001854": "1567238.172367"},  # asks, price, size
-        #                         {"0.00001841": "3645.3647", "0.00001840": "1637.3647"}  # bids
-        #                     ]
-        #                 }
+        #         0,  # channelID
+        #         {
+        #             "as": [
+        #                 ["5541.30000", "2.50700000", "1534614248.123678"],
+        #                 ["5541.80000", "0.33000000", "1534614098.345543"],
+        #                 ["5542.70000", "0.64700000", "1534614244.654432"]
+        #             ],
+        #             "bs": [
+        #                 ["5541.20000", "1.52900000", "1534614248.765567"],
+        #                 ["5539.90000", "0.30000000", "1534614241.769870"],
+        #                 ["5539.50000", "5.00000000", "1534613831.243486"]
         #             ]
-        #         ]
+        #         },
+        #         "book-100",
+        #         "XBT/USD"
         #     ]
         #
         # subsequent updates
         #
         #     [
-        #         14,
-        #         8768,
-        #         [
-        #             ["o", 1, "0.00001823", "5534.6474"],  # orderbook delta, bids, price, size
-        #             ["o", 0, "0.00001824", "6575.464"],  # orderbook delta, asks, price, size
-        #             ["t", "42706057", 1, "0.05567134", "0.00181421", 1522877119]  # trade, id, side(1 for buy, 0 for sell), price, size, timestamp
-        #         ]
+        #         1234,
+        #         { # optional
+        #             "a": [
+        #                 ["5541.30000", "2.50700000", "1534614248.456738"],
+        #                 ["5542.50000", "0.40100000", "1534614248.456738"]
+        #             ]
+        #         },
+        #         { # optional
+        #             "b": [
+        #                 ["5541.30000", "0.00000000", "1534614335.345903"]
+        #             ]
+        #         },
+        #         "book-10",
+        #         "XBT/USD"
         #     ]
         #
-        marketId = str(message[0])
-        nonce = message[1]
-        data = message[2]
-        market = self.safe_value(self.options['marketsByNumericId'], marketId)
-        symbol = self.safe_string(market, 'symbol')
-        orderbookUpdatesCount = 0
-        tradesCount = 0
-        for i in range(0, len(data)):
-            delta = data[i]
-            if delta[0] == 'i':
-                snapshot = self.safe_value(delta[1], 'orderBook', [])
-                sides = ['asks', 'bids']
-                self.orderbooks[symbol] = self.orderbook()
-                orderbook = self.orderbooks[symbol]
-                for j in range(0, len(snapshot)):
-                    side = sides[j]
-                    bookside = orderbook[side]
-                    orders = snapshot[j]
-                    prices = list(orders.keys())
-                    for k in range(0, len(prices)):
-                        price = prices[k]
-                        amount = float(orders[price])
-                        bookside.store(price, amount)
-                orderbook['nonce'] = nonce
-                orderbookUpdatesCount += 1
-            elif delta[0] == 'o':
-                orderbook = self.orderbooks[symbol]
-                side = 'bids' if delta[1] else 'asks'
-                bookside = orderbook[side]
-                price = delta[2]
-                amount = float(delta[3])
-                bookside.store(price, amount)
-                orderbookUpdatesCount += 1
-            elif delta[0] == 't':
-                trade = self.parse_ws_trade(client, delta, market)
-                self.trades.append(trade)
-                tradesCount += 1
-        if orderbookUpdatesCount:
-            # resolve the orderbook future
-            messageHash = marketId + ':orderbook'
+        messageLength = len(message)
+        wsName = message[messageLength - 1]
+        market = self.safe_value(self.options['marketsByWsName'], wsName)
+        symbol = market['symbol']
+        timestamp = None
+        messageHash = wsName + ':book'
+        # if self is a snapshot
+        if 'as' in message[1]:
+            # todo get depth from marketsByWsName
+            self.orderbooks[symbol] = self.limitedOrderBook({}, 10)
             orderbook = self.orderbooks[symbol]
+            sides = {
+                'as': 'asks',
+                'bs': 'bids',
+            }
+            keys = list(sides.keys())
+            for i in range(0, len(keys)):
+                key = keys[i]
+                side = sides[key]
+                bookside = orderbook[side]
+                deltas = self.safe_value(message[1], key, [])
+                timestamp = self.handle_ws_deltas(deltas, bookside, timestamp)
+            orderbook['timestamp'] = timestamp
             self.resolveWsFuture(client, messageHash, orderbook.limit())
-        if tradesCount:
-            # resolve the trades future
-            messageHash = marketId + ':trades'
-            # todo clear self.trades after they are read
-            self.resolveWsFuture(client, messageHash, self.trades)
+        else:
+            orderbook = self.orderbooks[symbol]
+            # else, if self is an orderbook update
+            a = None
+            b = None
+            if messageLength == 5:
+                a = self.safe_value(message[1], 'a', [])
+                b = self.safe_value(message[2], 'b', [])
+            else:
+                if 'a' in message[1]:
+                    a = self.safe_value(message[1], 'a', [])
+                else:
+                    b = self.safe_value(message[1], 'b', [])
+            if a is not None:
+                timestamp = self.handle_ws_deltas(a, orderbook['asks'], timestamp)
+            if b is not None:
+                timestamp = self.handle_ws_deltas(b, orderbook['bids'], timestamp)
+            orderbook['timestamp'] = timestamp
+            self.resolveWsFuture(client, messageHash, orderbook.limit())
 
-    def handle_account_notifications(self, client, message):
-        print('Received', message)
-        print('Private WS not implemented yet(wip)')
-        sys.exit()
+    def handle_ws_deltas(self, deltas, bookside, timestamp):
+        for j in range(0, len(deltas)):
+            delta = deltas[j]
+            price = delta[0]  # no need to conver the price here
+            amount = float(delta[1])
+            timestamp = max(timestamp or 0, int(delta[2] * 1000))
+            bookside.store(price, amount)
+        return timestamp
+
+    def handle_ws_system_status(self, client, message):
+        #
+        #     {
+        #         connectionID: 15527282728335292000,
+        #         event: 'systemStatus',
+        #         status: 'online',
+        #         version: '0.2.0'
+        #     }
+        #
+        return message
+
+    def handle_ws_subscription_status(self, client, message):
+        #
+        #     {
+        #         channelID: 210,
+        #         channelName: 'book-10',
+        #         event: 'subscriptionStatus',
+        #         pair: 'ETH/XBT',
+        #         status: 'subscribed',
+        #         subscription: {depth: 10, name: 'book'}
+        #     }
+        #
+        channelId = self.safe_string(message, 'channelID')
+        self.options['subscriptionStatusByChannelId'][channelId] = message
 
     def handle_ws_message(self, client, message):
-        channelId = str(message[0])
-        market = self.safe_value(self.options['marketsByNumericId'], channelId)
-        if market is None:
+        if isinstance(message, list):
+            channelId = str(message[0])
+            subscriptionStatus = self.safe_value(self.options['subscriptionStatusByChannelId'], channelId)
+            if subscriptionStatus is not None:
+                subscription = self.safe_value(subscriptionStatus, 'subscription', {})
+                name = self.safe_string(subscription, 'name')
+                methods = {
+                    'book': 'handleWsOrderBook',
+                }
+                method = self.safe_string(methods, name)
+                if method is None:
+                    return message
+                else:
+                    return getattr(self, method)(client, message)
+        else:
+            event = self.safe_string(message, 'event')
             methods = {
-                # '<numericId>': 'handleWsOrderBookAndTrades',  # Price Aggregated Book
-                '1000': 'handleWsAccountNotifications',  # Beta
-                '1002': 'handleWsTickers',  # Ticker Data
-                # '1003': None,  # 24 Hour Exchange Volume
-                '1010': 'handleWsHeartbeat',
+                'systemStatus': 'handleWsSystemStatus',
+                'subscriptionStatus': 'handleWsSubscriptionStatus',
             }
-            method = self.safe_string(methods, channelId)
+            method = self.safe_string(methods, event)
             if method is None:
                 return message
             else:
                 return getattr(self, method)(client, message)
-        else:
-            return self.handle_ws_order_book_and_trades(client, message)

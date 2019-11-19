@@ -118,7 +118,8 @@ class poloniex(ccxt.poloniex):
 
     def sign_ws_message(self, client, messageHash, message, params={}):
         if messageHash.find('1000') == 0:
-            if self.check_required_credentials(false):
+            reload = False
+            if self.check_required_credentials(reload):
                 nonce = self.nonce()
                 payload = self.urlencode({'nonce': nonce})
                 signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
@@ -228,7 +229,7 @@ class poloniex(ccxt.poloniex):
                     orders = snapshot[j]
                     prices = list(orders.keys())
                     for k in range(0, len(prices)):
-                        price = prices[k]
+                        price = prices[k]  # no need to conver the price here
                         amount = float(orders[price])
                         bookside.store(price, amount)
                 orderbook['nonce'] = nonce
@@ -237,7 +238,7 @@ class poloniex(ccxt.poloniex):
                 orderbook = self.orderbooks[symbol]
                 side = 'bids' if delta[1] else 'asks'
                 bookside = orderbook[side]
-                price = delta[2]
+                price = delta[2]  # no need to conver the price here
                 amount = float(delta[3])
                 bookside.store(price, amount)
                 orderbookUpdatesCount += 1
@@ -257,9 +258,8 @@ class poloniex(ccxt.poloniex):
             self.resolveWsFuture(client, messageHash, self.trades)
 
     def handle_ws_account_notifications(self, client, message):
-        print('Received', message)
-        print('Private WS not implemented yet(wip)')
-        sys.exit()
+        # not implemented yet
+        return message
 
     def handle_ws_message(self, client, message):
         channelId = str(message[0])
