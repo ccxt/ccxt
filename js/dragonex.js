@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, InvalidAddress } = require ('./base/errors');
+const { ArgumentsRequired,OrderNotFound, InvalidAddress } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -252,7 +252,6 @@ module.exports = class dragonex extends Exchange {
             'cost': parseFloat (cost),
         };
     }
-
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -544,7 +543,7 @@ module.exports = class dragonex extends Exchange {
             'volume': this.amountToPrecision (symbol, amount),
         };
         if (type === 'limit') {
-            request['price'] = this.amountToPrecision (symbol, price)
+            request['price'] = this.priceToPrecision (symbol, price)
         }
         let response = undefined;
         if (side === 'buy') {
@@ -607,7 +606,7 @@ module.exports = class dragonex extends Exchange {
             request['count'] = limit;
         }
         const response = await this.privatePostApiV1OrderHistory2 (this.extend (request, params));
-        const data = this.safeValue (this.safeValue (response, 'data', {}), 'list' , []);
+        const data = this.safeValue (this.safeValue (response, 'data', {}), 'list', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -886,7 +885,7 @@ module.exports = class dragonex extends Exchange {
             const contentType = 'application/json';
             const canonicalizedHeaders = '';
             const ip = this.safeValue (params, 'bind_ip', '0.0.0.0');
-            let strToSign = [method.upper (), contentMd5, contentType, date, canonicalizedHeaders].join('\n');
+            let strToSign = [method.upper (), contentMd5, contentType, date, canonicalizedHeaders].join ('\n');
             strToSign += request;
             const signature = this.hmac (this.encode (this.secret), this.encode (strToSign), 'sha1', 'base64');
             const auth = this.apiKey + ':' + signature;
