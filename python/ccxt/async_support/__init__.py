@@ -113,6 +113,7 @@ from ccxt.async_support.coss import coss                                  # noqa
 from ccxt.async_support.crex24 import crex24                              # noqa: F401
 from ccxt.async_support.deribit import deribit                            # noqa: F401
 from ccxt.async_support.digifinex import digifinex                        # noqa: F401
+from ccxt.async_support.dragonex import dragonex
 from ccxt.async_support.dsx import dsx                                    # noqa: F401
 from ccxt.async_support.dx import dx                                      # noqa: F401
 from ccxt.async_support.exmo import exmo                                  # noqa: F401
@@ -240,6 +241,7 @@ exchanges = [
     'crex24',
     'deribit',
     'digifinex',
+    'dragonex',
     'dsx',
     'dx',
     'exmo',

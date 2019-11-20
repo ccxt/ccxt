@@ -149,6 +149,7 @@ class Exchange {
         'crex24',
         'deribit',
         'digifinex',
+        'dragonex',
         'dsx',
         'dx',
         'exmo',
@@ -618,6 +619,10 @@ class Exchange {
         }
         return $result;
     }
+
+    public static function gmt ($timestamp) {
+            return gmdate("D, d M Y H:i:s", $timestamp) . ' GMT';
+        }
 
     public function seconds() {
         return time();
