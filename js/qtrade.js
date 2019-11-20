@@ -85,6 +85,7 @@ module.exports = class qtrade extends Exchange {
                         'withdraw',
                         'sell_limit',
                         'buy_limit',
+                        'cancel_order',
                     ],
                 },
             },
@@ -458,19 +459,18 @@ module.exports = class qtrade extends Exchange {
             throw new ExchangeError (this.id + ' allows limit orders only');
         }
         await this.loadMarkets ();
-        const request = { 'amount': amount, 'market_id': this.market (symbol)['id'], 'price': price};
-        console.log(request);
+        const request = { 'amount': amount, 'market_id': this.market (symbol)['id'], 'price': price };
         let response = {};
         if (side === 'sell') {
             response = await this.privatePostSellLimit (this.extend (request, params));
         } else if (side === 'buy') {
             response = await this.privatePostBuyLimit (this.extend (request, params));
         }
-        return this.parseOrder(response['data']['order']);
+        return this.parseOrder (response['data']['order']);
     }
 
     parseOrder (order) {
-        const result = {'info': order};
+        const result = { 'info': order };
         result['id'] = this.safeString (order, 'id');
         result['datetime'] = this.safeString (order, 'created_at');
         result['timestamp'] = this.parse8601 (result['datetime']);
@@ -480,18 +480,24 @@ module.exports = class qtrade extends Exchange {
             result['status'] = 'closed';
         }
         result['trades'] = this.parseTrades (order['trades']);
-        if (result['trades'][0] !== undefined){
+        if (result['trades'][0] !== undefined) {
             result['lastTradeTimestamp'] = result['trades'][0]['timestamp'];
         } else {
             result['lastTradeTimestamp'] = undefined;
         }
-        result['price'] = this.safeFloat (order, 'price')
+        result['price'] = this.safeFloat (order, 'price');
         result['amount'] = this.safeFloat (order, 'market_amount');
         result['remaining'] = this.safeFloat (order, 'market_amount_remaining');
         result['filled'] = result['amount'] - result['remaining'];
         result['cost'] = result['filled'] * result['price'];
         result['fee'] = undefined;
         return result;
+    }
+
+    async cancelOrder (id, symbol, params = {}) {
+        const request = { 'id': parseInt(id) };
+        // successful cancellation returns 200 with no payload
+        this.privatePostCancelOrder (this.extend (request, params));
     }
 
     nonce () {
