@@ -83,11 +83,11 @@ class LimitedOrderBookSide extends OrderBookSide {
     }
 
     limit (n = undefined) {
-        if (n) {
-            return super.limit (Math.min (this.depth || Number.MAX_SAFE_INTEGER, n))
-        } else {
-            return super.limit (this.depth)
-        }
+        const depth = n ? Math.min (this.depth || Number.MAX_SAFE_INTEGER, n) : this.depth
+        const result = super.limit (depth)
+        // have to reset the index here :(
+        this.index = Object.fromEntries (result)
+        return result
     }
 }
 
