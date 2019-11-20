@@ -14,6 +14,7 @@ class OrderBookSide extends Array {
         Object.defineProperty (this, 'index', {
             __proto__: null, // make it invisible
             value: {},
+            writable: true,
         })
         if (deltas.length) {
             this.update (deltas)
@@ -79,16 +80,17 @@ class LimitedOrderBookSide extends OrderBookSide {
         Object.defineProperty (this, 'depth', {
             __proto__: null, // make it invisible
             value: depth,
+            writable: true,
         })
     }
 
     limit (n = undefined) {
         const depth = n ? Math.min (this.depth || Number.MAX_SAFE_INTEGER, n) : this.depth
-        const result = super.limit (depth)
+        super.limit (depth)
         // have to reset the index here :(
         // will add another type of OrderBookSide here that will solve the issue :)
-        this.index = Object.fromEntries (result)
-        return result
+        this.index = Object.fromEntries (this)
+        return this
     }
 }
 
