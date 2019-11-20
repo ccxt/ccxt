@@ -252,6 +252,7 @@ class Transpiler {
             [ /([^\s#]+) \}/g, '$1}' ],    // PEP8 E202 remove whitespaces before right } bracket
             [ /([^a-z])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
             [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
+            [ /\sdelete\s/g, ' del ' ],
         ])
 
         this.python2Regexes = [
@@ -364,6 +365,7 @@ class Transpiler {
             [ /console\.log/g, 'var_dump'],
             [ /process\.exit/g, 'exit'],
             [ /super\./g, 'parent::'],
+            [ /\sdelete\s([^\n]+)\;/g, 'unset($1);' ],
             [ /\~([a-zA-Z0-9_]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
         ])
 
