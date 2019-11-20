@@ -96,6 +96,11 @@ module.exports = class kraken extends ccxt.kraken {
             'quoteVolume': quoteVolume,
             'info': ticker,
         };
+        // todo: add support for multiple tickers (may be tricky)
+        // kraken confirms multi-pair subscriptions separately one by one
+        // trigger correct fetchWsTickers calls upon receiving any of symbols
+        // --------------------------------------------------------------------
+        // if there's a corresponding fetchWsTicker call - trigger it
         this.resolveWsFuture (client, messageHash, result);
     }
 
@@ -104,11 +109,53 @@ module.exports = class kraken extends ccxt.kraken {
         throw new NotImplemented (this.id + ' fetchWsBalance() not implemented yet');
     }
 
-    async fetchWsTicker (symbol, params = {}) {
+    handleWsTrades (client, message) {
+        //
+        //     [
+        //         0, // channelID
+        //         [ //     price        volume         time             side type misc
+        //             [ "5541.20000", "0.15850568", "1534614057.321597", "s", "l", "" ],
+        //             [ "6060.00000", "0.02455000", "1534614057.324998", "b", "l", "" ],
+        //         ],
+        //         "trade",
+        //         "XBT/USD"
+        //     ]
+        //
+        //     // todo: add max limit to the dequeue of trades, unshift and push
+        //     const trade = this.parseWsTrade (client, delta, market);
+        //     this.trades.push (trade);
+        //     tradesCount += 1;
+        //
+        const wsName = message[3];
+        // const name = 'ticker';
+        // const messageHash = wsName + ':' + name;
+        const market = this.safeValue (this.options['marketsByWsName'], wsName);
+        const symbol = market['symbol'];
+        // for (let i = 0; i < message[1].length; i++)
+        const timestamp = parseInt (message[2]);
+        const result = {
+            'id': undefined,
+            'order': undefined,
+            'info': message,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            // 'type': type,
+            // 'side': side,
+            'takerOrMaker': undefined,
+            // 'price': price,
+            // 'amount': amount,
+            // 'cost': price * amount,
+            // 'fee': fee,
+        };
+        result['id'] = undefined;
+        throw NotImplemented (this.id + ' handleWsTrades() not implemented yet (wip)');
+    }
+
+    async fetchWsPublicMessage (name, symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const wsName = this.safeValue (market['info'], 'wsname');
-        const name = 'ticker';
         const messageHash = wsName + ':' + name;
         const url = this.urls['api']['ws'];
         const requestId = this.nonce ();
@@ -128,9 +175,25 @@ module.exports = class kraken extends ccxt.kraken {
         return future;
     }
 
+    async fetchWsTicker (symbol, params = {}) {
+        return await this.fetchWsPublicMessage ('ticker', symbol, params);
+    }
+
     async fetchWsTrades (symbol, params = {}) {
-        await this.loadMarkets ();
-        throw new NotImplemented (this.id + ' fetchWsTrades() not implemented yet');
+        return await this.fetchWsPublicMessage ('trade', symbol, params);
+    }
+
+    async fetchWsOrderBook (symbol, limit = undefined, params = {}) {
+        const name = 'book';
+        params = {
+            'subscription': {
+                'name': name,
+            },
+        };
+        if (limit !== undefined) {
+            params['subscription']['depth'] = limit; // default 10, valid options 10, 25, 100, 500, 1000
+        }
+        return await this.fetchWsPublicMessage (name, symbol, params);
     }
 
     async loadMarkets (reload = false, params = {}) {
@@ -150,33 +213,6 @@ module.exports = class kraken extends ccxt.kraken {
             this.options['marketsByWsName'] = marketsByWsName;
         }
         return markets;
-    }
-
-    async fetchWsOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const wsName = this.safeValue (market['info'], 'wsname');
-        const name = 'book';
-        const messageHash = wsName + ':' + name;
-        const url = this.urls['api']['ws'];
-        const requestId = this.nonce ();
-        const subscribe = {
-            'event': 'subscribe',
-            'reqid': requestId,
-            'pair': [
-                wsName,
-            ],
-            'subscription': {
-                'name': name,
-            },
-        };
-        if (limit !== undefined) {
-            subscribe['subscription']['depth'] = limit; // default 10, valid options 10, 25, 100, 500, 1000
-        }
-        const future = this.sendWsMessage (url, messageHash, this.extend (subscribe, params), messageHash);
-        const client = this.clients[url];
-        client['futures'][requestId] = future;
-        return future;
     }
 
     async fetchWsHeartbeat (params = {}) {
@@ -426,6 +462,7 @@ module.exports = class kraken extends ccxt.kraken {
                 const methods = {
                     'book': 'handleWsOrderBook',
                     'ticker': 'handleWsTicker',
+                    'trade': 'handleWsTrades',
                 };
                 const method = this.safeString (methods, name);
                 if (method === undefined) {

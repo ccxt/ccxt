@@ -10,15 +10,27 @@ const ccxtpro = require ('./ccxt.pro.js')
         'enableRateLimit': true,
     })
 
-    // while (true) {
+    // for (let i = 0; i < 2; i++) {
+    while (true) {
 
-    try {
-        let response = await kraken.fetchWsTicker (symbol)
-        console.log (new Date (), response)
-    } catch (e) {
-        console.log ('were here', e)
+        try {
+            let response = await kraken.fetchWsOrderBook (symbol)
+            console.log (new Date (), response.asks.length, 'asks', response.asks[0], response.bids.length, 'bids', response.bids[0])
+        } catch (e) {
+            console.log ('ERROR', e)
+        }
     }
-    // }
+
+    // for (let i = 0; i < 2; i++) {
+        while (true) {
+
+            try {
+                let response = await kraken.fetchWsTicker (symbol)
+                console.log (new Date (), response)
+            } catch (e) {
+                console.log ('ERROR', e)
+            }
+        }
 
     process.exit ();
 

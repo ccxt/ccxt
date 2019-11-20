@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support as ccxt
-import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -63,80 +62,132 @@ class kraken(ccxt.kraken):
         #         "XBT/USD"
         #     ]
         #
-        print(message)
-        print(client.futures)
-        print(self.options['subscriptionStatusByChannelId'])
-        print('--------------------------------------------------------')
-        # resolve all futures having self symbol
-        # sys.exit()
-        # data = message[2]
-        # market = self.safe_value(self.options['marketsByNumericId'], str(data[0]))
-        # symbol = self.safe_string(market, 'symbol')
-        # return {
-        #     'symbol': symbol,
-        #     'timestamp': timestamp,
-        #     'datetime': self.iso8601(timestamp),
-        #     'high': float(ticker['h'][1]),
-        #     'low': float(ticker['l'][1]),
-        #     'bid': float(ticker['b'][0]),
-        #     'bidVolume': None,
-        #     'ask': float(ticker['a'][0]),
-        #     'askVolume': None,
-        #     'vwap': vwap,
-        #     'open': self.safe_float(ticker, 'o'),
-        #     'close': last,
-        #     'last': last,
-        #     'previousClose': None,
-        #     'change': None,
-        #     'percentage': None,
-        #     'average': None,
-        #     'baseVolume': baseVolume,
-        #     'quoteVolume': quoteVolume,
-        #     'info': ticker,
-        # }
+        wsName = message[3]
+        name = 'ticker'
+        messageHash = wsName + ':' + name
+        market = self.safe_value(self.options['marketsByWsName'], wsName)
+        symbol = market['symbol']
+        ticker = message[1]
+        vwap = float(ticker['p'][0])
+        quoteVolume = None
+        baseVolume = float(ticker['v'][0])
+        if baseVolume is not None and vwap is not None:
+            quoteVolume = baseVolume * vwap
+        last = float(ticker['c'][0])
+        timestamp = self.milliseconds()
+        result = {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': float(ticker['h'][0]),
+            'low': float(ticker['l'][0]),
+            'bid': float(ticker['b'][0]),
+            'bidVolume': float(ticker['b'][2]),
+            'ask': float(ticker['a'][0]),
+            'askVolume': float(ticker['a'][2]),
+            'vwap': vwap,
+            'open': float(ticker['o'][0]),
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        }
+        # todo: add support for multiple tickers(may be tricky)
+        # kraken confirms multi-pair subscriptions separately one by one
+        # trigger correct fetchWsTickers calls upon receiving any of symbols
+        # --------------------------------------------------------------------
+        # if there's a corresponding fetchWsTicker call - trigger it
+        self.resolveWsFuture(client, messageHash, result)
 
     async def fetch_ws_balance(self, params={}):
         await self.load_markets()
         raise NotImplemented(self.id + ' fetchWsBalance() not implemented yet')
 
-    async def fetch_ws_ticker(self, symbol, params={}):
+    def handle_ws_trades(self, client, message):
+        #
+        #     [
+        #         0,  # channelID
+        #         [ #     price        volume         time             side type misc
+        #             ["5541.20000", "0.15850568", "1534614057.321597", "s", "l", ""],
+        #             ["6060.00000", "0.02455000", "1534614057.324998", "b", "l", ""],
+        #         ],
+        #         "trade",
+        #         "XBT/USD"
+        #     ]
+        #
+        #     # todo: add max limit to the dequeue of trades, unshift and push
+        #     trade = self.parse_ws_trade(client, delta, market)
+        #     self.trades.append(trade)
+        #     tradesCount += 1
+        #
+        wsName = message[3]
+        # name = 'ticker'
+        # messageHash = wsName + ':' + name
+        market = self.safe_value(self.options['marketsByWsName'], wsName)
+        symbol = market['symbol']
+        # for(i = 0; i < len(message[1]); i++)
+        timestamp = int(message[2])
+        result = {
+            'id': None,
+            'order': None,
+            'info': message,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            # 'type': type,
+            # 'side': side,
+            'takerOrMaker': None,
+            # 'price': price,
+            # 'amount': amount,
+            # 'cost': price * amount,
+            # 'fee': fee,
+        }
+        result['id'] = None
+        raise NotImplemented(self.id + ' handleWsTrades() not implemented yet(wip)')
+
+    async def fetch_ws_public_message(self, name, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
         wsName = self.safe_value(market['info'], 'wsname')
-        name = 'ticker'
         messageHash = wsName + ':' + name
         url = self.urls['api']['ws']
         requestId = self.nonce()
         subscribe = {
-            'foo': 'bar',
+            'event': 'subscribe',
             'reqid': requestId,
+            'pair': [
+                wsName,
+            ],
+            'subscription': {
+                'name': name,
+            },
         }
-        # subscribe = {
-        #     'event': 'subscribe',
-        #     'reqid': requestId,
-        #     'pair': [
-        #         'foobar',  # wsName,
-        #     ],
-        #     'subscription': {
-        #         'name': name,
-        #     },
-        # }
         future = self.sendWsMessage(url, messageHash, self.extend(subscribe, params), messageHash)
         client = self.clients[url]
         client['futures'][requestId] = future
         return future
 
+    async def fetch_ws_ticker(self, symbol, params={}):
+        return await self.fetch_ws_public_message('ticker', symbol, params)
+
     async def fetch_ws_trades(self, symbol, params={}):
-        await self.load_markets()
-        market = self.market(symbol)
-        numericId = self.safe_string(market, 'numericId')
-        messageHash = numericId + ':trades'
-        url = self.urls['api']['ws']
-        subscribe = {
-            'command': 'subscribe',
-            'channel': numericId,
+        return await self.fetch_ws_public_message('trade', symbol, params)
+
+    async def fetch_ws_order_book(self, symbol, limit=None, params={}):
+        name = 'book'
+        params = {
+            'subscription': {
+                'name': name,
+            },
         }
-        return self.sendWsMessage(url, messageHash, subscribe, numericId)
+        if limit is not None:
+            params['subscription']['depth'] = limit  # default 10, valid options 10, 25, 100, 500, 1000
+        return await self.fetch_ws_public_message(name, symbol, params)
 
     async def load_markets(self, reload=False, params={}):
         markets = await super(kraken, self).load_markets(reload, params)
@@ -153,54 +204,24 @@ class kraken(ccxt.kraken):
             self.options['marketsByWsName'] = marketsByWsName
         return markets
 
-    async def fetch_ws_order_book(self, symbol, limit=None, params={}):
-        await self.load_markets()
-        market = self.market(symbol)
-        wsName = self.safe_value(market['info'], 'wsname')
-        name = 'book'
-        messageHash = wsName + ':' + name
-        url = self.urls['api']['ws']
-        subscribe = {
-            'event': 'subscribe',
-            'pair': [
-                wsName,
-            ],
-            'subscription': {
-                'name': name,
-            },
-        }
-        if limit is not None:
-            subscribe['subscription']['depth'] = limit  # default 10, valid options 10, 25, 100, 500, 1000
-        return self.sendWsMessage(url, messageHash, subscribe, messageHash)
-
     async def fetch_ws_heartbeat(self, params={}):
         await self.load_markets()
-        channelId = '1010'
+        event = 'heartbeat'
         url = self.urls['api']['ws']
-        return self.sendWsMessage(url, channelId)
+        return self.sendWsMessage(url, event)
 
     def sign_ws_message(self, client, messageHash, message, params={}):
-        if messageHash.find('1000') == 0:
-            reload = False
-            if self.check_required_credentials(reload):
-                nonce = self.nonce()
-                payload = self.urlencode({'nonce': nonce})
-                signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
-                message = self.extend(message, {
-                    'key': self.apiKey,
-                    'payload': payload,
-                    'sign': signature,
-                })
+        # todo: not implemented yet
         return message
 
     def handle_ws_heartbeat(self, client, message):
         #
-        # every second
+        # every second(approx) if no other updates are sent
         #
-        #     [1010]
+        #     {"event": "heartbeat"}
         #
-        channelId = '1010'
-        self.resolveWsFuture(client, channelId, message)
+        event = self.safe_string(message, 'event')
+        self.resolveWsFuture(client, event, message)
 
     def parse_ws_trade(self, client, trade, market=None):
         #
@@ -327,13 +348,17 @@ class kraken(ccxt.kraken):
     def handle_ws_deltas(self, deltas, bookside, timestamp):
         for j in range(0, len(deltas)):
             delta = deltas[j]
-            price = delta[0]  # no need to conver the price here
+            price = float(delta[0])
             amount = float(delta[1])
             timestamp = max(timestamp or 0, int(delta[2] * 1000))
             bookside.store(price, amount)
         return timestamp
 
-    def handle_ws_status(self, client, message):
+    def handle_ws_system_status(self, client, message):
+        #
+        # todo: answer the question whether self method should be renamed
+        # and unified as handleWsStatus for any usage pattern that
+        # involves system status and maintenance updates
         #
         #     {
         #         connectionID: 15527282728335292000,
@@ -396,7 +421,6 @@ class kraken(ccxt.kraken):
         return True
 
     def handle_ws_message(self, client, message):
-        # print(message)
         if isinstance(message, list):
             channelId = str(message[0])
             subscriptionStatus = self.safe_value(self.options['subscriptionStatusByChannelId'], channelId)
@@ -406,6 +430,7 @@ class kraken(ccxt.kraken):
                 methods = {
                     'book': 'handleWsOrderBook',
                     'ticker': 'handleWsTicker',
+                    'trade': 'handleWsTrades',
                 }
                 method = self.safe_string(methods, name)
                 if method is None:
@@ -416,6 +441,7 @@ class kraken(ccxt.kraken):
             if self.handle_ws_errors(client, message):
                 event = self.safe_string(message, 'event')
                 methods = {
+                    'heartbeat': 'handleWsHeartbeat',
                     'systemStatus': 'handleWsSystemStatus',
                     'subscriptionStatus': 'handleWsSubscriptionStatus',
                 }

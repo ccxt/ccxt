@@ -132,7 +132,7 @@ class poloniex(ccxt.poloniex):
 
     def handle_ws_heartbeat(self, client, message):
         #
-        # every second
+        # every second(approx) if no other updates are sent
         #
         #     [1010]
         #
@@ -229,7 +229,7 @@ class poloniex(ccxt.poloniex):
                     orders = snapshot[j]
                     prices = list(orders.keys())
                     for k in range(0, len(prices)):
-                        price = prices[k]  # no need to conver the price here
+                        price = float(prices[k])
                         amount = float(orders[price])
                         bookside.store(price, amount)
                 orderbook['nonce'] = nonce
@@ -238,7 +238,7 @@ class poloniex(ccxt.poloniex):
                 orderbook = self.orderbooks[symbol]
                 side = 'bids' if delta[1] else 'asks'
                 bookside = orderbook[side]
-                price = delta[2]  # no need to conver the price here
+                price = float(delta[2])
                 amount = float(delta[3])
                 bookside.store(price, amount)
                 orderbookUpdatesCount += 1

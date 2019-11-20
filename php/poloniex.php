@@ -148,7 +148,7 @@ class poloniex extends \ccxt\poloniex {
 
     public function handle_ws_heartbeat ($client, $message) {
         //
-        // every second
+        // every second (approx) if no other updates are sent
         //
         //     array ( 1010 )
         //
@@ -248,7 +248,7 @@ class poloniex extends \ccxt\poloniex {
                     $orders = $snapshot[$j];
                     $prices = is_array($orders) ? array_keys($orders) : array();
                     for ($k = 0; $k < count ($prices); $k++) {
-                        $price = $prices[$k]; // no need to conver the $price here
+                        $price = floatval ($prices[$k]);
                         $amount = floatval ($orders[$price]);
                         $bookside->store ($price, $amount);
                     }
@@ -259,7 +259,7 @@ class poloniex extends \ccxt\poloniex {
                 $orderbook = $this->orderbooks[$symbol];
                 $side = $delta[1] ? 'bids' : 'asks';
                 $bookside = $orderbook[$side];
-                $price = $delta[2]; // no need to conver the $price here
+                $price = floatval ($delta[2]);
                 $amount = floatval ($delta[3]);
                 $bookside->store ($price, $amount);
                 $orderbookUpdatesCount .= 1;

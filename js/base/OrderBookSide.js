@@ -85,11 +85,17 @@ class LimitedOrderBookSide extends OrderBookSide {
     }
 
     limit (n = undefined) {
+        const array = Object.entries (this.index).map (this.convert).sort (this.compare)
         const depth = n ? Math.min (this.depth || Number.MAX_SAFE_INTEGER, n) : this.depth
-        super.limit (depth)
-        // have to reset the index here :(
-        // will add another type of OrderBookSide here that will solve the issue :)
-        this.index = Object.fromEntries (this)
+        const threshold = Math.min (array.length, depth)
+        this.index = {}
+        for (let i = 0; i < threshold; i++) {
+            this[i] = array[i];
+            const price = array[i][0]
+            const size = array[i][1]
+            this.index[price] = size
+        }
+        this.length = threshold;
         return this
     }
 }

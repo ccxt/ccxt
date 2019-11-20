@@ -56,45 +56,56 @@ class kraken extends \ccxt\kraken {
         //             "h" => array ( "5783.00000", "5783.00000" ), // high price today, high price 24h ago
         //             "l" => array ( "5505.00000", "5505.00000" ), // low price today, low price 24h ago
         //             "o" => array ( "5760.70000", "5763.40000" ), // open price today, open price 24h ago
-        //             "p" => array ( "5631.44067", "5653.78939" ), // vwap today, vwap 24h ago
+        //             "p" => array ( "5631.44067", "5653.78939" ), // $vwap today, $vwap 24h ago
         //             "t" => array ( 11493, 16267 ), // number of trades today, 24 hours ago
         //             "v" => array ( "2634.11501494", "3591.17907851" ), // volume today, volume 24 hours ago
         //         ),
-        //         "ticker",
+        //         "$ticker",
         //         "XBT/USD"
         //     )
         //
-        var_dump ($message);
-        var_dump ($client->futures);
-        var_dump ($this->options['subscriptionStatusByChannelId']);
-        var_dump ('--------------------------------------------------------');
-        // resolve all futures having this $symbol
-        // exit ();
-        // $data = $message[2];
-        // $market = $this->safe_value($this->options['marketsByNumericId'], (string) $data[0]);
-        // $symbol = $this->safe_string($market, 'symbol');
-        // return array (
-        //     'symbol' => $symbol,
-        //     'timestamp' => timestamp,
-        //     'datetime' => $this->iso8601 (timestamp),
-        //     'high' => floatval (ticker['h'][1]),
-        //     'low' => floatval (ticker['l'][1]),
-        //     'bid' => floatval (ticker['b'][0]),
-        //     'bidVolume' => null,
-        //     'ask' => floatval (ticker['a'][0]),
-        //     'askVolume' => null,
-        //     'vwap' => vwap,
-        //     'open' => $this->safe_float(ticker, 'o'),
-        //     'close' => last,
-        //     'last' => last,
-        //     'previousClose' => null,
-        //     'change' => null,
-        //     'percentage' => null,
-        //     'average' => null,
-        //     'baseVolume' => baseVolume,
-        //     'quoteVolume' => quoteVolume,
-        //     'info' => ticker,
-        // );
+        $wsName = $message[3];
+        $name = 'ticker';
+        $messageHash = $wsName . ':' . $name;
+        $market = $this->safe_value($this->options['marketsByWsName'], $wsName);
+        $symbol = $market['symbol'];
+        $ticker = $message[1];
+        $vwap = floatval ($ticker['p'][0]);
+        $quoteVolume = null;
+        $baseVolume = floatval ($ticker['v'][0]);
+        if ($baseVolume !== null && $vwap !== null) {
+            $quoteVolume = $baseVolume * $vwap;
+        }
+        $last = floatval ($ticker['c'][0]);
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['h'][0]),
+            'low' => floatval ($ticker['l'][0]),
+            'bid' => floatval ($ticker['b'][0]),
+            'bidVolume' => floatval ($ticker['b'][2]),
+            'ask' => floatval ($ticker['a'][0]),
+            'askVolume' => floatval ($ticker['a'][2]),
+            'vwap' => $vwap,
+            'open' => floatval ($ticker['o'][0]),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
+            'info' => $ticker,
+        );
+        // todo => add support for multiple tickers (may be tricky)
+        // kraken confirms multi-pair subscriptions separately one by one
+        // trigger correct fetchWsTickers calls upon receiving any of symbols
+        // --------------------------------------------------------------------
+        // if there's a corresponding fetchWsTicker call - trigger it
+        $this->resolveWsFuture ($client, $messageHash, $result);
     }
 
     public function fetch_ws_balance ($params = array ()) {
@@ -102,45 +113,91 @@ class kraken extends \ccxt\kraken {
         throw new NotImplemented($this->id . ' fetchWsBalance() not implemented yet');
     }
 
-    public function fetch_ws_ticker ($symbol, $params = array ()) {
+    public function handle_ws_trades ($client, $message) {
+        //
+        //     array (
+        //         0, // channelID
+        //         array ( //     price        volume         time             side type misc
+        //             array ( "5541.20000", "0.15850568", "1534614057.321597", "s", "l", "" ),
+        //             array ( "6060.00000", "0.02455000", "1534614057.324998", "b", "l", "" ),
+        //         ),
+        //         "$trade",
+        //         "XBT/USD"
+        //     )
+        //
+        //     // todo => add max limit to the dequeue of trades, unshift and push
+        //     $trade = $this->parse_ws_trade ($client, delta, $market);
+        //     $this->trades[] = $trade;
+        //     tradesCount .= 1;
+        //
+        $wsName = $message[3];
+        // $name = 'ticker';
+        // $messageHash = $wsName . ':' . $name;
+        $market = $this->safe_value($this->options['marketsByWsName'], $wsName);
+        $symbol = $market['symbol'];
+        // for ($i = 0; $i < is_array ($message[1]) ? count ($message[1]) : 0; $i++)
+        $timestamp = intval ($message[2]);
+        $result = array (
+            'id' => null,
+            'order' => null,
+            'info' => $message,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            // 'type' => type,
+            // 'side' => side,
+            'takerOrMaker' => null,
+            // 'price' => price,
+            // 'amount' => amount,
+            // 'cost' => price * amount,
+            // 'fee' => fee,
+        );
+        $result['id'] = null;
+        throw NotImplemented ($this->id . ' handleWsTrades() not implemented yet (wip)');
+    }
+
+    public function fetch_ws_public_message ($name, $symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $wsName = $this->safe_value($market['info'], 'wsname');
-        $name = 'ticker';
         $messageHash = $wsName . ':' . $name;
         $url = $this->urls['api']['ws'];
         $requestId = $this->nonce ();
         $subscribe = array (
-            'foo' => 'bar',
+            'event' => 'subscribe',
             'reqid' => $requestId,
+            'pair' => array (
+                $wsName,
+            ),
+            'subscription' => array (
+                'name' => $name,
+            ),
         );
-        // $subscribe = array (
-        //     'event' => 'subscribe',
-        //     'reqid' => $requestId,
-        //     'pair' => array (
-        //         'foobar', // $wsName,
-        //     ),
-        //     'subscription' => array (
-        //         'name' => $name,
-        //     ),
-        // );
         $future = $this->sendWsMessage ($url, $messageHash, array_merge ($subscribe, $params), $messageHash);
         $client = $this->clients[$url];
         $client['futures'][$requestId] = $future;
         return $future;
     }
 
+    public function fetch_ws_ticker ($symbol, $params = array ()) {
+        return $this->fetch_ws_public_message ('ticker', $symbol, $params);
+    }
+
     public function fetch_ws_trades ($symbol, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        $numericId = $this->safe_string($market, 'numericId');
-        $messageHash = $numericId . ':trades';
-        $url = $this->urls['api']['ws'];
-        $subscribe = array (
-            'command' => 'subscribe',
-            'channel' => $numericId,
+        return $this->fetch_ws_public_message ('trade', $symbol, $params);
+    }
+
+    public function fetch_ws_order_book ($symbol, $limit = null, $params = array ()) {
+        $name = 'book';
+        $params = array (
+            'subscription' => array (
+                'name' => $name,
+            ),
         );
-        return $this->sendWsMessage ($url, $messageHash, $subscribe, $numericId);
+        if ($limit !== null) {
+            $params['subscription']['depth'] = $limit; // default 10, valid options 10, 25, 100, 500, 1000
+        }
+        return $this->fetch_ws_public_message ($name, $symbol, $params);
     }
 
     public function load_markets ($reload = false, $params = array ()) {
@@ -162,60 +219,26 @@ class kraken extends \ccxt\kraken {
         return $markets;
     }
 
-    public function fetch_ws_order_book ($symbol, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        $wsName = $this->safe_value($market['info'], 'wsname');
-        $name = 'book';
-        $messageHash = $wsName . ':' . $name;
-        $url = $this->urls['api']['ws'];
-        $subscribe = array (
-            'event' => 'subscribe',
-            'pair' => array (
-                $wsName,
-            ),
-            'subscription' => array (
-                'name' => $name,
-            ),
-        );
-        if ($limit !== null) {
-            $subscribe['subscription']['depth'] = $limit; // default 10, valid options 10, 25, 100, 500, 1000
-        }
-        return $this->sendWsMessage ($url, $messageHash, $subscribe, $messageHash);
-    }
-
     public function fetch_ws_heartbeat ($params = array ()) {
         $this->load_markets();
-        $channelId = '1010';
+        $event = 'heartbeat';
         $url = $this->urls['api']['ws'];
-        return $this->sendWsMessage ($url, $channelId);
+        return $this->sendWsMessage ($url, $event);
     }
 
     public function sign_ws_message ($client, $messageHash, $message, $params = array ()) {
-        if (mb_strpos($messageHash, '1000') === 0) {
-            $reload = false;
-            if ($this->check_required_credentials($reload)) {
-                $nonce = $this->nonce ();
-                $payload = $this->urlencode (array( 'nonce' => $nonce ));
-                $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha512');
-                $message = array_merge ($message, array (
-                    'key' => $this->apiKey,
-                    'payload' => $payload,
-                    'sign' => $signature,
-                ));
-            }
-        }
+        // todo => not implemented yet
         return $message;
     }
 
     public function handle_ws_heartbeat ($client, $message) {
         //
-        // every second
+        // every second (approx) if no other updates are sent
         //
-        //     array ( 1010 )
+        //     array( "$event" => "heartbeat" )
         //
-        $channelId = '1010';
-        $this->resolveWsFuture ($client, $channelId, $message);
+        $event = $this->safe_string($message, 'event');
+        $this->resolveWsFuture ($client, $event, $message);
     }
 
     public function parse_ws_trade ($client, $trade, $market = null) {
@@ -352,7 +375,7 @@ class kraken extends \ccxt\kraken {
     public function handle_ws_deltas ($deltas, $bookside, $timestamp) {
         for ($j = 0; $j < count ($deltas); $j++) {
             $delta = $deltas[$j];
-            $price = $delta[0]; // no need to conver the $price here
+            $price = floatval ($delta[0]);
             $amount = floatval ($delta[1]);
             $timestamp = max ($timestamp || 0, intval ($delta[2] * 1000));
             $bookside->store ($price, $amount);
@@ -360,7 +383,11 @@ class kraken extends \ccxt\kraken {
         return $timestamp;
     }
 
-    public function handle_ws_status ($client, $message) {
+    public function handle_ws_system_status ($client, $message) {
+        //
+        // todo => answer the question whether this method should be renamed
+        // and unified as handleWsStatus for any usage pattern that
+        // involves system status and maintenance updates
         //
         //     {
         //         connectionID => 15527282728335292000,
@@ -430,7 +457,6 @@ class kraken extends \ccxt\kraken {
     }
 
     public function handle_ws_message ($client, $message) {
-        // var_dump ($message);
         if (gettype ($message) === 'array' && count (array_filter (array_keys ($message), 'is_string')) == 0) {
             $channelId = (string) $message[0];
             $subscriptionStatus = $this->safe_value($this->options['subscriptionStatusByChannelId'], $channelId);
@@ -440,6 +466,7 @@ class kraken extends \ccxt\kraken {
                 $methods = array (
                     'book' => 'handleWsOrderBook',
                     'ticker' => 'handleWsTicker',
+                    'trade' => 'handleWsTrades',
                 );
                 $method = $this->safe_string($methods, $name);
                 if ($method === null) {
@@ -452,6 +479,7 @@ class kraken extends \ccxt\kraken {
             if ($this->handle_ws_errors ($client, $message)) {
                 $event = $this->safe_string($message, 'event');
                 $methods = array (
+                    'heartbeat' => 'handleWsHeartbeat',
                     'systemStatus' => 'handleWsSystemStatus',
                     'subscriptionStatus' => 'handleWsSubscriptionStatus',
                 );
