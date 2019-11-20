@@ -29,11 +29,13 @@ RUN sed -i 's/archive\.ubuntu\.com/us\.archive\.ubuntu\.com/' /etc/apt/sources.l
     && apt-get -y autoremove && apt-get clean && apt-get autoclean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-COPY . .
+COPY ["package.json", "package-lock.json", "/ccxt/"]
+RUN npm install
 
-# Installs as a local Node & Python module, so that `require ('ccxt')` and `import ccxt` should work after that
-RUN npm install \
-    && cd python \
+COPY ["python/setup.py", "python/setup.cfg", "python/README.rst", "/ccxt/python/"]
+RUN cd python \
     && python3 setup.py develop \
     && python setup.py develop \
     && cd ..
+
+COPY . .
