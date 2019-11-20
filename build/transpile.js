@@ -822,10 +822,13 @@ class Transpiler {
         const { python2Folder, python3Folder, phpFolder } = options
 
         // exchanges.json accounts for ids included in exchanges.cfg
-        const ids = require ('../exchanges.json').ids;
-
+        let ids = undefined
+        try {
+            ids = require ('../exchanges.json').ids;
+        } catch (e) {
+        }
         const classNames = fs.readdirSync (jsFolder)
-            .filter (file => file.includes (pattern) && ids.includes (basename (file, pattern)))
+            .filter (file => file.includes (pattern) && (!ids || ids.includes (basename (file, pattern))))
             .map (file => this.transpileDerivedExchangeFile (jsFolder, file, options))
 
         if (classNames.length === 0)
