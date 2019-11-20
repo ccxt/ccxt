@@ -259,6 +259,7 @@ class poloniex(ccxt.poloniex):
 
     def handle_ws_account_notifications(self, client, message):
         # not implemented yet
+        # raise NotImplemented(self.id + 'fetchWsTickers not implemented yet')
         return message
 
     def handle_ws_message(self, client, message):

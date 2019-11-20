@@ -5,6 +5,9 @@
 
 import ccxt.async_support as ccxt
 import hashlib
+from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 
 
 class kraken(ccxt.kraken):
@@ -29,49 +32,99 @@ class kraken(ccxt.kraken):
             'options': {
                 'subscriptionStatusByChannelId': {},
             },
+            'exceptions': {
+                'ws': {
+                    'exact': {
+                        'Event(s) not found': BadRequest,
+                    },
+                    'broad': {
+                        'Currency pair not in ISO 4217-A3 format': BadSymbol,
+                    },
+                },
+            },
         })
 
-    def handle_ws_ticker(self, client, response):
-        data = response[2]
-        market = self.safe_value(self.options['marketsByNumericId'], str(data[0]))
-        symbol = self.safe_string(market, 'symbol')
-        return {
-            'info': response,
-            'symbol': symbol,
-            'last': float(data[1]),
-            'ask': float(data[2]),
-            'bid': float(data[3]),
-            'change': float(data[4]),
-            'baseVolume': float(data[5]),
-            'quoteVolume': float(data[6]),
-            'active': False if data[7] else True,
-            'high': float(data[8]),
-            'low': float(data[9]),
-        }
+    def handle_ws_ticker(self, client, message):
+        #
+        #     [
+        #         0,  # channelID
+        #         {
+        #             "a": ["5525.40000", 1, "1.000"],  # ask, wholeAskVolume, askVolume
+        #             "b": ["5525.10000", 1, "1.000"],  # bid, wholeBidVolume, bidVolume
+        #             "c": ["5525.10000", "0.00398963"],  # closing price, volume
+        #             "h": ["5783.00000", "5783.00000"],  # high price today, high price 24h ago
+        #             "l": ["5505.00000", "5505.00000"],  # low price today, low price 24h ago
+        #             "o": ["5760.70000", "5763.40000"],  # open price today, open price 24h ago
+        #             "p": ["5631.44067", "5653.78939"],  # vwap today, vwap 24h ago
+        #             "t": [11493, 16267],  # number of trades today, 24 hours ago
+        #             "v": ["2634.11501494", "3591.17907851"],  # volume today, volume 24 hours ago
+        #         },
+        #         "ticker",
+        #         "XBT/USD"
+        #     ]
+        #
+        print(message)
+        print(client.futures)
+        print(self.options['subscriptionStatusByChannelId'])
+        print('--------------------------------------------------------')
+        # resolve all futures having self symbol
+        # sys.exit()
+        # data = message[2]
+        # market = self.safe_value(self.options['marketsByNumericId'], str(data[0]))
+        # symbol = self.safe_string(market, 'symbol')
+        # return {
+        #     'symbol': symbol,
+        #     'timestamp': timestamp,
+        #     'datetime': self.iso8601(timestamp),
+        #     'high': float(ticker['h'][1]),
+        #     'low': float(ticker['l'][1]),
+        #     'bid': float(ticker['b'][0]),
+        #     'bidVolume': None,
+        #     'ask': float(ticker['a'][0]),
+        #     'askVolume': None,
+        #     'vwap': vwap,
+        #     'open': self.safe_float(ticker, 'o'),
+        #     'close': last,
+        #     'last': last,
+        #     'previousClose': None,
+        #     'change': None,
+        #     'percentage': None,
+        #     'average': None,
+        #     'baseVolume': baseVolume,
+        #     'quoteVolume': quoteVolume,
+        #     'info': ticker,
+        # }
 
     async def fetch_ws_balance(self, params={}):
         await self.load_markets()
-        self.balance = await self.fetchBalance(params)
-        channelId = '1000'
-        subscribe = {
-            'command': 'subscribe',
-            'channel': channelId,
-        }
-        messageHash = channelId + ':b:e'
-        url = self.urls['api']['ws']
-        return self.sendWsMessage(url, messageHash, subscribe, channelId)
+        raise NotImplemented(self.id + ' fetchWsBalance() not implemented yet')
 
-    async def fetch_ws_tickers(self, symbols=None, params={}):
+    async def fetch_ws_ticker(self, symbol, params={}):
         await self.load_markets()
-        # rewrite
-        raise NotImplemented(self.id + 'fetchWsTickers not implemented yet')
-        # market = self.market(symbol)
-        # numericId = str(market['info']['id'])
-        # url = self.urls['api']['websocket']['public']
-        # return await self.WsTickerMessage(url, '1002' + numericId, {
-        #     'command': 'subscribe',
-        #     'channel': 1002,
-        # })
+        market = self.market(symbol)
+        wsName = self.safe_value(market['info'], 'wsname')
+        name = 'ticker'
+        messageHash = wsName + ':' + name
+        url = self.urls['api']['ws']
+        requestId = self.nonce()
+        subscribe = {
+            'foo': 'bar',
+            'reqid': requestId,
+        }
+        # subscribe = {
+        #     'event': 'subscribe',
+        #     'reqid': requestId,
+        #     'pair': [
+        #         'foobar',  # wsName,
+        #     ],
+        #     'subscription': {
+        #         'name': name,
+        #     },
+        # }
+        future = self.sendWsMessage(url, messageHash, self.extend(subscribe, params), messageHash)
+        client = self.clients[url]
+        client['futures'][requestId] = future
+        return future
 
     async def fetch_ws_trades(self, symbol, params={}):
         await self.load_markets()
@@ -93,9 +146,10 @@ class kraken(ccxt.kraken):
             for i in range(0, len(self.symbols)):
                 symbol = self.symbols[i]
                 market = self.markets[symbol]
-                info = self.safe_value(market, 'info', {})
-                wsName = self.safe_string(info, 'wsname')
-                marketsByWsName[wsName] = market
+                if not market['darkpool']:
+                    info = self.safe_value(market, 'info', {})
+                    wsName = self.safe_string(info, 'wsname')
+                    marketsByWsName[wsName] = market
             self.options['marketsByWsName'] = marketsByWsName
         return markets
 
@@ -190,7 +244,7 @@ class kraken(ccxt.kraken):
         # first message(snapshot)
         #
         #     [
-        #         0,  # channelID
+        #         1234,  # channelID
         #         {
         #             "as": [
         #                 ["5541.30000", "2.50700000", "1534614248.123678"],
@@ -203,7 +257,7 @@ class kraken(ccxt.kraken):
         #                 ["5539.50000", "5.00000000", "1534613831.243486"]
         #             ]
         #         },
-        #         "book-100",
+        #         "book-10",
         #         "XBT/USD"
         #     ]
         #
@@ -279,12 +333,12 @@ class kraken(ccxt.kraken):
             bookside.store(price, amount)
         return timestamp
 
-    def handle_ws_system_status(self, client, message):
+    def handle_ws_status(self, client, message):
         #
         #     {
         #         connectionID: 15527282728335292000,
         #         event: 'systemStatus',
-        #         status: 'online',
+        #         status: 'online',  # online|maintenance|(custom status tbd)
         #         version: '0.2.0'
         #     }
         #
@@ -292,10 +346,15 @@ class kraken(ccxt.kraken):
 
     def handle_ws_subscription_status(self, client, message):
         #
+        # todo: answer the question whether self method should be renamed
+        # and unified as handleWsResponse for any usage pattern that
+        # involves an identified request/response sequence
+        #
         #     {
         #         channelID: 210,
         #         channelName: 'book-10',
         #         event: 'subscriptionStatus',
+        #         reqid: 1574146735269,
         #         pair: 'ETH/XBT',
         #         status: 'subscribed',
         #         subscription: {depth: 10, name: 'book'}
@@ -303,8 +362,41 @@ class kraken(ccxt.kraken):
         #
         channelId = self.safe_string(message, 'channelID')
         self.options['subscriptionStatusByChannelId'][channelId] = message
+        requestId = self.safe_string(message, 'reqid')
+        if client.futures[requestId]:
+            # todo: transpile del in ccxt
+            del client.futures[requestId]
+
+    def handle_ws_errors(self, client, message):
+        #
+        #     {
+        #         errorMessage: 'Currency pair not in ISO 4217-A3 format foobar',
+        #         event: 'subscriptionStatus',
+        #         pair: 'foobar',
+        #         reqid: 1574146735269,
+        #         status: 'error',
+        #         subscription: {name: 'ticker'}
+        #     }
+        #
+        errorMessage = self.safe_value(message, 'errorMessage')
+        if errorMessage is not None:
+            requestId = self.safe_value(message, 'reqid')
+            if requestId is not None:
+                broad = self.exceptions['ws']['broad']
+                broadKey = self.findBroadlyMatchedKey(broad, errorMessage)
+                exception = None
+                if broadKey is None:
+                    exception = ExchangeError(errorMessage)
+                else:
+                    exception = broad[broadKey](errorMessage)
+                # print(requestId, exception)
+                self.rejectWsFuture(client, requestId, exception)
+                # raise exception
+                return False
+        return True
 
     def handle_ws_message(self, client, message):
+        # print(message)
         if isinstance(message, list):
             channelId = str(message[0])
             subscriptionStatus = self.safe_value(self.options['subscriptionStatusByChannelId'], channelId)
@@ -313,6 +405,7 @@ class kraken(ccxt.kraken):
                 name = self.safe_string(subscription, 'name')
                 methods = {
                     'book': 'handleWsOrderBook',
+                    'ticker': 'handleWsTicker',
                 }
                 method = self.safe_string(methods, name)
                 if method is None:
@@ -320,13 +413,14 @@ class kraken(ccxt.kraken):
                 else:
                     return getattr(self, method)(client, message)
         else:
-            event = self.safe_string(message, 'event')
-            methods = {
-                'systemStatus': 'handleWsSystemStatus',
-                'subscriptionStatus': 'handleWsSubscriptionStatus',
-            }
-            method = self.safe_string(methods, event)
-            if method is None:
-                return message
-            else:
-                return getattr(self, method)(client, message)
+            if self.handle_ws_errors(client, message):
+                event = self.safe_string(message, 'event')
+                methods = {
+                    'systemStatus': 'handleWsSystemStatus',
+                    'subscriptionStatus': 'handleWsSubscriptionStatus',
+                }
+                method = self.safe_string(methods, event)
+                if method is None:
+                    return message
+                else:
+                    return getattr(self, method)(client, message)

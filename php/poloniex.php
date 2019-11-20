@@ -285,6 +285,7 @@ class poloniex extends \ccxt\poloniex {
 
     public function handle_ws_account_notifications ($client, $message) {
         // not implemented yet
+        // throw new NotImplemented($this->id . 'fetchWsTickers not implemented yet');
         return $message;
     }
 

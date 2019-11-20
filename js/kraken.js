@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { NotImplemented } = require ('ccxt/js/base/errors');
+const { BadSymbol, BadRequest, ExchangeError, NotImplemented } = require ('ccxt/js/base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -27,6 +27,16 @@ module.exports = class kraken extends ccxt.kraken {
             },
             'options': {
                 'subscriptionStatusByChannelId': {},
+            },
+            'exceptions': {
+                'ws': {
+                    'exact': {
+                        'Event(s) not found': BadRequest,
+                    },
+                    'broad': {
+                        'Currency pair not in ISO 4217-A3 format': BadSymbol,
+                    },
+                },
             },
         });
     }
@@ -53,7 +63,8 @@ module.exports = class kraken extends ccxt.kraken {
         console.log (message);
         console.log (client.futures);
         console.log (this.options['subscriptionStatusByChannelId']);
-        console.log ('--------------------------------------------------------')
+        console.log ('--------------------------------------------------------');
+        // resolve all futures having this symbol
         // process.exit ();
         // const data = message[2];
         // const market = this.safeValue (this.options['marketsByNumericId'], data[0].toString ());
@@ -94,17 +105,25 @@ module.exports = class kraken extends ccxt.kraken {
         const name = 'ticker';
         const messageHash = wsName + ':' + name;
         const url = this.urls['api']['ws'];
+        const requestId = this.nonce ();
         const subscribe = {
-            'event': 'subscribe',
-            'pair': [
-                'ETH/USD',
-                wsName,
-            ],
-            'subscription': {
-                'name': name,
-            },
+            'foo': 'bar',
+            'reqid': requestId,
         };
-        return this.sendWsMessage (url, messageHash, this.extend (subscribe, params), messageHash);
+        // const subscribe = {
+        //     'event': 'subscribe',
+        //     'reqid': requestId,
+        //     'pair': [
+        //         'foobar', // wsName,
+        //     ],
+        //     'subscription': {
+        //         'name': name,
+        //     },
+        // };
+        const future = this.sendWsMessage (url, messageHash, this.extend (subscribe, params), messageHash);
+        const client = this.clients[url];
+        client['futures'][requestId] = future;
+        return future;
     }
 
     async fetchWsTrades (symbol, params = {}) {
@@ -239,7 +258,7 @@ module.exports = class kraken extends ccxt.kraken {
         // first message (snapshot)
         //
         //     [
-        //         0, // channelID
+        //         1234, // channelID
         //         {
         //             "as": [
         //                 [ "5541.30000", "2.50700000", "1534614248.123678" ],
@@ -252,7 +271,7 @@ module.exports = class kraken extends ccxt.kraken {
         //                 [ "5539.50000", "5.00000000", "1534613831.243486" ]
         //             ]
         //         },
-        //         "book-100",
+        //         "book-10",
         //         "XBT/USD"
         //     ]
         //
@@ -337,12 +356,12 @@ module.exports = class kraken extends ccxt.kraken {
         return timestamp;
     }
 
-    handleWsSystemStatus (client, message) {
+    handleWsStatus (client, message) {
         //
         //     {
         //         connectionID: 15527282728335292000,
         //         event: 'systemStatus',
-        //         status: 'online',
+        //         status: 'online', // online|maintenance|(custom status tbd)
         //         version: '0.2.0'
         //     }
         //
@@ -351,10 +370,15 @@ module.exports = class kraken extends ccxt.kraken {
 
     handleWsSubscriptionStatus (client, message) {
         //
+        // todo: answer the question whether this method should be renamed
+        // and unified as handleWsResponse for any usage pattern that
+        // involves an identified request/response sequence
+        //
         //     {
         //         channelID: 210,
         //         channelName: 'book-10',
         //         event: 'subscriptionStatus',
+        //         reqid: 1574146735269,
         //         pair: 'ETH/XBT',
         //         status: 'subscribed',
         //         subscription: { depth: 10, name: 'book' }
@@ -362,9 +386,47 @@ module.exports = class kraken extends ccxt.kraken {
         //
         const channelId = this.safeString (message, 'channelID');
         this.options['subscriptionStatusByChannelId'][channelId] = message;
+        const requestId = this.safeString (message, 'reqid');
+        if (client.futures[requestId]) {
+            // todo: transpile delete in ccxt
+            delete client.futures[requestId];
+        }
+    }
+
+    handleWsErrors (client, message) {
+        //
+        //     {
+        //         errorMessage: 'Currency pair not in ISO 4217-A3 format foobar',
+        //         event: 'subscriptionStatus',
+        //         pair: 'foobar',
+        //         reqid: 1574146735269,
+        //         status: 'error',
+        //         subscription: { name: 'ticker' }
+        //     }
+        //
+        const errorMessage = this.safeValue (message, 'errorMessage');
+        if (errorMessage !== undefined) {
+            const requestId = this.safeValue (message, 'reqid');
+            if (requestId !== undefined) {
+                const broad = this.exceptions['ws']['broad'];
+                const broadKey = this.findBroadlyMatchedKey (broad, errorMessage);
+                let exception = undefined;
+                if (broadKey === undefined) {
+                    exception = new ExchangeError (errorMessage);
+                } else {
+                    exception = new broad[broadKey] (errorMessage);
+                }
+                // console.log (requestId, exception);
+                this.rejectWsFuture (client, requestId, exception);
+                // throw exception;
+                return false;
+            }
+        }
+        return true;
     }
 
     handleWsMessage (client, message) {
+        console.log (message);
         if (Array.isArray (message)) {
             const channelId = message[0].toString ();
             const subscriptionStatus = this.safeValue (this.options['subscriptionStatusByChannelId'], channelId);
@@ -383,16 +445,18 @@ module.exports = class kraken extends ccxt.kraken {
                 }
             }
         } else {
-            const event = this.safeString (message, 'event');
-            const methods = {
-                'systemStatus': 'handleWsSystemStatus',
-                'subscriptionStatus': 'handleWsSubscriptionStatus',
-            };
-            const method = this.safeString (methods, event);
-            if (method === undefined) {
-                return message;
-            } else {
-                return this[method] (client, message);
+            if (this.handleWsErrors (client, message)) {
+                const event = this.safeString (message, 'event');
+                const methods = {
+                    'systemStatus': 'handleWsSystemStatus',
+                    'subscriptionStatus': 'handleWsSubscriptionStatus',
+                };
+                const method = this.safeString (methods, event);
+                if (method === undefined) {
+                    return message;
+                } else {
+                    return this[method] (client, message);
+                }
             }
         }
     }
