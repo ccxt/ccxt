@@ -107,19 +107,15 @@ module.exports = class kraken extends ccxt.kraken {
         const url = this.urls['api']['ws'];
         const requestId = this.nonce ();
         const subscribe = {
-            'foo': 'bar',
+            'event': 'subscribe',
             'reqid': requestId,
+            'pair': [
+                'foobar', // wsName,
+            ],
+            'subscription': {
+                'name': name,
+            },
         };
-        // const subscribe = {
-        //     'event': 'subscribe',
-        //     'reqid': requestId,
-        //     'pair': [
-        //         'foobar', // wsName,
-        //     ],
-        //     'subscription': {
-        //         'name': name,
-        //     },
-        // };
         const future = this.sendWsMessage (url, messageHash, this.extend (subscribe, params), messageHash);
         const client = this.clients[url];
         client['futures'][requestId] = future;
@@ -165,8 +161,10 @@ module.exports = class kraken extends ccxt.kraken {
         const name = 'book';
         const messageHash = wsName + ':' + name;
         const url = this.urls['api']['ws'];
+        const requestId = this.nonce ();
         const subscribe = {
             'event': 'subscribe',
+            'reqid': requestId,
             'pair': [
                 wsName,
             ],
@@ -177,7 +175,10 @@ module.exports = class kraken extends ccxt.kraken {
         if (limit !== undefined) {
             subscribe['subscription']['depth'] = limit; // default 10, valid options 10, 25, 100, 500, 1000
         }
-        return this.sendWsMessage (url, messageHash, subscribe, messageHash);
+        const future = this.sendWsMessage (url, messageHash, this.extend (subscribe, params), messageHash);
+        const client = this.clients[url];
+        client['futures'][requestId] = future;
+        return future;
     }
 
     async fetchWsHeartbeat (params = {}) {
