@@ -423,19 +423,19 @@ module.exports = class qtrade extends Exchange {
         const response = await this.privateGetBalancesAll (params);
         // const response = await this.privateGetOrders ({ 'queryParams': { 'open': 'true' } });
         // const response = await this.privatePostSellLimit ({ 'amount': 12, 'market_id': 1 });
-        let free = {};
+        const free = {};
         let bs = response['data']['balances'];
         for (let i = 0; i < bs.length; i++) {
             free[bs[i]['currency']] = this.safeFloat (bs[i], 'balance');
         }
-        let used = {};
+        const used = {};
         bs = response['data']['order_balances'];
         for (let i = 0; i < bs.length; i++) {
             used[bs[i]['currency']] = this.safeFloat (bs[i], 'balance');
         }
-        let result = {'free': free, 'used': used, 'info': response['data']};
+        const result = { 'free': free, 'used': used, 'info': response['data'] };
         for (let i = 0; i < Object.keys (free).length; i++) {
-            let byCoin = {};
+            const byCoin = {};
             byCoin['free'] = Object.values (free)[i];
             result[Object.keys (free)[i]] = byCoin;
         }
@@ -450,6 +450,47 @@ module.exports = class qtrade extends Exchange {
             byCoin['total'] = byCoin['used'] + byCoin['free'];
             result[Object.keys (used)[i]] = byCoin;
         }
+        return result;
+    }
+
+    async createOrder (symbol, side, type, amount, price, params = {}) {
+        if (type !== 'limit') {
+            throw new ExchangeError (this.id + ' allows limit orders only');
+        }
+        await this.loadMarkets ();
+        const request = { 'amount': amount, 'market_id': this.market (symbol)['id'], 'price': price};
+        console.log(request);
+        let response = {};
+        if (side === 'sell') {
+            response = await this.privatePostSellLimit (this.extend (request, params));
+        } else if (side === 'buy') {
+            response = await this.privatePostBuyLimit (this.extend (request, params));
+        }
+        return this.parseOrder(response['data']['order']);
+    }
+
+    parseOrder (order) {
+        const result = {'info': order};
+        result['id'] = this.safeString (order, 'id');
+        result['datetime'] = this.safeString (order, 'created_at');
+        result['timestamp'] = this.parse8601 (result['datetime']);
+        if (order['open'] === true) {
+            result['status'] = 'open';
+        } else {
+            result['status'] = 'closed';
+        }
+        result['trades'] = this.parseTrades (order['trades']);
+        if (result['trades'][0] !== undefined){
+            result['lastTradeTimestamp'] = result['trades'][0]['timestamp'];
+        } else {
+            result['lastTradeTimestamp'] = undefined;
+        }
+        result['price'] = this.safeFloat (order, 'price')
+        result['amount'] = this.safeFloat (order, 'market_amount');
+        result['remaining'] = this.safeFloat (order, 'market_amount_remaining');
+        result['filled'] = result['amount'] - result['remaining'];
+        result['cost'] = result['filled'] * result['price'];
+        result['fee'] = undefined;
         return result;
     }
 
