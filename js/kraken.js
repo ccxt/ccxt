@@ -357,7 +357,7 @@ module.exports = class kraken extends ccxt.kraken {
     handleWsDeltas (deltas, bookside, timestamp) {
         for (let j = 0; j < deltas.length; j++) {
             const delta = deltas[j];
-            const price = delta[0]; // no need to conver the price here
+            const price = delta[0]; // no need to convert the price here
             const amount = parseFloat (delta[1]);
             timestamp = Math.max (timestamp || 0, parseInt (delta[2] * 1000));
             bookside.store (price, amount);
