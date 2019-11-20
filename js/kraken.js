@@ -97,28 +97,6 @@ module.exports = class kraken extends ccxt.kraken {
             'info': ticker,
         };
         this.resolveWsFuture (client, messageHash, result);
-        // if (market === undefined) {
-        //     const channelId = message[0].toString ();
-        //     const subscriptionStatus = this.safeValue (this.options['subscriptionStatusByChannelId'], channelId);
-        //     if (subscriptionStatus !== undefined) {
-        //         if
-        //     }
-        //     if (channelId in this.options['subscriptionStatusByChannelId']) {
-        //         const p
-        //     }
-        // }
-        // if (wsName in this.options['marketsByWsName']) {
-        // }
-        // console.log (message);
-        // console.log (client.futures);
-        // console.log (this.options['subscriptionStatusByChannelId']);
-        // console.log ('--------------------------------------------------------');
-        // process.exit ();
-        // // resolve all futures having this symbol
-        // // process.exit ();
-        // // const data = message[2];
-        // // const market = this.safeValue (this.options['marketsByNumericId'], data[0].toString ());
-        // // const symbol = this.safeString (market, 'symbol');
     }
 
     async fetchWsBalance (params = {}) {
