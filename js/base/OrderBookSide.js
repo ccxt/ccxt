@@ -86,6 +86,7 @@ class LimitedOrderBookSide extends OrderBookSide {
         const depth = n ? Math.min (this.depth || Number.MAX_SAFE_INTEGER, n) : this.depth
         const result = super.limit (depth)
         // have to reset the index here :(
+        // will add another type of OrderBookSide here that will solve the issue :)
         this.index = Object.fromEntries (result)
         return result
     }
