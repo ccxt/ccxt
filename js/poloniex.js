@@ -244,7 +244,7 @@ module.exports = class poloniex extends ccxt.poloniex {
                     const orders = snapshot[j];
                     const prices = Object.keys (orders);
                     for (let k = 0; k < prices.length; k++) {
-                        const price = prices[k]; // no need to convert the price here
+                        const price = parseFloat (prices[k]);
                         const amount = parseFloat (orders[price]);
                         bookside.store (price, amount);
                     }
@@ -255,7 +255,7 @@ module.exports = class poloniex extends ccxt.poloniex {
                 const orderbook = this.orderbooks[symbol];
                 const side = delta[1] ? 'bids' : 'asks';
                 const bookside = orderbook[side];
-                const price = delta[2]; // no need to convert the price here
+                const price = parseFloat (delta[2]);
                 const amount = parseFloat (delta[3]);
                 bookside.store (price, amount);
                 orderbookUpdatesCount += 1;
