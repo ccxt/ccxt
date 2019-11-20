@@ -203,13 +203,13 @@ module.exports = class kraken extends ccxt.kraken {
 
     async fetchWsHeartbeat (params = {}) {
         await this.loadMarkets ();
-        const channelId = '1010';
+        const event = 'heartbeat';
         const url = this.urls['api']['ws'];
-        return this.sendWsMessage (url, channelId);
+        return this.sendWsMessage (url, event);
     }
 
     signWsMessage (client, messageHash, message, params = {}) {
-
+        // todo: not implemented yet
         return message;
     }
 
@@ -219,8 +219,8 @@ module.exports = class kraken extends ccxt.kraken {
         //
         //     { "event": "heartbeat" }
         //
-        const channelId = '1010';
-        this.resolveWsFuture (client, channelId, message);
+        const event = this.safeString (message, 'event');
+        this.resolveWsFuture (client, event, message);
     }
 
     parseWsTrade (client, trade, market = undefined) {
@@ -461,6 +461,7 @@ module.exports = class kraken extends ccxt.kraken {
             if (this.handleWsErrors (client, message)) {
                 const event = this.safeString (message, 'event');
                 const methods = {
+                    'heartbeat': 'handleWsHeartbeat',
                     'systemStatus': 'handleWsSystemStatus',
                     'subscriptionStatus': 'handleWsSubscriptionStatus',
                 };
