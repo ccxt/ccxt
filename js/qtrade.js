@@ -79,7 +79,7 @@ module.exports = class qtrade extends Exchange {
                         'deposits',
                         'transfers',
                         'deposit_address/{currency}',
-                        '',
+                        'order/{order_id}',
                     ],
                     'post': [
                         'withdraw',
@@ -491,13 +491,60 @@ module.exports = class qtrade extends Exchange {
         result['filled'] = result['amount'] - result['remaining'];
         result['cost'] = result['filled'] * result['price'];
         result['fee'] = undefined;
+        result['symbol'] = undefined;
         return result;
     }
 
     async cancelOrder (id, symbol, params = {}) {
-        const request = { 'id': parseInt(id) };
+        const request = { 'id': parseInt (id) };
         // successful cancellation returns 200 with no payload
         this.privatePostCancelOrder (this.extend (request, params));
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        const request = { 'order_id': parseInt (id) };
+        const response = await this.privateGetOrderOrderId (this.extend (request, params));
+        return this.parseOrder (response['data']['order']);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        
+    }
+
+    async fetchAllOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        
     }
 
     nonce () {
