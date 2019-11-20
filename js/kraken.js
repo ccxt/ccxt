@@ -335,7 +335,7 @@ module.exports = class kraken extends ccxt.kraken {
     handleWsDeltas (deltas, bookside, timestamp) {
         for (let j = 0; j < deltas.length; j++) {
             const delta = deltas[j];
-            const price = delta[0]; // no need to convert the price here
+            const price = parseFloat (delta[0]);
             const amount = parseFloat (delta[1]);
             timestamp = Math.max (timestamp || 0, parseInt (delta[2] * 1000));
             bookside.store (price, amount);
@@ -417,7 +417,6 @@ module.exports = class kraken extends ccxt.kraken {
     }
 
     handleWsMessage (client, message) {
-        // console.log (message);
         if (Array.isArray (message)) {
             const channelId = message[0].toString ();
             const subscriptionStatus = this.safeValue (this.options['subscriptionStatusByChannelId'], channelId);
