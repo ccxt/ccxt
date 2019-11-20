@@ -124,15 +124,7 @@ module.exports = class kraken extends ccxt.kraken {
 
     async fetchWsTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const numericId = this.safeString (market, 'numericId');
-        const messageHash = numericId + ':trades';
-        const url = this.urls['api']['ws'];
-        const subscribe = {
-            'command': 'subscribe',
-            'channel': numericId,
-        };
-        return this.sendWsMessage (url, messageHash, subscribe, numericId);
+        throw new NotImplemented (this.id + ' fetchWsTrades() not implemented yet');
     }
 
     async loadMarkets (reload = false, params = {}) {
