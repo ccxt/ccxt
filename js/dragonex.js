@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired,OrderNotFound, InvalidAddress } = require ('./base/errors');
+const { ArgumentsRequired, OrderNotFound, InvalidAddress } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -543,7 +543,7 @@ module.exports = class dragonex extends Exchange {
             'volume': this.amountToPrecision (symbol, amount),
         };
         if (type === 'limit') {
-            request['price'] = this.priceToPrecision (symbol, price)
+            request['price'] = this.priceToPrecision (symbol, price);
         }
         let response = undefined;
         if (side === 'buy') {
