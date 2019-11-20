@@ -144,7 +144,7 @@ module.exports = class poloniex extends ccxt.poloniex {
 
     handleWsHeartbeat (client, message) {
         //
-        // every second
+        // every second (approx) if no other updates are sent
         //
         //     [ 1010 ]
         //

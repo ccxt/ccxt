@@ -60,37 +60,65 @@ module.exports = class kraken extends ccxt.kraken {
         //         "XBT/USD"
         //     ]
         //
-        console.log (message);
-        console.log (client.futures);
-        console.log (this.options['subscriptionStatusByChannelId']);
-        console.log ('--------------------------------------------------------');
-        // resolve all futures having this symbol
+        const wsName = message[3];
+        const name = 'ticker';
+        const messageHash = wsName + ':' + name;
+        const market = this.safeValue (this.options['marketsByWsName'], wsName);
+        const symbol = market['symbol'];
+        const ticker = message[1];
+        const vwap = parseFloat (ticker['p'][0]);
+        let quoteVolume = undefined;
+        const baseVolume = parseFloat (ticker['v'][0]);
+        if (baseVolume !== undefined && vwap !== undefined) {
+            quoteVolume = baseVolume * vwap;
+        }
+        const last = parseFloat (ticker['c'][0]);
+        const timestamp = this.milliseconds ();
+        const result = {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['h'][0]),
+            'low': parseFloat (ticker['l'][0]),
+            'bid': parseFloat (ticker['b'][0]),
+            'bidVolume': parseFloat (ticker['b'][2]),
+            'ask': parseFloat (ticker['a'][0]),
+            'askVolume': parseFloat (ticker['a'][2]),
+            'vwap': vwap,
+            'open': parseFloat (ticker['o'][0]),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        };
+        this.resolveWsFuture (client, messageHash, result);
+        // if (market === undefined) {
+        //     const channelId = message[0].toString ();
+        //     const subscriptionStatus = this.safeValue (this.options['subscriptionStatusByChannelId'], channelId);
+        //     if (subscriptionStatus !== undefined) {
+        //         if
+        //     }
+        //     if (channelId in this.options['subscriptionStatusByChannelId']) {
+        //         const p
+        //     }
+        // }
+        // if (wsName in this.options['marketsByWsName']) {
+        // }
+        // console.log (message);
+        // console.log (client.futures);
+        // console.log (this.options['subscriptionStatusByChannelId']);
+        // console.log ('--------------------------------------------------------');
         // process.exit ();
-        // const data = message[2];
-        // const market = this.safeValue (this.options['marketsByNumericId'], data[0].toString ());
-        // const symbol = this.safeString (market, 'symbol');
-        // return {
-        //     'symbol': symbol,
-        //     'timestamp': timestamp,
-        //     'datetime': this.iso8601 (timestamp),
-        //     'high': parseFloat (ticker['h'][1]),
-        //     'low': parseFloat (ticker['l'][1]),
-        //     'bid': parseFloat (ticker['b'][0]),
-        //     'bidVolume': undefined,
-        //     'ask': parseFloat (ticker['a'][0]),
-        //     'askVolume': undefined,
-        //     'vwap': vwap,
-        //     'open': this.safeFloat (ticker, 'o'),
-        //     'close': last,
-        //     'last': last,
-        //     'previousClose': undefined,
-        //     'change': undefined,
-        //     'percentage': undefined,
-        //     'average': undefined,
-        //     'baseVolume': baseVolume,
-        //     'quoteVolume': quoteVolume,
-        //     'info': ticker,
-        // };
+        // // resolve all futures having this symbol
+        // // process.exit ();
+        // // const data = message[2];
+        // // const market = this.safeValue (this.options['marketsByNumericId'], data[0].toString ());
+        // // const symbol = this.safeString (market, 'symbol');
     }
 
     async fetchWsBalance (params = {}) {
@@ -110,7 +138,7 @@ module.exports = class kraken extends ccxt.kraken {
             'event': 'subscribe',
             'reqid': requestId,
             'pair': [
-                'foobar', // wsName,
+                wsName,
             ],
             'subscription': {
                 'name': name,
@@ -181,27 +209,15 @@ module.exports = class kraken extends ccxt.kraken {
     }
 
     signWsMessage (client, messageHash, message, params = {}) {
-        if (messageHash.indexOf ('1000') === 0) {
-            const reload = false;
-            if (this.checkRequiredCredentials (reload)) {
-                const nonce = this.nonce ();
-                const payload = this.urlencode ({ 'nonce': nonce });
-                const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha512');
-                message = this.extend (message, {
-                    'key': this.apiKey,
-                    'payload': payload,
-                    'sign': signature,
-                });
-            }
-        }
+
         return message;
     }
 
     handleWsHeartbeat (client, message) {
         //
-        // every second
+        // every second (approx) if no other updates are sent
         //
-        //     [ 1010 ]
+        //     { "event": "heartbeat" }
         //
         const channelId = '1010';
         this.resolveWsFuture (client, channelId, message);
@@ -349,7 +365,11 @@ module.exports = class kraken extends ccxt.kraken {
         return timestamp;
     }
 
-    handleWsStatus (client, message) {
+    handleWsSystemStatus (client, message) {
+        //
+        // todo: answer the question whether this method should be renamed
+        // and unified as handleWsStatus for any usage pattern that
+        // involves system status and maintenance updates
         //
         //     {
         //         connectionID: 15527282728335292000,
@@ -419,7 +439,7 @@ module.exports = class kraken extends ccxt.kraken {
     }
 
     handleWsMessage (client, message) {
-        console.log (message);
+        // console.log (message);
         if (Array.isArray (message)) {
             const channelId = message[0].toString ();
             const subscriptionStatus = this.safeValue (this.options['subscriptionStatusByChannelId'], channelId);
