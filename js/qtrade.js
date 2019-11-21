@@ -562,8 +562,8 @@ module.exports = class qtrade extends Exchange {
         const ds = response['data']['deposits'];
         for (let i = 0; i < ds.length; i++) {
             const deposit = {};
-            deposit['id'] = ds[i]['id'];
-            deposit['txid'] = ds[i]['network_data']['txid'];
+            deposit['id'] = this.safeString(ds[i], 'id');
+            deposit['txid'] = this.safeString(ds[i]['network_data'], 'txid');
             deposit['timestamp'] = this.parse8601 (this.safeString (ds[i], 'created_at'));
             deposit['datetime'] = this.safeString (ds[i], 'created_at');
             let address = undefined;
@@ -576,14 +576,14 @@ module.exports = class qtrade extends Exchange {
             }
             deposit['addressFrom'] = undefined;
             deposit['address'] = address;
-            deposit['addressTo'] =  address;
+            deposit['addressTo'] = address;
             deposit['tagFrom'] = undefined;
             deposit['tag'] = tag;
             deposit['tagTo'] = tag;
             deposit['type'] = 'deposit';
-            deposit['amount'] = this.safeFloat(ds[i], 'amount');
-            deposit['currency'] = ds[i]['currency'];
-            deposit['status'] = ds[i]['status'];
+            deposit['amount'] = this.safeFloat (ds[i], 'amount');
+            deposit['currency'] = this.safeString (ds[i], 'currency');
+            deposit['status'] = this.safeString (ds[i], 'status');
             deposit['updated'] = undefined;
             deposit['comment'] = undefined;
             deposit['fee'] = undefined;
@@ -594,7 +594,41 @@ module.exports = class qtrade extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-
+        // const response = await this.privateGetWithdraws (params);
+        const response = {"data": {"withdraws": [{"address": "mw67t7AE88SBSRWYw1is3JaFbtXVygwpmB","amount": "1","cancel_requested": false,"created_at": "2019-02-01T06:06:16.218062Z","currency": "LTC","id": 2,"network_data": {},"relay_status": "","status": "needs_create","user_id": 0}]}};
+        const result = [];
+        const ws = response['data']['withdraws'];
+        for (let i = 0; i < ws.length; i++) {
+            const withdraw = {};
+            withdraw['id'] = this.safeString (ws[i], 'id');
+            withdraw['txid'] = this.safeString (ws[i]['network_data'], 'txid');
+            withdraw['timestamp'] = this.parse8601 (this.safeString (ws[i], 'created_at'));
+            withdraw['datetime'] = this.safeString (ws[i], 'created_at');
+            let address = undefined;
+            let tag = undefined;
+            if (this.safeString (ws[i], 'address').includes (':')) {
+                address = this.safeString (ws[i], 'address').split (':')[0];
+                tag = this.safeString (ws[i], 'address').split (':')[1];
+            } else {
+                address = this.safeString (ws[i], 'address');
+            }
+            withdraw['addressFrom'] = undefined;
+            withdraw['address'] = address;
+            withdraw['addressTo'] = address;
+            withdraw['tagFrom'] = undefined;
+            withdraw['tag'] = tag;
+            withdraw['tagTo'] = tag;
+            withdraw['type'] = 'withdrawal';
+            withdraw['amount'] = this.safeFloat (ws[i], 'amount');
+            withdraw['currency'] = this.safeString (ws[i], 'currency');
+            withdraw['status'] = this.safeString (ws[i], 'status');
+            withdraw['updated'] = undefined;
+            withdraw['comment'] = undefined;
+            withdraw['fee'] = undefined;
+            withdraw['info'] = ws[i];
+            result.push(withdraw);
+        }
+        return result;
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
