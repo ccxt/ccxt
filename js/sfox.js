@@ -181,7 +181,12 @@ module.exports = class sfox extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetUserBalance ();
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'free': {},
+            'used': {},
+            'total': {},
+        };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const free = this.safeFloat (balance, 'available');
@@ -189,6 +194,9 @@ module.exports = class sfox extends Exchange {
             const used = total - free;
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
+            result['free'][code] = free;
+            result['used'][code] = used;
+            result['total'][code] = total;
             result[code] = {
                 'free': free,
                 'used': used,
