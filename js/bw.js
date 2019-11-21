@@ -622,23 +622,49 @@ module.exports = class bw extends Exchange {
         const request = {
             'amount': this.amountToPrecision (symbol, amount),
             'price': this.priceToPrecision (symbol, price),
-            'type': 0, // sell
+            'type': (side === 'buy') ? 1 : 0,
             'rangeType': 0, // limit order
             'marketId': market['id'],
         };
-        if (side.toLowerCase () === 'buy') {
-            request['type'] = 1; // buy
-        }
         const response = await this.privatePostExchangeEntrustControllerWebsiteEntrustControllerAddEntrust (this.extend (request, params));
+        //
+        //     {
+        //         "datas": {
+        //             "entrustId": "E6581105708337483776",
+        //         },
+        //         "resMsg": {
+        //             "message": "success !",
+        //             "method": null,
+        //             "code": "1"
+        //         }
+        //     }
+        //
         const data = this.safeValue (response, 'datas');
+        const id = this.safeString (data, 'entrustId');
         return {
-            'id': this.safeString (data, 'entrustId'),
+            'id': id,
             'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'average': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'status': 'open',
+            'fee': undefined,
+            'trades': undefined,
         };
     }
 
     parseOrderStatus (status) {
         const statuses = {
+            '-3': 'canceled',
             '-2': 'canceled',
             '-1': 'canceled',
             '0': 'open',
@@ -651,22 +677,48 @@ module.exports = class bw extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "entrustId": "E6581108027628212224", // Order id
+        //         "price": "1450",                     // price
+        //         "rangeType": 0,                      // Commission type 0: limit price commission 1: interval commission
+        //         "amount": "14.05",                   // Order quantity
+        //         "totalMoney": "20372.50",            // Total order amount
+        //         "completeAmount": "0",               // Quantity sold
+        //         "completeTotalMoney": "0",           // Total dealt amount
+        //         "type": 1,                           // 0 = sell, 1 = buy, -1 = cancel
+        //         "entrustType": 0,                    // 0 = ordinary current price commission, 1 = lever commission
+        //         "status": 0,                         //
+        //         "marketId": "318",                   // The market id
+        //         "createTime": 1569058424861,         // Create time
+        //         "availabelAmount": "14.05"           // Outstanding quantity
+        //     }
+        //
         const marketId = this.safeString (order, 'marketId');
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
         }
         const timestamp = this.safeInteger (order, 'createTime');
-        let side = undefined;
-        const orderSide = this.safeInteger (order, 'type');
-        if (orderSide === 0) {
-            side = 'sell';
-        } else if (orderSide === 1) {
-            side = 'buy';
-        }
+        let side = this.safeString (order, 'type');
+        side = (side === '0') ? 'sell' : 'buy';
         const amount = this.safeFloat (order, 'amount');
         const price = this.safeFloat (order, 'price');
         const filled = this.safeFloat (order, 'completeAmount');
-        const status = this.parseOrderStatus (this.safeInteger (order, 'status', '').toString ());
+        let remaining = this.safeFloat (order, 'availabelAmount');
+        let cost = this.safeFloat (order, 'totalMoney');
+        if (filled !== undefined) {
+            if (amount !== undefined) {
+                if (remaining === undefined) {
+                    remaining = amount - filled;
+                }
+            }
+            if (cost === undefined) {
+                if (price !== undefined) {
+                    cost = filled * cost;
+                }
+            }
+        }
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         return {
             'info': order,
             'id': this.safeString (order, 'entrustId'),
@@ -678,10 +730,10 @@ module.exports = class bw extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': undefined,
+            'cost': cost,
             'average': undefined,
             'filled': filled,
-            'remaining': amount - filled,
+            'remaining': remaining,
             'status': status,
             'fee': undefined,
             'trades': undefined,
@@ -699,6 +751,26 @@ module.exports = class bw extends Exchange {
             'entrustId': id,
         };
         const response = await this.privateGetExchangeEntrustControllerWebsiteEntrustControllerGetEntrustById (this.extend (request, params));
+        //
+        //     {
+        //         "datas": {
+        //             "entrustId": "E6581108027628212224", // Order id
+        //             "price": "1450",                     // price
+        //             "rangeType": 0,                      // Commission type 0: limit price commission 1: interval commission
+        //             "amount": "14.05",                   // Order quantity
+        //             "totalMoney": "20372.50",            // Total order amount
+        //             "completeAmount": "0",               // Quantity sold
+        //             "completeTotalMoney": "0",           // Total dealt amount
+        //             "type": 1,                           // Trade direction, 0: sell, 1: buy, -1: cancel
+        //             "entrustType": 0,                    // Commission type, 0: ordinary current price commission, 1: lever commission
+        //             "status": 0,                         // Order status,-3:fund Freeze exception,Order status to be confirmed  -2: fund freeze failure, order failure, -1: insufficient funds, order failure, 0: pending order, 1: cancelled, 2: dealt, 3: partially dealt
+        //             "marketId": "318",                   // The market id
+        //             "createTime": 1569058424861,         // Create time
+        //             "availabelAmount": "14.05"           // Outstanding quantity
+        //         },
+        //         "resMsg": { "message": "success !", "method": null, "code": "1" }
+        //     }
+        //
         const order = this.safeValue (response, 'datas', {});
         return this.parseOrder (order, market);
     }
@@ -714,6 +786,12 @@ module.exports = class bw extends Exchange {
             'entrustId': id,
         };
         const response = await this.privatePostExchangeEntrustControllerWebsiteEntrustControllerCancelEntrust (this.extend (request, params));
+        //
+        //     {
+        //         "datas": null,
+        //         "resMsg": { "message": "success !", "method": null, "code": "1" }
+        //     }
+        //
         return {
             'info': response,
             'id': id,
