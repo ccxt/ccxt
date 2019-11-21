@@ -45,7 +45,7 @@ module.exports = class bw extends Exchange {
                 'fetchOrders': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': false,
@@ -459,6 +459,125 @@ module.exports = class bw extends Exchange {
         return this.parseOrderBook (orderbook, timestamp);
     }
 
+    parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //     [
+        //         "T",          // trade
+        //         "281",        // market id
+        //         "1569303302", // timestamp
+        //         "BTC_USDT",   // market name
+        //         "ask",        // side
+        //         "9745.08",    // price
+        //         "0.0026"      // amount
+        //     ]
+        //
+        // fetchMyTrades (private)
+        //
+        //     ...
+        //
+        const timestamp = parseInt (trade[2]) * 1000;
+        const price = parseFloat (trade[5]);
+        const amount = parseFloat (trade[6]);
+        const marketId = trade[1];
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = trade[3].split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        let cost = undefined;
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = this.costToPrecision (symbol, price * amount);
+            }
+        }
+        const side = (trade[4] === 'ask') ? 'sell' : 'buy';
+        const id = this.safeString (trade, 'id');
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'order': undefined,
+            'type': 'limit',
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': parseFloat (cost),
+            'fee': undefined,
+            'info': trade,
+        };
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketId': market['id'],
+        };
+        if (limit !== undefined) {
+            request['dataSize'] = limit; // max 20
+        }
+        const response = await this.publicGetApiDataV1Trades (this.extend (request, params));
+        //
+        //     {
+        //         "datas": [
+        //             [
+        //                 "T",          // trade
+        //                 "281",        // market id
+        //                 "1569303302", // timestamp
+        //                 "BTC_USDT",   // market name
+        //                 "ask",        // side
+        //                 "9745.08",    // price
+        //                 "0.0026"      // amount
+        //             ],
+        //         ],
+        //         "resMsg": { "code": "1", "method": null, "message": "success !" },
+        //     }
+        //
+        const trades = this.safeValue (response, 'datas', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            parseInt (this.safeFloat (ohlcv, 3) * 1000),
+            this.safeFloat (ohlcv, 4),
+            this.safeFloat (ohlcv, 5),
+            this.safeFloat (ohlcv, 6),
+            this.safeFloat (ohlcv, 7),
+            this.safeFloat (ohlcv, 8),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketId': market['id'],
+            'type': this.timeframes[timeframe],
+            'dataSize': 500,
+        };
+        if (limit !== undefined) {
+            request['dataSize'] = limit;
+        }
+        const response = await this.publicGetApiDataV1Klines (this.extend (request, params));
+        const data = this.safeValue (response, 'datas', []);
+        const ohlcvs = this.parseOHLCVs (data, market, timeframe, since, limit);
+        return this.sortBy (ohlcvs, 0);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostExchangeFundControllerWebsiteFundcontrollerFindbypage (params);
@@ -588,34 +707,6 @@ module.exports = class bw extends Exchange {
             'info': response,
             'id': id,
         };
-    }
-
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        return [
-            parseInt (this.safeFloat (ohlcv, 3) * 1000),
-            this.safeFloat (ohlcv, 4),
-            this.safeFloat (ohlcv, 5),
-            this.safeFloat (ohlcv, 6),
-            this.safeFloat (ohlcv, 7),
-            this.safeFloat (ohlcv, 8),
-        ];
-    }
-
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'marketId': market['id'],
-            'type': this.timeframes[timeframe],
-            'dataSize': 500,
-        };
-        if (limit !== undefined) {
-            request['dataSize'] = limit;
-        }
-        const response = await this.publicGetApiDataV1Klines (this.extend (request, params));
-        const data = this.safeValue (response, 'datas', []);
-        const ohlcvs = this.parseOHLCVs (data, market, timeframe, since, limit);
-        return this.sortBy (ohlcvs, 0);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
