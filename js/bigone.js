@@ -284,7 +284,36 @@ module.exports = class bigone extends Exchange {
             request['pair_names'] = ids.join (',');
         }
         const response = await this.publicGetAssetPairsTickers (this.extend (request, params));
-        const tickers = this.safeValue (response, 'data');
+        //
+        //     {
+        //         "code":0,
+        //         "data":[
+        //             {
+        //                 "asset_pair_name":"PCX-BTC",
+        //                 "bid":{"price":"0.000234","order_count":1,"quantity":"0.518"},
+        //                 "ask":{"price":"0.0002348","order_count":1,"quantity":"2.348"},
+        //                 "open":"0.0002343",
+        //                 "high":"0.0002348",
+        //                 "low":"0.0002162",
+        //                 "close":"0.0002348",
+        //                 "volume":"12887.016",
+        //                 "daily_change":"0.0000005"
+        //             },
+        //             {
+        //                 "asset_pair_name":"GXC-USDT",
+        //                 "bid":{"price":"0.5054","order_count":1,"quantity":"40.53"},
+        //                 "ask":{"price":"0.5055","order_count":1,"quantity":"38.53"},
+        //                 "open":"0.5262",
+        //                 "high":"0.5323",
+        //                 "low":"0.5055",
+        //                 "close":"0.5055",
+        //                 "volume":"603963.05",
+        //                 "daily_change":"-0.0207"
+        //             }
+        //         ]
+        //     }
+        //
+        const tickers = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i]);
@@ -298,12 +327,23 @@ module.exports = class bigone extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'asset_pair_name': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = limit; // default 50, max 200
         }
         const response = await this.publicGetAssetPairsAssetPairNameDepth (this.extend (request, params));
+        //
+        //     {
+        //         "asset_pair_name": "EOS-BTC",
+        //         "bids": [
+        //             { "price": "42", "order_count": 4, "quantity": "23.33363711" }
+        //         ],
+        //         "asks": [
+        //             { "price": "45", "order_count": 2, "quantity": "4193.3283464" }
+        //         ]
+        //     }
+        //
         return this.parseOrderBook (response['data'], undefined, 'bids', 'asks', 'price', 'quantity');
     }
 
@@ -362,7 +402,7 @@ module.exports = class bigone extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'asset_pair_name': market['id'],
         };
         const response = await this.publicGetAssetPairsAssetPairNameTrades (this.extend (request, params));
         //    {
