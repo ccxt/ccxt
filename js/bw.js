@@ -700,7 +700,11 @@ module.exports = class bw extends Exchange {
         }
         const timestamp = this.safeInteger (order, 'createTime');
         let side = this.safeString (order, 'type');
-        side = (side === '0') ? 'sell' : 'buy';
+        if (side === '0') {
+            side = 'sell';
+        } else if (side === '1') {
+            side = 'buy';
+        }
         const amount = this.safeFloat (order, 'amount');
         const price = this.safeFloat (order, 'price');
         const filled = this.safeFloat (order, 'completeAmount');
