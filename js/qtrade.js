@@ -75,7 +75,7 @@ module.exports = class qtrade extends Exchange {
                         'order/{order_id}',
                         'withdraw/{withdraw_id}',
                         'withdraws',
-                        'deposit{deposit_id}',
+                        'deposit/{deposit_id}',
                         'deposits',
                         'transfers',
                         'deposit_address/{currency}',
@@ -267,9 +267,9 @@ module.exports = class qtrade extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request = { 'queryParams': {
             'market_string': market['id'],
-            'interval': this.timeframes[timeframe],
+            'interval': this.timeframes[timeframe] }
         };
         const response = await this.publicGetMarketMarketStringOhlcvInterval (this.extend (request, params));
         //  [ 1573862400000, 3e-7, 3.1e-7, 3.1e-7, 3.1e-7, 0.0095045 ],
@@ -281,7 +281,7 @@ module.exports = class qtrade extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
-        const request = { 'market_string': marketId };
+        const request = { 'queryParams': { 'market_string': marketId }};
         const response = await this.publicGetOrderbookMarketString (this.extend (request, params));
         const orderbook = { 'bids': [], 'asks': [], 'timestamp': undefined, 'datetime': undefined, 'nonce': undefined };
         for (let i = 0; i < Object.keys (response['data']['buy']).length; i++) {
@@ -365,7 +365,7 @@ module.exports = class qtrade extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'market_string': market['id'],
+            'queryParams': { 'market_string': market['id'] }
         };
         const response = await this.publicGetMarketMarketStringTrades (this.extend (request, params));
         return this.parseTrades (response['data']['trades'], market, since, limit);
@@ -459,7 +459,7 @@ module.exports = class qtrade extends Exchange {
             throw new ExchangeError (this.id + ' allows limit orders only');
         }
         await this.loadMarkets ();
-        const request = { 'amount': amount, 'market_id': this.market (symbol)['id'], 'price': price };
+        const request = { 'queryParams': { 'amount': amount, 'market_id': this.market (symbol)['id'], 'price': price }};
         let response = {};
         if (side === 'sell') {
             response = await this.privatePostSellLimit (this.extend (request, params));
@@ -496,31 +496,52 @@ module.exports = class qtrade extends Exchange {
     }
 
     async cancelOrder (id, symbol, params = {}) {
-        const request = { 'id': parseInt (id) };
+        const request = { 'queryParams': { 'id': parseInt (id) }};
         // successful cancellation returns 200 with no payload
         this.privatePostCancelOrder (this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        const request = { 'order_id': parseInt (id) };
+        const request = { 'queryParams': { 'order_id': parseInt (id) }};
         const response = await this.privateGetOrderOrderId (this.extend (request, params));
         return this.parseOrder (response['data']['order']);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchAllOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const response = await this.privateGetOrders (params);
+        return this.parseOrders (response['data']['orders'], symbol, since, limit);
+    }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = { 'queryParams': { 'open': true }};
+        const response = await this.privateGetOrders (this.extend (request, params));
+        return this.parseOrders (response['data']['orders'], symbol, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        
+        const request = { 'queryParams': { 'open': false }};
+        const response = await this.privateGetOrders (this.extend (request, params));
+        return this.parseOrders (response['data']['orders'], symbol, since, limit);
     }
 
-    async fetchAllOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        
+    parseOrders (orders, symbol = undefined, since = undefined, limit = undefined) {
+        const result = [];
+        if (typeof since === 'string') {
+            since = this.parse8601 (since);
+        }
+        for (let i = 0; i < Math.min (orders.length); i++) {
+            const order = this.parseOrder (orders[i]);
+            if (symbol === undefined || symbol === order.symbol) {
+                if (since === undefined || order.timestamp >= since) {
+                    result.push (order);
+                }
+            }
+        }
+        return result.slice (0, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-
+        
     }
 
     async fetchDepositAddress (code, params = {}) {
