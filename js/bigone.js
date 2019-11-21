@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, ExchangeNotAvailable, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, OrderNotFound, InsufficientFunds, PermissionDenied, BadRequest, RateLimitExceeded, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -21,7 +21,9 @@ module.exports = class bigone extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchMyTrades': false, // todo support fetchMyTrades
                 'fetchOHLCV': true,
+                'fetchOrders': true,
                 'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
                 'fetchTickers': true,
                 'withdraw': true,
             },
@@ -68,6 +70,7 @@ module.exports = class bigone extends Exchange {
                         'accounts',
                         'orders',
                         'orders/{id}',
+                        'orders/multi',
                         'trades',
                         'withdrawals',
                         'deposits',
@@ -104,13 +107,26 @@ module.exports = class bigone extends Exchange {
                 },
             },
             'exceptions': {
-                'codes': {
-                    '10030': InvalidNonce, // {"message":"invalid nonce, nonce should be a 19bits number","code":10030}
-                    '401': AuthenticationError,
+                'exact': {
+                    '10001': BadRequest, // syntax error
+                    '10005': ExchangeError, // internal error
+                    '10007': BadRequest, // parameter error
+                    '10011': ExchangeError, // system error
+                    '10013': OrderNotFound, // {"code":10013,"message":"Resource not found"}
+                    '10014': InsufficientFunds, // {"code":10014,"message":"Insufficient funds"}
+                    '10403': PermissionDenied, // permission denied
+                    '10429': RateLimitExceeded, // too many requests
                     '40004': AuthenticationError, // {"code":40004,"message":"invalid jwt"}
+                    '40103': AuthenticationError, // invalid otp code
+                    '40104': AuthenticationError, // invalid asset pin code
+                    '40302': ExchangeError, // already requested
+                    '40601': ExchangeError, // resource is locked
+                    '40602': ExchangeError, // resource is depleted
+                    '40603': InsufficientFunds, // insufficient resource
+                    '40120': InvalidOrder, // Order is in trading
+                    '40121': InvalidOrder, // Order is already cancelled or filled
                 },
-                'detail': {
-                    'Internal server error': ExchangeNotAvailable,
+                'broad': {
                 },
             },
         });
@@ -630,6 +646,7 @@ module.exports = class bigone extends Exchange {
             'price': this.priceToPrecision (symbol, price), // order price, string, required
         };
         const response = await this.privatePostOrders (this.extend (request, params));
+        //
         //    {
         //        "id": 10,
         //        "asset_pair_name": "EOS-BTC",
@@ -642,6 +659,7 @@ module.exports = class bigone extends Exchange {
         //        "created_at":"2019-01-29T06:05:56Z",
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
+        //
         const order = this.safeValue (response, 'data');
         return this.parseOrder (order, market);
     }
@@ -674,25 +692,18 @@ module.exports = class bigone extends Exchange {
         };
         const response = await this.privatePostOrdersCancel (this.extend (request, params));
         //
-        //     [
-        //         {
-        //             "id": 10,
-        //             "market_uuid": "d2185614-50c3-4588-b146-b8afe7534da6",
-        //             "price": "10.00",
-        //             "amount": "10.00",
-        //             "filled_amount": "9.0",
-        //             "avg_deal_price": "12.0",
-        //             "side": "ASK",
-        //             "state": "FILLED"
-        //         },
-        //         {
-        //             ...
-        //         },
-        //     ]
+        //     {
+        //         "code":0,
+        //         "data": {
+        //             "cancelled":[
+        //                 58272370,
+        //                 58272377
+        //             ],
+        //             "failed": []
+        //         }
+        //     }
         //
-        const result = this.safeValue (response, 'data');
-        result['info'] = response;
-        return result;
+        return response;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -705,46 +716,43 @@ module.exports = class bigone extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        //
-        //    Name             Type    Require     Description                                          Example
-        //    asset_pair_name  string  true        asset pair Name                                      BTC-USDT
-        //    page_token       string  false       request page after this page token
-        //    side             string  false       order side, one of "ASK"/"BID"
-        //    state            string  false       order state, one of "CANCELLED"/"FILLED"/"PENDING"
-        //    limit            string  false       default 20; max 200
-        //
         const request = {
             'asset_pair_name': market['id'],
+            // 'page_token': 'dxzef', // request page after this page token
+            // 'side': 'ASK', // 'ASK' or 'BID', optional
+            // 'state': 'FILLED', // 'CANCELLED', 'FILLED', 'PENDING'
+            // 'limit' 20, // default 20, max 200
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = limit; // default 20, max 200
         }
         const response = await this.privateGetOrders (this.extend (request, params));
+        //
         //    {
-        //        "data": [{
-        //            "id": 10,
-        //            "asset_pair_name": "ETH-BTC",
-        //            "price": "10.00",
-        //            "amount": "10.00",
-        //            "filled_amount": "9.0",
-        //            "avg_deal_price": "12.0",
-        //            "side": "ASK",
-        //            "state": "FILLED",
-        //            "created_at":"2019-01-29T06:05:56Z",
-        //            "updated_at":"2019-01-29T06:05:56Z"
-        //        }],
-        //        "page_token":"dxzef"
+        //        "code":0,
+        //        "data": [
+        //             {
+        //                 "id": 10,
+        //                 "asset_pair_name": "ETH-BTC",
+        //                 "price": "10.00",
+        //                 "amount": "10.00",
+        //                 "filled_amount": "9.0",
+        //                 "avg_deal_price": "12.0",
+        //                 "side": "ASK",
+        //                 "state": "FILLED",
+        //                 "created_at":"2019-01-29T06:05:56Z",
+        //                 "updated_at":"2019-01-29T06:05:56Z",
+        //             },
+        //         ],
+        //        "page_token":"dxzef",
         //    }
+        //
         const orders = this.safeValue (response, 'data', []);
-        const result = [];
-        for (let i = 0; i < orders.length; i++) {
-            result.push (this.parseOrder (orders[i], market));
-        }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     parseOrderStatus (status) {
@@ -812,32 +820,25 @@ module.exports = class bigone extends Exchange {
             return; // fallback to default error handler
         }
         //
-        //      {"errors":{"detail":"Internal server error"}}
-        //      {"errors":[{"message":"invalid nonce, nonce should be a 19bits number","code":10030}],"data":null}
+        //      {"code":10013,"message":"Resource not found"}
+        //      {"code":40004,"message":"invalid jwt"}
         //
-        const error = this.safeValue (response, 'error');
-        const errors = this.safeValue (response, 'errors');
-        const data = this.safeValue (response, 'data');
-        if (error !== undefined || errors !== undefined || data === undefined) {
-            const feedback = this.id + ' ' + this.json (response);
-            let code = undefined;
-            if (error !== undefined) {
-                code = this.safeInteger (error, 'code');
+        const code = this.safeString (response, 'code');
+        const message = this.safeString (response, 'message');
+        if (code !== '0') {
+            const feedback = this.id + ' ' + body;
+            const exact = this.exceptions['exact'];
+            if (code in exact) {
+                throw new exact[code] (feedback);
+            } else if (message in exact) {
+                throw new exact[message] (feedback);
             }
-            let exceptions = this.exceptions['codes'];
-            if (errors !== undefined) {
-                if (Array.isArray (errors)) {
-                    code = this.safeString (errors[0], 'code');
-                } else {
-                    code = this.safeString (errors, 'detail');
-                    exceptions = this.exceptions['detail'];
-                }
+            const broad = this.exceptions['broad'];
+            const broadKey = this.findBroadlyMatchedKey (broad, message);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
             }
-            if (code in exceptions) {
-                throw new exceptions[code] (feedback);
-            } else {
-                throw new ExchangeError (feedback);
-            }
+            throw new ExchangeError (feedback); // unknown message
         }
     }
 };
