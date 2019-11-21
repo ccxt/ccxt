@@ -19,6 +19,7 @@ module.exports = class bigone extends Exchange {
                 'cancelAllOrders': true,
                 'createMarketOrder': false,
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
                 'fetchMyTrades': false, // todo support fetchMyTrades
                 'fetchOHLCV': true,
                 'fetchOrders': true,
@@ -856,6 +857,70 @@ module.exports = class bigone extends Exchange {
             'tag': tag,
             'info': response,
         };
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         "id": 5,
+        //         "amount": "25.0",
+        //         "confirms": 100,
+        //         "txid": "72e03037d144dae3d32b68b5045462b1049a0755",
+        //         "is_internal": false,
+        //         "inserted_at": "2018-02-16T11:39:58.000Z",
+        //         "updated_at": "2018-11-09T10:20:09.000Z",
+        //         "kind": "default",
+        //         "memo": "",
+        //         "state": "WITHHOLD",
+        //         "asset_symbol": "BTS"
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     ...
+        //
+        const result = {};
+        return result;
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'page_token': 'dxzef', // request page after this page token
+            // 'limit': 50, // optional, default 50
+            // 'kind': 'string', // optional - air_drop, big_holder_dividend, default, eosc_to_eos, internal, equally_airdrop, referral_mining, one_holder_dividend, single_customer, snapshotted_airdrop, trade_mining
+            // 'asset_symbol': 'BTC', // optional
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['asset_symbol'] = currency['id'];
+        }
+        const response = await this.privateGetDeposits (this.extend (request, params));
+        //     {
+        //         "code": 0,
+        //         "page_token": "NQ==",
+        //         "data": [
+        //             {
+        //                 "id": 5,
+        //                 "amount": "25.0",
+        //                 "confirms": 100,
+        //                 "txid": "72e03037d144dae3d32b68b5045462b1049a0755",
+        //                 "is_internal": false,
+        //                 "inserted_at": "2018-02-16T11:39:58.000Z",
+        //                 "updated_at": "2018-11-09T10:20:09.000Z",
+        //                 "kind": "default",
+        //                 "memo": "",
+        //                 "state": "WITHHOLD",
+        //                 "asset_symbol": "BTS"
+        //             }
+        //         ]
+        //     }
+        //
+        const deposits = this.safeValue (response, 'data', []);
+        return this.parseTransactions (deposits, code, since, limit);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
