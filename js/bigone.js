@@ -131,7 +131,6 @@ module.exports = class bigone extends Exchange {
                     '40603': InsufficientFunds, // insufficient resource
                     '40120': InvalidOrder, // Order is in trading
                     '40121': InvalidOrder, // Order is already cancelled or filled
-
                 },
                 'broad': {
                 },
