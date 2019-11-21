@@ -17,7 +17,6 @@ module.exports = class dragonex extends Exchange {
             'rateLimit': 500, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'has': {
                 'fetchDepositAddress': true,
-                'CORS': false,
                 'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchOHLCV': true,
@@ -220,7 +219,7 @@ module.exports = class dragonex extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.safeFloat (market[4] * market[2]),
+                        'min': parseFloat (market[4]) * parseFloat (market[2]),
                         'max': undefined,
                     },
                 },
@@ -303,7 +302,7 @@ module.exports = class dragonex extends Exchange {
         const lastNum = ticker.length - 1;
         const lastFourNum = ticker.length - 4;
         const timestamp = ticker[lastNum];
-        const last = this.asFloat (ticker[3]);
+        const last = parseFloat (ticker[3]);
         return {
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -321,7 +320,7 @@ module.exports = class dragonex extends Exchange {
             'previousClose': undefined,
             'change': ticker[8],
             'percentage': ticker[9],
-            'average': (last + this.safeFloat (ticker[2])) / 2,
+            'average': (last + parseFloat (ticker[2])) / 2,
             'baseVolume': ticker[lastFourNum],
             'quoteVolume': undefined,
             'info': ticker,
