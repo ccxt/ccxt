@@ -581,23 +581,34 @@ module.exports = class bw extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostExchangeFundControllerWebsiteFundcontrollerFindbypage (params);
+        //
+        //     {
+        //         "datas": {
+        //             "totalRow": 6,
+        //             "pageSize": 99,
+        //             "list": [
+        //                 {
+        //                     "amount": "0.000090000000000000", // The current number of tokens available
+        //                     "currencyTypeId": 2,              // Token ID
+        //                     "freeze": "0.009900000000000000", // Current token freezing quantity
+        //                 },
+        //             ],
+        //             "pageNum": 1,
+        //         },
+        //         "resMsg": { "code": "1", "message": "success !" }
+        //     }
+        //
         const data = this.safeValue (response, 'datas', {});
         const balances = this.safeValue (data, 'list', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            let symbol = this.safeInteger (balance, 'currencyTypeId', '');
-            symbol = symbol.toString ();
-            if (symbol in this.currencies_by_id) {
-                symbol = this.currencies_by_id[symbol]['code'];
-                symbol = this.safeCurrencyCode (symbol);
-            }
+            const currencyId = this.safeInteger (balance, 'currencyTypeId');
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            const amount = this.safeFloat (balance, 'amount');
-            account['free'] = amount;
-            account['total'] = amount;
-            account['used'] = 0;
-            result[symbol] = account;
+            account['free'] = this.safeFloat (balance, 'amount');
+            account['used'] = this.safeFloat (balance, 'freeze');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
