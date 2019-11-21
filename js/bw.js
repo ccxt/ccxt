@@ -321,9 +321,27 @@ module.exports = class bw extends Exchange {
             request['dataSize'] = limit;
         }
         const response = await this.publicGetApiDataV1Entrusts (this.extend (request, params));
+        //
+        //     {
+        //         "datas": {
+        //             "asks": [
+        //                 [ "9740.43", "0.0083" ],
+        //             ],
+        //             "bids": [
+        //                 [ "9734.33", "0.0133" ],
+        //             ],
+        //             "timestamp": "1569303520",
+        //         },
+        //         "resMsg": {
+        //             "message": "success !",
+        //             "method": null,
+        //             "code": "1",
+        //         },
+        //     }
+        //
         const orderbook = this.safeValue (response, 'datas', []);
-        const ts = this.safeTimestamp (orderbook, 'timestamp');
-        return this.parseOrderBook (orderbook, ts, 'bids', 'asks', 0, 1);
+        const timestamp = this.safeTimestamp (orderbook, 'timestamp');
+        return this.parseOrderBook (orderbook, timestamp);
     }
 
     async fetchBalance (params = {}) {
