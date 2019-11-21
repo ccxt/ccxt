@@ -112,6 +112,7 @@ class livecoin(Exchange):
                 'FORTYTWO': '42',
                 'LEO': 'LeoCoin',
                 'ORE': 'Orectic',
+                'PLN': 'Plutaneum',  # conflict with Polish Zloty
                 'RUR': 'RUB',
                 'SCT': 'SpaceCoin',
                 'TPI': 'ThaneCoin',

@@ -425,8 +425,10 @@ class poloniex(Exchange):
             precision = 8  # default precision, todo: fix "magic constants"
             code = self.safe_currency_code(id)
             active = (currency['delisted'] == 0) and not currency['disabled']
+            numericId = self.safe_integer(currency, 'id')
             result[code] = {
                 'id': id,
+                'numericId': numericId,
                 'code': code,
                 'info': currency,
                 'name': currency['name'],

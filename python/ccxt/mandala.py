@@ -1136,11 +1136,12 @@ class mandala(Exchange):
             status = self.safe_value_2(order, 'orderStatus', 'Status')
             status = 'closed' if status else 'open'
         lastTradeTimestamp = None
-        if filled > 0:
-            lastTradeTimestamp = completionDate
-        if (filled is not None) and (amount is not None):
-            if (filled < amount) and (status == 'closed'):
-                status = 'canceled'
+        if filled is not None:
+            if filled > 0:
+                lastTradeTimestamp = completionDate
+            if amount is not None:
+                if (filled < amount) and (status == 'closed'):
+                    status = 'canceled'
         feeCost = self.safe_value(order, 'serviceCharge')
         fee = None
         if feeCost is not None:
