@@ -404,13 +404,50 @@ module.exports = class bigone extends Exchange {
         //
         // fetchMyTrades (private)
         //
-        //     ...
+        //     {
+        //         "id": 10854280,
+        //         "asset_pair_name": "XIN-USDT",
+        //         "price": "70",
+        //         "amount": "1",
+        //         "taker_side": "ASK",
+        //         "maker_order_id": 58284908,
+        //         "taker_order_id": 58284909,
+        //         "maker_fee": "0.0008",
+        //         "taker_fee": "0.07",
+        //         "side": "SELF_TRADING",
+        //         "inserted_at": "2019-04-16T12:00:01Z"
+        //     },
+        //
+        //     {
+        //         "id": 10854263,
+        //         "asset_pair_name": "XIN-USDT",
+        //         "price": "75.7",
+        //         "amount": "12.743149",
+        //         "taker_side": "BID",
+        //         "maker_order_id": null,
+        //         "taker_order_id": 58284888,
+        //         "maker_fee": null,
+        //         "taker_fee": "0.0025486298",
+        //         "side": "BID",
+        //         "inserted_at": "2019-04-15T06:20:57Z"
+        //     }
         //
         const timestamp = this.parse8601 (this.safeString2 (trade, 'created_at', 'inserted_at'));
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
+        const marketId = this.safeString (trade, 'asset_pair_name');
         let symbol = undefined;
-        if (market !== undefined) {
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
         let cost = undefined;
@@ -419,26 +456,63 @@ module.exports = class bigone extends Exchange {
                 cost = this.costToPrecision (symbol, price * amount);
             }
         }
-        // taker side is not related to buy/sell side
-        // the following code is probably a mistake
+        let side = this.safeString (trade, 'side');
         const takerSide = this.safeString (trade, 'taker_side');
-        const side = (takerSide === 'ASK') ? 'sell' : 'buy';
+        if (side === undefined) {
+            // taker side is not related to buy/sell side
+            // the following code is probably a mistake
+            side = (takerSide === 'ASK') ? 'sell' : 'buy';
+        } else {
+            if (side === 'BID') {
+                side = 'buy';
+            } else if (side === 'ASK') {
+                side = 'sell';
+            }
+        }
+        const makerOrderId = this.safeString (trade, 'maker_order_id');
+        const takerOrderId = this.safeString (trade, 'taker_order_id');
+        let orderId = undefined;
+        if (makerOrderId !== undefined) {
+            if (takerOrderId !== undefined) {
+                orderId = [ makerOrderId, takerOrderId ];
+            } else {
+                orderId = makerOrderId;
+            }
+        } else if (takerOrderId !== undefined) {
+            orderId = takerOrderId;
+        }
         const id = this.safeString (trade, 'id');
-        return {
+        const result = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id,
-            'order': undefined,
+            'order': orderId,
             'type': 'limit',
             'side': side,
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': parseFloat (cost),
-            'fee': undefined,
             'info': trade,
         };
+        const makerFeeCost = this.safeFloat (trade, 'maker_fee');
+        const takerFeeCost = this.safeFloat (trade, 'taker_fee');
+        if (makerFeeCost !== undefined) {
+            if (takerFeeCost !== undefined) {
+                result['fees'] = [
+                    { 'cost': makerFeeCost, 'currency': undefined },
+                    { 'cost': takerFeeCost, 'currency': undefined },
+                ];
+            } else {
+                result['fee'] = { 'cost': makerFeeCost, 'currency': undefined };
+            }
+        } else if (takerFeeCost !== undefined) {
+            result['fee'] = { 'cost': takerFeeCost, 'currency': undefined };
+        } else {
+            result['fee'] = undefined;
+        }
+        return result;
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -762,6 +836,58 @@ module.exports = class bigone extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'asset_pair_name': market['id'],
+            // 'page_token': 'dxzef', // request page after this page token
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 20, max 200
+        }
+        const response = await this.privateGetTrades (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "id": 10854280,
+        //                 "asset_pair_name": "XIN-USDT",
+        //                 "price": "70",
+        //                 "amount": "1",
+        //                 "taker_side": "ASK",
+        //                 "maker_order_id": 58284908,
+        //                 "taker_order_id": 58284909,
+        //                 "maker_fee": "0.0008",
+        //                 "taker_fee": "0.07",
+        //                 "side": "SELF_TRADING",
+        //                 "inserted_at": "2019-04-16T12:00:01Z"
+        //             },
+        //             {
+        //                 "id": 10854263,
+        //                 "asset_pair_name": "XIN-USDT",
+        //                 "price": "75.7",
+        //                 "amount": "12.743149",
+        //                 "taker_side": "BID",
+        //                 "maker_order_id": null,
+        //                 "taker_order_id": 58284888,
+        //                 "maker_fee": null,
+        //                 "taker_fee": "0.0025486298",
+        //                 "side": "BID",
+        //                 "inserted_at": "2019-04-15T06:20:57Z"
+        //             }
+        //         ],
+        //         "page_token":"dxfv"
+        //     }
+        //
+        const trades = this.safeValue (response, 'data', []);
+        return this.parseTrades (trades, market, since, limit, params);
+    }
+
     parseOrderStatus (status) {
         const statuses = {
             'PENDING': 'open',
@@ -867,6 +993,7 @@ module.exports = class bigone extends Exchange {
         const statuses = {
             // what are other statuses here?
             'WITHHOLD': 'ok', // deposits
+            'UNCONFIRMED': 'pending',
             'CONFIRMED': 'ok', // withdrawals
         };
         return this.safeString (statuses, status, status);
