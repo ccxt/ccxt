@@ -335,31 +335,39 @@ module.exports = class bigone extends Exchange {
         const response = await this.publicGetAssetPairsAssetPairNameDepth (this.extend (request, params));
         //
         //     {
-        //         "asset_pair_name": "EOS-BTC",
-        //         "bids": [
-        //             { "price": "42", "order_count": 4, "quantity": "23.33363711" }
-        //         ],
-        //         "asks": [
-        //             { "price": "45", "order_count": 2, "quantity": "4193.3283464" }
-        //         ]
+        //         "code":0,
+        //         "data": {
+        //             "asset_pair_name": "EOS-BTC",
+        //             "bids": [
+        //                 { "price": "42", "order_count": 4, "quantity": "23.33363711" }
+        //             ],
+        //             "asks": [
+        //                 { "price": "45", "order_count": 2, "quantity": "4193.3283464" }
+        //             ]
+        //         }
         //     }
         //
-        return this.parseOrderBook (response['data'], undefined, 'bids', 'asks', 'price', 'quantity');
+        const orderbook = this.safeValue (response, 'data', {});
+        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'quantity');
     }
 
     parseTrade (trade, market = undefined) {
-        //    {
-        //        "id": 38199941,
-        //        "price": "3378.67",
-        //        "amount": "0.019812",
-        //        "taker_side": "ASK",
-        //        "created_at": "2019-01-29T06:05:56Z"
-        //    }
-        let timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
-        if (timestamp === undefined) {
-            // actual time field different from v3 API doc, will be fixed by BigONE soon
-            timestamp = this.parse8601 (this.safeString (trade, 'inserted_at'));
-        }
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "id": 38199941,
+        //         "price": "3378.67",
+        //         "amount": "0.019812",
+        //         "taker_side": "ASK",
+        //         "created_at": "2019-01-29T06:05:56Z"
+        //     }
+        //
+        // fetchMyTrades (private)
+        //
+        //     ...
+        //
+        const timestamp = this.parse8601 (this.safeString2 (trade, 'created_at', 'inserted_at'));
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         let symbol = undefined;
@@ -374,12 +382,8 @@ module.exports = class bigone extends Exchange {
         }
         // taker side is not related to buy/sell side
         // the following code is probably a mistake
-        let side = undefined;
-        if (trade['taker_side'] === 'ASK') {
-            side = 'sell';
-        } else {
-            side = 'buy';
-        }
+        const takerSide = this.safeString (trade, 'taker_side');
+        const side = (takerSide === 'ASK') ? 'sell' : 'buy';
         const id = this.safeString (trade, 'id');
         return {
             'timestamp': timestamp,
@@ -405,23 +409,29 @@ module.exports = class bigone extends Exchange {
             'asset_pair_name': market['id'],
         };
         const response = await this.publicGetAssetPairsAssetPairNameTrades (this.extend (request, params));
-        //    {
-        //        "code": 0,
-        //        "data": [{
-        //            "id": 38199941,
-        //            "price": "3378.67",
-        //            "amount": "0.019812",
-        //            "taker_side": "ASK",
-        //            "created_at": "2019-01-29T06:05:56Z"
-        //        }, {
-        //            "id": 38199934,
-        //            "price": "3376.14",
-        //            "amount": "0.019384",
-        //            "taker_side": "ASK",
-        //            "created_at": "2019-01-29T06:05:40Z"
-        //        }]
-        //    }
-        return this.parseTrades (response['data'], market, since, limit);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "id": 38199941,
+        //                 "price": "3378.67",
+        //                 "amount": "0.019812",
+        //                 "taker_side": "ASK",
+        //                 "created_at": "2019-01-29T06:05:56Z"
+        //             },
+        //             {
+        //                 "id": 38199934,
+        //                 "price": "3376.14",
+        //                 "amount": "0.019384",
+        //                 "taker_side": "ASK",
+        //                 "created_at": "2019-01-29T06:05:40Z"
+        //             }
+        //         ]
+        //     }
+        //
+        const trades = this.safeValue (response, 'data', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
