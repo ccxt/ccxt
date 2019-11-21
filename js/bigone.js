@@ -859,30 +859,79 @@ module.exports = class bigone extends Exchange {
         };
     }
 
+    parseTransactionStatus (status) {
+        const statuses = {
+            // what are other statuses here?
+            'WITHHOLD': 'ok', // deposits
+            'CONFIRMED': 'ok', // withdrawals
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
         //
         //     {
-        //         "id": 5,
         //         "amount": "25.0",
+        //         "asset_symbol": "BTS"
         //         "confirms": 100,
-        //         "txid": "72e03037d144dae3d32b68b5045462b1049a0755",
-        //         "is_internal": false,
+        //         "id": 5,
         //         "inserted_at": "2018-02-16T11:39:58.000Z",
-        //         "updated_at": "2018-11-09T10:20:09.000Z",
+        //         "is_internal": false,
         //         "kind": "default",
         //         "memo": "",
         //         "state": "WITHHOLD",
-        //         "asset_symbol": "BTS"
+        //         "txid": "72e03037d144dae3d32b68b5045462b1049a0755",
+        //         "updated_at": "2018-11-09T10:20:09.000Z",
         //     }
         //
         // fetchWithdrawals
         //
-        //     ...
+        //     {
+        //         "amount": "5",
+        //         "asset_symbol": "ETH",
+        //         "completed_at": "2018-03-15T16:13:45.610463Z",
+        //         "customer_id": "10",
+        //         "id": 10,
+        //         "inserted_at": "2018-03-15T16:13:45.610463Z",
+        //         "is_internal": true,
+        //         "note": "2018-03-15T16:13:45.610463Z",
+        //         "state": "CONFIRMED",
+        //         "target_address": "0x4643bb6b393ac20a6175c713175734a72517c63d6f7"
+        //         "txid": "0x4643bb6b393ac20a6175c713175734a72517c63d6f73a3ca90a15356f2e967da0",
+        //     }
         //
-        const result = {};
-        return result;
+        const currencyId = this.safeString (transaction, 'asset_symbol');
+        const code = this.safeCurrencyCode (currencyId);
+        const id = this.safeInteger (transaction, 'id');
+        const amount = this.safeFloat (transaction, 'amount');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const timestamp = this.parse8601 (this.safeString (transaction, 'inserted_at'));
+        const updated = this.parse8601 (this.safeString2 (transaction, 'updated_at', 'completed_at'));
+        const txid = this.safeString (transaction, 'txid');
+        const address = this.safeString (transaction, 'target_address');
+        const tag = this.safeString (transaction, 'memo');
+        const type = (address === undefined) ? 'deposit' : 'withdrawal';
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': address,
+            'tagFrom': undefined,
+            'tag': tag,
+            'tagTo': undefined,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': undefined,
+        };
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -898,7 +947,11 @@ module.exports = class bigone extends Exchange {
             currency = this.currency (code);
             request['asset_symbol'] = currency['id'];
         }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 50
+        }
         const response = await this.privateGetDeposits (this.extend (request, params));
+        //
         //     {
         //         "code": 0,
         //         "page_token": "NQ==",
@@ -921,6 +974,48 @@ module.exports = class bigone extends Exchange {
         //
         const deposits = this.safeValue (response, 'data', []);
         return this.parseTransactions (deposits, code, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'page_token': 'dxzef', // request page after this page token
+            // 'limit': 50, // optional, default 50
+            // 'kind': 'string', // optional - air_drop, big_holder_dividend, default, eosc_to_eos, internal, equally_airdrop, referral_mining, one_holder_dividend, single_customer, snapshotted_airdrop, trade_mining
+            // 'asset_symbol': 'BTC', // optional
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['asset_symbol'] = currency['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 50
+        }
+        const response = await this.privateGetWithdrawals (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "id": 10,
+        //                 "customer_id": "10",
+        //                 "asset_symbol": "ETH",
+        //                 "amount": "5",
+        //                 "state": "CONFIRMED",
+        //                 "note": "2018-03-15T16:13:45.610463Z",
+        //                 "txid": "0x4643bb6b393ac20a6175c713175734a72517c63d6f73a3ca90a15356f2e967da0",
+        //                 "completed_at": "2018-03-15T16:13:45.610463Z",
+        //                 "inserted_at": "2018-03-15T16:13:45.610463Z",
+        //                 "is_internal": true,
+        //                 "target_address": "0x4643bb6b393ac20a6175c713175734a72517c63d6f7"
+        //             }
+        //         ],
+        //         "page_token":"dxvf"
+        //     }
+        //
+        const withdrawals = this.safeValue (response, 'data', []);
+        return this.parseTransactions (withdrawals, code, since, limit);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
