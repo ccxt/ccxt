@@ -26,6 +26,7 @@ module.exports = class bigone extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchTickers': true,
+                'fetchWithdrawals': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -113,7 +114,8 @@ module.exports = class bigone extends Exchange {
                 'exact': {
                     '10001': BadRequest, // syntax error
                     '10005': ExchangeError, // internal error
-                    '10007': BadRequest, // parameter error
+                    "Amount's scale must greater than AssetPair's base scale": InvalidOrder,
+                    '10007': BadRequest, // parameter error, {"code":10007,"message":"Amount's scale must greater than AssetPair's base scale"}
                     '10011': ExchangeError, // system error
                     '10013': OrderNotFound, // {"code":10013,"message":"Resource not found"}
                     '10014': InsufficientFunds, // {"code":10014,"message":"Insufficient funds"}
@@ -122,12 +124,14 @@ module.exports = class bigone extends Exchange {
                     '40004': AuthenticationError, // {"code":40004,"message":"invalid jwt"}
                     '40103': AuthenticationError, // invalid otp code
                     '40104': AuthenticationError, // invalid asset pin code
+                    '40301': PermissionDenied, // {"code":40301,"message":"Permission denied withdrawal create"}
                     '40302': ExchangeError, // already requested
                     '40601': ExchangeError, // resource is locked
                     '40602': ExchangeError, // resource is depleted
                     '40603': InsufficientFunds, // insufficient resource
                     '40120': InvalidOrder, // Order is in trading
                     '40121': InvalidOrder, // Order is already cancelled or filled
+
                 },
                 'broad': {
                 },
@@ -912,7 +916,7 @@ module.exports = class bigone extends Exchange {
         const txid = this.safeString (transaction, 'txid');
         const address = this.safeString (transaction, 'target_address');
         const tag = this.safeString (transaction, 'memo');
-        const type = (address === undefined) ? 'deposit' : 'withdrawal';
+        const type = ('customer_id' in transaction) ? 'deposit' : 'withdrawal';
         return {
             'info': transaction,
             'id': id,
@@ -1018,6 +1022,54 @@ module.exports = class bigone extends Exchange {
         return this.parseTransactions (withdrawals, code, since, limit);
     }
 
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'symbol': currency['id'],
+            'target_address': address,
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
+        // requires write permission on the wallet
+        const response = await this.privatePostWithdrawals (this.extend (request, params));
+        //
+        //     {
+        //         "code":0,
+        //         "message":"",
+        //         "data":[
+        //             {
+        //                 "id":1,
+        //                 "customer_id":7,
+        //                 "asset_uuid":"50293b12-5be8-4f5b-b31d-d43cdd5ccc29",
+        //                 "amount":"100",
+        //                 "recipient":null,
+        //                 "state":"PENDING",
+        //                 "is_internal":true,
+        //                 "note":"asdsadsad",
+        //                 "kind":"on_chain",
+        //                 "txid":"asdasdasdsadsadsad",
+        //                 "confirms":5,
+        //                 "inserted_at":null,
+        //                 "updated_at":null,
+        //                 "completed_at":null,
+        //                 "commision":null,
+        //                 "explain":""
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const dataLength = data.length;
+        if (dataLength < 1) {
+            throw new ExchangeError (this.id + ' withdraw() returned an empty response');
+        }
+        const transaction = data[0];
+        return this.parseTransaction (transaction, currency);
+    }
+
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return; // fallback to default error handler
@@ -1031,10 +1083,10 @@ module.exports = class bigone extends Exchange {
         if (code !== '0') {
             const feedback = this.id + ' ' + body;
             const exact = this.exceptions['exact'];
-            if (code in exact) {
-                throw new exact[code] (feedback);
-            } else if (message in exact) {
+            if (message in exact) {
                 throw new exact[message] (feedback);
+            } else if (code in exact) {
+                throw new exact[code] (feedback);
             }
             const broad = this.exceptions['broad'];
             const broadKey = this.findBroadlyMatchedKey (broad, message);
