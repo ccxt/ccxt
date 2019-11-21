@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
-const { DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -79,14 +78,14 @@ module.exports = class bw extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.1 / 100,
-                    'maker': 0.1 / 100,
+                    'taker': 0.2 / 100,
+                    'maker': 0.2 / 100,
                     'tiers': {
                         'taker': [
-                            [0, 0.1 / 100],
+                            [ 0, 0.2 / 100 ],
                         ],
                         'maker': [
-                            [0, 0.1 / 100],
+                            [ 0, 0.2 / 100 ],
                         ],
                     },
                 },
@@ -126,12 +125,43 @@ module.exports = class bw extends Exchange {
                     ],
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
         });
     }
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetExchangeConfigControllerWebsiteMarketcontrollerGetByWebId (params);
+        //
+        //     {
+        //         "datas": [
+        //             {
+        //                 "orderNum":null,
+        //                 "leverEnable":true,
+        //                 "leverMultiple":10,
+        //                 "marketId":"291",
+        //                 "webId":"102",
+        //                 "serverId":"entrust_bw_23",
+        //                 "name":"eos_usdt",
+        //                 "leverType":"2",
+        //                 "buyerCurrencyId":"11",
+        //                 "sellerCurrencyId":"7",
+        //                 "amountDecimal":4,
+        //                 "priceDecimal":3,
+        //                 "minAmount":"0.0100000000",
+        //                 "state":1,
+        //                 "openTime":1572537600000,
+        //                 "defaultFee":"0.00200000",
+        //                 "createUid":null,
+        //                 "createTime":0,
+        //                 "modifyUid":null,
+        //                 "modifyTime":1574160113735,
+        //                 "combineMarketId":"",
+        //                 "isCombine":0,
+        //                 "isMining":0
+        //             }
+        //         ],
+        //         "resMsg": { "message":"success !", "method":null, "code":"1" }
+        //     }
+        //
         const markets = this.safeValue (response, 'datas', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -148,7 +178,8 @@ module.exports = class bw extends Exchange {
             const quoteNumericId = parseInt (quoteId);
             const symbol = base + '/' + quote;
             const state = this.safeInteger (market, 'state');
-            const active = state === 1;
+            const active = (state === 1);
+            const fee = this.safeFloat (market, 'defaultFee');
             result.push ({
                 'id': id,
                 'active': active,
@@ -160,6 +191,8 @@ module.exports = class bw extends Exchange {
                 'quoteId': quoteId,
                 'baseNumericId': baseNumericId,
                 'quoteNumericId': quoteNumericId,
+                'maker': fee,
+                'taker': fee,
                 'info': market,
                 'precision': {
                     'amount': this.safeInteger (market, 'amountDecimal'),
@@ -236,11 +269,7 @@ module.exports = class bw extends Exchange {
         //                 "zone":1
         //             },
         //         ],
-        //         "resMsg":{
-        //             "message":"success !",
-        //             "method":null,
-        //             "code":"1"
-        //         }
+        //         "resMsg": { "message":"success !", "method":null, "code":"1" }
         //     }
         //
         const currencies = this.safeValue (response, 'datas', []);
