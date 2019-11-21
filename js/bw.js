@@ -43,7 +43,7 @@ module.exports = class bw extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
-                'fetchTicker': false,
+                'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTrades': false,
                 'fetchTradingFee': false,
@@ -101,6 +101,7 @@ module.exports = class bw extends Exchange {
                 'public': {
                     'get': [
                         'api/data/v1/klines',
+                        'api/data/v1/ticker',
                         'api/data/v1/tickers',
                         'api/data/v1/trades',
                         'api/data/v1/entrusts',
@@ -309,6 +310,86 @@ module.exports = class bw extends Exchange {
             };
         }
         return result;
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //
+        //     [
+        //         "281",            // market id
+        //         "9754.4",         // last
+        //         "9968.8",         // high
+        //         "9631.5",         // low
+        //         "47865.6432",     // base volume
+        //         "-2.28",          // change
+        //         // closing price for last 6 hours
+        //         "[[1, 9750.1], [2, 9737.1], [3, 9727.5], [4, 9722], [5, 9722.1], [6, 9754.4]]",
+        //         "9752.12",        // bid
+        //         "9756.69",        // ask
+        //         "469849357.2364"  // quote volume
+        //     ]
+        //
+        let symbol = undefined;
+        const marketId = ticker[0];
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const timestamp = this.milliseconds ();
+        const close = parseFloat (ticker[1]);
+        const bid = this.safeValue (ticker, 'bid', {});
+        const ask = this.safeValue (ticker, 'ask', {});
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker[2]),
+            'low': parseFloat (ticker[3]),
+            'bid': parseFloat (ticker[7]),
+            'bidVolume': this.safeFloat (bid, 'quantity'),
+            'ask': parseFloat (ticker[8]),
+            'askVolume': this.safeFloat (ask, 'quantity'),
+            'vwap': undefined,
+            'open': this.safeFloat (ticker, 'open'),
+            'close': close,
+            'last': close,
+            'previousClose': undefined,
+            'change': parseFloat (ticker[5]),
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': parseFloat (ticker[4]),
+            'quoteVolume': parseFloat (ticker[9]),
+            'info': ticker,
+        };
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketId': market['id'],
+        };
+        const response = await this.publicGetApiDataV1Ticker (this.extend (request, params));
+        //
+        //     {
+        //         "datas": [
+        //             "281",
+        //             "7601.99",
+        //             "8126.5",
+        //             "7474.68",
+        //             "47004.8708",
+        //             "-6.18",
+        //             "[[1, 7800.34], [2, 7626.41], [3, 7609.97], [4, 7569.04], [5, 7577.93], [6, 7601.99]]",
+        //             "7600.24",
+        //             "7603.69",
+        //             "371968300.0119"
+        //         ],
+        //         "resMsg": { "message":"success !","method":null,"code":"1" }}
+        //     }
+        //
+        const ticker = this.safeValue (response, 'datas', []);
+        return this.parseTicker (ticker, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
