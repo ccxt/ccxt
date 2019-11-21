@@ -68,6 +68,7 @@ module.exports = class bigone extends Exchange {
                 'private': {
                     'get': [
                         'accounts',
+                        'assets/{asset_symbol}/address',
                         'orders',
                         'orders/{id}',
                         'orders/multi',
@@ -79,6 +80,7 @@ module.exports = class bigone extends Exchange {
                         'orders',
                         'orders/{id}/cancel',
                         'orders/cancel',
+                        'withdrawals',
                     ],
                 },
             },
