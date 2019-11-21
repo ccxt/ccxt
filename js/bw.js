@@ -186,6 +186,63 @@ module.exports = class bw extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetExchangeConfigControllerWebsiteCurrencycontrollerGetCurrencyList (params);
+        //
+        //     {
+        //         "datas":[
+        //             {
+        //                 "currencyId":"456",
+        //                 "name":"pan",
+        //                 "alias":"pan",
+        //                 "logo":"pan.svg",
+        //                 "description":"pan",
+        //                 "descriptionEnglish":"pan",
+        //                 "defaultDecimal":2,
+        //                 "createUid":null,
+        //                 "createTime":1574068133762,
+        //                 "modifyUid":null,
+        //                 "modifyTime":0,
+        //                 "state":1,
+        //                 "mark":"pan",
+        //                 "totalNumber":"0",
+        //                 "publishNumber":"0",
+        //                 "marketValue":"0",
+        //                 "isLegalCoin":0,
+        //                 "needBlockUrl":1,
+        //                 "blockChainUrl":"https://etherscan.io/tx/",
+        //                 "tradeSearchUrl":null,
+        //                 "tokenCoinsId":0,
+        //                 "isMining":"0",
+        //                 "arithmetic":null,
+        //                 "founder":"bw_nxwal",
+        //                 "teamAddress":null,
+        //                 "remark":null,
+        //                 "tokenName":"ethw2",
+        //                 "isMemo":0,
+        //                 "websiteCurrencyId":"7rhqoHLohkG",
+        //                 "drawFlag":0,
+        //                 "rechargeFlag":1,
+        //                 "drawFee":"0.03000000",
+        //                 "onceDrawLimit":100,
+        //                 "dailyDrawLimit":500,
+        //                 "timesFreetrial":"0",
+        //                 "hourFreetrial":"0",
+        //                 "dayFreetrial":"0",
+        //                 "minFee":"0",
+        //                 "inConfigTimes":7,
+        //                 "outConfigTimes":7,
+        //                 "minCash":"0.06000000",
+        //                 "limitAmount":"0",
+        //                 "zbExist":false,
+        //                 "zone":1
+        //             },
+        //         ],
+        //         "resMsg":{
+        //             "message":"success !",
+        //             "method":null,
+        //             "code":"1"
+        //         }
+        //     }
+        //
         const currencies = this.safeValue (response, 'datas', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
@@ -200,11 +257,11 @@ module.exports = class bw extends Exchange {
                 'info': currency,
                 'name': code,
                 'active': active,
-                'fee': undefined,
+                'fee': this.safeFloat (currency, 'drawFee'),
                 'precision': undefined,
                 'limits': {
                     'amount': {
-                        'min': parseFloat (this.safeInteger (currency, 'limitAmount', 0)),
+                        'min': this.safeFloat (currency, 'limitAmount', 0),
                         'max': undefined,
                     },
                     'price': {
