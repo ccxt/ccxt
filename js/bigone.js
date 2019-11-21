@@ -14,6 +14,7 @@ module.exports = class bigone extends Exchange {
             'name': 'BigONE',
             'countries': [ 'CN' ],
             'version': 'v3',
+            'rateLimit': 1200, // 500 request per 10 minutes
             'has': {
                 'cancelAllOrders': true,
                 'createMarketOrder': false,
@@ -517,15 +518,18 @@ module.exports = class bigone extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetAccounts (params);
-        //    [
-        //        {
-        //            "asset_symbol": "BTC",
-        //            "balance": "0",
-        //            "locked_balance": "0"
-        //        }
-        //    ]
+        //
+        //     {
+        //         "code":0,
+        //         "data":[
+        //             {"asset_symbol":"NKC","balance":"0","locked_balance":"0"},
+        //             {"asset_symbol":"UBTC","balance":"0","locked_balance":"0"},
+        //             {"asset_symbol":"READ","balance":"0","locked_balance":"0"},
+        //         ],
+        //     }
+        //
         const result = { 'info': response };
-        const balances = this.safeValue (response, 'data');
+        const balances = this.safeValue (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const symbol = this.safeString (balance, 'asset_symbol');
@@ -769,6 +773,7 @@ module.exports = class bigone extends Exchange {
                 'type': 'OpenAPIV2',
                 'sub': this.apiKey,
                 'nonce': nonce,
+                // 'recv_window': '30', // default 30
             };
             const jwt = this.jwt (request, this.encode (this.secret));
             headers = {
