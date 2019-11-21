@@ -44,7 +44,7 @@ module.exports = class bw extends Exchange {
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
                 'fetchTicker': true,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTrades': false,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
@@ -383,13 +383,47 @@ module.exports = class bw extends Exchange {
         //             "[[1, 7800.34], [2, 7626.41], [3, 7609.97], [4, 7569.04], [5, 7577.93], [6, 7601.99]]",
         //             "7600.24",
         //             "7603.69",
-        //             "371968300.0119"
+        //             "371968300.0119",
         //         ],
-        //         "resMsg": { "message":"success !","method":null,"code":"1" }}
+        //         "resMsg": { "message": "success !", "method": null, "code": "1" }
         //     }
         //
         const ticker = this.safeValue (response, 'datas', []);
         return this.parseTicker (ticker, market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetApiDataV1Tickers (params);
+        //
+        //     {
+        //         "datas": [
+        //             [
+        //                 "4051",
+        //                 "0.00194",
+        //                 "0.00863",
+        //                 "0.0012",
+        //                 "1519020",
+        //                 "-38.22",
+        //                 "[[1, 0.0023], [2, 0.00198], [3, 0.00199], [4, 0.00195], [5, 0.00199], [6, 0.00194]]",
+        //                 "0.00123",
+        //                 "0.0045",
+        //                 "4466.8104",
+        //             ],
+        //         ],
+        //         "resMsg": { "message": "success !", "method": null, "code": "1" },
+        //     }
+        //
+        const datas = this.safeValue (response, 'datas', []);
+        const result = {};
+        for (let i = 0; i < datas.length; i++) {
+            const ticker = this.parseTicker (datas[i]);
+            const symbol = ticker['symbol'];
+            if ((symbols === undefined) || this.inArray (symbol, symbols)) {
+                result[symbol] = ticker;
+            }
+        }
+        return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
