@@ -19,10 +19,24 @@ module.exports = class bigone extends Exchange {
                 'createMarketOrder': false,
                 'fetchDepositAddress': true,
                 'fetchMyTrades': false, // todo support fetchMyTrades
-                'fetchOHLCV': false, // todo support fetchOHLCV
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchTickers': true,
                 'withdraw': true,
+            },
+            'timeframes': {
+                '1m': 'min1',
+                '5m': 'min5',
+                '15m': 'min15',
+                '30m': 'min30',
+                '1h': 'hour1',
+                '3h': 'hour3',
+                '4h': 'hour4',
+                '6h': 'hour6',
+                '12h': 'hour12',
+                '1d': 'day1',
+                '1w': 'week1',
+                '1M': 'month1',
             },
             'hostname': 'big.one',
             'urls': {
@@ -90,8 +104,9 @@ module.exports = class bigone extends Exchange {
             },
             'exceptions': {
                 'codes': {
-                    '401': AuthenticationError,
                     '10030': InvalidNonce, // {"message":"invalid nonce, nonce should be a 19bits number","code":10030}
+                    '401': AuthenticationError,
+                    '40004': AuthenticationError, // {"code":40004,"message":"invalid jwt"}
                 },
                 'detail': {
                     'Internal server error': ExchangeNotAvailable,
@@ -432,6 +447,71 @@ module.exports = class bigone extends Exchange {
         //
         const trades = this.safeValue (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     {
+        //         close: '0.021562',
+        //         high: '0.021563',
+        //         low: '0.02156',
+        //         open: '0.021563',
+        //         time: '2019-11-21T07:54:00Z',
+        //         volume: '59.84376'
+        //     }
+        //
+        return [
+            this.parse8601 (this.safeString (ohlcv, 'time')),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 100; // default 100, max 500
+        }
+        const request = {
+            'asset_pair_name': market['id'],
+            'period': this.timeframes[timeframe],
+            'limit': limit,
+        };
+        if (since !== undefined) {
+            // const start = parseInt (since / 1000);
+            const end = this.sum (since, limit * this.parseTimeframe (timeframe) * 1000);
+            request['time'] = this.iso8601 (end);
+        }
+        const response = await this.publicGetAssetPairsAssetPairNameCandles (this.extend (request, params));
+        //
+        //     {
+        //         code: 0,
+        //         data: [
+        //             {
+        //                 close: '0.021656',
+        //                 high: '0.021658',
+        //                 low: '0.021652',
+        //                 open: '0.021652',
+        //                 time: '2019-11-21T09:30:00Z',
+        //                 volume: '53.08664'
+        //             },
+        //             {
+        //                 close: '0.021652',
+        //                 high: '0.021656',
+        //                 low: '0.021652',
+        //                 open: '0.021656',
+        //                 time: '2019-11-21T09:29:00Z',
+        //                 volume: '88.39861'
+        //             },
+        //         ]
+        //     }
+        //
+        const ohlcvs  = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
