@@ -40,7 +40,7 @@ module.exports = class dragonex extends Exchange {
                 '1d': 6,
             },
             'urls': {
-                'logo': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAAwCAMAAACPMqDOAAAC6FBMVEUAAAD////////////////////////////////////////////8/Pz6xbH////////////////////////////////////////////////////369L/////////S0b/S0b/////S0b0ymr/S0b////////////vyWr/////////S0b54Iv81nL////////xyGn/S0btxm//S0bw0X/52X//6IL0w1b9/f3/S0b/////43/////83X3////30G//3nf////////844T////////////////83ID/S0b/S0btxmn+3nn/S0b/S0b/////S0b/////S0b84ojvxmv/S0buwF3jslTz0nXMnUr03Yj////z2YL////62n3ctmP/////S0bvz3r/S0b////////yznP82HP/5IT/64j52n7ouVn10XLMplT52nn////213fQpE//////S0b/S0b855Tak1zfxHOIWR3/S0bOmkP53oLu0H+cZyj+3Xz/S0bwzXO0fjT/S0b/S0bvx2mhbCz/S0b/S0bpu1j/S0bqxGn/S0b////22Ii1h0T/8JbyxV7yz3T71Wrjr03btl3JoVSrfDPasmbesFTht2Cyh0f545u2iEO+ml/mumb52XobICb74o3/S0a0gTr/S0b/S0b71HXqu1jcwID/9rXt0pLdpkj////NrnO7gjcbICbz3pHirk/44pKQZSnz5ZobICZ5WB//+7DouFaseDh4Vij//72vlFDSq2kbICb/////S0b/2nj/4oX/5In+1nH802//2HT/3nruwVjntlT/4oDyxWPsvVr/33/5z2vwxV3su1T/3Xb8zV/4yV66iDr/4nr2zWTRqVb/6Iv+2W3dq07SoUj/32/+0Wjwv1uebC3p0YP/6Hn01HLsym3pwGPiuWDjtVnOoEzHmEjEk0L/7Yr/1mbdslnOmkCtejSjciv64Ij71YLouXDksU+1gjWWZin/9aT31o4bICbNHC3fAAAAvnRSTlMAKZONDLBFwu1A9i2HBLT9MRwHvJZSIxTnTRcC3MC7k3dO/vnx2MvGnpCLd2dmXzsyIRwZDv7+/Ofi1sbFuK2qopqKbUg8NS0pD/r02tLQxaqoo6KgmJeRjIN7X1hRTz44KBQSEP7s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',
+                'logo': 'https://user-images.githubusercontent.com/44139321/69334949-b9335c00-0c96-11ea-8e4d-cca246021d6f.png',
                 'api': {
                     'public': 'https://openapi.dragonex.co/api/v1',
                     'private': 'https://openapi.dragonex.co',
@@ -69,9 +69,6 @@ module.exports = class dragonex extends Exchange {
                         'market/all_trade/',
                         'market/buy_sell/',
                     ],
-                },
-                'pal': {
-                    'get': '/coin/',  // 获取某币种平均价格信息
                 },
                 'public': {
                     'get': [
@@ -286,12 +283,14 @@ module.exports = class dragonex extends Exchange {
         const sellsList = [];
         for (let i = 0; i < this.safeValue (response, 'data', {})['buys'].length; i++) {
             const buys = [];
-            buys.push (this.safeInteger (this.safeValue (response, 'data', {})['buys'][i], 'price', 0), this.safeInteger (this.safeValue (response, 'data', {})['buys'][i], 'volume', 0));
+            buys.push (this.safeInteger (this.safeValue (response, 'data', {})['buys'][i], 'price', 0));
+            buys.push (this.safeInteger (this.safeValue (response, 'data', {})['buys'][i], 'volume', 0));
             buysList.push (buys);
         }
         for (let i = 0; i < this.safeValue (response, 'data', {})['sells'].length; i++) {
             const sells = [];
-            sells.push (this.safeInteger (this.safeValue (response, 'data', {})['sells'][i], 'price', 0), this.safeInteger (this.safeValue (response, 'data', {})['sells'][i], 'volume', 0));
+            sells.push (this.safeInteger (this.safeValue (response, 'data', {})['sells'][i], 'price', 0));
+            sells.push (this.safeInteger (this.safeValue (response, 'data', {})['sells'][i], 'volume', 0));
             sellsList.push (sells);
         }
         orderBook['bids'] = buysList;
@@ -301,8 +300,10 @@ module.exports = class dragonex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         ticker = this.safeValue (this.safeValue (ticker, 'data', {}), 'list', [])[0];
-        const timestamp = ticker[ticker.length - 1];
-        const last = this.safeFloat (ticker[3]);
+        const lastNum = ticker.length - 1;
+        const lastFourNum = ticker.length - 4;
+        const timestamp = ticker[lastNum];
+        const last = this.asFloat (ticker[3]);
         return {
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -321,7 +322,7 @@ module.exports = class dragonex extends Exchange {
             'change': ticker[8],
             'percentage': ticker[9],
             'average': (last + this.safeFloat (ticker[2])) / 2,
-            'baseVolume': ticker[-4],
+            'baseVolume': ticker[lastFourNum],
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -336,20 +337,6 @@ module.exports = class dragonex extends Exchange {
         const response = await this.aicoinGetMarketReal (this.extend (request, params));
         return this.parseTicker (response, market);
     }
-
-    // async fetchTickers (symbols = undefined, params = {}) {
-    //     await this.loadMarkets ();
-    //     const symbolIdList = [];
-    //     for (let i = 0; i < symbols.length; i++) {
-    //         symbolIdList.push (this.market (symbols[i].replace (' ', ''))['symbol_id']);
-    //     }
-    //     const symbolIdStr = symbolIdList.join (',');
-    //     const request = {
-    //         'symbol_ids': symbolIdStr,
-    //     };
-    //     const response = await this.aicoinGetMarketReal (this.extend (request, params));
-    //     return response;
-    // }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
@@ -840,7 +827,7 @@ module.exports = class dragonex extends Exchange {
 
     async signIn (params = {}) {
         const ip = this.safeValue (params, 'bind_ip', '0.0.0.0');
-        let date = new Date ();
+        let date = new this.Date ();
         date = this.gmt (date);
         const contentMd5 = '';
         const contentType = 'application/json';
@@ -872,19 +859,18 @@ module.exports = class dragonex extends Exchange {
         }
         const url = this.urls['api'][api] + request;
         if (api === 'private') {
-            body = JSON.stringify ({});
+            body = this.json.stringify ({});
             this.checkRequiredCredentials ();
             if (method !== 'GET') {
                 if (query !== undefined) {
                     body = this.json (query);
                 }
             }
-            let date = new Date ();
-            date = this.gmt (date);
             const contentMd5 = '';
             const contentType = 'application/json';
             const canonicalizedHeaders = '';
             const ip = this.safeValue (params, 'bind_ip', '0.0.0.0');
+            const date = this.safeString (this.options, 'date');
             let strToSign = [method.upper (), contentMd5, contentType, date, canonicalizedHeaders].join ('\n');
             strToSign += request;
             const signature = this.hmac (this.encode (this.secret), this.encode (strToSign), 'sha1', 'base64');
