@@ -32,7 +32,7 @@ module.exports = class bigone extends Exchange {
                 },
                 'www': 'https://big.one',
                 'doc': 'https://open.big.one/docs/api.html',
-                'fees': 'https://help.big.one/hc/en-us/articles/115001933374-BigONE-Fee-Policy',
+                'fees': 'https://bigone.zendesk.com/hc/en-us/articles/115001933374-BigONE-Fee-Policy',
                 'referral': 'https://b1.run/users/new?code=D3LLBVFT',
             },
             'api': {
@@ -71,10 +71,10 @@ module.exports = class bigone extends Exchange {
                 'funding': {
                     // HARDCODING IS DEPRECATED THE FEES BELOW ARE TO BE REMOVED SOON
                     'withdraw': {
-                        'BTC': 0.002,
-                        'ETH': 0.01,
+                        'BTC': 0.001,
+                        'ETH': 0.005,
                         'EOS': 0.01,
-                        'ZEC': 0.002,
+                        'ZEC': 0.003,
                         'LTC': 0.01,
                         'QTUM': 0.01,
                         // 'INK': 0.01 QTUM,
@@ -83,7 +83,7 @@ module.exports = class bigone extends Exchange {
                         'GAS': 0.0,
                         'BTS': 1.0,
                         'GXS': 0.1,
-                        'BITCNY': 1.0,
+                        'BITCNY': 19.0,
                     },
                 },
             },
@@ -101,27 +101,34 @@ module.exports = class bigone extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetAssetPairs (params);
-        const markets = this.safeValue (response, 'data');
+        //
+        //     {
+        //         "code":0,
+        //         "data":[
+        //             {
+        //                 "id":"01e48809-b42f-4a38-96b1-c4c547365db1",
+        //                 "name":"PCX-BTC",
+        //                 "quote_scale":7,
+        //                 "quote_asset":{
+        //                     "id":"0df9c3c3-255a-46d7-ab82-dedae169fba9",
+        //                     "symbol":"BTC",
+        //                     "name":"Bitcoin",
+        //                 },
+        //                 "base_asset":{
+        //                     "id":"405484f7-4b03-4378-a9c1-2bd718ecab51",
+        //                     "symbol":"PCX",
+        //                     "name":"ChainX",
+        //                 },
+        //                 "base_scale":3,
+        //                 "min_quote_value":"0.0001",
+        //             },
+        //         ]
+        //     }
+        //
+        const markets = this.safeValue (response, 'data', []);
         const result = [];
         this.options['marketsByUuid'] = {};
         for (let i = 0; i < markets.length; i++) {
-            //    {
-            //        "id": "d2185614-50c3-4588-b146-b8afe7534da6",
-            //        "quote_scale": 8,
-            //        "quote_asset": {
-            //          "id": "0df9c3c3-255a-46d7-ab82-dedae169fba9",
-            //          "symbol": "BTC",
-            //          "name": "Bitcoin"
-            //        },
-            //        "name": "BTG-BTC",
-            //        "base_scale": 4,
-            //        "min_quote_value":"0.001",
-            //        "base_asset": {
-            //          "id": "5df3b155-80f5-4f5a-87f6-a92950f0d0ff",
-            //          "symbol": "BTG",
-            //          "name": "Bitcoin Gold"
-            //        }
-            //    }
             const market = markets[i];
             const id = this.safeString (market, 'name');
             const uuid = this.safeString (market, 'id');
@@ -138,6 +145,7 @@ module.exports = class bigone extends Exchange {
             };
             const entry = {
                 'id': id,
+                'uuid': uuid,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -161,10 +169,25 @@ module.exports = class bigone extends Exchange {
                 },
                 'info': market,
             };
-            this.options['marketsByUuid'][uuid] = entry;
             result.push (entry);
         }
         return result;
+    }
+
+    async loadMarkets (reload = false, params = {}) {
+        const markets = await super.loadMarkets (reload, params);
+        let marketsByUuid = this.safeValue (this.options, 'marketsByUuid');
+        if ((marketsByUuid === undefined) || reload) {
+            marketsByUuid = {};
+            for (let i = 0; i < this.symbols.length; i++) {
+                const symbol = this.symbols[i];
+                const market = this.markets[symbol];
+                const uuid = this.safeString (market, 'uuid');
+                marketsByUuid[uuid] = market;
+            }
+            this.options['marketsByUuid'] = marketsByUuid;
+        }
+        return markets;
     }
 
     parseTicker (ticker, market = undefined) {
