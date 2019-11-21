@@ -817,6 +817,47 @@ module.exports = class bigone extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'asset_symbol': currency['id'],
+        };
+        const response = await this.privateGetAssetsAssetSymbolAddress (this.extend (request, params));
+        //
+        // the actual response format is not the same as the documented one
+        // the data key contains an array in the actual response
+        //
+        //     {
+        //         "code":0,
+        //         "message":"",
+        //         "data":[
+        //             {
+        //                 "id":5521878,
+        //                 "chain":"Bitcoin",
+        //                 "value":"1GbmyKoikhpiQVZ1C9sbF17mTyvBjeobVe",
+        //                 "memo":""
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const dataLength = data.length;
+        if (dataLength < 1) {
+            throw new ExchangeError (this.id + 'fetchDepositAddress() returned empty address response');
+        }
+        const firstElement = data[0];
+        const address = this.safeString (firstElement, 'value');
+        const tag = this.safeString (firstElement, 'memo');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        };
+    }
+
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return; // fallback to default error handler
