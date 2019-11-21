@@ -557,7 +557,40 @@ module.exports = class qtrade extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-
+        const response = await this.privateGetDeposits (params);
+        const result = [];
+        const ds = response['data']['deposits'];
+        for (let i = 0; i < ds.length; i++) {
+            const deposit = {};
+            deposit['id'] = ds[i]['id'];
+            deposit['txid'] = ds[i]['network_data']['txid'];
+            deposit['timestamp'] = this.parse8601 (this.safeString (ds[i], 'created_at'));
+            deposit['datetime'] = this.safeString (ds[i], 'created_at');
+            let address = undefined;
+            let tag = undefined;
+            if (this.safeString (ds[i], 'address').includes (':')) {
+                address = this.safeString (ds[i], 'address').split (':')[0];
+                tag = this.safeString (ds[i], 'address').split (':')[1];
+            } else {
+                address = this.safeString (ds[i], 'address');
+            }
+            deposit['addressFrom'] = undefined;
+            deposit['address'] = address;
+            deposit['addressTo'] =  address;
+            deposit['tagFrom'] = undefined;
+            deposit['tag'] = tag;
+            deposit['tagTo'] = tag;
+            deposit['type'] = 'deposit';
+            deposit['amount'] = this.safeFloat(ds[i], 'amount');
+            deposit['currency'] = ds[i]['currency'];
+            deposit['status'] = ds[i]['status'];
+            deposit['updated'] = undefined;
+            deposit['comment'] = undefined;
+            deposit['fee'] = undefined;
+            deposit['info'] = ds[i];
+            result.push(deposit);
+        }
+        return result;
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
