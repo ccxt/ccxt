@@ -51,7 +51,6 @@ const exchanges = {
     'bequant':                 require ('./js/bequant.js'),
     'bibox':                   require ('./js/bibox.js'),
     'bigone':                  require ('./js/bigone.js'),
-    'bigone3':                 require ('./js/bigone3.js'),
     'binance':                 require ('./js/binance.js'),
     'binanceje':               require ('./js/binanceje.js'),
     'binanceus':               require ('./js/binanceus.js'),
