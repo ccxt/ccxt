@@ -24,11 +24,12 @@ module.exports = class bigone extends Exchange {
                 'fetchTickers': true,
                 'withdraw': true,
             },
+            'hostname': 'big.one',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/42803606-27c2b5ec-89af-11e8-8d15-9c8c245e8b2c.jpg',
                 'api': {
-                    'public': 'https://big.one/api/v3',
-                    'private': 'https://big.one/api/v3/viewer',
+                    'public': 'https://{hostname}/api/v3',
+                    'private': 'https://{hostname}/api/v3/viewer',
                 },
                 'www': 'https://big.one',
                 'doc': 'https://open.big.one/docs/api.html',
@@ -608,7 +609,8 @@ module.exports = class bigone extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
+        const baseUrl = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname });
+        let url = baseUrl + '/' + this.implodeParams (path, params);
         if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
