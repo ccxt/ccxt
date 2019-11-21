@@ -280,7 +280,7 @@ module.exports = class binance extends Exchange {
 
     async fetchTime (params = {}) {
         const marketType = this.options['defaultMarket'];
-        let method = 'PublicGetTime';
+        let method = 'publicGetTime';
         if (marketType === 'futures') {
             method = 'fapiPublicGetTime';
         }
