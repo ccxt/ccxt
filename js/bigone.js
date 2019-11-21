@@ -543,6 +543,7 @@ module.exports = class bigone extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
         //    {
         //        "id": 10,
         //        "asset_pair_name": "EOS-BTC",
@@ -553,24 +554,35 @@ module.exports = class bigone extends Exchange {
         //        "side": "ASK",
         //        "state": "FILLED",
         //        "created_at":"2019-01-29T06:05:56Z",
-        //        "updated_at":"2019-01-29T06:05:56Z"
+        //        "updated_at":"2019-01-29T06:05:56Z",
         //    }
+        //
         const id = this.safeString (order, 'id');
+        let symbol = undefined;
         if (market === undefined) {
             const marketId = this.safeString (order, 'asset_pair_name');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
+            if (marketId !== undefined) {
+                if (marketId in this.markets_by_id) {
+                    market = this.markets_by_id[marketId];
+                } else {
+                    const [ baseId, quoteId ] = marketId.split ('-');
+                    const base = this.safeCurrencyCode (baseId);
+                    const quote = this.safeCurrencyCode (quoteId);
+                    symbol = base + '/' + quote;
+                }
             }
         }
-        let symbol = undefined;
-        if (market !== undefined) {
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
         const filled = this.safeFloat (order, 'filled_amount');
-        const remaining = Math.max (0, amount - filled);
+        let remaining = undefined;
+        if (amount !== undefined && filled !== undefined) {
+            remaining = Math.max (0, amount - filled);
+        }
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         let side = this.safeString (order, 'side');
         if (side === 'BID') {
@@ -584,22 +596,26 @@ module.exports = class bigone extends Exchange {
                 cost = filled * price;
             }
         }
+        const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'updated_at'));
+        const average = this.safeFloat (order, 'avg_deal_price');
         return {
+            'info': order,
             'id': id,
-            'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
-            'status': status,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': undefined,
             'side': side,
             'price': price,
-            'cost': cost,
             'amount': amount,
+            'cost': cost,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
-            'trades': undefined,
+            'status': status,
             'fee': undefined,
-            'info': order,
+            'trades': undefined,
         };
     }
 
@@ -683,7 +699,7 @@ module.exports = class bigone extends Exchange {
         await this.loadMarkets ();
         const request = { 'id': id };
         const response = await this.privateGetOrdersId (this.extend (request, params));
-        const order = this.safeValue (response, 'data');
+        const order = this.safeValue (response, 'data', {});
         return this.parseOrder (order);
     }
 
