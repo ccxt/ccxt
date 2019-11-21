@@ -101,15 +101,23 @@ module.exports = class bw extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'api/data/v1/klines',
+                        'api/data/v1/tickers',
+                        'api/data/v1/trades',
+                        'api/data/v1/entrusts',
                         'exchange/config/controller/website/marketcontroller/getByWebId',
                         'exchange/config/controller/website/currencycontroller/getCurrencyList',
-                        'api/data/v1/entrusts',
-                        'api/data/v1/klines',
                     ],
                 },
                 'private': {
                     'get': [
                         'exchange/entrust/controller/website/EntrustController/getEntrustById',
+                        'exchange/entrust/controller/website/EntrustController/getUserEntrustRecordFromCacheWithPage',
+                        'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
+                        'exchange/fund/controller/website/fundwebsitecontroller/getwithdrawaddress',
+                        'exchange/fund/controller/website/fundwebsitecontroller/getpayoutcoinrecord',
+                        'exchange/fund/controller/website/fundcontroller/getPayinCoinRecord',
+                        'exchange/fund/controller/website/fundcontroller/getPayinAddress',
                     ],
                     'post': [
                         'exchange/fund/controller/website/fundcontroller/findbypage',
@@ -118,11 +126,7 @@ module.exports = class bw extends Exchange {
                     ],
                 },
             },
-            'commonCurrencies': {
-            },
             'precisionMode': DECIMAL_PLACES,
-            'options': {
-            },
         });
     }
 
