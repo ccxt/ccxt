@@ -31,10 +31,9 @@ Want this place? Contact us: info@ccxt.trade
 See Also
 --------
 
--  \ |Nomics API|\   `Nomics API <https://p.nomics.com/cryptocurrency-bitcoin-api>`__ — enterprise-grade `crypto market cap & pricing data <https://nomics.com>`__ API for your fund, smart contract, or app.
--  \ |CoinGecko API|\   `CoinGecko API <https://www.coingecko.com/api?utm_source=ccxt>`__ — free, reliable, and complete cryptocurrency data for your app. No keys required!
--  \ |Quadency|\   `Quadency <https://quadency.com?utm_source=ccxt>`__ — professional crypto terminal, algo trading, and unified streaming APIs.
--  \ |TabTrader|\   `TabTrader <https://tab-trader.com/?utm_source=ccxt>`__ — trading on all exchanges in one app. Avaliable on `Android <https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt>`__ and `iOS <https://itunes.apple.com/app/apple-store/id1095716562?mt=8>`__.
+-  \ `Nomics API <https://p.nomics.com/cryptocurrency-bitcoin-api>`__\   `Nomics API <https://p.nomics.com/cryptocurrency-bitcoin-api>`__ — enterprise-grade `crypto market cap & pricing data <https://nomics.com>`__ API for your fund, smart contract, or app.
+-  \ `Quadency <https://quadency.com?utm_source=ccxt>`__\   `Quadency <https://quadency.com?utm_source=ccxt>`__ — professional crypto terminal, algo trading, and unified streaming APIs.
+-  \ `TabTrader <https://tab-trader.com/?utm_source=ccxt>`__\   `TabTrader <https://tab-trader.com/?utm_source=ccxt>`__ — trading on all exchanges in one app. Avaliable on `Android <https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt>`__ and `iOS <https://itunes.apple.com/app/apple-store/id1095716562?mt=8>`__.
 
 Certified Cryptocurrency Exchanges
 ----------------------------------

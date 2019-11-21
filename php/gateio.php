@@ -741,6 +741,7 @@ class gateio extends Exchange {
         $statuses = array (
             'PEND' => 'pending',
             'REQUEST' => 'pending',
+            'DMOVE' => 'pending',
             'CANCEL' => 'failed',
             'DONE' => 'ok',
         );

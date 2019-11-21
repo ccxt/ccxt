@@ -121,6 +121,7 @@ module.exports = class coss extends Exchange {
             },
             'commonCurrencies': {
                 'COS': 'COSS',
+                'COSS': 'COSS.io',
             },
         });
     }

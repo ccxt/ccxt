@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.19.44';
+$version = '1.19.61';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.19.44';
+    const VERSION = '1.19.61';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -759,6 +759,7 @@ class Exchange {
                 }
             }
         }
+        return true;
     }
 
     public function check_address($address) {

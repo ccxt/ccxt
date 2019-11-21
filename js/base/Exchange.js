@@ -277,7 +277,7 @@ module.exports = class Exchange {
         this.orderbooks  = {}
         this.tickers     = {}
         this.orders      = {}
-        this.trades      = {}
+        this.trades      = []
         this.transactions = {}
 
         this.requiresWeb3 = false
@@ -354,6 +354,7 @@ module.exports = class Exchange {
                 }
             }
         })
+        return true
     }
 
     checkAddress (address) {
