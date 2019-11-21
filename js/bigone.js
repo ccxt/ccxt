@@ -41,10 +41,10 @@ module.exports = class bigone extends Exchange {
                     'get': [
                         'ping',
                         'asset_pairs',
-                        'asset_pairs/{symbol}/depth',
-                        'asset_pairs/{symbol}/trades',
-                        'asset_pairs/{symbol}/ticker',
-                        'asset_pairs/{symbol}/candles',
+                        'asset_pairs/{asset_pair_name}/depth',
+                        'asset_pairs/{asset_pair_name}/trades',
+                        'asset_pairs/{asset_pair_name}/ticker',
+                        'asset_pairs/{asset_pair_name}/candles',
                         'asset_pairs/tickers',
                     ],
                 },
@@ -128,7 +128,6 @@ module.exports = class bigone extends Exchange {
         //
         const markets = this.safeValue (response, 'data', []);
         const result = [];
-        this.options['marketsByUuid'] = {};
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'name');
@@ -192,33 +191,34 @@ module.exports = class bigone extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        //    {
-        //        "volume": "190.4925000000000000",
-        //        "open": "0.0777371200000000",
-        //        "asset_pair_name": "ETH-BTC",
-        //        "low": "0.0742925600000000",
-        //        "high": "0.0789150000000000",
-        //        "daily_change": "-0.00029",
-        //        "close": "0.0774425600000000", //  last price
-        //        "bid": {
-        //          "price": "0.0764777900000000",
-        //          "order_count": 4,
-        //          "quantity": "6.4248000000000000"
-        //        },
-        //        "ask": {
-        //          "price": "0.0774425600000000",
-        //          "order_count": 2,
-        //          "quantity": "1.1741000000000000"
-        //        }
-        //    }
+        //
+        //     {
+        //         "asset_pair_name":"ETH-BTC",
+        //         "bid":{"price":"0.021593","order_count":1,"quantity":"0.20936"},
+        //         "ask":{"price":"0.021613","order_count":1,"quantity":"2.87064"},
+        //         "open":"0.021795",
+        //         "high":"0.021795",
+        //         "low":"0.021471",
+        //         "close":"0.021613",
+        //         "volume":"117078.90431",
+        //         "daily_change":"-0.000182"
+        //     }
+        //
+        let symbol = undefined;
         if (market === undefined) {
             const marketId = this.safeString (ticker, 'asset_pair_name');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
+            if (marketId !== undefined) {
+                if (marketId in this.markets_by_id) {
+                    market = this.markets_by_id[marketId];
+                } else {
+                    const [ baseId, quoteId ] = marketId.split ('-');
+                    const base = this.safeCurrencyCode (baseId);
+                    const quote = this.safeCurrencyCode (quoteId);
+                    symbol = base + '/' + quote;
+                }
             }
         }
-        let symbol = undefined;
-        if (market !== undefined) {
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
         const timestamp = this.milliseconds ();
@@ -253,10 +253,27 @@ module.exports = class bigone extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'asset_pair_name': market['id'],
         };
-        const response = await this.publicGetAssetPairsSymbolTicker (this.extend (request, params));
-        return this.parseTicker (response['data'], market);
+        const response = await this.publicGetAssetPairsAssetPairNameTicker (this.extend (request, params));
+        //
+        //     {
+        //         "code":0,
+        //         "data":{
+        //             "asset_pair_name":"ETH-BTC",
+        //             "bid":{"price":"0.021593","order_count":1,"quantity":"0.20936"},
+        //             "ask":{"price":"0.021613","order_count":1,"quantity":"2.87064"},
+        //             "open":"0.021795",
+        //             "high":"0.021795",
+        //             "low":"0.021471",
+        //             "close":"0.021613",
+        //             "volume":"117078.90431",
+        //             "daily_change":"-0.000182"
+        //         }
+        //     }
+        //
+        const ticker = this.safeValue (response, 'data', {});
+        return this.parseTicker (ticker, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -286,7 +303,7 @@ module.exports = class bigone extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetAssetPairsSymbolDepth (this.extend (request, params));
+        const response = await this.publicGetAssetPairsAssetPairNameDepth (this.extend (request, params));
         return this.parseOrderBook (response['data'], undefined, 'bids', 'asks', 'price', 'quantity');
     }
 
@@ -347,7 +364,7 @@ module.exports = class bigone extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetAssetPairsSymbolTrades (this.extend (request, params));
+        const response = await this.publicGetAssetPairsAssetPairNameTrades (this.extend (request, params));
         //    {
         //        "code": 0,
         //        "data": [{
