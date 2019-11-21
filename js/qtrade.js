@@ -78,7 +78,6 @@ module.exports = class qtrade extends Exchange {
                         'deposit/{deposit_id}',
                         'deposits',
                         'transfers',
-                        'deposit_address/{currency}',
                         'order/{order_id}',
                     ],
                     'post': [
@@ -86,6 +85,7 @@ module.exports = class qtrade extends Exchange {
                         'sell_limit',
                         'buy_limit',
                         'cancel_order',
+                        'deposit_address/{currency}',
                     ],
                 },
             },
@@ -267,21 +267,23 @@ module.exports = class qtrade extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = { 'queryParams': {
+        const request = {
             'market_string': market['id'],
-            'interval': this.timeframes[timeframe] }
+            'interval': this.timeframes[timeframe]
         };
         const response = await this.publicGetMarketMarketStringOhlcvInterval (this.extend (request, params));
+        //
         //  [ 1573862400000, 3e-7, 3.1e-7, 3.1e-7, 3.1e-7, 0.0095045 ],
         //  [ 1573948800000, 3.1e-7, 3.2e-7, 3e-7, 3e-7, 0.04184538 ],
         //  [ 1574035200000, 3e-7, 3.2e-7, 3e-7, 3.1e-7, 0.06711341 ]
+        //
         return this.parseOHLCVs (response['data']['slices'], market, timeframe, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
-        const request = { 'queryParams': { 'market_string': marketId }};
+        const request = { 'market_string': marketId };
         const response = await this.publicGetOrderbookMarketString (this.extend (request, params));
         const orderbook = { 'bids': [], 'asks': [], 'timestamp': undefined, 'datetime': undefined, 'nonce': undefined };
         for (let i = 0; i < Object.keys (response['data']['buy']).length; i++) {
@@ -364,9 +366,7 @@ module.exports = class qtrade extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'queryParams': { 'market_string': market['id'] }
-        };
+        const request = { 'market_string': market['id'] };
         const response = await this.publicGetMarketMarketStringTrades (this.extend (request, params));
         return this.parseTrades (response['data']['trades'], market, since, limit);
     }
@@ -541,11 +541,19 @@ module.exports = class qtrade extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        
+
     }
 
     async fetchDepositAddress (code, params = {}) {
-
+        const request = { 'currency': code };
+        const response = this.privatePostDepositAddressCurrency (this.extend (request, params));
+        const result = {
+            'currency': code,
+            'info': response,
+            'tag': undefined,
+            'address': response['data']['address'],
+        };
+        return result;
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
