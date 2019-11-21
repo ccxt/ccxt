@@ -65,11 +65,10 @@ module.exports = class bw extends Exchange {
                 '1w': '1W',
             },
             'urls': {
-                'api': 'https://www.bw.com/',
+                'api': 'https://www.bw.com',
                 'www': 'https://www.bw.com',
-                'doc': 'https://www.bw.com/restApi',
+                'doc': 'https://github.com/bw-exchange/api_docs_en/wiki',
                 'fees': 'https://www.bw.com/feesRate',
-                'referral': '',
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -396,7 +395,7 @@ module.exports = class bw extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + path;
+        let url = this.urls['api'] + '/' + path;
         if (method === 'GET') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
