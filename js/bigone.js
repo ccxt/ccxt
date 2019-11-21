@@ -12,7 +12,7 @@ module.exports = class bigone extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bigone',
             'name': 'BigONE',
-            'countries': [ 'GB' ],
+            'countries': [ 'CN' ],
             'version': 'v3',
             'has': {
                 'cancelAllOrders': true,
@@ -510,7 +510,7 @@ module.exports = class bigone extends Exchange {
         //         ]
         //     }
         //
-        const ohlcvs  = this.safeValue (response, 'data', []);
+        const ohlcvs = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
