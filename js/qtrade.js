@@ -79,6 +79,7 @@ module.exports = class qtrade extends Exchange {
                         'deposits',
                         'transfers',
                         'order/{order_id}',
+                        'trades',
                     ],
                     'post': [
                         'withdraw',
@@ -269,7 +270,7 @@ module.exports = class qtrade extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market_string': market['id'],
-            'interval': this.timeframes[timeframe]
+            'interval': this.timeframes[timeframe],
         };
         const response = await this.publicGetMarketMarketStringOhlcvInterval (this.extend (request, params));
         //
@@ -491,7 +492,7 @@ module.exports = class qtrade extends Exchange {
         result['filled'] = result['amount'] - result['remaining'];
         result['cost'] = result['filled'] * result['price'];
         result['fee'] = undefined;
-        result['symbol'] = undefined;
+        result['symbol'] = this.markets_by_id[order['market_id']]['symbol'];
         return result;
     }
 
@@ -541,7 +542,30 @@ module.exports = class qtrade extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-
+        await this.loadMarkets ();
+        const response = (await this.privateGetTrades (symbol, since, limit))['data']['trades'];
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const trade = { 'info': response[i] };
+            trade['id'] = this.safeString (response[i], 'id');
+            trade['timestamp'] = this.parse8601 (this.safeString (response[i], 'created_at'));
+            trade['datetime'] = this.safeString (response[i], 'created_at');
+            trade['symbol'] = this.markets_by_id[response[i]['market_id']]['symbol'];
+            trade['order'] = this.safeString (response[i], 'order_id');
+            trade['type'] = 'limit';
+            trade['side'] = undefined;
+            if (response[i]['taker'] === true){
+                trade['takerOrMaker'] = 'taker';
+            } else {
+                trade['takerOrMaker'] = 'maker';
+            }
+            trade['price'] = this.safeFloat (response[i], 'price');
+            trade['amount'] = this.safeFloat (response[i], 'market_amount');
+            trade['cost'] = this.safeFloat (response[i], 'base_amount');
+            trade['fee'] = undefined;
+            result.push (trade);
+        }
+        return result;
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -557,14 +581,21 @@ module.exports = class qtrade extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        const response = await this.privateGetDeposits (params);
+        // const response = await this.privateGetDeposits (params);
+        const response = {"data": {"deposits": [{"address": "1Kv3CKUigVPsxGCkkaoyLKrZHZ7WLq8jNK:abc","amount": "0.25","created_at": "2019-01-08T21:15:18.775592Z","currency": "BTC","id": "1:855e291e4acd61c21fcbf1bc31aa2578fa8eb3b388d9e979077567a71b58f088","network_data": {"confirms": 2,"confirms_required": 2,"txid": "855e291e4acd61c21fcbf1bc31aa2578fa8eb3b388d9e979077567a71b58f088","vout": 1},"relay_status": "","status": "credited"}]}};
         const result = [];
+        if (typeof since === 'string') {
+            since = this.parse8601 (since);
+        }
         const ds = response['data']['deposits'];
         for (let i = 0; i < ds.length; i++) {
             const deposit = {};
-            deposit['id'] = this.safeString(ds[i], 'id');
-            deposit['txid'] = this.safeString(ds[i]['network_data'], 'txid');
             deposit['timestamp'] = this.parse8601 (this.safeString (ds[i], 'created_at'));
+            if (deposit['timestamp'] < since) {
+                break;
+            }
+            deposit['id'] = this.safeString (ds[i], 'id');
+            deposit['txid'] = this.safeString (ds[i]['network_data'], 'txid');
             deposit['datetime'] = this.safeString (ds[i], 'created_at');
             let address = undefined;
             let tag = undefined;
@@ -588,21 +619,27 @@ module.exports = class qtrade extends Exchange {
             deposit['comment'] = undefined;
             deposit['fee'] = undefined;
             deposit['info'] = ds[i];
-            result.push(deposit);
+            result.push (deposit);
         }
         return result;
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         // const response = await this.privateGetWithdraws (params);
-        const response = {"data": {"withdraws": [{"address": "mw67t7AE88SBSRWYw1is3JaFbtXVygwpmB","amount": "1","cancel_requested": false,"created_at": "2019-02-01T06:06:16.218062Z","currency": "LTC","id": 2,"network_data": {},"relay_status": "","status": "needs_create","user_id": 0}]}};
+        const response = {"data": {"withdraws": [{"address": "mw67t7AE88SBSRWYw1is3JaFbtXVygwpmB:def","amount": "1","cancel_requested": false,"created_at": "2019-02-01T06:06:16.218062Z","currency": "LTC","id": 2,"network_data": {},"relay_status": "","status": "needs_create","user_id": 0}]}};
         const result = [];
+        if (typeof since === 'string') {
+            since = this.parse8601 (since);
+        }
         const ws = response['data']['withdraws'];
         for (let i = 0; i < ws.length; i++) {
             const withdraw = {};
+            withdraw['timestamp'] = this.parse8601 (this.safeString (ws[i], 'created_at'));
+            if (withdraw['timestamp'] < since) {
+                break;
+            }
             withdraw['id'] = this.safeString (ws[i], 'id');
             withdraw['txid'] = this.safeString (ws[i]['network_data'], 'txid');
-            withdraw['timestamp'] = this.parse8601 (this.safeString (ws[i], 'created_at'));
             withdraw['datetime'] = this.safeString (ws[i], 'created_at');
             let address = undefined;
             let tag = undefined;
@@ -626,17 +663,15 @@ module.exports = class qtrade extends Exchange {
             withdraw['comment'] = undefined;
             withdraw['fee'] = undefined;
             withdraw['info'] = ws[i];
-            result.push(withdraw);
+            result.push (withdraw);
         }
         return result;
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
-
-    }
-
-    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
-
+        const deposits = await this.fetchDeposits (code, since, limit);
+        const withdraws = await this.fetchWithdrawals (code, since, limit);
+        return [...deposits, ...withdraws];
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
