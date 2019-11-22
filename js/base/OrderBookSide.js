@@ -112,11 +112,6 @@ class CountedOrderBookSide extends OrderBookSide {
         }
     }
 
-    storeArray (delta) {
-        const [ price, size, count ] = delta
-        this.store (price, size, count)
-    }
-
     convert ([ _, [ price, size, count ]]) {
         return [ price, size, count ]
     }
