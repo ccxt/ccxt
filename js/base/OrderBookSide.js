@@ -39,10 +39,7 @@ class OrderBookSide extends Array {
 
     // index an incoming delta in the string-price-keyed dictionary
     storeArray (delta) {
-        // const [ price, size ] = delta
-        const price = delta[0]
-        const size = delta[1]
-        this.store (price, size)
+        this.store (...delta)
     }
 
     // replace stored orders with new values
@@ -90,9 +87,10 @@ class LimitedOrderBookSide extends OrderBookSide {
         const threshold = Math.min (array.length, depth)
         this.index = {}
         for (let i = 0; i < threshold; i++) {
-            this[i] = array[i];
-            const price = array[i][0]
-            const size = array[i][1]
+            const data = array[i];
+            this[i] = data;
+            const price = data[0]
+            const size = data[1]
             this.index[price] = size
         }
         this.length = threshold;
@@ -108,11 +106,7 @@ class CountedOrderBookSide extends OrderBookSide {
 
     store (price, size, count) {
         if (count) {
-            if (size) {
-                this.index[price] = [ price, size, count ]
-            } else {
-                delete this.index[price]
-            }
+            super.store (price, size)
         } else {
             delete this.index[price]
         }
@@ -120,15 +114,7 @@ class CountedOrderBookSide extends OrderBookSide {
 
     storeArray (delta) {
         const [ price, size, count ] = delta
-        if (count) {
-            if (size) {
-                this.index[price] = delta
-            } else {
-                delete this.index[price]
-            }
-        } else {
-            delete this.index[price]
-        }
+        this.store (price, size, count)
     }
 
     convert ([ _, [ price, size, count ]]) {
@@ -174,7 +160,7 @@ class IncrementalOrderBookSide extends OrderBookSide {
     store (price, size) {
         if (size) {
             this.index[price] = (this.index[price] || 0) + size
-            if (!this.index[price]) {
+            if (this.index[price] < 0) {
                 delete this.index[price]
             }
         } else {
@@ -191,7 +177,7 @@ class IncrementalIndexedOrderBookSide extends IndexedOrderBookSide {
     store (price, size, id) {
         if (size) {
             size = (this.index[id] ? this.index[id][1] : 0) + size
-            if (size) {
+            if (this.index[id] < 0) {
                 this.index[id] = [ price, size, id ]
             } else {
                 delete this.index[id]
@@ -199,14 +185,6 @@ class IncrementalIndexedOrderBookSide extends IndexedOrderBookSide {
         } else {
             delete this.index[id]
         }
-    }
-
-    storeArray (delta) {
-        // const [ price, size, id ] = delta
-        const price = delta[0]
-            , size = delta[1]
-            , id = delta[2]
-        this.store (price, size, id)
     }
 }
 
