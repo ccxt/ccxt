@@ -816,7 +816,7 @@ module.exports = class cex extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': price === undefined ? 'market' : 'limit',
+            'type': (price === undefined) ? 'market' : 'limit',
             'side': side,
             'price': price,
             'cost': cost,
