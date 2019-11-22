@@ -44,7 +44,7 @@ class bigone extends Exchange {
                 '1w' => 'week1',
                 '1M' => 'month1',
             ),
-            'hostname' => 'big.one',
+            'hostname' => 'big.one', // set to 'b1.run' for China mainland
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/69354403-1d532180-0c91-11ea-88ed-44c06cefdf87.jpg',
                 'api' => array (
@@ -483,10 +483,10 @@ class bigone extends Exchange {
         }
         $id = $this->safe_string($trade, 'id');
         $result = array (
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'id' => $id,
             'order' => $orderId,
             'type' => 'limit',
             'side' => $side,
