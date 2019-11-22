@@ -30,7 +30,7 @@ module.exports = class bw extends Exchange {
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
                 'fetchDeposits': false,
                 'fetchFundingFees': false,
                 'fetchL2OrderBook': false,
@@ -117,9 +117,14 @@ module.exports = class bw extends Exchange {
                         'exchange/fund/controller/website/fundwebsitecontroller/getwithdrawaddress',
                         'exchange/fund/controller/website/fundwebsitecontroller/getpayoutcoinrecord',
                         'exchange/fund/controller/website/fundcontroller/getPayinCoinRecord',
-                        'exchange/fund/controller/website/fundcontroller/getPayinAddress',
+                        // the docs say that the following URL is HTTP POST
+                        // in the docs header and HTTP GET in the docs body
+                        // the docs contradict themselves, a typo most likely
+                        // the actual HTTP method is POST for this endpoint
+                        // 'exchange/fund/controller/website/fundcontroller/getPayinAddress',
                     ],
                     'post': [
+                        'exchange/fund/controller/website/fundcontroller/getPayinAddress', // see the comment above
                         'exchange/fund/controller/website/fundcontroller/findbypage',
                         'exchange/entrust/controller/website/EntrustController/addEntrust',
                         'exchange/entrust/controller/website/EntrustController/cancelEntrust',
@@ -937,6 +942,43 @@ module.exports = class bw extends Exchange {
             headers['Sign'] = hash;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currencyTypeName': currency['name'],
+        };
+        // throws HTTP 500 "argument type mismatch" all the time
+        // tried lowercase, uppercase, numeric ids for currencyTypeName
+        // nothing really worked on my side
+        const response = await this.privatePostExchangeFundControllerWebsiteFundcontrollerGetPayinAddress (this.extend (request, params));
+        //
+        //     {
+        //         "datas":{
+        //             "isMemo":true,                                // 是否为memo 格式，false：否，true ：是
+        //             "address":"bweosdeposit_787928102918558272",  // 充币地址
+        //             "memo":"787928102918558272",                  // 币种memo
+        //             "account":"bweosdeposit"                      // 币种账户
+        //         },
+        //         "resMsg":{
+        //             "message":"success !",
+        //             "method":null,
+        //             "code":"1"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'datas', {});
+        const address = this.safeString (data, 'address');
+        const tag = this.safeString (data, 'memo');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': this.checkAddress (address),
+            'tag': tag,
+            'info': response,
+        };
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
