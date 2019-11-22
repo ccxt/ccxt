@@ -673,7 +673,11 @@ module.exports = class qtrade extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
-        
+        const request = {'address': address, 'amount': amount, 'currency': code};
+        if (tag !== undefined){
+            request['address'] = address + ':' + tag;
+        }
+        return await this.privatePostWithdraw (this.extend (request, params));
     }
 
     nonce () {
