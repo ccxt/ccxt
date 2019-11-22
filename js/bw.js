@@ -38,7 +38,7 @@ module.exports = class bw extends Exchange {
                 'fetchMarkets': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
@@ -678,6 +678,8 @@ module.exports = class bw extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
+        // fetchOrder, fetchOpenOrders
+        //
         //     {
         //         "entrustId": "E6581108027628212224", // Order id
         //         "price": "1450",                     // price
@@ -800,6 +802,64 @@ module.exports = class bw extends Exchange {
             'info': response,
             'id': id,
         };
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketId': market['id'],
+            // 'pageSize': limit, // documented as required, but it works without it
+            // 'pageIndex': 0, // also works without it, most likely a typo in the docs
+        };
+        if (limit !== undefined) {
+            request['pageSize'] = limit; // default limit is 20
+        }
+        const response = await this.privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustRecordFromCacheWithPage (this.extend (request, params));
+        //
+        //     {
+        //         "datas": {
+        //             "pageNum": 1,
+        //             "pageSize": 2,
+        //             "totalPage": 20,
+        //             "totalRow": 40,
+        //             "entrustList": [
+        //                 {
+        //                     "amount": "14.050000000000000000",        // Order quantity
+        //                     "rangeType": 0,                           // Commission type 0: limit price commission 1: interval commission
+        //                     "totalMoney": "20372.500000000000000000", // Total order amount
+        //                     "entrustId": "E6581108027628212224",      // Order id
+        //                     "type": 1,                                // Trade direction, 0: sell, 1: buy, -1: cancel
+        //                     "completeAmount": "0",                    // Quantity sold
+        //                     "marketId": "318",                        // The market id
+        //                     "createTime": 1569058424861,              // Create time
+        //                     "price": "1450.000000000",                // price
+        //                     "completeTotalMoney": "0",                // Quantity sold
+        //                     "entrustType": 0,                         // Commission type, 0: ordinary current price commission, 1: lever commission
+        //                     "status": 0                               // Order status,-3:fund Freeze exception,Order status to be confirmed  -2: fund freeze failure, order failure, -1: insufficient funds, order failure, 0: pending order, 1: cancelled, 2: dealt, 3: partially dealt
+        //                 },
+        //             ],
+        //         },
+        //         "resMsg": { "message": "success !", "method": null, "code": "1" },
+        //     }
+        //
+        //     {
+        //         datas: {
+        //             entrustList: [],
+        //             totalRow: 0,
+        //             pageNum: 1,
+        //             pageSize: 20,
+        //             totalPage: 0
+        //         },
+        //         resMsg: { message: 'success !', method: null, code: '1' }
+        //     }
+        //
+        const data = this.safeValue (response, 'datas', {});
+        const orders = this.safeValue (data, 'entrustList', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
