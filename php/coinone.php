@@ -115,7 +115,7 @@ class coinone extends Exchange {
                 ),
             ),
             'exceptions' => array (
-                '405' => '\\ccxt\\ExchangeNotAvailable',
+                '405' => '\\ccxt\\OnMaintenance', // array("errorCode":"405","status":"maintenance","result":"error")
                 '104' => '\\ccxt\\OrderNotFound',
                 '108' => '\\ccxt\\BadSymbol', // array("errorCode":"108","errorMsg":"Unknown CryptoCurrency","result":"error")
             ),

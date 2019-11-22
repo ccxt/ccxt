@@ -11,7 +11,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 
 
 class coinone(Exchange):
@@ -122,7 +122,7 @@ class coinone(Exchange):
                 },
             },
             'exceptions': {
-                '405': ExchangeNotAvailable,
+                '405': OnMaintenance,  # {"errorCode":"405","status":"maintenance","result":"error"}
                 '104': OrderNotFound,
                 '108': BadSymbol,  # {"errorCode":"108","errorMsg":"Unknown CryptoCurrency","result":"error"}
             },
