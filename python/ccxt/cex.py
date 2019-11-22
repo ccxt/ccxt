@@ -782,7 +782,7 @@ class cex(Exchange):
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': None,
+            'type': 'market' if (price is None) else 'limit',
             'side': side,
             'price': price,
             'cost': cost,
