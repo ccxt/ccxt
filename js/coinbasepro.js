@@ -448,8 +448,8 @@ module.exports = class coinbasepro extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'size');
         const filled = this.safeFloat (order, 'filled_size');
+        const amount = this.safeFloat (order, 'size', filled);
         let remaining = undefined;
         if (amount !== undefined) {
             if (filled !== undefined) {

@@ -438,8 +438,8 @@ class coinbasepro(Exchange):
                 symbol = base + '/' + quote
         status = self.parse_order_status(self.safe_string(order, 'status'))
         price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'filled_size')
+        amount = self.safe_float(order, 'size', filled)
         remaining = None
         if amount is not None:
             if filled is not None:
