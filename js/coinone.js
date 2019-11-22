@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, OnMaintenance, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -114,7 +114,7 @@ module.exports = class coinone extends Exchange {
                 },
             },
             'exceptions': {
-                '405': ExchangeNotAvailable,
+                '405': OnMaintenance, // {"errorCode":"405","status":"maintenance","result":"error"}
                 '104': OrderNotFound,
             },
         });
