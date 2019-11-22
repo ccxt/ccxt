@@ -8,6 +8,7 @@ import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
@@ -123,6 +124,7 @@ class coinone(Exchange):
             'exceptions': {
                 '405': ExchangeNotAvailable,
                 '104': OrderNotFound,
+                '108': BadSymbol,  # {"errorCode":"108","errorMsg":"Unknown CryptoCurrency","result":"error"}
             },
         })
 
