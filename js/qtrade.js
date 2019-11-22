@@ -4,8 +4,7 @@
 
 const crypto = require ('crypto');
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired } = require ('./base/errors');
-const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -423,8 +422,6 @@ module.exports = class qtrade extends Exchange {
 
     async fetchBalance (params = {}) {
         const response = await this.privateGetBalancesAll (params);
-        // const response = await this.privateGetOrders ({ 'queryParams': { 'open': 'true' } });
-        // const response = await this.privatePostSellLimit ({ 'amount': 12, 'market_id': 1 });
         const free = {};
         let bs = response['data']['balances'];
         for (let i = 0; i < bs.length; i++) {
@@ -570,7 +567,7 @@ module.exports = class qtrade extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         const request = { 'currency': code };
-        const response = this.privatePostDepositAddressCurrency (this.extend (request, params));
+        const response = await this.privatePostDepositAddressCurrency (this.extend (request, params));
         const result = {
             'currency': code,
             'info': response,
@@ -673,8 +670,8 @@ module.exports = class qtrade extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
-        const request = {'address': address, 'amount': amount, 'currency': code};
-        if (tag !== undefined){
+        const request = { 'address': address, 'amount': amount, 'currency': code };
+        if (tag !== undefined) {
             request['address'] = address + ':' + tag;
         }
         return await this.privatePostWithdraw (this.extend (request, params));
