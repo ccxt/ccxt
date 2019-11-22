@@ -31,7 +31,7 @@ module.exports = class bw extends Exchange {
                 'fetchClosedOrders': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchFundingFees': false,
                 'fetchL2OrderBook': false,
                 'fetchLedger': false,
@@ -50,7 +50,7 @@ module.exports = class bw extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTradingLimits': false,
                 'fetchTransactions': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'privateAPI': false,
                 'publicAPI': false,
                 'withdraw': false,
@@ -116,15 +116,16 @@ module.exports = class bw extends Exchange {
                         'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
                         'exchange/fund/controller/website/fundwebsitecontroller/getwithdrawaddress',
                         'exchange/fund/controller/website/fundwebsitecontroller/getpayoutcoinrecord',
-                        'exchange/fund/controller/website/fundcontroller/getPayinCoinRecord',
-                        // the docs say that the following URL is HTTP POST
+                        // the docs say that the following URLs are HTTP POST
                         // in the docs header and HTTP GET in the docs body
                         // the docs contradict themselves, a typo most likely
                         // the actual HTTP method is POST for this endpoint
                         // 'exchange/fund/controller/website/fundcontroller/getPayinAddress',
+                        // 'exchange/fund/controller/website/fundcontroller/getPayinCoinRecord',
                     ],
                     'post': [
                         'exchange/fund/controller/website/fundcontroller/getPayinAddress', // see the comment above
+                        'exchange/fund/controller/website/fundcontroller/getPayinCoinRecord', // see the comment above
                         'exchange/fund/controller/website/fundcontroller/findbypage',
                         'exchange/entrust/controller/website/EntrustController/addEntrust',
                         'exchange/entrust/controller/website/EntrustController/cancelEntrust',
@@ -953,17 +954,13 @@ module.exports = class bw extends Exchange {
         const response = await this.privatePostExchangeFundControllerWebsiteFundcontrollerGetPayinAddress (this.extend (request, params));
         //
         //     {
-        //         "datas":{
-        //             "isMemo":true,                                // 是否为memo 格式，false：否，true ：是
-        //             "address":"bweosdeposit_787928102918558272",  // 充币地址
-        //             "memo":"787928102918558272",                  // 币种memo
-        //             "account":"bweosdeposit"                      // 币种账户
+        //         "datas": {
+        //             "isMemo": true,                                // 是否为memo 格式，false：否，true ：是
+        //             "address": "bweosdeposit_787928102918558272",  // 充币地址
+        //             "memo": "787928102918558272",                  // 币种memo
+        //             "account": "bweosdeposit"                      // 币种账户
         //         },
-        //         "resMsg":{
-        //             "message":"success !",
-        //             "method":null,
-        //             "code":"1"
-        //         }
+        //         "resMsg": { "message": "success !", "method": null, "code": "1" }
         //     }
         //
         const data = this.safeValue (response, 'datas', {});
@@ -976,6 +973,180 @@ module.exports = class bw extends Exchange {
             'tag': tag,
             'info': response,
         };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            '-1': 'canceled', // or auditing failed
+            '0': 'pending',
+            '1': 'ok',
+            //         "verifyStatus": 1,                           // Audit status, 0: to be audited, 1: auditing passed, -1: auditing failed
+            //         "status": 1,                                          // Deposit status, 0: not received, 1: received
+            //         "status": 1,                                          // Deposit status, 0: not received, 1: received
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         "depositId": "D6574268549744189441",                  // Deposit ID
+        //         "amount": "54.753589700000000000",                    // Deposit amount
+        //         "txId": "INNER_SYSTEM_TRANSFER_1198941",              // Trading ID
+        //         "confirmTimes": 0,                                    // Confirmation number
+        //         "depositAddress": "bweosdeposit_787928102918558272",  // Deposit address
+        //         "createTime": "2019-09-02 20:36:08.0",                // Deposit time
+        //         "status": 1,                                          // Deposit status, 0: not received, 1: received
+        //         "currencyTypeId": 7,                                  // Token ID
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "withdrawalId": "W6527498439872634880",      // Withdrawal ID
+        //         "fees": "0.500000000000000000",              // Withdrawal fee
+        //         "withdrawalAddress": "okbtothemoon_941657",  // Withdrawal address
+        //         "currencyId": "7",                           // Token ID
+        //         "amount": "10.000000000000000000",           // Withdrawal amount
+        //         "state": 1,                                  // Status, 1: normal, -1: delete
+        //         "verifyStatus": 1,                           // Audit status, 0: to be audited, 1: auditing passed, -1: auditing failed
+        //         "createTime": 1556276903656,                 // WIthdrawal time
+        //         "actuallyAmount": "9.500000000000000000",    // Actual amount received
+        //     }
+        //
+        const id = this.safeString (transaction, 'depositId', 'withdrawalId');
+        const address = this.safeString2 (transaction, 'depositAddress', 'withdrawalAddress');
+        const currencyId = this.safeString2 (transaction, 'currencyId', 'currencyTypeId');
+        let code = undefined;
+        if (currencyId in this.currencies_by_id) {
+            currency = this.currencies_by_id[currencyId];
+        }
+        if ((code === undefined) && (currency !== undefined)) {
+            code = currency['code'];
+        }
+        const type = ('depositId' in transaction) ? 'deposit' : 'withdrawal';
+        const amount = this.safeFloat2 (transaction, 'actuallyAmount', 'amount');
+        const status = this.parseTransactionStatus (this.safeString2 (transaction, 'verifyStatus', 'state'));
+        const timestamp = this.safeInteger (transaction, 'createTime');
+        const txid = this.safeString (transaction, 'txId');
+        let fee = undefined;
+        const feeCost = this.safeFloat (transaction, 'fees');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': address,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': undefined,
+            'fee': fee,
+        };
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currencyTypeName': currency['name'],
+            // 'pageSize': limit, // documented as required, but it works without it
+            // 'pageNum': 0, // also works without it, most likely a typo in the docs
+            // 'sort': 1, // 1 = asc, 0 = desc
+        };
+        if (limit !== undefined) {
+            request['pageSize'] = limit; // default 50
+        }
+        const response = await this.privatePostExchangeFundControllerWebsiteFundcontrollerGetPayinCoinRecord (this.extend (request, params));
+        //
+        //     {
+        //         "datas": {
+        //             "totalRow":2,
+        //             "totalPage": 1,
+        //             "pageSize": 2,
+        //             "pageNum": 1,
+        //             "list": [
+        //                 {
+        //                     "depositId": "D6574268549744189441",                  // Deposit ID
+        //                     "amount": "54.753589700000000000",                    // Deposit amount
+        //                     "txId": "INNER_SYSTEM_TRANSFER_1198941",              // Trading ID
+        //                     "confirmTimes": 0,                                    // Confirmation number
+        //                     "depositAddress": "bweosdeposit_787928102918558272",  // Deposit address
+        //                     "createTime": "2019-09-02 20:36:08.0",                // Deposit time
+        //                     "status": 1,                                          // Deposit status, 0: not received, 1: received
+        //                     "currencyTypeId": 7,                                  // Token ID
+        //                 },
+        //             ]
+        //         },
+        //         "resMsg": { "message": "success !", "method": null, "code": "1" },
+        //     }
+        //
+        const data = this.safeValue (response, 'datas', {});
+        const deposits = this.safeValue (data, 'list', []);
+        return this.parseTransactions (deposits, code, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currencyId': currency['id'],
+            // 'pageSize': limit, // documented as required, but it works without it
+            // 'pageIndex': 0, // also works without it, most likely a typo in the docs
+            // 'tab': 'all', // all, wait (submitted, not audited), success (auditing passed), fail (auditing failed), cancel (canceled by user)
+        };
+        if (limit !== undefined) {
+            request['pageSize'] = limit; // default 50
+        }
+        const response = await this.privateGetExchangeFundControllerWebsiteFundwebsitecontrollerGetpayoutcoinrecord (this.extend (request, params));
+        //
+        //     {
+        //         "datas": {
+        //             "totalRow": 1,
+        //             "totalPage": 1,
+        //             "pageSize": 2,
+        //             "pageNum": 1,
+        //             "list": [
+        //                 {
+        //                     "withdrawalId": "W6527498439872634880",      // Withdrawal ID
+        //                     "fees": "0.500000000000000000",              // Withdrawal fee
+        //                     "withdrawalAddress": "okbtothemoon_941657",  // Withdrawal address
+        //                     "currencyId": "7",                           // Token ID
+        //                     "amount": "10.000000000000000000",           // Withdrawal amount
+        //                     "state": 1,                                  // Status, 1: normal, -1: delete
+        //                     "verifyStatus": 1,                           // Audit status, 0: to be audited, 1: auditing passed, -1: auditing failed
+        //                     "createTime": 1556276903656,                 // WIthdrawal time
+        //                     "actuallyAmount": "9.500000000000000000",    // Actual amount received
+        //                 },
+        //             ],
+        //         },
+        //         "resMsg": { "message": "success !", "method": null, "code": "1" },
+        //     }
+        //
+        const data = this.safeValue (response, 'datas', {});
+        const withdrawals = this.safeValue (data, 'list', []);
+        return this.parseTransactions (withdrawals, code, since, limit);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
