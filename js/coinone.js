@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, OrderNotFound } = require ('./base/errors');
+const { BadSymbol, ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, OnMaintenance } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -114,8 +114,9 @@ module.exports = class coinone extends Exchange {
                 },
             },
             'exceptions': {
-                '405': ExchangeNotAvailable,
+                '405': OnMaintenance, // {"errorCode":"405","status":"maintenance","result":"error"}
                 '104': OrderNotFound,
+                '108': BadSymbol, // {"errorCode":"108","errorMsg":"Unknown CryptoCurrency","result":"error"}
             },
         });
     }

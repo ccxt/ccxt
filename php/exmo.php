@@ -252,7 +252,7 @@ class exmo extends Exchange {
                             array( 'pair' => 'DCR/RUB', 'min_q' => '0.01', 'max_q' => '50000', 'min_p' => '0.00001', 'max_p' => '100000', 'min_a' => '0.5', 'max_a' => '3000000' ),
                             array( 'pair' => 'DCR/UAH', 'min_q' => '0.01', 'max_q' => '50000', 'min_p' => '0.00001', 'max_p' => '100000', 'min_a' => '0.25', 'max_a' => '1000000' ),
                             array( 'pair' => 'ZAG/BTC', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '0.1', 'min_a' => '0.00001', 'max_a' => '100' ),
-                            array( 'pair' => 'EXM/BTC', 'min_q' => '1', 'max_q' => '148743645', 'min_p' => '0.000001', 'max_p' => '0.000001', 'min_a' => '0.000001', 'max_a' => '141' ),
+                            array( 'pair' => 'EXM/BTC', 'min_q' => '1', 'max_q' => '100000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.0000001', 'max_a' => '100' ),
                             array( 'pair' => 'VLX/BTC', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '0.1', 'min_a' => '0.00001', 'max_a' => '100' ),
                             array( 'pair' => 'BTT/BTC', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '0.1', 'min_a' => '0.00001', 'max_a' => '100' ),
                             array( 'pair' => 'BTT/RUB', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.000001', 'max_p' => '1000', 'min_a' => '0.000001', 'max_a' => '100' ),
@@ -263,7 +263,7 @@ class exmo extends Exchange {
                                 'group' => 'crypto',
                                 'title' => 'Криптовалюта',
                                 'items' => array (
-                                    array( 'prov' => 'EXM', 'dep' => '0%', 'wd' => '-' ),
+                                    array( 'prov' => 'EXM', 'dep' => '0%', 'wd' => '1 EXM' ),
                                     array( 'prov' => 'BTC', 'dep' => '0%', 'wd' => '0.0005 BTC' ),
                                     array( 'prov' => 'LTC', 'dep' => '0%', 'wd' => '0.01 LTC' ),
                                     array( 'prov' => 'DOGE', 'dep' => '0%', 'wd' => '1 DOGE' ),
