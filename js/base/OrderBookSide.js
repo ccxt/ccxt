@@ -174,7 +174,7 @@ class IncrementalOrderBookSide extends OrderBookSide {
     store (price, size) {
         if (size) {
             this.index[price] = (this.index[price] || 0) + size
-            if (this.index[price] < 0) {
+            if (this.index[price] <= 0) {
                 delete this.index[price]
             }
         } else {
