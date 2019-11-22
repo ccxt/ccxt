@@ -42,7 +42,7 @@ module.exports = class bw extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -678,7 +678,7 @@ module.exports = class bw extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // fetchOrder, fetchOpenOrders
+        // fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         "entrustId": "E6581108027628212224", // Order id
@@ -693,7 +693,7 @@ module.exports = class bw extends Exchange {
         //         "status": 0,                         //
         //         "marketId": "318",                   // The market id
         //         "createTime": 1569058424861,         // Create time
-        //         "availabelAmount": "14.05"           // Outstanding quantity
+        //         "availabelAmount": "14.05"           // Outstanding quantity, typo in the docs or in the API, availabel vs available
         //     }
         //
         const marketId = this.safeString (order, 'marketId');
@@ -710,7 +710,7 @@ module.exports = class bw extends Exchange {
         const amount = this.safeFloat (order, 'amount');
         const price = this.safeFloat (order, 'price');
         const filled = this.safeFloat (order, 'completeAmount');
-        let remaining = this.safeFloat (order, 'availabelAmount');
+        let remaining = this.safeFloat2 (order, 'availabelAmount', 'availableAmount'); // typo in the docs or in the API, availabel vs available
         let cost = this.safeFloat (order, 'totalMoney');
         if (filled !== undefined) {
             if (amount !== undefined) {
@@ -846,15 +846,58 @@ module.exports = class bw extends Exchange {
         //         "resMsg": { "message": "success !", "method": null, "code": "1" },
         //     }
         //
+        const data = this.safeValue (response, 'datas', {});
+        const orders = this.safeValue (data, 'entrustList', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketId': market['id'],
+            // 'pageSize': limit, // documented as required, but it works without it
+            // 'pageIndex': 0, // also works without it, most likely a typo in the docs
+            // 'type': 0, // 0 = sell, 1 = buy, -1 = cancel
+            // 'status': -1, // -1 = insufficient funds, failed orders, 0 = pending orders, 1 = canceled, 2 = closed, 3 = partial
+            // 'startDateTime': since,
+            // 'endDateTime': this.milliseconds (),
+        };
+        if (since !== undefined) {
+            request['startDateTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit; // default limit is 20
+        }
+        const response = await this.privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustList (this.extend (request, params));
+        //
         //     {
-        //         datas: {
-        //             entrustList: [],
-        //             totalRow: 0,
-        //             pageNum: 1,
-        //             pageSize: 20,
-        //             totalPage: 0
+        //         "datas": {
+        //             "pageNum": 1,
+        //             "pageSize": 2,
+        //             "totalPage": 20,
+        //             "totalRow": 40,
+        //             "entrustList": [
+        //                 {
+        //                     "amount": "14.050000000000000000",        // Order quantity
+        //                     "rangeType": 0,                           // Commission type 0: limit price commission 1: interval commission
+        //                     "totalMoney": "20372.500000000000000000", // Total order amount
+        //                     "entrustId": "E6581108027628212224",      // Order id
+        //                     "type": 1,                                // Trade direction, 0: sell, 1: buy, -1: cancel
+        //                     "completeAmount": "0",                    // Quantity sold
+        //                     "marketId": "318",                        // The market id
+        //                     "createTime": 1569058424861,              // Create time
+        //                     "price": "1450.000000000",                // price
+        //                     "completeTotalMoney": "0",                // Quantity sold
+        //                     "entrustType": 0,                         // Commission type, 0: ordinary current price commission, 1: lever commission
+        //                     "status": 0                               // Order status,-3:fund Freeze exception,Order status to be confirmed  -2: fund freeze failure, order failure, -1: insufficient funds, order failure, 0: pending order, 1: cancelled, 2: dealt, 3: partially dealt
+        //                 },
+        //             ],
         //         },
-        //         resMsg: { message: 'success !', method: null, code: '1' }
+        //         "resMsg": { "message": "success !", "method": null, "code": "1" },
         //     }
         //
         const data = this.safeValue (response, 'datas', {});
