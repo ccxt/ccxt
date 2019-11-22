@@ -950,9 +950,6 @@ module.exports = class bw extends Exchange {
         const request = {
             'currencyTypeName': currency['name'],
         };
-        // throws HTTP 500 "argument type mismatch" all the time
-        // tried lowercase, uppercase, numeric ids for currencyTypeName
-        // nothing really worked on my side
         const response = await this.privatePostExchangeFundControllerWebsiteFundcontrollerGetPayinAddress (this.extend (request, params));
         //
         //     {
