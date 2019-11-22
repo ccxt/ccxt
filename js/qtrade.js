@@ -554,7 +554,7 @@ module.exports = class qtrade extends Exchange {
             trade['order'] = this.safeString (response[i], 'order_id');
             trade['type'] = 'limit';
             trade['side'] = undefined;
-            if (response[i]['taker'] === true){
+            if (response[i]['taker'] === true) {
                 trade['takerOrMaker'] = 'taker';
             } else {
                 trade['takerOrMaker'] = 'maker';
@@ -581,8 +581,7 @@ module.exports = class qtrade extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        // const response = await this.privateGetDeposits (params);
-        const response = {"data": {"deposits": [{"address": "1Kv3CKUigVPsxGCkkaoyLKrZHZ7WLq8jNK:abc","amount": "0.25","created_at": "2019-01-08T21:15:18.775592Z","currency": "BTC","id": "1:855e291e4acd61c21fcbf1bc31aa2578fa8eb3b388d9e979077567a71b58f088","network_data": {"confirms": 2,"confirms_required": 2,"txid": "855e291e4acd61c21fcbf1bc31aa2578fa8eb3b388d9e979077567a71b58f088","vout": 1},"relay_status": "","status": "credited"}]}};
+        const response = await this.privateGetDeposits (params);
         const result = [];
         if (typeof since === 'string') {
             since = this.parse8601 (since);
@@ -625,8 +624,7 @@ module.exports = class qtrade extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        // const response = await this.privateGetWithdraws (params);
-        const response = {"data": {"withdraws": [{"address": "mw67t7AE88SBSRWYw1is3JaFbtXVygwpmB:def","amount": "1","cancel_requested": false,"created_at": "2019-02-01T06:06:16.218062Z","currency": "LTC","id": 2,"network_data": {},"relay_status": "","status": "needs_create","user_id": 0}]}};
+        const response = await this.privateGetWithdraws (params);
         const result = [];
         if (typeof since === 'string') {
             since = this.parse8601 (since);
