@@ -185,15 +185,21 @@ module.exports = class kraken extends ccxt.kraken {
 
     async fetchWsOrderBook (symbol, limit = undefined, params = {}) {
         const name = 'book';
-        params = {
+        const request = {};
+        if (limit !== undefined) {
+            request['subscription'] = { 'depth': limit }; // default 10, valid options 10, 25, 100, 500, 1000
+        }
+        return await this.fetchWsPublicMessage (name, symbol, this.extend (request, params));
+    }
+
+    async fetchWsOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const name = 'ohlc';
+        const request = {
             'subscription': {
-                'name': name,
+                'interval': parseInt (this.timeframes[timeframe]),
             },
         };
-        if (limit !== undefined) {
-            params['subscription']['depth'] = limit; // default 10, valid options 10, 25, 100, 500, 1000
-        }
-        return await this.fetchWsPublicMessage (name, symbol, params);
+        return await this.fetchWsPublicMessage (name, symbol, this.extend (request, params));
     }
 
     async loadMarkets (reload = false, params = {}) {
