@@ -449,8 +449,8 @@ class coinbasepro extends Exchange {
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float($order, 'filled_size');
+        $amount = $this->safe_float($order, 'size', $filled);
         $remaining = null;
         if ($amount !== null) {
             if ($filled !== null) {
