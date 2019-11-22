@@ -496,7 +496,7 @@ module.exports = class bitmart extends Exchange {
         const request = {
             'symbol': market['id'],
             'offset': 0, // current page, starts from 0
-            'limit': 500, 
+            'limit': 500,
         };
         if (limit !== undefined) {
             request['limit'] = limit; // default 500, max 1000
