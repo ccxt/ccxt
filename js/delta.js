@@ -289,7 +289,7 @@ module.exports = class delta extends Exchange {
         return response;
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (code === 429) {
             throw new DDoSProtection (this.id + ' ' + body);
         }
