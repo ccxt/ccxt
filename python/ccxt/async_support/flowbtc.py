@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 
 
-class flowbtc (Exchange):
+class flowbtc(Exchange):
 
     def describe(self):
         return self.deep_extend(super(flowbtc, self).describe(), {
@@ -21,8 +21,8 @@ class flowbtc (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg',
-                'api': 'https://api.flowbtc.com:8405/ajax',
-                'www': 'https://trader.flowbtc.com',
+                'api': 'https://publicapi.flowbtc.com.br',
+                'www': 'https://www.flowbtc.com.br',
                 'doc': 'https://www.flowbtc.com.br/api.html',
             },
             'requiredCredentials': {
@@ -63,21 +63,23 @@ class flowbtc (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.0035,
-                    'taker': 0.0035,
+                    'maker': 0.0025,
+                    'taker': 0.005,
                 },
             },
         })
 
     async def fetch_markets(self, params={}):
-        response = await self.publicPostGetProductPairs()
-        markets = response['productPairs']
+        response = await self.publicPostGetProductPairs(params)
+        markets = self.safe_value(response, 'productPairs')
         result = {}
-        for p in range(0, len(markets)):
-            market = markets[p]
-            id = market['name']
-            base = market['product1Label']
-            quote = market['product2Label']
+        for i in range(0, len(markets)):
+            market = markets[i]
+            id = self.safe_string(market, 'name')
+            baseId = self.safe_string(market, 'product1Label')
+            quoteId = self.safe_string(market, 'product2Label')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             precision = {
                 'amount': self.safe_integer(market, 'product1DecimalPlaces'),
                 'price': self.safe_integer(market, 'product2DecimalPlaces'),
@@ -88,6 +90,8 @@ class flowbtc (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -109,35 +113,35 @@ class flowbtc (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privatePostGetAccountInfo()
-        balances = response['currencies']
+        response = await self.privatePostGetAccountInfo(params)
+        balances = self.safe_value(response, 'currencies')
         result = {'info': response}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currency = balance['name']
-            account = {
-                'free': balance['balance'],
-                'used': balance['hold'],
-                'total': 0.0,
-            }
-            account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = balance['name']
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'balance')
+            account['total'] = self.safe_float(balance, 'hold')
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        orderbook = await self.publicPostGetOrderBook(self.extend({
+        request = {
             'productPair': market['id'],
-        }, params))
-        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'px', 'qty')
+        }
+        response = await self.publicPostGetOrderBook(self.extend(request, params))
+        return self.parse_order_book(response, None, 'bids', 'asks', 'px', 'qty')
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicPostGetTicker(self.extend({
+        request = {
             'productPair': market['id'],
-        }, params))
+        }
+        ticker = await self.publicPostGetTicker(self.extend(request, params))
         timestamp = self.milliseconds()
         last = self.safe_float(ticker, 'last')
         return {
@@ -164,41 +168,50 @@ class flowbtc (Exchange):
         }
 
     def parse_trade(self, trade, market):
-        timestamp = trade['unixtime'] * 1000
+        timestamp = self.safe_timestamp(trade, 'unixtime')
         side = 'buy' if (trade['incomingOrderSide'] == 0) else 'sell'
+        id = self.safe_string(trade, 'tid')
+        price = self.safe_float(trade, 'px')
+        amount = self.safe_float(trade, 'qty')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
-            'id': str(trade['tid']),
+            'id': id,
             'order': None,
             'type': None,
             'side': side,
-            'price': trade['px'],
-            'amount': trade['qty'],
+            'price': price,
+            'amount': amount,
+            'cost': cost,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicPostGetTrades(self.extend({
+        request = {
             'ins': market['id'],
             'startIndex': -1,
-        }, params))
+        }
+        response = await self.publicPostGetTrades(self.extend(request, params))
         return self.parse_trades(response['trades'], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         orderType = 1 if (type == 'market') else 0
-        order = {
+        request = {
             'ins': self.market_id(symbol),
             'side': side,
             'orderType': orderType,
             'qty': amount,
             'px': self.price_to_precision(symbol, price),
         }
-        response = await self.privatePostCreateOrder(self.extend(order, params))
+        response = await self.privatePostCreateOrder(self.extend(request, params))
         return {
             'info': response,
             'id': response['serverOrderId'],
@@ -207,9 +220,10 @@ class flowbtc (Exchange):
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         if 'ins' in params:
-            return await self.privatePostCancelOrder(self.extend({
+            request = {
                 'serverOrderId': id,
-            }, params))
+            }
+            return await self.privatePostCancelOrder(self.extend(request, params))
         raise ExchangeError(self.id + ' requires `ins` symbol parameter for cancelling an order')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

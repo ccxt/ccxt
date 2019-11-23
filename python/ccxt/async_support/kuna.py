@@ -8,7 +8,7 @@ import math
 from ccxt.base.errors import ArgumentsRequired
 
 
-class kuna (acx):
+class kuna(acx):
 
     def describe(self):
         return self.deep_extend(super(kuna, self).describe(), {
@@ -20,11 +20,13 @@ class kuna (acx):
             'has': {
                 'CORS': False,
                 'fetchTickers': True,
+                'fetchOHLCV': False,
                 'fetchOpenOrders': True,
                 'fetchMyTrades': True,
                 'withdraw': False,
             },
             'urls': {
+                'referral': 'https://kuna.io?r=kunaid-gvfihe8az7o4',
                 'logo': 'https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg',
                 'api': 'https://kuna.io',
                 'www': 'https://kuna.io',
@@ -58,23 +60,23 @@ class kuna (acx):
         })
 
     async def fetch_markets(self, params={}):
-        quotes = ['btc', 'eth', 'eurs', 'gbg', 'uah']
+        quotes = ['btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt']
         pricePrecisions = {
             'UAH': 0,
         }
         markets = []
-        tickers = await self.publicGetTickers()
-        ids = list(tickers.keys())
+        response = await self.publicGetTickers(params)
+        ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
             for j in range(0, len(quotes)):
                 quoteId = quotes[j]
-                if id.find(quoteId) > 0:
+                index = id.find(quoteId)
+                slice = id[index:]
+                if (index > 0) and (slice == quoteId):
                     baseId = id.replace(quoteId, '')
-                    base = baseId.upper()
-                    quote = quoteId.upper()
-                    base = self.common_currency_code(base)
-                    quote = self.common_currency_code(quote)
+                    base = self.safe_currency_code(baseId)
+                    quote = self.safe_currency_code(quoteId)
                     symbol = base + '/' + quote
                     precision = {
                         'amount': 6,
@@ -107,23 +109,24 @@ class kuna (acx):
         return markets
 
     async def fetch_l3_order_book(self, symbol, limit=None, params={}):
-        return self.fetch_order_book(symbol, limit, params)
+        return await self.fetch_order_book(symbol, limit, params)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        orders = await self.privateGetOrders(self.extend({
+        request = {
             'market': market['id'],
-        }, params))
+        }
+        response = await self.privateGetOrders(self.extend(request, params))
         # todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
         # with order cache + fetchOpenOrders
         # as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
-        return self.parse_orders(orders, market, since, limit)
+        return self.parse_orders(response, market, since, limit)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.parse8601(trade['created_at'])
+        timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         symbol = None
         if market:
             symbol = market['symbol']
@@ -134,28 +137,34 @@ class kuna (acx):
                 'bid': 'buy',
             }
             side = self.safe_string(sideMap, side)
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'volume')
         cost = self.safe_float(trade, 'funds')
-        order = self.safe_string(trade, 'order_id')
+        orderId = self.safe_string(trade, 'order_id')
+        id = self.safe_string(trade, 'id')
         return {
-            'id': str(trade['id']),
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': None,
             'side': side,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'volume'),
+            'order': orderId,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
             'cost': cost,
-            'order': order,
-            'info': trade,
+            'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetTrades(self.extend({
+        request = {
             'market': market['id'],
-        }, params))
+        }
+        response = await self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -163,5 +172,8 @@ class kuna (acx):
             raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.privateGetTradesMy({'market': market['id']})
+        request = {
+            'market': market['id'],
+        }
+        response = await self.privateGetTradesMy(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)

@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -26,7 +19,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 
 
-class theocean (Exchange):
+class theocean(Exchange):
 
     def describe(self):
         self.check_required_dependencies()
@@ -36,7 +29,6 @@ class theocean (Exchange):
             'countries': ['US'],
             'rateLimit': 3000,
             'version': 'v1',
-            'certified': True,
             'requiresWeb3': True,
             'timeframes': {
                 '5m': '300',
@@ -115,7 +107,7 @@ class theocean (Exchange):
         })
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetTokenPairs()
+        markets = self.publicGetTokenPairs(params)
         #
         #     [
         #       "baseToken": {
@@ -141,14 +133,12 @@ class theocean (Exchange):
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            baseToken = market['baseToken']
-            quoteToken = market['quoteToken']
-            baseId = baseToken['address']
-            quoteId = quoteToken['address']
-            base = baseToken['symbol']
-            quote = quoteToken['symbol']
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            baseToken = self.safe_value(market, 'baseToken', {})
+            quoteToken = self.safe_value(market, 'quoteToken', {})
+            baseId = self.safe_string(baseToken, 'address')
+            quoteId = self.safe_string(quoteToken, 'address')
+            base = self.safe_currency_code(self.safe_string(baseToken, 'symbol'))
+            quote = self.safe_currency_code(self.safe_string(quoteToken, 'symbol'))
             symbol = base + '/' + quote
             id = baseId + '/' + quoteId
             baseDecimals = self.safe_integer(baseToken, 'decimals')
@@ -194,7 +184,7 @@ class theocean (Exchange):
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
         baseDecimals = self.safe_integer(self.options['decimals'], market['base'], 18)
         return [
-            self.safe_integer(ohlcv, 'startTime') * 1000,
+            self.safe_timestamp(ohlcv, 'startTime'),
             self.safe_float(ohlcv, 'open'),
             self.safe_float(ohlcv, 'high'),
             self.safe_float(ohlcv, 'low'),
@@ -440,6 +430,8 @@ class theocean (Exchange):
         #         timestamp: "1532261686"                                                          }
         #
         timestamp = self.safe_integer(trade, 'lastUpdated')
+        if timestamp is not None:
+            timestamp /= 1000
         price = self.safe_float(trade, 'price')
         id = self.safe_string(trade, 'id')
         side = self.safe_string(trade, 'side')
@@ -580,7 +572,7 @@ class theocean (Exchange):
     def parse_order(self, order, market=None):
         zeroExOrder = self.safe_value(order, 'zeroExOrder')
         id = self.safe_string(order, 'orderHash')
-        if (id is None) and(zeroExOrder is not None):
+        if (id is None) and (zeroExOrder is not None):
             id = self.safe_string(zeroExOrder, 'orderHash')
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'type')  # injected from outside
@@ -696,9 +688,10 @@ class theocean (Exchange):
         return getattr(self, method)(id, symbol, self.extend(params))
 
     def fetch_order_from_history(self, id, symbol=None, params={}):
-        orders = self.fetch_orders(symbol, None, None, self.extend({
+        request = {
             'orderHash': id,
-        }, params))
+        }
+        orders = self.fetch_orders(symbol, None, None, self.extend(request, params))
         ordersById = self.index_by(orders, 'id')
         if id in ordersById:
             return ordersById[id]
@@ -788,14 +781,16 @@ class theocean (Exchange):
         return self.parse_orders(response, None, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders(symbol, since, limit, self.extend({
+        request = {
             'openAmount': 1,  # returns open orders with remaining openAmount >= 1
-        }, params))
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders(symbol, since, limit, self.extend({
+        request = {
             'openAmount': 0,  # returns closed orders with remaining openAmount == 0
-        }, params))
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
@@ -823,10 +818,8 @@ class theocean (Exchange):
                 url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
-        if not isinstance(body, basestring):
-            return  # fallback to default error handler
-        if len(body) < 2:
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
             return  # fallback to default error handler
         # code 401 and plain body 'Authentication failed'(with single quotes)
         # self error is sent if you do not submit a proper Content-Type

@@ -1,12 +1,16 @@
 import decimal
 import numbers
 import itertools
+import re
 
 __all__ = [
     'TRUNCATE',
     'ROUND',
+    'ROUND_UP',
+    'ROUND_DOWN',
     'DECIMAL_PLACES',
     'SIGNIFICANT_DIGITS',
+    'TICK_SIZE',
     'NO_PADDING',
     'PAD_WITH_ZERO',
     'decimal_to_precision',
@@ -16,31 +20,40 @@ __all__ = [
 # rounding mode
 TRUNCATE = 0
 ROUND = 1
+ROUND_UP = 2
+ROUND_DOWN = 3
 
 # digits counting mode
 DECIMAL_PLACES = 2
 SIGNIFICANT_DIGITS = 3
+TICK_SIZE = 4
 
 # padding mode
-NO_PADDING = 4
-PAD_WITH_ZERO = 5
+NO_PADDING = 5
+PAD_WITH_ZERO = 6
 
 
 def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
-    assert precision is not None and isinstance(precision, numbers.Integral)
+    assert precision is not None
+    if counting_mode == TICK_SIZE:
+        assert(isinstance(precision, float) or isinstance(precision, numbers.Integral))
+    else:
+        assert(isinstance(precision, numbers.Integral))
     assert rounding_mode in [TRUNCATE, ROUND]
-    assert counting_mode in [DECIMAL_PLACES, SIGNIFICANT_DIGITS]
+    assert counting_mode in [DECIMAL_PLACES, SIGNIFICANT_DIGITS, TICK_SIZE]
     assert padding_mode in [NO_PADDING, PAD_WITH_ZERO]
 
     context = decimal.getcontext()
 
-    precision = min(context.prec - 2, precision)
+    if counting_mode != TICK_SIZE:
+        precision = min(context.prec - 2, precision)
 
     # all default except decimal.Underflow (raised when a number is rounded to zero)
     context.traps[decimal.Underflow] = True
     context.rounding = decimal.ROUND_HALF_UP  # rounds 0.5 away from zero
 
     dec = decimal.Decimal(str(n))
+    precision_dec = decimal.Decimal(str(precision))
     string = '{:f}'.format(dec)  # convert to string using .format to avoid engineering notation
     precise = None
 
@@ -48,11 +61,40 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
         return decimal.Decimal('10') ** (-x)
 
     if precision < 0:
+        if counting_mode == TICK_SIZE:
+            raise ValueError('TICK_SIZE cant be used with negative numPrecisionDigits')
         to_nearest = power_of_10(precision)
         if rounding_mode == ROUND:
             return "{:f}".format(to_nearest * decimal.Decimal(decimal_to_precision(dec / to_nearest, rounding_mode, 0, DECIMAL_PLACES, padding_mode)))
         elif rounding_mode == TRUNCATE:
             return decimal_to_precision(dec - dec % to_nearest, rounding_mode, 0, DECIMAL_PLACES, padding_mode)
+
+    if counting_mode == TICK_SIZE:
+        missing = dec % precision_dec
+        if missing != 0:
+            if rounding_mode == ROUND:
+                if dec > 0:
+                    if missing >= precision / 2:
+                        dec = dec - missing + precision_dec
+                    else:
+                        dec = dec - missing
+                else:
+                    if missing >= precision / 2:
+                        dec = dec - missing
+                    else:
+                        dec = dec - missing - precision_dec
+            elif rounding_mode == TRUNCATE:
+                dec = dec - missing
+        parts = re.sub(r'0+$', '', '{:f}'.format(precision_dec)).split('.')
+        if len(parts) > 1:
+            new_precision = len(parts[1])
+        else:
+            match = re.search(r'0+$', parts[0])
+            if match is None:
+                new_precision = 0
+            else:
+                new_precision = - len(match.group(0))
+        return decimal_to_precision('{:f}'.format(dec), ROUND, new_precision, DECIMAL_PLACES, padding_mode)
 
     if rounding_mode == ROUND:
         if counting_mode == DECIMAL_PLACES:
@@ -79,7 +121,7 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
         elif counting_mode == SIGNIFICANT_DIGITS:
             if precision == 0:
                 return '0'
-            dot = string.index('.') if '.' in string else 0
+            dot = string.index('.') if '.' in string else len(string)
             start = dot - dec.adjusted()
             end = start + precision
             # need to clarify these conditionals
@@ -114,3 +156,9 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
                 if precision > 0:
                     return precise + '.' + precision * '0'
             return precise
+
+
+def number_to_string(x):
+    # avoids scientific notation for too large and too small numbers
+    d = decimal.Decimal(str(x))
+    return '{:f}'.format(d)

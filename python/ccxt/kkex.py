@@ -9,7 +9,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
-class kkex (Exchange):
+class kkex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(kkex, self).describe(), {
@@ -145,10 +145,8 @@ class kkex (Exchange):
                         'min': self.safe_float(p, 'min_bid_amount'),
                         'max': self.safe_float(p, 'max_bid_amount'),
                     }
-            base = baseId.upper()
-            quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -165,9 +163,7 @@ class kkex (Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.safe_integer(ticker, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(ticker, 'date')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -198,9 +194,10 @@ class kkex (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.markets[symbol]
-        response = self.publicGetTicker(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        response = self.publicGetTicker(self.extend(request, params))
         ticker = self.extend(response['ticker'], self.omit(response, 'ticker'))
         return self.parse_ticker(ticker, market)
 
@@ -225,7 +222,7 @@ class kkex (Exchange):
         #                              open: "0.003189"  }}           ],
         #        result:    True                                          }
         #
-        tickers = response['tickers']
+        tickers = self.safe_value(response, 'tickers')
         result = {}
         for i in range(0, len(tickers)):
             ids = list(tickers[i].keys())
@@ -271,6 +268,7 @@ class kkex (Exchange):
             'order': None,
             'type': type,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -280,26 +278,28 @@ class kkex (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTrades(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privatePostUserinfo()
-        result = {'info': balances['info']}
-        funds = balances['info']['funds']
-        assets = list(funds['free'].keys())
-        for i in range(0, len(assets)):
-            currency = assets[i]
-            uppercase = currency.upper()
-            uppercase = self.common_currency_code(uppercase)
+        response = self.privatePostUserinfo(params)
+        balances = self.safe_value(response, 'info')
+        result = {'info': response}
+        funds = self.safe_value(balances, 'funds')
+        free = self.safe_value(funds, 'free', {})
+        freezed = self.safe_value(funds, 'freezed', {})
+        currencyIds = list(free.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = float(funds['free'][currency])
-            account['used'] = float(funds['freezed'][currency])
-            account['total'] = account['free'] + account['used']
-            result[uppercase] = account
+            account['free'] = self.safe_float(free, currencyId)
+            account['used'] = self.safe_float(freezed, currencyId)
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_order(self, id, symbol=None, params={}):
@@ -335,7 +335,7 @@ class kkex (Exchange):
         }
         if since is not None:
             # since = self.milliseconds() - self.parse_timeframe(timeframe) * limit * 1000
-            request['since'] = since
+            request['since'] = int(since / 1000)
         if limit is not None:
             request['size'] = limit
         response = self.publicGetKline(self.extend(request, params))
@@ -427,8 +427,8 @@ class kkex (Exchange):
                     if price is None:
                         raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
                     else:
-                        amount = amount * price
-                request['price'] = self.amount_to_precision(symbol, amount)
+                        request['amount'] = self.cost_to_precision(symbol, float(amount) * float(price))
+                request['price'] = self.cost_to_precision(symbol, amount)
             else:
                 request['amount'] = self.amount_to_precision(symbol, amount)
             request['type'] += '_' + type
@@ -479,14 +479,16 @@ class kkex (Exchange):
         return self.parse_orders(response['orders'], market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders(symbol, since, limit, self.extend({
+        request = {
             'status': 0,
-        }, params))
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders(symbol, since, limit, self.extend({
+        request = {
             'status': 1,
-        }, params))
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def nonce(self):
         return self.milliseconds()
@@ -499,7 +501,10 @@ class kkex (Exchange):
         else:
             self.check_required_credentials()
             nonce = self.nonce()
-            signature = self.extend({'nonce': nonce, 'api_key': self.apiKey}, params)
+            signature = self.extend({
+                'nonce': nonce,
+                'api_key': self.apiKey,
+            }, params)
             signature = self.urlencode(self.keysort(signature))
             signature += '&secret_key=' + self.secret
             signature = self.hash(self.encode(signature), 'md5')

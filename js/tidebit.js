@@ -43,6 +43,7 @@ module.exports = class tidebit extends Exchange {
                     'https://www.tidebit.com/documents/api/guide',
                     'https://www.tidebit.com/swagger/#/default',
                 ],
+                'referral': 'http://bit.ly/2IX0LrM',
             },
             'api': {
                 'public': {
@@ -101,8 +102,8 @@ module.exports = class tidebit extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': 0.3 / 100,
+                    'taker': 0.3 / 100,
                 },
                 'funding': {
                     'tierBased': false,
@@ -119,14 +120,15 @@ module.exports = class tidebit extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let response = await this.privateGetDepositAddress (this.extend ({
+        const currency = this.currency (code);
+        const request = {
             'currency': currency['id'],
-        }, params));
+        };
+        const response = await this.privateGetDepositAddress (this.extend (request, params));
         if ('success' in response) {
             if (response['success']) {
-                let address = this.safeString (response, 'address');
-                let tag = this.safeString (response, 'addressTag');
+                const address = this.safeString (response, 'address');
+                const tag = this.safeString (response, 'addressTag');
                 return {
                     'currency': code,
                     'address': this.checkAddress (address),
@@ -138,15 +140,15 @@ module.exports = class tidebit extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.publicGetMarkets ();
-        let result = [];
-        for (let p = 0; p < markets.length; p++) {
-            let market = markets[p];
-            let id = market['id'];
-            let symbol = market['name'];
-            let [ baseId, quoteId ] = symbol.split ('/');
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
+        const response = await this.publicGetMarkets (params);
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
+            const id = this.safeString (market, 'id');
+            const symbol = this.safeString (market, 'name');
+            const [ baseId, quoteId ] = symbol.split ('/');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -162,21 +164,16 @@ module.exports = class tidebit extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetMembersMe ();
-        let balances = response['accounts'];
-        let result = { 'info': balances };
-        for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];
-            let currencyId = balance['currency'];
-            let code = currencyId.toUpperCase ();
-            if (currencyId in this.currencies_by_id)
-                code = this.currencies_by_id[currencyId]['code'];
-            let account = {
-                'free': parseFloat (balance['balance']),
-                'used': parseFloat (balance['locked']),
-                'total': 0.0,
-            };
-            account['total'] = this.sum (account['free'], account['used']);
+        const response = await this.privateGetMembersMe (params);
+        const balances = this.safeValue (response, 'accounts');
+        const result = { 'info': balances };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'balance');
+            account['used'] = this.safeFloat (balance, 'locked');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -184,25 +181,27 @@ module.exports = class tidebit extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'market': market['id'],
         };
-        if (limit === undefined)
+        if (limit !== undefined) {
             request['limit'] = limit; // default = 300
+        }
         request['market'] = market['id'];
-        let orderbook = await this.publicGetDepth (this.extend (request, params));
-        let timestamp = orderbook['timestamp'] * 1000;
-        return this.parseOrderBook (orderbook, timestamp);
+        const response = await this.publicGetDepth (this.extend (request, params));
+        const timestamp = this.safeTimestamp (response, 'timestamp');
+        return this.parseOrderBook (response, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = ticker['at'] * 1000;
-        ticker = ticker['ticker'];
+        const timestamp = this.safeTimestamp (ticker, 'at');
+        ticker = this.safeValue (ticker, 'ticker', {});
         let symbol = undefined;
-        if (market !== undefined)
+        if (market !== undefined) {
             symbol = market['symbol'];
-        let last = this.safeFloat (ticker, 'last');
+        }
+        const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -229,26 +228,24 @@ module.exports = class tidebit extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetTickers (params);
-        let ids = Object.keys (tickers);
-        let result = {};
+        const tickers = await this.publicGetTickers (params);
+        const ids = Object.keys (tickers);
+        const result = {};
         for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
+            const id = ids[i];
             let market = undefined;
             let symbol = id;
             if (id in this.markets_by_id) {
                 market = this.markets_by_id[id];
                 symbol = market['symbol'];
             } else {
-                let base = id.slice (0, 3);
-                let quote = id.slice (3, 6);
-                base = base.toUpperCase ();
-                quote = quote.toUpperCase ();
-                base = this.commonCurrencyCode (base);
-                quote = this.commonCurrencyCode (quote);
+                const baseId = id.slice (0, 3);
+                const quoteId = id.slice (3, 6);
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
-            let ticker = tickers[id];
+            const ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
@@ -256,35 +253,48 @@ module.exports = class tidebit extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetTickersMarket (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'market': market['id'],
-        }, params));
+        };
+        const response = await this.publicGetTickersMarket (this.extend (request, params));
         return this.parseTicker (response, market);
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['created_at']);
+        const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
+        const id = this.safeString (trade, 'id');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'volume');
+        const cost = this.safeFloat (trade, 'funds');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
-            'id': trade['id'].toString (),
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
             'side': undefined,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'volume'),
-            'cost': this.safeFloat (trade, 'funds'),
-            'info': trade,
+            'order': undefined,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetTrades (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'market': market['id'],
-        }, params));
+        };
+        const response = await this.publicGetTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -301,21 +311,34 @@ module.exports = class tidebit extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        if (limit === undefined)
+        const market = this.market (symbol);
+        if (limit === undefined) {
             limit = 30; // default is 30
-        let request = {
+        }
+        const request = {
             'market': market['id'],
             'period': this.timeframes[timeframe],
             'limit': limit,
         };
         if (since !== undefined) {
-            request['timestamp'] = since;
+            request['timestamp'] = parseInt (since / 1000);
         } else {
             request['timestamp'] = 1800000;
         }
-        let response = await this.publicGetK (this.extend (request, params));
+        const response = await this.publicGetK (this.extend (request, params));
+        if (response === 'null') {
+            return [];
+        }
         return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'done': 'closed',
+            'wait': 'open',
+            'cancel': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
@@ -323,32 +346,38 @@ module.exports = class tidebit extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         } else {
-            let marketId = order['market'];
+            const marketId = order['market'];
             symbol = this.markets_by_id[marketId]['symbol'];
         }
-        let timestamp = this.parse8601 (order['created_at']);
-        let state = order['state'];
-        let status = undefined;
-        if (state === 'done') {
-            status = 'closed';
-        } else if (state === 'wait') {
-            status = 'open';
-        } else if (state === 'cancel') {
-            status = 'canceled';
+        const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        const status = this.parseOrderStatus (this.safeString (order, 'state'));
+        const id = this.safeString (order, 'id');
+        const type = this.safeString (order, 'ord_type');
+        const side = this.safeString (order, 'side');
+        const price = this.safeFloat (order, 'price');
+        const amount = this.safeFloat (order, 'volume');
+        const filled = this.safeFloat (order, 'executed_volume');
+        const remaining = this.safeFloat (order, 'remaining_volume');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (filled !== undefined) {
+                cost = price * filled;
+            }
         }
         return {
-            'id': order['id'].toString (),
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': order['ord_type'],
-            'side': order['side'],
-            'price': this.safeFloat (order, 'price'),
-            'amount': this.safeFloat (order, 'volume'),
-            'filled': this.safeFloat (order, 'executed_volume'),
-            'remaining': this.safeFloat (order, 'remaining_volume'),
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': cost,
             'trades': undefined,
             'fee': undefined,
             'info': order,
@@ -357,7 +386,7 @@ module.exports = class tidebit extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'market': this.marketId (symbol),
             'side': side,
             'volume': amount.toString (),
@@ -366,16 +395,19 @@ module.exports = class tidebit extends Exchange {
         if (type === 'limit') {
             request['price'] = price.toString ();
         }
-        let response = await this.privatePostOrders (this.extend (request, params));
-        let market = this.markets_by_id[response['market']];
+        const response = await this.privatePostOrders (this.extend (request, params));
+        const market = this.markets_by_id[response['market']];
         return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let result = await this.privatePostOrderDelete ({ 'id': id });
-        let order = this.parseOrder (result);
-        let status = order['status'];
+        const request = {
+            'id': id,
+        };
+        const result = await this.privatePostOrderDelete (this.extend (request, params));
+        const order = this.parseOrder (result);
+        const status = this.safeString (order, 'status');
         if (status === 'closed' || status === 'canceled') {
             throw new OrderNotFound (this.id + ' ' + this.json (order));
         }
@@ -385,22 +417,22 @@ module.exports = class tidebit extends Exchange {
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let id = this.safeString (params, 'id');
+        const currency = this.currency (code);
+        const id = this.safeString (params, 'id');
         if (id === undefined) {
-            throw new ExchangeError (this.id + ' withdraw() requires an extra id param (withdraw account id according to withdraws/bind_account_list endpoint');
+            throw new ExchangeError (this.id + ' withdraw() requires an extra `id` param (withdraw account id according to withdraws/bind_account_list endpoint');
         }
-        let request = {
+        const request = {
             'id': id,
             'currency_type': 'coin', // or 'cash'
-            'currency': currency.toLowerCase (),
+            'currency': currency['id'],
             'body': amount,
             // 'address': address, // they don't allow withdrawing to direct addresses?
         };
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        let result = await this.privatePostWithdrawsApply (this.extend (request, params));
+        const result = await this.privatePostWithdrawsApply (this.extend (request, params));
         return {
             'info': result,
             'id': undefined,
@@ -416,8 +448,8 @@ module.exports = class tidebit extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + 'api/' + this.version + '/' + this.implodeParams (path, params) + '.json';
-        let query = this.omit (params, this.extractParams (path));
+        const request = '/' + 'api/' + this.version + '/' + this.implodeParams (path, params) + '.json';
+        const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + request;
         if (api === 'public') {
             if (Object.keys (query).length) {
@@ -425,15 +457,15 @@ module.exports = class tidebit extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString ();
-            let sortedByKey = this.keysort (this.extend ({
+            const nonce = this.nonce ().toString ();
+            const sortedByKey = this.keysort (this.extend ({
                 'access_key': this.apiKey,
                 'tonce': nonce,
             }, params));
-            let query = this.urlencode (sortedByKey);
-            let payload = method + '|' + request + '|' + query;
-            let signature = this.hmac (this.encode (payload), this.encode (this.secret));
-            let suffix = query + '&signature=' + signature;
+            const query = this.urlencode (sortedByKey);
+            const payload = method + '|' + request + '|' + query;
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret));
+            const suffix = query + '&signature=' + signature;
             if (method === 'GET') {
                 url += '?' + suffix;
             } else {
@@ -444,11 +476,14 @@ module.exports = class tidebit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
-        if (code === 400) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if ((code === 400) || (response === undefined)) {
+            const feedback = this.id + ' ' + body;
+            if (response === undefined) {
+                throw new ExchangeError (feedback);
+            }
             const error = this.safeValue (response, 'error');
             const errorCode = this.safeString (error, 'code');
-            const feedback = this.id + ' ' + this.json (response);
             const exceptions = this.exceptions;
             if (errorCode in exceptions) {
                 throw new exceptions[errorCode] (feedback);

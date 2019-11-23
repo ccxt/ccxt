@@ -14,7 +14,6 @@ const asTable   = require ('as-table')
     , ansi      = require ('ansicolor').nice
     , fs        = require ('fs')
     , ccxt      = require ('../../ccxt.js')
-    , countries = require ('../../build/countries.js')
     , chai      = require ('chai')
     , expect    = chai.expect
     , assert    = chai.assert
@@ -40,7 +39,7 @@ let proxies = [
     // 'https://crossorigin.me/',
 ]
 
-/*  ------------------------------------------------------------------------ */
+//-----------------------------------------------------------------------------
 
 const enableRateLimit = true
 
@@ -87,17 +86,21 @@ let keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
 // eslint-disable-next-line import/no-dynamic-require
 let settings = require ('../../' + keysFile)[exchangeId]
 
+if (settings) {
+    const keys = Object.keys (settings)
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i]
+        if (settings[key]) {
+            settings[key] = ccxt.deepExtend (exchange[key] || {}, settings[key])
+        }
+    }
+}
+
 Object.assign (exchange, settings)
 
 if (settings && settings.skip) {
     log.error.bright ('[Skipped]', { exchange: exchangeId, symbol: exchangeSymbol || 'all' })
     process.exit ()
-}
-
-//-----------------------------------------------------------------------------
-
-let countryName = function (code) {
-    return ((countries[code] !== undefined) ? countries[code] : code)
 }
 
 //-----------------------------------------------------------------------------
@@ -180,11 +183,50 @@ let loadExchange = async exchange => {
 
 let testExchange = async exchange => {
 
+    const codes = [
+        'BTC',
+        'ETH',
+        'XRP',
+        'LTC',
+        'BCH',
+        'EOS',
+        'BNB',
+        'BSV',
+        'USDT',
+        'ATOM',
+        'BAT',
+        'BTG',
+        'DASH',
+        'DOGE',
+        'ETC',
+        'IOTA',
+        'LSK',
+        'MKR',
+        'NEO',
+        'PAX',
+        'QTUM',
+        'TRX',
+        'TUSD',
+        'USD',
+        'USDC',
+        'WAVES',
+        'XEM',
+        'XMR',
+        'ZEC',
+        'ZRX',
+    ]
+    let code = codes[0]
+    for (let c in codes) {
+        if (c in exchange.currencies) {
+            code = c
+        }
+    }
+
     await loadExchange (exchange)
 
     let delay = exchange.rateLimit
     let symbol = exchange.symbols[0]
-    let symbols = [
+    const symbols = [
         'BTC/USD',
         'BTC/USDT',
         'BTC/CNY',
@@ -196,7 +238,8 @@ let testExchange = async exchange => {
         'ZRX/WETH',
     ]
     for (let s in symbols) {
-        if (exchange.symbols.includes (symbols[s])) {
+        if (exchange.symbols.includes (symbols[s]) &&
+            (('active' in exchange.markets[symbols[s]]) ? exchange.markets[symbols[s]]['active'] : true)) {
             symbol = symbols[s]
             break
         }
@@ -214,12 +257,12 @@ let testExchange = async exchange => {
         await testSymbol (exchange, symbol)
     }
 
-    if (!exchange.apiKey || (exchange.apiKey.length < 1))
+    if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey.length < 1)))
         return true
 
     exchange.checkRequiredCredentials ()
 
-    // move to testnet/sandbox if possible before accessing the balance if possible
+    // move to testnet/sandbox if possible before accessing the balance
     // if (exchange.urls['test'])
     //    exchange.urls['api'] = exchange.urls['test']
 
@@ -227,6 +270,7 @@ let testExchange = async exchange => {
 
     await tests['fetchFundingFees']  (exchange)
     await tests['fetchTradingFees']  (exchange)
+    await tests['fetchStatus'] (exchange)
 
     await tests['fetchOrders']       (exchange, symbol)
     await tests['fetchOpenOrders']   (exchange, symbol)
@@ -234,7 +278,7 @@ let testExchange = async exchange => {
     await tests['fetchMyTrades']     (exchange, symbol)
 
     if ('fetchLedger' in tests) {
-        await tests['fetchLedger'] (exchange)
+        await tests['fetchLedger'] (exchange, code)
     }
 
     // const code = exchange.markets[symbol]['quote']
@@ -278,35 +322,6 @@ let testExchange = async exchange => {
     // } catch (e) {
     //     console.log (exchange.id, 'error', 'limit buy', e)
     // }
-}
-
-//-----------------------------------------------------------------------------
-
-let printExchangesTable = function () {
-
-    let astable = asTable.configure ({ delimiter: ' | ' })
-
-    console.log (astable (Object.values (exchanges).map (exchange => {
-
-        let website = Array.isArray (exchange.urls.www) ?
-            exchange.urls.www[0] :
-            exchange.urls.www
-
-        let countries = Array.isArray (exchange.countries) ?
-            exchange.countries.map (countryName).join (', ') :
-            countryName (exchange.countries)
-
-        let doc = Array.isArray (exchange.urls.doc) ?
-            exchange.urls.doc[0] :
-            exchange.urls.doc
-
-        return {
-            'id':        exchange.id,
-            'name':      exchange.name,
-            'countries': countries,
-        }
-
-    })))
 }
 
 //-----------------------------------------------------------------------------

@@ -20,6 +20,7 @@ module.exports = class okex extends okcoinusd {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg',
                 'api': {
+                    'v3': 'https://www.okex.com/v3',
                     'web': 'https://www.okex.com/v2',
                     'public': 'https://www.okex.com/api',
                     'private': 'https://www.okex.com/api',
@@ -30,88 +31,35 @@ module.exports = class okex extends okcoinusd {
                     'https://www.okex.com/docs/en/',
                 ],
                 'fees': 'https://www.okex.com/pages/products/fees.html',
+                'referral': 'https://www.okex.com',
+            },
+            'fees': {
+                'trading': {
+                    'taker': 0.0015,
+                    'maker': 0.0010,
+                },
+                'spot': {
+                    'taker': 0.0015,
+                    'maker': 0.0010,
+                },
+                'future': {
+                    'taker': 0.0005,
+                    'maker': 0.0002,
+                },
+                'swap': {
+                    'taker': 0.00075,
+                    'maker': 0.0002,
+                },
             },
             'commonCurrencies': {
-                'FAIR': 'FairGame',
+                // OKEX refers to ERC20 version of Aeternity (AEToken)
+                'AE': 'AET', // https://github.com/ccxt/ccxt/issues/4981
                 'HOT': 'Hydro Protocol',
                 'HSR': 'HC',
                 'MAG': 'Maggie',
                 'YOYO': 'YOYOW',
-            },
-            'options': {
-                'fetchTickersMethod': 'fetch_tickers_from_api',
+                'WIN': 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
             },
         });
-    }
-
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        let market = this.markets[symbol];
-        let key = 'quote';
-        let rate = market[takerOrMaker];
-        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
-        if (side === 'sell') {
-            cost *= price;
-        } else {
-            key = 'base';
-        }
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, cost)),
-        };
-    }
-
-    async fetchMarkets (params = {}) {
-        let markets = await super.fetchMarkets (params);
-        // TODO: they have a new fee schedule as of Feb 7
-        // the new fees are progressive and depend on 30-day traded volume
-        // the following is the worst case
-        for (let i = 0; i < markets.length; i++) {
-            if (markets[i]['spot']) {
-                markets[i]['maker'] = 0.0010;
-                markets[i]['taker'] = 0.0015;
-            } else {
-                markets[i]['maker'] = 0.0002;
-                markets[i]['taker'] = 0.0003;
-            }
-        }
-        return markets;
-    }
-
-    async fetchTickersFromApi (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        let request = {};
-        let response = await this.publicGetTickers (this.extend (request, params));
-        let tickers = response['tickers'];
-        let timestamp = parseInt (response['date']) * 1000;
-        let result = {};
-        for (let i = 0; i < tickers.length; i++) {
-            let ticker = tickers[i];
-            ticker = this.parseTicker (this.extend (tickers[i], { 'timestamp': timestamp }));
-            let symbol = ticker['symbol'];
-            result[symbol] = ticker;
-        }
-        return result;
-    }
-
-    async fetchTickersFromWeb (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        let request = {};
-        let response = await this.webGetSpotMarketsTickers (this.extend (request, params));
-        let tickers = response['data'];
-        let result = {};
-        for (let i = 0; i < tickers.length; i++) {
-            let ticker = this.parseTicker (tickers[i]);
-            let symbol = ticker['symbol'];
-            result[symbol] = ticker;
-        }
-        return result;
-    }
-
-    async fetchTickers (symbols = undefined, params = {}) {
-        let method = this.options['fetchTickersMethod'];
-        let response = await this[method] (symbols, params);
-        return response;
     }
 };

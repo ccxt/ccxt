@@ -1,5 +1,10 @@
 ccxt.egg-info/
-build/
+build/**/*
+!build/countries.js
+!build/export-exchanges.js
+!build/fs.js
+!build/transpile.js
+!build/vss.js
 examples/
 node_modules/
 python/
@@ -8,6 +13,7 @@ tmp/
 doc/
 wiki/
 .tox/
+.github/
 .DS_Store
 .nyc_output
 .travis.yml

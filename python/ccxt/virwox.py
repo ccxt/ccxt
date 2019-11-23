@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 
 
-class virwox (Exchange):
+class virwox(Exchange):
 
     def describe(self):
         return self.deep_extend(super(virwox, self).describe(), {
@@ -82,47 +82,51 @@ class virwox (Exchange):
         })
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetGetInstruments()
-        keys = list(markets['result'].keys())
+        response = self.publicGetGetInstruments(params)
+        markets = self.safe_value(response, 'result')
+        keys = list(markets.keys())
         result = []
-        for p in range(0, len(keys)):
-            market = markets['result'][keys[p]]
-            id = market['instrumentID']
-            symbol = market['symbol']
-            base = market['longCurrency']
-            quote = market['shortCurrency']
+        for i in range(0, len(keys)):
+            key = keys[i]
+            market = self.safe_value(markets, key, {})
+            id = self.safe_string(market, 'instrumentID')
+            baseId = self.safe_string(market, 'longCurrency')
+            quoteId = self.safe_string(market, 'shortCurrency')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
             })
         return result
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostGetBalances()
-        balances = response['result']['accountList']
-        result = {'info': balances}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currency = balance['currency']
-            total = balance['balance']
-            account = {
-                'free': total,
-                'used': 0.0,
-                'total': total,
-            }
-            result[currency] = account
+        response = self.privatePostGetBalances(params)
+        balances = self.safe_value(response['result'], 'accountList')
+        result = {'info': response}
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_float(balance, 'balance')
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_market_price(self, symbol, params={}):
         self.load_markets()
-        response = self.publicPostGetBestPrices(self.extend({
+        request = {
             'symbols': [symbol],
-        }, params))
-        result = response['result']
+        }
+        response = self.publicPostGetBestPrices(self.extend(request, params))
+        result = self.safe_value(response, 'result')
         return {
             'bid': self.safe_float(result[0], 'bestBuyPrice'),
             'ask': self.safe_float(result[0], 'bestSellPrice'),
@@ -144,17 +148,18 @@ class virwox (Exchange):
         self.load_markets()
         end = self.milliseconds()
         start = end - 86400000
-        response = self.publicGetGetTradedPriceVolume(self.extend({
+        request = {
             'instrument': symbol,
             'endDate': self.ymdhms(end),
             'startDate': self.ymdhms(start),
             'HLOC': 1,
-        }, params))
-        tickers = response['result']['priceVolumeList']
+        }
+        response = self.publicGetGetTradedPriceVolume(self.extend(request, params))
+        tickers = self.safe_value(response['result'], 'priceVolumeList')
         keys = list(tickers.keys())
         length = len(keys)
         lastKey = keys[length - 1]
-        ticker = tickers[lastKey]
+        ticker = self.safe_value(tickers, lastKey)
         timestamp = self.milliseconds()
         close = self.safe_float(ticker, 'close')
         return {
@@ -180,19 +185,30 @@ class virwox (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, symbol=None):
-        sec = self.safe_integer(trade, 'time')
-        timestamp = sec * 1000
+    def parse_trade(self, trade, market=None):
+        timestamp = self.safe_timestamp(trade, 'time')
+        id = self.safe_string(trade, 'tid')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'vol')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
-            'id': trade['tid'],
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'order': None,
             'symbol': symbol,
             'type': None,
             'side': None,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'vol'),
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': None,
             'info': trade,
         }
@@ -200,34 +216,36 @@ class virwox (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetGetRawTradeData(self.extend({
+        request = {
             'instrument': symbol,
             'timespan': 3600,
-        }, params))
+        }
+        response = self.publicGetGetRawTradeData(self.extend(request, params))
         result = self.safe_value(response, 'result', {})
         trades = self.safe_value(result, 'data', [])
-        return self.parse_trades(trades, market)
+        return self.parse_trades(trades, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        order = {
+        request = {
             'instrument': market['symbol'],
             'orderType': side.upper(),
             'amount': amount,
         }
         if type == 'limit':
-            order['price'] = price
-        response = self.privatePostPlaceOrder(self.extend(order, params))
+            request['price'] = price
+        response = self.privatePostPlaceOrder(self.extend(request, params))
         return {
             'info': response,
-            'id': str(response['result']['orderID']),
+            'id': self.safe_string(response['result'], 'orderID'),
         }
 
     def cancel_order(self, id, symbol=None, params={}):
-        return self.privatePostCancelOrder(self.extend({
+        request = {
             'orderID': id,
-        }, params))
+        }
+        return self.privatePostCancelOrder(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
@@ -252,7 +270,7 @@ class virwox (Exchange):
             })
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if code == 200:
             if (body[0] == '{') or (body[0] == '['):
                 if 'result' in response:

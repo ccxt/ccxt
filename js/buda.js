@@ -39,6 +39,12 @@ module.exports = class buda extends Exchange {
                 'doc': 'https://api.buda.com',
                 'fees': 'https://www.buda.com/comisiones',
             },
+            'status': {
+                'status': 'error',
+                'updated': undefined,
+                'eta': undefined,
+                'url': undefined,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -135,11 +141,11 @@ module.exports = class buda extends Exchange {
 
     async fetchCurrencyInfo (currency, currencies = undefined) {
         if (!currencies) {
-            let response = await this.publicGetCurrencies ();
-            currencies = response['currencies'];
+            const response = await this.publicGetCurrencies ();
+            currencies = this.safeValue (response, 'currencies');
         }
         for (let i = 0; i < currencies.length; i++) {
-            let currencyInfo = currencies[i];
+            const currencyInfo = currencies[i];
             if (currencyInfo['id'] === currency) {
                 return currencyInfo;
             }
@@ -148,26 +154,26 @@ module.exports = class buda extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let marketsResponse = await this.publicGetMarkets ();
-        let markets = marketsResponse['markets'];
-        let currenciesResponse = await this.publicGetCurrencies ();
-        let currencies = currenciesResponse['currencies'];
-        let result = [];
+        const marketsResponse = await this.publicGetMarkets (params);
+        const markets = this.safeValue (marketsResponse, 'markets');
+        const currenciesResponse = await this.publicGetCurrencies ();
+        const currencies = this.safeValue (currenciesResponse, 'currencies');
+        const result = [];
         for (let i = 0; i < markets.length; i++) {
-            let market = markets[i];
-            let id = market['id'];
-            let baseId = market['base_currency'];
-            let quoteId = market['quote_currency'];
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let baseInfo = await this.fetchCurrencyInfo (baseId, currencies);
-            let quoteInfo = await this.fetchCurrencyInfo (quoteId, currencies);
-            let symbol = base + '/' + quote;
-            let precision = {
+            const market = markets[i];
+            const id = this.safeString (market, 'id');
+            const baseId = this.safeString (market, 'base_currency');
+            const quoteId = this.safeString (market, 'quote_currency');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const baseInfo = await this.fetchCurrencyInfo (baseId, currencies);
+            const quoteInfo = await this.fetchCurrencyInfo (quoteId, currencies);
+            const symbol = base + '/' + quote;
+            const precision = {
                 'amount': baseInfo['input_decimals'],
                 'price': quoteInfo['input_decimals'],
             };
-            let limits = {
+            const limits = {
                 'amount': {
                     'min': parseFloat (market['minimum_order_amount'][0]),
                     'max': undefined,
@@ -198,17 +204,18 @@ module.exports = class buda extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        let response = await this.publicGetCurrencies ();
-        let currencies = response['currencies'];
-        let result = {};
+        const response = await this.publicGetCurrencies ();
+        const currencies = response['currencies'];
+        const result = {};
         for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            if (!currency['managed'])
+            const currency = currencies[i];
+            if (!currency['managed']) {
                 continue;
-            let id = currency['id'];
-            let code = this.commonCurrencyCode (id);
-            let precision = currency['input_decimals'];
-            let minimum = Math.pow (10, -precision);
+            }
+            const id = this.safeString (currency, 'id');
+            const code = this.safeCurrencyCode (id);
+            const precision = this.safeFloat (currency, 'input_decimals');
+            const minimum = Math.pow (10, -precision);
             result[code] = {
                 'id': id,
                 'code': code,
@@ -247,17 +254,18 @@ module.exports = class buda extends Exchange {
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
         await this.loadMarkets ();
-        let withdrawFees = {};
-        let depositFees = {};
-        let info = {};
-        if (codes === undefined)
+        const withdrawFees = {};
+        const depositFees = {};
+        const info = {};
+        if (codes === undefined) {
             codes = Object.keys (this.currencies);
+        }
         for (let i = 0; i < codes.length; i++) {
-            let code = codes[i];
-            let currency = this.currency (code);
-            let request = { 'currency': currency['id'] };
-            let withdrawResponse = await this.publicGetCurrenciesCurrencyFeesWithdrawal (request);
-            let depositResponse = await this.publicGetCurrenciesCurrencyFeesDeposit (request);
+            const code = codes[i];
+            const currency = this.currency (code);
+            const request = { 'currency': currency['id'] };
+            const withdrawResponse = await this.publicGetCurrenciesCurrencyFeesWithdrawal (request);
+            const depositResponse = await this.publicGetCurrenciesCurrencyFeesDeposit (request);
             withdrawFees[code] = this.parseFundingFee (withdrawResponse['fee']);
             depositFees[code] = this.parseFundingFee (depositResponse['fee']);
             info[code] = {
@@ -273,10 +281,12 @@ module.exports = class buda extends Exchange {
     }
 
     parseFundingFee (fee, type = undefined) {
-        if (type === undefined)
+        if (type === undefined) {
             type = fee['name'];
-        if (type === 'withdrawal')
+        }
+        if (type === 'withdrawal') {
             type = 'withdraw';
+        }
         return {
             'type': type,
             'currency': fee['base'][1],
@@ -287,24 +297,26 @@ module.exports = class buda extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetMarketsMarketTicker (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'market': market['id'],
-        }, params));
-        let ticker = response['ticker'];
+        };
+        const response = await this.publicGetMarketsMarketTicker (this.extend (request, params));
+        const ticker = this.safeValue (response, 'ticker');
         return this.parseTicker (ticker, market);
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.milliseconds ();
+        const timestamp = this.milliseconds ();
         let symbol = undefined;
-        if (market !== undefined)
+        if (market !== undefined) {
             symbol = market['symbol'];
-        let last = parseFloat (ticker['last_price'][0]);
-        let percentage = parseFloat (ticker['price_variation_24h']);
-        let open = parseFloat (this.priceToPrecision (symbol, last / (percentage + 1)));
-        let change = last - open;
-        let average = this.sum (last, open) / 2;
+        }
+        const last = parseFloat (ticker['last_price'][0]);
+        const percentage = parseFloat (ticker['price_variation_24h']);
+        const open = parseFloat (this.priceToPrecision (symbol, last / (percentage + 1)));
+        const change = last - open;
+        const average = this.sum (last, open) / 2;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -331,7 +343,7 @@ module.exports = class buda extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        const market = this.market (symbol);
         const request = {
             'market': market['id'],
         };
@@ -342,7 +354,7 @@ module.exports = class buda extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // 50 max
         }
-        let response = await this.publicGetMarketsMarketTrades (this.extend (request, params));
+        const response = await this.publicGetMarketsMarketTrades (this.extend (request, params));
         //
         //     { trades: {      market_id:   "ETH-BTC",
         //                      timestamp:    null,
@@ -362,12 +374,12 @@ module.exports = class buda extends Exchange {
         //
         let timestamp = undefined;
         let side = undefined;
-        let type = undefined;
+        const type = undefined;
         let price = undefined;
         let amount = undefined;
         let id = undefined;
-        let order = undefined;
-        let fee = undefined;
+        const order = undefined;
+        const fee = undefined;
         let symbol = undefined;
         let cost = undefined;
         if (market) {
@@ -390,6 +402,7 @@ module.exports = class buda extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -399,146 +412,152 @@ module.exports = class buda extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetMarketsMarketOrderBook (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'market': market['id'],
-        }, params));
-        let orderBook = response['order_book'];
-        return this.parseOrderBook (orderBook);
+        };
+        const response = await this.publicGetMarketsMarketOrderBook (this.extend (request, params));
+        const orderbook = this.safeValue (response, 'order_book');
+        return this.parseOrderBook (orderbook);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        if (since === undefined)
+        const market = this.market (symbol);
+        if (since === undefined) {
             since = this.milliseconds () - 86400000;
-        let request = {
+        }
+        const request = {
             'symbol': market['id'],
             'resolution': this.timeframes[timeframe],
             'from': since / 1000,
             'to': this.seconds (),
         };
-        let response = await this.publicGetTvHistory (this.extend (request, params));
+        const response = await this.publicGetTvHistory (this.extend (request, params));
         return this.parseTradingViewOHLCV (response, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetBalances ();
-        let result = { 'info': response };
-        let balances = response['balances'];
+        const response = await this.privateGetBalances (params);
+        const result = { 'info': response };
+        const balances = this.safeValue (response, 'balances');
         for (let i = 0; i < balances.length; i++) {
-            let balance = balances[i];
-            let id = balance['id'];
-            let currency = this.commonCurrencyCode (id);
-            let total = parseFloat (balance['amount'][0]);
-            let free = parseFloat (balance['available_amount'][0]);
-            let account = {
-                'free': free,
-                'used': total - free,
-                'total': total,
-            };
-            result[currency] = account;
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'id');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = parseFloat (balance['available_amount'][0]);
+            account['total'] = parseFloat (balance['amount'][0]);
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetOrdersId (this.extend ({
+        const request = {
             'id': parseInt (id),
-        }, params));
-        let order = response['order'];
+        };
+        const response = await this.privateGetOrdersId (this.extend (request, params));
+        const order = this.safeValue (response, 'order');
         return this.parseOrder (order);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        if (symbol !== undefined)
+        if (symbol !== undefined) {
             market = this.market (symbol);
-        let response = await this.privateGetMarketsMarketOrders (this.extend ({
+        }
+        const request = {
             'market': market['id'],
             'per': limit,
-        }, params));
-        let orders = response['orders'];
+        };
+        const response = await this.privateGetMarketsMarketOrders (this.extend (request, params));
+        const orders = this.safeValue (response, 'orders');
         return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, since, limit, this.extend ({
+        const request = {
             'state': 'pending',
-        }, params));
-        return orders;
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, since, limit, this.extend ({
+        const request = {
             'state': 'traded',
-        }, params));
-        return orders;
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         side = (side === 'buy') ? 'Bid' : 'Ask';
-        let request = {
+        const request = {
             'market': this.marketId (symbol),
             'price_type': type,
             'type': side,
             'amount': this.amountToPrecision (symbol, amount),
         };
-        if (type === 'limit')
+        if (type === 'limit') {
             request['limit'] = this.priceToPrecision (symbol, price);
-        let response = await this.privatePostMarketsMarketOrders (this.extend (request, params));
-        let order = response['order'];
+        }
+        const response = await this.privatePostMarketsMarketOrders (this.extend (request, params));
+        const order = this.safeValue (response, 'order');
         return this.parseOrder (order);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePutOrdersId (this.extend ({
+        const request = {
             'id': parseInt (id),
             'state': 'canceling',
-        }, params));
-        let order = response['order'];
+        };
+        const response = await this.privatePutOrdersId (this.extend (request, params));
+        const order = this.safeValue (response, 'order');
         return this.parseOrder (order);
     }
 
     parseOrderStatus (status) {
-        let statuses = {
+        const statuses = {
             'traded': 'closed',
             'received': 'open',
             'canceling': 'canceled',
         };
-        return (status in statuses) ? statuses[status] : status;
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
-        let id = order['id'];
-        let timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        const id = this.safeString (order, 'id');
+        const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         let symbol = undefined;
         if (market === undefined) {
-            let marketId = order['market_id'];
-            if (marketId in this.markets_by_id)
+            const marketId = order['market_id'];
+            if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
+            }
         }
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let type = order['price_type'];
-        let side = order['type'].toLowerCase ();
-        let status = this.parseOrderStatus (this.safeString (order, 'state'));
-        let amount = parseFloat (order['original_amount'][0]);
-        let remaining = parseFloat (order['amount'][0]);
-        let filled = parseFloat (order['traded_amount'][0]);
-        let cost = parseFloat (order['total_exchanged'][0]);
-        let price = order['limit'];
-        if (price !== undefined)
+        const type = this.safeString (order, 'price_type');
+        const side = this.safeStringLower (order, 'type');
+        const status = this.parseOrderStatus (this.safeString (order, 'state'));
+        const amount = parseFloat (order['original_amount'][0]);
+        const remaining = parseFloat (order['amount'][0]);
+        const filled = parseFloat (order['traded_amount'][0]);
+        const cost = parseFloat (order['total_exchanged'][0]);
+        let price = this.safeFloat (order, 'limit');
+        if (price !== undefined) {
             price = parseFloat (price[0]);
-        if (cost > 0 && filled > 0)
+        }
+        if (cost > 0 && filled > 0) {
             price = this.priceToPrecision (symbol, cost / filled);
-        let fee = {
+        }
+        const fee = {
             'cost': parseFloat (order['paid_fee'][0]),
             'currency': order['paid_fee'][1],
         };
@@ -574,28 +593,29 @@ module.exports = class buda extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
+        const currency = this.currency (code);
         if (this.isFiat (code)) {
             throw new NotSupported (this.id + ' fetchDepositAddress() for fiat ' + code + ' is not supported');
         }
-        let response = await this.privateGetCurrenciesCurrencyReceiveAddresses (this.extend ({
+        const request = {
             'currency': currency['id'],
-        }, params));
-        let receiveAddresses = response['receive_addresses'];
-        let addressPool = [];
+        };
+        const response = await this.privateGetCurrenciesCurrencyReceiveAddresses (this.extend (request, params));
+        const receiveAddresses = this.safeValue (response, 'receive_addresses');
+        const addressPool = [];
         for (let i = 1; i < receiveAddresses.length; i++) {
-            let receiveAddress = receiveAddresses[i];
+            const receiveAddress = receiveAddresses[i];
             if (receiveAddress['ready']) {
-                let address = receiveAddress['address'];
+                const address = receiveAddress['address'];
                 this.checkAddress (address);
                 addressPool.push (address);
             }
         }
-        let addressPoolLength = addressPool.length;
+        const addressPoolLength = addressPool.length;
         if (addressPoolLength < 1) {
             throw new AddressPending (this.id + ': there are no addresses ready for receiving ' + code + ', retry again later)');
         }
-        let address = addressPool[0];
+        const address = addressPool[0];
         return {
             'currency': code,
             'address': address,
@@ -606,13 +626,15 @@ module.exports = class buda extends Exchange {
 
     async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        if (this.isFiat (code))
+        const currency = this.currency (code);
+        if (this.isFiat (code)) {
             throw new NotSupported (this.id + ': fiat fetchDepositAddress() for ' + code + ' is not supported');
-        let response = await this.privatePostCurrenciesCurrencyReceiveAddresses (this.extend ({
+        }
+        const request = {
             'currency': currency['id'],
-        }, params));
-        let address = this.safeString (response['receive_address'], 'address');  // the creation is async and returns a null address, returns only the id
+        };
+        const response = await this.privatePostCurrenciesCurrencyReceiveAddresses (this.extend (request, params));
+        const address = this.safeString (response['receive_address'], 'address');  // the creation is async and returns a null address, returns only the id
         return {
             'currency': code,
             'address': address,
@@ -622,39 +644,30 @@ module.exports = class buda extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        let statuses = {
+        const statuses = {
             'rejected': 'failed',
             'confirmed': 'ok',
             'anulled': 'canceled',
             'retained': 'canceled',
             'pending_confirmation': 'pending',
         };
-        return (status in statuses) ? statuses[status] : status;
+        return this.safeString (statuses, status, status);
     }
 
     parseTransaction (transaction, currency = undefined) {
-        let id = this.safeString (transaction, 'id');
-        let timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
-        let code = undefined;
-        let currencyId = undefined;
-        if (currency === undefined) {
-            currencyId = this.safeString (transaction, 'currency');
-            currency = this.safeValue (this.currencies_by_id, currencyId);
-        }
-        if (currency !== undefined) {
-            code = currency['code'];
-        } else {
-            code = this.commonCurrencyCode (currencyId);
-        }
-        let amount = parseFloat (transaction['amount'][0]);
-        let fee = parseFloat (transaction['fee'][0]);
-        let feeCurrency = transaction['fee'][1];
-        let status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
-        let type = ('deposit_data' in transaction) ? 'deposit' : 'withdrawal';
-        let data = this.safeValue (transaction, type + '_data', {});
-        let address = this.safeValue (data, 'target_address');
-        let txid = this.safeString (data, 'tx_hash');
-        let updated = this.parse8601 (this.safeString (data, 'updated_at'));
+        const id = this.safeString (transaction, 'id');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const amount = parseFloat (transaction['amount'][0]);
+        const fee = parseFloat (transaction['fee'][0]);
+        const feeCurrency = transaction['fee'][1];
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const type = ('deposit_data' in transaction) ? 'deposit' : 'withdrawal';
+        const data = this.safeValue (transaction, type + '_data', {});
+        const address = this.safeValue (data, 'target_address');
+        const txid = this.safeString (data, 'tx_hash');
+        const updated = this.parse8601 (this.safeString (data, 'updated_at'));
         return {
             'info': transaction,
             'id': id,
@@ -676,42 +689,47 @@ module.exports = class buda extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (code === undefined)
+        if (code === undefined) {
             throw new ExchangeError (this.id + ': fetchDeposits() requires a currency code argument');
-        let currency = this.currency (code);
-        let response = await this.privateGetCurrenciesCurrencyDeposits (this.extend ({
+        }
+        const currency = this.currency (code);
+        const request = {
             'currency': currency['id'],
             'per': limit,
-        }, params));
-        let deposits = response['deposits'];
+        };
+        const response = await this.privateGetCurrenciesCurrencyDeposits (this.extend (request, params));
+        const deposits = this.safeValue (response, 'deposits');
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (code === undefined)
+        if (code === undefined) {
             throw new ExchangeError (this.id + ': fetchDeposits() requires a currency code argument');
-        let currency = this.currency (code);
-        let response = await this.privateGetCurrenciesCurrencyWithdrawals (this.extend ({
+        }
+        const currency = this.currency (code);
+        const request = {
             'currency': currency['id'],
             'per': limit,
-        }, params));
-        let withdrawals = response['withdrawals'];
+        };
+        const response = await this.privateGetCurrenciesCurrencyWithdrawals (this.extend (request, params));
+        const withdrawals = this.safeValue (response, 'withdrawals');
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let response = await this.privatePostCurrenciesCurrencyWithdrawals (this.extend ({
+        const currency = this.currency (code);
+        const request = {
             'currency': currency['id'],
             'amount': amount,
             'withdrawal_data': {
                 'target_address': address,
             },
-        }, params));
-        let withdrawal = response['withdrawal'];
+        };
+        const response = await this.privatePostCurrenciesCurrencyWithdrawals (this.extend (request, params));
+        const withdrawal = this.safeValue (response, 'withdrawal');
         return this.parseTransaction (withdrawal);
     }
 
@@ -721,7 +739,7 @@ module.exports = class buda extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         if (Object.keys (query).length) {
             if (method === 'GET') {
                 request += '?' + this.urlencode (query);
@@ -729,18 +747,18 @@ module.exports = class buda extends Exchange {
                 body = this.json (query);
             }
         }
-        let url = this.urls['api'] + '/' + this.version + '/' + request;
+        const url = this.urls['api'] + '/' + this.version + '/' + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString ();
-            let components = [ method, '/api/' + this.version + '/' + request ];
+            const nonce = this.nonce ().toString ();
+            const components = [ method, '/api/' + this.version + '/' + request ];
             if (body) {
-                let base64_body = this.stringToBase64 (this.encode (body));
-                components.push (this.decode (base64_body));
+                const base64Body = this.stringToBase64 (this.encode (body));
+                components.push (this.decode (base64Body));
             }
             components.push (nonce);
-            let message = components.join (' ');
-            let signature = this.hmac (this.encode (message), this.encode (this.secret), 'sha384');
+            const message = components.join (' ');
+            const signature = this.hmac (this.encode (message), this.encode (this.secret), 'sha384');
             headers = {
                 'X-SBTC-APIKEY': this.apiKey,
                 'X-SBTC-SIGNATURE': signature,
@@ -751,15 +769,15 @@ module.exports = class buda extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
-        if (!this.isJsonEncodedObject (body)) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
             return; // fallback to default error handler
         }
         if (code >= 400) {
-            let errorCode = this.safeString (response, 'code');
-            let message = this.safeString (response, 'message', body);
-            let feedback = this.id + ' ' + message;
-            let exceptions = this.exceptions;
+            const errorCode = this.safeString (response, 'code');
+            const message = this.safeString (response, 'message', body);
+            const feedback = this.id + ' ' + message;
+            const exceptions = this.exceptions;
             if (errorCode !== undefined) {
                 if (errorCode in exceptions) {
                     throw new exceptions[errorCode] (feedback);

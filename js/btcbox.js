@@ -71,44 +71,44 @@ module.exports = class btcbox extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privatePostBalance ();
-        let result = { 'info': balances };
-        let currencies = Object.keys (this.currencies);
-        for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let lowercase = currency.toLowerCase ();
-            if (lowercase === 'dash')
-                lowercase = 'drk';
-            let account = this.account ();
-            let free = lowercase + '_balance';
-            let used = lowercase + '_lock';
-            if (free in balances)
-                account['free'] = parseFloat (balances[free]);
-            if (used in balances)
-                account['used'] = parseFloat (balances[used]);
-            account['total'] = this.sum (account['free'], account['used']);
-            result[currency] = account;
+        const response = await this.privatePostBalance (params);
+        const result = { 'info': response };
+        const codes = Object.keys (this.currencies);
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currency = this.currency (code);
+            const currencyId = currency['id'];
+            const free = currencyId + '_balance';
+            if (free in response) {
+                const account = this.account ();
+                const used = currencyId + '_lock';
+                account['free'] = this.safeFloat (response, free);
+                account['used'] = this.safeFloat (response, used);
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {};
-        let numSymbols = this.symbols.length;
-        if (numSymbols > 1)
+        const market = this.market (symbol);
+        const request = {};
+        const numSymbols = this.symbols.length;
+        if (numSymbols > 1) {
             request['coin'] = market['baseId'];
-        let orderbook = await this.publicGetDepth (this.extend (request, params));
-        return this.parseOrderBook (orderbook);
+        }
+        const response = await this.publicGetDepth (this.extend (request, params));
+        return this.parseOrderBook (response);
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.milliseconds ();
+        const timestamp = this.milliseconds ();
         let symbol = undefined;
-        if (market)
+        if (market !== undefined) {
             symbol = market['symbol'];
-        let last = this.safeFloat (ticker, 'last');
+        }
+        const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -135,39 +135,59 @@ module.exports = class btcbox extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {};
-        let numSymbols = this.symbols.length;
-        if (numSymbols > 1)
+        const market = this.market (symbol);
+        const request = {};
+        const numSymbols = this.symbols.length;
+        if (numSymbols > 1) {
             request['coin'] = market['baseId'];
-        let ticker = await this.publicGetTicker (this.extend (request, params));
-        return this.parseTicker (ticker, market);
+        }
+        const response = await this.publicGetTicker (this.extend (request, params));
+        return this.parseTicker (response, market);
     }
 
-    parseTrade (trade, market) {
-        let timestamp = parseInt (trade['date']) * 1000; // GMT time
+    parseTrade (trade, market = undefined) {
+        const timestamp = this.safeTimestamp (trade, 'date');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const id = this.safeString (trade, 'tid');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        let cost = undefined;
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = price * amount;
+            }
+        }
+        const type = undefined;
+        const side = this.safeString (trade, 'type');
         return {
             'info': trade,
-            'id': trade['tid'],
+            'id': id,
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': trade['type'],
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {};
-        let numSymbols = this.symbols.length;
-        if (numSymbols > 1)
+        const market = this.market (symbol);
+        const request = {};
+        const numSymbols = this.symbols.length;
+        if (numSymbols > 1) {
             request['coin'] = market['baseId'];
-        let response = await this.publicGetOrders (this.extend (request, params));
+        }
+        const response = await this.publicGetOrders (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -248,10 +268,12 @@ module.exports = class btcbox extends Exchange {
         // status is set by fetchOrder method only
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
         // fetchOrders do not return status, use heuristic
-        if (status === undefined)
-            if (remaining !== undefined && remaining === 0)
+        if (status === undefined) {
+            if (remaining !== undefined && remaining === 0) {
                 status = 'closed';
-        let trades = undefined; // todo: this.parseTrades (order['trades']);
+            }
+        }
+        const trades = undefined; // todo: this.parseTrades (order['trades']);
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -330,17 +352,18 @@ module.exports = class btcbox extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (api === 'public') {
-            if (Object.keys (params).length)
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString ();
-            let query = this.extend ({
+            const nonce = this.nonce ().toString ();
+            const query = this.extend ({
                 'key': this.apiKey,
                 'nonce': nonce,
             }, params);
-            let request = this.urlencode (query);
-            let secret = this.hash (this.encode (this.secret));
+            const request = this.urlencode (query);
+            const secret = this.hash (this.encode (this.secret));
             query['signature'] = this.hmac (this.encode (request), this.encode (secret));
             body = this.urlencode (query);
             headers = {
@@ -350,20 +373,37 @@ module.exports = class btcbox extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response) {
-        // typical error response: {"result":false,"code":"401"}
-        if (httpCode >= 400)
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
             return; // resort to defaultErrorHandler
-        if (body[0] !== '{')
-            return; // not json, resort to defaultErrorHandler
+        }
+        // typical error response: {"result":false,"code":"401"}
+        if (httpCode >= 400) {
+            return; // resort to defaultErrorHandler
+        }
         const result = this.safeValue (response, 'result');
-        if (result === undefined || result === true)
+        if (result === undefined || result === true) {
             return; // either public API (no error codes expected) or success
+        }
         const errorCode = this.safeValue (response, 'code');
         const feedback = this.id + ' ' + this.json (response);
         const exceptions = this.exceptions;
-        if (errorCode in exceptions)
+        if (errorCode in exceptions) {
             throw new exceptions[errorCode] (feedback);
+        }
         throw new ExchangeError (feedback); // unknown message
+    }
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
+        if (typeof response === 'string') {
+            // sometimes the exchange returns whitespace prepended to json
+            response = this.strip (response);
+            if (!this.isJsonEncodedObject (response)) {
+                throw new ExchangeError (this.id + ' ' + response);
+            }
+            response = JSON.parse (response);
+        }
+        return response;
     }
 };

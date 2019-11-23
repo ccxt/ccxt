@@ -16,20 +16,31 @@ from ccxt.base.decimal_to_precision import TRUNCATE              # noqa F401
 from ccxt.base.decimal_to_precision import ROUND                 # noqa F401
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES        # noqa F401
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS    # noqa F401
+from ccxt.base.decimal_to_precision import TICK_SIZE             # noqa F401
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa F401
 from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401
+from ccxt.base.decimal_to_precision import number_to_string      # noqa F401
 
 # ----------------------------------------------------------------------------
 
 
 # ----------------------------------------------------------------------------
-# number_to_string works, not supported in Python and PHP yet
+# number_to_string
 
-# assert(number_to_string(-7.9e-7) == '-0.0000007899999999999999')
-# assert(number_to_string( 7.9e-7) ==  '0.0000007899999999999999')
-# assert(number_to_string(-12.345) == '-12.345')
-# assert(number_to_string( 12.345) == '12.345')
-# assert(number_to_string(0) == '0')
+assert(number_to_string(-7.8e-7) == '-0.00000078')
+assert(number_to_string(7.8e-7) == '0.00000078')
+assert(number_to_string(-17.805e-7) == '-0.0000017805')
+assert(number_to_string(17.805e-7) == '0.0000017805')
+assert(number_to_string(-7.0005e27) == '-7000500000000000000000000000')
+assert(number_to_string(7.0005e27) == '7000500000000000000000000000')
+assert(number_to_string(-7.9e27) == '-7900000000000000000000000000')
+assert(number_to_string(7.9e27) == '7900000000000000000000000000')
+assert(number_to_string(-12.345) == '-12.345')
+assert(number_to_string(12.345) == '12.345')
+assert(number_to_string(0) == '0')
+# self line breaks the test
+# see https://github.com/ccxt/ccxt/issues/5744
+# assert(number_to_string(0.00000001) == '0.00000001')
 
 # ----------------------------------------------------------------------------
 # testDecimalToPrecisionTruncationToNDigitsAfterDot
@@ -144,6 +155,27 @@ assert(decimal_to_precision('0.098765', ROUND, 1, SIGNIFICANT_DIGITS, PAD_WITH_Z
 assert(decimal_to_precision('0', ROUND, 0, SIGNIFICANT_DIGITS) == '0')
 assert(decimal_to_precision('-0.123', ROUND, 0, SIGNIFICANT_DIGITS) == '0')
 
+# ----------------------------------------------------------------------------
+# testDecimalToPrecisionRoundingToTickSize
+
+assert(decimal_to_precision('0.000123456700', ROUND, 0.00012, TICK_SIZE) == '0.00012')
+assert(decimal_to_precision('0.0001234567', ROUND, 0.00013, TICK_SIZE) == '0.00013')
+assert(decimal_to_precision('0.0001234567', TRUNCATE, 0.00013, TICK_SIZE) == '0')
+assert(decimal_to_precision('101.000123456700', ROUND, 100, TICK_SIZE) == '100')
+assert(decimal_to_precision('0.000123456700', ROUND, 100, TICK_SIZE) == '0')
+assert(decimal_to_precision('165', TRUNCATE, 110, TICK_SIZE) == '110')
+assert(decimal_to_precision('3210', TRUNCATE, 1110, TICK_SIZE) == '2220')
+assert(decimal_to_precision('165', ROUND, 110, TICK_SIZE) == '220')
+assert(decimal_to_precision('0.000123456789', ROUND, 0.00000012, TICK_SIZE) == '0.00012348')
+assert(decimal_to_precision('0.000123456789', TRUNCATE, 0.00000012, TICK_SIZE) == '0.00012336')
+
+assert(decimal_to_precision('0.01', ROUND, 0.0001, TICK_SIZE, PAD_WITH_ZERO) == '0.0100')
+assert(decimal_to_precision('0.01', TRUNCATE, 0.0001, TICK_SIZE, PAD_WITH_ZERO) == '0.0100')
+
+assert(decimal_to_precision('-0.000123456789', ROUND, 0.00000012, TICK_SIZE) == '-0.00012348')
+assert(decimal_to_precision('-0.000123456789', TRUNCATE, 0.00000012, TICK_SIZE) == '-0.00012336')
+assert(decimal_to_precision('-165', TRUNCATE, 110, TICK_SIZE) == '-110')
+assert(decimal_to_precision('-165', ROUND, 110, TICK_SIZE) == '-220')
 
 # ----------------------------------------------------------------------------
 # testDecimalToPrecisionNegativeNumbers
@@ -189,6 +221,7 @@ assert(decimal_to_precision('-69.3', TRUNCATE, -2, DECIMAL_PLACES) == '0')
 assert(decimal_to_precision('69.3', TRUNCATE, -1, SIGNIFICANT_DIGITS) == '60')
 assert(decimal_to_precision('-69.3', TRUNCATE, -1, SIGNIFICANT_DIGITS) == '-60')
 assert(decimal_to_precision('69.3', TRUNCATE, -2, SIGNIFICANT_DIGITS) == '0')
+assert(decimal_to_precision('1602000000000000000000', TRUNCATE, 3, SIGNIFICANT_DIGITS) == '1600000000000000000000')
 
 # ----------------------------------------------------------------------------
 # testDecimalToPrecisionErrorHandling(todo)
@@ -200,3 +233,7 @@ assert(decimal_to_precision('69.3', TRUNCATE, -2, SIGNIFICANT_DIGITS) == '0')
 # throws(() =>
 #     decimal_to_precision('foo'),
 #         "invalid number(contains an illegal character 'f')")
+#
+# throws(() =>
+#     decimal_to_precision('0.01', TRUNCATE, -1, TICK_SIZE),
+#         "TICK_SIZE cant be used with negative numPrecisionDigits")

@@ -6,7 +6,7 @@
 from ccxt.binance import binance
 
 
-class binanceje (binance):
+class binanceje(binance):
 
     def describe(self):
         return self.deep_extend(super(binanceje, self).describe(), {
@@ -33,8 +33,8 @@ class binanceje (binance):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'taker': 0.005,
-                    'maker': 0.005,
+                    'taker': 0.0005,
+                    'maker': 0.0005,
                 },
                 # should be deleted, these are outdated and inaccurate
                 'funding': {

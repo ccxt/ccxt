@@ -37,13 +37,16 @@ module.exports = class stronghold extends Exchange {
                 'fetchCurrencies': true,
                 'fetchOrderBook': true,
                 'fetchOpenOrders': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchMyTrades': true,
                 'fetchDepositAddress': false,
                 'createDepositAddress': true,
                 'withdraw': true,
                 'fetchTicker': false,
+                'fetchTickers': false,
                 'fetchAccounts': true,
+                'fetchTransactions': true,
             },
             'api': {
                 'public': {
@@ -110,6 +113,7 @@ module.exports = class stronghold extends Exchange {
                     'XLM': 'stellar',
                     'XRP': 'ripple',
                     'LTC': 'litecoin',
+                    'SHX': 'stellar',
                 },
             },
             'exceptions': {
@@ -191,12 +195,12 @@ module.exports = class stronghold extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const marketId = entry['id'];
-            const baseId = entry['baseAssetId'];
-            const quoteId = entry['counterAssetId'];
+            const baseId = this.safeString (entry, 'baseAssetId');
+            const quoteId = this.safeString (entry, 'counterAssetId');
             const baseAssetId = baseId.split ('/')[0];
             const quoteAssetId = quoteId.split ('/')[0];
-            const base = this.commonCurrencyCode (baseAssetId);
-            const quote = this.commonCurrencyCode (quoteAssetId);
+            const base = this.safeCurrencyCode (baseAssetId);
+            const quote = this.safeCurrencyCode (quoteAssetId);
             const symbol = base + '/' + quote;
             const limits = {
                 'amount': {
@@ -265,7 +269,7 @@ module.exports = class stronghold extends Exchange {
             const entry = data[i];
             const assetId = this.safeString (entry, 'id');
             const currencyId = this.safeString (entry, 'code');
-            const code = this.commonCurrencyCode (currencyId);
+            const code = this.safeCurrencyCode (currencyId);
             const precision = this.safeInteger (entry, 'displayDecimalsFull');
             result[code] = {
                 'code': code,
@@ -372,7 +376,7 @@ module.exports = class stronghold extends Exchange {
             side = this.safeString (trade, 'side');
             timestamp = this.parse8601 (this.safeString (trade, 'executedAt'));
             orderId = this.safeString (trade, 'orderId');
-            let marketId = this.safeString (trade, 'marketId');
+            const marketId = this.safeString (trade, 'marketId');
             market = this.safeValue (this.markets_by_id, marketId);
             const isMaker = this.safeValue (trade, 'maker');
             takerOrMaker = isMaker ? 'maker' : 'taker';
@@ -423,8 +427,9 @@ module.exports = class stronghold extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        let statuses = {
+        const statuses = {
             'queued': 'pending',
+            'settling': 'pending',
         };
         return this.safeString (statuses, status, status);
     }
@@ -450,7 +455,7 @@ module.exports = class stronghold extends Exchange {
         let code = undefined;
         if (assetId !== undefined) {
             const currencyId = assetId.split ('/')[0];
-            code = this.commonCurrencyCode (currencyId);
+            code = this.safeCurrencyCode (currencyId);
         } else {
             if (currency !== undefined) {
                 code = currency['code'];
@@ -464,7 +469,10 @@ module.exports = class stronghold extends Exchange {
             feeRate = feeCost / amount;
         }
         const direction = this.safeString (transaction, 'direction');
-        const type = (direction === 'outgoing') ? 'withdraw' : 'deposit';
+        const datetime = this.safeString (transaction, 'requestedAt');
+        const timestamp = this.parse8601 (datetime);
+        const updated = this.parse8601 (this.safeString (transaction, 'updatedAt'));
+        const type = (direction === 'outgoing' || direction === 'withdrawal') ? 'withdrawal' : 'deposit';
         const fee = {
             'cost': feeCost,
             'rate': feeRate,
@@ -478,11 +486,11 @@ module.exports = class stronghold extends Exchange {
             'fee': fee,
             'tag': undefined,
             'type': type,
-            'updated': undefined,
+            'updated': updated,
             'address': undefined,
             'txid': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': datetime,
         };
     }
 
@@ -607,17 +615,19 @@ module.exports = class stronghold extends Exchange {
             throw new ArgumentsRequired (this.id + " fetchBalance requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
         }
         const response = await this.privateGetVenuesVenueIdAccountsAccountId (request);
-        const balances = response['result']['balances'];
-        let result = {};
+        const balances = this.safeValue (response['result'], 'balances');
+        const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
-            const entry = balances[i];
-            const asset = entry['assetId'].split ('/')[0];
-            const code = this.commonCurrencyCode (asset);
-            let account = {};
-            account['total'] = this.safeFloat (entry, 'amount', 0.0);
-            account['free'] = this.safeFloat (entry, 'availableForTrade', 0.0);
-            account['used'] = account['total'] - account['free'];
-            result[code] = account;
+            const balance = balances[i];
+            const assetId = this.safeString (balance, 'assetId');
+            if (assetId !== undefined) {
+                const currencyId = assetId.split ('/')[0];
+                const code = this.safeCurrencyCode (currencyId);
+                const account = {};
+                account['total'] = this.safeFloat (balance, 'amount');
+                account['free'] = this.safeFloat (balance, 'availableForTrade');
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
@@ -683,7 +693,7 @@ module.exports = class stronghold extends Exchange {
         if (paymentMethod === undefined) {
             throw new NotSupported (this.id + ' withdraw requires code to be BTC, ETH, or XLM');
         }
-        let request = this.extend ({
+        const request = this.extend ({
             'venueId': this.options['venueId'],
             'accountId': await this.getActiveAccount (),
             'assetId': this.currencyId (code),
@@ -721,7 +731,7 @@ module.exports = class stronghold extends Exchange {
         };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             return; // fallback to base error handler by default
         }
@@ -747,7 +757,7 @@ module.exports = class stronghold extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = '/' + this.version + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + request;
         if (Object.keys (query).length) {
             if (method === 'GET') {

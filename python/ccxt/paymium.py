@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 
 
-class paymium (Exchange):
+class paymium(Exchange):
 
     def describe(self):
         return self.deep_extend(super(paymium, self).describe(), {
@@ -23,6 +23,7 @@ class paymium (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg',
                 'api': 'https://paymium.com/api',
                 'www': 'https://www.paymium.com',
+                'fees': 'https://www.paymium.com/page/help/fees',
                 'doc': [
                     'https://github.com/Paymium/api-documentation',
                     'https://www.paymium.com/page/developers',
@@ -63,45 +64,47 @@ class paymium (Exchange):
                 },
             },
             'markets': {
-                'BTC/EUR': {'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
+                'BTC/EUR': {'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'btc', 'quoteId': 'eur'},
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0059,
-                    'taker': 0.0059,
+                    'maker': 0.002,
+                    'taker': 0.002,
                 },
             },
         })
 
     def fetch_balance(self, params={}):
-        balances = self.privateGetUser()
-        result = {'info': balances}
+        self.load_markets()
+        response = self.privateGetUser(params)
+        result = {'info': response}
         currencies = list(self.currencies.keys())
         for i in range(0, len(currencies)):
-            currency = currencies[i]
-            lowercase = currency.lower()
-            account = self.account()
-            balance = 'balance_' + lowercase
-            locked = 'locked_' + lowercase
-            if balance in balances:
-                account['free'] = balances[balance]
-            if locked in balances:
-                account['used'] = balances[locked]
-            account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+            code = currencies[i]
+            currencyId = self.currencyId(code)
+            free = 'balance_' + currencyId
+            if free in response:
+                account = self.account()
+                used = 'locked_' + currencyId
+                account['free'] = self.safe_float(response, free)
+                account['used'] = self.safe_float(response, used)
+                result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
-        orderbook = self.publicGetDataIdDepth(self.extend({
+        self.load_markets()
+        request = {
             'id': self.market_id(symbol),
-        }, params))
-        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
+        }
+        response = self.publicGetDataIdDepth(self.extend(request, params))
+        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
 
     def fetch_ticker(self, symbol, params={}):
-        ticker = self.publicGetDataIdTicker(self.extend({
+        request = {
             'id': self.market_id(symbol),
-        }, params))
-        timestamp = ticker['at'] * 1000
+        }
+        ticker = self.publicGetDataIdTicker(self.extend(request, params))
+        timestamp = self.safe_timestamp(ticker, 'at')
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = None
@@ -132,47 +135,65 @@ class paymium (Exchange):
         }
 
     def parse_trade(self, trade, market):
-        timestamp = int(trade['created_at_int']) * 1000
-        volume = 'traded_' + market['base'].lower()
+        timestamp = self.safe_timestamp(trade, 'created_at_int')
+        id = self.safe_string(trade, 'uuid')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        side = self.safe_string(trade, 'side')
+        price = self.safe_float(trade, 'price')
+        amountField = 'traded_' + market['base'].lower()
+        amount = self.safe_float(trade, amountField)
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = amount * price
         return {
             'info': trade,
-            'id': trade['uuid'],
+            'id': id,
             'order': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
-            'side': trade['side'],
-            'price': trade['price'],
-            'amount': trade[volume],
+            'side': side,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetDataIdTrades(self.extend({
+        request = {
             'id': market['id'],
-        }, params))
+        }
+        response = self.publicGetDataIdTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
-        order = {
+        self.load_markets()
+        request = {
             'type': self.capitalize(type) + 'Order',
             'currency': self.market_id(symbol),
             'direction': side,
             'amount': amount,
         }
         if type != 'market':
-            order['price'] = price
-        response = self.privatePostUserOrders(self.extend(order, params))
+            request['price'] = price
+        response = self.privatePostUserOrders(self.extend(request, params))
         return {
             'info': response,
             'id': response['uuid'],
         }
 
     def cancel_order(self, id, symbol=None, params={}):
-        return self.privateDeleteUserOrdersUUIDCancel(self.extend({
+        request = {
             'UUID': id,
-        }, params))
+        }
+        return self.privateDeleteUserOrdersUUIDCancel(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)

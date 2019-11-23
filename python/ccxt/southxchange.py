@@ -5,10 +5,9 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-from ccxt.base.errors import ExchangeError
 
 
-class southxchange (Exchange):
+class southxchange(Exchange):
 
     def describe(self):
         return self.deep_extend(super(southxchange, self).describe(), {
@@ -43,9 +42,11 @@ class southxchange (Exchange):
                     'post': [
                         'cancelMarketOrders',
                         'cancelOrder',
+                        'getOrder',
                         'generatenewaddress',
                         'listOrders',
                         'listBalances',
+                        'listTransactions',
                         'placeOrder',
                         'withdraw',
                     ],
@@ -55,8 +56,8 @@ class southxchange (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': 0.1 / 100,
+                    'taker': 0.3 / 100,
                 },
             },
             'commonCurrencies': {
@@ -66,16 +67,16 @@ class southxchange (Exchange):
         })
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetMarkets()
+        markets = self.publicGetMarkets(params)
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
+        for i in range(0, len(markets)):
+            market = markets[i]
             baseId = market[0]
             quoteId = market[1]
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            id = symbol
+            id = baseId + '/' + quoteId
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -90,35 +91,27 @@ class southxchange (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privatePostListBalances()
-        if not balances:
-            raise ExchangeError(self.id + ' fetchBalance got an unrecognized response')
-        result = {'info': balances}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currencyId = balance['Currency']
-            uppercase = currencyId.upper()
-            currency = self.currencies_by_id[uppercase]
-            code = currency['code']
-            free = float(balance['Available'])
-            deposited = float(balance['Deposited'])
-            unconfirmed = float(balance['Unconfirmed'])
-            total = self.sum(deposited, unconfirmed)
-            used = total - free
-            account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+        response = self.privatePostListBalances(params)
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 'Currency')
+            code = self.safe_currency_code(currencyId)
+            deposited = self.safe_float(balance, 'Deposited')
+            unconfirmed = self.safe_float(balance, 'Unconfirmed')
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'Available')
+            account['total'] = self.sum(deposited, unconfirmed)
             result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetBookSymbol(self.extend({
+        request = {
             'symbol': self.market_id(symbol),
-        }, params))
-        return self.parse_order_book(orderbook, None, 'BuyOrders', 'SellOrders', 'Price', 'Amount')
+        }
+        response = self.publicGetBookSymbol(self.extend(request, params))
+        return self.parse_order_book(response, None, 'BuyOrders', 'SellOrders', 'Price', 'Amount')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
@@ -169,37 +162,56 @@ class southxchange (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        ticker = self.publicGetPriceSymbol(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
-        return self.parse_ticker(ticker, market)
+        }
+        response = self.publicGetPriceSymbol(self.extend(request, params))
+        return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market):
-        timestamp = trade['At'] * 1000
+        timestamp = self.safe_timestamp(trade, 'At')
+        price = self.safe_float(trade, 'Price')
+        amount = self.safe_float(trade, 'Amount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
+        side = self.safe_string(trade, 'Type')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'id': None,
             'order': None,
             'type': None,
-            'side': trade['Type'],
-            'price': trade['Price'],
-            'amount': trade['Amount'],
+            'side': side,
+            'price': price,
+            'takerOrMaker': None,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTradesSymbol(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        response = self.publicGetTradesSymbol(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def parse_order(self, order, market=None):
         status = 'open'
-        symbol = order['ListingCurrency'] + '/' + order['ReferenceCurrency']
+        baseId = self.safe_string(order, 'ListingCurrency')
+        quoteId = self.safe_string(order, 'ReferenceCurrency')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        symbol = base + '/' + quote
         timestamp = None
         price = self.safe_float(order, 'LimitPrice')
         amount = self.safe_float(order, 'OriginalAmount')
@@ -210,16 +222,18 @@ class southxchange (Exchange):
             cost = price * amount
             if remaining is not None:
                 filled = amount - remaining
-        orderType = order['Type'].lower()
+        type = 'limit'
+        side = self.safe_string_lower(order, 'Type')
+        id = self.safe_string(order, 'Code')
         result = {
             'info': order,
-            'id': str(order['Code']),
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'symbol': symbol,
-            'type': 'limit',
-            'side': orderType,
+            'type': type,
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -235,21 +249,21 @@ class southxchange (Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        response = self.privatePostListOrders()
+        response = self.privatePostListOrders(params)
         return self.parse_orders(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        order = {
+        request = {
             'listingCurrency': market['base'],
             'referenceCurrency': market['quote'],
             'type': side,
             'amount': amount,
         }
         if type == 'limit':
-            order['limitPrice'] = price
-        response = self.privatePostPlaceOrder(self.extend(order, params))
+            request['limitPrice'] = price
+        response = self.privatePostPlaceOrder(self.extend(request, params))
         return {
             'info': response,
             'id': str(response),
@@ -257,16 +271,18 @@ class southxchange (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privatePostCancelOrder(self.extend({
+        request = {
             'orderCode': id,
-        }, params))
+        }
+        return self.privatePostCancelOrder(self.extend(request, params))
 
     def create_deposit_address(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
-        response = self.privatePostGeneratenewaddress(self.extend({
+        request = {
             'currency': currency['id'],
-        }, params))
+        }
+        response = self.privatePostGeneratenewaddress(self.extend(request, params))
         parts = response.split('|')
         numParts = len(parts)
         address = parts[0]
