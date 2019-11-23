@@ -195,7 +195,7 @@ module.exports = class bitmex extends ccxt.bitmex {
         let name = undefined;
         if (limit === undefined) {
             name = this.safeString (this.options, 'fetchWsOrderBookLevel', 'orderBookL2');
-        } if (limit === 25) {
+        } else if (limit === 25) {
             name = 'orderBookL2_25';
         } else if (limit === 10) {
             name = 'orderBookL10';
@@ -254,16 +254,6 @@ module.exports = class bitmex extends ccxt.bitmex {
     signWsMessage (client, messageHash, message, params = {}) {
         // todo: not implemented yet
         return message;
-    }
-
-    handleWsHeartbeat (client, message) {
-        //
-        // every second (approx) if no other updates are sent
-        //
-        //     { "event": "heartbeat" }
-        //
-        const event = this.safeString (message, 'event');
-        this.resolveWsFuture (client, event, message);
     }
 
     parseWsTrade (client, trade, market = undefined) {
@@ -409,60 +399,6 @@ module.exports = class bitmex extends ccxt.bitmex {
                 this.resolveWsFuture (client, messageHash, orderbook.limit ());
             }
         }
-
-        // else if (action === 'insert') {
-        // } else if (action === 'update') {
-        // } else if (action === 'delete') {
-        // }
-        // const messageLength = message.length;
-        // const wsName = message[messageLength - 1];
-        // const market = this.safeValue (this.options['marketsByWsName'], wsName);
-        // const symbol = market['symbol'];
-        // let timestamp = undefined;
-        // const messageHash = wsName + ':book';
-        // // if this is a snapshot
-        // if ('as' in message[1]) {
-        //     // todo get depth from marketsByWsName
-        //     this.orderbooks[symbol] = this.limitedOrderBook ({}, 10);
-        //     const orderbook = this.orderbooks[symbol];
-        //     const sides = {
-        //         'as': 'asks',
-        //         'bs': 'bids',
-        //     };
-        //     const keys = Object.keys (sides);
-        //     for (let i = 0; i < keys.length; i++) {
-        //         const key = keys[i];
-        //         const side = sides[key];
-        //         const bookside = orderbook[side];
-        //         const deltas = this.safeValue (message[1], key, []);
-        //         timestamp = this.handleWsDeltas (deltas, bookside, timestamp);
-        //     }
-        //     orderbook['timestamp'] = timestamp;
-        //     this.resolveWsFuture (client, messageHash, orderbook.limit ());
-        // } else {
-        //     const orderbook = this.orderbooks[symbol];
-        //     // else, if this is an orderbook update
-        //     let a = undefined;
-        //     let b = undefined;
-        //     if (messageLength === 5) {
-        //         a = this.safeValue (message[1], 'a', []);
-        //         b = this.safeValue (message[2], 'b', []);
-        //     } else {
-        //         if ('a' in message[1]) {
-        //             a = this.safeValue (message[1], 'a', []);
-        //         } else {
-        //             b = this.safeValue (message[1], 'b', []);
-        //         }
-        //     }
-        //     if (a !== undefined) {
-        //         timestamp = this.handleWsDeltas (a, orderbook['asks'], timestamp);
-        //     }
-        //     if (b !== undefined) {
-        //         timestamp = this.handleWsDeltas (b, orderbook['bids'], timestamp);
-        //     }
-        //     orderbook['timestamp'] = timestamp;
-        //     this.resolveWsFuture (client, messageHash, orderbook.limit ());
-        // }
     }
 
     handleWsDeltas (deltas, bookside, timestamp) {
@@ -500,22 +436,22 @@ module.exports = class bitmex extends ccxt.bitmex {
         // involves an identified request/response sequence
         //
         //     {
-        //         channelID: 210,
-        //         channelName: 'book-10',
-        //         event: 'subscriptionStatus',
-        //         reqid: 1574146735269,
-        //         pair: 'ETH/XBT',
-        //         status: 'subscribed',
-        //         subscription: { depth: 10, name: 'book' }
+        //         success: true,
+        //         subscribe: 'orderBookL2:XBTUSD',
+        //         request: { op: 'subscribe', args: [ 'orderBookL2:XBTUSD' ] }
         //     }
         //
-        const channelId = this.safeString (message, 'channelID');
-        this.options['subscriptionStatusByChannelId'][channelId] = message;
-        const requestId = this.safeString (message, 'reqid');
-        if (client.futures[requestId]) {
-            // todo: transpile delete in ccxt
-            delete client.futures[requestId];
-        }
+        // --------------------------------------------------------------------
+        //
+        // const channelId = this.safeString (message, 'channelID');
+        // this.options['subscriptionStatusByChannelId'][channelId] = message;
+        // const requestId = this.safeString (message, 'reqid');
+        // if (client.futures[requestId]) {
+        //     // todo: transpile delete in ccxt
+        //     delete client.futures[requestId];
+        // }
+        //
+        return message;
     }
 
     handleWsErrors (client, message) {

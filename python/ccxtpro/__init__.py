@@ -79,7 +79,6 @@ from ccxt.async_support.bitkk import bitkk                                # noqa
 from ccxt.async_support.bitlish import bitlish                            # noqa: F401
 from ccxt.async_support.bitmart import bitmart                            # noqa: F401
 from ccxt.async_support.bitmax import bitmax                              # noqa: F401
-from ccxt.async_support.bitmex import bitmex                              # noqa: F401
 from ccxt.async_support.bitso import bitso                                # noqa: F401
 from ccxt.async_support.bitstamp import bitstamp                          # noqa: F401
 from ccxt.async_support.bitstamp1 import bitstamp1                        # noqa: F401
@@ -96,6 +95,7 @@ from ccxt.async_support.btctradeim import btctradeim                      # noqa
 from ccxt.async_support.btctradeua import btctradeua                      # noqa: F401
 from ccxt.async_support.btcturk import btcturk                            # noqa: F401
 from ccxt.async_support.buda import buda                                  # noqa: F401
+from ccxt.async_support.bw import bw                                      # noqa: F401
 from ccxt.async_support.bytetrade import bytetrade                        # noqa: F401
 from ccxt.async_support.cex import cex                                    # noqa: F401
 from ccxt.async_support.chilebit import chilebit                          # noqa: F401
@@ -183,12 +183,14 @@ from ccxt.async_support.zb import zb                                      # noqa
 
 from ccxtpro.binance import binance                                       # noqa: F401
 from ccxtpro.bitfinex import bitfinex                                     # noqa: F401
+from ccxtpro.bitmex import bitmex                                         # noqa: F401
 from ccxtpro.kraken import kraken                                         # noqa: F401
 from ccxtpro.poloniex import poloniex                                     # noqa: F401
 
 exchanges_by_ids = {
     'binance': binance,                                                   # noqa: F401
     'bitfinex': bitfinex,                                                 # noqa: F401
+    'bitmex': bitmex,                                                     # noqa: F401
     'kraken': kraken,                                                     # noqa: F401
     'poloniex': poloniex,                                                 # noqa: F401
 }

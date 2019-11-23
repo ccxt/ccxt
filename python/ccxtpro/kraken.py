@@ -150,6 +150,48 @@ class kraken(ccxt.kraken):
         result['id'] = None
         raise NotImplemented(self.id + ' handleWsTrades() not implemented yet(wip)')
 
+    def handle_ws_ohlcv(self, client, message):
+        #
+        #     [
+        #         216,  # channelID
+        #         [
+        #             '1574454214.962096',  # Time, seconds since epoch
+        #             '1574454240.000000',  # End timestamp of the interval
+        #             '0.020970',  # Open price at midnight UTC
+        #             '0.020970',  # Intraday high price
+        #             '0.020970',  # Intraday low price
+        #             '0.020970',  # Closing price at midnight UTC
+        #             '0.020970',  # Volume weighted average price
+        #             '0.08636138',  # Accumulated volume today
+        #             1,  # Number of trades today
+        #         ],
+        #         'ohlc-1',  # Channel Name of subscription
+        #         'ETH/XBT',  # Asset pair
+        #     ]
+        #
+        wsName = message[3]
+        name = 'ohlc'
+        candle = message[1]
+        # print(
+        #     self.iso8601(int(float(candle[0]) * 1000)), '-',
+        #     self.iso8601(int(float(candle[1]) * 1000)), ': [',
+        #     float(candle[2]),
+        #     float(candle[3]),
+        #     float(candle[4]),
+        #     float(candle[5]),
+        #     float(candle[7]), ']'
+        # )
+        result = [
+            int(float(candle[0]) * 1000),
+            float(candle[2]),
+            float(candle[3]),
+            float(candle[4]),
+            float(candle[5]),
+            float(candle[7]),
+        ]
+        messageHash = wsName + ':' + name
+        self.resolveWsFuture(client, messageHash, result)
+
     async def fetch_ws_public_message(self, name, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -167,7 +209,7 @@ class kraken(ccxt.kraken):
                 'name': name,
             },
         }
-        future = self.sendWsMessage(url, messageHash, self.extend(subscribe, params), messageHash)
+        future = self.sendWsMessage(url, messageHash, self.deep_extend(subscribe, params), messageHash)
         client = self.clients[url]
         client['futures'][requestId] = future
         return future
@@ -180,14 +222,19 @@ class kraken(ccxt.kraken):
 
     async def fetch_ws_order_book(self, symbol, limit=None, params={}):
         name = 'book'
-        params = {
+        request = {}
+        if limit is not None:
+            request['subscription'] = {'depth': limit}  # default 10, valid options 10, 25, 100, 500, 1000
+        return await self.fetch_ws_public_message(name, symbol, self.extend(request, params))
+
+    async def fetch_ws_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        name = 'ohlc'
+        request = {
             'subscription': {
-                'name': name,
+                'interval': int(self.timeframes[timeframe]),
             },
         }
-        if limit is not None:
-            params['subscription']['depth'] = limit  # default 10, valid options 10, 25, 100, 500, 1000
-        return await self.fetch_ws_public_message(name, symbol, params)
+        return await self.fetch_ws_public_message(name, symbol, self.extend(request, params))
 
     async def load_markets(self, reload=False, params={}):
         markets = await super(kraken, self).load_markets(reload, params)
@@ -429,6 +476,7 @@ class kraken(ccxt.kraken):
                 name = self.safe_string(subscription, 'name')
                 methods = {
                     'book': 'handleWsOrderBook',
+                    'ohlc': 'handleWsOHLCV',
                     'ticker': 'handleWsTicker',
                     'trade': 'handleWsTrades',
                 }
