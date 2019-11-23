@@ -459,7 +459,7 @@ module.exports = class bigone extends Exchange {
         const takerSide = this.safeString (trade, 'taker_side');
         let takerOrMaker = undefined;
         if ((takerSide !== undefined) && (side !== undefined) && (side !== 'SELF_TRADING')) {
-            takerOrMaker = takerSide === side ? 'taker' : 'maker';
+            takerOrMaker = (takerSide === side) ? 'taker' : 'maker';
         }
         if (side === undefined) {
             // taker side is not related to buy/sell side
