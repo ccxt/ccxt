@@ -7,10 +7,9 @@ class OrderBookSide(list):
     # sorted(..., reverse=self.side)
 
     def __init__(self, deltas=[]):
+        super(OrderBookSide, self).__init__([])
         self._index = {}
-        self.data = None
         self._len = None
-        super(OrderBookSide, self).__init__()
         if len(deltas):
             self.update(deltas)
 
@@ -36,7 +35,7 @@ class OrderBookSide(list):
 
     def limit(self, n=None):
         first_element = operator.itemgetter(0)
-        array = sorted(self._index, key=first_element, reverse=self.side)
+        array = sorted(self._index.items(), key=first_element, reverse=self.side)
         if n:
             self._len = n
             for i in range(n):
@@ -73,17 +72,20 @@ class OrderBookSide(list):
             new_slice = slice(key.start, key.stop or self._len, key.step)
             return super(OrderBookSide, self).__setitem__(new_slice, value)
         if key > self._len:
-            raise IndexError('list assignment index out of range')
+            raise IndexError('list assignment index out of range1')
         return super(OrderBookSide, self).__setitem__(key, value)
 
     def __repr__(self):
         return str(list(self))
 
     def extend(self, iterable):
-        i = -1
-        for i, o in enumerate(iterable):
-            self[self._len + i] = o
-        self._len += i + 1
+        evaluated = list(iterable)
+        length = len(evaluated)
+        self[self._len:self._len+length] = evaluated
+        self._len += length
+
+    def append(self, object):
+        self[self._len] = object
 
 # -----------------------------------------------------------------------------
 # some exchanges limit the number of bids/asks in the aggregated orderbook
@@ -98,7 +100,7 @@ class LimitedOrderBookSide(OrderBookSide):
 
     def limit(self, n=None):
         first_element = operator.itemgetter(0)
-        array = sorted(self._index, key=first_element, reverse=self.side)
+        array = sorted(self._index.items(), key=first_element, reverse=self.side)
         if n or self._depth:
             threshold = min(n, self._depth)
             self._len = threshold
