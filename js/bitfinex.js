@@ -60,6 +60,7 @@ module.exports = class bitfinex extends Exchange {
                     'private': 'https://api.bitfinex.com',
                 },
                 'www': 'https://www.bitfinex.com',
+                'referral': 'https://www.bitfinex.com/?refcode=P61eYxFL',
                 'doc': [
                     'https://docs.bitfinex.com/v1/docs',
                     'https://github.com/bitfinexcom/bitfinex-api-node',
