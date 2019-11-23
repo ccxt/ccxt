@@ -149,6 +149,15 @@ class IndexedOrderBookSide extends OrderBookSide {
         }
     }
 
+    restore (price = undefined, size, id) {
+        if (size) {
+            this.index[id][0] = price || this.index[id][0]
+            this.index[id][1] = size
+        } else {
+            delete this.index[id]
+        }
+    }
+
     storeArray (delta) {
         // const [ price, size, id ] = delta
         // const price = delta[0]
