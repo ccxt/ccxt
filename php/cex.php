@@ -817,7 +817,7 @@ class cex extends Exchange {
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
-            'type' => null,
+            'type' => ($price === null) ? 'market' : 'limit',
             'side' => $side,
             'price' => $price,
             'cost' => $cost,
