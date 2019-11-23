@@ -30,7 +30,7 @@ class bigone(Exchange):
                 'createMarketOrder': False,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchMyTrades': False,  # todo support fetchMyTrades
+                'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
@@ -445,6 +445,9 @@ class bigone(Exchange):
                 cost = self.cost_to_precision(symbol, price * amount)
         side = self.safe_string(trade, 'side')
         takerSide = self.safe_string(trade, 'taker_side')
+        takerOrMaker = None
+        if (takerSide is not None) and (side is not None) and (side != 'SELF_TRADING'):
+            takerOrMaker = 'taker' if (takerSide == side) else 'maker'
         if side is None:
             # taker side is not related to buy/sell side
             # the following code is probably a mistake
@@ -473,24 +476,48 @@ class bigone(Exchange):
             'order': orderId,
             'type': 'limit',
             'side': side,
-            'takerOrMaker': None,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': float(cost),
             'info': trade,
         }
+        makerCurrencyCode = None
+        takerCurrencyCode = None
+        if (market is not None) and (takerOrMaker is not None):
+            if side == 'buy':
+                if takerOrMaker == 'maker':
+                    makerCurrencyCode = market['base']
+                    takerCurrencyCode = market['quote']
+                else:
+                    makerCurrencyCode = market['quote']
+                    takerCurrencyCode = market['base']
+            else:
+                if takerOrMaker == 'maker':
+                    makerCurrencyCode = market['quote']
+                    takerCurrencyCode = market['base']
+                else:
+                    makerCurrencyCode = market['base']
+                    takerCurrencyCode = market['quote']
+        elif side == 'SELF_TRADING':
+            if takerSide == 'BID':
+                makerCurrencyCode = market['quote']
+                takerCurrencyCode = market['base']
+            elif takerSide == 'ASK':
+                makerCurrencyCode = market['base']
+                takerCurrencyCode = market['quote']
         makerFeeCost = self.safe_float(trade, 'maker_fee')
         takerFeeCost = self.safe_float(trade, 'taker_fee')
         if makerFeeCost is not None:
             if takerFeeCost is not None:
                 result['fees'] = [
-                    {'cost': makerFeeCost, 'currency': None},
-                    {'cost': takerFeeCost, 'currency': None},
+                    {'cost': makerFeeCost, 'currency': makerCurrencyCode},
+                    {'cost': takerFeeCost, 'currency': takerCurrencyCode},
                 ]
             else:
-                result['fee'] = {'cost': makerFeeCost, 'currency': None}
+                result['fee'] = {'cost': makerFeeCost, 'currency': makerCurrencyCode}
         elif takerFeeCost is not None:
-            result['fee'] = {'cost': takerFeeCost, 'currency': None}
+            result['fee'] = {'cost': takerFeeCost, 'currency': takerCurrencyCode}
         else:
             result['fee'] = None
         return result
