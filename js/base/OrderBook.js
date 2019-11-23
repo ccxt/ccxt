@@ -12,6 +12,8 @@ const { extend, deepExtend } = require ('ccxt/js/base/functions/generic.js')
         IndexedBids,
         IncrementalAsks,
         IncrementalBids,
+        LimitedIndexedAsks,
+        LimitedIndexedBids,
         IncrementalIndexedAsks,
         IncrementalIndexedBids,
     } = require ('./OrderBookSide')
@@ -120,6 +122,18 @@ class IncrementalOrderBook extends OrderBook {
 }
 
 // ----------------------------------------------------------------------------
+// limited and indexed (2 in 1)
+
+class LimitedIndexedOrderBook extends OrderBook {
+    constructor (snapshot = {}, depth = undefined) {
+        super ({
+            'asks': new LimitedIndexedAsks (snapshot.asks || [], depth),
+            'bids': new LimitedIndexedBids (snapshot.bids || [], depth),
+        })
+    }
+}
+
+// ----------------------------------------------------------------------------
 // incremental and indexed (2 in 1)
 
 class IncrementalIndexedOrderBook extends OrderBook {
@@ -139,5 +153,6 @@ module.exports = {
     CountedOrderBook,
     IndexedOrderBook,
     IncrementalOrderBook,
+    LimitedIndexedOrderBook,
     IncrementalIndexedOrderBook,
 }
