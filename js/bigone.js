@@ -20,7 +20,7 @@ module.exports = class bigone extends Exchange {
                 'createMarketOrder': false,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchMyTrades': false, // todo support fetchMyTrades
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
@@ -457,6 +457,10 @@ module.exports = class bigone extends Exchange {
         }
         let side = this.safeString (trade, 'side');
         const takerSide = this.safeString (trade, 'taker_side');
+        let takerOrMaker = undefined;
+        if ((takerSide !== undefined) && (side !== undefined) && (side !== 'SELF_TRADING')) {
+            takerOrMaker = (takerSide === side) ? 'taker' : 'maker';
+        }
         if (side === undefined) {
             // taker side is not related to buy/sell side
             // the following code is probably a mistake
@@ -489,25 +493,54 @@ module.exports = class bigone extends Exchange {
             'order': orderId,
             'type': 'limit',
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': parseFloat (cost),
             'info': trade,
         };
+        let makerCurrencyCode = undefined;
+        let takerCurrencyCode = undefined;
+        if ((market !== undefined) && (takerOrMaker !== undefined)) {
+            if (side === 'buy') {
+                if (takerOrMaker === 'maker') {
+                    makerCurrencyCode = market['base'];
+                    takerCurrencyCode = market['quote'];
+                } else {
+                    makerCurrencyCode = market['quote'];
+                    takerCurrencyCode = market['base'];
+                }
+            } else {
+                if (takerOrMaker === 'maker') {
+                    makerCurrencyCode = market['quote'];
+                    takerCurrencyCode = market['base'];
+                } else {
+                    makerCurrencyCode = market['base'];
+                    takerCurrencyCode = market['quote'];
+                }
+            }
+        } else if (side === 'SELF_TRADING') {
+            if (takerSide === 'BID') {
+                makerCurrencyCode = market['quote'];
+                takerCurrencyCode = market['base'];
+            } else if (takerSide === 'ASK') {
+                makerCurrencyCode = market['base'];
+                takerCurrencyCode = market['quote'];
+            }
+        }
         const makerFeeCost = this.safeFloat (trade, 'maker_fee');
         const takerFeeCost = this.safeFloat (trade, 'taker_fee');
         if (makerFeeCost !== undefined) {
             if (takerFeeCost !== undefined) {
                 result['fees'] = [
-                    { 'cost': makerFeeCost, 'currency': undefined },
-                    { 'cost': takerFeeCost, 'currency': undefined },
+                    { 'cost': makerFeeCost, 'currency': makerCurrencyCode },
+                    { 'cost': takerFeeCost, 'currency': takerCurrencyCode },
                 ];
             } else {
-                result['fee'] = { 'cost': makerFeeCost, 'currency': undefined };
+                result['fee'] = { 'cost': makerFeeCost, 'currency': makerCurrencyCode };
             }
         } else if (takerFeeCost !== undefined) {
-            result['fee'] = { 'cost': takerFeeCost, 'currency': undefined };
+            result['fee'] = { 'cost': takerFeeCost, 'currency': takerCurrencyCode };
         } else {
             result['fee'] = undefined;
         }
