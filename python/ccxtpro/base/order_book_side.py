@@ -37,8 +37,9 @@ class OrderBookSide(list):
         first_element = operator.itemgetter(0)
         array = sorted(self._index.items(), key=first_element, reverse=self.side)
         if n:
-            self._len = n
-            for i in range(n):
+            threshold = min(n, len(array))
+            self._len = threshold
+            for i in range(threshold):
                 self[i] = array[i]
         else:
             self._len = 0
@@ -61,7 +62,8 @@ class OrderBookSide(list):
 
     def __getitem__(self, item):
         if isinstance(item, slice):
-            new_slice = slice(item.start, item.stop or self._len, item.step)
+            stop = min(item.stop or self._len, self._len)
+            new_slice = slice(item.start, stop, item.step)
             return super(OrderBookSide, self).__getitem__(new_slice)
         if item >= self._len:
             raise IndexError('list index out of range')
@@ -73,6 +75,8 @@ class OrderBookSide(list):
             return super(OrderBookSide, self).__setitem__(new_slice, value)
         if key > self._len:
             raise IndexError('list assignment index out of range1')
+        if key == super(OrderBookSide, self).__len__():
+            return super(OrderBookSide, self).append(value)
         return super(OrderBookSide, self).__setitem__(key, value)
 
     def __repr__(self):
@@ -86,6 +90,7 @@ class OrderBookSide(list):
 
     def append(self, object):
         self[self._len] = object
+        self._len += 1
 
 # -----------------------------------------------------------------------------
 # some exchanges limit the number of bids/asks in the aggregated orderbook
@@ -102,7 +107,7 @@ class LimitedOrderBookSide(OrderBookSide):
         first_element = operator.itemgetter(0)
         array = sorted(self._index.items(), key=first_element, reverse=self.side)
         if n or self._depth:
-            threshold = min(n, self._depth)
+            threshold = min(n, len(array), self._depth)
             self._len = threshold
             for i in range(threshold):
                 self[i] = array[i]
@@ -153,6 +158,13 @@ class IndexedOrderBookSide(OrderBookSide):
         else:
             if order_id in self._index:
                 del self._index[order_id]
+
+# -----------------------------------------------------------------------------
+# limited and order-id-based
+
+
+class LimitedIndexedOrderBookSide(IndexedOrderBookSide, LimitedOrderBookSide):
+    pass
 
 # -----------------------------------------------------------------------------
 # adjusts the volumes by positive or negative relative changes or differences
@@ -214,6 +226,8 @@ class CountedAsks(CountedOrderBookSide): side = False                       # no
 class CountedBids(CountedOrderBookSide): side = True                        # noqa
 class IndexedAsks(IndexedOrderBookSide): side = False                       # noqa
 class IndexedBids(IndexedOrderBookSide): side = True                        # noqa
+class LimitedIndexedAsks(LimitedIndexedOrderBookSide): side = False         # noqa
+class LimitedIndexedBids(LimitedIndexedOrderBookSide): side = True          # noqa
 class IncrementalAsks(IncrementalOrderBookSide): side = False               # noqa
 class IncrementalBids(IncrementalOrderBookSide): side = True                # noqa
 class IncrementalIndexedAsks(IncrementalIndexedOrderBookSide): side = False # noqa
