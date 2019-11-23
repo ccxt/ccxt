@@ -1,14 +1,15 @@
-import collections
 import operator
+import itertools
 
 
-class OrderBookSide(collections.UserList):
+class OrderBookSide(list):
     side = None  # set to True for bids and False for asks
     # sorted(..., reverse=self.side)
 
     def __init__(self, deltas=[]):
         self._index = {}
         self.data = None
+        self._len = None
         super(OrderBookSide, self).__init__()
         if len(deltas):
             self.update(deltas)
@@ -20,7 +21,12 @@ class OrderBookSide(collections.UserList):
         # limit needs to be called after await future in derived class
 
     def storeArray(self, delta):
-        self.store(*delta)
+        price = delta[0]
+        size = delta[1]
+        if size:
+            self._index[price] = size
+        else:
+            del self._index[price]
 
     def store(self, price, size):
         if size:
@@ -31,18 +37,61 @@ class OrderBookSide(collections.UserList):
     def limit(self, n=None):
         first_element = operator.itemgetter(0)
         array = sorted(self._index, key=first_element, reverse=self.side)
-        if n and n < len(array):
-            truncated = array[:n]
+        if n:
+            self._len = n
+            for i in range(n):
+                self[i] = array[i]
         else:
-            truncated = array
-        self.data = truncated
+            self._len = 0
+            self.extend(array)
         return self
 
+    """These methods allow fast truncation of a list"""
+    def __iter__(self):
+        super_iterator = super(OrderBookSide, self).__iter__()
+        if self._len:
+            return super_iterator
+        else:
+            return itertools.islice(super_iterator, self._len)
+
+    def __len__(self):
+        if self._len:
+            return self._len
+        else:
+            return super(OrderBookSide, self).__len__()
+
+    def __getitem__(self, item):
+        if isinstance(item, slice):
+            stop = min(item.stop or 0, self._len)
+            new_slice = slice(item.start, stop, item.step)
+            return super(OrderBookSide, self).__getitem__(new_slice)
+        if item >= self._len:
+            raise IndexError('list index out of range')
+        return super(OrderBookSide, self).__getitem__(item)
+
+    def __setitem__(self, key, value):
+        if isinstance(key, slice):
+            stop = min(key.stop or 0, self._len)
+            new_slice = slice(key.start, stop, key.step)
+            return super(OrderBookSide, self).__setitem__(new_slice, value)
+        if key > self._len:
+            raise IndexError('list assignment index out of range')
+        return super(OrderBookSide, self).__setitem__(key, value)
+
+    def __repr__(self):
+        return str(list(self))
+
+    def extend(self, iterable):
+        i = -1
+        for i, o in enumerate(iterable):
+            self[self._len + i] = o
+        self._len += i + 1
 
 # -----------------------------------------------------------------------------
 # some exchanges limit the number of bids/asks in the aggregated orderbook
 # orders beyond the limit threshold are not updated with new ws deltas
 # those orders should not be returned to the user, they are outdated quickly
+
 
 class LimitedOrderBookSide(OrderBookSide):
     def __init__(self, deltas=[], depth=None):
@@ -79,9 +128,9 @@ class CountedOrderBookSide(OrderBookSide):
         else:
             del self._index[price]
 
-
 # -----------------------------------------------------------------------------
 # indexed by order ids (3rd value in a bidask delta)
+
 
 class IndexedOrderBookSide(OrderBookSide):
     def store(self, price, size, order_id):
