@@ -152,6 +152,49 @@ module.exports = class kraken extends ccxt.kraken {
         throw NotImplemented (this.id + ' handleWsTrades() not implemented yet (wip)');
     }
 
+    handleWsOHLCV (client, message) {
+        //
+        //     [
+        //         216, // channelID
+        //         [
+        //             '1574454214.962096', // Time, seconds since epoch
+        //             '1574454240.000000', // End timestamp of the interval
+        //             '0.020970', // Open price at midnight UTC
+        //             '0.020970', // Intraday high price
+        //             '0.020970', // Intraday low price
+        //             '0.020970', // Closing price at midnight UTC
+        //             '0.020970', // Volume weighted average price
+        //             '0.08636138', // Accumulated volume today
+        //             1, // Number of trades today
+        //         ],
+        //         'ohlc-1', // Channel Name of subscription
+        //         'ETH/XBT', // Asset pair
+        //     ]
+        //
+        const wsName = message[3];
+        const name = 'ohlc';
+        const candle = message[1];
+        // console.log (
+        //     this.iso8601 (parseInt (parseFloat (candle[0]) * 1000)), '-',
+        //     this.iso8601 (parseInt (parseFloat (candle[1]) * 1000)), ': [',
+        //     parseFloat (candle[2]),
+        //     parseFloat (candle[3]),
+        //     parseFloat (candle[4]),
+        //     parseFloat (candle[5]),
+        //     parseFloat (candle[7]), ']'
+        // );
+        const result = [
+            parseInt (parseFloat (candle[0]) * 1000),
+            parseFloat (candle[2]),
+            parseFloat (candle[3]),
+            parseFloat (candle[4]),
+            parseFloat (candle[5]),
+            parseFloat (candle[7]),
+        ];
+        const messageHash = wsName + ':' + name;
+        this.resolveWsFuture (client, messageHash, result);
+    }
+
     async fetchWsPublicMessage (name, symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -169,7 +212,7 @@ module.exports = class kraken extends ccxt.kraken {
                 'name': name,
             },
         };
-        const future = this.sendWsMessage (url, messageHash, this.extend (subscribe, params), messageHash);
+        const future = this.sendWsMessage (url, messageHash, this.deepExtend (subscribe, params), messageHash);
         const client = this.clients[url];
         client['futures'][requestId] = future;
         return future;
@@ -467,6 +510,7 @@ module.exports = class kraken extends ccxt.kraken {
                 const name = this.safeString (subscription, 'name');
                 const methods = {
                     'book': 'handleWsOrderBook',
+                    'ohlc': 'handleWsOHLCV',
                     'ticker': 'handleWsTicker',
                     'trade': 'handleWsTrades',
                 };
