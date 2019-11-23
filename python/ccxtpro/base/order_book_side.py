@@ -62,8 +62,7 @@ class OrderBookSide(list):
 
     def __getitem__(self, item):
         if isinstance(item, slice):
-            stop = min(item.stop or 0, self._len)
-            new_slice = slice(item.start, stop, item.step)
+            new_slice = slice(item.start, item.stop or self._len, item.step)
             return super(OrderBookSide, self).__getitem__(new_slice)
         if item >= self._len:
             raise IndexError('list index out of range')
@@ -71,8 +70,7 @@ class OrderBookSide(list):
 
     def __setitem__(self, key, value):
         if isinstance(key, slice):
-            stop = min(key.stop or 0, self._len)
-            new_slice = slice(key.start, stop, key.step)
+            new_slice = slice(key.start, key.stop or self._len, key.step)
             return super(OrderBookSide, self).__setitem__(new_slice, value)
         if key > self._len:
             raise IndexError('list assignment index out of range')
@@ -101,18 +99,14 @@ class LimitedOrderBookSide(OrderBookSide):
     def limit(self, n=None):
         first_element = operator.itemgetter(0)
         array = sorted(self._index, key=first_element, reverse=self.side)
-        if (n and n < len(array)) or self._depth:
-            truncated = []
-            self._index = {}
-            length = min(n, self._depth)
-            for i in range(length):
-                truncated[i] = data = array[i]
-                price = data[0]
-                size = data[1]
-                self._index[price] = size
+        if n or self._depth:
+            threshold = min(n, self._depth)
+            self._len = threshold
+            for i in range(threshold):
+                self[i] = array[i]
         else:
-            truncated = array
-        self.data = truncated
+            self._len = 0
+            self.extend(array)
         return self
 
 
@@ -123,10 +117,19 @@ class LimitedOrderBookSide(OrderBookSide):
 
 class CountedOrderBookSide(OrderBookSide):
     def store(self, price, size, count):
-        if count:
-            super(CountedOrderBookSide, self).store(price, size)
+        if count and size:
+            self._index[price] = [price, size, count]
         else:
-            del self._index[price]
+            if price in self._index:
+                del self._index[price]
+
+    def storeArray(self, delta):
+        price, size, count = delta
+        if count and size:
+            self._index[price] = delta
+        else:
+            if price in self._index:
+                del self._index[price]
 
 # -----------------------------------------------------------------------------
 # indexed by order ids (3rd value in a bidask delta)
@@ -137,7 +140,8 @@ class IndexedOrderBookSide(OrderBookSide):
         if size:
             self._index[order_id] = [price, size, order_id]
         else:
-            del self._index[order_id]
+            if order_id in self._index:
+                del self._index[order_id]
 
     def storeArray(self, delta):
         size = delta[1]
@@ -145,7 +149,8 @@ class IndexedOrderBookSide(OrderBookSide):
         if size:
             self._index[order_id] = delta
         else:
-            del self._index[order_id]
+            if order_id in self._index:
+                del self._index[order_id]
 
 # -----------------------------------------------------------------------------
 # adjusts the volumes by positive or negative relative changes or differences
@@ -155,11 +160,20 @@ class IncrementalOrderBookSide(OrderBookSide):
     def store(self, price, size):
         if size:
             result = self._index.get(price, 0) + size
-            if result < 0:
-                del self._index[price]
-            else:
+            if result > 0:
                 self._index[price] = result
-        else:
+                return
+        if price in self._index:
+            del self._index[price]
+
+    def storeArray(self, delta):
+        price, size = delta
+        if size:
+            result = self._index.get(price, 0) + size
+            if result > 0:
+                self._index[price] = result
+                return
+        if price in self._index:
             del self._index[price]
 
 # -----------------------------------------------------------------------------
@@ -170,11 +184,20 @@ class IncrementalIndexedOrderBookSide(OrderBookSide):
     def store(self, price, size, order_id):
         if size:
             result = self._index.get(price, 0) + size
-            if result < 0:
-                del self._index[order_id]
-            else:
+            if result > 0:
                 self._index[order_id] = result
-        else:
+                return
+        if order_id in self._index:
+            del self._index[order_id]
+
+    def storeArray(self, delta):
+        price, size, order_id = delta
+        if size:
+            result = self._index.get(price, 0) + size
+            if result > 0:
+                self._index[order_id] = result
+                return
+        if order_id in self._index:
             del self._index[order_id]
 
 # -----------------------------------------------------------------------------
