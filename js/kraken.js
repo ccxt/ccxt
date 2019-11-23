@@ -504,22 +504,20 @@ module.exports = class kraken extends ccxt.kraken {
     handleWsMessage (client, message) {
         if (Array.isArray (message)) {
             const channelId = message[0].toString ();
-            const subscriptionStatus = this.safeValue (this.options['subscriptionStatusByChannelId'], channelId);
-            if (subscriptionStatus !== undefined) {
-                const subscription = this.safeValue (subscriptionStatus, 'subscription', {});
-                const name = this.safeString (subscription, 'name');
-                const methods = {
-                    'book': 'handleWsOrderBook',
-                    'ohlc': 'handleWsOHLCV',
-                    'ticker': 'handleWsTicker',
-                    'trade': 'handleWsTrades',
-                };
-                const method = this.safeString (methods, name);
-                if (method === undefined) {
-                    return message;
-                } else {
-                    return this[method] (client, message);
-                }
+            const subscriptionStatus = this.safeValue (this.options['subscriptionStatusByChannelId'], channelId, {});
+            const subscription = this.safeValue (subscriptionStatus, 'subscription', {});
+            const name = this.safeString (subscription, 'name');
+            const methods = {
+                'book': 'handleWsOrderBook',
+                'ohlc': 'handleWsOHLCV',
+                'ticker': 'handleWsTicker',
+                'trade': 'handleWsTrades',
+            };
+            const method = this.safeString (methods, name);
+            if (method === undefined) {
+                return message;
+            } else {
+                return this[method] (client, message);
             }
         } else {
             if (this.handleWsErrors (client, message)) {
