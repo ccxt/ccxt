@@ -144,4 +144,3 @@ class IncrementalAsks(IncrementalOrderBookSide): side = False               # no
 class IncrementalBids(IncrementalOrderBookSide): side = True                # noqa
 class IncrementalIndexedAsks(IncrementalIndexedOrderBookSide): side = False # noqa
 class IncrementalIndexedBids(IncrementalIndexedOrderBookSide): side = True  # noqa
-
