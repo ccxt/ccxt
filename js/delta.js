@@ -181,8 +181,8 @@ module.exports = class delta extends Exchange {
         const response = {};
         for (let i = 0; i < wallets.length; i++) {
             const wallet = wallets[i];
-            let total = parseFloat (wallet['balance']);
-            let used = parseFloat (wallet['order_margin']) + parseFloat (wallet['position_margin']) + parseFloat (wallet['commission']);
+            const total = parseFloat (wallet['balance']);
+            const used = parseFloat (wallet['order_margin']) + parseFloat (wallet['position_margin']) + parseFloat (wallet['commission']);
             response[wallet['asset']['symbol']] = {
                 'free': total - used,
                 'used': used,
@@ -194,7 +194,7 @@ module.exports = class delta extends Exchange {
 
     async getOrders (symbol, params = {}) {
         await this.loadMarkets ();
-        let request = {};
+        const request = {};
         const market = this.market (symbol);
         request.product_id = market['id'];
         const response = await this.privateGetOrders (this.extend (request, params));
@@ -230,7 +230,7 @@ module.exports = class delta extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = {
+        const request = {
             'product_id': market['id'],
             'order_type': this.getOrderType (type),
             'side': side,
@@ -298,7 +298,7 @@ module.exports = class delta extends Exchange {
             if (response['error']) {
                 error = this.safeString (response, 'error');
             } else if (response['errors']) {
-                let errors = [];
+                const errors = [];
                 for (let i = 0; i < response['errors'].length; i++) {
                     errors.push (this.safeString (response['errors'][i], 'msg'));
                 }
@@ -318,7 +318,7 @@ module.exports = class delta extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['test'] + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
@@ -331,7 +331,7 @@ module.exports = class delta extends Exchange {
                     body = this.json (query);
                 }
             }
-            let timestamp = this.seconds ();
+            const timestamp = this.seconds ();
             let signatureData = method + timestamp;
             if (path[0] === '/') {
                 signatureData += path;
@@ -346,7 +346,7 @@ module.exports = class delta extends Exchange {
             if (body !== undefined) {
                 signatureData += body;
             }
-            let signature = this.hmac (
+            const signature = this.hmac (
                 this.encode (signatureData),
                 this.encode (this.secret)
             );
@@ -361,10 +361,10 @@ module.exports = class delta extends Exchange {
     }
 
     parseTicker (ticker) {
-        let timestamp = this.safeInteger (ticker, 'timestamp') * 1000;
-        let iso8601 = this.iso8601 (timestamp);
-        let symbol = this.safeString (ticker, 'symbol');
-        let last = this.safeFloat (ticker, 'close');
+        const timestamp = this.safeInteger (ticker, 'timestamp') * 1000;
+        const iso8601 = this.iso8601 (timestamp);
+        const symbol = this.safeString (ticker, 'symbol');
+        const last = this.safeFloat (ticker, 'close');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -390,9 +390,9 @@ module.exports = class delta extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let timestamp = parseInt (this.safeInteger (trade, 'timestamp') / 1000);
-        let iso8601 = this.iso8601 (timestamp);
-        let symbol = market['symbol'];
+        const timestamp = parseInt (this.safeInteger (trade, 'timestamp') / 1000);
+        const iso8601 = this.iso8601 (timestamp);
+        const symbol = market['symbol'];
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -442,17 +442,17 @@ module.exports = class delta extends Exchange {
     }
 
     parseOrder (order, market) {
-        let created_at = this.safeString (order, 'created_at');
-        let timestamp = this.parse8601 (created_at);
-        let id = this.safeString (order, 'id');
-        let price = this.safeFloat (order, 'limit_price');
-        let average = this.safeFloat (order, 'avg_fill_price');
-        let amount = this.safeInteger (order, 'size');
-        let filled = this.safeInteger (order, 'size') - this.safeInteger (order, 'unfilled_size');
-        let remaining = amount - filled;
-        let status = this.parseOrderStatus (this.safeString (order, 'state'));
-        let side = this.safeString (order, 'side');
-        let type = this.parseOrderType (this.safeString (order, 'order_type'));
+        const created_at = this.safeString (order, 'created_at');
+        const timestamp = this.parse8601 (created_at);
+        const id = this.safeString (order, 'id');
+        const price = this.safeFloat (order, 'limit_price');
+        const average = this.safeFloat (order, 'avg_fill_price');
+        const amount = this.safeInteger (order, 'size');
+        const filled = this.safeInteger (order, 'size') - this.safeInteger (order, 'unfilled_size');
+        const remaining = amount - filled;
+        const status = this.parseOrderStatus (this.safeString (order, 'state'));
+        const side = this.safeString (order, 'side');
+        const type = this.parseOrderType (this.safeString (order, 'order_type'));
         return {
             'info': order,
             'id': id,
