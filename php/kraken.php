@@ -156,6 +156,49 @@ class kraken extends \ccxt\kraken {
         throw NotImplemented ($this->id . ' handleWsTrades() not implemented yet (wip)');
     }
 
+    public function handle_ws_ohlcv ($client, $message) {
+        //
+        //     array (
+        //         216, // channelID
+        //         array (
+        //             '1574454214.962096', // Time, seconds since epoch
+        //             '1574454240.000000', // End timestamp of the interval
+        //             '0.020970', // Open price at midnight UTC
+        //             '0.020970', // Intraday high price
+        //             '0.020970', // Intraday low price
+        //             '0.020970', // Closing price at midnight UTC
+        //             '0.020970', // Volume weighted average price
+        //             '0.08636138', // Accumulated volume today
+        //             1, // Number of trades today
+        //         ),
+        //         'ohlc-1', // Channel Name of subscription
+        //         'ETH/XBT', // Asset pair
+        //     )
+        //
+        $wsName = $message[3];
+        $name = 'ohlc';
+        $candle = $message[1];
+        // var_dump (
+        //     $this->iso8601 (intval (floatval ($candle[0]) * 1000)), '-',
+        //     $this->iso8601 (intval (floatval ($candle[1]) * 1000)), ' => [',
+        //     floatval ($candle[2]),
+        //     floatval ($candle[3]),
+        //     floatval ($candle[4]),
+        //     floatval ($candle[5]),
+        //     floatval ($candle[7]), ']'
+        // );
+        $result = [
+            intval (floatval ($candle[0]) * 1000),
+            floatval ($candle[2]),
+            floatval ($candle[3]),
+            floatval ($candle[4]),
+            floatval ($candle[5]),
+            floatval ($candle[7]),
+        ];
+        $messageHash = $wsName . ':' . $name;
+        $this->resolveWsFuture ($client, $messageHash, $result);
+    }
+
     public function fetch_ws_public_message ($name, $symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -173,7 +216,7 @@ class kraken extends \ccxt\kraken {
                 'name' => $name,
             ),
         );
-        $future = $this->sendWsMessage ($url, $messageHash, array_merge ($subscribe, $params), $messageHash);
+        $future = $this->sendWsMessage ($url, $messageHash, array_replace_recursive ($subscribe, $params), $messageHash);
         $client = $this->clients[$url];
         $client['futures'][$requestId] = $future;
         return $future;
@@ -189,15 +232,21 @@ class kraken extends \ccxt\kraken {
 
     public function fetch_ws_order_book ($symbol, $limit = null, $params = array ()) {
         $name = 'book';
-        $params = array (
+        $request = array();
+        if ($limit !== null) {
+            $request['subscription'] = array( 'depth' => $limit ); // default 10, valid options 10, 25, 100, 500, 1000
+        }
+        return $this->fetch_ws_public_message ($name, $symbol, array_merge ($request, $params));
+    }
+
+    public function fetch_ws_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $name = 'ohlc';
+        $request = array (
             'subscription' => array (
-                'name' => $name,
+                'interval' => intval ($this->timeframes[$timeframe]),
             ),
         );
-        if ($limit !== null) {
-            $params['subscription']['depth'] = $limit; // default 10, valid options 10, 25, 100, 500, 1000
-        }
-        return $this->fetch_ws_public_message ($name, $symbol, $params);
+        return $this->fetch_ws_public_message ($name, $symbol, array_merge ($request, $params));
     }
 
     public function load_markets ($reload = false, $params = array ()) {
@@ -420,7 +469,7 @@ class kraken extends \ccxt\kraken {
         $requestId = $this->safe_string($message, 'reqid');
         if ($client->futures[$requestId]) {
             // todo => transpile delete in ccxt
-           unset($client->futures[$requestId]);
+            unset($client->futures[$requestId]);
         }
     }
 
@@ -465,6 +514,7 @@ class kraken extends \ccxt\kraken {
                 $name = $this->safe_string($subscription, 'name');
                 $methods = array (
                     'book' => 'handleWsOrderBook',
+                    'ohlc' => 'handleWsOHLCV',
                     'ticker' => 'handleWsTicker',
                     'trade' => 'handleWsTrades',
                 );
