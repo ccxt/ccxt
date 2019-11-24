@@ -511,8 +511,6 @@ class dx(Exchange):
         error = response['error']
         if error:
             feedback = self.id + ' ' + self.json(response)
-            exact = self.exceptions['exact']
-            if error in exact:
-                raise exact[error](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             raise ExchangeError(feedback)  # unknown error

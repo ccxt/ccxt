@@ -539,10 +539,7 @@ class indodax extends Exchange {
             }
         }
         $feedback = $this->id . ' ' . $body;
-        $exact = $this->exceptions['exact'];
-        if (is_array($exact) && array_key_exists($error, $exact)) {
-            throw new $exact[$error]($feedback);
-        }
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
         $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
         throw new ExchangeError($feedback); // unknown message
     }

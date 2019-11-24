@@ -625,11 +625,8 @@ class gemini(Exchange):
             reason = self.safe_string(response, 'reason')
             message = self.safe_string(response, 'message')
             feedback = self.id + ' ' + message
-            exact = self.exceptions['exact']
-            if reason in exact:
-                raise exact[reason](feedback)
-            elif message in exact:
-                raise exact[message](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], reason, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
 

@@ -540,10 +540,7 @@ class dx extends Exchange {
         $error = $response['error'];
         if ($error) {
             $feedback = $this->id . ' ' . $this->json ($response);
-            $exact = $this->exceptions['exact'];
-            if (is_array($exact) && array_key_exists($error, $exact)) {
-                throw new $exact[$error]($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
             throw new ExchangeError($feedback); // unknown $error
         }
