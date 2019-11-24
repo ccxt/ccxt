@@ -1179,6 +1179,18 @@ class Exchange {
         return $this->fetch2($path, $api, $method, $params, $headers, $body);
     }
 
+    public function throwBroadlyMatchedException($string, $message) {
+        return $this->throw_broadly_matched_exception($string, $message);
+    }
+
+    public function throw_broadly_matched_exception($string, $message) {
+        $broad = $this->exceptions['broad'];
+        $broad_key = $this->find_broadly_matched_key($broad, $string);
+        if ($broad_key !== null) {
+            throw new $broad[$broad_key]($message);
+        }
+    }
+
     public function findBroadlyMatchedKey($broad, $string) {
         return $this->find_broadly_matched_key($broad, $string);
     }
