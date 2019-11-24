@@ -570,7 +570,7 @@ class bitfinex(Exchange):
                 # we need a workaround here so that the old BCH balance
                 # would not override the new BAB balance(BAB is unified to BCH)
                 # https://github.com/ccxt/ccxt/issues/4989
-                if not (code in list(result.keys())):
+                if not (code in result):
                     account = self.account()
                     account['free'] = self.safe_float(balance, 'available')
                     account['total'] = self.safe_float(balance, 'amount')
@@ -812,7 +812,7 @@ class bitfinex(Exchange):
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         if symbol is not None:
-            if not (symbol in list(self.markets.keys())):
+            if not (symbol in self.markets):
                 raise ExchangeError(self.id + ' has no symbol ' + symbol)
         response = self.privatePostOrders(params)
         orders = self.parse_orders(response, None, since, limit)

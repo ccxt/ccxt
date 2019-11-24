@@ -1554,7 +1554,7 @@ class okex3(Exchange):
             request['order_id'] = id
         query = self.omit(params, 'type')
         response = getattr(self, method)(self.extend(request, query))
-        result = response if ('result' in list(response.keys())) else self.safe_value(response, market['id'], {})
+        result = response if ('result' in response) else self.safe_value(response, market['id'], {})
         #
         # spot, margin
         #
@@ -2005,7 +2005,7 @@ class okex3(Exchange):
         elif 'trade_pwd' in params:
             request['trade_pwd'] = params['trade_pwd']
         query = self.omit(params, ['fee', 'password', 'trade_pwd'])
-        if not ('trade_pwd' in list(request.keys())):
+        if not ('trade_pwd' in request):
             raise ExchangeError(self.id + ' withdraw() requires self.password set on the exchange instance or a password / trade_pwd parameter')
         response = self.accountPostWithdrawal(self.extend(request, query))
         #

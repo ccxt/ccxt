@@ -607,7 +607,7 @@ class crex24(Exchange):
             'partiallyFilledCancelled': 'canceled',  # part of the order has been filled, the other part has been cancelled either by the trader or by the system(see the value of cancellationReason of an Order for more details on the reason of cancellation)
             'unfilledCancelled': 'canceled',  # order has been cancelled, no trades have taken place(see the value of cancellationReason of an Order for more details on the reason of cancellation)
         }
-        return statuses[status] if (status in list(statuses.keys())) else status
+        return statuses[status] if (status in statuses) else status
 
     def parse_order(self, order, market=None):
         #

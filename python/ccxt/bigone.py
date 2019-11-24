@@ -1012,7 +1012,7 @@ class bigone(Exchange):
         txid = self.safe_string(transaction, 'txid')
         address = self.safe_string(transaction, 'target_address')
         tag = self.safe_string(transaction, 'memo')
-        type = 'deposit' if ('customer_id' in list(transaction.keys())) else 'withdrawal'
+        type = 'deposit' if ('customer_id' in transaction) else 'withdrawal'
         return {
             'info': transaction,
             'id': id,

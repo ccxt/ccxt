@@ -383,7 +383,7 @@ class bitforex(Exchange):
             '3': 'canceled',
             '4': 'canceled',
         }
-        return statuses[status] if (status in list(statuses.keys())) else status
+        return statuses[status] if (status in statuses) else status
 
     def parse_side(self, sideId):
         if sideId == 1:

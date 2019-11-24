@@ -580,7 +580,7 @@ class stronghold(Exchange):
             'venueId': self.options['venueId'],
             'accountId': await self.get_active_account(),
         }, params)
-        if not ('accountId' in list(request.keys())):
+        if not ('accountId' in request):
             raise ArgumentsRequired(self.id + " fetchBalance requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.")
         response = await self.privateGetVenuesVenueIdAccountsAccountId(request)
         balances = self.safe_value(response['result'], 'balances')

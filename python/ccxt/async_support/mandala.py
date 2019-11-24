@@ -1517,7 +1517,7 @@ class mandala(Exchange):
         txid = self.safe_string(transaction, 'TXNHash')
         updated = self.parse8601(self.safe_string_2(transaction, 'WithdrawalConfirmDate', 'DepositConfirmDate'))
         timestamp = self.parse8601(self.safe_string_2(transaction, 'WithdrawalReqDate', 'DepositReqDate', updated))
-        type = 'withdrawal' if ('WithdrawalReqDate' in list(transaction.keys())) else 'deposit'
+        type = 'withdrawal' if ('WithdrawalReqDate' in transaction) else 'deposit'
         currencyId = self.safe_string(transaction, 'WithdrawalType', 'DepositType')
         code = self.safe_currency_code(currencyId, currency)
         currency = self.currency(code)

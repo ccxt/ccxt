@@ -402,7 +402,7 @@ class bitmart(Exchange):
         timestamp = self.safe_integer_2(trade, 'timestamp', 'order_time')
         type = None
         side = self.safe_string_lower(trade, 'type')
-        if (side is None) and ('entrustType' in list(trade.keys())):
+        if (side is None) and ('entrustType' in trade):
             side = 'sell' if trade['entrustType'] else 'buy'
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
