@@ -138,6 +138,7 @@ class Transpiler {
             [ /\.integerPow/g, '.integer_pow'],
             [ /\.findBroadlyMatchedKey\s/g, '.find_broadly_matched_key'],
             [ /\.throwBroadlyMatchedException\s/g, '.throw_broadly_matched_exception'],
+            [ /\.throwExactlyMatchedException\s/g, '.throw_exactly_matched_exception'],
             [ /errorHierarchy/g, 'error_hierarchy'],
             [ /\.base16ToBinary/g, '.base16_to_binary'],
             [ /\'use strict\';?\s+/g, '' ],
