@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, InvalidOrder, OrderNotFound } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, InvalidOrder, OrderNotFound, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -19,8 +19,8 @@ module.exports = class tradesatoshi extends Exchange {
             // new metainfo interface
             'has': {
                 'privateAPI': true,
-                'fetchTickers': true,
                 'fetchOHLCV': true,
+                'fetchTickers': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
@@ -29,21 +29,33 @@ module.exports = class tradesatoshi extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
-                '1m': 'oneMin',
-                '5m': 'fiveMin',
-                '30m': 'thirtyMin',
-                '1h': 'hour',
-                '1d': 'day',
+                '1m': '1',
+                '3m': '3',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1d': '1D',
+                '1w': '1W',
+                '1M': '1M',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/44006686-f96c02ce-9e90-11e8-871c-c67d21e9d165.jpg',
-                'api': 'https://tradesatoshi.com/api',
+                'api': {
+                    'public': 'https://tradesatoshi.com/api/public',
+                    'private': 'https://tradesatoshi.com/api',
+                    'chart': 'https://chart.tradesatoshi.com/api',
+                },
                 'www': 'https://tradesatoshi.com/',
                 'doc': 'https://tradesatoshi.com/Home/Api',
                 'fees': 'https://tradesatoshi.com/FeesStructure',
                 'referral': 'https://tradesatoshi.com/Account/Login?form=register&referrer=AotvmQTKrt',
             },
             'api': {
+                'chart': {
+                    'get': [
+                        'history',
+                    ],
+                },
                 'public': {
                     'get': [
                         'getcurrencies',
@@ -449,27 +461,33 @@ module.exports = class tradesatoshi extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
-        let timestamp = this.parse8601 (ohlcv['T']);
-        return [
-            timestamp,
-            ohlcv['O'],
-            ohlcv['H'],
-            ohlcv['L'],
-            ohlcv['C'],
-            ohlcv['V'],
-        ];
-    }
-
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
-            'tickInterval': this.timeframes[timeframe],
-            'marketName': market['id'],
+        const market = this.market (symbol);
+        const request = {
+            'resolution': this.timeframes[timeframe],
+            'symbol': market['id'],
         };
-        let response = await this.v2GetMarketGetTicks (this.extend (request, params));
-        return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
+        const duration = this.parseTimeframe (timeframe);
+        if (since === undefined) {
+            const now = this.seconds ();
+            request['to'] = now;
+            if (limit !== undefined) {
+                request['from'] = now - limit * duration;
+            } else {
+                throw new ArgumentsRequired (this.id + " fetchOHLCV requires a 'since' argument or a 'limit' argument");
+            }
+        } else {
+            request['from'] = parseInt (since / 1000);
+            const now = this.seconds ();
+            if (limit !== undefined) {
+                request['to'] = this.sum (now, limit * duration);
+            } else {
+                request['to'] = now;
+            }
+        }
+        const response = await this.chartGetHistory (this.extend (request, params));
+        return this.parseTradingViewOHLCV (response, market, timeframe, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -672,12 +690,9 @@ module.exports = class tradesatoshi extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + api + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
-            if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);
-        } else {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             url += api + '/';
@@ -689,6 +704,9 @@ module.exports = class tradesatoshi extends Exchange {
             }, params));
             let signature = this.hmac (this.encode (url), this.encode (this.secret), 'sha512');
             headers = { 'apisign': signature };
+        } else {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
