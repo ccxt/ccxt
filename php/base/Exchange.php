@@ -1179,6 +1179,16 @@ class Exchange {
         return $this->fetch2($path, $api, $method, $params, $headers, $body);
     }
 
+    public function throwExactlyMatchedException($exact, $string, $message) {
+        return $this->throw_exactly_matched_exception($exact, $string, $message);
+    }
+
+    public function throw_exactly_matched_exception($exact, $string, $message) {
+        if (isset($exact[$string])) {
+            throw new $exact[$string]($message);
+        }
+    }
+
     public function throwBroadlyMatchedException($broad, $string, $message) {
         return $this->throw_broadly_matched_exception($broad, $string, $message);
     }
