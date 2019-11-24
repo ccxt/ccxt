@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -76,6 +76,63 @@ module.exports = class tradesatoshi extends Exchange {
         });
     }
 
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetGetcurrencies (params);
+        //
+        //     {
+        //         "success": true,
+        //         "message": null,
+        //         "result": [
+        //             {
+        //                 "currency": "HOT",
+        //                 "currencyLong": "HoloToken",
+        //                 "minConfirmation": 20,
+        //                 "txFee": 1,
+        //                 "status": "OK", // "Maintenance"
+        //                 "statusMessage": "need to fix, withdrawal fail",
+        //                 "minBaseTrade": 1e-8,
+        //                 "isTipEnabled": false,
+        //                 "minTip": 0,
+        //                 "maxTip": 0
+        //             },
+        //         ]
+        //     }
+        //
+        const currencies = this.safeValue (response, 'result', []);
+        const result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
+            const id = this.safeString (currency, 'currency');
+            const name = this.safeString (currency, 'currencyLong');
+            const fee = this.safeFloat (currency, 'txFee');
+            const status = this.safeStringLower (currency, 'status');
+            const active = (status === 'ok');
+            // todo: will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            const code = this.safeCurrencyCode (id);
+            const minAmount = this.safeFloat (currency, 'minBaseTrade');
+            const precision = this.precisionFromString (this.numberToString (minAmount));
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': name,
+                'active': active,
+                'status': status,
+                'fee': fee, // todo: redesign
+                'precision': precision,
+                'limits': {
+                    'amount': { 'min': minAmount, 'max': undefined },
+                    'price': { 'min': undefined, 'max': undefined },
+                    'cost': { 'min': undefined, 'max': undefined },
+                    'withdraw': { 'min': undefined, 'max': undefined },
+                },
+            };
+        }
+        return result;
+    }
+
     async fetchMarkets (params = {}) {
         const response = await this.publicGetGetmarketsummaries (params);
         //     {
@@ -135,6 +192,35 @@ module.exports = class tradesatoshi extends Exchange {
         return result;
     }
 
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = { 'market': market['id'] };
+        const response = await this.publicGetGetmarketsummary (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "message": null,
+        //         "result": {
+        //             "market": "ETH_BTC",
+        //             "high": 0.0215,
+        //             "low": 0.02073128,
+        //             "volume": 1.55257974,
+        //             "baseVolume": 0.0330117,
+        //             "last": 0.02110003,
+        //             "bid": 0.02110003,
+        //             "ask": 0.02118,
+        //             "openBuyOrders": 96,
+        //             "openSellOrders": 315,
+        //             "marketStatus": null,
+        //             "change": 1.44
+        //         }
+        //     }
+        //
+        const ticker = this.safeValue (response, 'result', {});
+        return this.parseTicker (ticker, market);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.accountGetBalances ();
@@ -170,87 +256,64 @@ module.exports = class tradesatoshi extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.parse8601 (ticker['TimeStamp']);
+        //
+        // fetchTicker
+        //
+        //     {
+        //         "market": "ETH_BTC",
+        //         "high": 0.0215,
+        //         "low": 0.02073128,
+        //         "volume": 1.55257974,
+        //         "baseVolume": 0.0330117,
+        //         "last": 0.02110003,
+        //         "bid": 0.02110003,
+        //         "ask": 0.02118,
+        //         "openBuyOrders": 96,
+        //         "openSellOrders": 315,
+        //         "marketStatus": null,
+        //         "change": 1.44
+        //     }
+        //
         let symbol = undefined;
-        if (market)
+        const marketId = this.safeString (ticker, 'market');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        const timestamp = this.milliseconds ();
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
+        }
+        const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'High'),
-            'low': this.safeFloat (ticker, 'Low'),
-            'bid': this.safeFloat (ticker, 'Bid'),
-            'ask': this.safeFloat (ticker, 'Ask'),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'Last'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined, // previous day close
             'change': undefined,
-            'percentage': undefined,
+            'percentage': this.safeFloat (ticker, 'change'),
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'Volume'),
-            'quoteVolume': this.safeFloat (ticker, 'BaseVolume'),
+            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'quoteVolume': this.safeFloat (ticker, 'baseVolume'), // the exchange has base ←→ quote volumes reversed
             'info': ticker,
         };
-    }
-
-    async fetchCurrencies (params = {}) {
-        const response = await this.publicGetGetcurrencies (params);
-        //
-        //     {
-        //         "success": true,
-        //         "message": null,
-        //         "result": [
-        //             {
-        //                 "currency": "HOT",
-        //                 "currencyLong": "HoloToken",
-        //                 "minConfirmation": 20,
-        //                 "txFee": 1,
-        //                 "status": "OK", // "Maintenance"
-        //                 "statusMessage": "need to fix, withdrawal fail",
-        //                 "minBaseTrade": 1e-8,
-        //                 "isTipEnabled": false,
-        //                 "minTip": 0,
-        //                 "maxTip": 0
-        //             },
-        //         ]
-        //     }
-        //
-        const currencies = this.safeValue (response, 'result', []);
-        const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const id = this.safeString (currency, 'currency');
-            const name = this.safeString (currency, 'currencyLong');
-            const fee = this.safeFloat (currency, 'txFee');
-            const status = this.safeStringLower (currency, 'status');
-            const active = (status === 'ok');
-            // todo: will need to rethink the fees
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
-            const code = this.safeCurrencyCode (id);
-            const minAmount = this.safeFloat (currency, 'minBaseTrade');
-            const precision = this.precisionFromString (this.numberToString (minAmount));
-            result[code] = {
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': name,
-                'active': active,
-                'status': status,
-                'fee': fee, // todo: redesign
-                'precision': precision,
-                'limits': {
-                    'amount': { 'min': minAmount, 'max': undefined },
-                    'price': { 'min': undefined, 'max': undefined },
-                    'cost': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
-                },
-            };
-        }
-        return result;
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -275,16 +338,6 @@ module.exports = class tradesatoshi extends Exchange {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    }
-
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetMarketsummary (this.extend ({
-            'market': market['id'],
-        }, params));
-        let ticker = response['result'][0];
-        return this.parseTicker (ticker, market);
     }
 
     parseTrade (trade, market = undefined) {
