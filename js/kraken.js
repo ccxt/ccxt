@@ -273,11 +273,6 @@ module.exports = class kraken extends ccxt.kraken {
         return this.sendWsMessage (url, event);
     }
 
-    signWsMessage (client, messageHash, message, params = {}) {
-        // todo: not implemented yet
-        return message;
-    }
-
     handleWsHeartbeat (client, message) {
         //
         // every second (approx) if no other updates are sent
@@ -501,6 +496,11 @@ module.exports = class kraken extends ccxt.kraken {
             }
         }
         return true;
+    }
+
+    signWsMessage (client, messageHash, message, params = {}) {
+        // todo: not implemented yet
+        return message;
     }
 
     handleWsMessage (client, message) {
