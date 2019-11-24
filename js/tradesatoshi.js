@@ -41,6 +41,7 @@ module.exports = class tradesatoshi extends Exchange {
                 'www': 'https://tradesatoshi.com/',
                 'doc': 'https://tradesatoshi.com/Home/Api',
                 'fees': 'https://tradesatoshi.com/FeesStructure',
+                'referral': 'https://tradesatoshi.com/Account/Login?form=register&referrer=AotvmQTKrt',
             },
             'api': {
                 'public': {
@@ -318,24 +319,37 @@ module.exports = class tradesatoshi extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetMarketsummaries (params);
-        let tickers = response['result'];
-        let result = {};
-        for (let t = 0; t < tickers.length; t++) {
-            let ticker = tickers[t];
-            let id = ticker['MarketName'];
-            let market = undefined;
-            let symbol = id;
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            } else {
-                let [ quote, base ] = id.split ('-');
-                base = this.commonCurrencyCode (base);
-                quote = this.commonCurrencyCode (quote);
-                symbol = base + '/' + quote;
+        const response = await this.publicGetGetmarketsummaries (params);
+        //
+        //     {
+        //         "success": true,
+        //         "message": null,
+        //         "result": [
+        //             {
+        //                 "market": "BOLI_BTC",
+        //                 "high": 0.00000127,
+        //                 "low": 0.00000125,
+        //                 "volume": 701.57924724,
+        //                 "baseVolume": 0.00088281,
+        //                 "last": 0.00000127,
+        //                 "bid": 0.00000122,
+        //                 "ask": 0.00000128,
+        //                 "openBuyOrders": 77,
+        //                 "openSellOrders": 198,
+        //                 "marketStatus": "OK",
+        //                 "change": 1.6
+        //             },
+        //         ],
+        //     }
+        //
+        const result = {};
+        const tickers = this.safeValue (response, 'result', []);
+        for (let i = 0; i < tickers.length; i++) {
+            const ticker = this.parseTicker (tickers[i]);
+            if ((symbols === undefined) || this.inArray (symbol, symbols)) {
+                const symbol = ticker['symbol'];
+                result[symbol] = ticker;
             }
-            result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
     }
