@@ -398,7 +398,7 @@ module.exports = class tradesatoshi extends Exchange {
         }
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'quantity');
-        let cost = undefined;
+        let cost = this.safeFloat (trade, 'total');
         if ((price !== undefined) && (amount !== undefined)) {
             cost = price * amount;
         }
