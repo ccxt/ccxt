@@ -10,33 +10,21 @@ namespace ccxtpro;
 
 use \Ds\Map;
 
-class TruncatedIterator extends \ArrayIterator {
-    public $length;
-
-    public function __construct($array = array(), $flags = 0) {
-        parent::__construct($array, $flags);
-        $this->length = 10;
-    }
-
-    public function valid() {
-        return $this->key() < $this->length;  // same shit we did in python just nicer api
-    }
-}
-
 class OrderBookSide extends \ArrayObject implements \JsonSerializable {
     public $index;
-    private $sequence;
+    private $data;
 
     public function __construct($deltas = array()) {
         parent::__construct();
         $this->index = new Map();  // support for floating point keys
+        $this->data = array();
         if (count($deltas)) {
             $this->update($deltas);
         }
     }
 
     public function JsonSerialize () {
-        return iterator_to_array($this->getIterator());
+        return $this->data;
     }
 
     public function update($deltas) {
@@ -49,7 +37,7 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
         $price = $delta[0];
         $size = $delta[1];
         if ($size) {
-            $this->index->put($price, $size);
+            $this->index[$price] = $size;
         } else {
             $this->index->remove($price, null);
         }
@@ -57,9 +45,9 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
 
     public function store($price, $size) {
         if ($size) {
-            $this->index->put($price, $size);
+            $this->index[$price] = $size;
         } else {
-            $this->index->remove($price, null);
+            unset($this->index[$price]);
         }
     }
 
@@ -71,12 +59,35 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
             array_reverse($keys);
             array_reverse($values);
         }
-        $result = array_map(null, $keys, $values);
-        $this->exchangeArray($result);
+        $this->data = array_map(null, $keys, $values);
+        $this->exchangeArray($this->data);
         return $this;
     }
 
     public function getIterator() {
-        return new TruncatedIterator($this->getArrayCopy());
+        return new \ArrayIterator($this->data);
     }
 }
+
+
+$x = new OrderBookSide([[1, 2], [3, 4], [5, 6]]);
+
+for ($i = 0; $i < 100000; $i++) {
+    $x->store($i, $i);
+}
+
+$start = microtime(1);
+
+for ($i = 0; $i < 100000; $i++) {
+    $x->store($i, 0);
+}
+
+
+$x->store(0, 0);
+$x->store(0, 0);
+$x->store(0, 0);
+
+
+$end = microtime(1);
+
+var_dump($end - $start);

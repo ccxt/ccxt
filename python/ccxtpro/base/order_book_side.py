@@ -60,20 +60,6 @@ class OrderBookSide(list):
         else:
             return super(OrderBookSide, self).__len__()
 
-    def __getitem__(self, item):
-        if isinstance(item, slice):
-            return super(OrderBookSide, self).__getitem__(item)
-        if item >= self._len:
-            raise IndexError('list index out of range')
-        return super(OrderBookSide, self).__getitem__(item)
-
-    def __setitem__(self, key, value):
-        if isinstance(key, slice):
-            return super(OrderBookSide, self).__setitem__(key, value)
-        if key >= self._len:
-            raise IndexError('list assignment index out of range1')
-        return super(OrderBookSide, self).__setitem__(key, value)
-
     def extend(self, iterable):
         evaluated = list(iterable)
         length = len(evaluated)
