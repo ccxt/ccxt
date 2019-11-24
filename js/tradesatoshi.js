@@ -46,7 +46,9 @@ module.exports = class tradesatoshi extends Exchange {
                 'public': {
                     'get': [
                         'getcurrencies',
+                        'getcurrency',
                         'getticker',
+                        'getmarketstatus',
                         'getmarkethistory',
                         'getmarketsummary',
                         'getmarketsummaries',
@@ -67,77 +69,68 @@ module.exports = class tradesatoshi extends Exchange {
                         'getdeposits',
                         'getwithdrawals',
                         'submittransfer',
+                        'submittip',
                     ],
                 },
             },
         });
     }
 
-    async fetchMarkets () {
-        let response = await this.publicGetGetmarketsummaries ();
+    async fetchMarkets (params = {}) {
+        const response = await this.publicGetGetmarketsummaries (params);
+        //     {
+        //         "success": true,
+        //         "message": null,
+        //         "result": [
+        //             {
+        //                 "market": "BOLI_BTC",
+        //                 "high": 0.00000127,
+        //                 "low": 0.00000125,
+        //                 "volume": 701.57924724,
+        //                 "baseVolume": 0.00088281,
+        //                 "last": 0.00000127,
+        //                 "bid": 0.00000122,
+        //                 "ask": 0.00000128,
+        //                 "openBuyOrders": 77,
+        //                 "openSellOrders": 197,
+        //                 "marketStatus": "OK", // "Paused"
+        //                 "change": 1.6
+        //             },
+        //         ],
+        //     }
         //
-        //     { success:    true,
-        //       message:    null,
-        //        result: [ {         market: "PAK_BTC",
-        //                              high:  0,
-        //                               low:  0,
-        //                            volume:  0,
-        //                        baseVolume:  0,
-        //                              last:  4.1e-7,
-        //                               bid:  2.6e-7,
-        //                               ask:  4.1e-7,
-        //                     openBuyOrders:  6,
-        //                    openSellOrders:  73,
-        //                            change:  0         },
-        //                  {         market: "BOLI_BTC",
-        //                              high:  0.00000144,
-        //                               low:  0.00000141,
-        //                            volume:  1283.595,
-        //                        baseVolume:  0.00182637,
-        //                              last:  0.00000144,
-        //                               bid:  0.00000141,
-        //                               ask:  0.00000144,
-        //                     openBuyOrders:  52,
-        //                    openSellOrders:  164,
-        //                            change:  0.7         } ] }
-        //
-        const log = require ('ololog').unlimited;
-        log (response);
-        process.exit ();
-        let result = [];
-        for (let i = 0; i < response['result'].length; i++) {
-            let market = response['result'][i]['Market'];
-            let id = market['MarketName'];
-            let base = market['MarketCurrency'];
-            let quote = market['BaseCurrency'];
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
-            let symbol = base + '/' + quote;
-            let precision = {
+        const result = [];
+        const markets = this.safeValue (response, 'result', []);
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString (market, 'market');
+            const [ baseId, quoteId ] = id.split ('_');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            // todo: fix magic constants
+            const precision = {
                 'amount': 8,
                 'price': 8,
             };
-            let amountLimits = {
-                'min': market['MinTradeSize'],
-                'max': undefined,
-            };
-            let priceLimits = { 'min': undefined, 'max': undefined };
-            let limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-            };
-            let active = market['IsActive'];
-            result.push (this.extend (this.fees['trading'], {
+            const status = this.safeStringLower (market, 'marketStatus');
+            const active = (status === 'ok');
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'active': active,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
-                'lot': Math.pow (10, -precision['amount']),
+                'active': active,
                 'precision': precision,
-                'limits': limits,
-            }));
+                'limits': {
+                    'amount': { 'min': undefined, 'max': undefined },
+                    'price': { 'min': undefined, 'max': undefined },
+                    'cost': { 'min': undefined, 'max': undefined },
+                },
+            });
         }
         return result;
     }
@@ -204,43 +197,56 @@ module.exports = class tradesatoshi extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        let response = await this.publicGetCurrencies (params);
-        let currencies = response['result'];
-        let result = {};
+        const response = await this.publicGetGetcurrencies (params);
+        //
+        //     {
+        //         "success": true,
+        //         "message": null,
+        //         "result": [
+        //             {
+        //                 "currency": "HOT",
+        //                 "currencyLong": "HoloToken",
+        //                 "minConfirmation": 20,
+        //                 "txFee": 1,
+        //                 "status": "OK", // "Maintenance"
+        //                 "statusMessage": "need to fix, withdrawal fail",
+        //                 "minBaseTrade": 1e-8,
+        //                 "isTipEnabled": false,
+        //                 "minTip": 0,
+        //                 "maxTip": 0
+        //             },
+        //         ]
+        //     }
+        //
+        const currencies = this.safeValue (response, 'result', []);
+        const result = {};
         for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let id = currency['Currency'];
+            const currency = currencies[i];
+            const id = this.safeString (currency, 'currency');
+            const name = this.safeString (currency, 'currencyLong');
+            const fee = this.safeFloat (currency, 'txFee');
+            const status = this.safeStringLower (currency, 'status');
+            const active = (status === 'ok');
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            let code = this.commonCurrencyCode (id);
-            let precision = 8; // default precision, todo: fix "magic constants"
+            const code = this.safeCurrencyCode (id);
+            const minAmount = this.safeFloat (currency, 'minBaseTrade');
+            const precision = this.precisionFromString (this.numberToString (minAmount));
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
-                'name': currency['CurrencyLong'],
-                'active': currency['IsActive'],
-                'status': 'ok',
-                'fee': currency['TxFee'], // todo: redesign
+                'name': name,
+                'active': active,
+                'status': status,
+                'fee': fee, // todo: redesign
                 'precision': precision,
                 'limits': {
-                    'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': currency['TxFee'],
-                        'max': Math.pow (10, precision),
-                    },
+                    'amount': { 'min': minAmount, 'max': undefined },
+                    'price': { 'min': undefined, 'max': undefined },
+                    'cost': { 'min': undefined, 'max': undefined },
+                    'withdraw': { 'min': undefined, 'max': undefined },
                 },
             };
         }
