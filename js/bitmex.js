@@ -1270,7 +1270,7 @@ module.exports = class bitmex extends Exchange {
                 'Content-Type': 'application/json',
                 'api-key': this.apiKey,
             };
-            expires = this.sum (this.seconds (), expires);
+            expires = this.sum (this.milliseconds (), expires);
             expires = expires.toString ();
             auth += expires;
             headers['api-expires'] = expires;
