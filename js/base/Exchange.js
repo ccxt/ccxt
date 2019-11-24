@@ -539,15 +539,24 @@ module.exports = class Exchange {
         }
     }
 
+    throwBroadlyMatchedException (string, message) {
+        const broad = this.exceptions['broad']
+        const broadKey = this.findBroadlyMatchedKey (broad, string)
+        if (broadKey !== undefined) {
+            throw new broad[broadKey] (message)
+        }
+    }
+
     // a helper for matching error strings exactly vs broadly
     findBroadlyMatchedKey (broad, string) {
-        const keys = Object.keys (broad);
+        const keys = Object.keys (broad)
         for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (string.indexOf (key) >= 0)
-                return key;
+            const key = keys[i]
+            if (string.indexOf (key) >= 0) {
+                return key
+            }
         }
-        return undefined;
+        return undefined
     }
 
     handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
