@@ -245,15 +245,37 @@ module.exports = class tradesatoshi extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetOrderbook (this.extend ({
+        const request = {
             'market': this.marketId (symbol),
-            'type': 'both',
-            'depth': 50,
-        }, params));
-        let orderbook = response['result'];
-        return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
+            // 'type': 'both', // 'both', 'buy', 'sell'
+            // 'depth': 20,, // default 20
+        };
+        const response = await this.publicGetGetorderbook (this.extend (request, params));
+        if (limit !== undefined) {
+            request['depth'] = limit;
+        }
+        //
+        //     {
+        //         "success": true,
+        //         "message": null,
+        //         "result": {
+        //             "buy": [
+        //                 { "quantity": 0.03781911, "rate": 0.02110002 },
+        //                 { "quantity": 0.15474971, "rate": 0.0211 },
+        //                 { "quantity": 0.01318571, "rate": 0.021 },
+        //             ],
+        //             "sell": [
+        //                 { "quantity": 0.00987983, "rate": 0.02118 },
+        //                 { "quantity": 0.02412794, "rate": 0.0211846 },
+        //                 { "quantity": 0.01936513, "rate": 0.02122918 },
+        //             ]
+        //         }
+        //     }
+        //
+        const orderbook = this.safeValue (response, 'result', {});
+        return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'rate', 'quantity');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -346,8 +368,8 @@ module.exports = class tradesatoshi extends Exchange {
         const tickers = this.safeValue (response, 'result', []);
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i]);
+            const symbol = ticker['symbol'];
             if ((symbols === undefined) || this.inArray (symbol, symbols)) {
-                const symbol = ticker['symbol'];
                 result[symbol] = ticker;
             }
         }
