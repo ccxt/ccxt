@@ -377,40 +377,76 @@ module.exports = class tradesatoshi extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['TimeStamp']);
-        let side = undefined;
-        if (trade['OrderType'] === 'BUY') {
-            side = 'buy';
-        } else if (trade['OrderType'] === 'SELL') {
-            side = 'sell';
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "id": 30980860,
+        //         "timeStamp": "2019-11-24T13:07:01.097",
+        //         "quantity": 0.00155679,
+        //         "price": 0.0211846,
+        //         "orderType": "Buy",
+        //         "total": 0.00003298
+        //     }
+        //
+        const timestamp = this.parse8601 (this.safeString (trade, 'timeStamp'));
+        const side = this.safeStringLower (trade, 'orderType');
+        const id = this.safeString (trade, 'id');
+        let symbol = undefined;
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
         }
-        let id = undefined;
-        if ('Id' in trade)
-            id = trade['Id'].toString ();
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'quantity');
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
+        }
         return {
-            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': 'limit',
+            'symbol': symbol,
+            'id': id,
+            'order': undefined,
+            'type': undefined,
+            'takerOrMaker': undefined,
             'side': side,
-            'price': trade['Price'],
-            'amount': trade['Quantity'],
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetMarkethistory (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'market': market['id'],
-        }, params));
-        if ('result' in response) {
-            if (typeof response['result'] !== 'undefined')
-                return this.parseTrades (response['result'], market, since, limit);
+        };
+        if (limit !== undefined) {
+            request['count'] = limit; // default 20
         }
-        throw new ExchangeError (this.id + ' fetchTrades() returned undefined response');
+        const response = await this.publicGetGetmarkethistory (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "message": null,
+        //         "result": [
+        //             {
+        //                 "id": 30980860,
+        //                 "timeStamp": "2019-11-24T13:07:01.097",
+        //                 "quantity": 0.00155679,
+        //                 "price": 0.0211846,
+        //                 "orderType": "Buy",
+        //                 "total": 0.00003298
+        //             },
+        //         ]
+        //     }
+        //
+        const trades = this.safeValue (response, 'result', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
