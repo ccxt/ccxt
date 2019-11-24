@@ -539,8 +539,7 @@ module.exports = class Exchange {
         }
     }
 
-    throwBroadlyMatchedException (string, message) {
-        const broad = this.exceptions['broad']
+    throwBroadlyMatchedException (broad, string, message) {
         const broadKey = this.findBroadlyMatchedKey (broad, string)
         if (broadKey !== undefined) {
             throw new broad[broadKey] (message)
