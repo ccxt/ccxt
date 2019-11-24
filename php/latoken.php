@@ -867,7 +867,7 @@ class latoken extends Exchange {
             if (is_array($exact) && array_key_exists($message, $exact)) {
                 throw new $exact[$message]($feedback);
             }
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+            $broadKey = $this->find_broadly_matched_key($broad, $message);
             if ($broadKey !== null) {
                 throw new $broad[$broadKey]($feedback);
             }
@@ -878,7 +878,7 @@ class latoken extends Exchange {
             if (is_array($exact) && array_key_exists($errorMessage, $exact)) {
                 throw new $exact[$errorMessage]($feedback);
             }
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $errorMessage);
+            $broadKey = $this->find_broadly_matched_key($broad, $errorMessage);
             if ($broadKey !== null) {
                 throw new $broad[$broadKey]($feedback);
             }

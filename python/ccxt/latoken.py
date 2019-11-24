@@ -816,7 +816,7 @@ class latoken(Exchange):
         if message is not None:
             if message in exact:
                 raise exact[message](feedback)
-            broadKey = self.findBroadlyMatchedKey(broad, message)
+            broadKey = self.find_broadly_matched_key(broad, message)
             if broadKey is not None:
                 raise broad[broadKey](feedback)
         error = self.safe_value(response, 'error', {})
@@ -824,7 +824,7 @@ class latoken(Exchange):
         if errorMessage is not None:
             if errorMessage in exact:
                 raise exact[errorMessage](feedback)
-            broadKey = self.findBroadlyMatchedKey(broad, errorMessage)
+            broadKey = self.find_broadly_matched_key(broad, errorMessage)
             if broadKey is not None:
                 raise broad[broadKey](feedback)
             raise ExchangeError(feedback)  # unknown message

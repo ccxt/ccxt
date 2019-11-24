@@ -1205,7 +1205,7 @@ class anxpro extends Exchange {
                 throw new $exact[$message]($feedback);
             }
             $broad = $this->safe_value($this->exceptions, 'broad', array());
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+            $broadKey = $this->find_broadly_matched_key($broad, $message);
             if ($broadKey !== null) {
                 throw new $broad[$broadKey]($feedback);
             }

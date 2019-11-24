@@ -1139,7 +1139,7 @@ class bitstamp extends Exchange {
                 if (is_array($exact) && array_key_exists($value, $exact)) {
                     throw new $exact[$value]($feedback);
                 }
-                $broadKey = $this->findBroadlyMatchedKey ($broad, $value);
+                $broadKey = $this->find_broadly_matched_key($broad, $value);
                 if ($broadKey !== null) {
                     throw new $broad[$broadKey]($feedback);
                 }

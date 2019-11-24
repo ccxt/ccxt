@@ -504,7 +504,7 @@ class indodax(Exchange):
         if error in exact:
             raise exact[error](feedback)
         broad = self.exceptions['broad']
-        broadKey = self.findBroadlyMatchedKey(broad, error)
+        broadKey = self.find_broadly_matched_key(broad, error)
         if broadKey is not None:
             raise broad[broadKey](feedback)
         raise ExchangeError(feedback)  # unknown message

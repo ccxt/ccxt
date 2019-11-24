@@ -640,7 +640,7 @@ class gemini extends Exchange {
         $broad = $this->exceptions['broad'];
         if ($response === null) {
             if (gettype ($body) === 'string') {
-                $broadKey = $this->findBroadlyMatchedKey ($broad, $body);
+                $broadKey = $this->find_broadly_matched_key($broad, $body);
                 $feedback = $this->id . ' ' . $body;
                 if ($broadKey !== null) {
                     throw new $broad[$broadKey]($feedback);
@@ -666,7 +666,7 @@ class gemini extends Exchange {
             } else if (is_array($exact) && array_key_exists($message, $exact)) {
                 throw new $exact[$message]($feedback);
             }
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+            $broadKey = $this->find_broadly_matched_key($broad, $message);
             if ($broadKey !== null) {
                 throw new $broad[$broadKey]($feedback);
             }

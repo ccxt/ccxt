@@ -2585,7 +2585,7 @@ class okex3(Exchange):
 
     def get_path_authentication_type(self, path):
         auth = self.safe_value(self.options, 'auth', {})
-        key = self.findBroadlyMatchedKey(auth, path)
+        key = self.find_broadly_matched_key(auth, path)
         return self.safe_string(auth, key, 'private')
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
@@ -2601,7 +2601,7 @@ class okex3(Exchange):
             if message in exact:
                 raise exact[message](feedback)
             broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
+            broadKey = self.find_broadly_matched_key(broad, message)
             if broadKey is not None:
                 raise broad[broadKey](feedback)
         if errorCode in exact:

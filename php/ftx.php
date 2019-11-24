@@ -1355,7 +1355,7 @@ class ftx extends Exchange {
                 throw new $exact[$error]($feedback);
             }
             $broad = $this->exceptions['broad'];
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $error);
+            $broadKey = $this->find_broadly_matched_key($broad, $error);
             if ($broadKey !== null) {
                 throw new $broad[$broadKey]($feedback);
             }

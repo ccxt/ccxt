@@ -1523,11 +1523,11 @@ class upbit extends Exchange {
                 throw new $exact[$name]($feedback);
             }
             $broad = $this->exceptions['broad'];
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+            $broadKey = $this->find_broadly_matched_key($broad, $message);
             if ($broadKey !== null) {
                 throw new $broad[$broadKey]($feedback);
             }
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $name);
+            $broadKey = $this->find_broadly_matched_key($broad, $name);
             if ($broadKey !== null) {
                 throw new $broad[$broadKey]($feedback);
             }

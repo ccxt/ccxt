@@ -1099,7 +1099,7 @@ class bitfinex extends Exchange {
         $response = $responses[0];
         $id = $this->safe_string($response, 'withdrawal_id');
         $message = $this->safe_string($response, 'message');
-        $errorMessage = $this->findBroadlyMatchedKey ($this->exceptions['broad'], $message);
+        $errorMessage = $this->find_broadly_matched_key($this->exceptions['broad'], $message);
         if ($id === 0) {
             if ($errorMessage !== null) {
                 $ExceptionClass = $this->exceptions['broad'][$errorMessage];
@@ -1174,7 +1174,7 @@ class bitfinex extends Exchange {
                     throw new $exact[$message]($feedback);
                 }
                 $broad = $this->exceptions['broad'];
-                $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+                $broadKey = $this->find_broadly_matched_key($broad, $message);
                 if ($broadKey !== null) {
                     throw new $broad[$broadKey]($feedback);
                 }

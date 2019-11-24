@@ -611,7 +611,7 @@ class gemini(Exchange):
         broad = self.exceptions['broad']
         if response is None:
             if isinstance(body, basestring):
-                broadKey = self.findBroadlyMatchedKey(broad, body)
+                broadKey = self.find_broadly_matched_key(broad, body)
                 feedback = self.id + ' ' + body
                 if broadKey is not None:
                     raise broad[broadKey](feedback)
@@ -633,7 +633,7 @@ class gemini(Exchange):
                 raise exact[reason](feedback)
             elif message in exact:
                 raise exact[message](feedback)
-            broadKey = self.findBroadlyMatchedKey(broad, message)
+            broadKey = self.find_broadly_matched_key(broad, message)
             if broadKey is not None:
                 raise broad[broadKey](feedback)
             raise ExchangeError(feedback)  # unknown message

@@ -842,7 +842,7 @@ class coinbasepro extends Exchange {
                     throw new $exact[$message]($feedback);
                 }
                 $broad = $this->exceptions['broad'];
-                $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+                $broadKey = $this->find_broadly_matched_key($broad, $message);
                 if ($broadKey !== null) {
                     throw new $broad[$broadKey]($feedback);
                 }

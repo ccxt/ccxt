@@ -834,7 +834,7 @@ class livecoin(Exchange):
             broad = self.exceptions['broad']
             message = self.safe_string_2(response, 'message', 'exception')
             if message is not None:
-                broadKey = self.findBroadlyMatchedKey(broad, message)
+                broadKey = self.find_broadly_matched_key(broad, message)
                 if broadKey is not None:
                     raise broad[broadKey](feedback)
             raise ExchangeError(feedback)

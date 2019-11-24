@@ -1046,7 +1046,7 @@ class bitstamp(Exchange):
                 value = errors[i]
                 if value in exact:
                     raise exact[value](feedback)
-                broadKey = self.findBroadlyMatchedKey(broad, value)
+                broadKey = self.find_broadly_matched_key(broad, value)
                 if broadKey is not None:
                     raise broad[broadKey](feedback)
             raise ExchangeError(feedback)

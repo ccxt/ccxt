@@ -1242,7 +1242,7 @@ class poloniex(Exchange):
             if message in exact:
                 raise exact[message](feedback)
             broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
+            broadKey = self.find_broadly_matched_key(broad, message)
             if broadKey is not None:
                 raise broad[broadKey](feedback)
             raise ExchangeError(feedback)  # unknown message

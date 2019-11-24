@@ -1258,7 +1258,7 @@ class adara extends Exchange {
                 throw new $exact[$detail]($feedback);
             }
             $broad = $this->exceptions['broad'];
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $body);
+            $broadKey = $this->find_broadly_matched_key($broad, $body);
             if ($broadKey !== null) {
                 throw new $broad[$broadKey]($feedback);
             }

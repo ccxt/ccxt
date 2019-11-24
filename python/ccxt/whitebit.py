@@ -598,7 +598,7 @@ class whitebit(Exchange):
                     if message in exact:
                         raise exact[message](feedback)
                 broad = self.safe_value(self.exceptions, 'broad', {})
-                broadKey = self.findBroadlyMatchedKey(broad, body)
+                broadKey = self.find_broadly_matched_key(broad, body)
                 if broadKey is not None:
                     raise broad[broadKey](feedback)
                 raise ExchangeError(feedback)

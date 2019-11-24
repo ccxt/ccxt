@@ -1161,7 +1161,7 @@ class anxpro(Exchange):
             elif message in exact:
                 raise exact[message](feedback)
             broad = self.safe_value(self.exceptions, 'broad', {})
-            broadKey = self.findBroadlyMatchedKey(broad, message)
+            broadKey = self.find_broadly_matched_key(broad, message)
             if broadKey is not None:
                 raise broad[broadKey](feedback)
             raise ExchangeError(feedback)  # unknown message

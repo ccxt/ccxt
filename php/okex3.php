@@ -2693,7 +2693,7 @@ class okex3 extends Exchange {
 
     public function get_path_authentication_type ($path) {
         $auth = $this->safe_value($this->options, 'auth', array());
-        $key = $this->findBroadlyMatchedKey ($auth, $path);
+        $key = $this->find_broadly_matched_key($auth, $path);
         return $this->safe_string($auth, $key, 'private');
     }
 
@@ -2713,7 +2713,7 @@ class okex3 extends Exchange {
                 throw new $exact[$message]($feedback);
             }
             $broad = $this->exceptions['broad'];
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+            $broadKey = $this->find_broadly_matched_key($broad, $message);
             if ($broadKey !== null) {
                 throw new $broad[$broadKey]($feedback);
             }
