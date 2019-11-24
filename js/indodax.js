@@ -538,10 +538,7 @@ module.exports = class indodax extends Exchange {
             }
         }
         const feedback = this.id + ' ' + body;
-        const exact = this.exceptions['exact'];
-        if (error in exact) {
-            throw new exact[error] (feedback);
-        }
+        this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
         this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
         throw new ExchangeError (feedback); // unknown message
     }
