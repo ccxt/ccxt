@@ -32,7 +32,7 @@ class OrderBook(dict):
         self['bids'].update(bids)
         self['nonce'] = nonce
         self['timestamp'] = timestamp
-        self['datetime'] = Exchange.iso8601 (timestamp)
+        self['datetime'] = Exchange.iso8601(timestamp)
 
 
 # -----------------------------------------------------------------------------
