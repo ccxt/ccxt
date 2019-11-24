@@ -927,12 +927,15 @@ class huobipro(Exchange):
         if api == 'private':
             self.check_required_credentials()
             timestamp = self.ymdhms(self.milliseconds(), 'T')
-            request = self.keysort(self.extend({
+            request = {
                 'SignatureMethod': 'HmacSHA256',
                 'SignatureVersion': '2',
                 'AccessKeyId': self.apiKey,
                 'Timestamp': timestamp,
-            }, query))
+            }
+            if method != 'POST':
+                query = self.extend(request, query)
+            request = self.keysort(request)
             auth = self.urlencode(request)
             # unfortunately, PHP demands double quotes for the escaped newline symbol
             # eslint-disable-next-line quotes
