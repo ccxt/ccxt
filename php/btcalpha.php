@@ -449,11 +449,7 @@ class btcalpha extends Exchange {
             if (is_array($exact) && array_key_exists($error, $exact)) {
                 throw new $exact[$error]($feedback);
             }
-            $broad = $this->exceptions['broad'];
-            $broadKey = $this->find_broadly_matched_key($broad, $error);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
-            }
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
         }
         if ($code === 401 || $code === 403) {
             throw new AuthenticationError($feedback);

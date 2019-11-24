@@ -1259,11 +1259,7 @@ class dsx extends Exchange {
                 } else if (is_array($exact) && array_key_exists($message, $exact)) {
                     throw new $exact[$message]($feedback);
                 }
-                $broad = $this->exceptions['broad'];
-                $broadKey = $this->find_broadly_matched_key($broad, $message);
-                if ($broadKey !== null) {
-                    throw new $broad[$broadKey]($feedback);
-                }
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
                 throw new ExchangeError($feedback); // unknown $message
             }
         }

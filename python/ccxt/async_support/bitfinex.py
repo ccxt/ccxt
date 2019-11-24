@@ -342,8 +342,8 @@ class bitfinex(Exchange):
                 },
                 'broad': {
                     'This API key does not have permission': PermissionDenied,  # authenticated but not authorized
-                    'Invalid order: not enough exchange balance for ': InsufficientFunds,  # when buying cost is greater than the available quote currency
-                    'Invalid order: minimum size for ': InvalidOrder,  # when amount below limits.amount.min
+                    'not enough exchange balance for ': InsufficientFunds,  # when buying cost is greater than the available quote currency
+                    'minimum size for ': InvalidOrder,  # when amount below limits.amount.min
                     'Invalid order': InvalidOrder,  # ?
                     'The available balance is only': InsufficientFunds,  # {"status":"error","message":"Cannot withdraw 1.0027 ETH from your exchange wallet. The available balance is only 0.0 ETH. If you have limit orders, open positions, unused or active margin funding, self will decrease your available balance. To increase it, you can cancel limit orders or reduce/close your positions.","withdrawal_id":0,"fees":"0.0027"}
                 },

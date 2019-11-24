@@ -1040,13 +1040,10 @@ class bitstamp(Exchange):
             if code == 'API0005':
                 raise AuthenticationError(self.id + ' invalid signature, use the uid for the main account if you have subaccounts')
             exact = self.exceptions['exact']
-            broad = self.exceptions['broad']
             feedback = self.id + ' ' + body
             for i in range(0, len(errors)):
                 value = errors[i]
                 if value in exact:
                     raise exact[value](feedback)
-                broadKey = self.find_broadly_matched_key(broad, value)
-                if broadKey is not None:
-                    raise broad[broadKey](feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], value, feedback)
             raise ExchangeError(feedback)
