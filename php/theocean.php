@@ -908,11 +908,8 @@ class theocean extends Exchange {
                 // array("$message":"Schema validation failed for 'body'","errors":[array("name":"anyOf","argument":["[subschema 0]","[subschema 1]","[subschema 2]"],"$message":"is not any of [subschema 0],[subschema 1],[subschema 2]","instance":array("signedTargetOrder":array("error":array("$message":"Unsigned target order validation failed.","errors":[array("$message":"Greater than available wallet balance.","type":"walletBaseTokenAmount")]),"maker":"0x1709c02cd7327d391a39a7671af8a91a1ef8a47b","orderHash":"0xda007ea8b5eca71ac96fe4072f7c1209bb151d898a9cc89bbeaa594f0491ee49","ecSignature":array("v":27,"r":"0xb23ce6c4a7b5d51d77e2d00f6d1d472a3b2e72d5b2be1510cfeb122f9366b79e","s":"0x07d274e6d7a00b65fc3026c2f9019215b1e47a5ac4d1f05e03f90550d27109be"))),"property":"instance")])
                 // array("$message":"Schema validation failed for 'params'","errors":[array("name":"pattern","argument":"^0x[0-9a-fA-F]{64}$","$message":"does not match pattern \"^0x[0-9a-fA-F]{64}$\"","instance":"1","property":"instance.orderHash")])
                 //
-                $feedback = $this->id . ' ' . $this->json ($response);
-                $exact = $this->exceptions['exact'];
-                if (is_array($exact) && array_key_exists($message, $exact)) {
-                    throw new $exact[$message]($feedback);
-                }
+                $feedback = $this->id . ' ' . $body;
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
                 throw new ExchangeError($feedback); // unknown $message
             }

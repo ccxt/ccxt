@@ -2705,18 +2705,13 @@ class okex3 extends Exchange {
         if (!$response) {
             return; // fallback to default error handler
         }
-        $exact = $this->exceptions['exact'];
         $message = $this->safe_string($response, 'message');
         $errorCode = $this->safe_string_2($response, 'code', 'error_code');
         if ($message !== null) {
-            if (is_array($exact) && array_key_exists($message, $exact)) {
-                throw new $exact[$message]($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
         }
-        if (is_array($exact) && array_key_exists($errorCode, $exact)) {
-            throw new $exact[$errorCode]($feedback);
-        }
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
         if ($message !== null) {
             throw new ExchangeError($feedback); // unknown $message
         }

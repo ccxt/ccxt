@@ -2594,14 +2594,11 @@ class okex3(Exchange):
             raise ExchangeError(feedback)
         if not response:
             return  # fallback to default error handler
-        exact = self.exceptions['exact']
         message = self.safe_string(response, 'message')
         errorCode = self.safe_string_2(response, 'code', 'error_code')
         if message is not None:
-            if message in exact:
-                raise exact[message](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-        if errorCode in exact:
-            raise exact[errorCode](feedback)
+        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         if message is not None:
             raise ExchangeError(feedback)  # unknown message

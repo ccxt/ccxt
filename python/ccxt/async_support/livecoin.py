@@ -821,12 +821,9 @@ class livecoin(Exchange):
             return  # fallback to default error handler
         if code >= 300:
             feedback = self.id + ' ' + body
-            exact = self.exceptions['exact']
             errorCode = self.safe_string(response, 'errorCode')
-            if errorCode in exact:
-                raise exact[errorCode](feedback)
-            else:
-                raise ExchangeError(feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            raise ExchangeError(feedback)
         # returns status code 200 even if success == False
         success = self.safe_value(response, 'success', True)
         if not success:

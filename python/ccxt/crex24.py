@@ -1197,9 +1197,7 @@ class crex24(Exchange):
             return  # no error
         message = self.safe_string(response, 'errorDescription')
         feedback = self.id + ' ' + self.json(response)
-        exact = self.exceptions['exact']
-        if message in exact:
-            raise exact[message](feedback)
+        self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
         self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
         if code == 400:
             raise BadRequest(feedback)

@@ -1259,10 +1259,7 @@ class bitmex extends Exchange {
             $error = $this->safe_value($response, 'error', array());
             $message = $this->safe_string($error, 'message');
             $feedback = $this->id . ' ' . $body;
-            $exact = $this->exceptions['exact'];
-            if (is_array($exact) && array_key_exists($message, $exact)) {
-                throw new $exact[$message]($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             if ($code === 400) {
                 throw new BadRequest($feedback);
