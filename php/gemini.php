@@ -637,14 +637,10 @@ class gemini extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
-        $broad = $this->exceptions['broad'];
         if ($response === null) {
             if (gettype ($body) === 'string') {
-                $broadKey = $this->find_broadly_matched_key($broad, $body);
                 $feedback = $this->id . ' ' . $body;
-                if ($broadKey !== null) {
-                    throw new $broad[$broadKey]($feedback);
-                }
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             }
             return; // fallback to default error handler
         }
@@ -666,10 +662,7 @@ class gemini extends Exchange {
             } else if (is_array($exact) && array_key_exists($message, $exact)) {
                 throw new $exact[$message]($feedback);
             }
-            $broadKey = $this->find_broadly_matched_key($broad, $message);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
-            }
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
     }

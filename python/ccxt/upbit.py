@@ -1434,11 +1434,6 @@ class upbit(Exchange):
                 raise exact[message](feedback)
             if name in exact:
                 raise exact[name](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.find_broadly_matched_key(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
-            broadKey = self.find_broadly_matched_key(broad, name)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], name, feedback)
             raise ExchangeError(feedback)  # unknown message

@@ -811,20 +811,15 @@ class latoken(Exchange):
         #
         message = self.safe_string(response, 'message')
         exact = self.exceptions['exact']
-        broad = self.exceptions['broad']
         feedback = self.id + ' ' + body
         if message is not None:
             if message in exact:
                 raise exact[message](feedback)
-            broadKey = self.find_broadly_matched_key(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
         error = self.safe_value(response, 'error', {})
         errorMessage = self.safe_string(error, 'message')
         if errorMessage is not None:
             if errorMessage in exact:
                 raise exact[errorMessage](feedback)
-            broadKey = self.find_broadly_matched_key(broad, errorMessage)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
             raise ExchangeError(feedback)  # unknown message

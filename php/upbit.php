@@ -1522,15 +1522,8 @@ class upbit extends Exchange {
             if (is_array($exact) && array_key_exists($name, $exact)) {
                 throw new $exact[$name]($feedback);
             }
-            $broad = $this->exceptions['broad'];
-            $broadKey = $this->find_broadly_matched_key($broad, $message);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
-            }
-            $broadKey = $this->find_broadly_matched_key($broad, $name);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
-            }
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $name, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
     }

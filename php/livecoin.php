@@ -903,13 +903,9 @@ class livecoin extends Exchange {
         $success = $this->safe_value($response, 'success', true);
         if (!$success) {
             $feedback = $this->id . ' ' . $body;
-            $broad = $this->exceptions['broad'];
             $message = $this->safe_string_2($response, 'message', 'exception');
             if ($message !== null) {
-                $broadKey = $this->find_broadly_matched_key($broad, $message);
-                if ($broadKey !== null) {
-                    throw new $broad[$broadKey]($feedback);
-                }
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             }
             throw new ExchangeError($feedback);
         }

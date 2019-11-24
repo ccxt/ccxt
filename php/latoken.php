@@ -861,16 +861,12 @@ class latoken extends Exchange {
         //
         $message = $this->safe_string($response, 'message');
         $exact = $this->exceptions['exact'];
-        $broad = $this->exceptions['broad'];
         $feedback = $this->id . ' ' . $body;
         if ($message !== null) {
             if (is_array($exact) && array_key_exists($message, $exact)) {
                 throw new $exact[$message]($feedback);
             }
-            $broadKey = $this->find_broadly_matched_key($broad, $message);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
-            }
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
         }
         $error = $this->safe_value($response, 'error', array());
         $errorMessage = $this->safe_string($error, 'message');
@@ -878,10 +874,7 @@ class latoken extends Exchange {
             if (is_array($exact) && array_key_exists($errorMessage, $exact)) {
                 throw new $exact[$errorMessage]($feedback);
             }
-            $broadKey = $this->find_broadly_matched_key($broad, $errorMessage);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
-            }
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
     }

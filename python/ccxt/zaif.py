@@ -449,10 +449,7 @@ class zaif(Exchange):
             exact = self.exceptions['exact']
             if error in exact:
                 raise exact[error](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.find_broadly_matched_key(broad, error)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             raise ExchangeError(feedback)  # unknown message
         success = self.safe_value(response, 'success', True)
         if not success:

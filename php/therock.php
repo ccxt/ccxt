@@ -1217,7 +1217,6 @@ class therock extends Exchange {
         if ($numErrors > 0) {
             $feedback = $this->id . ' ' . $body;
             $exact = $this->exceptions['exact'];
-            $broad = $this->exceptions['broad'];
             // here we throw the first $error we can identify
             for ($i = 0; $i < $numErrors; $i++) {
                 $error = $errors[$i];
@@ -1225,10 +1224,7 @@ class therock extends Exchange {
                 if (is_array($exact) && array_key_exists($message, $exact)) {
                     throw new $exact[$message]($feedback);
                 }
-                $broadKey = $this->find_broadly_matched_key($broad, $message);
-                if ($broadKey !== null) {
-                    throw new $broad[$broadKey]($feedback);
-                }
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             }
             throw new ExchangeError($feedback); // unknown $message
         }

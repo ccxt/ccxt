@@ -2600,10 +2600,7 @@ class okex3(Exchange):
         if message is not None:
             if message in exact:
                 raise exact[message](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.find_broadly_matched_key(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
         if errorCode in exact:
             raise exact[errorCode](feedback)
         if message is not None:
