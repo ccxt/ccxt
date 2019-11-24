@@ -223,6 +223,36 @@ class LimitedIndexedOrderBookSide extends IndexedOrderBookSide {
 }
 
 // ----------------------------------------------------------------------------
+// limited and count-based
+
+class LimitedCountedOrderBookSide extends CountedOrderBookSide {
+    constructor (deltas = [], depth = undefined) {
+        super (deltas)
+        Object.defineProperty (this, 'depth', {
+            __proto__: null, // make it invisible
+            value: depth,
+            writable: true,
+        })
+    }
+
+    limit (n = undefined) {
+        const array = Object.entries (this.index).map (this.convert).sort (this.compare)
+        const depth = n ? Math.min (this.depth || Number.MAX_SAFE_INTEGER, n) : this.depth
+        const threshold = Math.min (array.length, depth)
+        this.index = {}
+        for (let i = 0; i < threshold; i++) {
+            this[i] = array[i];
+            const price = array[i][0]
+            const size = array[i][1]
+            const id = array[i][2]
+            this.index[price] = array[i]
+        }
+        this.length = threshold;
+        return this
+    }
+}
+
+// ----------------------------------------------------------------------------
 // incremental and indexed (2 in 1)
 
 class IncrementalIndexedOrderBookSide extends IndexedOrderBookSide {
@@ -264,6 +294,8 @@ class IncrementalAsks extends IncrementalOrderBookSide { compare (a, b) { return
 class IncrementalBids extends IncrementalOrderBookSide { compare (a, b) { return b[0] - a[0] }}
 class LimitedIndexedAsks extends LimitedIndexedOrderBookSide { compare (a, b) { return a[0] - b[0] }}
 class LimitedIndexedBids extends LimitedIndexedOrderBookSide { compare (a, b) { return b[0] - a[0] }}
+class LimitedCountedAsks extends LimitedCountedOrderBookSide { compare (a, b) { return a[0] - b[0] }}
+class LimitedCountedBids extends LimitedCountedOrderBookSide { compare (a, b) { return b[0] - a[0] }}
 class IncrementalIndexedAsks extends IncrementalIndexedOrderBookSide { compare (a, b) { return a[0] - b[0] }}
 class IncrementalIndexedBids extends IncrementalIndexedOrderBookSide { compare (a, b) { return b[0] - a[0] }}
 
@@ -300,6 +332,11 @@ module.exports = {
     LimitedIndexedAsks,
     LimitedIndexedBids,
     LimitedIndexedOrderBookSide,
+
+    // limited + count-based
+    LimitedCountedAsks,
+    LimitedCountedBids,
+    LimitedCountedOrderBookSide,
 
     // order-id + incremental
     IncrementalIndexedAsks,
