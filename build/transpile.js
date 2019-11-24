@@ -6,7 +6,7 @@
 
 const fs = require ('fs')
     , log = require ('ololog')
-    , ansi = require ('ansicolor').nice
+    , _ = require ('ansicolor').nice
     , errors = require ('../js/base/errors.js')
     , { unCamelCase, precisionConstants, safeString } = require ('../js/base/functions.js')
     , { basename } = require ('path')
