@@ -34,7 +34,7 @@ module.exports = class Exchange extends ccxt.Exchange {
         return new LimitedIndexedOrderBook (snapshot, depth)
     }
 
-    limitedCountOrderBook (snapshot = {}, depth = undefined) {
+    limitedCountedOrderBook (snapshot = {}, depth = undefined) {
         return new LimitedCountedOrderBook (snapshot, depth)
     }
 
