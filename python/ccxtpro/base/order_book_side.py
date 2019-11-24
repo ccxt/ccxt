@@ -7,7 +7,8 @@ class OrderBookSide(list):
     # sorted(..., reverse=self.side)
 
     def __init__(self, deltas=[]):
-        super(OrderBookSide, self).__init__([])
+        # allocate memory for the list here (it will not be resized...)
+        super(OrderBookSide, self).__init__([None] * 1000)
         self._index = {}
         self._len = None
         if len(deltas):
@@ -36,15 +37,10 @@ class OrderBookSide(list):
     def limit(self, n=None):
         first_element = operator.itemgetter(0)
         array = sorted(self._index.items(), key=first_element, reverse=self.side)
-        if n:
-            threshold = min(n, len(array))
-            self._len = 0
-            for i in range(threshold):
-                self.append(array[i])
-        else:
-            self._len = 0
-            self.extend(array)
-        return self
+        array_len = len(array)
+        self._len = min(n or array_len, array_len)
+        for i in range(self._len):
+            self[i] = array[i]
 
     """These methods allow fast truncation of a list"""
     def __iter__(self):
@@ -60,18 +56,8 @@ class OrderBookSide(list):
         else:
             return super(OrderBookSide, self).__len__()
 
-    def extend(self, iterable):
-        evaluated = list(iterable)
-        length = len(evaluated)
-        self[self._len:self._len + length] = evaluated
-        self._len += length
-
-    def append(self, object):
-        if self._len == super(OrderBookSide, self).__len__():
-            super(OrderBookSide, self).append(object)
-        else:
-            self[self._len] = object
-        self._len += 1
+    def __repr__(self):
+        return str(list(self))
 
 # -----------------------------------------------------------------------------
 # some exchanges limit the number of bids/asks in the aggregated orderbook
@@ -87,14 +73,10 @@ class LimitedOrderBookSide(OrderBookSide):
     def limit(self, n=None):
         first_element = operator.itemgetter(0)
         array = sorted(self._index.items(), key=first_element, reverse=self.side)
-        if n or self._depth:
-            threshold = min(n, len(array), self._depth)
-            self._len = 0
-            for i in range(threshold):
-                self.append(array[i])
-        else:
-            self._len = 0
-            self.extend(array)
+        array_len = len(array)
+        self._len = min(n or array_len, self._depth or array_len, len(array))
+        for i in range(self._len):
+            self[i] = array[i]
         return self
 
 
