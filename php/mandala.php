@@ -1852,11 +1852,8 @@ class mandala extends Exchange {
         if (($status !== null) && ($status !== 'Success')) {
             $message = $this->safe_string_2($response, 'errorMessage', 'Message');
             $message = $this->safe_string($response, 'message', $message);
-            $feedback = $this->id . ' ' . $this->json ($response);
-            $exact = $this->exceptions['exact'];
-            if (is_array($exact) && array_key_exists($message, $exact)) {
-                throw new $exact[$message]($feedback);
-            }
+            $feedback = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }

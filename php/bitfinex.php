@@ -1160,19 +1160,9 @@ class bitfinex extends Exchange {
         }
         if ($code >= 400) {
             if ($body[0] === '{') {
-                $feedback = $this->id . ' ' . $this->json ($response);
-                $message = null;
-                if (is_array($response) && array_key_exists('message', $response)) {
-                    $message = $response['message'];
-                } else if (is_array($response) && array_key_exists('error', $response)) {
-                    $message = $response['error'];
-                } else {
-                    throw new ExchangeError($feedback); // malformed (to our knowledge) $response
-                }
-                $exact = $this->exceptions['exact'];
-                if (is_array($exact) && array_key_exists($message, $exact)) {
-                    throw new $exact[$message]($feedback);
-                }
+                $feedback = $this->id . ' ' . $body;
+                $message = $this->safe_string_2($response, 'message', 'error');
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
                 throw new ExchangeError($feedback); // unknown $message
             }

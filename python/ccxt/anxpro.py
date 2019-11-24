@@ -1155,10 +1155,7 @@ class anxpro(Exchange):
         if ((result is not None) and (result != 'success')) or ((code is not None) and (code != 'OK')):
             message = self.safe_string(response, 'error')
             feedback = self.id + ' ' + body
-            exact = self.exceptions['exact']
-            if code in exact:
-                raise exact[code](feedback)
-            elif message in exact:
-                raise exact[message](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

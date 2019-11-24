@@ -1244,19 +1244,10 @@ class adara extends Exchange {
             $title = $this->safe_string($error, 'title');
             $detail = $this->safe_string($error, 'detail');
             $feedback = $this->id . ' ' . $this->json ($response);
-            $exact = $this->exceptions['exact'];
-            if (is_array($exact) && array_key_exists($code, $exact)) {
-                throw new $exact[$code]($feedback);
-            }
-            if (is_array($exact) && array_key_exists($status, $exact)) {
-                throw new $exact[$status]($feedback);
-            }
-            if (is_array($exact) && array_key_exists($title, $exact)) {
-                throw new $exact[$title]($feedback);
-            }
-            if (is_array($exact) && array_key_exists($detail, $exact)) {
-                throw new $exact[$detail]($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $status, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $title, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $detail, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }

@@ -1084,16 +1084,8 @@ class bitfinex(Exchange):
             return
         if code >= 400:
             if body[0] == '{':
-                feedback = self.id + ' ' + self.json(response)
-                message = None
-                if 'message' in response:
-                    message = response['message']
-                elif 'error' in response:
-                    message = response['error']
-                else:
-                    raise ExchangeError(feedback)  # malformed(to our knowledge) response
-                exact = self.exceptions['exact']
-                if message in exact:
-                    raise exact[message](feedback)
+                feedback = self.id + ' ' + body
+                message = self.safe_string_2(response, 'message', 'error')
+                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 raise ExchangeError(feedback)  # unknown message

@@ -1198,12 +1198,8 @@ class anxpro extends Exchange {
         if ((($result !== null) && ($result !== 'success')) || (($code !== null) && ($code !== 'OK'))) {
             $message = $this->safe_string($response, 'error');
             $feedback = $this->id . ' ' . $body;
-            $exact = $this->exceptions['exact'];
-            if (is_array($exact) && array_key_exists($code, $exact)) {
-                throw new $exact[$code]($feedback);
-            } else if (is_array($exact) && array_key_exists($message, $exact)) {
-                throw new $exact[$message]($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }

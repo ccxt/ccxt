@@ -1760,9 +1760,7 @@ class mandala(Exchange):
         if (status is not None) and (status != 'Success'):
             message = self.safe_string_2(response, 'errorMessage', 'Message')
             message = self.safe_string(response, 'message', message)
-            feedback = self.id + ' ' + self.json(response)
-            exact = self.exceptions['exact']
-            if message in exact:
-                raise exact[message](feedback)
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

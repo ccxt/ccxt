@@ -1188,14 +1188,9 @@ class adara(Exchange):
             title = self.safe_string(error, 'title')
             detail = self.safe_string(error, 'detail')
             feedback = self.id + ' ' + self.json(response)
-            exact = self.exceptions['exact']
-            if code in exact:
-                raise exact[code](feedback)
-            if status in exact:
-                raise exact[status](feedback)
-            if title in exact:
-                raise exact[title](feedback)
-            if detail in exact:
-                raise exact[detail](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], status, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], title, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], detail, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(feedback)  # unknown message
