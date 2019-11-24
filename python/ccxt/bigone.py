@@ -1172,8 +1172,5 @@ class bigone(Exchange):
                 raise exact[message](feedback)
             elif code in exact:
                 raise exact[code](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.find_broadly_matched_key(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

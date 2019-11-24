@@ -1257,11 +1257,7 @@ class adara extends Exchange {
             if (is_array($exact) && array_key_exists($detail, $exact)) {
                 throw new $exact[$detail]($feedback);
             }
-            $broad = $this->exceptions['broad'];
-            $broadKey = $this->find_broadly_matched_key($broad, $body);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
-            }
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
     }

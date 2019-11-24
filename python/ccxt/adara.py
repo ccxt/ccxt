@@ -1197,8 +1197,5 @@ class adara(Exchange):
                 raise exact[title](feedback)
             if detail in exact:
                 raise exact[detail](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.find_broadly_matched_key(broad, body)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(feedback)  # unknown message
