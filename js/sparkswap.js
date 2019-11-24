@@ -138,12 +138,12 @@ module.exports = class sparkswap extends Exchange {
 
     async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let request = {
+        const currency = this.currency (code);
+        const request = {
             'symbol': currency['id'],
         };
-        let response = await this.privatePostWalletAddress (this.extend (request, params));
-        let address = this.safeString (response, 'address');
+        const response = await this.privatePostWalletAddress (this.extend (request, params));
+        const address = this.safeString (response, 'address');
         return {
             'currency': code,
             'address': address,
