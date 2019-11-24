@@ -137,6 +137,7 @@ class Transpiler {
             [ /\.integerModulo/g, '.integer_modulo'],
             [ /\.integerPow/g, '.integer_pow'],
             [ /\.findBroadlyMatchedKey/g, '.find_broadly_matched_key'],
+            [ /\.throwBroadlyMatchedKey/g, '.throw_broadly_matched_key'],
             [ /errorHierarchy/g, 'error_hierarchy'],
             [ /\.base16ToBinary/g, '.base16_to_binary'],
             [ /\'use strict\';?\s+/g, '' ],
