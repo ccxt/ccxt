@@ -29,6 +29,7 @@ module.exports = class bitlish extends Exchange {
                 'api': 'https://bitlish.com/api',
                 'www': 'https://bitlish.com',
                 'doc': 'https://bitlish.com/api',
+                'fees': 'https://bitlish.com/fees',
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -39,7 +40,7 @@ module.exports = class bitlish extends Exchange {
                     'tierBased': false,
                     'percentage': true,
                     'taker': 0.3 / 100, // anonymous 0.3%, verified 0.2%
-                    'maker': 0,
+                    'maker': 0.2 / 100, // anonymous 0.2%, verified 0.1%
                 },
                 'funding': {
                     'tierBased': false,
@@ -122,23 +123,26 @@ module.exports = class bitlish extends Exchange {
         });
     }
 
-    async fetchMarkets () {
-        let markets = await this.publicGetPairs ();
-        let result = [];
-        let keys = Object.keys (markets);
-        for (let p = 0; p < keys.length; p++) {
-            let market = markets[keys[p]];
-            let id = market['id'];
-            let symbol = market['name'];
-            let [ base, quote ] = symbol.split ('/');
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
-            symbol = base + '/' + quote;
+    async fetchMarkets (params = {}) {
+        const response = await this.publicGetPairs (params);
+        const result = [];
+        const keys = Object.keys (response);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const market = response[key];
+            const id = this.safeString (market, 'id');
+            const name = this.safeString (market, 'name');
+            const [ baseId, quoteId ] = name.split ('/');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
             });
         }
@@ -146,11 +150,12 @@ module.exports = class bitlish extends Exchange {
     }
 
     parseTicker (ticker, market) {
-        let timestamp = this.milliseconds ();
+        const timestamp = this.milliseconds ();
         let symbol = undefined;
-        if (market)
+        if (market !== undefined) {
             symbol = market['symbol'];
-        let last = this.safeFloat (ticker, 'last');
+        }
+        const last = this.safeFloat (ticker, 'last');
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -177,14 +182,23 @@ module.exports = class bitlish extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetTickers (params);
-        let ids = Object.keys (tickers);
-        let result = {};
+        const tickers = await this.publicGetTickers (params);
+        const ids = Object.keys (tickers);
+        const result = {};
         for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
-            let ticker = tickers[id];
+            const id = ids[i];
+            const market = this.safeValue (this.markets_by_id, id);
+            let symbol = undefined;
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            } else {
+                const baseId = id.slice (0, 3);
+                const quoteId = id.slice (3, 6);
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+            const ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
@@ -192,43 +206,59 @@ module.exports = class bitlish extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let tickers = await this.publicGetTickers (params);
-        let ticker = tickers[market['id']];
-        return this.parseTicker (ticker, market);
+        const market = this.market (symbol);
+        const response = await this.publicGetTickers (params);
+        const marketId = market['id'];
+        return this.parseTicker (response[marketId], market);
     }
 
     async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         // let market = this.market (symbol);
-        let now = this.seconds ();
+        const now = this.seconds ();
         let start = now - 86400 * 30; // last 30 days
-        if (typeof since !== 'undefined')
+        if (since !== undefined) {
             start = parseInt (since / 1000);
-        let interval = [ start.toString (), undefined ];
-        return await this.publicPostOhlcv (this.extend ({
+        }
+        const interval = [ start.toString (), undefined ];
+        const request = {
             'time_range': interval,
-        }, params));
+        };
+        return await this.publicPostOhlcv (this.extend (request, params));
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetTradesDepth (this.extend ({
+        const request = {
             'pair_id': this.marketId (symbol),
-        }, params));
+        };
+        const response = await this.publicGetTradesDepth (this.extend (request, params));
         let timestamp = undefined;
-        let last = this.safeInteger (orderbook, 'last');
-        if (last)
+        const last = this.safeInteger (response, 'last');
+        if (last !== undefined) {
             timestamp = parseInt (last / 1000);
-        return this.parseOrderBook (orderbook, timestamp, 'bid', 'ask', 'price', 'volume');
+        }
+        return this.parseOrderBook (response, timestamp, 'bid', 'ask', 'price', 'volume');
     }
 
     parseTrade (trade, market = undefined) {
-        let side = (trade['dir'] === 'bid') ? 'buy' : 'sell';
+        const side = (trade['dir'] === 'bid') ? 'buy' : 'sell';
         let symbol = undefined;
-        if (market)
+        if (market !== undefined) {
             symbol = market['symbol'];
-        let timestamp = parseInt (trade['created'] / 1000);
+        }
+        let timestamp = this.safeInteger (trade, 'created');
+        if (timestamp !== undefined) {
+            timestamp = parseInt (timestamp / 1000);
+        }
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        let cost = undefined;
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = price * amount;
+            }
+        }
         return {
             'id': undefined,
             'info': trade,
@@ -238,15 +268,18 @@ module.exports = class bitlish extends Exchange {
             'order': undefined,
             'type': undefined,
             'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetTradesHistory (this.extend ({
+        const market = this.market (symbol);
+        const response = await this.publicGetTradesHistory (this.extend ({
             'pair_id': market['id'],
         }, params));
         return this.parseTrades (response['list'], market, since, limit);
@@ -254,76 +287,70 @@ module.exports = class bitlish extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostBalance ();
-        let result = { 'info': response };
-        let currencies = Object.keys (response);
-        let balance = {};
-        for (let c = 0; c < currencies.length; c++) {
-            let currency = currencies[c];
-            let account = response[currency];
-            currency = currency.toUpperCase ();
-            // issue #4 bitlish names Dash as DSH, instead of DASH
-            if (currency === 'DSH')
-                currency = 'DASH';
-            if (currency === 'XDG')
-                currency = 'DOGE';
-            balance[currency] = account;
-        }
-        currencies = Object.keys (this.currencies);
-        for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let account = this.account ();
-            if (currency in balance) {
-                account['free'] = parseFloat (balance[currency]['funds']);
-                account['used'] = parseFloat (balance[currency]['holded']);
-                account['total'] = this.sum (account['free'], account['used']);
-            }
-            result[currency] = account;
+        const response = await this.privatePostBalance (params);
+        const result = { 'info': response };
+        const currencyIds = Object.keys (response);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            const balance = this.safeValue (response, currencyId, {});
+            account['free'] = this.safeFloat (balance, 'funds');
+            account['used'] = this.safeFloat (balance, 'holded');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
-    signIn () {
-        return this.privatePostSignin ({
+    async signIn (params = {}) {
+        const request = {
             'login': this.login,
             'passwd': this.password,
-        });
+        };
+        return await this.privatePostSignin (this.extend (request, params));
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let order = {
+        const request = {
             'pair_id': this.marketId (symbol),
             'dir': (side === 'buy') ? 'bid' : 'ask',
             'amount': amount,
         };
-        if (type === 'limit')
-            order['price'] = price;
-        let result = await this.privatePostCreateTrade (this.extend (order, params));
+        if (type === 'limit') {
+            request['price'] = price;
+        }
+        const response = await this.privatePostCreateTrade (this.extend (request, params));
+        const id = this.safeString (response, 'id');
         return {
-            'info': result,
-            'id': result['id'],
+            'info': response,
+            'id': id,
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privatePostCancelTrade ({ 'id': id });
+        const request = {
+            'id': id,
+        };
+        return await this.privatePostCancelTrade (this.extend (request, params));
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
-        this.checkAddress (address);
-        await this.loadMarkets ();
-        if (currency !== 'BTC') {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        if (code !== 'BTC') {
             // they did not document other types...
             throw new NotSupported (this.id + ' currently supports BTC withdrawals only, until they document other currencies...');
         }
-        let response = await this.privatePostWithdraw (this.extend ({
-            'currency': currency.toLowerCase (),
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
             'amount': parseFloat (amount),
             'account': address,
             'payment_method': 'bitcoin', // they did not document other types...
-        }, params));
+        };
+        const response = await this.privatePostWithdraw (this.extend (request, params));
         return {
             'info': response,
             'id': response['message_id'],
@@ -334,8 +361,9 @@ module.exports = class bitlish extends Exchange {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (api === 'public') {
             if (method === 'GET') {
-                if (Object.keys (params).length)
+                if (Object.keys (params).length) {
                     url += '?' + this.urlencode (params);
+                }
             } else {
                 body = this.json (params);
                 headers = { 'Content-Type': 'application/json' };

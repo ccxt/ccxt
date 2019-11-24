@@ -6,7 +6,7 @@
 from ccxt.async_support.okcoinusd import okcoinusd
 
 
-class okcoincny (okcoinusd):
+class okcoincny(okcoinusd):
 
     def describe(self):
         return self.deep_extend(super(okcoincny, self).describe(), {
@@ -25,6 +25,7 @@ class okcoincny (okcoinusd):
                 },
                 'www': 'https://www.okcoin.cn',
                 'doc': 'https://www.okcoin.cn/rest_getStarted.html',
+                'referral': 'https://www.okcoin.cn',
             },
             'markets': {
                 'BTC/CNY': {'id': 'btc_cny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', 'type': 'spot', 'spot': True, 'future': False},

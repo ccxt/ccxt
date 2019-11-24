@@ -21,7 +21,7 @@ module.exports = class fybse extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg',
                 'api': 'https://www.fybse.se/api/SEK',
                 'www': 'https://www.fybse.se',
-                'doc': 'http://docs.fyb.apiary.io',
+                'doc': 'https://fyb.docs.apiary.io',
             },
             'api': {
                 'public': {
@@ -51,41 +51,34 @@ module.exports = class fybse extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        let balance = await this.privatePostGetaccinfo ();
-        let btc = parseFloat (balance['btcBal']);
-        let symbol = this.symbols[0];
-        let quote = this.markets[symbol]['quote'];
-        let lowercase = quote.toLowerCase () + 'Bal';
-        let fiat = parseFloat (balance[lowercase]);
-        let crypto = {
-            'free': btc,
-            'used': 0.0,
-            'total': btc,
-        };
-        let result = { 'BTC': crypto };
-        result[quote] = {
-            'free': fiat,
-            'used': 0.0,
-            'total': fiat,
-        };
-        result['info'] = balance;
+        await this.loadMarkets ();
+        const response = await this.privatePostGetaccinfo (params);
+        const btc = this.safeFloat (response, 'btcBal');
+        const symbol = this.symbols[0];
+        const quote = this.markets[symbol]['quote'];
+        const lowercase = quote.toLowerCase () + 'Bal';
+        const fiat = this.safeFloat (response, lowercase);
+        const crypto = this.account ();
+        crypto['total'] = btc;
+        const result = { 'BTC': crypto };
+        result[quote] = this.account ();
+        result[quote]['total'] = fiat;
+        result['info'] = response;
         return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        let orderbook = await this.publicGetOrderbook (params);
-        return this.parseOrderBook (orderbook);
+        await this.loadMarkets ();
+        const response = await this.publicGetOrderbook (params);
+        return this.parseOrderBook (response);
     }
 
     async fetchTicker (symbol, params = {}) {
-        let ticker = await this.publicGetTickerdetailed (params);
-        let timestamp = this.milliseconds ();
-        let last = undefined;
-        let volume = undefined;
-        if ('last' in ticker)
-            last = this.safeFloat (ticker, 'last');
-        if ('vol' in ticker)
-            volume = this.safeFloat (ticker, 'vol');
+        await this.loadMarkets ();
+        const ticker = await this.publicGetTickerdetailed (params);
+        const timestamp = this.milliseconds ();
+        const last = this.safeFloat (ticker, 'last');
+        const volume = this.safeFloat (ticker, 'vol');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -110,34 +103,53 @@ module.exports = class fybse extends Exchange {
         };
     }
 
-    parseTrade (trade, market) {
-        let timestamp = parseInt (trade['date']) * 1000;
+    parseTrade (trade, market = undefined) {
+        const timestamp = this.safeTimestamp (trade, 'date');
+        const id = this.safeString (trade, 'tid');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
         return {
+            'id': id,
             'info': trade,
-            'id': trade['tid'].toString (),
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
             'side': undefined,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'amount'),
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        let market = this.market (symbol);
-        let response = await this.publicGetTrades (params);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const response = await this.publicGetTrades (params);
         return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        let response = await this.privatePostPlaceorder (this.extend ({
+        await this.loadMarkets ();
+        const request = {
             'qty': amount,
             'price': price,
             'type': side[0].toUpperCase (),
-        }, params));
+        };
+        const response = await this.privatePostPlaceorder (this.extend (request, params));
         return {
             'info': response,
             'id': response['pending_oid'],
@@ -145,7 +157,11 @@ module.exports = class fybse extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostCancelpendingorder ({ 'orderNo': id });
+        await this.loadMarkets ();
+        const request = {
+            'orderNo': id,
+        };
+        return await this.privatePostCancelpendingorder (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -154,7 +170,7 @@ module.exports = class fybse extends Exchange {
             url += '.json';
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
+            const nonce = this.nonce ();
             body = this.urlencode (this.extend ({ 'timestamp': nonce }, params));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -166,11 +182,14 @@ module.exports = class fybse extends Exchange {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (api === 'private')
-            if ('error' in response)
-                if (response['error'])
+        const response = await this.fetch2 (path, api, method, params, headers, body);
+        if (api === 'private') {
+            if ('error' in response) {
+                if (response['error']) {
                     throw new ExchangeError (this.id + ' ' + this.json (response));
+                }
+            }
+        }
         return response;
     }
 };

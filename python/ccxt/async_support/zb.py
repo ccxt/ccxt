@@ -4,18 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -23,7 +16,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 
 
-class zb (Exchange):
+class zb(Exchange):
 
     def describe(self):
         return self.deep_extend(super(zb, self).describe(), {
@@ -40,6 +33,7 @@ class zb (Exchange):
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchOHLCV': True,
+                'fetchTickers': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -87,13 +81,12 @@ class zb (Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
                 'api': {
-                    'public': 'http://api.zb.com/data',  # no https for public API
-                    'private': 'https://trade.zb.com/api',
+                    'public': 'http://api.zb.cn/data',  # no https for public API
+                    'private': 'https://trade.zb.cn/api',
                 },
                 'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
                 'fees': 'https://www.zb.com/i/rate',
-                'referral': 'https://vip.zb.com/user/register?recommendCode=bn070u',
             },
             'api': {
                 'public': {
@@ -180,20 +173,20 @@ class zb (Exchange):
             },
         })
 
-    async def fetch_markets(self):
-        markets = await self.publicGetMarkets()
+    async def fetch_markets(self, params={}):
+        markets = await self.publicGetMarkets(params)
         keys = list(markets.keys())
         result = []
         for i in range(0, len(keys)):
             id = keys[i]
             market = markets[id]
             baseId, quoteId = id.split('_')
-            base = self.common_currency_code(baseId.upper())
-            quote = self.common_currency_code(quoteId.upper())
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'amount': market['amountScale'],
-                'price': market['priceScale'],
+                'amount': self.safe_integer(market, 'amountScale'),
+                'price': self.safe_integer(market, 'priceScale'),
             }
             result.append({
                 'id': id,
@@ -227,7 +220,7 @@ class zb (Exchange):
         response = await self.privateGetGetAccountInfo(params)
         # todo: use self somehow
         # permissions = response['result']['base']
-        balances = response['result']['coins']
+        balances = self.safe_value(response['result'], 'coins')
         result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
@@ -241,15 +234,11 @@ class zb (Exchange):
             #           available: "0.00000000",
             #                 key: "btc"         }
             account = self.account()
-            currency = balance['key']
-            if currency in self.currencies_by_id:
-                currency = self.currencies_by_id[currency]['code']
-            else:
-                currency = self.common_currency_code(balance['enName'])
-            account['free'] = float(balance['available'])
-            account['used'] = float(balance['freez'])
-            account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+            currencyId = self.safe_string(balance, 'key')
+            code = self.safe_currency_code(currencyId)
+            account['free'] = self.safe_float(balance, 'available')
+            account['used'] = self.safe_float(balance, 'freez')
+            result[code] = account
         return self.parse_balance(result)
 
     def get_market_field_name(self):
@@ -258,15 +247,16 @@ class zb (Exchange):
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
-        response = await self.privateGetGetUserAddress({
+        request = {
             'currency': currency['id'],
-        })
+        }
+        response = await self.privateGetGetUserAddress(self.extend(request, params))
         address = response['message']['datas']['key']
         tag = None
         if address.find('_') >= 0:
-            arr = address.split('_')
-            address = arr[0]  # WARNING: MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIESnot !
-            tag = arr[1]
+            parts = address.split('_')
+            address = parts[0]  # WARNING: MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIESnot !
+            tag = parts[1]
         return {
             'currency': code,
             'address': address,
@@ -280,8 +270,10 @@ class zb (Exchange):
         marketFieldName = self.get_market_field_name()
         request = {}
         request[marketFieldName] = market['id']
-        orderbook = await self.publicGetDepth(self.extend(request, params))
-        return self.parse_order_book(orderbook)
+        if limit is not None:
+            request['size'] = limit
+        response = await self.publicGetDepth(self.extend(request, params))
+        return self.parse_order_book(response)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -311,7 +303,7 @@ class zb (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
         symbol = None
-        if market != 'None':
+        if market is not None:
             symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
         return {
@@ -354,18 +346,33 @@ class zb (Exchange):
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
-        timestamp = trade['date'] * 1000
-        side = 'buy' if (trade['trade_type'] == 'bid') else 'sell'
+        timestamp = self.safe_timestamp(trade, 'date')
+        side = self.safe_string(trade, 'trade_type')
+        side = 'buy' if (side == 'bid') else 'sell'
+        id = self.safe_string(trade, 'tid')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
             'info': trade,
-            'id': str(trade['tid']),
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': side,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'amount'),
+            'order': None,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -381,13 +388,13 @@ class zb (Exchange):
         if type != 'limit':
             raise InvalidOrder(self.id + ' allows limit orders only')
         await self.load_markets()
-        order = {
+        request = {
             'price': self.price_to_precision(symbol, price),
-            'amount': self.amount_to_string(symbol, amount),
+            'amount': self.amount_to_precision(symbol, amount),
             'tradeType': '1' if (side == 'buy') else '0',
             'currency': self.market_id(symbol),
         }
-        response = await self.privateGetOrder(self.extend(order, params))
+        response = await self.privateGetOrder(self.extend(request, params))
         return {
             'info': response,
             'id': response['id'],
@@ -395,23 +402,34 @@ class zb (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        order = {
+        request = {
             'id': str(id),
             'currency': self.market_id(symbol),
         }
-        order = self.extend(order, params)
-        return await self.privateGetCancelOrder(order)
+        return await self.privateGetCancelOrder(self.extend(request, params))
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrder() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
-        order = {
+        request = {
             'id': str(id),
             'currency': self.market_id(symbol),
         }
-        order = self.extend(order, params)
-        response = await self.privateGetGetOrder(order)
+        response = await self.privateGetGetOrder(self.extend(request, params))
+        #
+        #     {
+        #         'total_amount': 0.01,
+        #         'id': '20180910244276459',
+        #         'price': 180.0,
+        #         'trade_date': 1536576744960,
+        #         'status': 2,
+        #         'trade_money': '1.96742',
+        #         'trade_amount': 0.01,
+        #         'type': 0,
+        #         'currency': 'eth_usdt'
+        #     }
+        #
         return self.parse_order(response, None)
 
     async def fetch_orders(self, symbol=None, since=None, limit=50, params={}):
@@ -461,30 +479,51 @@ class zb (Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def parse_order(self, order, market=None):
-        side = 'buy' if (order['type'] == 1) else 'sell'
+        #
+        # fetchOrder
+        #
+        #     {
+        #         'total_amount': 0.01,
+        #         'id': '20180910244276459',
+        #         'price': 180.0,
+        #         'trade_date': 1536576744960,
+        #         'status': 2,
+        #         'trade_money': '1.96742',
+        #         'trade_amount': 0.01,
+        #         'type': 0,
+        #         'currency': 'eth_usdt'
+        #     }
+        #
+        side = self.safe_integer(order, 'type')
+        side = 'buy' if (side == 1) else 'sell'
         type = 'limit'  # market order is not availalbe in ZB
         timestamp = None
         createDateField = self.get_create_date_field()
         if createDateField in order:
             timestamp = order[createDateField]
         symbol = None
-        if 'currency' in order:
+        marketId = self.safe_string(order, 'currency')
+        if marketId in self.markets_by_id:
             # get symbol from currency
-            market = self.marketsById[order['currency']]
-        if market:
+            market = self.marketsById[marketId]
+        if market is not None:
             symbol = market['symbol']
-        price = order['price']
+        price = self.safe_float(order, 'price')
+        filled = self.safe_float(order, 'trade_amount')
+        amount = self.safe_float(order, 'total_amount')
+        remaining = None
+        if amount is not None:
+            if filled is not None:
+                remaining = amount - filled
+        cost = self.safe_float(order, 'trade_money')
         average = None
-        filled = order['trade_amount']
-        amount = order['total_amount']
-        remaining = amount - filled
-        cost = order['trade_money']
-        status = self.safe_string(order, 'status')
-        if status is not None:
-            status = self.parse_order_status(status)
-        result = {
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        if (cost is not None) and (filled is not None) and (filled > 0):
+            average = cost / filled
+        id = self.safe_string(order, 'id')
+        return {
             'info': order,
-            'id': order['id'],
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -500,7 +539,6 @@ class zb (Exchange):
             'status': status,
             'fee': None,
         }
-        return result
 
     def parse_order_status(self, status):
         statuses = {
@@ -509,9 +547,7 @@ class zb (Exchange):
             '2': 'closed',
             '3': 'open',  # partial
         }
-        if status in statuses:
-            return statuses[status]
-        return status
+        return self.safe_string(statuses, status, status)
 
     def get_create_date_field(self):
         return 'trade_date'
@@ -539,14 +575,11 @@ class zb (Exchange):
             url += '/' + path + '?' + auth + '&' + suffix
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body):
-        if not isinstance(body, basestring):
-            return  # fallback to default error handler
-        if len(body) < 2:
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
             return  # fallback to default error handler
         if body[0] == '{':
-            response = json.loads(body)
-            feedback = self.id + ' ' + self.json(response)
+            feedback = self.id + ' ' + body
             if 'code' in response:
                 code = self.safe_string(response, 'code')
                 if code in self.exceptions:

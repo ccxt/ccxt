@@ -29,8 +29,8 @@ exchange = ccxt.poloniex({
     # This is the setting you should be using with synchronous version of ccxt in Python 2 and 3
     #
     'proxies': {
-        'http': 'http://10.10.1.10:3128',
-        'https': 'http://10.10.1.10:1080',
+        'http': 'http://10.10.1.10:3128',  # no auth
+        'https': 'https://user:password@10.10.1.10:1080',  # with auth
     },
 })
 

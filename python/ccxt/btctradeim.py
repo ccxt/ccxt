@@ -7,7 +7,7 @@ from ccxt.coinegg import coinegg
 from ccxt.base.errors import ExchangeError
 
 
-class btctradeim (coinegg):
+class btctradeim(coinegg):
 
     def describe(self):
         result = self.deep_extend(super(btctradeim, self).describe(), {
@@ -15,6 +15,7 @@ class btctradeim (coinegg):
             'name': 'BtcTrade.im',
             'countries': ['HK'],
             'urls': {
+                'referral': 'https://m.baobi.com/invite?inv=1765b2',
                 'logo': 'https://user-images.githubusercontent.com/1294454/36770531-c2142444-1c5b-11e8-91e2-a4d90dc85fe8.jpg',
                 'api': {
                     'web': 'https://api.btctrade.im/coin',
@@ -23,6 +24,12 @@ class btctradeim (coinegg):
                 'www': 'https://www.btctrade.im',
                 'doc': 'https://www.btctrade.im/help.api.html',
                 'fees': 'https://www.btctrade.im/spend.price.html',
+            },
+            'status': {
+                'status': 'error',
+                'updated': None,
+                'eta': None,
+                'url': None,
             },
             'fees': {
                 'trading': {

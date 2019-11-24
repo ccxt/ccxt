@@ -1,16 +1,25 @@
 'use strict'
 
-const { numberToString, decimalToPrecision, ROUND, TRUNCATE, DECIMAL_PLACES, PAD_WITH_ZERO, SIGNIFICANT_DIGITS } = require ('../../../../ccxt');
+const { numberToString, decimalToPrecision, ROUND, TRUNCATE, DECIMAL_PLACES, TICK_SIZE, PAD_WITH_ZERO, SIGNIFICANT_DIGITS } = require ('../../../../ccxt');
 const assert = require ('assert');
 
 // ----------------------------------------------------------------------------
-// numberToString works, not supported in Python and PHP yet
+// numberToString
 
-// assert (numberToString (-7.9e-7) === '-0.0000007899999999999999');
-// assert (numberToString ( 7.9e-7) ===  '0.0000007899999999999999');
-// assert (numberToString (-12.345) === '-12.345');
-// assert (numberToString ( 12.345) === '12.345');
-// assert (numberToString (0) === '0');
+assert (numberToString (-7.8e-7) === '-0.00000078');
+assert (numberToString (7.8e-7) === '0.00000078');
+assert (numberToString (-17.805e-7) === '-0.0000017805');
+assert (numberToString (17.805e-7) === '0.0000017805');
+assert (numberToString (-7.0005e27) === '-7000500000000000000000000000');
+assert (numberToString (7.0005e27) === '7000500000000000000000000000');
+assert (numberToString (-7.9e27) === '-7900000000000000000000000000');
+assert (numberToString (7.9e27) === '7900000000000000000000000000');
+assert (numberToString (-12.345) === '-12.345');
+assert (numberToString (12.345) === '12.345');
+assert (numberToString (0) === '0');
+// this line breaks the test
+// see https://github.com/ccxt/ccxt/issues/5744
+// assert (numberToString (0.00000001) === '0.00000001');
 
 // ----------------------------------------------------------------------------
 // testDecimalToPrecisionTruncationToNDigitsAfterDot
@@ -23,11 +32,21 @@ assert (decimalToPrecision ('12.3456', TRUNCATE, 2, DECIMAL_PLACES) === '12.34')
 assert (decimalToPrecision ('12.3456', TRUNCATE, 1, DECIMAL_PLACES) === '12.3');
 assert (decimalToPrecision ('12.3456', TRUNCATE, 0, DECIMAL_PLACES) === '12');
 
-// assert (decimalToPrecision ('12.3456', TRUNCATE, -1, DECIMAL_PLACES) === '10');  // not yet supported
-// assert (decimalToPrecision ('123.456', TRUNCATE, -2, DECIMAL_PLACES) === '120'); // not yet supported
-// assert (decimalToPrecision ('123.456', TRUNCATE, -3, DECIMAL_PLACES) === '100'); // not yet supported
+assert (decimalToPrecision ('0.0000001', TRUNCATE, 8, DECIMAL_PLACES) === '0.0000001');
+assert (decimalToPrecision ('0.00000001', TRUNCATE, 8, DECIMAL_PLACES) === '0.00000001');
+
+assert (decimalToPrecision ('0.000000000', TRUNCATE, 9, DECIMAL_PLACES, PAD_WITH_ZERO) === '0.000000000');
+assert (decimalToPrecision ('0.000000001', TRUNCATE, 9, DECIMAL_PLACES, PAD_WITH_ZERO) === '0.000000001');
+
+assert (decimalToPrecision ('12.3456', TRUNCATE, -1, DECIMAL_PLACES) === '10');
+assert (decimalToPrecision ('123.456', TRUNCATE, -1, DECIMAL_PLACES) === '120');
+assert (decimalToPrecision ('123.456', TRUNCATE, -2, DECIMAL_PLACES) === '100');
+assert (decimalToPrecision ('9.99999', TRUNCATE, -1, DECIMAL_PLACES) === '0');
+assert (decimalToPrecision ('99.9999', TRUNCATE, -1, DECIMAL_PLACES) === '90');
+assert (decimalToPrecision ('99.9999', TRUNCATE, -2, DECIMAL_PLACES) === '0');
 
 assert (decimalToPrecision ('0', TRUNCATE, 0, DECIMAL_PLACES) === '0');
+assert (decimalToPrecision ('-0.9', TRUNCATE, 0, DECIMAL_PLACES) === '0');
 
 // ----------------------------------------------------------------------------
 // testDecimalToPrecisionTruncationToNSignificantDigits
@@ -71,9 +90,16 @@ assert (decimalToPrecision ('12.3456', ROUND, 2, DECIMAL_PLACES) === '12.35');
 assert (decimalToPrecision ('12.3456', ROUND, 1, DECIMAL_PLACES) === '12.3');
 assert (decimalToPrecision ('12.3456', ROUND, 0, DECIMAL_PLACES) === '12');
 
-// assert (decimalToPrecision ('12.3456', ROUND, -1, DECIMAL_PLACES) === '10');   // not yet supported
-// assert (decimalToPrecision ('123.456', ROUND, -1, DECIMAL_PLACES) === '120');  // not yet supported
-// assert (decimalToPrecision ('123.456', ROUND, -2, DECIMAL_PLACES) === '100');  // not yet supported
+// a problematic case in PHP
+assert (decimalToPrecision ('10000', ROUND, 6, DECIMAL_PLACES) === '10000');
+assert (decimalToPrecision ('0.00003186', ROUND, 8, DECIMAL_PLACES) === '0.00003186');
+
+assert (decimalToPrecision ('12.3456', ROUND, -1, DECIMAL_PLACES) === '10');
+assert (decimalToPrecision ('123.456', ROUND, -1, DECIMAL_PLACES) === '120');
+assert (decimalToPrecision ('123.456', ROUND, -2, DECIMAL_PLACES) === '100');
+assert (decimalToPrecision ('9.99999', ROUND, -1, DECIMAL_PLACES) === '10');
+assert (decimalToPrecision ('99.9999', ROUND, -1, DECIMAL_PLACES) === '100');
+assert (decimalToPrecision ('99.9999', ROUND, -2, DECIMAL_PLACES) === '100');
 
 assert (decimalToPrecision ('9.999', ROUND, 3, DECIMAL_PLACES) === '9.999');
 assert (decimalToPrecision ('9.999', ROUND, 2, DECIMAL_PLACES) === '10');
@@ -106,6 +132,29 @@ assert (decimalToPrecision ('0.00098765', ROUND, 10, SIGNIFICANT_DIGITS, PAD_WIT
 assert (decimalToPrecision ('0.098765', ROUND, 1, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) === '0.1');
 
 assert (decimalToPrecision ('0', ROUND, 0, SIGNIFICANT_DIGITS) === '0');
+assert (decimalToPrecision ('-0.123', ROUND, 0, SIGNIFICANT_DIGITS) === '0');
+
+// ----------------------------------------------------------------------------
+// testDecimalToPrecisionRoundingToTickSize
+
+assert (decimalToPrecision ('0.000123456700', ROUND, 0.00012, TICK_SIZE) === '0.00012');
+assert (decimalToPrecision ('0.0001234567', ROUND, 0.00013, TICK_SIZE) === '0.00013');
+assert (decimalToPrecision ('0.0001234567', TRUNCATE, 0.00013, TICK_SIZE) === '0');
+assert (decimalToPrecision ('101.000123456700', ROUND, 100, TICK_SIZE) === '100');
+assert (decimalToPrecision ('0.000123456700', ROUND, 100, TICK_SIZE) === '0');
+assert (decimalToPrecision ('165', TRUNCATE, 110, TICK_SIZE) === '110');
+assert (decimalToPrecision ('3210', TRUNCATE, 1110, TICK_SIZE) === '2220');
+assert (decimalToPrecision ('165', ROUND, 110, TICK_SIZE) === '220');
+assert (decimalToPrecision ('0.000123456789', ROUND, 0.00000012, TICK_SIZE) === '0.00012348');
+assert (decimalToPrecision ('0.000123456789', TRUNCATE, 0.00000012, TICK_SIZE) === '0.00012336');
+
+assert (decimalToPrecision ('0.01', ROUND, 0.0001, TICK_SIZE, PAD_WITH_ZERO) === '0.0100');
+assert (decimalToPrecision ('0.01', TRUNCATE, 0.0001, TICK_SIZE, PAD_WITH_ZERO) === '0.0100');
+
+assert (decimalToPrecision ('-0.000123456789', ROUND, 0.00000012, TICK_SIZE) === '-0.00012348');
+assert (decimalToPrecision ('-0.000123456789', TRUNCATE, 0.00000012, TICK_SIZE) === '-0.00012336');
+assert (decimalToPrecision ('-165', TRUNCATE, 110, TICK_SIZE) === '-110');
+assert (decimalToPrecision ('-165', ROUND, 110, TICK_SIZE) === '-220');
 
 // ----------------------------------------------------------------------------
 // testDecimalToPrecisionNegativeNumbers
@@ -135,6 +184,25 @@ assert (decimalToPrecision ('1.45', ROUND, 1, DECIMAL_PLACES) === '1.5');
 assert (decimalToPrecision ('1.45', ROUND, 0, DECIMAL_PLACES) === '1'); // not 2
 
 // ----------------------------------------------------------------------------
+// negative precision only implemented so far in python
+// pretty useless for decimal applications as anything |x| < 5 === 0
+// NO_PADDING and PAD_WITH_ZERO are ignored
+
+assert (decimalToPrecision ('5', ROUND, -1, DECIMAL_PLACES) === '10');
+assert (decimalToPrecision ('4.999', ROUND, -1, DECIMAL_PLACES) === '0');
+assert (decimalToPrecision ('0.0431531423', ROUND, -1, DECIMAL_PLACES) === '0');
+assert (decimalToPrecision ('-69.3', ROUND, -1, DECIMAL_PLACES) === '-70');
+assert (decimalToPrecision ('5001', ROUND, -4, DECIMAL_PLACES) === '10000');
+assert (decimalToPrecision ('4999.999', ROUND, -4, DECIMAL_PLACES) === '0');
+
+assert (decimalToPrecision ('69.3', TRUNCATE, -2, DECIMAL_PLACES) === '0');
+assert (decimalToPrecision ('-69.3', TRUNCATE, -2, DECIMAL_PLACES) === '0');
+assert (decimalToPrecision ('69.3', TRUNCATE, -1, SIGNIFICANT_DIGITS) === '60');
+assert (decimalToPrecision ('-69.3', TRUNCATE, -1, SIGNIFICANT_DIGITS) === '-60');
+assert (decimalToPrecision ('69.3', TRUNCATE, -2, SIGNIFICANT_DIGITS) === '0');
+assert (decimalToPrecision ('1602000000000000000000', TRUNCATE, 3, SIGNIFICANT_DIGITS) === '1600000000000000000000');
+
+// ----------------------------------------------------------------------------
 // testDecimalToPrecisionErrorHandling (todo)
 //
 // throws (() =>
@@ -144,3 +212,7 @@ assert (decimalToPrecision ('1.45', ROUND, 0, DECIMAL_PLACES) === '1'); // not 2
 // throws (() =>
 //     decimalToPrecision ('foo'),
 //         "invalid number (contains an illegal character 'f')")
+//
+// throws (() =>
+//     decimalToPrecision ('0.01', TRUNCATE, -1, TICK_SIZE),
+//         "TICK_SIZE cant be used with negative numPrecisionDigits")

@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder } = require ('./base/errors');
+const { BadSymbol, ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -27,7 +27,7 @@ module.exports = class hitbtc extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
-                'api': 'http://api.hitbtc.com',
+                'api': 'https://api.hitbtc.com',
                 'www': 'https://hitbtc.com',
                 'referral': 'https://hitbtc.com/?ref_id=5a5d39a65d466',
                 'doc': 'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md',
@@ -83,8 +83,8 @@ module.exports = class hitbtc extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': -0.01 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': 0.07 / 100,
+                    'taker': 0.07 / 100,
                 },
                 'funding': {
                     'tierBased': false,
@@ -484,16 +484,24 @@ module.exports = class hitbtc extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'BCC': 'BCC',
                 'BET': 'DAO.Casino',
                 'CAT': 'BitClave',
+                'CPT': 'Cryptaur', // conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
                 'DRK': 'DASH',
                 'EMGO': 'MGO',
                 'GET': 'Themis',
+                'HSR': 'HC',
                 'LNC': 'LinkerCoin',
                 'UNC': 'Unigame',
                 'USD': 'USDT',
                 'XBT': 'BTC',
+            },
+            'exceptions': {
+                'exact': {
+                    '2001': BadSymbol, // {"error":{"code":2001,"message":"Symbol not found","description":"Try get /api/2/public/symbol, to get list of all available symbols."}}
+                },
+                'broad': {
+                },
             },
             'options': {
                 'defaultTimeInForce': 'FOK',
@@ -501,19 +509,20 @@ module.exports = class hitbtc extends Exchange {
         });
     }
 
-    async fetchMarkets () {
-        let markets = await this.publicGetSymbols ();
-        let result = [];
-        for (let p = 0; p < markets['symbols'].length; p++) {
-            let market = markets['symbols'][p];
-            let id = market['symbol'];
-            let baseId = market['commodity'];
-            let quoteId = market['currency'];
-            let lot = this.safeFloat (market, 'lot');
-            let step = this.safeFloat (market, 'step');
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
+    async fetchMarkets (params = {}) {
+        const response = await this.publicGetSymbols (params);
+        const markets = this.safeValue (response, 'symbols');
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString (market, 'symbol');
+            const baseId = this.safeString (market, 'commodity');
+            const quoteId = this.safeString (market, 'currency');
+            const lot = this.safeFloat (market, 'lot');
+            const step = this.safeFloat (market, 'step');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
             result.push ({
                 'info': market,
                 'id': id,
@@ -554,41 +563,37 @@ module.exports = class hitbtc extends Exchange {
         await this.loadMarkets ();
         let method = this.safeString (params, 'type', 'trading');
         method += 'GetBalance';
-        let query = this.omit (params, 'type');
-        let response = await this[method] (query);
-        let balances = response['balance'];
-        let result = { 'info': balances };
-        for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];
-            let code = balance['currency_code'];
-            let currency = this.commonCurrencyCode (code);
-            let free = this.safeFloat (balance, 'cash', 0.0);
-            free = this.safeFloat (balance, 'balance', free);
-            let used = this.safeFloat (balance, 'reserved', 0.0);
-            let account = {
-                'free': free,
-                'used': used,
-                'total': this.sum (free, used),
-            };
-            result[currency] = account;
+        const query = this.omit (params, 'type');
+        const response = await this[method] (query);
+        const balances = this.safeValue (response, 'balance', []);
+        const result = { 'info': response };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency_code');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeFloat2 (balance, 'cash', 'balance');
+            account['used'] = this.safeFloat (balance, 'reserved');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetSymbolOrderbook (this.extend ({
+        const orderbook = await this.publicGetSymbolOrderbook (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook);
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = ticker['timestamp'];
+        const timestamp = this.safeInteger (ticker, 'timestamp');
         let symbol = undefined;
-        if (market)
+        if (market) {
             symbol = market['symbol'];
-        let last = this.safeFloat (ticker, 'last');
+        }
+        const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -615,14 +620,14 @@ module.exports = class hitbtc extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetTicker (params);
-        let ids = Object.keys (tickers);
-        let result = {};
+        const tickers = await this.publicGetTicker (params);
+        const ids = Object.keys (tickers);
+        const result = {};
         for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
-            let ticker = tickers[id];
+            const id = ids[i];
+            const market = this.markets_by_id[id];
+            const symbol = market['symbol'];
+            const ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
@@ -630,25 +635,37 @@ module.exports = class hitbtc extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let ticker = await this.publicGetSymbolTicker (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
-        }, params));
-        if ('message' in ticker)
-            throw new ExchangeError (this.id + ' ' + ticker['message']);
-        return this.parseTicker (ticker, market);
+        };
+        const response = await this.publicGetSymbolTicker (this.extend (request, params));
+        if ('message' in response) {
+            throw new ExchangeError (this.id + ' ' + response['message']);
+        }
+        return this.parseTicker (response, market);
     }
 
     parseTrade (trade, market = undefined) {
-        if (Array.isArray (trade))
+        if (Array.isArray (trade)) {
             return this.parsePublicTrade (trade, market);
+        }
         return this.parseOrderTrade (trade, market);
     }
 
     parsePublicTrade (trade, market = undefined) {
         let symbol = undefined;
-        if (market)
+        if (market !== undefined) {
             symbol = market['symbol'];
+        }
+        let side = undefined;
+        const tradeLength = trade.length;
+        if (tradeLength > 4) {
+            side = trade[4];
+        }
+        const price = parseFloat (trade[1]);
+        const amount = parseFloat (trade[2]);
+        const cost = price * amount;
         return {
             'info': trade,
             'id': trade[0].toString (),
@@ -656,36 +673,48 @@ module.exports = class hitbtc extends Exchange {
             'datetime': this.iso8601 (trade[3]),
             'symbol': symbol,
             'type': undefined,
-            'side': trade[4],
-            'price': parseFloat (trade[1]),
-            'amount': parseFloat (trade[2]),
+            'side': side,
+            'order': undefined,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
     parseOrderTrade (trade, market = undefined) {
         let symbol = undefined;
-        if (market)
+        if (market !== undefined) {
             symbol = market['symbol'];
+        }
         let amount = this.safeFloat (trade, 'execQuantity');
-        if (market)
+        if (market) {
             amount *= market['lot'];
-        let price = this.safeFloat (trade, 'execPrice');
-        let cost = price * amount;
-        let fee = {
+        }
+        const price = this.safeFloat (trade, 'execPrice');
+        const cost = price * amount;
+        const fee = {
             'cost': this.safeFloat (trade, 'fee'),
             'currency': undefined,
             'rate': undefined,
         };
-        let timestamp = trade['timestamp'];
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        const id = this.safeString (trade, 'tradeId');
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
+        const orderId = this.safeString (trade, 'clientOrderId');
+        const side = this.safeString (trade, 'side');
         return {
             'info': trade,
-            'id': trade['tradeId'],
-            'order': trade['clientOrderId'],
+            'id': id,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': undefined,
-            'side': trade['side'],
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -695,8 +724,8 @@ module.exports = class hitbtc extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetSymbolTrades (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
             // 'from': 0,
             // 'till': 100,
@@ -710,23 +739,32 @@ module.exports = class hitbtc extends Exchange {
             // 'format_tid': 'string',
             // 'format_timestamp': 'millisecond',
             // 'format_wrap': false,
-            'side': 'true',
-        }, params));
+            // 'side': 'true',
+        };
+        if (since !== undefined) {
+            request['by'] = 'ts';
+            request['from'] = since;
+        }
+        if (limit !== undefined) {
+            request['max_results'] = limit;
+        }
+        const response = await this.publicGetSymbolTrades (this.extend (request, params));
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        const market = this.market (symbol);
         // check if amount can be evenly divided into lots
         // they want integer quantity in lot units
-        let quantity = parseFloat (amount) / market['lot'];
-        let wholeLots = Math.round (quantity);
-        let difference = quantity - wholeLots;
-        if (Math.abs (difference) > market['step'])
+        const quantity = parseFloat (amount) / market['lot'];
+        const wholeLots = Math.round (quantity);
+        const difference = quantity - wholeLots;
+        if (Math.abs (difference) > market['step']) {
             throw new ExchangeError (this.id + ' order amount should be evenly divisible by lot unit size of ' + market['lot'].toString ());
-        let clientOrderId = this.milliseconds ();
-        let request = {
+        }
+        const clientOrderId = this.milliseconds ();
+        const request = {
             'clientOrderId': clientOrderId.toString (),
             'symbol': market['id'],
             'side': side,
@@ -738,22 +776,27 @@ module.exports = class hitbtc extends Exchange {
         } else {
             request['timeInForce'] = this.options['defaultTimeInForce'];
         }
-        let response = await this.tradingPostNewOrder (this.extend (request, params));
-        let order = this.parseOrder (response['ExecutionReport'], market);
-        if (order['status'] === 'rejected')
+        const response = await this.tradingPostNewOrder (this.extend (request, params));
+        const order = this.parseOrder (response['ExecutionReport'], market);
+        if (order['status'] === 'rejected') {
             throw new InvalidOrder (this.id + ' order was rejected by the exchange ' + this.json (order));
+        }
         return order;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.tradingPostCancelOrder (this.extend ({
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
+        const request = {
             'clientOrderId': id,
-        }, params));
+        };
+        return await this.tradingPostCancelOrder (this.extend (request, params));
     }
 
     parseOrderStatus (status) {
-        let statuses = {
+        const statuses = {
             'new': 'open',
             'partiallyFilled': 'open',
             'filled': 'closed',
@@ -766,14 +809,14 @@ module.exports = class hitbtc extends Exchange {
 
     parseOrder (order, market = undefined) {
         let timestamp = this.safeInteger (order, 'lastTimestamp');
-        if (typeof timestamp === 'undefined')
+        if (timestamp === undefined) {
             timestamp = this.safeInteger (order, 'timestamp');
+        }
         let symbol = undefined;
-        if (!market)
+        if (market === undefined) {
             market = this.markets_by_id[order['symbol']];
-        let status = this.safeString (order, 'orderStatus');
-        if (status)
-            status = this.parseOrderStatus (status);
+        }
+        const status = this.parseOrderStatus (this.safeString (order, 'orderStatus'));
         let price = this.safeFloat (order, 'orderPrice');
         price = this.safeFloat (order, 'price', price);
         price = this.safeFloat (order, 'avgPrice', price);
@@ -783,46 +826,57 @@ module.exports = class hitbtc extends Exchange {
         remaining = this.safeFloat (order, 'leavesQuantity', remaining);
         let filled = undefined;
         let cost = undefined;
-        let amountDefined = (typeof amount !== 'undefined');
-        let remainingDefined = (typeof remaining !== 'undefined');
-        if (typeof market !== 'undefined') {
+        const amountDefined = (amount !== undefined);
+        const remainingDefined = (remaining !== undefined);
+        if (market !== undefined) {
             symbol = market['symbol'];
-            if (amountDefined)
+            if (amountDefined) {
                 amount *= market['lot'];
-            if (remainingDefined)
+            }
+            if (remainingDefined) {
                 remaining *= market['lot'];
+            }
         } else {
-            let marketId = this.safeString (order, 'symbol');
-            if (marketId in this.markets_by_id)
+            const marketId = this.safeString (order, 'symbol');
+            if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
+            }
         }
         if (amountDefined) {
             if (remainingDefined) {
                 filled = amount - remaining;
-                cost = price * filled;
+                if (price !== undefined) {
+                    cost = price * filled;
+                }
             }
         }
-        let feeCost = this.safeFloat (order, 'fee');
+        const feeCost = this.safeFloat (order, 'fee');
         let feeCurrency = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
             feeCurrency = market['quote'];
         }
-        let fee = {
+        const fee = {
             'cost': feeCost,
             'currency': feeCurrency,
             'rate': undefined,
         };
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
+        const id = this.safeString (order, 'clientOrderId');
+        const type = this.safeString (order, 'type');
+        const side = this.safeString (order, 'side');
         return {
-            'id': order['clientOrderId'].toString (),
+            'id': id,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': order['type'],
-            'side': order['side'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,
@@ -834,9 +888,13 @@ module.exports = class hitbtc extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.tradingGetOrder (this.extend ({
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
+        const request = {
             'clientOrderId': id,
-        }, params));
+        };
+        const response = await this.tradingGetOrder (this.extend (request, params));
         if (response['orders'][0]) {
             return this.parseOrder (response['orders'][0]);
         }
@@ -845,60 +903,66 @@ module.exports = class hitbtc extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let statuses = [ 'new', 'partiallyFiiled' ];
+        const statuses = [ 'new', 'partiallyFiiled' ];
         let market = undefined;
-        let request = {
+        const request = {
             'sort': 'desc',
             'statuses': statuses.join (','),
         };
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbols'] = market['id'];
         }
-        let response = await this.tradingGetOrdersActive (this.extend (request, params));
+        const response = await this.tradingGetOrdersActive (this.extend (request, params));
         return this.parseOrders (response['orders'], market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        let statuses = [ 'filled', 'canceled', 'rejected', 'expired' ];
-        let request = {
+        const statuses = [ 'filled', 'canceled', 'rejected', 'expired' ];
+        const request = {
             'sort': 'desc',
             'statuses': statuses.join (','),
             'max_results': 1000,
         };
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbols'] = market['id'];
         }
-        let response = await this.tradingGetOrdersRecent (this.extend (request, params));
+        const response = await this.tradingGetOrdersRecent (this.extend (request, params));
         return this.parseOrders (response['orders'], market, since, limit);
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        if (typeof symbol !== 'undefined')
+        if (symbol !== undefined) {
             market = this.market (symbol);
-        let response = await this.tradingGetTradesByOrder (this.extend ({
+        }
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
+        const request = {
             'clientOrderId': id,
-        }, params));
+        };
+        const response = await this.tradingGetTradesByOrder (this.extend (request, params));
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let request = {
+        const currency = this.currency (code);
+        const request = {
             'currency_code': currency['id'],
             'amount': amount,
             'address': address,
         };
-        if (tag)
-            request['paymentId'] = tag;
-        let response = await this.paymentPostPayout (this.extend (request, params));
+        if (tag !== undefined) {
+            request['extra_id'] = tag;
+        }
+        const response = await this.paymentPostPayout (this.extend (request, params));
         return {
             'info': response,
             'id': response['transaction'],
@@ -913,17 +977,19 @@ module.exports = class hitbtc extends Exchange {
         let url = '/' + 'api' + '/' + this.version + '/' + api + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
-            let payload = { 'nonce': nonce, 'apikey': this.apiKey };
+            const nonce = this.nonce ();
+            const payload = { 'nonce': nonce, 'apikey': this.apiKey };
             query = this.extend (payload, query);
-            if (method === 'GET')
+            if (method === 'GET') {
                 url += '?' + this.urlencode (query);
-            else
+            } else {
                 url += '?' + this.urlencode (payload);
+            }
             let auth = url;
             if (method === 'POST') {
                 if (Object.keys (query).length) {
@@ -941,14 +1007,36 @@ module.exports = class hitbtc extends Exchange {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
+        const response = await this.fetch2 (path, api, method, params, headers, body);
         if ('code' in response) {
             if ('ExecutionReport' in response) {
-                if (response['ExecutionReport']['orderRejectReason'] === 'orderExceedsLimit')
+                if (response['ExecutionReport']['orderRejectReason'] === 'orderExceedsLimit') {
                     throw new InsufficientFunds (this.id + ' ' + this.json (response));
+                }
             }
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
         return response;
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (!response) {
+            return; // fallback to default error handler
+        }
+        const error = this.safeValue (response, 'error');
+        if (error) {
+            const code = this.safeValue (error, 'code');
+            const feedback = this.id + ' ' + this.json (response);
+            const exact = this.exceptions['exact'];
+            if (code in exact) {
+                throw new exact[code] (feedback);
+            }
+            const broad = this.exceptions['broad'];
+            const broadKey = this.findBroadlyMatchedKey (broad, error);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
+            }
+            throw new ExchangeError (feedback); // unknown error
+        }
     }
 };

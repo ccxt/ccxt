@@ -135,10 +135,22 @@ async def test_order_book(exchange, symbol):
 
 
 async def test_ohlcv(exchange, symbol):
+    ignored_exchanges = [
+        'cex',  # CEX can return historical candles for a certain date only
+        'okex',  # okex fetchOHLCV counts "limit" candles from current time backwards
+        'okcoinusd',  # okex base class
+    ]
+    if exchange.id in ignored_exchanges:
+        return
     if exchange.has['fetchOHLCV']:
         delay = int(exchange.rateLimit / 1000)
         await asyncio.sleep(delay)
-        ohlcvs = await exchange.fetch_ohlcv(symbol)
+        timeframes = exchange.timeframes if exchange.timeframes else {'1d': '1d'}
+        timeframe = list(timeframes.keys())[0]
+        limit = 10
+        duration = exchange.parse_timeframe(timeframe)
+        since = exchange.milliseconds() - duration * limit * 1000 - 1000
+        ohlcvs = await exchange.fetch_ohlcv(symbol, timeframe, since, limit)
         dump(green(exchange.id), 'fetched', green(len(ohlcvs)), 'OHLCVs')
     else:
         dump(yellow(exchange.id), 'fetching OHLCV not supported')
@@ -147,6 +159,11 @@ async def test_ohlcv(exchange, symbol):
 
 
 async def test_tickers(exchange, symbol):
+    ignored_exchanges = [
+        'digifinex',  # requires apiKey to call v2 tickers
+    ]
+    if exchange.id in ignored_exchanges:
+        return
     if exchange.has['fetchTickers']:
         delay = int(exchange.rateLimit / 1000)
         await asyncio.sleep(delay)
@@ -203,6 +220,11 @@ async def test_l2_order_books_async(exchange):
 
 
 async def test_ticker(exchange, symbol):
+    ignored_exchanges = [
+        'digifinex',  # requires apiKey to call v2 tickers
+    ]
+    if exchange.id in ignored_exchanges:
+        return
     if exchange.has['fetchTicker']:
         delay = int(exchange.rateLimit / 1000)
         await asyncio.sleep(delay)
@@ -269,6 +291,7 @@ async def test_exchange(exchange):
     symbol = keys[0]
     symbols = [
         'BTC/USD',
+        'BTC/USDT',
         'BTC/CNY',
         'BTC/EUR',
         'BTC/ETH',
@@ -293,8 +316,8 @@ async def test_exchange(exchange):
         return
 
     # move to testnet/sandbox if possible before accessing the balance if possible
-    if 'test' in exchange.urls:
-        exchange.urls['api'] = exchange.urls['test']
+    # if 'test' in exchange.urls:
+    #     exchange.urls['api'] = exchange.urls['test']
 
     await exchange.fetch_balance()
     dump(green(exchange.id), 'fetched balance')
@@ -340,6 +363,8 @@ async def try_all_proxies(exchange, proxies=['']):
     # a special case for ccex
     if exchange.id == 'ccex' and max_retries > 1:
         current_proxy = 1
+    if exchange.proxy in proxies:
+        current_proxy = proxies.index(exchange.proxy)
     for num_retries in range(0, max_retries):
         try:
             exchange.proxy = proxies[current_proxy]
@@ -347,18 +372,10 @@ async def try_all_proxies(exchange, proxies=['']):
             current_proxy = (current_proxy + 1) % len(proxies)
             await load_exchange(exchange)
             await test_exchange(exchange)
-        except ccxt.RequestTimeout as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), str(e)[0:200])
-        except ccxt.NotSupported as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:200])
-        except ccxt.DDoSProtection as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:200])
-        except ccxt.ExchangeNotAvailable as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:200])
-        except ccxt.AuthenticationError as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), str(e)[0:200])
-        except ccxt.ExchangeError as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:200])
+        except (ccxt.RequestTimeout, ccxt.AuthenticationError, ccxt.NotSupported, ccxt.DDoSProtection, ccxt.ExchangeNotAvailable, ccxt.ExchangeError) as e:
+            print({'type': type(e).__name__, 'num_retries': num_retries, 'max_retries': max_retries}, str(e)[0:200])
+            if (num_retries + 1) == max_retries:
+                dump_error(yellow('[' + type(e).__name__ + ']'), str(e)[0:200])
         else:
             # no exception
             return True
@@ -386,12 +403,14 @@ with open(keys_file) as file:
 
 # instantiate all exchanges
 for id in ccxt.exchanges:
+    if id == 'theocean' or id == 'theocean1':
+        continue
     exchange = getattr(ccxt, id)
     exchange_config = {'verbose': argv.verbose}
     if sys.version_info[0] < 3:
         exchange_config.update({'enableRateLimit': True})
     if id in config:
-        exchange_config.update(config[id])
+        exchange_config = ccxt.Exchange.deep_extend(exchange_config, config[id])
     exchanges[id] = exchange(exchange_config)
 
 # ------------------------------------------------------------------------------
@@ -401,17 +420,19 @@ async def main():
 
     if argv.exchange:
 
-        exchange = exchanges[argv.exchange]
-        symbol = argv.symbol
+        if argv.exchange != 'theocean' and argv.exchange != 'theocean1':
 
-        if hasattr(exchange, 'skip') and exchange.skip:
-            dump(green(exchange.id), 'skipped')
-        else:
-            if symbol:
-                await load_exchange(exchange)
-                await test_symbol(exchange, symbol)
+            exchange = exchanges[argv.exchange]
+            symbol = argv.symbol
+
+            if hasattr(exchange, 'skip') and exchange.skip:
+                dump(green(exchange.id), 'skipped')
             else:
-                await try_all_proxies(exchange, proxies)
+                if symbol:
+                    await load_exchange(exchange)
+                    await test_symbol(exchange, symbol)
+                else:
+                    await try_all_proxies(exchange, proxies)
 
     else:
         for exchange in sorted(exchanges.values(), key=lambda x: x.id):

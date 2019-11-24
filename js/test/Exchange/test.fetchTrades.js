@@ -13,6 +13,15 @@ const log       = require ('ololog')
 
 module.exports = async (exchange, symbol) => {
 
+    const skippedExchanges = [
+        // 'adara',
+    ]
+
+    if (skippedExchanges.includes (exchange.id)) {
+        log (exchange.id, 'found in ignored exchanges, skipping fetchTrades...')
+        return
+    }
+
     if (exchange.has.fetchTrades) {
 
         // log (symbol.green, 'fetching trades...')
@@ -23,8 +32,12 @@ module.exports = async (exchange, symbol) => {
         let now = Date.now ()
         for (let i = 0; i < trades.length; i++) {
             testTrade (exchange, trades[i], symbol, now)
-            if (i > 0)
-                assert (trades[i].timestamp >= trades[i - 1].timestamp)
+            if (i > 0) {
+                if (trades[i].timestamp && trades[i - 1].timestamp) {
+                    assert (trades[i].timestamp >= trades[i - 1].timestamp)
+                }
+            }
+
         }
         // log (asTable (trades))
 
