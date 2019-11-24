@@ -1351,11 +1351,8 @@ module.exports = class poloniex extends Exchange {
         // {"error":"Permission denied."}
         if ('error' in response) {
             const message = response['error'];
-            const feedback = this.id + ' ' + this.json (response);
-            const exact = this.exceptions['exact'];
-            if (message in exact) {
-                throw new exact[message] (feedback);
-            }
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }

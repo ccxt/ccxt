@@ -1154,13 +1154,8 @@ module.exports = class bitmax extends Exchange {
         const error = (code !== undefined) && (code !== '0');
         if (error || (message !== undefined)) {
             const feedback = this.id + ' ' + body;
-            const exact = this.exceptions['exact'];
-            if (code in exact) {
-                throw new exact[code] (feedback);
-            }
-            if (message in exact) {
-                throw new exact[message] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }

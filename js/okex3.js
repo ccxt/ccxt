@@ -2704,18 +2704,13 @@ module.exports = class okex3 extends Exchange {
         if (!response) {
             return; // fallback to default error handler
         }
-        const exact = this.exceptions['exact'];
         const message = this.safeString (response, 'message');
         const errorCode = this.safeString2 (response, 'code', 'error_code');
         if (message !== undefined) {
-            if (message in exact) {
-                throw new exact[message] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
         }
-        if (errorCode in exact) {
-            throw new exact[errorCode] (feedback);
-        }
+        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         if (message !== undefined) {
             throw new ExchangeError (feedback); // unknown message
         }
