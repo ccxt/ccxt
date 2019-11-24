@@ -861,16 +861,12 @@ module.exports = class latoken extends Exchange {
         //
         const message = this.safeString (response, 'message');
         const exact = this.exceptions['exact'];
-        const broad = this.exceptions['broad'];
         const feedback = this.id + ' ' + body;
         if (message !== undefined) {
             if (message in exact) {
                 throw new exact[message] (feedback);
             }
-            const broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
         }
         const error = this.safeValue (response, 'error', {});
         const errorMessage = this.safeString (error, 'message');
@@ -878,10 +874,7 @@ module.exports = class latoken extends Exchange {
             if (errorMessage in exact) {
                 throw new exact[errorMessage] (feedback);
             }
-            const broadKey = this.findBroadlyMatchedKey (broad, errorMessage);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

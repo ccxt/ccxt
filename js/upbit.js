@@ -1521,15 +1521,8 @@ module.exports = class upbit extends Exchange {
             if (name in exact) {
                 throw new exact[name] (feedback);
             }
-            const broad = this.exceptions['broad'];
-            let broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
-            broadKey = this.findBroadlyMatchedKey (broad, name);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], name, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

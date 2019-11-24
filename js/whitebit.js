@@ -624,11 +624,7 @@ module.exports = class whitebit extends Exchange {
                         throw new exact[message] (feedback);
                     }
                 }
-                const broad = this.safeValue (this.exceptions, 'broad', {});
-                const broadKey = this.findBroadlyMatchedKey (broad, body);
-                if (broadKey !== undefined) {
-                    throw new broad[broadKey] (feedback);
-                }
+                this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
                 throw new ExchangeError (feedback);
             }
         }

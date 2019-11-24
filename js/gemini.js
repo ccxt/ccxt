@@ -636,14 +636,10 @@ module.exports = class gemini extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        const broad = this.exceptions['broad'];
         if (response === undefined) {
             if (typeof body === 'string') {
-                const broadKey = this.findBroadlyMatchedKey (broad, body);
                 const feedback = this.id + ' ' + body;
-                if (broadKey !== undefined) {
-                    throw new broad[broadKey] (feedback);
-                }
+                this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             }
             return; // fallback to default error handler
         }
@@ -665,10 +661,7 @@ module.exports = class gemini extends Exchange {
             } else if (message in exact) {
                 throw new exact[message] (feedback);
             }
-            const broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

@@ -1356,11 +1356,7 @@ module.exports = class poloniex extends Exchange {
             if (message in exact) {
                 throw new exact[message] (feedback);
             }
-            const broad = this.exceptions['broad'];
-            const broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

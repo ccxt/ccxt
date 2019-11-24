@@ -1031,11 +1031,7 @@ module.exports = class hitbtc extends Exchange {
             if (code in exact) {
                 throw new exact[code] (feedback);
             }
-            const broad = this.exceptions['broad'];
-            const broadKey = this.findBroadlyMatchedKey (broad, error);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
             throw new ExchangeError (feedback); // unknown error
         }
     }

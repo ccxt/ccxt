@@ -1216,7 +1216,6 @@ module.exports = class therock extends Exchange {
         if (numErrors > 0) {
             const feedback = this.id + ' ' + body;
             const exact = this.exceptions['exact'];
-            const broad = this.exceptions['broad'];
             // here we throw the first error we can identify
             for (let i = 0; i < numErrors; i++) {
                 const error = errors[i];
@@ -1224,10 +1223,7 @@ module.exports = class therock extends Exchange {
                 if (message in exact) {
                     throw new exact[message] (feedback);
                 }
-                const broadKey = this.findBroadlyMatchedKey (broad, message);
-                if (broadKey !== undefined) {
-                    throw new broad[broadKey] (feedback);
-                }
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             }
             throw new ExchangeError (feedback); // unknown message
         }
