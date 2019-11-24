@@ -1243,19 +1243,10 @@ module.exports = class adara extends Exchange {
             const title = this.safeString (error, 'title');
             const detail = this.safeString (error, 'detail');
             const feedback = this.id + ' ' + this.json (response);
-            const exact = this.exceptions['exact'];
-            if (code in exact) {
-                throw new exact[code] (feedback);
-            }
-            if (status in exact) {
-                throw new exact[status] (feedback);
-            }
-            if (title in exact) {
-                throw new exact[title] (feedback);
-            }
-            if (detail in exact) {
-                throw new exact[detail] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], title, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], detail, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
