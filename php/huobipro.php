@@ -1019,7 +1019,7 @@ class huobipro extends Exchange {
                 'Timestamp' => $timestamp,
             );
             if ($method !== 'POST') {
-                $query = array_merge ($request, $query);
+                $request = array_merge ($request, $query);
             }
             $request = $this->keysort ($request);
             $auth = $this->urlencode ($request);

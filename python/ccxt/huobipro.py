@@ -934,7 +934,7 @@ class huobipro(Exchange):
                 'Timestamp': timestamp,
             }
             if method != 'POST':
-                query = self.extend(request, query)
+                request = self.extend(request, query)
             request = self.keysort(request)
             auth = self.urlencode(request)
             # unfortunately, PHP demands double quotes for the escaped newline symbol
