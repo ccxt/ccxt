@@ -387,7 +387,7 @@ module.exports = class kraken extends ccxt.kraken {
                 const side = sides[key];
                 const bookside = orderbook[side];
                 const deltas = this.safeValue (message[1], key, []);
-                timestamp = this.handleWsDeltas (deltas, bookside, timestamp);
+                timestamp = this.handleWsDeltas (bookside, deltas, timestamp);
             }
             orderbook['timestamp'] = timestamp;
             this.resolveWsFuture (client, messageHash, orderbook.limit ());
@@ -407,17 +407,17 @@ module.exports = class kraken extends ccxt.kraken {
                 }
             }
             if (a !== undefined) {
-                timestamp = this.handleWsDeltas (a, orderbook['asks'], timestamp);
+                timestamp = this.handleWsDeltas (orderbook['asks'], a, timestamp);
             }
             if (b !== undefined) {
-                timestamp = this.handleWsDeltas (b, orderbook['bids'], timestamp);
+                timestamp = this.handleWsDeltas (orderbook['bids'], b, timestamp);
             }
             orderbook['timestamp'] = timestamp;
             this.resolveWsFuture (client, messageHash, orderbook.limit ());
         }
     }
 
-    handleWsDeltas (deltas, bookside, timestamp) {
+    handleWsDeltas (bookside, deltas, timestamp) {
         for (let j = 0; j < deltas.length; j++) {
             const delta = deltas[j];
             const price = parseFloat (delta[0]);
