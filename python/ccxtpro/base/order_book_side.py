@@ -38,9 +38,9 @@ class OrderBookSide(list):
         array = sorted(self._index.items(), key=first_element, reverse=self.side)
         if n:
             threshold = min(n, len(array))
-            self._len = threshold
+            self._len = 0
             for i in range(threshold):
-                self[i] = array[i]
+                self.append(array[i])
         else:
             self._len = 0
             self.extend(array)
@@ -50,9 +50,9 @@ class OrderBookSide(list):
     def __iter__(self):
         super_iterator = super(OrderBookSide, self).__iter__()
         if self._len:
-            return super_iterator
-        else:
             return itertools.islice(super_iterator, self._len)
+        else:
+            return super_iterator
 
     def __len__(self):
         if self._len:
@@ -62,25 +62,17 @@ class OrderBookSide(list):
 
     def __getitem__(self, item):
         if isinstance(item, slice):
-            stop = min(item.stop or self._len, self._len)
-            new_slice = slice(item.start, stop, item.step)
-            return super(OrderBookSide, self).__getitem__(new_slice)
+            return super(OrderBookSide, self).__getitem__(item)
         if item >= self._len:
             raise IndexError('list index out of range')
         return super(OrderBookSide, self).__getitem__(item)
 
     def __setitem__(self, key, value):
         if isinstance(key, slice):
-            new_slice = slice(key.start, key.stop or self._len, key.step)
-            return super(OrderBookSide, self).__setitem__(new_slice, value)
-        if key > self._len:
+            return super(OrderBookSide, self).__setitem__(key, value)
+        if key >= self._len:
             raise IndexError('list assignment index out of range1')
-        if key == super(OrderBookSide, self).__len__():
-            return super(OrderBookSide, self).append(value)
         return super(OrderBookSide, self).__setitem__(key, value)
-
-    def __repr__(self):
-        return str(list(self))
 
     def extend(self, iterable):
         evaluated = list(iterable)
@@ -89,7 +81,10 @@ class OrderBookSide(list):
         self._len += length
 
     def append(self, object):
-        self[self._len] = object
+        if self._len == super(OrderBookSide, self).__len__():
+            super(OrderBookSide, self).append(object)
+        else:
+            self[self._len] = object
         self._len += 1
 
 # -----------------------------------------------------------------------------
@@ -108,9 +103,9 @@ class LimitedOrderBookSide(OrderBookSide):
         array = sorted(self._index.items(), key=first_element, reverse=self.side)
         if n or self._depth:
             threshold = min(n, len(array), self._depth)
-            self._len = threshold
+            self._len = 0
             for i in range(threshold):
-                self[i] = array[i]
+                self.append(array[i])
         else:
             self._len = 0
             self.extend(array)
