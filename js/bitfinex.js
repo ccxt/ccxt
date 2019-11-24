@@ -15,9 +15,11 @@ module.exports = class bitfinex extends ccxt.bitfinex {
                 'fetchWsOrderBook': true,
             },
             'urls': {
-                'ws': {
-                    'public': 'wss://api-pub.bitfinex.com/ws/2',
-                    'private': 'wss://api.bitfinex.com',
+                'api': {
+                    'ws': {
+                        'public': 'wss://api-pub.bitfinex.com/ws/2',
+                        'private': 'wss://api.bitfinex.com',
+                    },
                 },
             },
             'options': {
@@ -35,7 +37,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const url = this.urls['ws']['public'];
+        const url = this.urls['api']['ws']['public'];
         const channel = 'book';
         const request = {
             'event': 'subscribe',

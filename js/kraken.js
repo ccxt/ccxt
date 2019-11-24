@@ -17,9 +17,11 @@ module.exports = class kraken extends ccxt.kraken {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ws.kraken.com',
-                    'wsauth': 'wss://ws-auth.kraken.com',
-                    'betaws': 'wss://beta-ws.kraken.com',
+                    'ws': {
+                        'public': 'wss://ws.kraken.com',
+                        'private': 'wss://ws-auth.kraken.com',
+                        'beta': 'wss://beta-ws.kraken.com',
+                    },
                 },
             },
             'versions': {
@@ -200,7 +202,7 @@ module.exports = class kraken extends ccxt.kraken {
         const market = this.market (symbol);
         const wsName = this.safeValue (market['info'], 'wsname');
         const messageHash = wsName + ':' + name;
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws']['public'];
         const requestId = this.nonce ();
         const subscribe = {
             'event': 'subscribe',
@@ -267,7 +269,7 @@ module.exports = class kraken extends ccxt.kraken {
     async fetchWsHeartbeat (params = {}) {
         await this.loadMarkets ();
         const event = 'heartbeat';
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws']['public'];
         return this.sendWsMessage (url, event);
     }
 

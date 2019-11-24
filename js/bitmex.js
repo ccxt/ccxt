@@ -16,7 +16,9 @@ module.exports = class bitmex extends ccxt.bitmex {
                 'fetchWsOrderBook': true,
             },
             'urls': {
-                'ws': 'wss://www.bitmex.com/realtime',
+                'api': {
+                    'ws': 'wss://www.bitmex.com/realtime',
+                },
             },
             'versions': {
                 'ws': '0.2.0',
@@ -205,7 +207,7 @@ module.exports = class bitmex extends ccxt.bitmex {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = name + ':' + market['id'];
-        const url = this.urls['ws'];
+        const url = this.urls['api']['ws'];
         const request = {
             'op': 'subscribe',
             'args': [
