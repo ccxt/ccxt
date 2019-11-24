@@ -42,7 +42,7 @@ module.exports = class tradesatoshi extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/44006686-f96c02ce-9e90-11e8-871c-c67d21e9d165.jpg',
                 'api': {
                     'public': 'https://tradesatoshi.com/api/public',
-                    'private': 'https://tradesatoshi.com/api',
+                    'private': 'https://tradesatoshi.com/api/private',
                     'chart': 'https://chart.tradesatoshi.com/api',
                 },
                 'www': 'https://tradesatoshi.com/',
@@ -236,8 +236,10 @@ module.exports = class tradesatoshi extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.accountGetBalances ();
-        let balances = response['result'];
+        const response = await this.privatePostGetbalances (params);
+        console.log (JSON.stringify (response, null, 4));
+        process.exit ();
+        const balances = this.safeValue (response, 'result');
         let result = { 'info': balances };
         let indexed = this.indexBy (balances, 'Currency');
         let keys = Object.keys (indexed);
@@ -691,41 +693,48 @@ module.exports = class tradesatoshi extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
-            url += api + '/';
-            if (((api === 'account') && (path !== 'withdraw')) || (path === 'openorders'))
-                url += method.toLowerCase ();
-            url += path + '?' + this.urlencode (this.extend ({
-                'nonce': nonce,
-                'apikey': this.apiKey,
-            }, params));
-            let signature = this.hmac (this.encode (url), this.encode (this.secret), 'sha512');
-            headers = { 'apisign': signature };
+            const nonce = this.nonce ().toString ();
+            body = this.json (query);
+            const auth = this.apiKey + method + url + nonce + body;
+            let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512', 'binary');
+            signature = this.decode (this.stringToBase64 (signature));
+            headers = {
+                'Authorization': 'Basic ' + this.apiKey + ':' + signature + ':' + nonce,
+                'Content-Type': 'application/json',
+            };
+            // url += path + '?' + this.urlencode (this.extend ({
+            //     'nonce': nonce,
+            //     'apikey': this.apiKey,
+            // }, params));
+            // headers = {
+            //     'apisign': signature,
+            // };
         } else {
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
-        if (code >= 400) {
-            if (body[0] === '{') {
-                let response = JSON.parse (body);
-                if ('success' in response) {
-                    if (!response['success']) {
-                        if ('message' in response) {
-                            if (response['message'] === 'MIN_TRADE_REQUIREMENT_NOT_MET')
-                                throw new InvalidOrder (this.id + ' ' + this.json (response));
-                            if (response['message'] === 'APIKEY_INVALID')
-                                throw new AuthenticationError (this.id + ' ' + this.json (response));
-                        }
-                        throw new ExchangeError (this.id + ' ' + this.json (response));
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return; // fallback to default error handler
+        }
+        if ('success' in response) {
+            if (!response['success']) {
+                if ('message' in response) {
+                    if (response['message'] === 'MIN_TRADE_REQUIREMENT_NOT_MET') {
+                        throw new InvalidOrder (this.id + ' ' + this.json (response));
+                    }
+                    if (response['message'] === 'APIKEY_INVALID') {
+                        throw new AuthenticationError (this.id + ' ' + this.json (response));
                     }
                 }
+                throw new ExchangeError (this.id + ' ' + this.json (response));
             }
         }
     }
