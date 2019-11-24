@@ -1851,11 +1851,8 @@ module.exports = class mandala extends Exchange {
         if ((status !== undefined) && (status !== 'Success')) {
             let message = this.safeString2 (response, 'errorMessage', 'Message');
             message = this.safeString (response, 'message', message);
-            const feedback = this.id + ' ' + this.json (response);
-            const exact = this.exceptions['exact'];
-            if (message in exact) {
-                throw new exact[message] (feedback);
-            }
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
