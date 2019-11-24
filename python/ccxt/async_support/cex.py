@@ -601,14 +601,14 @@ class cex(Exchange):
                 feeRate = self.safe_float(order, 'tradingFeeTaker', feeRate)
             if feeRate:
                 feeRate /= 100.0  # convert to mathematically-correct percentage coefficients: 1.0 = 100%
-            if (baseFee in list(order.keys())) or (baseTakerFee in list(order.keys())):
+            if (baseFee in order) or (baseTakerFee in order):
                 baseFeeCost = self.safe_float_2(order, baseFee, baseTakerFee)
                 fee = {
                     'currency': market['base'],
                     'rate': feeRate,
                     'cost': baseFeeCost,
                 }
-            elif (quoteFee in list(order.keys())) or (quoteTakerFee in list(order.keys())):
+            elif (quoteFee in order) or (quoteTakerFee in order):
                 quoteFeeCost = self.safe_float_2(order, quoteFee, quoteTakerFee)
                 fee = {
                     'currency': market['quote'],

@@ -978,13 +978,13 @@ class bittrex(Exchange):
         # We parse different fields in a very specific order.
         # Order might well be closed and then canceled.
         status = None
-        if ('Opened' in list(order.keys())) and order['Opened']:
+        if ('Opened' in order) and order['Opened']:
             status = 'open'
-        if ('Closed' in list(order.keys())) and order['Closed']:
+        if ('Closed' in order) and order['Closed']:
             status = 'closed'
-        if ('CancelInitiated' in list(order.keys())) and order['CancelInitiated']:
+        if ('CancelInitiated' in order) and order['CancelInitiated']:
             status = 'canceled'
-        if ('Status' in list(order.keys())) and self.options['parseOrderStatus']:
+        if ('Status' in order) and self.options['parseOrderStatus']:
             status = self.parse_order_status(self.safe_string(order, 'Status'))
         symbol = None
         if 'Exchange' in order:

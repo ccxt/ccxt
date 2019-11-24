@@ -429,7 +429,7 @@ class dsx(Exchange):
         if limit is not None:
             request['limit'] = limit  # default = 150, max = 2000
         response = self.publicGetDepthPair(self.extend(request, params))
-        market_id_in_reponse = (market['id'] in list(response.keys()))
+        market_id_in_reponse = (market['id'] in response)
         if not market_id_in_reponse:
             raise ExchangeError(self.id + ' ' + market['symbol'] + ' order book is empty or not available')
         orderbook = response[market['id']]

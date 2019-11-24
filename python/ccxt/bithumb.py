@@ -251,7 +251,7 @@ class bithumb(Exchange):
         if len(transaction_time) < 8:
             transaction_time = '0' + transaction_time
         timestamp = self.parse8601(transaction_date + ' ' + transaction_time)
-        timestamp -= 9 * 3600000  # they report UTC + 9 hours(server in list(Korean timezone.keys()))
+        timestamp -= 9 * 3600000  # they report UTC + 9 hours(server in Korean timezone)
         type = None
         side = self.safe_string(trade, 'type')
         side = 'sell' if (side == 'ask') else 'buy'
@@ -320,7 +320,7 @@ class bithumb(Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
-        side_in_params = ('side' in list(params.keys()))
+        side_in_params = ('side' in params)
         if not side_in_params:
             raise ExchangeError(self.id + ' cancelOrder requires a `side` parameter(sell or buy) and a `currency` parameter')
         currency = self.safe_string(params, 'currency')

@@ -275,7 +275,7 @@ class bitso(Exchange):
         # the don't support fetching trades starting from a date yet
         # use the `marker` extra param for that
         # self is not a typo, the variable name is 'marker'(don't confuse with 'market')
-        markerInParams = ('marker' in list(params.keys()))
+        markerInParams = ('marker' in params)
         # warn the user with an exception if the user wants to filter
         # starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if (since is not None) and not markerInParams:
@@ -375,7 +375,7 @@ class bitso(Exchange):
         # the don't support fetching trades starting from a date yet
         # use the `marker` extra param for that
         # self is not a typo, the variable name is 'marker'(don't confuse with 'market')
-        markerInParams = ('marker' in list(params.keys()))
+        markerInParams = ('marker' in params)
         # warn the user with an exception if the user wants to filter
         # starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if (since is not None) and not markerInParams:
@@ -447,7 +447,7 @@ class bitso(Exchange):
             'BCH': 'Bcash',
             'LTC': 'Litecoin',
         }
-        method = methods[code] if (code in list(methods.keys())) else None
+        method = methods[code] if (code in methods) else None
         if method is None:
             raise ExchangeError(self.id + ' not valid withdraw coin: ' + code)
         request = {
