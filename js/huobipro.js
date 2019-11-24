@@ -1018,7 +1018,7 @@ module.exports = class huobipro extends Exchange {
                 'Timestamp': timestamp,
             };
             if (method !== 'POST') {
-                query = this.extend (request, query);
+                request = this.extend (request, query);
             }
             request = this.keysort (request);
             let auth = this.urlencode (request);
