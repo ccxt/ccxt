@@ -539,6 +539,12 @@ module.exports = class Exchange {
         }
     }
 
+    throwExactlyMatchedException (exact, string, message) {
+        if (string in exact) {
+            throw new exact[string] (message)
+        }
+    }
+
     throwBroadlyMatchedException (broad, string, message) {
         const broadKey = this.findBroadlyMatchedKey (broad, string)
         if (broadKey !== undefined) {
