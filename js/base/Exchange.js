@@ -11,6 +11,8 @@ const ccxt = require ('ccxt')
         LimitedOrderBook,
         IndexedOrderBook,
         LimitedIndexedOrderBook,
+        LimitedCountedOrderBook,
+        CountedOrderBook,
     } = require ('./OrderBook')
     , log = require ('ololog').unlimited
 
@@ -30,6 +32,14 @@ module.exports = class Exchange extends ccxt.Exchange {
 
     limitedIndexedOrderBook (snapshot = {}, depth = undefined) {
         return new LimitedIndexedOrderBook (snapshot, depth)
+    }
+
+    limitedCountedOrderBook (snapshot = {}, depth = undefined) {
+        return new LimitedCountedOrderBook (snapshot, depth)
+    }
+
+    countedOrderBook (snapshot = {}) {
+        return new CountedOrderBook (snapshot)
     }
 
     websocket (url) {

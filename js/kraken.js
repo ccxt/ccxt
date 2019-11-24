@@ -17,9 +17,11 @@ module.exports = class kraken extends ccxt.kraken {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ws.kraken.com',
-                    'wsauth': 'wss://ws-auth.kraken.com',
-                    'betaws': 'wss://beta-ws.kraken.com',
+                    'ws': {
+                        'public': 'wss://ws.kraken.com',
+                        'private': 'wss://ws-auth.kraken.com',
+                        'beta': 'wss://beta-ws.kraken.com',
+                    },
                 },
             },
             'versions': {
@@ -200,7 +202,7 @@ module.exports = class kraken extends ccxt.kraken {
         const market = this.market (symbol);
         const wsName = this.safeValue (market['info'], 'wsname');
         const messageHash = wsName + ':' + name;
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws']['public'];
         const requestId = this.nonce ();
         const subscribe = {
             'event': 'subscribe',
@@ -267,13 +269,8 @@ module.exports = class kraken extends ccxt.kraken {
     async fetchWsHeartbeat (params = {}) {
         await this.loadMarkets ();
         const event = 'heartbeat';
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws']['public'];
         return this.sendWsMessage (url, event);
-    }
-
-    signWsMessage (client, messageHash, message, params = {}) {
-        // todo: not implemented yet
-        return message;
     }
 
     handleWsHeartbeat (client, message) {
@@ -387,7 +384,7 @@ module.exports = class kraken extends ccxt.kraken {
                 const side = sides[key];
                 const bookside = orderbook[side];
                 const deltas = this.safeValue (message[1], key, []);
-                timestamp = this.handleWsDeltas (deltas, bookside, timestamp);
+                timestamp = this.handleWsDeltas (bookside, deltas, timestamp);
             }
             orderbook['timestamp'] = timestamp;
             this.resolveWsFuture (client, messageHash, orderbook.limit ());
@@ -407,17 +404,17 @@ module.exports = class kraken extends ccxt.kraken {
                 }
             }
             if (a !== undefined) {
-                timestamp = this.handleWsDeltas (a, orderbook['asks'], timestamp);
+                timestamp = this.handleWsDeltas (orderbook['asks'], a, timestamp);
             }
             if (b !== undefined) {
-                timestamp = this.handleWsDeltas (b, orderbook['bids'], timestamp);
+                timestamp = this.handleWsDeltas (orderbook['bids'], b, timestamp);
             }
             orderbook['timestamp'] = timestamp;
             this.resolveWsFuture (client, messageHash, orderbook.limit ());
         }
     }
 
-    handleWsDeltas (deltas, bookside, timestamp) {
+    handleWsDeltas (bookside, deltas, timestamp) {
         for (let j = 0; j < deltas.length; j++) {
             const delta = deltas[j];
             const price = parseFloat (delta[0]);
@@ -499,6 +496,11 @@ module.exports = class kraken extends ccxt.kraken {
             }
         }
         return true;
+    }
+
+    signWsMessage (client, messageHash, message, params = {}) {
+        // todo: not implemented yet
+        return message;
     }
 
     handleWsMessage (client, message) {
