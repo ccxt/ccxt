@@ -1131,17 +1131,13 @@ module.exports = class bitstamp extends Exchange {
                 throw new AuthenticationError (this.id + ' invalid signature, use the uid for the main account if you have subaccounts');
             }
             const exact = this.exceptions['exact'];
-            const broad = this.exceptions['broad'];
             const feedback = this.id + ' ' + body;
             for (let i = 0; i < errors.length; i++) {
                 const value = errors[i];
                 if (value in exact) {
                     throw new exact[value] (feedback);
                 }
-                const broadKey = this.findBroadlyMatchedKey (broad, value);
-                if (broadKey !== undefined) {
-                    throw new broad[broadKey] (feedback);
-                }
+                this.throwBroadlyMatchedException (this.exceptions['broad'], value, feedback);
             }
             throw new ExchangeError (feedback);
         }
