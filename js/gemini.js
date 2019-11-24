@@ -655,12 +655,8 @@ module.exports = class gemini extends Exchange {
             const reason = this.safeString (response, 'reason');
             const message = this.safeString (response, 'message');
             const feedback = this.id + ' ' + message;
-            const exact = this.exceptions['exact'];
-            if (reason in exact) {
-                throw new exact[reason] (feedback);
-            } else if (message in exact) {
-                throw new exact[message] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], reason, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
