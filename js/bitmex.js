@@ -401,7 +401,7 @@ module.exports = class bitmex extends ccxt.bitmex {
         }
     }
 
-    handleWsDeltas (deltas, bookside, timestamp) {
+    handleWsDeltas (bookside, deltas, timestamp) {
         for (let j = 0; j < deltas.length; j++) {
             const delta = deltas[j];
             const price = parseFloat (delta[0]);
