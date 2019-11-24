@@ -1168,10 +1168,7 @@ class dsx(Exchange):
                 code = self.safe_string(response, 'code')
                 message = self.safe_string(response, 'error')
                 feedback = self.id + ' ' + self.json(response)
-                exact = self.exceptions['exact']
-                if code in exact:
-                    raise exact[code](feedback)
-                elif message in exact:
-                    raise exact[message](feedback)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 raise ExchangeError(feedback)  # unknown message

@@ -500,8 +500,6 @@ class indodax(Exchange):
             else:
                 return
         feedback = self.id + ' ' + body
-        exact = self.exceptions['exact']
-        if error in exact:
-            raise exact[error](feedback)
+        self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
         self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
         raise ExchangeError(feedback)  # unknown message

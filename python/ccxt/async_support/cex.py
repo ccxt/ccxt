@@ -1107,8 +1107,6 @@ class cex(Exchange):
         if 'error' in response:
             message = self.safe_string(response, 'error')
             feedback = self.id + ' ' + body
-            exact = self.exceptions['exact']
-            if message in exact:
-                raise exact[message](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)

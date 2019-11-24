@@ -810,16 +810,13 @@ class latoken(Exchange):
         #     {"error": {"message": "Order 1563460289.571254.704945@0370:1 is not found","errorType":"RequestError","statusCode":400}}
         #
         message = self.safe_string(response, 'message')
-        exact = self.exceptions['exact']
         feedback = self.id + ' ' + body
         if message is not None:
-            if message in exact:
-                raise exact[message](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
         error = self.safe_value(response, 'error', {})
         errorMessage = self.safe_string(error, 'message')
         if errorMessage is not None:
-            if errorMessage in exact:
-                raise exact[errorMessage](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorMessage, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
             raise ExchangeError(feedback)  # unknown message

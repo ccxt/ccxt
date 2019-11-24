@@ -656,12 +656,8 @@ class gemini extends Exchange {
             $reason = $this->safe_string($response, 'reason');
             $message = $this->safe_string($response, 'message');
             $feedback = $this->id . ' ' . $message;
-            $exact = $this->exceptions['exact'];
-            if (is_array($exact) && array_key_exists($reason, $exact)) {
-                throw new $exact[$reason]($feedback);
-            } else if (is_array($exact) && array_key_exists($message, $exact)) {
-                throw new $exact[$message]($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $reason, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
