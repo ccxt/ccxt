@@ -77,7 +77,7 @@ class OrderBookSide(list):
     def extend(self, iterable):
         evaluated = list(iterable)
         length = len(evaluated)
-        self[self._len:self._len+length] = evaluated
+        self[self._len:self._len + length] = evaluated
         self._len += length
 
     def append(self, object):
