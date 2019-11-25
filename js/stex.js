@@ -38,7 +38,8 @@ module.exports = class stex extends Exchange {
             },
             'requiredCredentials': {
                 'apiKey': false,
-                'secret': true,
+                'secret': false,
+                'token': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -1268,10 +1269,9 @@ module.exports = class stex extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         } else {
-            // throw NotSupported (this.id + ' private signing not implemented yet');
             this.checkRequiredCredentials ();
             headers = {
-                'Authorization': 'Bearer ' + this.secret,
+                'Authorization': 'Bearer ' + this.token,
             };
             if (method === 'GET' || method === 'DELETE') {
                 if (Object.keys (query).length) {
@@ -1283,38 +1283,7 @@ module.exports = class stex extends Exchange {
                     headers['Content-Type'] = 'application/json';
                 }
             }
-            // let accountGroup = this.safeString (this.options, 'accountGroup');
-            // if (accountGroup === undefined) {
-            //     if (this.accounts !== undefined) {
-            //         accountGroup = this.accounts[0]['id'];
-            //     }
-            // }
-            // if (accountGroup !== undefined) {
-            //     url = '/' + accountGroup + url;
-            // }
-            // const coid = this.safeString (query, 'coid');
-            // query['time'] = this.milliseconds ().toString ();
-            // let auth = query['time'] + '+' + path.replace ('/{coid}', ''); // fix sign error
-            // headers = {
-            //     'x-auth-key': this.apiKey,
-            //     'x-auth-timestamp': query['time'],
-            //     'Content-Type': 'application/json',
-            // };
-            // if (coid !== undefined) {
-            //     auth += '+' + coid;
-            //     headers['x-auth-coid'] = coid;
-            // }
-            // const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
-            // headers['x-auth-signature'] = signature;
-            // if (method === 'GET') {
-            //     if (Object.keys (query).length) {
-            //         url += '?' + this.urlencode (query);
-            //     }
-            // } else {
-            //     body = this.json (query);
-            // }
         }
-        // url = this.urls['api'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
