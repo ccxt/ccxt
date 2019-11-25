@@ -13,7 +13,7 @@ module.exports = class stex extends Exchange {
             'id': 'stex',
             'name': 'STEX', // formerly known as stocks.exchange
             'countries': [ 'EE' ], // Estonia
-            'rateLimit': 500,
+            'rateLimit': 500, // https://help.stex.com/en/articles/2815043-api-3-rate-limits
             'certified': false,
             // new metainfo interface
             'has': {
@@ -34,7 +34,7 @@ module.exports = class stex extends Exchange {
                     'https://help.stex.com/en/collections/1593608-api-v3-documentation',
                 ],
                 'fees': 'https://app.stex.com/en/pairs-specification',
-                // 'referral': '',
+                'referral': 'https://app.stex.com?ref=36416021',
             },
             'requiredCredentials': {
                 'apiKey': false,
@@ -744,8 +744,8 @@ module.exports = class stex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        await this.loadAccounts ();
-        const response = await this.privateGetBalance (params);
+        // await this.loadAccounts ();
+        const response = await this.profileGetWallets (params);
         //
         //     {
         //         "code": 0,
@@ -1268,8 +1268,21 @@ module.exports = class stex extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         } else {
-            throw NotSupported (this.id + ' private signing not implemented yet');
-            // this.checkRequiredCredentials ();
+            // throw NotSupported (this.id + ' private signing not implemented yet');
+            this.checkRequiredCredentials ();
+            headers = {
+                'Authorization': 'Bearer ' + this.secret,
+            };
+            if (method === 'GET' || method === 'DELETE') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            } else {
+                body = this.json (query);
+                if (Object.keys (query).length) {
+                    headers['Content-Type'] = 'application/json';
+                }
+            }
             // let accountGroup = this.safeString (this.options, 'accountGroup');
             // if (accountGroup === undefined) {
             //     if (this.accounts !== undefined) {
