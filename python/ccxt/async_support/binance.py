@@ -1061,7 +1061,7 @@ class binance(Exchange):
                 '6': 'ok',  # Completed
             },
         }
-        return statuses[type][status] if (status in list(statuses[type].keys())) else status
+        return statuses[type][status] if (status in statuses[type]) else status
 
     def parse_transaction(self, transaction, currency=None):
         #

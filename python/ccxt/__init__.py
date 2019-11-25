@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.19.46'
+__version__ = '1.19.86'
 
 # ----------------------------------------------------------------------------
 
@@ -108,6 +108,7 @@ from ccxt.btctradeim import btctradeim                      # noqa: F401
 from ccxt.btctradeua import btctradeua                      # noqa: F401
 from ccxt.btcturk import btcturk                            # noqa: F401
 from ccxt.buda import buda                                  # noqa: F401
+from ccxt.bw import bw                                      # noqa: F401
 from ccxt.bytetrade import bytetrade                        # noqa: F401
 from ccxt.cex import cex                                    # noqa: F401
 from ccxt.chilebit import chilebit                          # noqa: F401
@@ -133,7 +134,6 @@ from ccxt.crex24 import crex24                              # noqa: F401
 from ccxt.deribit import deribit                            # noqa: F401
 from ccxt.digifinex import digifinex                        # noqa: F401
 from ccxt.dsx import dsx                                    # noqa: F401
-from ccxt.dx import dx                                      # noqa: F401
 from ccxt.exmo import exmo                                  # noqa: F401
 from ccxt.exx import exx                                    # noqa: F401
 from ccxt.fcoin import fcoin                                # noqa: F401
@@ -235,6 +235,7 @@ exchanges = [
     'btctradeua',
     'btcturk',
     'buda',
+    'bw',
     'bytetrade',
     'cex',
     'chilebit',
@@ -260,7 +261,6 @@ exchanges = [
     'deribit',
     'digifinex',
     'dsx',
-    'dx',
     'exmo',
     'exx',
     'fcoin',

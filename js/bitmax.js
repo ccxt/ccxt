@@ -109,8 +109,8 @@ module.exports = class bitmax extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.0004,
-                    'maker': 0.0004,
+                    'taker': 0.001,
+                    'maker': 0.001,
                 },
             },
             'options': {
@@ -228,7 +228,7 @@ module.exports = class bitmax extends Exchange {
             };
             const status = this.safeString (market, 'status');
             const active = (status === 'Normal');
-            const entry = {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -243,17 +243,13 @@ module.exports = class bitmax extends Exchange {
                         'min': this.safeFloat (market, 'minQty'),
                         'max': this.safeFloat (market, 'maxQty'),
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                    'price': { 'min': undefined, 'max': undefined },
                     'cost': {
                         'min': this.safeFloat (market, 'minNotional'),
                         'max': this.safeFloat (market, 'maxNotional'),
                     },
                 },
-            };
-            result.push (entry);
+            });
         }
         return result;
     }
@@ -1158,18 +1154,9 @@ module.exports = class bitmax extends Exchange {
         const error = (code !== undefined) && (code !== '0');
         if (error || (message !== undefined)) {
             const feedback = this.id + ' ' + body;
-            const exact = this.exceptions['exact'];
-            if (code in exact) {
-                throw new exact[code] (feedback);
-            }
-            if (message in exact) {
-                throw new exact[message] (feedback);
-            }
-            const broad = this.exceptions['broad'];
-            const broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

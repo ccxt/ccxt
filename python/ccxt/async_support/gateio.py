@@ -690,6 +690,7 @@ class gateio(Exchange):
         statuses = {
             'PEND': 'pending',
             'REQUEST': 'pending',
+            'DMOVE': 'pending',
             'CANCEL': 'failed',
             'DONE': 'ok',
         }

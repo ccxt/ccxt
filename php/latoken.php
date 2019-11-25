@@ -860,28 +860,16 @@ class latoken extends Exchange {
         //     array( "$error" => array( "$message" => "Order 1563460289.571254.704945@0370:1 is not found","errorType":"RequestError","statusCode":400 ))
         //
         $message = $this->safe_string($response, 'message');
-        $exact = $this->exceptions['exact'];
-        $broad = $this->exceptions['broad'];
         $feedback = $this->id . ' ' . $body;
         if ($message !== null) {
-            if (is_array($exact) && array_key_exists($message, $exact)) {
-                throw new $exact[$message]($feedback);
-            }
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
         }
         $error = $this->safe_value($response, 'error', array());
         $errorMessage = $this->safe_string($error, 'message');
         if ($errorMessage !== null) {
-            if (is_array($exact) && array_key_exists($errorMessage, $exact)) {
-                throw new $exact[$errorMessage]($feedback);
-            }
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $errorMessage);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorMessage, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
     }

@@ -683,14 +683,8 @@ class oceanex extends Exchange {
         $message = $this->safe_string($response, 'message');
         if (($errorCode !== null) && ($errorCode !== '0')) {
             $feedback = $this->id . ' ' . $body;
-            $codes = $this->exceptions['codes'];
-            $exact = $this->exceptions['exact'];
-            if (is_array($codes) && array_key_exists($errorCode, $codes)) {
-                throw new $codes[$errorCode]($feedback);
-            }
-            if (is_array($exact) && array_key_exists($message, $exact)) {
-                throw new $exact[$message]($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions['codes'], $errorCode, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             throw new ExchangeError($response);
         }
     }

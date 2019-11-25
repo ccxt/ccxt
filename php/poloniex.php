@@ -435,8 +435,10 @@ class poloniex extends Exchange {
             $precision = 8; // default $precision, todo => fix "magic constants"
             $code = $this->safe_currency_code($id);
             $active = ($currency['delisted'] === 0) && !$currency['disabled'];
+            $numericId = $this->safe_integer($currency, 'id');
             $result[$code] = array (
                 'id' => $id,
+                'numericId' => $numericId,
                 'code' => $code,
                 'info' => $currency,
                 'name' => $currency['name'],
@@ -1350,16 +1352,9 @@ class poloniex extends Exchange {
         // array("error":"Permission denied.")
         if (is_array($response) && array_key_exists('error', $response)) {
             $message = $response['error'];
-            $feedback = $this->id . ' ' . $this->json ($response);
-            $exact = $this->exceptions['exact'];
-            if (is_array($exact) && array_key_exists($message, $exact)) {
-                throw new $exact[$message]($feedback);
-            }
-            $broad = $this->exceptions['broad'];
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
-            }
+            $feedback = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
     }

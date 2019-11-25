@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.19.46'
+__version__ = '1.19.86'
 
 # -----------------------------------------------------------------------------
 
@@ -315,7 +315,7 @@ class Exchange(object):
         self.balance = dict() if self.balance is None else self.balance
         self.orderbooks = dict() if self.orderbooks is None else self.orderbooks
         self.orders = dict() if self.orders is None else self.orders
-        self.trades = dict() if self.trades is None else self.trades
+        self.trades = list() if self.trades is None else self.trades
         self.transactions = dict() if self.transactions is None else self.transactions
         self.currencies = dict() if self.currencies is None else self.currencies
         self.options = dict() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
@@ -466,6 +466,15 @@ class Exchange(object):
             else:
                 return gzip.GzipFile('', 'rb', 9, io.BytesIO(text)).read()
         return text
+
+    def throw_exactly_matched_exception(self, exact, string, message):
+        if string in exact:
+            raise exact[string](message)
+
+    def throw_broadly_matched_exception(self, broad, string, message):
+        broad_key = self.find_broadly_matched_key(broad, string)
+        if broad_key is not None:
+            raise broad[broad_key](message)
 
     def find_broadly_matched_key(self, broad, string):
         """A helper method for matching error strings exactly vs broadly"""
@@ -771,6 +780,7 @@ class Exchange(object):
 
     @staticmethod
     def filter_by(array, key, value=None):
+        array = Exchange.to_array(array)
         return list(filter(lambda x: x[key] == value, array))
 
     @staticmethod
@@ -1145,6 +1155,7 @@ class Exchange(object):
                     raise AuthenticationError('requires `' + key + '`')
                 else:
                     return error
+        return True
 
     def check_address(self, address):
         """Checks an address is not the same character repeated or an empty sequence"""

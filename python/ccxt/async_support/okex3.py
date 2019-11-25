@@ -1554,7 +1554,7 @@ class okex3(Exchange):
             request['order_id'] = id
         query = self.omit(params, 'type')
         response = await getattr(self, method)(self.extend(request, query))
-        result = response if ('result' in list(response.keys())) else self.safe_value(response, market['id'], {})
+        result = response if ('result' in response) else self.safe_value(response, market['id'], {})
         #
         # spot, margin
         #
@@ -2005,7 +2005,7 @@ class okex3(Exchange):
         elif 'trade_pwd' in params:
             request['trade_pwd'] = params['trade_pwd']
         query = self.omit(params, ['fee', 'password', 'trade_pwd'])
-        if not ('trade_pwd' in list(request.keys())):
+        if not ('trade_pwd' in request):
             raise ExchangeError(self.id + ' withdraw() requires self.password set on the exchange instance or a password / trade_pwd parameter')
         response = await self.accountPostWithdrawal(self.extend(request, query))
         #
@@ -2585,7 +2585,7 @@ class okex3(Exchange):
 
     def get_path_authentication_type(self, path):
         auth = self.safe_value(self.options, 'auth', {})
-        key = self.findBroadlyMatchedKey(auth, path)
+        key = self.find_broadly_matched_key(auth, path)
         return self.safe_string(auth, key, 'private')
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
@@ -2594,17 +2594,11 @@ class okex3(Exchange):
             raise ExchangeError(feedback)
         if not response:
             return  # fallback to default error handler
-        exact = self.exceptions['exact']
         message = self.safe_string(response, 'message')
         errorCode = self.safe_string_2(response, 'code', 'error_code')
         if message is not None:
-            if message in exact:
-                raise exact[message](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
-        if errorCode in exact:
-            raise exact[errorCode](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         if message is not None:
             raise ExchangeError(feedback)  # unknown message

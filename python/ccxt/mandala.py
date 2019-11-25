@@ -1136,11 +1136,12 @@ class mandala(Exchange):
             status = self.safe_value_2(order, 'orderStatus', 'Status')
             status = 'closed' if status else 'open'
         lastTradeTimestamp = None
-        if filled > 0:
-            lastTradeTimestamp = completionDate
-        if (filled is not None) and (amount is not None):
-            if (filled < amount) and (status == 'closed'):
-                status = 'canceled'
+        if filled is not None:
+            if filled > 0:
+                lastTradeTimestamp = completionDate
+            if amount is not None:
+                if (filled < amount) and (status == 'closed'):
+                    status = 'canceled'
         feeCost = self.safe_value(order, 'serviceCharge')
         fee = None
         if feeCost is not None:
@@ -1516,7 +1517,7 @@ class mandala(Exchange):
         txid = self.safe_string(transaction, 'TXNHash')
         updated = self.parse8601(self.safe_string_2(transaction, 'WithdrawalConfirmDate', 'DepositConfirmDate'))
         timestamp = self.parse8601(self.safe_string_2(transaction, 'WithdrawalReqDate', 'DepositReqDate', updated))
-        type = 'withdrawal' if ('WithdrawalReqDate' in list(transaction.keys())) else 'deposit'
+        type = 'withdrawal' if ('WithdrawalReqDate' in transaction) else 'deposit'
         currencyId = self.safe_string(transaction, 'WithdrawalType', 'DepositType')
         code = self.safe_currency_code(currencyId, currency)
         currency = self.currency(code)
@@ -1759,12 +1760,7 @@ class mandala(Exchange):
         if (status is not None) and (status != 'Success'):
             message = self.safe_string_2(response, 'errorMessage', 'Message')
             message = self.safe_string(response, 'message', message)
-            feedback = self.id + ' ' + self.json(response)
-            exact = self.exceptions['exact']
-            if message in exact:
-                raise exact[message](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

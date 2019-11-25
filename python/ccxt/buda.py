@@ -618,7 +618,7 @@ class buda(Exchange):
         fee = float(transaction['fee'][0])
         feeCurrency = transaction['fee'][1]
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
-        type = 'deposit' if ('deposit_data' in list(transaction.keys())) else 'withdrawal'
+        type = 'deposit' if ('deposit_data' in transaction) else 'withdrawal'
         data = self.safe_value(transaction, type + '_data', {})
         address = self.safe_value(data, 'target_address')
         txid = self.safe_string(data, 'tx_hash')

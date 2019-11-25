@@ -786,9 +786,9 @@ class bibox(Exchange):
         await self.load_markets()
         currency = self.currency(code)
         if self.password is None:
-            if not ('trade_pwd' in list(params.keys())):
+            if not ('trade_pwd' in params):
                 raise ExchangeError(self.id + ' withdraw() requires self.password set on the exchange instance or a trade_pwd parameter')
-        if not ('totp_code' in list(params.keys())):
+        if not ('totp_code' in params):
             raise ExchangeError(self.id + ' withdraw() requires a totp_code parameter for 2FA authentication')
         request = {
             'trade_pwd': self.password,
@@ -875,7 +875,7 @@ class bibox(Exchange):
                 else:
                     raise ExchangeError(feedback)
             raise ExchangeError(self.id + ' ' + body)
-        if not ('result' in list(response.keys())):
+        if not ('result' in response):
             raise ExchangeError(self.id + ' ' + body)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

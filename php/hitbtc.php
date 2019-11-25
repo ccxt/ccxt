@@ -1028,15 +1028,8 @@ class hitbtc extends Exchange {
         if ($error) {
             $code = $this->safe_value($error, 'code');
             $feedback = $this->id . ' ' . $this->json ($response);
-            $exact = $this->exceptions['exact'];
-            if (is_array($exact) && array_key_exists($code, $exact)) {
-                throw new $exact[$code]($feedback);
-            }
-            $broad = $this->exceptions['broad'];
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $error);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
             throw new ExchangeError($feedback); // unknown $error
         }
     }

@@ -157,7 +157,7 @@ class ftx(Exchange):
                     'An unexpected error occurred': ExchangeError,  # {"error":"An unexpected error occurred, please try again later(58BC21C795).","success":false}
                 },
             },
-            'roundingMode': TICK_SIZE,
+            'precisionMode': TICK_SIZE,
         })
 
     def fetch_currencies(self, params={}):
@@ -1291,11 +1291,6 @@ class ftx(Exchange):
         if not success:
             feedback = self.id + ' ' + self.json(response)
             error = self.safe_string(response, 'error')
-            exact = self.exceptions['exact']
-            if error in exact:
-                raise exact[error](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, error)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             raise ExchangeError(feedback)  # unknown message

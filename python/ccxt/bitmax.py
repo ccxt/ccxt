@@ -117,8 +117,8 @@ class bitmax(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'taker': 0.0004,
-                    'maker': 0.0004,
+                    'taker': 0.001,
+                    'maker': 0.001,
                 },
             },
             'options': {
@@ -233,7 +233,7 @@ class bitmax(Exchange):
             }
             status = self.safe_string(market, 'status')
             active = (status == 'Normal')
-            entry = {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -248,17 +248,13 @@ class bitmax(Exchange):
                         'min': self.safe_float(market, 'minQty'),
                         'max': self.safe_float(market, 'maxQty'),
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
+                    'price': {'min': None, 'max': None},
                     'cost': {
                         'min': self.safe_float(market, 'minNotional'),
                         'max': self.safe_float(market, 'maxNotional'),
                     },
                 },
-            }
-            result.append(entry)
+            })
         return result
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
@@ -1093,13 +1089,7 @@ class bitmax(Exchange):
         error = (code is not None) and (code != '0')
         if error or (message is not None):
             feedback = self.id + ' ' + body
-            exact = self.exceptions['exact']
-            if code in exact:
-                raise exact[code](feedback)
-            if message in exact:
-                raise exact[message](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
