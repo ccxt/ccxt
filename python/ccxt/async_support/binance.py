@@ -395,7 +395,7 @@ class binance(Exchange):
             'symbol': market['id'],
         }
         if limit is not None:
-            request['limit'] = limit  # default = maximum = 100
+            request['limit'] = limit  # default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         response = await self.publicGetDepth(self.extend(request, params))
         orderbook = self.parse_order_book(response)
         orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
