@@ -668,6 +668,7 @@ module.exports = class bitmax extends Exchange {
         //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
+        let symbol = undefined;
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
@@ -716,10 +717,7 @@ module.exports = class bitmax extends Exchange {
                 }
             }
         }
-        let side = this.safeString (order, 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (order, 'side');
         const fee = {
             'cost': this.safeFloat (order, 'fee'),
             'currency': this.safeString (order, 'feeAsset'),
