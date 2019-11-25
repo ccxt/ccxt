@@ -152,31 +152,33 @@ module.exports = class qtrade extends Exchange {
             // const minCost = this.safeFloat (baseCurrency, 'minimum_total_order');
             // const defaultMinAmount = Math.pow (10, -precision['amount']);
             // const minAmount = this.safeFloat (currency, 'minimum_order_amount', defaultMinAmount);
-            result.push ({
-                'symbol': symbol,
-                'id': marketId,
-                'baseId': base,
-                'quoteId': quote,
-                'base': base,
-                'quote': quote,
-                'active': active,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (market['can_view'] === true) {
+                result.push ({
+                    'symbol': symbol,
+                    'id': marketId,
+                    'baseId': base,
+                    'quoteId': quote,
+                    'base': base,
+                    'quote': quote,
+                    'active': active,
+                    'precision': precision,
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'info': market,
-            });
+                    'info': market,
+                });
+            }
         }
         return result;
     }
@@ -289,7 +291,7 @@ module.exports = class qtrade extends Exchange {
         for (let i = 0; i < Object.keys (response['data']['buy']).length; i++) {
             const price = parseFloat (Object.keys (response['data']['buy'])[i]);
             const amount = parseFloat (Object.values (response['data']['buy'])[i]);
-            orderbook['bids'].push ([price, amount]);
+            orderbook['bids'].unshift ([price, amount]);
         }
         for (let i = 0; i < Object.keys (response['data']['sell']).length; i++) {
             const price = parseFloat (Object.keys (response['data']['sell'])[i]);
@@ -311,7 +313,7 @@ module.exports = class qtrade extends Exchange {
                 const [ baseId, quoteId ] = marketId.split ('_');
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
+                symbol = quote + '/' + base;
             }
         }
         if (market !== undefined) {
@@ -339,8 +341,8 @@ module.exports = class qtrade extends Exchange {
             'change': change,
             'percentage': percentage,
             'average': (last + previous) / 2,
-            'baseVolume': this.safeFloat (ticker, 'day_volume_base'),
-            'quoteVolume': this.safeFloat (ticker, 'day_volume_market'),
+            'baseVolume': this.safeFloat (ticker, 'day_volume_market'),
+            'quoteVolume': this.safeFloat (ticker, 'day_volume_base'),
             'info': ticker,
         };
     }
