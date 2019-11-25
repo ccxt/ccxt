@@ -23,6 +23,7 @@ module.exports = class stex extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchOrderBook': true,
+                'fetchOHLCV': true,
             },
             'version': 'v3',
             'urls': {
@@ -135,11 +136,11 @@ module.exports = class stex extends Exchange {
                 },
                 'verification': {
                     'get': [
-                        'verification/countries', // (Beta) Countries list
-                        'verification/stex', // (Beta) Get information about your KYC
+                        'verification/countries', // Countries list, beta
+                        'verification/stex', // Get information about your KYC, beta
                     ],
                     'post': [
-                        'verification/stex', // (Beta) Update information regarding of your KYC verification
+                        'verification/stex', // Update information regarding of your KYC verification, beta
                     ],
                 },
                 'settings': {
@@ -641,92 +642,66 @@ module.exports = class stex extends Exchange {
         // public fetchTrades
         //
         //     {
-        //         "p": "13.75", // price
-        //         "q": "6.68", // quantity
-        //         "t": 1528988084944, // timestamp
-        //         "bm": False, // if true, the buyer is the market maker, we only use this field to "define the side" of a public trade
+        //         "id": 35989317,
+        //         "price": "0.02033813",
+        //         "amount": "3.60000000",
+        //         "type": "BUY",
+        //         "timestamp": "1574713503"
         //     }
         //
-        // private fetchOrderTrades
+        // private
         //
-        //     {
-        //         "ap": "0.029062965", // average filled price
-        //         "bb": "36851.981", // base asset total balance
-        //         "bc": "0", // if possitive, this is the BTMX commission charged by reverse mining, if negative, this is the mining output of the current fill.
-        //         "bpb": "36851.981", // base asset pending balance
-        //         "btmxBal": "0.0", // optional, the BTMX balance of the current account. This field is only available when bc is non-zero.
-        //         "cat": "CASH", // account category: CASH/MARGIN
-        //         "coid": "41g6wtPRFrJXgg6YxjqI6Qoog139Dmoi", // client order id, (needed to cancel order)
-        //         "ei": "NULL_VAL", // execution instruction
-        //         "errorCode": "NULL_VAL", // if the order is rejected, this field explains why
-        //         "execId": "12562285", // for each user, this is a strictly increasing long integer (represented as string)
-        //         "f": "78.074", // filled quantity, this is the aggregated quantity executed by all past fills
-        //         "fa": "BTC", // fee asset
-        //         "fee": "0.000693608", // fee
-        //         'lp': "0.029064", // last price, the price executed by the last fill
-        //         "l": "11.932", // last quantity, the quantity executed by the last fill
-        //         "m": "order", // message type
-        //         "orderType": "Limit", // Limit, Market, StopLimit, StopMarket
-        //         "p": "0.029066", // limit price, only available for limit and stop limit orders
-        //         "q": "100.000", // order quantity
-        //         "qb": "98878.642957097", // quote asset total balance
-        //         "qpb": "98877.967247508", // quote asset pending balance
-        //         "s": "ETH/BTC", // symbol
-        //         "side": "Buy", // side
-        //         "status": "PartiallyFilled", // order status
-        //         "t": 1561131458389, // timestamp
-        //     }
+        //     ...
         //
-        const timestamp = this.safeInteger (trade, 't');
-        const price = this.safeFloat (trade, 'p');
-        const amount = this.safeFloat (trade, 'q');
-        const buyerIsMaker = this.safeValue (trade, 'bm');
-        let symbol = undefined;
-        const marketId = this.safeString (trade, 's');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                const [ baseId, quoteId ] = market.split ('/');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
+        const id = this.safeString (trade, 'id');
+        const timestamp = this.safeTimestamp (trade, 'timestamp');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
         }
+        let symbol = undefined;
+        // const marketId = this.safeString (trade, 's');
+        // if (marketId !== undefined) {
+        //     if (marketId in this.markets_by_id) {
+        //         market = this.markets_by_id[marketId];
+        //         symbol = market['symbol'];
+        //     } else {
+        //         const [ baseId, quoteId ] = market.split ('/');
+        //         const base = this.safeCurrencyCode (baseId);
+        //         const quote = this.safeCurrencyCode (quoteId);
+        //         symbol = base + '/' + quote;
+        //     }
+        // }
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'fee');
-        if (feeCost !== undefined) {
-            const feeCurrencyId = this.safeString (trade, 'fa');
-            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrencyCode,
-            };
-        }
-        const orderId = this.safeString (trade, 'coid');
-        let side = this.safeStringLower (trade, 'side');
-        if ((side === undefined) && (buyerIsMaker !== undefined)) {
-            side = buyerIsMaker ? 'buy' : 'sell';
-        }
-        const type = this.safeStringLower (trade, 'orderType');
+        // let fee = undefined;
+        // const feeCost = this.safeFloat (trade, 'fee');
+        // if (feeCost !== undefined) {
+        //     const feeCurrencyId = this.safeString (trade, 'fa');
+        //     const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+        //     fee = {
+        //         'cost': feeCost,
+        //         'currency': feeCurrencyCode,
+        //     };
+        // }
+        const side = this.safeStringLower (trade, 'type');
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': undefined,
-            'order': orderId,
-            'type': type,
+            'id': id,
+            'order': undefined,
+            'type': undefined,
             'takerOrMaker': undefined,
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
-            'fee': fee,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -734,27 +709,36 @@ module.exports = class stex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'currencyPairId': market['id'],
+            // 'sort': 'ASC', // ASC or DESC, default DESC
+            // 'from': 1574709092, // unix timestamp, optional
+            // 'till': 1574709092, // unix timestamp, optional
+            // 'limit': 100, // default 100, optional
+            // 'offset': 100, // optional
         };
         if (limit !== undefined) {
-            request['n'] = limit; // currently limited to 100 or fewer
+            request['limit'] = limit; // currently limited to 100 or fewer
         }
-        const response = await this.publicGetTrades (this.extend (request, params));
+        if (since !== undefined) {
+            request['sort'] = 'ASC'; // needed to make the from param work
+            request['from'] = parseInt (since / 1000);
+        }
+        const response = await this.publicGetTradesCurrencyPairId (this.extend (request, params));
         //
         //     {
-        //         "m": "marketTrades", // message type
-        //         "s": "ETH/BTC", // symbol
-        //         "trades": [
+        //         "success": true,
+        //         "data": [
         //             {
-        //                 "p": "13.75", // price
-        //                 "q": "6.68", // quantity
-        //                 "t": 1528988084944, // timestamp
-        //                 "bm": False, // if true, the buyer is the market maker
+        //                 "id": 35989317,
+        //                 "price": "0.02033813",
+        //                 "amount": "3.60000000",
+        //                 "type": "BUY",
+        //                 "timestamp": "1574713503"
         //             },
         //         ]
         //     }
         //
-        const trades = this.safeValue (response, 'trades', []);
+        const trades = this.safeValue (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
