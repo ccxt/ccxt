@@ -542,6 +542,51 @@ module.exports = class stex extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetTicker (params);
+        //
+        //     {
+        //         "success":true,
+        //         "data":[
+        //             {
+        //                 "id":262,
+        //                 "amount_multiplier":1,
+        //                 "currency_code":"ARDR",
+        //                 "market_code":"BTC",
+        //                 "currency_name":"ARDOR",
+        //                 "market_name":"Bitcoin",
+        //                 "symbol":"ARDR_BTC",
+        //                 "group_name":"BTC",
+        //                 "group_id":1,
+        //                 "ask":"0.00000630",
+        //                 "bid":"0.00000613",
+        //                 "last":"0.00000617",
+        //                 "open":"0.00000620",
+        //                 "low":"0.00000614",
+        //                 "high":"0.00000630",
+        //                 "volume":"30.37795305",
+        //                 "volumeQuote":"4911487.01996544",
+        //                 "count":"710",
+        //                 "fiatsRate":{
+        //                     "USD":7230.86,
+        //                     "EUR":6590.79,
+        //                     "UAH":173402,
+        //                     "AUD":10744.52,
+        //                     "IDR":101568085,
+        //                     "CNY":50752,
+        //                     "KRW":8452295,
+        //                     "JPY":784607,
+        //                     "VND":167315119,
+        //                     "INR":517596,
+        //                     "GBP":5607.25,
+        //                     "CAD":9602.63,
+        //                     "BRL":30472,
+        //                     "RUB":467358
+        //                 },
+        //                 "timestamp":1574698617304,
+        //                 "group_position":1
+        //             },
+        //         ]
+        //     }
+        //
         const tickers = this.safeValue (response, 'data', []);
         return this.parseTickers (tickers, symbols);
     }
