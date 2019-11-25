@@ -24,6 +24,8 @@ module.exports = class stex extends Exchange {
                 'fetchTickers': true,
                 'fetchOrderBook': true,
                 'fetchOHLCV': true,
+                'fetchBalance': true,
+                'fetchOpenOrders': true,
             },
             'version': 'v3',
             'urls': {
@@ -164,7 +166,6 @@ module.exports = class stex extends Exchange {
                 },
             },
             'options': {
-                'accountGroup': undefined,
                 'parseOrderToPrecision': false,
             },
             'exceptions': {
@@ -478,7 +479,7 @@ module.exports = class stex extends Exchange {
         } else {
             marketId = this.safeString (ticker, 'symbol');
             if (marketId !== undefined) {
-                const [ baseId, quoteId ] = marketId.split ('/');
+                const [ baseId, quoteId ] = marketId.split ('_');
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
@@ -817,51 +818,47 @@ module.exports = class stex extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // createOrder
+        // createOrder, fetchOpenOrders
         //
         //     {
-        //         "coid": "xxx...xxx",
-        //         "action": "new",
-        //         "success": true  // success = true means the order has been submitted to the matching engine.
+        //         "id": 828680665,
+        //         "currency_pair_id": 1,
+        //         "currency_pair_name": "NXT_BTC",
+        //         "price": "0.011384",
+        //         "trigger_price": 0.011385,
+        //         "initial_amount": "13.942",
+        //         "processed_amount": "3.724",
+        //         "type": "SELL",
+        //         "original_type": "STOP_LIMIT_SELL",
+        //         "created": "2019-01-17 10:14:48",
+        //         "timestamp": "1547720088",
+        //         "status": "PARTIAL"
         //     }
         //
-        // fetchOrder, fetchOpenOrders, fetchClosedOrders
-        //
-        //     {
-        //         "accountCategory": "CASH",
-        //         "accountId": "cshKAhmTHQNUKhR1pQyrDOdotE3Tsnz4",
-        //         "avgPrice": "0.000000000",
-        //         "baseAsset": "ETH",
-        //         "btmxCommission": "0.000000000",
-        //         "coid": "41g6wtPRFrJXgg6Y7vpIkcCyWhgcK0cF", // the unique identifier, you will need, this value to cancel this order
-        //         "errorCode": "NULL_VAL",
-        //         "execId": "12452288",
-        //         "execInst": "NULL_VAL",
-        //         "fee": "0.000000000", // cumulative fee paid for this order
-        //         "feeAsset": "", // the asset
-        //         "filledQty": "0.000000000", // filled quantity
-        //         "notional": "0.000000000",
-        //         "orderPrice": "0.310000000", // only available for limit and stop limit orders
-        //         "orderQty": "1.000000000",
-        //         "orderType": "StopLimit",
-        //         "quoteAsset": "BTC",
-        //         "side": "Buy",
-        //         "status": "PendingNew",
-        //         "stopPrice": "0.300000000", // only available for stop market and stop limit orders
-        //         "symbol": "ETH/BTC",
-        //         "time": 1566091628227, // The last execution time of the order
-        //         "sendingTime": 1566091503547, // The sending time of the order
-        //         "userId": "supEQeSJQllKkxYSgLOoVk7hJAX59WSz"
-        //     }
-        //
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
-        const timestamp = this.safeInteger (order, 'sendingTime');
-        let price = this.safeFloat (order, 'orderPrice');
-        const amount = this.safeFloat (order, 'orderQty');
-        const filled = this.safeFloat (order, 'filledQty');
+        const id = this.safeString (order, 'id');
+        // const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let symbol = undefined;
+        let marketId = this.safeString (order, 'currency_pair_id');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        } else {
+            marketId = this.safeString (order, 'currency_pair_name');
+            if (marketId !== undefined) {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const timestamp = this.safeTimestamp (order, 'timestamp');
+        const price = this.safeFloat (order, 'price');
+        const amount = this.safeFloat (order, 'initial_amount');
+        const filled = this.safeFloat (order, 'processed_amount');
         let remaining = undefined;
-        let cost = this.safeFloat (order, 'cummulativeQuoteQty');
+        let cost = undefined;
         if (filled !== undefined) {
             if (amount !== undefined) {
                 remaining = amount - filled;
@@ -876,7 +873,6 @@ module.exports = class stex extends Exchange {
                 }
             }
         }
-        const id = this.safeString (order, 'coid');
         let type = this.safeString (order, 'orderType');
         if (type !== undefined) {
             type = type.toLowerCase ();
@@ -921,34 +917,38 @@ module.exports = class stex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        await this.loadAccounts ();
-        const market = this.market (symbol);
-        const request = {
-            'coid': this.coid (), // a unique identifier of length 32
-            // 'time': this.milliseconds (), // milliseconds since UNIX epoch in UTC, this is filled in the private section of the sign() method below
-            'symbol': market['id'],
-            // 'orderPrice': this.priceToPrecision (symbol, price), // optional, limit price of the order. This field is required for limit orders and stop limit orders
-            // 'stopPrice': '15.7', // optional, stopPrice of the order. This field is required for stop_market orders and stop limit orders
-            'orderQty': this.amountToPrecision (symbol, amount),
-            'orderType': type, // order type, you shall specify one of the following: "limit", "market", "stop_market", "stop_limit"
-            'side': side, // "buy" or "sell"
-            // 'postOnly': true, // optional, if true, the order will either be posted to the limit order book or be cancelled, i.e. the order cannot take liquidity, default is false
-            // 'timeInForce': 'GTC', // optional, supports "GTC" good-till-canceled and "IOC" immediate-or-cancel
-        };
-        if ((type === 'limit') || (type === 'stop_limit')) {
-            request['orderPrice'] = this.priceToPrecision (symbol, price);
+        if (type === 'market') {
+            throw new ExchangeError (this.id + ' createOrder allows limit orders only');
         }
-        const response = await this.privatePostOrder (this.extend (request, params));
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (type === 'limit') {
+            type = side;
+        }
+        const request = {
+            'currencyPairId': market['id'],
+            'type': type.toUpperCase (), // 'BUY', 'SELL', 'STOP_LIMIT_BUY', 'STOP_LIMIT_SELL'
+            'amount': parseFloat (this.amountToPrecision (symbol, amount)), // required
+            'price': parseFloat (this.priceToPrecision (symbol, price)), // required
+            // 'trigger_price': 123.45 // required for STOP_LIMIT_BUY or STOP_LIMIT_SELL
+        };
+        const response = await this.tradingPostOrdersCurrencyPairId (this.extend (request, params));
         //
         //     {
-        //         "code": 0,
-        //         "email": "foo@bar.com", // this field will be deprecated soon
-        //         "status": "success", // this field will be deprecated soon
+        //         "success": true,
         //         "data": {
-        //             "coid": "xxx...xxx",
-        //             "action": "new",
-        //             "success": true, // success = true means the order has been submitted to the matching engine
+        //             "id": 828680665,
+        //             "currency_pair_id": 1,
+        //             "currency_pair_name": "NXT_BTC",
+        //             "price": "0.011384",
+        //             "trigger_price": 0.011385,
+        //             "initial_amount": "13.942",
+        //             "processed_amount": "3.724",
+        //             "type": "SELL",
+        //             "original_type": "STOP_LIMIT_SELL",
+        //             "created": "2019-01-17 10:14:48",
+        //             "timestamp": "1547720088",
+        //             "status": "PARTIAL"
         //         }
         //     }
         //
@@ -1057,48 +1057,35 @@ module.exports = class stex extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.loadAccounts ();
         let market = undefined;
+        let method = 'tradingGetOrders';
         const request = {
             // 'side': 'buy', // or 'sell', optional
         };
         if (symbol !== undefined) {
+            method = 'tradingGetOrdersCurrencyPairId';
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privateGetOrderOpen (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
-        //         'code': 0,
-        //         'status': 'success', // this field will be deprecated soon
-        //         'email': 'foo@bar.com', // this field will be deprecated soon
+        //         "success": true,
         //         "data": [
         //             {
-        //                 "accountCategory": "CASH",
-        //                 "accountId": "cshKAhmTHQNUKhR1pQyrDOdotE3Tsnz4",
-        //                 "avgPrice": "0.000000000",
-        //                 "baseAsset": "ETH",
-        //                 "btmxCommission": "0.000000000",
-        //                 "coid": "41g6wtPRFrJXgg6Y7vpIkcCyWhgcK0cF", // the unique identifier, you will need, this value to cancel this order
-        //                 "errorCode": "NULL_VAL",
-        //                 "execId": "12452288",
-        //                 "execInst": "NULL_VAL",
-        //                 "fee": "0.000000000", // cumulative fee paid for this order
-        //                 "feeAsset": "", // the asset
-        //                 "filledQty": "0.000000000", // filled quantity
-        //                 "notional": "0.000000000",
-        //                 "orderPrice": "0.310000000", // only available for limit and stop limit orders
-        //                 "orderQty": "1.000000000",
-        //                 "orderType": "StopLimit",
-        //                 "quoteAsset": "BTC",
-        //                 "side": "Buy",
-        //                 "status": "PendingNew",
-        //                 "stopPrice": "0.300000000", // only available for stop market and stop limit orders
-        //                 "symbol": "ETH/BTC",
-        //                 "time": 1566091628227, // The last execution time of the order
-        //                 "sendingTime": 1566091503547, // The sending time of the order
-        //                 "userId": "supEQeSJQllKkxYSgLOoVk7hJAX59WSz"
-        //             },
+        //                 "id": 828680665,
+        //                 "currency_pair_id": 1,
+        //                 "currency_pair_name": "NXT_BTC",
+        //                 "price": "0.011384",
+        //                 "trigger_price": 0.011385,
+        //                 "initial_amount": "13.942",
+        //                 "processed_amount": "3.724",
+        //                 "type": "SELL",
+        //                 "original_type": "STOP_LIMIT_SELL",
+        //                 "created": "2019-01-17 10:14:48",
+        //                 "timestamp": "1547720088",
+        //                 "status": "PARTIAL"
+        //             }
         //         ]
         //     }
         //
@@ -1224,14 +1211,6 @@ module.exports = class stex extends Exchange {
         //     ?
         //
         return response;
-    }
-
-    coid () {
-        const uuid = this.uuid ();
-        const parts = uuid.split ('-');
-        const clientOrderId = parts.join ('');
-        const coid = clientOrderId.slice (0, 32);
-        return coid;
     }
 
     async fetchDepositAddress (code, params = {}) {
