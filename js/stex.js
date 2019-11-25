@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { NotSupported, ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol } = require ('./base/errors');
-const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -428,28 +427,27 @@ module.exports = class stex extends Exchange {
             request['limit_asks'] = limit; // returns all if set to 0, default 100
         }
         const response = await this.publicGetOrderbookCurrencyPairId (this.extend (request, params));
-        console.log(JSON.stringify(response, null, 4));
-        process.exit ();
         //
         //     {
-        //         "m":"depth",
-        //         "ts":1570866464777,
-        //         "seqnum":5124140078,
-        //         "s":"ETH/USDT",
-        //         "asks":[
-        //             ["183.57","5.92"],
-        //             ["183.6","10.185"]
-        //         ],
-        //         "bids":[
-        //             ["183.54","0.16"],
-        //             ["183.53","10.8"],
-        //         ]
+        //         "success": true,
+        //         "data": {
+        //             "ask": [
+        //                 { "currency_pair_id": 2, "amount": "2.17865373", "price": "0.02062917", "amount2": "0.04494382", "count": 1, "cumulative_amount": 2.17865373 },
+        //                 { "currency_pair_id": 2, "amount": "2.27521743", "price": "0.02062918", "amount2": "0.04693587", "count": 1, "cumulative_amount": 4.45387116 },
+        //                 { "currency_pair_id": 2, "amount": "1.26980049", "price": "0.02063170", "amount2": "0.02619814", "count": 1, "cumulative_amount": 5.72367165 },
+        //             ],
+        //             "bid": [
+        //                 { "currency_pair_id": 2, "amount": "0.00978005", "price": "0.02057000", "amount2": "0.00020118", "count": 1, "cumulative_amount": 0.00978005 },
+        //                 { "currency_pair_id": 2, "amount": "0.00500000", "price": "0.02056000", "amount2": "0.00010280", "count": 1, "cumulative_amount": 0.01478005 },
+        //                 { "currency_pair_id": 2, "amount": "0.77679882", "price": "0.02054001", "amount2": "0.01595546", "count": 1, "cumulative_amount": 0.79157887 },
+        //             ],
+        //             "ask_total_amount": 2555.749174609999,
+        //             "bid_total_amount": 29.180037330000005
+        //         }
         //     }
         //
-        const timestamp = this.safeInteger (response, 'ts');
-        const result = this.parseOrderBook (response, timestamp);
-        result['nonce'] = this.safeInteger (response, 'seqnum');
-        return result;
+        const orderbook = this.safeValue (response, 'data', {});
+        return this.parseOrderBook (orderbook, undefined, 'bid', 'ask', 'price', 'amount');
     }
 
     parseTicker (ticker, market = undefined) {
