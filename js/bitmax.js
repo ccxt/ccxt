@@ -443,21 +443,19 @@ module.exports = class bitmax extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         //
-        //     [
-        //         {
-        //             "m":"bar",
-        //             "s":"ETH/BTC",
-        //             "ba":"ETH",
-        //             "qa":"BTC",
-        //             "i":"1",
-        //             "t":1570867020000,
-        //             "o":"0.022023",
-        //             "c":"0.022018",
-        //             "h":"0.022023",
-        //             "l":"0.022018",
-        //             "v":"2.510",
-        //         }
-        //     ]
+        //     {
+        //         "m":"bar",
+        //         "s":"ETH/BTC",
+        //         "ba":"ETH",
+        //         "qa":"BTC",
+        //         "i":"1",
+        //         "t":1570867020000,
+        //         "o":"0.022023",
+        //         "c":"0.022018",
+        //         "h":"0.022023",
+        //         "l":"0.022018",
+        //         "v":"2.510",
+        //     }
         //
         return [
             this.safeInteger (ohlcv, 't'),
