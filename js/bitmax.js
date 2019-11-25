@@ -534,6 +534,10 @@ module.exports = class bitmax extends Exchange {
         const timestamp = this.safeInteger (trade, 't');
         const price = this.safeFloat (trade, 'p');
         const amount = this.safeFloat (trade, 'q');
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
+        }
         const buyerIsMaker = this.safeValue (trade, 'bm');
         let symbol = undefined;
         const marketId = this.safeString (trade, 's');
@@ -579,7 +583,7 @@ module.exports = class bitmax extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': fee,
         };
     }
