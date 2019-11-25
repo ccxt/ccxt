@@ -806,12 +806,11 @@ module.exports = class stex extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
-            'PendingNew': 'open',
-            'New': 'open',
-            'PartiallyFilled': 'open',
-            'Filled': 'closed',
-            'Canceled': 'canceled',
-            'Rejected': 'rejected',
+            'PROCESSING': 'open',
+            'PENDING': 'open',
+            'PARTIAL': 'open',
+            'FINISHED': 'closed',
+            'CANCELLED': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -836,7 +835,7 @@ module.exports = class stex extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'id');
-        // const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
         let marketId = this.safeString (order, 'currency_pair_id');
         if (marketId in this.markets_by_id) {
@@ -873,28 +872,11 @@ module.exports = class stex extends Exchange {
                 }
             }
         }
-        let type = this.safeString (order, 'orderType');
-        if (type !== undefined) {
-            type = type.toLowerCase ();
-            if (type === 'market') {
-                if (price === 0.0) {
-                    if ((cost !== undefined) && (filled !== undefined)) {
-                        if ((cost > 0) && (filled > 0)) {
-                            price = cost / filled;
-                        }
-                    }
-                }
-            }
+        let type = this.safeString (order, 'original_type');
+        if ((type === 'BUY') || (type === 'SELL')) {
+            type = undefined;
         }
-        let side = this.safeString (order, 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
-        const fee = {
-            'cost': this.safeFloat (order, 'fee'),
-            'currency': this.safeString (order, 'feeAsset'),
-        };
-        const average = this.safeFloat (order, 'avgPrice');
+        const side = this.safeStringLower (order, 'type');
         return {
             'info': order,
             'id': id,
@@ -907,11 +889,11 @@ module.exports = class stex extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'average': average,
+            'average': undefined,
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': fee,
+            'fee': undefined,
             'trades': undefined,
         };
     }
