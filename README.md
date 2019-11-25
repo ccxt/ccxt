@@ -32,7 +32,7 @@ Want this place? Contact us: info@ccxt.trade
 - <sub>[![TokenTax](https://user-images.githubusercontent.com/1294454/53875707-30946300-4016-11e9-89b7-53e9013caf6d.png)](https://tokentax.us)</sub>&nbsp; **[TokenTax](https://tokentax.us)**&nbsp;&mdash;&nbsp;the easiest way to report your cryptocurrency capital gains and income taxes.
 - <sub>[![Kaiko](https://user-images.githubusercontent.com/1294454/53875708-30946300-4016-11e9-8e15-b82e3e0881c1.png)](https://kaiko.com)</sub>&nbsp; **[Kaiko](https://kaiko.com)**&nbsp;&mdash;&nbsp;the leading provider of institutional grade cryptocurrency market data.
 - <sub>[![Gilded](https://user-images.githubusercontent.com/1294454/50313497-99ab1680-04bc-11e9-94cb-a6cdefb543b7.png)](https://gilded.finance)</sub>&nbsp; **[Gilded](https://gilded.finance)**&nbsp;&mdash;&nbsp;crypto accounting, invoices and finance bookkeeping made simple.
-- <sub>[![CoinFabrik](https://user-images.githubusercontent.com/1294454/69568442-a8535500-0fcc-11ea-981d-9422a92bbc23.png)](https://www.coinfabrik.com/#contact_us)</sub>&nbsp; **[CoinFabrik](https://www.coinfabrik.com/#contact_us)**&nbsp;&mdash;&nbsp;Development, research, and security audit for cryptocurrency and blockchain applications. 
+- <sub>[![CoinFabrik](https://user-images.githubusercontent.com/1294454/69568442-a8535500-0fcc-11ea-981d-9422a92bbc23.png)](https://www.coinfabrik.com/#contact_us)</sub>&nbsp; **[CoinFabrik](https://www.coinfabrik.com/#contact_us)**&nbsp;&mdash;&nbsp;development, research, and security audit for cryptocurrency and blockchain applications. 
 
 ## Certified Cryptocurrency Exchanges
 
