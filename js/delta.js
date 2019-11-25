@@ -371,9 +371,9 @@ module.exports = class delta extends Exchange {
             'datetime': iso8601,
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
-            'bid': undefined,
+            'bid': last,
             'bidVolume': undefined,
-            'ask': undefined,
+            'ask': last,
             'askVolume': undefined,
             'vwap': undefined,
             'open': this.safeFloat (ticker, 'open'),
@@ -393,6 +393,10 @@ module.exports = class delta extends Exchange {
         const timestamp = parseInt (this.safeInteger (trade, 'timestamp') / 1000);
         const iso8601 = this.iso8601 (timestamp);
         const symbol = market['symbol'];
+        const side = trade['buyer_role'] === 'taker' ? 'buy' : 'sell';
+        const size = this.safeInteger (trade, 'size');
+        const price = this.safeFloat (trade, 'price');
+        const cost = this.getNotional (size, price, market);
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -401,9 +405,12 @@ module.exports = class delta extends Exchange {
             'id': undefined,
             'order': undefined,
             'type': undefined,
-            'side': undefined,
+            'side': side,
             'price': this.safeFloat (trade, 'price'),
             'amount': this.safeInteger (trade, 'size'),
+            'takerOrMaker': 'taker',
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -472,5 +479,13 @@ module.exports = class delta extends Exchange {
             'fee': undefined,
             'trades': undefined, // todo: parse trades
         };
+    }
+
+    getNotional (size, price, market) {
+        if (market['info']['product_type'] === 'inverse_future') {
+            return size * market['info']['contract_value'] / price;
+        } else {
+            return size * market['info']['contract_value'] * price;
+        }
     }
 };
