@@ -334,7 +334,7 @@ class bitmax(Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['symbol'],
+            'symbol': market['id'],
         }
         if limit is not None:
             request['n'] = limit  # default = maximum = 100
@@ -419,7 +419,7 @@ class bitmax(Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['symbol'],
+            'symbol': market['id'],
         }
         response = self.publicGetTicker24hr(self.extend(request, params))
         return self.parse_ticker(response, market)
@@ -460,7 +460,7 @@ class bitmax(Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['symbol'],
+            'symbol': market['id'],
             'interval': self.timeframes[timeframe],
         }
         # if since and limit are not specified

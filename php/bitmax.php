@@ -337,7 +337,7 @@ class bitmax extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
-            'symbol' => $market['symbol'],
+            'symbol' => $market['id'],
         );
         if ($limit !== null) {
             $request['n'] = $limit; // default = maximum = 100
@@ -429,7 +429,7 @@ class bitmax extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
-            'symbol' => $market['symbol'],
+            'symbol' => $market['id'],
         );
         $response = $this->publicGetTicker24hr (array_merge ($request, $params));
         return $this->parse_ticker($response, $market);
@@ -473,7 +473,7 @@ class bitmax extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
-            'symbol' => $market['symbol'],
+            'symbol' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
         );
         // if $since and $limit are not specified
