@@ -13,7 +13,7 @@ module.exports = class tokensnet extends Exchange {
             'id': 'tokensnet',
             'name': 'Tokens.net',
             'countries': [ 'GB' ],
-            'rateLimit': 1000,
+            'rateLimit': 200, // 1R/200ms = 300/min = 5/s
             'certified': false,
             'has': {
                 'fetchMarkets': true,
