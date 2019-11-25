@@ -313,8 +313,7 @@ module.exports = class bitmax extends Exchange {
         //                 "totalAmount": "20.03", // total balance amount
         //                 "availableAmount": "20.03", // balance amount available to trade
         //                 "inOrderAmount": "0.000", // in order amount
-        //                 "btcValue": "70.81"     // the current BTC value of the balance
-        //                                                 // ("btcValue" might not be available when price is missing)
+        //                 "btcValue": "70.81"     // the current BTC value of the balance, may be missing
         //             },
         //         ]
         //     }
