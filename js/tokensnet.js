@@ -23,7 +23,7 @@ module.exports = class tokensnet extends Exchange {
                 'fetchOrderBook': true,
                 'fetchTrades': true,
                 'fetchBalance': true,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'createOrder': true,
                 'cancelOrder': true,
