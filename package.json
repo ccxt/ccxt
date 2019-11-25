@@ -47,9 +47,7 @@
     "postinstall": "node postinstall"
   },
   "types": "./ccxt.d.ts",
-  "dependencies": {
-    "dotenv": "^8.2.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "ansicolor": "1.1.81",
     "as-table": "1.0.37",
@@ -62,8 +60,7 @@
     "eslint-plugin-import": "2.16.0",
     "istanbul": "0.4.5",
     "mocha": "5.2.0",
-    "node-env-run": "^3.0.2",
-    "nyc": "^14.1.1",
+    "nyc": "13.3.0",
     "ololog": "1.1.121"
   },
   "author": {
@@ -477,10 +474,7 @@
     "adara.io",
     "Adara",
     "binance.us",
-    "Binance US",
-    "tokens.net",
-    "Tokens",
-    "Tokens.net"
+    "Binance US"
   ],
   "collective": {
     "type": "opencollective",
