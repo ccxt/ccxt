@@ -371,9 +371,9 @@ module.exports = class delta extends Exchange {
             'datetime': iso8601,
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
-            'bid': last,
+            'bid': last,    // for now we are considering bid as last, we will fix this in delta v2 (our next version)
             'bidVolume': undefined,
-            'ask': last,
+            'ask': last,    // for now we are considering ask as last, we will fix this in delta v2 (our next version)
             'askVolume': undefined,
             'vwap': undefined,
             'open': this.safeFloat (ticker, 'open'),
@@ -406,8 +406,8 @@ module.exports = class delta extends Exchange {
             'order': undefined,
             'type': undefined,
             'side': side,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeInteger (trade, 'size'),
+            'price': price,
+            'amount': size,
             'takerOrMaker': 'taker',
             'cost': cost,
             'fee': undefined,
