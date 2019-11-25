@@ -1,5 +1,6 @@
 import operator
-import itertools
+
+INFINITY = float('inf')
 
 
 class OrderBookSide(list):
@@ -10,15 +11,8 @@ class OrderBookSide(list):
         # allocate memory for the list here (it will not be resized...)
         super(OrderBookSide, self).__init__()
         self._index = {}
-        self._len = None
-        if len(deltas):
-            self.update(deltas)
-
-    def update(self, deltas):
         for delta in deltas:
             self.storeArray(delta)
-        # do not call limit here on purpose
-        # limit needs to be called after await future in derived class
 
     def storeArray(self, delta):
         price = delta[0]
@@ -39,27 +33,11 @@ class OrderBookSide(list):
     def limit(self, n=None):
         first_element = operator.itemgetter(0)
         array = sorted(self._index.items(), key=first_element, reverse=self.side)
-        array_len = len(array)
-        self._len = min(n or array_len, array_len)
+        if n and n < len(array):
+            array = array[:n]
         self.clear()
         self.extend(array)
-
-    """These methods allow fast truncation of a list"""
-    def __iter__(self):
-        super_iterator = super(OrderBookSide, self).__iter__()
-        if self._len:
-            return itertools.islice(super_iterator, self._len)
-        else:
-            return super_iterator
-
-    def __len__(self):
-        if self._len:
-            return self._len
-        else:
-            return super(OrderBookSide, self).__len__()
-
-    def __repr__(self):
-        return str(list(self))
+        return self
 
 # -----------------------------------------------------------------------------
 # some exchanges limit the number of bids/asks in the aggregated orderbook
@@ -75,8 +53,9 @@ class LimitedOrderBookSide(OrderBookSide):
     def limit(self, n=None):
         first_element = operator.itemgetter(0)
         array = sorted(self._index.items(), key=first_element, reverse=self.side)
-        array_len = len(array)
-        self._len = min(n or array_len, self._depth or array_len, array_len)
+        limit = min(n or INFINITY, self._depth or INFINITY)
+        if limit < len(array):
+            array = array[:limit]
         self._index = dict(array)
         self.clear()
         self.extend(array)

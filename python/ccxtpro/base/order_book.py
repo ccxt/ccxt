@@ -12,8 +12,8 @@ class OrderBook(dict):
             'datetime': None,
             'nonce': None,
         }
-        defaults.update(snapshot)
         super(OrderBook, self).update(defaults)
+        super(OrderBook, self).update(snapshot)
         if not isinstance(self['asks'], order_book_side.OrderBookSide):
             self['asks'] = order_book_side.Asks(self['asks'])
         if not isinstance(self['bids'], order_book_side.OrderBookSide):
@@ -28,8 +28,10 @@ class OrderBook(dict):
         if nonce is not None and self['nonce'] is not None \
                 and nonce < self['nonce']:
             return self
-        self['asks'].update(asks)
-        self['bids'].update(bids)
+        for ask in asks:
+            self['asks'].storeArray(ask)
+        for bid in bids:
+            self['bids'].storeArray(bid)
         self['nonce'] = nonce
         self['timestamp'] = timestamp
         self['datetime'] = Exchange.iso8601(timestamp)
@@ -42,8 +44,10 @@ class OrderBook(dict):
 
 class LimitedOrderBook(OrderBook):
     def __init__(self, snapshot={}, depth=None):
-        snapshot['asks'] = order_book_side.LimitedAsks(snapshot['asks'] or [])
-        snapshot['bids'] = order_book_side.LimitedBids(snapshot['bids'] or [])
+        snapshot['asks'] = order_book_side.LimitedAsks(
+            snapshot['asks'] or [], depth)
+        snapshot['bids'] = order_book_side.LimitedBids(
+            snapshot['bids'] or [], depth)
         super(LimitedOrderBook, self).__init__(snapshot)
 
 # -----------------------------------------------------------------------------
@@ -52,7 +56,7 @@ class LimitedOrderBook(OrderBook):
 
 
 class CountedOrderBook(OrderBook):
-    def __init__(self, snapshot={}, depth=None):
+    def __init__(self, snapshot={}):
         snapshot['asks'] = order_book_side.CountedAsks(snapshot['asks'] or [])
         snapshot['bids'] = order_book_side.CountedBids(snapshot['bids'] or [])
         super(CountedOrderBook, self).__init__(snapshot)
@@ -62,7 +66,7 @@ class CountedOrderBook(OrderBook):
 
 
 class IndexedOrderBook(OrderBook):
-    def __init__(self, snapshot={}, depth=None):
+    def __init__(self, snapshot={}):
         snapshot['asks'] = order_book_side.IndexedAsks(snapshot['asks'] or [])
         snapshot['bids'] = order_book_side.IndexedBids(snapshot['bids'] or [])
         super(IndexedOrderBook, self).__init__(snapshot)
@@ -72,9 +76,11 @@ class IndexedOrderBook(OrderBook):
 
 
 class IncrementalOrderBook(OrderBook):
-    def __init__(self, snapshot={}, depth=None):
-        snapshot['asks'] = order_book_side.IncrementalAsks(snapshot['asks'] or [])
-        snapshot['bids'] = order_book_side.IncrementalBids(snapshot['bids'] or [])
+    def __init__(self, snapshot={}):
+        snapshot['asks'] = order_book_side.IncrementalAsks(
+            snapshot['asks'] or [])
+        snapshot['bids'] = order_book_side.IncrementalBids(
+            snapshot['bids'] or [])
         super(IncrementalOrderBook, self).__init__(snapshot)
 
 # -----------------------------------------------------------------------------
@@ -83,8 +89,10 @@ class IncrementalOrderBook(OrderBook):
 
 class LimitedIndexedOrderBook(OrderBook):
     def __init__(self, snapshot={}, depth=None):
-        snapshot['asks'] = order_book_side.LimitedIndexedAsks(snapshot['asks'] or [])
-        snapshot['bids'] = order_book_side.LimitedIndexedBids(snapshot['bids'] or [])
+        snapshot['asks'] = order_book_side.LimitedIndexedAsks(
+            snapshot['asks'] or [], depth)
+        snapshot['bids'] = order_book_side.LimitedIndexedBids(
+            snapshot['asks'] or [], depth)
         super(LimitedIndexedOrderBook, self).__init__(snapshot)
 
 # -----------------------------------------------------------------------------
@@ -92,14 +100,18 @@ class LimitedIndexedOrderBook(OrderBook):
 
 
 class IncrementalIndexedOrderBook(OrderBook):
-    def __init__(self, snapshot={}, depth=None):
-        snapshot['asks'] = order_book_side.IncrementalIndexedAsks(snapshot['asks'] or [])
-        snapshot['bids'] = order_book_side.IncrementalIndexedBids(snapshot['bids'] or [])
+    def __init__(self, snapshot={}):
+        snapshot['asks'] = order_book_side.IncrementalIndexedAsks(
+            snapshot['asks'] or [])
+        snapshot['bids'] = order_book_side.IncrementalIndexedBids(
+            snapshot['bids'] or [])
         super(IncrementalIndexedOrderBook, self).__init__(snapshot)
 
 
 x = OrderBook()
 
-x.update(10, 1000, [[4, 5], [6, 7], [8, 9], [10, 11]], [[8, 9], [10, 11]])
-x.limit(3)
+x.update(10, 1000, [[i, i] for i in range(1, 100)], [[8, 9], [10, 11]])
+
+x.limit(10)
+
 print(x['asks'])
