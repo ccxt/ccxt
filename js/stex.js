@@ -749,18 +749,43 @@ module.exports = class stex extends Exchange {
         const response = await this.profileGetWallets (params);
         //
         //     {
-        //         "code": 0,
-        //         "status": "success", // this field will be deprecated soon
-        //         "email": "foo@bar.com", // this field will be deprecated soon
+        //         "success": true,
         //         "data": [
         //             {
-        //                 "assetCode": "TSC",
-        //                 "assetName": "Ethereum",
-        //                 "totalAmount": "20.03", // total balance amount
-        //                 "availableAmount": "20.03", // balance amount available to trade
-        //                 "inOrderAmount": "0.000", // in order amount
-        //                 "btcValue": "70.81"     // the current BTC value of the balance
-        //                                                 // ("btcValue" might not be available when price is missing)
+        //                 "id": null,
+        //                 "currency_id": 665,
+        //                 "delisted": false,
+        //                 "disabled": false,
+        //                 "disable_deposits": false,
+        //                 "currency_code": "ORM",
+        //                 "currency_name": "Orium",
+        //                 "currency_type_id": 5,
+        //                 "balance": "0",
+        //                 "frozen_balance": "0",
+        //                 "bonus_balance": "0",
+        //                 "total_balance": "0",
+        //                 "protocol_specific_settings": null,
+        //                 "rates": { "BTC": "0.00000000020", "USD": "0.00000147" },
+        //             },
+        //             {
+        //                 "id": null,
+        //                 "currency_id": 272,
+        //                 "delisted": false,
+        //                 "disabled": false,
+        //                 "disable_deposits": false,
+        //                 "currency_code": "USDT",
+        //                 "currency_name": "TetherUSD",
+        //                 "currency_type_id": 23,
+        //                 "balance": "0",
+        //                 "frozen_balance": "0",
+        //                 "bonus_balance": "0",
+        //                 "total_balance": "0",
+        //                 "protocol_specific_settings": [
+        //                     { "protocol_name": "OMNI", "protocol_id": 10, "active": true, "withdrawal_fee_currency_id": 272, "withdrawal_fee_const": 10, "withdrawal_fee_percent": 0, "block_explorer_url": "https://omniexplorer.info/search/" },
+        //                     { "protocol_name": "ERC20", "protocol_id": 5, "active": true, "withdrawal_fee_const": 1.2, "withdrawal_fee_percent": 0, "block_explorer_url": "https://etherscan.io/tx/" },
+        //                     { "protocol_name": "TRON", "protocol_id": 24, "active": true, "withdrawal_fee_currency_id": 272, "withdrawal_fee_const": 0.2, "withdrawal_fee_percent": 0, "block_explorer_url": "https://tronscan.org/#/transaction/" }
+        //                 ],
+        //                 "rates": { "BTC": "0.00013893", "USD": "1" },
         //             },
         //         ]
         //     }
@@ -769,11 +794,10 @@ module.exports = class stex extends Exchange {
         const balances = this.safeValue (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const code = this.safeCurrencyCode (this.safeString (balance, 'assetCode'));
+            const code = this.safeCurrencyCode (this.safeString (balance, 'currency_id'));
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'availableAmount');
-            account['used'] = this.safeFloat (balance, 'inOrderAmount');
-            account['total'] = this.safeFloat (balance, 'totalAmount');
+            account['free'] = this.safeFloat (balance, 'balance');
+            account['used'] = this.safeFloat (balance, 'frozen_balance');
             result[code] = account;
         }
         return this.parseBalance (result);
