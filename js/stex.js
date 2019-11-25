@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { NotSupported, ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadRequest, BadSymbol } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadRequest, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -173,13 +173,11 @@ module.exports = class stex extends Exchange {
                     // {"success":false,"message":"Wrong parameters","errors":{"candleType":["Invalid Candle Type!"]}}
                     // {"success":false,"message":"Wrong parameters","errors":{"time":["timeStart or timeEnd is less then 1"]}}
                     'Wrong parameters': BadRequest,
-                    '2100': AuthenticationError, // {"code":2100,"message":"ApiKeyFailure"}
-                    '5002': BadSymbol, // {"code":5002,"message":"Invalid Symbol"}
-                    '6010': InsufficientFunds, // {'code': 6010, 'message': 'Not enough balance.'}
-                    '60060': InvalidOrder, // { 'code': 60060, 'message': 'The order is already filled or canceled.' }
-                    '600503': InvalidOrder, // {"code":600503,"message":"Notional is too small."}
+                    'Unauthenticated.': AuthenticationError, // {"message":"Unauthenticated."}
                 },
-                'broad': {},
+                'broad': {
+                    'Not enough': InsufficientFunds, // {"success":false,"message":"Not enough  ETH"}
+                },
             },
         });
     }
@@ -1148,33 +1146,69 @@ module.exports = class stex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
-        }
         await this.loadMarkets ();
-        await this.loadAccounts ();
-        const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
-            'coid': this.coid (),
-            'origCoid': id,
-            // 'time': this.milliseconds (), // this is filled in the private section of the sign() method below
+            'orderId': id,
         };
-        const response = await this.privateDeleteOrder (this.extend (request, params));
+        const response = await this.tradingDeleteOrderOrderId (this.extend (request, params));
         //
         //     {
-        //         'code': 0,
-        //         'status': 'success', // this field will be deprecated soon
-        //         'email': 'foo@bar.com', // this field will be deprecated soon
-        //         'data': {
-        //             'action': 'cancel',
-        //             'coid': 'gaSRTi3o3Yo4PaXpVK0NSLP47vmJuLea',
-        //             'success': True,
+        //         "success": true,
+        //         "data": {
+        //             "put_into_processing_queue": [
+        //                 {
+        //                     "id": 828680665,
+        //                     "currency_pair_id": 1,
+        //                     "currency_pair_name": "NXT_BTC",
+        //                     "price": "0.011384",
+        //                     "trigger_price": 0.011385,
+        //                     "initial_amount": "13.942",
+        //                     "processed_amount": "3.724",
+        //                     "type": "SELL",
+        //                     "original_type": "STOP_LIMIT_SELL",
+        //                     "created": "2019-01-17 10:14:48",
+        //                     "timestamp": "1547720088",
+        //                     "status": "PARTIAL"
+        //                 }
+        //             ],
+        //             "not_put_into_processing_queue": [
+        //                 {
+        //                     "id": 828680665,
+        //                     "currency_pair_id": 1,
+        //                     "currency_pair_name": "NXT_BTC",
+        //                     "price": "0.011384",
+        //                     "trigger_price": 0.011385,
+        //                     "initial_amount": "13.942",
+        //                     "processed_amount": "3.724",
+        //                     "type": "SELL",
+        //                     "original_type": "STOP_LIMIT_SELL",
+        //                     "created": "2019-01-17 10:14:48",
+        //                     "timestamp": "1547720088",
+        //                     "status": "PARTIAL"
+        //                 }
+        //             ],
+        //             "message": "string"
         //         }
         //     }
         //
-        const order = this.safeValue (response, 'data', {});
-        return this.parseOrder (order);
+        const data = this.safeValue (response, 'data', {});
+        const acceptedOrders = this.safeValue (data, 'put_into_processing_queue', []);
+        const rejectedOrders = this.safeValue (data, 'not_put_into_processing_queue', []);
+        const numAcceptedOrders = acceptedOrders.length;
+        const numRejectedOrders = rejectedOrders.length;
+        if (numAcceptedOrders < 1) {
+            if (numRejectedOrders < 1) {
+                throw new ExchangeError (this.id + ' cancelOrder received an unexpected response: ' + this.json (response));
+            } else {
+                return this.parseOrder (rejectedOrders[0]);
+            }
+        } else {
+            if (numRejectedOrders < 1) {
+                return this.parseOrder (acceptedOrders[0]);
+            } else {
+                throw new ExchangeError (this.id + ' cancelOrder received an unexpected response: ' + this.json (response));
+            }
+        }
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -1279,8 +1313,9 @@ module.exports = class stex extends Exchange {
         //
         //     {"success":false,"message":"Wrong parameters","errors":{"candleType":["Invalid Candle Type!"]}}
         //     {"success":false,"message":"Wrong parameters","errors":{"time":["timeStart or timeEnd is less then 1"]}}
+        //     {"success":false,"message":"Not enough  ETH"}
         //
-        const success = this.safeValue (response, 'success', true);
+        const success = this.safeValue (response, 'success', false);
         if (!success) {
             const message = this.safeString (response, 'message');
             const feedback = this.id + ' ' + body;
