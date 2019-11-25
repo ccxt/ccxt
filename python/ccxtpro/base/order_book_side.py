@@ -8,7 +8,7 @@ class OrderBookSide(list):
 
     def __init__(self, deltas=[]):
         # allocate memory for the list here (it will not be resized...)
-        super(OrderBookSide, self).__init__([None] * 1000)
+        super(OrderBookSide, self).__init__()
         self._index = {}
         self._len = None
         if len(deltas):
@@ -26,21 +26,23 @@ class OrderBookSide(list):
         if size:
             self._index[price] = size
         else:
-            del self._index[price]
+            if price in self._index:
+                del self._index[price]
 
     def store(self, price, size):
         if size:
             self._index[price] = size
         else:
-            del self._index[price]
+            if price in self._index:
+                del self._index[price]
 
     def limit(self, n=None):
         first_element = operator.itemgetter(0)
         array = sorted(self._index.items(), key=first_element, reverse=self.side)
         array_len = len(array)
         self._len = min(n or array_len, array_len)
-        for i in range(self._len):
-            self[i] = array[i]
+        self.clear()
+        self.extend(array)
 
     """These methods allow fast truncation of a list"""
     def __iter__(self):
@@ -74,9 +76,10 @@ class LimitedOrderBookSide(OrderBookSide):
         first_element = operator.itemgetter(0)
         array = sorted(self._index.items(), key=first_element, reverse=self.side)
         array_len = len(array)
-        self._len = min(n or array_len, self._depth or array_len, len(array))
-        for i in range(self._len):
-            self[i] = array[i]
+        self._len = min(n or array_len, self._depth or array_len, array_len)
+        self._index = dict(array)
+        self.clear()
+        self.extend(array)
         return self
 
 
