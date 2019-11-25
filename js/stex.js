@@ -18,6 +18,10 @@ module.exports = class stex extends Exchange {
             'certified': false,
             // new metainfo interface
             'has': {
+                'CORS': false,
+                'fetchCurrencies': true,
+                'fetchMarkets': true,
+                'fetchTicker': true,
             },
             'version': 'v3',
             'urls': {
@@ -527,18 +531,19 @@ module.exports = class stex extends Exchange {
         };
     }
 
-    parseTickers (rawTickers, symbols = undefined) {
-        const tickers = [];
-        for (let i = 0; i < rawTickers.length; i++) {
-            tickers.push (this.parseTicker (rawTickers[i]));
+    parseTickers (tickers, symbols = undefined) {
+        const result = [];
+        for (let i = 0; i < tickers.length; i++) {
+            result.push (this.parseTicker (tickers[i]));
         }
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetTicker24hr (params);
-        return this.parseTickers (response, symbols);
+        const response = await this.publicGetTicker (params);
+        const tickers = this.safeValue (response, 'data', []);
+        return this.parseTickers (tickers, symbols);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
