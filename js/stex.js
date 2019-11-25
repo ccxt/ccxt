@@ -324,49 +324,6 @@ module.exports = class stex extends Exchange {
         return result;
     }
 
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const market = this.markets[symbol];
-        let key = 'quote';
-        const rate = market[takerOrMaker];
-        let cost = amount * rate;
-        let precision = market['precision']['price'];
-        if (side === 'sell') {
-            cost *= price;
-        } else {
-            key = 'base';
-            precision = market['precision']['amount'];
-        }
-        cost = this.decimalToPrecision (cost, ROUND, precision, this.precisionMode);
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': parseFloat (cost),
-        };
-    }
-
-    async fetchAccounts (params = {}) {
-        let accountGroup = this.safeString (this.options, 'accountGroup');
-        let response = undefined;
-        if (accountGroup === undefined) {
-            response = await this.privateGetUserInfo (params);
-            //
-            //     {
-            //         "accountGroup": 5
-            //     }
-            //
-            accountGroup = this.safeString (response, 'accountGroup');
-        }
-        return [
-            {
-                'id': accountGroup,
-                'type': undefined,
-                'currency': undefined,
-                'info': response,
-            },
-        ];
-    }
-
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -401,6 +358,59 @@ module.exports = class stex extends Exchange {
             result[code] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'currencyPairId': market['id'],
+        };
+        const response = await this.publicGetTickerCurrencyPairId (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "id": 2,
+        //             "amount_multiplier": 1,
+        //             "currency_code": "ETH",
+        //             "market_code": "BTC",
+        //             "currency_name": "Ethereum",
+        //             "market_name": "Bitcoin",
+        //             "symbol": "ETH_BTC",
+        //             "group_name": "BTC",
+        //             "group_id": 1,
+        //             "ask": "0.02069998",
+        //             "bid": "0.02028622",
+        //             "last": "0.02049224",
+        //             "open": "0.02059605",
+        //             "low": "0.01977744",
+        //             "high": "0.02097005",
+        //             "volume": "480.43248971",
+        //             "volumeQuote": "23491.29826130",
+        //             "count": "7384",
+        //             "fiatsRate": {
+        //                 "USD": 7230.86,
+        //                 "EUR": 6590.79,
+        //                 "UAH": 173402,
+        //                 "AUD": 10595.51,
+        //                 "IDR": 101568085,
+        //                 "CNY": 50752,
+        //                 "KRW": 8452295,
+        //                 "JPY": 784607,
+        //                 "VND": 167315119,
+        //                 "INR": 517596,
+        //                 "GBP": 5607.25,
+        //                 "CAD": 9602.63,
+        //                 "BRL": 30472,
+        //                 "RUB": 460718
+        //             },
+        //             "timestamp": 1574698235601
+        //         }
+        //     }
+        //
+        const ticker = this.safeValue (response, 'data', {});
+        return this.parseTicker (ticker, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -438,43 +448,73 @@ module.exports = class stex extends Exchange {
     parseTicker (ticker, market = undefined) {
         //
         //     {
-        //         "symbol":"BCH/USDT",
-        //         "interval":"1d",
-        //         "barStartTime":1570866600000,
-        //         "openPrice":"225.16",
-        //         "closePrice":"224.05",
-        //         "highPrice":"226.08",
-        //         "lowPrice":"218.92",
-        //         "volume":"8607.036"
+        //         "id": 2,
+        //         "amount_multiplier": 1,
+        //         "currency_code": "ETH",
+        //         "market_code": "BTC",
+        //         "currency_name": "Ethereum",
+        //         "market_name": "Bitcoin",
+        //         "symbol": "ETH_BTC",
+        //         "group_name": "BTC",
+        //         "group_id": 1,
+        //         "ask": "0.02069998",
+        //         "bid": "0.02028622",
+        //         "last": "0.02049224",
+        //         "open": "0.02059605",
+        //         "low": "0.01977744",
+        //         "high": "0.02097005",
+        //         "volume": "480.43248971",
+        //         "volumeQuote": "23491.29826130",
+        //         "count": "7384",
+        //         "fiatsRate": {
+        //             "USD": 7230.86,
+        //             "EUR": 6590.79,
+        //             "UAH": 173402,
+        //             "AUD": 10595.51,
+        //             "IDR": 101568085,
+        //             "CNY": 50752,
+        //             "KRW": 8452295,
+        //             "JPY": 784607,
+        //             "VND": 167315119,
+        //             "INR": 517596,
+        //             "GBP": 5607.25,
+        //             "CAD": 9602.63,
+        //             "BRL": 30472,
+        //             "RUB": 460718
+        //         },
+        //         "timestamp": 1574698235601
         //     }
         //
-        const timestamp = this.safeInteger (ticker, 'barStartTime');
+        const timestamp = this.safeInteger (ticker, 'timestamp');
         let symbol = undefined;
-        const marketId = this.safeString (ticker, 'symbol');
+        let marketId = this.safeString (ticker, 'id');
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
-        } else if (marketId !== undefined) {
-            const [ baseId, quoteId ] = marketId.split ('/');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
+        } else {
+            marketId = this.safeString (ticker, 'symbol');
+            if (marketId !== undefined) {
+                const [ baseId, quoteId ] = marketId.split ('/');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
         }
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'closePrice');
+        const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'highPrice'),
-            'low': this.safeFloat (ticker, 'lowPrice'),
-            'bid': undefined,
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'openPrice'),
+            'open': this.safeFloat (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined, // previous day close
@@ -482,7 +522,7 @@ module.exports = class stex extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': undefined,
+            'quoteVolume': this.safeFloat (ticker, 'volumeQuote'),
             'info': ticker,
         };
     }
@@ -493,16 +533,6 @@ module.exports = class stex extends Exchange {
             tickers.push (this.parseTicker (rawTickers[i]));
         }
         return this.filterByArray (tickers, 'symbol', symbols);
-    }
-
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['symbol'],
-        };
-        const response = await this.publicGetTicker24hr (this.extend (request, params));
-        return this.parseTicker (response, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
