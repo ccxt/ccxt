@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { NotSupported, ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol } = require ('./base/errors');
+const { NotSupported, ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadRequest, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -21,6 +21,8 @@ module.exports = class stex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchOrderBook': true,
             },
             'version': 'v3',
             'urls': {
@@ -36,6 +38,15 @@ module.exports = class stex extends Exchange {
             'requiredCredentials': {
                 'apiKey': false,
                 'secret': true,
+            },
+            'timeframes': {
+                '1m': '1',
+                '5m': '5',
+                '30m': '30',
+                '1h': '60',
+                '4h': '240',
+                '12h': '720',
+                '1d': '1D', // default
             },
             'api': {
                 'public': {
@@ -156,6 +167,9 @@ module.exports = class stex extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    // {"success":false,"message":"Wrong parameters","errors":{"candleType":["Invalid Candle Type!"]}}
+                    // {"success":false,"message":"Wrong parameters","errors":{"time":["timeStart or timeEnd is less then 1"]}}
+                    'Wrong parameters': BadRequest,
                     '2100': AuthenticationError, // {"code":2100,"message":"ApiKeyFailure"}
                     '5002': BadSymbol, // {"code":5002,"message":"Invalid Symbol"}
                     '6010': InsufficientFunds, // {'code': 6010, 'message': 'Not enough balance.'}
@@ -325,42 +339,6 @@ module.exports = class stex extends Exchange {
             });
         }
         return result;
-    }
-
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        await this.loadAccounts ();
-        const response = await this.privateGetBalance (params);
-        //
-        //     {
-        //         "code": 0,
-        //         "status": "success", // this field will be deprecated soon
-        //         "email": "foo@bar.com", // this field will be deprecated soon
-        //         "data": [
-        //             {
-        //                 "assetCode": "TSC",
-        //                 "assetName": "Ethereum",
-        //                 "totalAmount": "20.03", // total balance amount
-        //                 "availableAmount": "20.03", // balance amount available to trade
-        //                 "inOrderAmount": "0.000", // in order amount
-        //                 "btcValue": "70.81"     // the current BTC value of the balance
-        //                                                 // ("btcValue" might not be available when price is missing)
-        //             },
-        //         ]
-        //     }
-        //
-        const result = { 'info': response };
-        const balances = this.safeValue (response, 'data', []);
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const code = this.safeCurrencyCode (this.safeString (balance, 'assetCode'));
-            const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'availableAmount');
-            account['used'] = this.safeFloat (balance, 'inOrderAmount');
-            account['total'] = this.safeFloat (balance, 'totalAmount');
-            result[code] = account;
-        }
-        return this.parseBalance (result);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -592,55 +570,70 @@ module.exports = class stex extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
         //
-        //     [
-        //         {
-        //             "m":"bar",
-        //             "s":"ETH/BTC",
-        //             "ba":"ETH",
-        //             "qa":"BTC",
-        //             "i":"1",
-        //             "t":1570867020000,
-        //             "o":"0.022023",
-        //             "c":"0.022018",
-        //             "h":"0.022023",
-        //             "l":"0.022018",
-        //             "v":"2.510",
-        //         }
-        //     ]
+        //     {
+        //         "time": 1566086400000,
+        //         "close": 0.01895,
+        //         "open": 0.01812427,
+        //         "high": 0.0191588,
+        //         "low": 0.01807001,
+        //         "volume": 2588.597813750006
+        //     }
         //
         return [
-            this.safeInteger (ohlcv, 't'),
-            this.safeFloat (ohlcv, 'o'),
-            this.safeFloat (ohlcv, 'h'),
-            this.safeFloat (ohlcv, 'l'),
-            this.safeFloat (ohlcv, 'c'),
-            this.safeFloat (ohlcv, 'v'),
+            this.safeInteger (ohlcv, 'time'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['symbol'],
-            'interval': this.timeframes[timeframe],
+            'currencyPairId': market['id'],
+            'candlesType': this.timeframes[timeframe], // default 1D
+            // 'timeStart': 1574709092, // unix timestamp in seconds, required
+            // 'timeEnd': 1574709092, // unix timestamp in seconds, required
+            // 'limit': 100, // default 100, optional
+            // 'offset' 100, // optional, pagination within timerange
         };
-        // if since and limit are not specified
-        // the exchange will return just 1 last candle by default
-        const duration = this.parseTimeframe (timeframe);
-        if (since !== undefined) {
-            request['from'] = since;
-            if (limit !== undefined) {
-                request['to'] = this.sum (request['from'], limit * duration * 1000, 1);
-            }
-        } else if (limit !== undefined) {
-            request['to'] = this.milliseconds ();
-            request['from'] = request['to'] - limit * duration * 1000 - 1;
+        if (limit === undefined) {
+            limit = 100;
+        } else {
+            request['limit'] = limit;
         }
-        const response = await this.publicGetBarhist (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const duration = this.parseTimeframe (timeframe);
+        const timerange = limit * duration;
+        if (since === undefined) {
+            request['timeEnd'] = this.seconds ();
+            request['timeStart'] = request['timeEnd'] - timerange;
+        } else {
+            request['timeStart'] = parseInt (since / 1000);
+            request['timeEnd'] = this.sum (request['timeStart'], timerange);
+        }
+        const response = await this.publicGetChartCurrencyPairIdCandlesType (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "time": 1566086400000,
+        //                 "close": 0.01895,
+        //                 "open": 0.01812427,
+        //                 "high": 0.0191588,
+        //                 "low": 0.01807001,
+        //                 "volume": 2588.597813750006
+        //             },
+        //         ]
+        //     }
+        //
+        const ohlcvs = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -763,6 +756,42 @@ module.exports = class stex extends Exchange {
         //
         const trades = this.safeValue (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const response = await this.privateGetBalance (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "status": "success", // this field will be deprecated soon
+        //         "email": "foo@bar.com", // this field will be deprecated soon
+        //         "data": [
+        //             {
+        //                 "assetCode": "TSC",
+        //                 "assetName": "Ethereum",
+        //                 "totalAmount": "20.03", // total balance amount
+        //                 "availableAmount": "20.03", // balance amount available to trade
+        //                 "inOrderAmount": "0.000", // in order amount
+        //                 "btcValue": "70.81"     // the current BTC value of the balance
+        //                                                 // ("btcValue" might not be available when price is missing)
+        //             },
+        //         ]
+        //     }
+        //
+        const result = { 'info': response };
+        const balances = this.safeValue (response, 'data', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const code = this.safeCurrencyCode (this.safeString (balance, 'assetCode'));
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'availableAmount');
+            account['used'] = this.safeFloat (balance, 'inOrderAmount');
+            account['total'] = this.safeFloat (balance, 'totalAmount');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
     }
 
     parseOrderStatus (status) {
@@ -1297,16 +1326,13 @@ module.exports = class stex extends Exchange {
             return; // fallback to default error handler
         }
         //
-        //     {"code":2100,"message":"ApiKeyFailure"}
-        //     {'code': 6010, 'message': 'Not enough balance.'}
-        //     {'code': 60060, 'message': 'The order is already filled or canceled.'}
+        //     {"success":false,"message":"Wrong parameters","errors":{"candleType":["Invalid Candle Type!"]}}
+        //     {"success":false,"message":"Wrong parameters","errors":{"time":["timeStart or timeEnd is less then 1"]}}
         //
-        const code = this.safeString (response, 'code');
-        const message = this.safeString (response, 'message');
-        const error = (code !== undefined) && (code !== '0');
-        if (error || (message !== undefined)) {
+        const success = this.safeValue (response, 'success', true);
+        if (!success) {
+            const message = this.safeString (response, 'message');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
