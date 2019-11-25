@@ -421,12 +421,15 @@ module.exports = class stex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['symbol'],
+            'currencyPairId': market['id'],
         };
         if (limit !== undefined) {
-            request['n'] = limit; // default = maximum = 100
+            request['limit_bids'] = limit; // returns all if set to 0, default 100
+            request['limit_asks'] = limit; // returns all if set to 0, default 100
         }
-        const response = await this.publicGetDepth (this.extend (request, params));
+        const response = await this.publicGetOrderbookCurrencyPairId (this.extend (request, params));
+        console.log(JSON.stringify(response, null, 4));
+        process.exit ();
         //
         //     {
         //         "m":"depth",
