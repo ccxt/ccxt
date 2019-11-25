@@ -22,7 +22,7 @@ module.exports = class stex extends Exchange {
             'version': 'v3',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/66820319-19710880-ef49-11e9-8fbe-16be62a11992.jpg',
-                'api': 'https://api3.stex.com/public/currencies',
+                'api': 'https://api3.stex.com',
                 'www': 'https://www.stex.com',
                 'doc': [
                     'https://help.stex.com/en/collections/1593608-api-v3-documentation',
@@ -239,7 +239,7 @@ module.exports = class stex extends Exchange {
         const request = {
             'code': 'ALL',
         };
-        const response = await this.publicGetCurrencyPairsCode (this.extend (request, params));
+        const response = await this.publicGetCurrencyPairsListCode (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -277,6 +277,8 @@ module.exports = class stex extends Exchange {
             const numericId = this.safeInteger (market, 'id');
             const baseId = this.safeString (market, 'currency_id');
             const quoteId = this.safeString (market, 'market_currency_id');
+            const baseNumericId = this.safeInteger (market, 'currency_id');
+            const quoteNumericId = this.safeInteger (market, 'market_currency_id');
             const base = this.safeCurrencyCode (this.safeString (market, 'currency_code'));
             const quote = this.safeCurrencyCode (this.safeString (market, 'market_code'));
             const symbol = base + '/' + quote;
@@ -284,8 +286,7 @@ module.exports = class stex extends Exchange {
                 'amount': this.safeInteger (market, 'currency_precision'),
                 'price': this.safeInteger (market, 'market_precision'),
             };
-            const status = this.safeString (market, 'status');
-            const active = (status === 'Normal');
+            const active = this.safeValue (market, 'active');
             const minBuyPrice = this.safeFloat (market, 'min_buy_price');
             const minSellPrice = this.safeFloat (market, 'min_sell_price');
             const minPrice = Math.max (minBuyPrice, minSellPrice);
@@ -300,6 +301,8 @@ module.exports = class stex extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'baseNumericId': baseNumericId,
+                'quoteNumericId': quoteNumericId,
                 'info': market,
                 'active': active,
                 'maker': fee,
