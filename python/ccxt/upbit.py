@@ -1428,17 +1428,9 @@ class upbit(Exchange):
         if error is not None:
             message = self.safe_string(error, 'message')
             name = self.safe_string(error, 'name')
-            feedback = self.id + ' ' + self.json(response)
-            exact = self.exceptions['exact']
-            if message in exact:
-                raise exact[message](feedback)
-            if name in exact:
-                raise exact[name](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
-            broadKey = self.findBroadlyMatchedKey(broad, name)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], name, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], name, feedback)
             raise ExchangeError(feedback)  # unknown message

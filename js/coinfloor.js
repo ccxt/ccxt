@@ -484,10 +484,7 @@ module.exports = class coinfloor extends Exchange {
         }
         const message = this.safeString (response, 'error_msg');
         const feedback = this.id + ' ' + body;
-        const exact = this.exceptions['exact'];
-        if (message in exact) {
-            throw new exact[message] (feedback);
-        }
+        this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
         throw new ExchangeError (feedback);
     }
 

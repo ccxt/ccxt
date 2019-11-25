@@ -634,7 +634,7 @@ class hitbtc2(hitbtc):
                 if currency['disabled']:
                     active = False
             type = 'fiat'
-            if ('crypto' in list(currency.keys())) and currency['crypto']:
+            if ('crypto' in currency) and currency['crypto']:
                 type = 'crypto'
             name = self.safe_string(currency, 'fullName')
             result[code] = {

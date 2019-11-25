@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.19.71';
+$version = '1.19.86';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.19.71';
+    const VERSION = '1.19.86';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -151,7 +151,6 @@ class Exchange {
         'deribit',
         'digifinex',
         'dsx',
-        'dx',
         'exmo',
         'exx',
         'fcoin',
@@ -1177,6 +1176,27 @@ class Exchange {
 
     public function request($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
         return $this->fetch2($path, $api, $method, $params, $headers, $body);
+    }
+
+    public function throwExactlyMatchedException($exact, $string, $message) {
+        return $this->throw_exactly_matched_exception($exact, $string, $message);
+    }
+
+    public function throw_exactly_matched_exception($exact, $string, $message) {
+        if (isset($exact[$string])) {
+            throw new $exact[$string]($message);
+        }
+    }
+
+    public function throwBroadlyMatchedException($broad, $string, $message) {
+        return $this->throw_broadly_matched_exception($broad, $string, $message);
+    }
+
+    public function throw_broadly_matched_exception($broad, $string, $message) {
+        $broad_key = $this->find_broadly_matched_key($broad, $string);
+        if ($broad_key !== null) {
+            throw new $broad[$broad_key]($message);
+        }
     }
 
     public function findBroadlyMatchedKey($broad, $string) {

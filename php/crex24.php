@@ -1267,15 +1267,8 @@ class crex24 extends Exchange {
         }
         $message = $this->safe_string($response, 'errorDescription');
         $feedback = $this->id . ' ' . $this->json ($response);
-        $exact = $this->exceptions['exact'];
-        if (is_array($exact) && array_key_exists($message, $exact)) {
-            throw new $exact[$message]($feedback);
-        }
-        $broad = $this->exceptions['broad'];
-        $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
-        if ($broadKey !== null) {
-            throw new $broad[$broadKey]($feedback);
-        }
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+        $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
         if ($code === 400) {
             throw new BadRequest($feedback);
         } else if ($code === 401) {

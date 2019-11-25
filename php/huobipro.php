@@ -1012,12 +1012,16 @@ class huobipro extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             $timestamp = $this->ymdhms ($this->milliseconds (), 'T');
-            $request = $this->keysort (array_merge (array (
+            $request = array (
                 'SignatureMethod' => 'HmacSHA256',
                 'SignatureVersion' => '2',
                 'AccessKeyId' => $this->apiKey,
                 'Timestamp' => $timestamp,
-            ), $query));
+            );
+            if ($method !== 'POST') {
+                $request = array_merge ($request, $query);
+            }
+            $request = $this->keysort ($request);
             $auth = $this->urlencode ($request);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             // eslint-disable-next-line quotes

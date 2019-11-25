@@ -1220,7 +1220,7 @@ class kraken(Exchange):
         if method is None:
             if self.options['cacheDepositMethodsOnFetchDepositAddress']:
                 # cache depositMethods
-                if not (code in list(self.options['depositMethods'].keys())):
+                if not (code in self.options['depositMethods']):
                     self.options['depositMethods'][code] = self.fetch_deposit_methods(code)
                 method = self.options['depositMethods'][code][0]['method']
             else:

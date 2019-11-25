@@ -21,7 +21,7 @@ class bigone extends Exchange {
                 'createMarketOrder' => false,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'fetchMyTrades' => false, // todo support fetchMyTrades
+                'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
@@ -458,6 +458,10 @@ class bigone extends Exchange {
         }
         $side = $this->safe_string($trade, 'side');
         $takerSide = $this->safe_string($trade, 'taker_side');
+        $takerOrMaker = null;
+        if (($takerSide !== null) && ($side !== null) && ($side !== 'SELF_TRADING')) {
+            $takerOrMaker = ($takerSide === $side) ? 'taker' : 'maker';
+        }
         if ($side === null) {
             // taker $side is not related to buy/sell $side
             // the following code is probably a mistake
@@ -490,25 +494,54 @@ class bigone extends Exchange {
             'order' => $orderId,
             'type' => 'limit',
             'side' => $side,
-            'takerOrMaker' => null,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
             'cost' => floatval ($cost),
             'info' => $trade,
         );
+        $makerCurrencyCode = null;
+        $takerCurrencyCode = null;
+        if (($market !== null) && ($takerOrMaker !== null)) {
+            if ($side === 'buy') {
+                if ($takerOrMaker === 'maker') {
+                    $makerCurrencyCode = $market['base'];
+                    $takerCurrencyCode = $market['quote'];
+                } else {
+                    $makerCurrencyCode = $market['quote'];
+                    $takerCurrencyCode = $market['base'];
+                }
+            } else {
+                if ($takerOrMaker === 'maker') {
+                    $makerCurrencyCode = $market['quote'];
+                    $takerCurrencyCode = $market['base'];
+                } else {
+                    $makerCurrencyCode = $market['base'];
+                    $takerCurrencyCode = $market['quote'];
+                }
+            }
+        } else if ($side === 'SELF_TRADING') {
+            if ($takerSide === 'BID') {
+                $makerCurrencyCode = $market['quote'];
+                $takerCurrencyCode = $market['base'];
+            } else if ($takerSide === 'ASK') {
+                $makerCurrencyCode = $market['base'];
+                $takerCurrencyCode = $market['quote'];
+            }
+        }
         $makerFeeCost = $this->safe_float($trade, 'maker_fee');
         $takerFeeCost = $this->safe_float($trade, 'taker_fee');
         if ($makerFeeCost !== null) {
             if ($takerFeeCost !== null) {
                 $result['fees'] = array (
-                    array( 'cost' => $makerFeeCost, 'currency' => null ),
-                    array( 'cost' => $takerFeeCost, 'currency' => null ),
+                    array( 'cost' => $makerFeeCost, 'currency' => $makerCurrencyCode ),
+                    array( 'cost' => $takerFeeCost, 'currency' => $takerCurrencyCode ),
                 );
             } else {
-                $result['fee'] = array( 'cost' => $makerFeeCost, 'currency' => null );
+                $result['fee'] = array( 'cost' => $makerFeeCost, 'currency' => $makerCurrencyCode );
             }
         } else if ($takerFeeCost !== null) {
-            $result['fee'] = array( 'cost' => $takerFeeCost, 'currency' => null );
+            $result['fee'] = array( 'cost' => $takerFeeCost, 'currency' => $takerCurrencyCode );
         } else {
             $result['fee'] = null;
         }
@@ -1209,17 +1242,9 @@ class bigone extends Exchange {
         $message = $this->safe_string($response, 'message');
         if ($code !== '0') {
             $feedback = $this->id . ' ' . $body;
-            $exact = $this->exceptions['exact'];
-            if (is_array($exact) && array_key_exists($message, $exact)) {
-                throw new $exact[$message]($feedback);
-            } else if (is_array($exact) && array_key_exists($code, $exact)) {
-                throw new $exact[$code]($feedback);
-            }
-            $broad = $this->exceptions['broad'];
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
     }

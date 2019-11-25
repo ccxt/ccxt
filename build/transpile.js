@@ -6,7 +6,7 @@
 
 const fs = require ('fs')
     , log = require ('ololog')
-    , ansi = require ('ansicolor').nice
+    , _ = require ('ansicolor').nice
     , errors = require ('../js/base/errors.js')
     , { unCamelCase, precisionConstants, safeString } = require ('../js/base/functions.js')
     , { basename } = require ('path')
@@ -136,6 +136,9 @@ class Transpiler {
             [ /\.integerDivide/g, '.integer_divide'],
             [ /\.integerModulo/g, '.integer_modulo'],
             [ /\.integerPow/g, '.integer_pow'],
+            [ /\.findBroadlyMatchedKey\s/g, '.find_broadly_matched_key'],
+            [ /\.throwBroadlyMatchedException\s/g, '.throw_broadly_matched_exception'],
+            [ /\.throwExactlyMatchedException\s/g, '.throw_exactly_matched_exception'],
             [ /errorHierarchy/g, 'error_hierarchy'],
             [ /\.base16ToBinary/g, '.base16_to_binary'],
             [ /\'use strict\';?\s+/g, '' ],
@@ -234,7 +237,6 @@ class Transpiler {
             [ /\.indexOf/g, '.find'],
             [ /\strue/g, ' True'],
             [ /\sfalse/g, ' False'],
-            [ /\(([^\s]+)\sin\s([^\)]+)\)/g, '($1 in list($2.keys()))' ],
             [ /([^\s]+\s*\(\))\.toString\s+\(\)/g, 'str($1)' ],
             [ /([^\s]+)\.toString \(\)/g, 'str($1)' ],
             [ /([^\s]+)\.join\s*\(\s*([^\)\[\]]+?)\s*\)/g, '$2.join($1)' ],

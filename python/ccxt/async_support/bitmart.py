@@ -402,7 +402,7 @@ class bitmart(Exchange):
         timestamp = self.safe_integer_2(trade, 'timestamp', 'order_time')
         type = None
         side = self.safe_string_lower(trade, 'type')
-        if (side is None) and ('entrustType' in list(trade.keys())):
+        if (side is None) and ('entrustType' in trade):
             side = 'sell' if trade['entrustType'] else 'buy'
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
@@ -839,11 +839,6 @@ class bitmart(Exchange):
         feedback = self.id + ' ' + body
         message = self.safe_string_2(response, 'message', 'msg')
         if message is not None:
-            exact = self.exceptions['exact']
-            if message in exact:
-                raise exact[message](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

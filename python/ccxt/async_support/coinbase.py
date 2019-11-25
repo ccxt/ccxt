@@ -496,7 +496,7 @@ class coinbase(Exchange):
         for i in range(0, len(baseIds)):
             baseId = baseIds[i]
             base = self.safe_currency_code(baseId)
-            type = 'fiat' if (baseId in list(dataById.keys())) else 'crypto'
+            type = 'fiat' if (baseId in dataById) else 'crypto'
             # https://github.com/ccxt/ccxt/issues/6066
             if type == 'crypto':
                 for j in range(0, len(data)):
@@ -588,7 +588,7 @@ class coinbase(Exchange):
         result = {}
         for i in range(0, len(keys)):
             key = keys[i]
-            type = 'fiat' if (key in list(dataById.keys())) else 'crypto'
+            type = 'fiat' if (key in dataById) else 'crypto'
             currency = self.safe_value(dataById, key, {})
             id = self.safe_string(currency, 'id', key)
             name = self.safe_string(currency, 'name')

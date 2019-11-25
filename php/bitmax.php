@@ -109,8 +109,8 @@ class bitmax extends Exchange {
                 'trading' => array (
                     'tierBased' => false,
                     'percentage' => true,
-                    'taker' => 0.0004,
-                    'maker' => 0.0004,
+                    'taker' => 0.001,
+                    'maker' => 0.001,
                 ),
             ),
             'options' => array (
@@ -228,7 +228,7 @@ class bitmax extends Exchange {
             );
             $status = $this->safe_string($market, 'status');
             $active = ($status === 'Normal');
-            $entry = array (
+            $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -243,17 +243,13 @@ class bitmax extends Exchange {
                         'min' => $this->safe_float($market, 'minQty'),
                         'max' => $this->safe_float($market, 'maxQty'),
                     ),
-                    'price' => array (
-                        'min' => null,
-                        'max' => null,
-                    ),
+                    'price' => array( 'min' => null, 'max' => null ),
                     'cost' => array (
                         'min' => $this->safe_float($market, 'minNotional'),
                         'max' => $this->safe_float($market, 'maxNotional'),
                     ),
                 ),
             );
-            $result[] = $entry;
         }
         return $result;
     }
@@ -1158,18 +1154,9 @@ class bitmax extends Exchange {
         $error = ($code !== null) && ($code !== '0');
         if ($error || ($message !== null)) {
             $feedback = $this->id . ' ' . $body;
-            $exact = $this->exceptions['exact'];
-            if (is_array($exact) && array_key_exists($code, $exact)) {
-                throw new $exact[$code]($feedback);
-            }
-            if (is_array($exact) && array_key_exists($message, $exact)) {
-                throw new $exact[$message]($feedback);
-            }
-            $broad = $this->exceptions['broad'];
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
     }

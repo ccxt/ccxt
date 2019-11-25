@@ -1513,23 +1513,11 @@ module.exports = class upbit extends Exchange {
         if (error !== undefined) {
             const message = this.safeString (error, 'message');
             const name = this.safeString (error, 'name');
-            const feedback = this.id + ' ' + this.json (response);
-            const exact = this.exceptions['exact'];
-            if (message in exact) {
-                throw new exact[message] (feedback);
-            }
-            if (name in exact) {
-                throw new exact[name] (feedback);
-            }
-            const broad = this.exceptions['broad'];
-            let broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
-            broadKey = this.findBroadlyMatchedKey (broad, name);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], name, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], name, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }
