@@ -467,11 +467,13 @@ class Exchange(object):
                 return gzip.GzipFile('', 'rb', 9, io.BytesIO(text)).read()
         return text
 
-    def throw_exactly_matched_exception(self, exact, string, message):
+    def throw_exactly_matched_exception(self, string, message):
+        exact = self.exceptions.get('exact', {})
         if string in exact:
             raise exact[string](message)
 
-    def throw_broadly_matched_exception(self, broad, string, message):
+    def throw_broadly_matched_exception(self, string, message):
+        broad = self.exceptions.get('broad', {})
         broad_key = self.find_broadly_matched_key(broad, string)
         if broad_key is not None:
             raise broad[broad_key](message)
