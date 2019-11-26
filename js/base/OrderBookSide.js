@@ -47,8 +47,6 @@ class OrderBookSide extends Array {
 
     // replace stored orders with new values
     limit (n = undefined) {
-        console.log (this.index)
-        console.log (Object.entries (this.index).map(this.convert))
         const array = Object.entries (this.index).map (this.convert).sort (this.compare)
         n = Math.min (n || Number.MAX_SAFE_INTEGER, array.length)
         // the following lines could be written as
