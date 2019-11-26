@@ -1688,7 +1688,6 @@ module.exports = class stex extends Exchange {
         return this.parseTransactions (withdrawals, code, since, limit);
     }
 
-
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -1699,7 +1698,7 @@ module.exports = class stex extends Exchange {
             'address': address,
             // 'protocol_id': 10, // optional, to be used with multicurrency wallets like USDT
             // 'additional_address_parameter': tag, // optional
-            };
+        };
         if (tag !== undefined) {
             request['additional_address_parameter'] = tag;
         }
