@@ -1080,7 +1080,7 @@ module.exports = class bitmax extends Exchange {
         //         "status": "success",
         //     }
         //
-        // v2 (not supported yet)
+        // v2
         //
         //     {
         //         "code": 0,
@@ -1098,14 +1098,21 @@ module.exports = class bitmax extends Exchange {
         //         "status": "success" // the request has been submitted to the server
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const address = this.safeString (data, 'address');
+        let addressData = this.safeValue (response, 'data');
+        if (Array.isArray (addressData)) {
+            const firstElement = this.safeValue (data, 0, {});
+            addressData = this.safeValue (firstElement, 'addressData', {});
+        }
+        const address = this.safeString (addressData, 'address');
+        const tag = this.safeString (addressData, 'destTag');
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
+            'tag': tag,
             'info': response,
         };
+        }
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
