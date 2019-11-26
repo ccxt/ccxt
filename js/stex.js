@@ -27,7 +27,6 @@ module.exports = class stex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchBalance': true,
                 'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
                 'fetchOrder': true,
                 'fetchMyTrades': true,
                 'fetchOrderTrades': true,
@@ -39,7 +38,7 @@ module.exports = class stex extends Exchange {
             },
             'version': 'v3',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/66820319-19710880-ef49-11e9-8fbe-16be62a11992.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/69680782-03fd0b80-10bd-11ea-909e-7f603500e9cc.jpg',
                 'api': 'https://api3.stex.com',
                 'www': 'https://www.stex.com',
                 'doc': [
@@ -1104,55 +1103,6 @@ module.exports = class stex extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        let method = 'reportsGetOrders';
-        const request = {
-            // 'currencyPairId': market['id'],
-            // 'orderStatus': 'ALL', // ALL, FINISHED, CANCELLED, PARTIAL, WITH_TRADES, default is ALL
-            // 'timeStart': '2019-11-26T19:54:55.901Z', // datetime in iso format
-            // 'timeEnd': '2019-11-26T19:54:55.901Z', // datetime in iso format
-            // 'limit': 100, // default 100
-            // 'offset': 100,
-        };
-        if (symbol !== undefined) {
-            method = 'reportsGetOrdersCurrencyPairId';
-            market = this.market (symbol);
-            request['currencyPairId'] = market['id'];
-        }
-        if (since !== undefined) {
-            request['timeStart'] = this.iso8601 (since);
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this[method] (this.extend (request, params));
-        //
-        //     {
-        //         "success": true,
-        //         "data": [
-        //             {
-        //                 "id": 828680665,
-        //                 "currency_pair_id": 1,
-        //                 "currency_pair_name": "NXT_BTC",
-        //                 "price": "0.011384",
-        //                 "trigger_price": 0.011385,
-        //                 "initial_amount": "13.942",
-        //                 "processed_amount": "3.724",
-        //                 "type": "SELL",
-        //                 "original_type": "STOP_LIMIT_SELL",
-        //                 "created": "2019-01-17 10:14:48",
-        //                 "timestamp": "1547720088",
-        //                 "status": "PARTIAL"
-        //             }
-        //         ]
-        //     }
-        //
-        const orders = this.safeValue (response, 'data', []);
-        return this.parseOrders (orders, market, since, limit);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
