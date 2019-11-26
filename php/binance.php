@@ -102,6 +102,8 @@ class binance extends Exchange {
                         'margin/myTrades',
                         'margin/maxBorrowable',
                         'margin/maxTransferable',
+                        // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
+                        'capital/config/getall', // get networks for withdrawing USDT ERC20 vs USDT Omni
                     ),
                     'post' => array (
                         'asset/dust',
@@ -1282,12 +1284,16 @@ class binance extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
+        // $name is optional, can be overrided via $params
         $name = mb_substr($address, 0, 20 - 0);
         $request = array (
             'asset' => $currency['id'],
             'address' => $address,
             'amount' => floatval ($amount),
-            'name' => $name,
+            'name' => $name, // $name is optional, can be overrided via $params
+            // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
+            // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni
+            // 'network' => 'ETH', // 'BTC', 'TRX', etc, optional
         );
         if ($tag !== null) {
             $request['addressTag'] = $tag;
