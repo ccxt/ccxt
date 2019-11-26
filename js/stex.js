@@ -1375,18 +1375,28 @@ module.exports = class stex extends Exchange {
         //
         //     {
         //         "success": true,
-        //         "data": [
-        //             {
-        //                 "id": 45875,
-        //                 "currency_id": 1,
-        //                 "delisted": false,
-        //                 "disabled": false,
-        //                 "disable_deposits": false,
-        //                 "code": "BTC",
-        //                 "balance": "0.198752",
-        //                 "frozen_balance": "1.5784",
-        //                 "bonus_balance": "0.000",
-        //                 "deposit_address": {
+        //         "data": {
+        //             "id": 45875,
+        //             "currency_id": 1,
+        //             "delisted": false,
+        //             "disabled": false,
+        //             "disable_deposits": false,
+        //             "code": "BTC",
+        //             "balance": "0.198752",
+        //             "frozen_balance": "1.5784",
+        //             "bonus_balance": "0.000",
+        //             "deposit_address": {
+        //                 "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //                 "address_name": "Address",
+        //                 "additional_address_parameter": "qwertyuiopasdfghjkl",
+        //                 "additional_address_parameter_name": "Destination Tag",
+        //                 "notification": "",
+        //                 "protocol_id": 10,
+        //                 "protocol_name": "Tether OMNI",
+        //                 "supports_new_address_creation": false
+        //             },
+        //             "multi_deposit_addresses": [
+        //                 {
         //                     "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
         //                     "address_name": "Address",
         //                     "additional_address_parameter": "qwertyuiopasdfghjkl",
@@ -1395,39 +1405,26 @@ module.exports = class stex extends Exchange {
         //                     "protocol_id": 10,
         //                     "protocol_name": "Tether OMNI",
         //                     "supports_new_address_creation": false
-        //                 },
-        //                 "multi_deposit_addresses": [
-        //                     {
-        //                         "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
-        //                         "address_name": "Address",
-        //                         "additional_address_parameter": "qwertyuiopasdfghjkl",
-        //                         "additional_address_parameter_name": "Destination Tag",
-        //                         "notification": "",
-        //                         "protocol_id": 10,
-        //                         "protocol_name": "Tether OMNI",
-        //                         "supports_new_address_creation": false
-        //                     }
-        //                 ],
-        //                 "withdrawal_additional_field_name": "Payment ID (optional)",
-        //                 "rates": { "BTC": 0.000001 },
-        //                 "protocol_specific_settings": [
-        //                     {
-        //                         "protocol_name": "Tether OMNI",
-        //                         "protocol_id": 10,
-        //                         "active": true,
-        //                         "withdrawal_fee_currency_id": 1,
-        //                         "withdrawal_fee_const": 0.002,
-        //                         "withdrawal_fee_percent": 0,
-        //                         "block_explorer_url": "https://omniexplorer.info/search/"
-        //                     }
-        //                 ]
-        //             }
-        //         ]
+        //                 }
+        //             ],
+        //             "withdrawal_additional_field_name": "Payment ID (optional)",
+        //             "rates": { "BTC": 0.000001 },
+        //             "protocol_specific_settings": [
+        //                 {
+        //                     "protocol_name": "Tether OMNI",
+        //                     "protocol_id": 10,
+        //                     "active": true,
+        //                     "withdrawal_fee_currency_id": 1,
+        //                     "withdrawal_fee_const": 0.002,
+        //                     "withdrawal_fee_percent": 0,
+        //                     "block_explorer_url": "https://omniexplorer.info/search/"
+        //                 }
+        //             ]
+        //         }
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const firstElement = this.safeValue (data, 0, {});
-        const depositAddress = this.safeValue (firstElement, 'deposit_address', {});
+        const depositAddress = this.safeValue (data, 'deposit_address', {});
         const address = this.safeString (depositAddress, 'address');
         const tag = this.safeString (depositAddress, 'additional_address_parameter');
         this.checkAddress (address);
