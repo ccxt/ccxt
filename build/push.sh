@@ -27,6 +27,7 @@ echo "Pushing generated files back to GitHub..."
 LAST_COMMIT_MESSAGE="$(git log --no-merges -1 --pretty=%B)"
 git config --global user.email "travis@travis-ci.org"
 git config --global user.name "Travis CI"
+git add php python
 git commit -a -m "${COMMIT_MESSAGE}" -m '[ci skip]'
 git tag -a "${COMMIT_MESSAGE}" -m "${LAST_COMMIT_MESSAGE}" -m "" -m "[ci skip]"
 git remote remove origin
