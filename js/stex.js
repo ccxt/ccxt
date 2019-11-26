@@ -681,32 +681,10 @@ module.exports = class stex extends Exchange {
             cost = price * amount;
         }
         let symbol = undefined;
-        // const marketId = this.safeString (trade, 's');
-        // if (marketId !== undefined) {
-        //     if (marketId in this.markets_by_id) {
-        //         market = this.markets_by_id[marketId];
-        //         symbol = market['symbol'];
-        //     } else {
-        //         const [ baseId, quoteId ] = market.split ('/');
-        //         const base = this.safeCurrencyCode (baseId);
-        //         const quote = this.safeCurrencyCode (quoteId);
-        //         symbol = base + '/' + quote;
-        //     }
-        // }
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        // let fee = undefined;
-        // const feeCost = this.safeFloat (trade, 'fee');
-        // if (feeCost !== undefined) {
-        //     const feeCurrencyId = this.safeString (trade, 'fa');
-        //     const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-        //     fee = {
-        //         'cost': feeCost,
-        //         'currency': feeCurrencyCode,
-        //     };
-        // }
-        const side = this.safeStringLower (trade, 'type');
+        const side = this.safeStringLower2 (trade, 'type', 'trade_type');
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -853,8 +831,8 @@ module.exports = class stex extends Exchange {
         //         "trades": [
         //             {
         //                 "id": 658745,
-        //                 "buy_order_id": 6587453,
-        //                 "sell_order_id": 6587459,
+        //                 "buy_order_id": 658745,
+        //                 "sell_order_id": 828680665,
         //                 "price": 0.012285,
         //                 "amount": 6.35,
         //                 "trade_type": "SELL",
@@ -915,7 +893,15 @@ module.exports = class stex extends Exchange {
             type = undefined;
         }
         const side = this.safeStringLower (order, 'type');
-        return {
+        const rawTrades = this.safeValue (order, 'trades');
+        let trades = undefined;
+        if (rawTrades !== undefined) {
+            trades = this.parseTrades (rawTrades, market, undefined, undefined, {
+                'symbol': symbol,
+                'order': id,
+            });
+        }
+        const result = {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -931,9 +917,31 @@ module.exports = class stex extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': undefined,
-            'trades': undefined,
+            'trades': trades,
         };
+        const fees = this.safeValue (order, 'fees');
+        if (fees === undefined) {
+            result['fee'] = undefined;
+        } else {
+            const numFees = fees.length;
+            if (numFees > 0) {
+                result['fees'] = [];
+                for (let i = 0; i < fees.length; i++) {
+                    const feeCost = this.safeFloat (fees[i], 'amount');
+                    if (feeCost !== undefined) {
+                        const feeCurrencyId = this.safeString (fees[i], 'currency_id');
+                        const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+                        result['fees'].push ({
+                            'cost': feeCost,
+                            'currency': feeCurrencyCode,
+                        });
+                    }
+                }
+            } else {
+                result['fee'] = undefined;
+            }
+        }
+        return result;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
