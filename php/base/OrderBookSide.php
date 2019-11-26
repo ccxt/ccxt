@@ -48,8 +48,8 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
         $keys = $this->index->keys()->toArray();
         $values = $this->index->values()->toArray();
         if ($n) {
-            array_splice($keys, 0, $n);
-            array_splice($values, 0, $n);
+            array_splice($keys, $n);
+            array_splice($values, $n);
         }
         $result = array_map(null, $keys, $values);
         $this->exchangeArray($result);
@@ -87,8 +87,8 @@ trait Limited {
         $values = $this->index->values()->toArray();
         if ($n || $this->depth) {
             $limit = min($n ? $n : PHP_INT_MAX, $this->depth ? $this->depth : PHP_INT_MAX);
-            array_splice($keys, $limit, 0);
-            array_splice($values, $limit, 0);
+            array_splice($keys, $limit);
+            array_splice($values, $limit);
         }
         $result = array_map(null, $keys, $values);
         $this->index->clear();
@@ -135,7 +135,7 @@ trait Counted {
         }
         $values = $this->index->values()->toArray();
         if ($n) {
-            array_splice($values, 0, $n);
+            array_splice($values, $n);
         }
         $this->exchangeArray($values);
         return $this;
@@ -175,7 +175,7 @@ trait Indexed {
         }
         $values = $this->index->values()->toArray();
         if ($n) {
-            array_splice($values, 0, $n);
+            array_splice($values, $n);
         }
         $this->exchangeArray($values);
         return $this;
