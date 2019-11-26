@@ -639,7 +639,7 @@ module.exports = class gemini extends Exchange {
         if (response === undefined) {
             if (typeof body === 'string') {
                 const feedback = this.id + ' ' + body;
-                this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+                this.throwBroadlyMatchedException (body, feedback);
             }
             return; // fallback to default error handler
         }
@@ -655,9 +655,9 @@ module.exports = class gemini extends Exchange {
             const reason = this.safeString (response, 'reason');
             const message = this.safeString (response, 'message');
             const feedback = this.id + ' ' + message;
-            this.throwExactlyMatchedException (this.exceptions['exact'], reason, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException (reason, feedback);
+            this.throwExactlyMatchedException (message, feedback);
+            this.throwBroadlyMatchedException (message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

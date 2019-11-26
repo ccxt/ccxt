@@ -892,7 +892,7 @@ module.exports = class livecoin extends Exchange {
         if (code >= 300) {
             const feedback = this.id + ' ' + body;
             const errorCode = this.safeString (response, 'errorCode');
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwExactlyMatchedException (errorCode, feedback);
             throw new ExchangeError (feedback);
         }
         // returns status code 200 even if success === false
@@ -901,7 +901,7 @@ module.exports = class livecoin extends Exchange {
             const feedback = this.id + ' ' + body;
             const message = this.safeString2 (response, 'message', 'exception');
             if (message !== undefined) {
-                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+                this.throwBroadlyMatchedException (message, feedback);
             }
             throw new ExchangeError (feedback);
         }

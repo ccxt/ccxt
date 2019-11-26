@@ -1162,8 +1162,8 @@ module.exports = class bitfinex extends Exchange {
             if (body[0] === '{') {
                 const feedback = this.id + ' ' + body;
                 const message = this.safeString2 (response, 'message', 'error');
-                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+                this.throwExactlyMatchedException (message, feedback);
+                this.throwBroadlyMatchedException (message, feedback);
                 throw new ExchangeError (feedback); // unknown message
             }
         }

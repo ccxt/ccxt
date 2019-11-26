@@ -1350,8 +1350,8 @@ module.exports = class ftx extends Exchange {
         if (!success) {
             const feedback = this.id + ' ' + this.json (response);
             const error = this.safeString (response, 'error');
-            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+            this.throwExactlyMatchedException (error, feedback);
+            this.throwBroadlyMatchedException (error, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

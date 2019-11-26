@@ -1259,8 +1259,8 @@ module.exports = class bitmex extends Exchange {
             const error = this.safeValue (response, 'error', {});
             const message = this.safeString (error, 'message');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException (message, feedback);
+            this.throwBroadlyMatchedException (message, feedback);
             if (code === 400) {
                 throw new BadRequest (feedback);
             }

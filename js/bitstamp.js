@@ -1133,8 +1133,8 @@ module.exports = class bitstamp extends Exchange {
             const feedback = this.id + ' ' + body;
             for (let i = 0; i < errors.length; i++) {
                 const value = errors[i];
-                this.throwExactlyMatchedException (this.exceptions['exact'], value, feedback);
-                this.throwBroadlyMatchedException (this.exceptions['broad'], value, feedback);
+                this.throwExactlyMatchedException (value, feedback);
+                this.throwBroadlyMatchedException (value, feedback);
             }
             throw new ExchangeError (feedback);
         }

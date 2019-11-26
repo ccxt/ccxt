@@ -1514,10 +1514,10 @@ module.exports = class upbit extends Exchange {
             const message = this.safeString (error, 'message');
             const name = this.safeString (error, 'name');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], name, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], name, feedback);
+            this.throwExactlyMatchedException (message, feedback);
+            this.throwExactlyMatchedException (name, feedback);
+            this.throwBroadlyMatchedException (message, feedback);
+            this.throwBroadlyMatchedException (name, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

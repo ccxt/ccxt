@@ -485,8 +485,8 @@ module.exports = class zaif extends Exchange {
         const feedback = this.id + ' ' + body;
         const error = this.safeString (response, 'error');
         if (error !== undefined) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+            this.throwExactlyMatchedException (error, feedback);
+            this.throwBroadlyMatchedException (error, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
         const success = this.safeValue (response, 'success', true);

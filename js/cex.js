@@ -1168,8 +1168,8 @@ module.exports = class cex extends Exchange {
         if ('error' in response) {
             const message = this.safeString (response, 'error');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException (message, feedback);
+            this.throwBroadlyMatchedException (message, feedback);
             throw new ExchangeError (feedback);
         }
     }

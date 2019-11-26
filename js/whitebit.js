@@ -619,9 +619,9 @@ module.exports = class whitebit extends Exchange {
                 const feedback = this.id + ' ' + body;
                 const message = this.safeValue (response, 'message');
                 if (typeof message === 'string') {
-                    this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                    this.throwExactlyMatchedException (message, feedback);
                 }
-                this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+                this.throwBroadlyMatchedException (body, feedback);
                 throw new ExchangeError (feedback);
             }
         }

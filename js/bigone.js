@@ -1241,9 +1241,9 @@ module.exports = class bigone extends Exchange {
         const message = this.safeString (response, 'message');
         if (code !== '0') {
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException (message, feedback);
+            this.throwExactlyMatchedException (code, feedback);
+            this.throwBroadlyMatchedException (message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

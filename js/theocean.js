@@ -904,8 +904,8 @@ module.exports = class theocean extends Exchange {
                 // {"message":"Schema validation failed for 'params'","errors":[{"name":"pattern","argument":"^0x[0-9a-fA-F]{64}$","message":"does not match pattern \"^0x[0-9a-fA-F]{64}$\"","instance":"1","property":"instance.orderHash"}]}
                 //
                 const feedback = this.id + ' ' + body;
-                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-                this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+                this.throwExactlyMatchedException (message, feedback);
+                this.throwBroadlyMatchedException (body, feedback);
                 throw new ExchangeError (feedback); // unknown message
             }
         }

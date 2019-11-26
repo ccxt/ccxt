@@ -1197,9 +1197,9 @@ module.exports = class anxpro extends Exchange {
         if (((result !== undefined) && (result !== 'success')) || ((code !== undefined) && (code !== 'OK'))) {
             const message = this.safeString (response, 'error');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException (code, feedback);
+            this.throwExactlyMatchedException (message, feedback);
+            this.throwBroadlyMatchedException (message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

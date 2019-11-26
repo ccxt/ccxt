@@ -2707,10 +2707,10 @@ module.exports = class okex3 extends Exchange {
         const message = this.safeString (response, 'message');
         const errorCode = this.safeString2 (response, 'code', 'error_code');
         if (message !== undefined) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException (message, feedback);
+            this.throwBroadlyMatchedException (message, feedback);
         }
-        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+        this.throwExactlyMatchedException (errorCode, feedback);
         if (message !== undefined) {
             throw new ExchangeError (feedback); // unknown message
         }

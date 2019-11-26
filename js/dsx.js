@@ -1252,9 +1252,9 @@ module.exports = class dsx extends Exchange {
                 const code = this.safeString (response, 'code');
                 const message = this.safeString (response, 'error');
                 const feedback = this.id + ' ' + this.json (response);
-                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
-                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+                this.throwExactlyMatchedException (code, feedback);
+                this.throwExactlyMatchedException (message, feedback);
+                this.throwBroadlyMatchedException (message, feedback);
                 throw new ExchangeError (feedback); // unknown message
             }
         }

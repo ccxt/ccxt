@@ -1159,7 +1159,7 @@ module.exports = class bw extends Exchange {
         const errorCode = this.safeString (resMsg, 'code');
         if (errorCode !== '1') {
             const feedback = this.id + ' ' + this.json (response);
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwExactlyMatchedException (errorCode, feedback);
             throw new ExchangeError (feedback); // unknown error
         }
     }

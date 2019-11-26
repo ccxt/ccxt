@@ -1219,8 +1219,8 @@ module.exports = class therock extends Exchange {
             for (let i = 0; i < numErrors; i++) {
                 const error = errors[i];
                 const message = this.safeString (error, 'message');
-                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+                this.throwExactlyMatchedException (message, feedback);
+                this.throwBroadlyMatchedException (message, feedback);
             }
             throw new ExchangeError (feedback); // unknown message
         }

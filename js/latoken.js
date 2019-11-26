@@ -862,14 +862,14 @@ module.exports = class latoken extends Exchange {
         const message = this.safeString (response, 'message');
         const feedback = this.id + ' ' + body;
         if (message !== undefined) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException (message, feedback);
+            this.throwBroadlyMatchedException (message, feedback);
         }
         const error = this.safeValue (response, 'error', {});
         const errorMessage = this.safeString (error, 'message');
         if (errorMessage !== undefined) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+            this.throwExactlyMatchedException (errorMessage, feedback);
+            this.throwBroadlyMatchedException (errorMessage, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

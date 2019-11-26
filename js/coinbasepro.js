@@ -836,8 +836,8 @@ module.exports = class coinbasepro extends Exchange {
             if (body[0] === '{') {
                 const message = response['message'];
                 const feedback = this.id + ' ' + message;
-                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+                this.throwExactlyMatchedException (message, feedback);
+                this.throwBroadlyMatchedException (message, feedback);
                 throw new ExchangeError (feedback); // unknown message
             }
             throw new ExchangeError (this.id + ' ' + body);
