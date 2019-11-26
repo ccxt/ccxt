@@ -2,7 +2,6 @@
 
 //  ---------------------------------------------------------------------------
 
-const crypto = require ('crypto');
 const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors');
 
@@ -14,7 +13,7 @@ module.exports = class qtrade extends Exchange {
             'id': 'qtrade',
             'name': 'qTrade',
             'countries': [ 'US' ],
-            'rateLimit': 1000,
+            'rateLimit': Math.pow (10, 3),
             'version': 'v1',
             'urls': {
                 'logo': 'https://qtrade.io/images/logo.png',
@@ -132,8 +131,8 @@ module.exports = class qtrade extends Exchange {
         //      }
         //  }
         const result = [];
-        const markets = this.safeValue (response.data, 'markets', []);
-        const currencies = this.safeValue (response.data, 'currencies', []);
+        const markets = this.safeValue (response['data'], 'markets', []);
+        const currencies = this.safeValue (response['data'], 'currencies', []);
         const currenciesByCode = this.indexBy (currencies, 'code');
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -185,7 +184,7 @@ module.exports = class qtrade extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetCurrencies (params);
-        const currencies = this.safeValue (response.data, 'currencies', []);
+        const currencies = this.safeValue (response['data'], 'currencies', []);
         //  CCX: {
         //      id: 'CCX',
         //      code: 'CCX',
@@ -220,7 +219,7 @@ module.exports = class qtrade extends Exchange {
             const type = this.safeString (currency, 'type');
             const precision = this.safeInteger (currency, 'precision');
             const can_withdraw = this.safeString (currency, 'can_withdraw');
-            const fee = this.safeFloat (currency.config, 'withdraw_fee');
+            const fee = this.safeFloat (currency['config'], 'withdraw_fee');
             const status = this.safeString (currency, 'status');
             result[code] = {
                 'id': id,
@@ -258,11 +257,11 @@ module.exports = class qtrade extends Exchange {
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
             this.parse8601 (this.safeString (ohlcv, 'time')),
-            parseFloat (ohlcv['open']),
-            parseFloat (ohlcv['high']),
-            parseFloat (ohlcv['low']),
-            parseFloat (ohlcv['close']),
-            parseFloat (ohlcv['volume']),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
         ];
     }
 
@@ -288,14 +287,16 @@ module.exports = class qtrade extends Exchange {
         const request = { 'market_string': marketId };
         const response = await this.publicGetOrderbookMarketString (this.extend (request, params));
         const orderbook = { 'bids': [], 'asks': [], 'timestamp': undefined, 'datetime': undefined, 'nonce': undefined };
-        for (let i = 0; i < Object.keys (response['data']['buy']).length; i++) {
-            const price = parseFloat (Object.keys (response['data']['buy'])[i]);
-            const amount = parseFloat (Object.values (response['data']['buy'])[i]);
-            orderbook['bids'].unshift ([price, amount]);
+        const buyKeys = Object.keys (response['data']['buy']);
+        for (let i = 0; i < buyKeys.length; i++) {
+            const price = this.safeFloat (buyKeys, this.sum (buyKeys.length, -i, -1));
+            const amount = this.safeFloat (response['data']['buy'], price);
+            orderbook['bids'].push ([price, amount]);
         }
-        for (let i = 0; i < Object.keys (response['data']['sell']).length; i++) {
-            const price = parseFloat (Object.keys (response['data']['sell'])[i]);
-            const amount = parseFloat (Object.values (response['data']['sell'])[i]);
+        const sellKeys = Object.keys (response['data']['sell']);
+        for (let i = 0; i < sellKeys.length; i++) {
+            const price = this.safeFloat (sellKeys, i);
+            const amount = this.safeFloat (response['data']['sell'], price);
             orderbook['asks'].push ([price, amount]);
         }
         return orderbook;
@@ -321,8 +322,19 @@ module.exports = class qtrade extends Exchange {
         }
         const previous = this.safeFloat (ticker, 'day_open');
         const last = this.safeFloat (ticker, 'last');
-        const change = this.safeFloat (ticker, 'day_change') * previous;
-        const percentage = this.safeFloat (ticker, 'day_change') * 100;
+        const day_change = this.safeFloat (ticker, 'day_change');
+        let percentage = undefined;
+        let change = undefined;
+        let average = undefined;
+        if (day_change !== undefined) {
+            percentage = day_change * 100;
+            if (previous !== undefined) {
+                change = day_change * previous;
+            }
+        }
+        if (last !== undefined && previous !== undefined) {
+            average = this.sum (last, previous) / 2;
+        }
         return {
             'symbol': symbol,
             'timestamp': undefined,
@@ -340,7 +352,7 @@ module.exports = class qtrade extends Exchange {
             'previousClose': undefined,
             'change': change,
             'percentage': percentage,
-            'average': (last + previous) / 2,
+            'average': average,
             'baseVolume': this.safeFloat (ticker, 'day_volume_market'),
             'quoteVolume': this.safeFloat (ticker, 'day_volume_base'),
             'info': ticker,
@@ -437,25 +449,26 @@ module.exports = class qtrade extends Exchange {
         const result = { 'free': free, 'used': used, 'info': response['data'] };
         for (let i = 0; i < Object.keys (free).length; i++) {
             const byCoin = {};
-            byCoin['free'] = Object.values (free)[i];
-            result[Object.keys (free)[i]] = byCoin;
+            const k = Object.keys (free)[i];
+            byCoin['free'] = free[k];
+            result[k] = byCoin;
         }
         for (let i = 0; i < Object.keys (used).length; i++) {
-            const thing = Object.keys (used)[i];
+            const k = Object.keys (used)[i];
             let byCoin = {};
-            if (thing in result) {
-                byCoin = result[Object.keys (used)[i]];
+            if (k in result) {
+                byCoin = result[k];
             } else {
                 byCoin['free'] = 0;
             }
-            byCoin['used'] = Object.values (used)[i];
+            byCoin['used'] = used[k];
             byCoin['total'] = byCoin['used'] + byCoin['free'];
-            result[Object.keys (used)[i]] = byCoin;
+            result[k] = byCoin;
         }
         return result;
     }
 
-    async createOrder (symbol, side, type, amount, price, params = {}) {
+    async createOrder (symbol, side, type, amount, price = undefined, params = {}) {
         if (type !== 'limit') {
             throw new ExchangeError (this.id + ' allows limit orders only');
         }
@@ -496,7 +509,7 @@ module.exports = class qtrade extends Exchange {
         return result;
     }
 
-    async cancelOrder (id, symbol, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         const request = { 'queryParams': { 'id': parseInt (id) }};
         // successful cancellation returns 200 with no payload
         this.privatePostCancelOrder (this.extend (request, params));
@@ -525,7 +538,7 @@ module.exports = class qtrade extends Exchange {
         return this.parseOrders (response['data']['orders'], symbol, since, limit);
     }
 
-    parseOrders (orders, symbol = undefined, since = undefined, limit = undefined) {
+    parseOrders (orders, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const result = [];
         if (typeof since === 'string') {
             since = this.parse8601 (since);
@@ -543,25 +556,26 @@ module.exports = class qtrade extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = (await this.privateGetTrades (symbol, since, limit))['data']['trades'];
+        const response = await this.privateGetTrades (symbol, since, limit);
+        const ts = response['data']['trades'];
         const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const trade = { 'info': response[i] };
-            trade['id'] = this.safeString (response[i], 'id');
-            trade['timestamp'] = this.parse8601 (this.safeString (response[i], 'created_at'));
-            trade['datetime'] = this.safeString (response[i], 'created_at');
-            trade['symbol'] = this.markets_by_id[response[i]['market_id']]['symbol'];
-            trade['order'] = this.safeString (response[i], 'order_id');
+        for (let i = 0; i < ts.length; i++) {
+            const trade = { 'info': ts[i] };
+            trade['id'] = this.safeString (ts[i], 'id');
+            trade['timestamp'] = this.parse8601 (this.safeString (ts[i], 'created_at'));
+            trade['datetime'] = this.safeString (ts[i], 'created_at');
+            trade['symbol'] = this.markets_by_id[ts[i]['market_id']]['symbol'];
+            trade['order'] = this.safeString (ts[i], 'order_id');
             trade['type'] = 'limit';
             trade['side'] = undefined;
-            if (response[i]['taker'] === true) {
+            if (ts[i]['taker'] === true) {
                 trade['takerOrMaker'] = 'taker';
             } else {
                 trade['takerOrMaker'] = 'maker';
             }
-            trade['price'] = this.safeFloat (response[i], 'price');
-            trade['amount'] = this.safeFloat (response[i], 'market_amount');
-            trade['cost'] = this.safeFloat (response[i], 'base_amount');
+            trade['price'] = this.safeFloat (ts[i], 'price');
+            trade['amount'] = this.safeFloat (ts[i], 'market_amount');
+            trade['cost'] = this.safeFloat (ts[i], 'base_amount');
             trade['fee'] = undefined;
             result.push (trade);
         }
@@ -694,13 +708,12 @@ module.exports = class qtrade extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         path = this.implodeParams (path, params);
         if (method === 'GET') {
-            const queryParams = params.queryParams || {};
-            if (queryParams) {
-                path = path + '?' + this.urlencode (queryParams);
+            if ('queryParams' in params) {
+                path = path + '?' + this.urlencode (params['queryParams']);
             }
             // delete params['queryParams'];
         } else {
-            body = JSON.stringify (params);
+            body = this.json (params);
         }
         let endpoint = '';
         if (api === 'private') {
@@ -713,19 +726,22 @@ module.exports = class qtrade extends Exchange {
             const split = this.apiKey.split (':');
             const keyID = split[0];
             const key = split[1];
-            const timestamp = Math.floor (Date.now () / 1000);
+            const timestamp = this.milliseconds ().toString ();
             // Create hmac sig
             let sig_text = method + '\n';
             sig_text += endpoint + '\n';
             sig_text += timestamp + '\n';
             sig_text += (body || '') + '\n';
             sig_text += key;
-            const hash = crypto.createHash ('sha256').update (sig_text, 'utf8').digest ().toString ('base64');
-            headers = this.extend (headers, {
-                'Content-Type': 'application/json; charset=utf-8',
-                'Authorization': 'HMAC-SHA256 ' + keyID + ':' + hash,
+            const hash = this.hash (sig_text, 'sha256', 'base64');
+            const auth = 'HMAC-SHA256 ' + keyID + ':' + hash;
+            const content_type = 'application/json; charset=utf-8';
+            const more_headers = {
+                'Content-Type': content_type,
+                'Authorization': auth,
                 'HMAC-Timestamp': timestamp,
-            });
+            };
+            headers = this.extend (headers, more_headers);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
