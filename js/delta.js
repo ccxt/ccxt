@@ -482,10 +482,11 @@ module.exports = class delta extends Exchange {
     }
 
     getNotional (size, price, market) {
+        const contract_value = this.safeFloat (market['info'], 'contract_value');
         if (market['info']['product_type'] === 'inverse_future') {
-            return size * market['info']['contract_value'] / price;
+            return size * contract_value / price;
         } else {
-            return size * market['info']['contract_value'] * price;
+            return size * contract_value * price;
         }
     }
 };
