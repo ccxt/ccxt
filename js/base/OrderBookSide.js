@@ -47,6 +47,8 @@ class OrderBookSide extends Array {
 
     // replace stored orders with new values
     limit (n = undefined) {
+        console.log (this.index)
+        console.log (Object.entries (this.index).map(this.convert))
         const array = Object.entries (this.index).map (this.convert).sort (this.compare)
         n = Math.min (n || Number.MAX_SAFE_INTEGER, array.length)
         // the following lines could be written as
@@ -107,12 +109,8 @@ class LimitedOrderBookSide extends OrderBookSide {
 class CountedOrderBookSide extends OrderBookSide {
 
     store (price, size, count) {
-        if (count) {
-            if (size) {
-                this.index[price] = [ price, size, count ]
-            } else {
-                delete this.index[price]
-            }
+        if (count && size) {
+            this.index[price] = [ price, size, count ]
         } else {
             delete this.index[price]
         }
@@ -120,12 +118,8 @@ class CountedOrderBookSide extends OrderBookSide {
 
     storeArray (delta) {
         const [ price, size, count ] = delta
-        if (count) {
-            if (size) {
-                this.index[price] = delta
-            } else {
-                delete this.index[price]
-            }
+        if (count && size) {
+            this.index[price] = delta
         } else {
             delete this.index[price]
         }
