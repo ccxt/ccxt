@@ -399,7 +399,7 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default = maximum = 100
+            request['limit'] = limit; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
         const response = await this.publicGetDepth (this.extend (request, params));
         const orderbook = this.parseOrderBook (response);

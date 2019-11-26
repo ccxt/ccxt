@@ -337,7 +337,7 @@ module.exports = class bitmax extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['symbol'],
+            'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['n'] = limit; // default = maximum = 100
@@ -429,7 +429,7 @@ module.exports = class bitmax extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['symbol'],
+            'symbol': market['id'],
         };
         const response = await this.publicGetTicker24hr (this.extend (request, params));
         return this.parseTicker (response, market);
@@ -473,7 +473,7 @@ module.exports = class bitmax extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['symbol'],
+            'symbol': market['id'],
             'interval': this.timeframes[timeframe],
         };
         // if since and limit are not specified

@@ -484,16 +484,17 @@ module.exports = class bw extends Exchange {
         //
         //     ...
         //
-        const timestamp = parseInt (trade[2]) * 1000;
-        const price = parseFloat (trade[5]);
-        const amount = parseFloat (trade[6]);
-        const marketId = trade[1];
+        const timestamp = this.safeTimestamp (trade, 2);
+        const price = this.safeFloat (trade, 5);
+        const amount = this.safeFloat (trade, 6);
+        const marketId = this.safeString (trade, 1);
         let symbol = undefined;
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             } else {
-                const [ baseId, quoteId ] = trade[3].split ('_');
+                const marketName = this.safeString (trade, 3);
+                const [ baseId, quoteId ] = marketName.split ('_');
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
@@ -508,10 +509,10 @@ module.exports = class bw extends Exchange {
                 cost = this.costToPrecision (symbol, price * amount);
             }
         }
-        const side = (trade[4] === 'ask') ? 'sell' : 'buy';
-        const id = this.safeString (trade, 'id');
+        const sideString = this.safeString (trade, 4);
+        const side = (sideString === 'ask') ? 'sell' : 'buy';
         return {
-            'id': id,
+            'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -559,7 +560,7 @@ module.exports = class bw extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            parseInt (this.safeFloat (ohlcv, 3) * 1000),
+            this.safeTimestamp (ohlcv, 3),
             this.safeFloat (ohlcv, 4),
             this.safeFloat (ohlcv, 5),
             this.safeFloat (ohlcv, 6),

@@ -706,8 +706,8 @@ class bitmart extends Exchange {
         $request = array (
             'symbol' => $market['id'],
             'side' => strtolower($side),
-            'amount' => floatval ($this->amount_to_precision($symbol, $amount)),
-            'price' => floatval ($this->price_to_precision($symbol, $price)),
+            'amount' => $this->amount_to_precision($symbol, $amount),
+            'price' => $this->price_to_precision($symbol, $price),
         );
         $response = $this->privatePostOrders (array_merge ($request, $params));
         //
