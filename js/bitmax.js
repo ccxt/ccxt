@@ -1112,7 +1112,6 @@ module.exports = class bitmax extends Exchange {
             'tag': tag,
             'info': response,
         };
-        }
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
