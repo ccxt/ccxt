@@ -18,6 +18,7 @@ module.exports = class stex extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': false,
+                'createMarketOrder': false, // limit orders only
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchTicker': true,
@@ -28,6 +29,9 @@ module.exports = class stex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOrder': true,
+                'fetchMyTrades': true,
+                'fetchOrderTrades': true,
+                'fetchDepositAddress': true,
             },
             'version': 'v3',
             'urls': {
@@ -176,6 +180,7 @@ module.exports = class stex extends Exchange {
                     // {"success":false,"message":"Wrong parameters","errors":{"time":["timeStart or timeEnd is less then 1"]}}
                     'Wrong parameters': BadRequest,
                     'Unauthenticated.': AuthenticationError, // {"message":"Unauthenticated."}
+                    'Server Error': ExchangeError, // { "message": "Server Error" }
                 },
                 'broad': {
                     'Not enough': InsufficientFunds, // {"success":false,"message":"Not enough  ETH"}
@@ -651,9 +656,17 @@ module.exports = class stex extends Exchange {
         //         "timestamp": "1574713503"
         //     }
         //
-        // private
+        // private fetchMyTrades, fetchClosedOrder, fetchOrderTrades
         //
-        //     ...
+        //     {
+        //         "id": 658745,
+        //         "buy_order_id": 6587453,
+        //         "sell_order_id": 6587459,
+        //         "price": 0.012285,
+        //         "amount": 6.35,
+        //         "trade_type": "SELL",
+        //         "timestamp": "1538737692"
+        //     }
         //
         const id = this.safeString (trade, 'id');
         const timestamp = this.safeTimestamp (trade, 'timestamp');
@@ -835,22 +848,22 @@ module.exports = class stex extends Exchange {
         //         // fetchClosedOrder only
         //         "trades": [
         //             {
-        //             "id": 658745,
-        //             "buy_order_id": 6587453,
-        //             "sell_order_id": 6587459,
-        //             "price": 0.012285,
-        //             "amount": 6.35,
-        //             "trade_type": "SELL",
-        //             "timestamp": "1538737692"
+        //                 "id": 658745,
+        //                 "buy_order_id": 6587453,
+        //                 "sell_order_id": 6587459,
+        //                 "price": 0.012285,
+        //                 "amount": 6.35,
+        //                 "trade_type": "SELL",
+        //                 "timestamp": "1538737692"
         //             }
         //         ],
         //         // fetchClosedOrder only
         //         "fees": [
         //             {
-        //             "id": 1234567,
-        //             "currency_id": 1,
-        //             "amount": 0.00025,
-        //             "timestamp": "1548149238"
+        //                 "id": 1234567,
+        //                 "currency_id": 1,
+        //                 "amount": 0.00025,
+        //                 "timestamp": "1548149238"
         //             }
         //         ]
         //     }
@@ -1042,53 +1055,8 @@ module.exports = class stex extends Exchange {
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        const request = {
-            'coid': id,
-        };
-        const response = await this.privateGetOrderFillsCoid (this.extend (request, params));
-        //
-        //     {
-        //         'code': 0,
-        //         'status': 'success', // this field will be deprecated soon
-        //         'email': 'foo@bar.com', // this field will be deprecated soon
-        //         "data": [
-        //             {
-        //                 "ap": "0.029062965", // average filled price
-        //                 "bb": "36851.981", // base asset total balance
-        //                 "bc": "0", // if possitive, this is the BTMX commission charged by reverse mining, if negative, this is the mining output of the current fill.
-        //                 "bpb": "36851.981", // base asset pending balance
-        //                 "btmxBal": "0.0", // optional, the BTMX balance of the current account. This field is only available when bc is non-zero.
-        //                 "cat": "CASH", // account category: CASH/MARGIN
-        //                 "coid": "41g6wtPRFrJXgg6YxjqI6Qoog139Dmoi", // client order id, (needed to cancel order)
-        //                 "ei": "NULL_VAL", // execution instruction
-        //                 "errorCode": "NULL_VAL", // if the order is rejected, this field explains why
-        //                 "execId": "12562285", // for each user, this is a strictly increasing long integer (represented as string)
-        //                 "f": "78.074", // filled quantity, this is the aggregated quantity executed by all past fills
-        //                 "fa": "BTC", // fee asset
-        //                 "fee": "0.000693608", // fee
-        //                 'lp': "0.029064", // last price, the price executed by the last fill
-        //                 "l": "11.932", // last quantity, the quantity executed by the last fill
-        //                 "m": "order", // message type
-        //                 "orderType": "Limit", // Limit, Market, StopLimit, StopMarket
-        //                 "p": "0.029066", // limit price, only available for limit and stop limit orders
-        //                 "q": "100.000", // order quantity
-        //                 "qb": "98878.642957097", // quote asset total balance
-        //                 "qpb": "98877.967247508", // quote asset pending balance
-        //                 "s": "ETH/BTC", // symbol
-        //                 "side": "Buy", // side
-        //                 "status": "PartiallyFilled", // order status
-        //                 "t": 1561131458389, // timestamp
-        //             },
-        //         ]
-        //     }
-        //
-        const data = this.safeValue (response, 'data', {});
-        return this.parseTrades (data, market, since, limit);
+        const order = await this.fetchClosedOrder (id, symbol, params);
+        return order['trades'];
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1271,53 +1239,202 @@ module.exports = class stex extends Exchange {
         return response;
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+        }
         await this.loadMarkets ();
-        await this.loadAccounts ();
-        const currency = this.currency (code);
+        const market = this.market (symbol);
         const request = {
-            'requestId': this.coid (),
-            // 'time': this.milliseconds (), // this is filled in the private section of the sign() method below
-            'assetCode': currency['id'],
+            'currencyPairId': market['id'],
+            // 'timeStart': '2019-11-26T19:54:55.901Z', // datetime in iso format
+            // 'timeEnd': '2019-11-26T19:54:55.901Z', // datetime in iso format
+            // 'limit': 100, // default 100
+            // 'offset': 100,
         };
-        // note: it is highly recommended to use V2 version of this route,
-        // especially for assets with multiple block chains such as USDT.
-        const response = await this.privateGetDeposit (this.extend (request, params));
-        //
-        // v1
-        //
-        //     {
-        //         "data": {
-        //             "address": "0x26a3CB49578F07000575405a57888681249c35Fd"
-        //         },
-        //         "email": "igor.kroitor@gmial.com",
-        //         "status": "success",
-        //     }
-        //
-        // v2 (not supported yet)
+        if (since !== undefined) {
+            request['timeStart'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.reportsGetTradesCurrencyPairId (this.extend (request, params));
         //
         //     {
-        //         "code": 0,
+        //         "success": true,
         //         "data": [
         //             {
-        //                 "asset": "XRP",
-        //                 "blockChain": "Ripple",
-        //                 "addressData": {
-        //                     "address": "rpinhtY4p35bPmVXPbfWRUtZ1w1K1gYShB",
-        //                     "destTag": "54301"
-        //                 }
+        //                 "id": 658745,
+        //                 "buy_order_id": 6587453,
+        //                 "sell_order_id": 6587459,
+        //                 "price": 0.012285,
+        //                 "amount": 6.35,
+        //                 "trade_type": "SELL",
+        //                 "timestamp": "1538737692"
         //             }
-        //         ],
-        //         "email": "xxx@xxx.com",
-        //         "status": "success" // the request has been submitted to the server
+        //         ]
+        //     }
+        //
+        const trades = this.safeValue (response, 'data', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currencyId': currency['id'],
+            // Default value is the value that represents legacy protocol.
+            // In case of USDT it is 10 as Tether OMNI was the default previously.
+            // The list of protocols can be obtained from the /public/currencies/{currencyId}
+            // 'protocol_id': 10,
+        };
+        const response = await this.profilePostWalletsCurrencyId (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "id": 45875,
+        //             "currency_id": 1,
+        //             "delisted": false,
+        //             "disabled": false,
+        //             "disable_deposits": false,
+        //             "code": "BTC",
+        //             "balance": "0.198752",
+        //             "frozen_balance": "1.5784",
+        //             "bonus_balance": "0.000",
+        //             "deposit_address": {
+        //                 "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //                 "address_name": "Address",
+        //                 "additional_address_parameter": "qwertyuiopasdfghjkl",
+        //                 "additional_address_parameter_name": "Destination Tag",
+        //                 "notification": "",
+        //                 "protocol_id": 10,
+        //                 "protocol_name": "Tether OMNI",
+        //                 "supports_new_address_creation": false
+        //                 },
+        //             "multi_deposit_addresses": [
+        //                 {
+        //                     "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //                     "address_name": "Address",
+        //                     "additional_address_parameter": "qwertyuiopasdfghjkl",
+        //                     "additional_address_parameter_name": "Destination Tag",
+        //                     "notification": "",
+        //                     "protocol_id": 10,
+        //                     "protocol_name": "Tether OMNI",
+        //                     "supports_new_address_creation": false
+        //                 }
+        //             ],
+        //             "withdrawal_additional_field_name": "Payment ID (optional)",
+        //             "rates": { "BTC": 0.000001 },
+        //             "protocol_specific_settings": [
+        //                 {
+        //                     "protocol_name": "Tether OMNI",
+        //                     "protocol_id": 10,
+        //                     "active": true,
+        //                     "withdrawal_fee_currency_id": 1,
+        //                     "withdrawal_fee_const": 0.002,
+        //                     "withdrawal_fee_percent": 0,
+        //                     "block_explorer_url": "https://omniexplorer.info/search/"
+        //                 }
+        //             ]
+        //         }
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const address = this.safeString (data, 'address');
+        const depositAddress = this.safeValue (data, 'deposit_address', {});
+        const address = this.safeString (depositAddress, 'address');
+        const tag = this.safeString (depositAddress, 'additional_address_parameter');
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
+            'tag': tag,
+            'info': response,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const balance = await this.fetchBalance ();
+        const wallets = this.safeValue (balance['info'], 'data', []);
+        const walletsByCurrencyId = this.indexBy (wallets, 'currency_id');
+        const currency = this.currency (code);
+        const wallet = this.safeValue (walletsByCurrencyId, currency['id']);
+        if (wallet === undefined) {
+            throw new ExchangeError (this.id + ' fetchDepositAddress() could not find the wallet id for currency code ' + code + ', try to call createDepositAddress() first');
+        }
+        const walletId = this.safeInteger (wallet, 'id');
+        if (walletId === undefined) {
+            throw new ExchangeError (this.id + ' fetchDepositAddress() could not find the wallet id for currency code ' + code + ', try to call createDepositAddress() first');
+        }
+        const request = {
+            'walletId': walletId,
+        };
+        const response = await this.profileGetWalletsWalletId (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "id": 45875,
+        //                 "currency_id": 1,
+        //                 "delisted": false,
+        //                 "disabled": false,
+        //                 "disable_deposits": false,
+        //                 "code": "BTC",
+        //                 "balance": "0.198752",
+        //                 "frozen_balance": "1.5784",
+        //                 "bonus_balance": "0.000",
+        //                 "deposit_address": {
+        //                     "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //                     "address_name": "Address",
+        //                     "additional_address_parameter": "qwertyuiopasdfghjkl",
+        //                     "additional_address_parameter_name": "Destination Tag",
+        //                     "notification": "",
+        //                     "protocol_id": 10,
+        //                     "protocol_name": "Tether OMNI",
+        //                     "supports_new_address_creation": false
+        //                 },
+        //                 "multi_deposit_addresses": [
+        //                     {
+        //                         "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //                         "address_name": "Address",
+        //                         "additional_address_parameter": "qwertyuiopasdfghjkl",
+        //                         "additional_address_parameter_name": "Destination Tag",
+        //                         "notification": "",
+        //                         "protocol_id": 10,
+        //                         "protocol_name": "Tether OMNI",
+        //                         "supports_new_address_creation": false
+        //                     }
+        //                 ],
+        //                 "withdrawal_additional_field_name": "Payment ID (optional)",
+        //                 "rates": { "BTC": 0.000001 },
+        //                 "protocol_specific_settings": [
+        //                     {
+        //                         "protocol_name": "Tether OMNI",
+        //                         "protocol_id": 10,
+        //                         "active": true,
+        //                         "withdrawal_fee_currency_id": 1,
+        //                         "withdrawal_fee_const": 0.002,
+        //                         "withdrawal_fee_percent": 0,
+        //                         "block_explorer_url": "https://omniexplorer.info/search/"
+        //                     }
+        //                 ]
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const firstElement = this.safeValue (data, 0, {});
+        const depositAddress = this.safeValue (firstElement, 'deposit_address', {});
+        const address = this.safeString (depositAddress, 'address');
+        const tag = this.safeString (depositAddress, 'additional_address_parameter');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
             'info': response,
         };
     }
