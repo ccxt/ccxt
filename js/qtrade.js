@@ -441,8 +441,9 @@ module.exports = class qtrade extends Exchange {
             result[Object.keys (free)[i]] = byCoin;
         }
         for (let i = 0; i < Object.keys (used).length; i++) {
+            const thing = Object.keys (used)[i];
             let byCoin = {};
-            if (Object.keys (used)[i] in result) {
+            if (thing in result) {
                 byCoin = result[Object.keys (used)[i]];
             } else {
                 byCoin['free'] = 0;
@@ -668,7 +669,14 @@ module.exports = class qtrade extends Exchange {
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         const deposits = await this.fetchDeposits (code, since, limit);
         const withdraws = await this.fetchWithdrawals (code, since, limit);
-        return [...deposits, ...withdraws];
+        const result = [];
+        for (let i = 0; i < deposits.length; i++) {
+            result.push (deposits[i]);
+        }
+        for (let i = 0; i < withdraws.length; i++) {
+            result.push (withdraws[i]);
+        }
+        return result;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -690,7 +698,7 @@ module.exports = class qtrade extends Exchange {
             if (queryParams) {
                 path = path + '?' + this.urlencode (queryParams);
             }
-            delete params.queryParams;
+            // delete params['queryParams'];
         } else {
             body = JSON.stringify (params);
         }
