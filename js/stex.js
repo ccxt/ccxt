@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadRequest, BadSymbol } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, OrderNotFound, PermissionDenied, BadRequest } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -35,6 +35,7 @@ module.exports = class stex extends Exchange {
                 'createDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'version': 'v3',
             'urls': {
@@ -184,6 +185,7 @@ module.exports = class stex extends Exchange {
                     'Wrong parameters': BadRequest,
                     'Unauthenticated.': AuthenticationError, // {"message":"Unauthenticated."}
                     'Server Error': ExchangeError, // { "message": "Server Error" }
+                    'This feature is only enabled for users verifies by Cryptonomica': PermissionDenied, // {"success":false,"message":"This feature is only enabled for users verifies by Cryptonomica"}
                 },
                 'broad': {
                     'Not enough': InsufficientFunds, // {"success":false,"message":"Not enough  ETH"}
@@ -1206,7 +1208,7 @@ module.exports = class stex extends Exchange {
         const numRejectedOrders = rejectedOrders.length;
         if (numAcceptedOrders < 1) {
             if (numRejectedOrders < 1) {
-                throw new ExchangeError (this.id + ' cancelOrder received an unexpected response: ' + this.json (response));
+                throw new OrderNotFound (this.id + ' cancelOrder received an empty response: ' + this.json (response));
             } else {
                 return this.parseOrder (rejectedOrders[0]);
             }
@@ -1214,7 +1216,7 @@ module.exports = class stex extends Exchange {
             if (numRejectedOrders < 1) {
                 return this.parseOrder (acceptedOrders[0]);
             } else {
-                throw new ExchangeError (this.id + ' cancelOrder received an unexpected response: ' + this.json (response));
+                throw new OrderNotFound (this.id + ' cancelOrder received an empty response: ' + this.json (response));
             }
         }
     }
@@ -1540,10 +1542,12 @@ module.exports = class stex extends Exchange {
         const withdrawalAddress = this.safeValue (transaction, 'withdrawal_address', {});
         const address = this.safeString (withdrawalAddress, 'address');
         const tag = this.safeString (withdrawalAddress, 'additional_address_parameter');
-        const currencyId = this.safeString2 (transaction, 'currencyId', 'currencyTypeId');
+        const currencyId = this.safeString (transaction, 'currency_id');
         let code = undefined;
         if (currencyId in this.currencies_by_id) {
             currency = this.currencies_by_id[currencyId];
+        } else {
+            code = this.commonCurrencyCode (this.safeString (transaction, 'currency_code'));
         }
         if ((code === undefined) && (currency !== undefined)) {
             code = currency['code'];
@@ -1689,25 +1693,52 @@ module.exports = class stex extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        // name is optional, can be overrided via params
-        const name = address.slice (0, 20);
         const request = {
-            'asset': currency['id'],
+            'currency_id': currency['id'],
+            'amount': parseFloat (this.currencyToPrecision (code, amount)),
             'address': address,
-            'amount': parseFloat (amount),
-            'name': name, // name is optional, can be overrided via params
-            // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
-            // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni
-            // 'network': 'ETH', // 'BTC', 'TRX', etc, optional
-        };
+            // 'protocol_id': 10, // optional, to be used with multicurrency wallets like USDT
+            // 'additional_address_parameter': tag, // optional
+            };
         if (tag !== undefined) {
-            request['addressTag'] = tag;
+            request['additional_address_parameter'] = tag;
         }
-        const response = await this.wapiPostWithdraw (this.extend (request, params));
-        return {
-            'info': response,
-            'id': this.safeString (response, 'id'),
-        };
+        const response = await this.profilePostWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "id": 65899,
+        //             "amount": "0.00600000",
+        //             "currency_id": 1,
+        //             "currency_code": "BTC",
+        //             "fee": "0.00400000",
+        //             "fee_currency_id": 1,
+        //             "fee_currency_code": "BTC",
+        //             "withdrawal_status_id": 1,
+        //             "status": "Not Confirmed",
+        //             "status_color": "#BC3D51",
+        //             "created_at": "2019-01-21 09:36:05",
+        //             "created_ts": "1548063365",
+        //             "updated_at": "2019-01-21 09:36:05",
+        //             "updated_ts": "1548063365",
+        //             "txid": null,
+        //             "protocol_id": 0,
+        //             "withdrawal_address": {
+        //                 "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //                 "address_name": "Address",
+        //                 "additional_address_parameter": "qwertyuiopasdfghjkl",
+        //                 "additional_address_parameter_name": "Destination Tag",
+        //                 "notification": "",
+        //                 "protocol_id": 10,
+        //                 "protocol_name": "Tether OMNI",
+        //                 "supports_new_address_creation": false
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTransaction (data, currency);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
