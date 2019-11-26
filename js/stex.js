@@ -1213,18 +1213,23 @@ module.exports = class stex extends Exchange {
 
     async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.loadAccounts ();
-        const request = {
-            // 'side': 'buy', // optional string field (case-insensitive), either "buy" or "sell"
-        };
-        let market = undefined;
+        const request = {};
+        let method = 'tradingDeleteOrders';
         if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id']; // optional
+            const market = this.market (symbol);
+            request['currencyPairId'] = market['id'];
+            method = 'tradingDeleteOrdersCurrencyPairId';
         }
-        const response = await this.privateDeleteOrderAll (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
-        //     ?
+        //     {
+        //         "success":true,
+        //         "data":{
+        //             "put_into_processing_queue":[],
+        //             "not_put_into_processing_queue":[],
+        //             "message":"Orders operations are handled in processing queue, therefore cancelling is not immediate."
+        //         }
+        //     }
         //
         return response;
     }
