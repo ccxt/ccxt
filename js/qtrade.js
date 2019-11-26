@@ -17,7 +17,7 @@ module.exports = class qtrade extends Exchange {
             'rateLimit': 1000,
             'version': 'v1',
             'urls': {
-                'logo': 'https://raw.githubusercontent.com/qtrade-exchange/media-assets/6dafa59/logos/logo_inline_text/logo-full-white.png',
+                'logo': 'https://qtrade.io/images/logo.png',
                 'api': 'https://api.qtrade.io',
                 'www': 'https://qtrade.io',
                 'doc': 'https://qtrade-exchange.github.io/qtrade-docs',
