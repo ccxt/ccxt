@@ -199,7 +199,7 @@ module.exports = class coinsbit extends Exchange {
         }
         const response = await this.privatePostOrders (this.extend (request, params));
         const result = this.safeValue (response, 'result');
-        return this.parseOrders (result, market, since, limit);
+        return this.parseOrders (this.safeValue (result, 'result'), market, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
