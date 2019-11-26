@@ -982,9 +982,6 @@ module.exports = class bw extends Exchange {
             '-1': 'canceled', // or auditing failed
             '0': 'pending',
             '1': 'ok',
-            //         "verifyStatus": 1,                           // Audit status, 0: to be audited, 1: auditing passed, -1: auditing failed
-            //         "status": 1,                                          // Deposit status, 0: not received, 1: received
-            //         "status": 1,                                          // Deposit status, 0: not received, 1: received
         };
         return this.safeString (statuses, status, status);
     }
