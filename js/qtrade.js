@@ -707,10 +707,10 @@ module.exports = class qtrade extends Exchange {
             const key = split[1];
             const timestamp = Math.floor (Date.now () / 1000);
             // Create hmac sig
-            let sig_text = method + '\n';
-            sig_text += endpoint + '\n';
-            sig_text += timestamp + '\n';
-            sig_text += (body || '') + '\n';
+            let sig_text = method + "\n";
+            sig_text += endpoint + "\n";
+            sig_text += timestamp + "\n";
+            sig_text += (body || '') + "\n";
             sig_text += key;
             const hash = crypto.createHash ('sha256').update (sig_text, 'utf8').digest ().toString ('base64');
             headers = this.extend (headers, {
