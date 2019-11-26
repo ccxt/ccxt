@@ -608,7 +608,7 @@ module.exports = class stex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'currencyPairId': market['id'],
-            'candlesType': this.timeframes[timeframe], // default 1D
+            'candlesType': this.timeframes[timeframe], // default 1d
             // 'timeStart': 1574709092, // unix timestamp in seconds, required
             // 'timeEnd': 1574709092, // unix timestamp in seconds, required
             // 'limit': 100, // default 100, optional
