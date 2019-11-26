@@ -1040,12 +1040,16 @@ module.exports = class stex extends Exchange {
         let market = undefined;
         let method = 'tradingGetOrders';
         const request = {
-            // 'side': 'buy', // or 'sell', optional
+            // 'limit': 100, // default 100
+            // 'offset': 100,
         };
         if (symbol !== undefined) {
             method = 'tradingGetOrdersCurrencyPairId';
             market = this.market (symbol);
-            request['symbol'] = market['id'];
+            request['currencyPairId'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1075,73 +1079,50 @@ module.exports = class stex extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.loadAccounts ();
         let market = undefined;
+        let method = 'reportsGetOrders';
         const request = {
-            // 'symbol': 'ETH/BTC', // optional
-            // 'category': 'CASH', // optional, string
-            // 'orderType': 'Market', // optional, string
-            // 'page': 1, // optional, integer type, starts at 1
-            // 'pageSize': 100, // optional, integer type
-            // 'side': 'buy', // or 'sell', optional, case insensitive.
-            // 'startTime': 1566091628227, // optional, integer milliseconds since UNIX epoch representing the start of the range
-            // 'endTime': 1566091628227, // optional, integer milliseconds since UNIX epoch representing the end of the range
-            // 'status': 'Filled', // optional, can only be one of "Filled", "Canceled", "Rejected"
+            // 'currencyPairId': market['id'],
+            // 'orderStatus': 'ALL', // ALL, FINISHED, CANCELLED, PARTIAL, WITH_TRADES, default is ALL
+            // 'timeStart': '2019-11-26T19:54:55.901Z', // datetime in iso format
+            // 'timeEnd': '2019-11-26T19:54:55.901Z', // datetime in iso format
+            // 'limit': 100, // default 100
+            // 'offset': 100,
         };
         if (symbol !== undefined) {
+            method = 'reportsGetOrdersCurrencyPairId';
             market = this.market (symbol);
-            request['symbol'] = market['id'];
+            request['currencyPairId'] = market['id'];
         }
         if (since !== undefined) {
-            request['startTime'] = since;
+            request['timeStart'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
-            request['n'] = limit; // default 15, max 50
+            request['limit'] = limit;
         }
-        const response = await this.privateGetOrderHistory (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
-        //         'code': 0,
-        //         'status': 'success', // this field will be deprecated soon
-        //         'email': 'foo@bar.com', // this field will be deprecated soon
-        //         'data': {
-        //             'page': 1,
-        //             'pageSize': 20,
-        //             'limit': 500,
-        //             'hasNext': False,
-        //             'data': [
-        //                 {
-        //                     'time': 1566091429000, // The last execution time of the order (This timestamp is in second level resolution)
-        //                     'coid': 'QgQIMJhPFrYfUf60ZTihmseTqhzzwOCx',
-        //                     'execId': '331',
-        //                     'symbol': 'BTMX/USDT',
-        //                     'orderType': 'Market',
-        //                     'baseAsset': 'BTMX',
-        //                     'quoteAsset': 'USDT',
-        //                     'side': 'Buy',
-        //                     'stopPrice': '0.000000000', // only meaningful for stop market and stop limit orders
-        //                     'orderPrice': '0.123000000', // only meaningful for limit and stop limit orders
-        //                     'orderQty': '9229.409000000',
-        //                     'filledQty': '9229.409000000',
-        //                     'avgPrice': '0.095500000',
-        //                     'fee': '0.352563424',
-        //                     'feeAsset': 'USDT',
-        //                     'btmxCommission': '0.000000000',
-        //                     'status': 'Filled',
-        //                     'notional': '881.408559500',
-        //                     'userId': '5DNEppWy33SayHjFQpgQUTjwNMSjEhD3',
-        //                     'accountId': 'ACPHERRWRIA3VQADMEAB2ZTLYAXNM3PJ',
-        //                     'accountCategory': 'CASH',
-        //                     'errorCode': 'NULL_VAL',
-        //                     'execInst': 'NULL_VAL',
-        //                     "sendingTime": 1566091382736, // The sending time of the order
-        //                },
-        //             ]
-        //         }
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "id": 828680665,
+        //                 "currency_pair_id": 1,
+        //                 "currency_pair_name": "NXT_BTC",
+        //                 "price": "0.011384",
+        //                 "trigger_price": 0.011385,
+        //                 "initial_amount": "13.942",
+        //                 "processed_amount": "3.724",
+        //                 "type": "SELL",
+        //                 "original_type": "STOP_LIMIT_SELL",
+        //                 "created": "2019-01-17 10:14:48",
+        //                 "timestamp": "1547720088",
+        //                 "status": "PARTIAL"
+        //             }
+        //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const orders = this.safeValue (data, 'data', []);
+        const orders = this.safeValue (response, 'data', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
