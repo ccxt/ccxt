@@ -399,9 +399,9 @@ module.exports = class Exchange {
             } else if (this.agent) {
                 const [ protocol, ... rest ] = url.split ('//')
                 // this.agent.protocol contains a colon ('https:' or 'http:')
-                if (protocol === this.agent.protocol) {
-                    params['agent'] = this.agent;
-                }
+                //if (protocol === this.agent.protocol) {
+                params['agent'] = this.agent;
+                //}
             }
 
             const promise =
