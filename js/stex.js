@@ -1467,16 +1467,18 @@ module.exports = class stex extends Exchange {
 
     parseTransactionStatus (status) {
         const statuses = {
-            'PROCESSING': 'pending',
-            'Not Confirmed': 'pending',
-            'Cancelled by User': 'canceled',
-            'Checking by System': 'pending',
-            'Approved': 'pending',
-            'Processing': 'pending',
-            'Finished': 'ok',
-            'Withdrawal Error': 'failed',
-            'Cancelled by Admin': 'canceled',
-            'Awaiting': 'pending',
+            'processing': 'pending',
+            'checking by system': 'pending',
+            'hodl': 'pending',
+            'amount too low': 'failed',
+            'not confirmed': 'pending',
+            'cancelled by User': 'canceled',
+            'approved': 'pending',
+            'finished': 'ok',
+            'withdrawal error': 'failed',
+            'deposit error': 'failed',
+            'cancelled by admin': 'canceled',
+            'awaiting': 'pending',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1548,7 +1550,7 @@ module.exports = class stex extends Exchange {
         }
         const type = ('depositId' in transaction) ? 'deposit' : 'withdrawal';
         const amount = this.safeFloat2 (transaction, 'amount');
-        const status = this.parseTransactionStatus (this.safeString2 (transaction, 'verifyStatus', 'state'));
+        const status = this.parseTransactionStatus (this.safeStringLower (transaction, 'status'));
         const timestamp = this.safeTimestamp (transaction, 'timestamp', 'created_ts');
         const updated = this.safeTimestamp (transaction, 'updated_ts');
         const txid = this.safeString (transaction, 'txid');
@@ -1680,6 +1682,32 @@ module.exports = class stex extends Exchange {
         //
         const withdrawals = this.safeValue (response, 'data', []);
         return this.parseTransactions (withdrawals, code, since, limit);
+    }
+
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        // name is optional, can be overrided via params
+        const name = address.slice (0, 20);
+        const request = {
+            'asset': currency['id'],
+            'address': address,
+            'amount': parseFloat (amount),
+            'name': name, // name is optional, can be overrided via params
+            // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
+            // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni
+            // 'network': 'ETH', // 'BTC', 'TRX', etc, optional
+        };
+        if (tag !== undefined) {
+            request['addressTag'] = tag;
+        }
+        const response = await this.wapiPostWithdraw (this.extend (request, params));
+        return {
+            'info': response,
+            'id': this.safeString (response, 'id'),
+        };
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
