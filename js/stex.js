@@ -32,6 +32,9 @@ module.exports = class stex extends Exchange {
                 'fetchMyTrades': true,
                 'fetchOrderTrades': true,
                 'fetchDepositAddress': true,
+                'createDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
             },
             'version': 'v3',
             'urls': {
@@ -1460,6 +1463,223 @@ module.exports = class stex extends Exchange {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'PROCESSING': 'pending',
+            'Not Confirmed': 'pending',
+            'Cancelled by User': 'canceled',
+            'Checking by System': 'pending',
+            'Approved': 'pending',
+            'Processing': 'pending',
+            'Finished': 'ok',
+            'Withdrawal Error': 'failed',
+            'Cancelled by Admin': 'canceled',
+            'Awaiting': 'pending',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         "id": 123654789,
+        //         "currency_id": 1,
+        //         "currency_code": "BTC",
+        //         "deposit_fee_currency_id": 1,
+        //         "deposit_fee_currency_code": "BTC",
+        //         "amount": 0.25,
+        //         "fee": 0.00025,
+        //         "txid": "qwertyuhgfdsasdfgh",
+        //         "protocol_id": 0,
+        //         "deposit_status_id": 1,
+        //         "status": "PROCESSING",
+        //         "status_color": "#BC3D51",
+        //         "created_at": "2018-11-28 12:32:08",
+        //         "timestamp": "1543409389",
+        //         "confirmations": "1 of 2"
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "id": 65899,
+        //         "amount": "0.00600000",
+        //         "currency_id": 1,
+        //         "currency_code": "BTC",
+        //         "fee": "0.00400000",
+        //         "fee_currency_id": 1,
+        //         "fee_currency_code": "BTC",
+        //         "withdrawal_status_id": 1,
+        //         "status": "Not Confirmed",
+        //         "status_color": "#BC3D51",
+        //         "created_at": "2019-01-21 09:36:05",
+        //         "created_ts": "1548063365",
+        //         "updated_at": "2019-01-21 09:36:05",
+        //         "updated_ts": "1548063365",
+        //         "txid": null,
+        //         "protocol_id": 0,
+        //         "withdrawal_address": {
+        //             "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //             "address_name": "Address",
+        //             "additional_address_parameter": "qwertyuiopasdfghjkl",
+        //             "additional_address_parameter_name": "Destination Tag",
+        //             "notification": "",
+        //             "protocol_id": 10,
+        //             "protocol_name": "Tether OMNI",
+        //             "supports_new_address_creation": false
+        //         }
+        //     }
+        //
+        const id = this.safeString (transaction, 'id');
+        const withdrawalAddress = this.safeValue (transaction, 'withdrawal_address', {});
+        const address = this.safeString (withdrawalAddress, 'address');
+        const tag = this.safeString (withdrawalAddress, 'additional_address_parameter');
+        const currencyId = this.safeString2 (transaction, 'currencyId', 'currencyTypeId');
+        let code = undefined;
+        if (currencyId in this.currencies_by_id) {
+            currency = this.currencies_by_id[currencyId];
+        }
+        if ((code === undefined) && (currency !== undefined)) {
+            code = currency['code'];
+        }
+        const type = ('depositId' in transaction) ? 'deposit' : 'withdrawal';
+        const amount = this.safeFloat2 (transaction, 'amount');
+        const status = this.parseTransactionStatus (this.safeString2 (transaction, 'verifyStatus', 'state'));
+        const timestamp = this.safeTimestamp (transaction, 'timestamp', 'created_ts');
+        const updated = this.safeTimestamp (transaction, 'updated_ts');
+        const txid = this.safeString (transaction, 'txid');
+        let fee = undefined;
+        const feeCost = this.safeFloat (transaction, 'fee');
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (transaction, 'fee_currency_id', 'deposit_fee_currency_id');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'addressFrom': undefined,
+            'address': address,
+            'addressTo': address,
+            'tagFrom': undefined,
+            'tag': tag,
+            'tagTo': tag,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': fee,
+        };
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currencyTypeName': currency['name'],
+            // 'pageSize': limit, // documented as required, but it works without it
+            // 'pageNum': 0, // also works without it, most likely a typo in the docs
+            // 'sort': 1, // 1 = asc, 0 = desc
+        };
+        if (limit !== undefined) {
+            request['pageSize'] = limit; // default 50
+        }
+        const response = await this.privatePostExchangeFundControllerWebsiteFundcontrollerGetPayinCoinRecord (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "id": 123654789,
+        //                 "currency_id": 1,
+        //                 "currency_code": "BTC",
+        //                 "deposit_fee_currency_id": 1,
+        //                 "deposit_fee_currency_code": "BTC",
+        //                 "amount": 0.25,
+        //                 "fee": 0.00025,
+        //                 "txid": "qwertyuhgfdsasdfgh",
+        //                 "protocol_id": 0,
+        //                 "deposit_status_id": 1,
+        //                 "status": "PROCESSING",
+        //                 "status_color": "#BC3D51",
+        //                 "created_at": "2018-11-28 12:32:08",
+        //                 "timestamp": "1543409389",
+        //                 "confirmations": "1 of 2"
+        //             }
+        //         ]
+        //     }
+        //
+        const deposits = this.safeValue (response, 'datas', {});
+        return this.parseTransactions (deposits, code, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currencyId': currency['id'],
+            // 'pageSize': limit, // documented as required, but it works without it
+            // 'pageIndex': 0, // also works without it, most likely a typo in the docs
+            // 'tab': 'all', // all, wait (submitted, not audited), success (auditing passed), fail (auditing failed), cancel (canceled by user)
+        };
+        if (limit !== undefined) {
+            request['pageSize'] = limit; // default 50
+        }
+        const response = await this.privateGetExchangeFundControllerWebsiteFundwebsitecontrollerGetpayoutcoinrecord (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "id": 65899,
+        //                 "amount": "0.00600000",
+        //                 "currency_id": 1,
+        //                 "currency_code": "BTC",
+        //                 "fee": "0.00400000",
+        //                 "fee_currency_id": 1,
+        //                 "fee_currency_code": "BTC",
+        //                 "withdrawal_status_id": 1,
+        //                 "status": "Not Confirmed",
+        //                 "status_color": "#BC3D51",
+        //                 "created_at": "2019-01-21 09:36:05",
+        //                 "created_ts": "1548063365",
+        //                 "updated_at": "2019-01-21 09:36:05",
+        //                 "updated_ts": "1548063365",
+        //                 "txid": null,
+        //                 "protocol_id": 0,
+        //                 "withdrawal_address": {
+        //                     "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //                     "address_name": "Address",
+        //                     "additional_address_parameter": "qwertyuiopasdfghjkl",
+        //                     "additional_address_parameter_name": "Destination Tag",
+        //                     "notification": "",
+        //                     "protocol_id": 10,
+        //                     "protocol_name": "Tether OMNI",
+        //                     "supports_new_address_creation": false
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const withdrawals = this.safeValue (response, 'data', []);
+        return this.parseTransactions (withdrawals, code, since, limit);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
