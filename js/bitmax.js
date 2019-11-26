@@ -1100,7 +1100,7 @@ module.exports = class bitmax extends Exchange {
         //
         let addressData = this.safeValue (response, 'data');
         if (Array.isArray (addressData)) {
-            const firstElement = this.safeValue (data, 0, {});
+            const firstElement = this.safeValue (addressData, 0, {});
             addressData = this.safeValue (firstElement, 'addressData', {});
         }
         const address = this.safeString (addressData, 'address');
