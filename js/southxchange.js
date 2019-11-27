@@ -17,6 +17,7 @@ module.exports = class southxchange extends Exchange {
                 'CORS': true,
                 'createDepositAddress': true,
                 'fetchOpenOrders': true,
+                'fetchMyTrades': true,
                 'fetchTickers': true,
                 'withdraw': true,
             },
@@ -218,6 +219,73 @@ module.exports = class southxchange extends Exchange {
         };
         const response = await this.publicGetTradesSymbol (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    parseMyTrade (trade, market) {
+        const timestamp = this.parse8601 (this.safeString (trade, 'Date'));
+        const price = this.safeFloat (trade, 'Price');
+        const amount = Math.abs (this.safeFloat (trade, 'Amount'));
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
+        let side = undefined;
+        if (this.safeFloat (trade, 'Amount') > 0.0) {
+            side = 'sell';
+        } else {
+            side = 'buy';
+        }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': trade['TradeId'],
+            'order': trade['OrderCode'],
+            'type': undefined,
+            'side': side,
+            'price': price,
+            'takerOrMaker': undefined,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+        };
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'Currency': market['base'],
+        };
+        if (limit !== undefined) {
+            request['PageSize'] = limit;
+        } else {
+            request['PageSize'] = 50;
+        }
+        request['TransactionType'] = 'transactions';
+        request['SortField'] = 'Date';
+        request['Descending'] = true;
+        const response = await this.privatePostListTransactions (this.extend (request, params));
+        const trades = [];
+        for (let i = 0; i < response['Result'].length; i++) {
+            const currentTrade = response['Result'][i];
+            if (currentTrade['Type'] === 'tradefee') {
+                continue;
+            }
+            if (currentTrade['OtherCurrency'] !== market['quote']) {
+                continue;
+            }
+            const trade = this.parseMyTrade (currentTrade, market);
+            trades.push (trade);
+        }
+        return trades;
     }
 
     parseOrder (order, market = undefined) {
