@@ -236,7 +236,7 @@ All-in-one browser bundle (dependencies included), served from a CDN of your cho
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@undefined/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.19.96/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
