@@ -1390,7 +1390,7 @@ class upbit(Exchange):
         })
         url += '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if method == 'GET':
+        if method != 'POST':
             if query:
                 url += '?' + self.urlencode(query)
         if api == 'private':
@@ -1406,7 +1406,7 @@ class upbit(Exchange):
             headers = {
                 'Authorization': 'Bearer ' + jwt,
             }
-            if (method != 'GET') and (method != 'DELETE'):
+            if method != 'POST':
                 body = self.json(params)
                 headers['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
