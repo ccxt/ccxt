@@ -1405,7 +1405,7 @@ class upbit(Exchange):
             headers = {
                 'Authorization': 'Bearer ' + jwt,
             }
-            if method != 'GET':
+            if (method != 'GET') and (method != 'DELETE'):
                 body = self.json(params)
                 headers['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
