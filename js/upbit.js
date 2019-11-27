@@ -1487,7 +1487,7 @@ module.exports = class upbit extends Exchange {
             headers = {
                 'Authorization': 'Bearer ' + jwt,
             };
-            if (method !== 'POST') {
+            if (method !== 'GET') {
                 body = this.json (params);
                 headers['Content-Type'] = 'application/json';
             }
