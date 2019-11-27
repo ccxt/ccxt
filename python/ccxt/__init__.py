@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.19.94'
+__version__ = '1.19.95'
 
 # ----------------------------------------------------------------------------
 
@@ -177,6 +177,7 @@ from ccxt.paymium import paymium                            # noqa: F401
 from ccxt.poloniex import poloniex                          # noqa: F401
 from ccxt.rightbtc import rightbtc                          # noqa: F401
 from ccxt.southxchange import southxchange                  # noqa: F401
+from ccxt.stex import stex                                  # noqa: F401
 from ccxt.stronghold import stronghold                      # noqa: F401
 from ccxt.surbitcoin import surbitcoin                      # noqa: F401
 from ccxt.theocean import theocean                          # noqa: F401
@@ -304,6 +305,7 @@ exchanges = [
     'poloniex',
     'rightbtc',
     'southxchange',
+    'stex',
     'stronghold',
     'surbitcoin',
     'theocean',

@@ -313,8 +313,7 @@ class bitmax extends Exchange {
         //                 "totalAmount" => "20.03", // total $balance amount
         //                 "availableAmount" => "20.03", // $balance amount available to trade
         //                 "inOrderAmount" => "0.000", // in order amount
-        //                 "btcValue" => "70.81"     // the current BTC value of the $balance
-        //                                                 // ("btcValue" might not be available when price is missing)
+        //                 "btcValue" => "70.81"     // the current BTC value of the $balance, may be missing
         //             ),
         //         )
         //     }
@@ -443,21 +442,19 @@ class bitmax extends Exchange {
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         //
-        //     array (
-        //         {
-        //             "m":"bar",
-        //             "s":"ETH/BTC",
-        //             "ba":"ETH",
-        //             "qa":"BTC",
-        //             "i":"1",
-        //             "t":1570867020000,
-        //             "o":"0.022023",
-        //             "c":"0.022018",
-        //             "h":"0.022023",
-        //             "l":"0.022018",
-        //             "v":"2.510",
-        //         }
-        //     )
+        //     {
+        //         "m":"bar",
+        //         "s":"ETH/BTC",
+        //         "ba":"ETH",
+        //         "qa":"BTC",
+        //         "i":"1",
+        //         "t":1570867020000,
+        //         "o":"0.022023",
+        //         "c":"0.022018",
+        //         "h":"0.022023",
+        //         "l":"0.022018",
+        //         "v":"2.510",
+        //     }
         //
         return array (
             $this->safe_integer($ohlcv, 't'),
@@ -536,6 +533,10 @@ class bitmax extends Exchange {
         $timestamp = $this->safe_integer($trade, 't');
         $price = $this->safe_float($trade, 'p');
         $amount = $this->safe_float($trade, 'q');
+        $cost = null;
+        if (($price !== null) && ($amount !== null)) {
+            $cost = $price * $amount;
+        }
         $buyerIsMaker = $this->safe_value($trade, 'bm');
         $symbol = null;
         $marketId = $this->safe_string($trade, 's');
@@ -581,7 +582,7 @@ class bitmax extends Exchange {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $price * $amount,
+            'cost' => $cost,
             'fee' => $fee,
         );
     }
@@ -666,7 +667,21 @@ class bitmax extends Exchange {
         //     }
         //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $symbol = $this->find_symbol($this->safe_string($order, 'symbol'), $market);
+        $marketId = $this->safe_string($order, 'symbol');
+        $symbol = null;
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            } else {
+                list($baseId, $quoteId) = explode('/', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
+        }
         $timestamp = $this->safe_integer($order, 'sendingTime');
         $price = $this->safe_float($order, 'orderPrice');
         $amount = $this->safe_float($order, 'orderQty');
@@ -701,10 +716,7 @@ class bitmax extends Exchange {
                 }
             }
         }
-        $side = $this->safe_string($order, 'side');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($order, 'side');
         $fee = array (
             'cost' => $this->safe_float($order, 'fee'),
             'currency' => $this->safe_string($order, 'feeAsset'),
@@ -1061,22 +1073,22 @@ class bitmax extends Exchange {
         // v1
         //
         //     {
-        //         "$data" => array (
+        //         "data" => array (
         //             "$address" => "0x26a3CB49578F07000575405a57888681249c35Fd"
         //         ),
         //         "email" => "igor.kroitor@gmial.com",
         //         "status" => "success",
         //     }
         //
-        // v2 (not supported yet)
+        // v2
         //
         //     {
         //         "$code" => 0,
-        //         "$data" => array (
+        //         "data" => array (
         //             {
         //                 "asset" => "XRP",
         //                 "blockChain" => "Ripple",
-        //                 "addressData" => {
+        //                 "$addressData" => {
         //                     "$address" => "rpinhtY4p35bPmVXPbfWRUtZ1w1K1gYShB",
         //                     "destTag" => "54301"
         //                 }
@@ -1086,12 +1098,18 @@ class bitmax extends Exchange {
         //         "status" => "success" // the $request has been submitted to the server
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $address = $this->safe_string($data, 'address');
+        $addressData = $this->safe_value($response, 'data');
+        if (gettype ($addressData) === 'array' && count (array_filter (array_keys ($addressData), 'is_string')) == 0) {
+            $firstElement = $this->safe_value($addressData, 0, array());
+            $addressData = $this->safe_value($firstElement, 'addressData', array());
+        }
+        $address = $this->safe_string($addressData, 'address');
+        $tag = $this->safe_string($addressData, 'destTag');
         $this->check_address($address);
         return array (
             'currency' => $code,
             'address' => $address,
+            'tag' => $tag,
             'info' => $response,
         );
     }

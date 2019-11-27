@@ -312,8 +312,7 @@ class bitmax(Exchange):
         #                 "totalAmount": "20.03",  # total balance amount
         #                 "availableAmount": "20.03",  # balance amount available to trade
         #                 "inOrderAmount": "0.000",  # in order amount
-        #                 "btcValue": "70.81"     # the current BTC value of the balance
-        #                                                 #("btcValue" might not be available when price is missing)
+        #                 "btcValue": "70.81"     # the current BTC value of the balance, may be missing
         #             },
         #         ]
         #     }
@@ -431,21 +430,19 @@ class bitmax(Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         #
-        #     [
-        #         {
-        #             "m":"bar",
-        #             "s":"ETH/BTC",
-        #             "ba":"ETH",
-        #             "qa":"BTC",
-        #             "i":"1",
-        #             "t":1570867020000,
-        #             "o":"0.022023",
-        #             "c":"0.022018",
-        #             "h":"0.022023",
-        #             "l":"0.022018",
-        #             "v":"2.510",
-        #         }
-        #     ]
+        #     {
+        #         "m":"bar",
+        #         "s":"ETH/BTC",
+        #         "ba":"ETH",
+        #         "qa":"BTC",
+        #         "i":"1",
+        #         "t":1570867020000,
+        #         "o":"0.022023",
+        #         "c":"0.022018",
+        #         "h":"0.022023",
+        #         "l":"0.022018",
+        #         "v":"2.510",
+        #     }
         #
         return [
             self.safe_integer(ohlcv, 't'),
@@ -520,6 +517,9 @@ class bitmax(Exchange):
         timestamp = self.safe_integer(trade, 't')
         price = self.safe_float(trade, 'p')
         amount = self.safe_float(trade, 'q')
+        cost = None
+        if (price is not None) and (amount is not None):
+            cost = price * amount
         buyerIsMaker = self.safe_value(trade, 'bm')
         symbol = None
         marketId = self.safe_string(trade, 's')
@@ -560,7 +560,7 @@ class bitmax(Exchange):
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': fee,
         }
 
@@ -641,7 +641,18 @@ class bitmax(Exchange):
         #     }
         #
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = self.find_symbol(self.safe_string(order, 'symbol'), market)
+        marketId = self.safe_string(order, 'symbol')
+        symbol = None
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('/')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
         timestamp = self.safe_integer(order, 'sendingTime')
         price = self.safe_float(order, 'orderPrice')
         amount = self.safe_float(order, 'orderQty')
@@ -666,9 +677,7 @@ class bitmax(Exchange):
                     if (cost is not None) and (filled is not None):
                         if (cost > 0) and (filled > 0):
                             price = cost / filled
-        side = self.safe_string(order, 'side')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(order, 'side')
         fee = {
             'cost': self.safe_float(order, 'fee'),
             'currency': self.safe_string(order, 'feeAsset'),
@@ -1014,7 +1023,7 @@ class bitmax(Exchange):
         #         "status": "success",
         #     }
         #
-        # v2(not supported yet)
+        # v2
         #
         #     {
         #         "code": 0,
@@ -1032,12 +1041,17 @@ class bitmax(Exchange):
         #         "status": "success"  # the request has been submitted to the server
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        address = self.safe_string(data, 'address')
+        addressData = self.safe_value(response, 'data')
+        if isinstance(addressData, list):
+            firstElement = self.safe_value(addressData, 0, {})
+            addressData = self.safe_value(firstElement, 'addressData', {})
+        address = self.safe_string(addressData, 'address')
+        tag = self.safe_string(addressData, 'destTag')
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
+            'tag': tag,
             'info': response,
         }
 

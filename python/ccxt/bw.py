@@ -928,9 +928,6 @@ class bw(Exchange):
             '-1': 'canceled',  # or auditing failed
             '0': 'pending',
             '1': 'ok',
-            #         "verifyStatus": 1,                           # Audit status, 0: to be audited, 1: auditing passed, -1: auditing failed
-            #         "status": 1,                                          # Deposit status, 0: not received, 1: received
-            #         "status": 1,                                          # Deposit status, 0: not received, 1: received
         }
         return self.safe_string(statuses, status, status)
 
@@ -989,8 +986,8 @@ class bw(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'addressFrom': None,
-            'address': None,
-            'addressTo': address,
+            'address': address,
+            'addressTo': None,
             'tagFrom': None,
             'tag': None,
             'tagTo': None,

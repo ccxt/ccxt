@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.19.94'
+__version__ = '1.19.95'
 
 # -----------------------------------------------------------------------------
 
@@ -158,6 +158,7 @@ from ccxt.async_support.paymium import paymium                            # noqa
 from ccxt.async_support.poloniex import poloniex                          # noqa: F401
 from ccxt.async_support.rightbtc import rightbtc                          # noqa: F401
 from ccxt.async_support.southxchange import southxchange                  # noqa: F401
+from ccxt.async_support.stex import stex                                  # noqa: F401
 from ccxt.async_support.stronghold import stronghold                      # noqa: F401
 from ccxt.async_support.surbitcoin import surbitcoin                      # noqa: F401
 from ccxt.async_support.theocean import theocean                          # noqa: F401
@@ -285,6 +286,7 @@ exchanges = [
     'poloniex',
     'rightbtc',
     'southxchange',
+    'stex',
     'stronghold',
     'surbitcoin',
     'theocean',

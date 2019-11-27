@@ -560,6 +560,7 @@ declare module 'ccxt' {
     export class poloniex extends Exchange {}
     export class rightbtc extends Exchange {}
     export class southxchange extends Exchange {}
+    export class stex extends Exchange {}
     export class stronghold extends Exchange {}
     export class surbitcoin extends foxbit {}
     export class theocean extends Exchange {}
