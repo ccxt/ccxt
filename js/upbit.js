@@ -1468,7 +1468,7 @@ module.exports = class upbit extends Exchange {
         });
         url += '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (method === 'GET') {
+        if (method !== 'POST') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
@@ -1487,7 +1487,7 @@ module.exports = class upbit extends Exchange {
             headers = {
                 'Authorization': 'Bearer ' + jwt,
             };
-            if ((method !== 'GET') && (method !== 'DELETE')) {
+            if (method !== 'POST') {
                 body = this.json (params);
                 headers['Content-Type'] = 'application/json';
             }
