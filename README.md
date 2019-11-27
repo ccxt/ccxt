@@ -30,7 +30,7 @@ Want this place? Contact us: info@ccxt.trade
 - <sub>[![Nomics API](https://user-images.githubusercontent.com/1294454/53875704-2ffbcc80-4016-11e9-828b-337409955609.png)](https://p.nomics.com/cryptocurrency-bitcoin-api)</sub>&nbsp; **[Nomics API](https://p.nomics.com/cryptocurrency-bitcoin-api)**&nbsp;&mdash;&nbsp;enterprise-grade [crypto market cap & pricing data](https://nomics.com) API for your fund, smart contract, or app.
 - <sub>[![Quadency](https://user-images.githubusercontent.com/1294454/69334382-a0618100-0c6b-11ea-9ba9-40aa97440cfa.png)](https://quadency.com?utm_source=ccxt)</sub>&nbsp; **[Quadency](https://quadency.com?utm_source=ccxt)**&nbsp;&mdash;&nbsp;professional crypto terminal, algo trading, and unified streaming APIs.
 - <sub>[![TabTrader](https://user-images.githubusercontent.com/1294454/66755907-9c3e8880-eea1-11e9-846e-0bff349ceb87.png)](https://tab-trader.com/?utm_source=ccxt)</sub>&nbsp; **[TabTrader](https://tab-trader.com/?utm_source=ccxt)**&nbsp;&mdash;&nbsp;trading on all exchanges in one app. Avaliable on [Android](https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt) and [iOS](https://itunes.apple.com/app/apple-store/id1095716562?mt=8).
-- <sub>[![CoinFabrik](https://user-images.githubusercontent.com/1294454/69568442-a8535500-0fcc-11ea-981d-9422a92bbc23.png)](https://www.coinfabrik.com/#contact_us)</sub>&nbsp; **[CoinFabrik](https://www.coinfabrik.com/#contact_us)**&nbsp;&mdash;&nbsp;development, research, and security audit for cryptocurrency and blockchain applications. 
+- <sub>[![CoinFabrik](https://user-images.githubusercontent.com/1294454/69568442-a8535500-0fcc-11ea-981d-9422a92bbc23.png)](https://www.coinfabrik.com/#contact_us)</sub>&nbsp; **[CoinFabrik](https://www.coinfabrik.com/#contact_us)**&nbsp;&mdash;&nbsp;development, research, and security audit for cryptocurrency and blockchain applications.
 
 
 ## Certified Cryptocurrency Exchanges
@@ -230,8 +230,8 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@undefined/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@undefined/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.19.96/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.19.96/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
