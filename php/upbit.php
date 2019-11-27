@@ -1469,7 +1469,7 @@ class upbit extends Exchange {
         ));
         $url .= '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($method === 'GET') {
+        if ($method !== 'POST') {
             if ($query) {
                 $url .= '?' . $this->urlencode ($query);
             }
@@ -1488,7 +1488,7 @@ class upbit extends Exchange {
             $headers = array (
                 'Authorization' => 'Bearer ' . $jwt,
             );
-            if (($method !== 'GET') && ($method !== 'DELETE')) {
+            if ($method !== 'POST') {
                 $body = $this->json ($params);
                 $headers['Content-Type'] = 'application/json';
             }
