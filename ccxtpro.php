@@ -43,9 +43,11 @@ require_once 'vendor/autoload.php';
 
 // require_once PATH_TO_CCXTPRO_BASE . 'errors.php';
 require_once PATH_TO_CCXTPRO_BASE . 'Exchange.php';
+require_once PATH_TO_CCXTPRO_BASE . 'OrderBook.php';
+require_once PATH_TO_CCXTPRO_BASE . 'OrderBookSide.php';
 
 spl_autoload_register (function ($class_name) {
-    $class_name = str_replace ("ccxt\\", "", $class_name);
+    $class_name = str_replace ("ccxtpro\\", "", $class_name);
     $file = PATH_TO_CCXTPRO . $class_name . '.php';
     if (file_exists ($file))
         require_once $file;

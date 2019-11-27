@@ -12,6 +12,7 @@ class OrderBook(dict):
             'datetime': None,
             'nonce': None,
         }
+        snapshot['datetime'] = Exchange.iso8601(snapshot.get('timestamp'))
         super(OrderBook, self).update(defaults)
         super(OrderBook, self).update(snapshot)
         if not isinstance(self['asks'], order_book_side.OrderBookSide):

@@ -32,7 +32,8 @@ class OrderBookSide(list):
 
     def limit(self, n=None):
         first_element = operator.itemgetter(0)
-        array = sorted(self._index.items(), key=first_element, reverse=self.side)
+        generator = (list(t) for t in self._index.items())
+        array = sorted(generator, key=first_element, reverse=self.side)
         if n and n < len(array):
             array = array[:n]
         self.clear()
@@ -52,7 +53,8 @@ class LimitedOrderBookSide(OrderBookSide):
 
     def limit(self, n=None):
         first_element = operator.itemgetter(0)
-        array = sorted(self._index.items(), key=first_element, reverse=self.side)
+        generator = (list(t) for t in self._index.items())
+        array = sorted(generator, key=first_element, reverse=self.side)
         limit = min(n or INFINITY, self._depth or INFINITY)
         if limit < len(array):
             array = array[:limit]

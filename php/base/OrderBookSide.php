@@ -77,7 +77,7 @@ trait Limited {
 
     public function limit($n = null) {
         $this->index->ksort();
-        if (self::$side) {
+        if (static::$side) {
             $this->index->reverse();
         }
         $keys = $this->index->keys()->toArray();
@@ -127,7 +127,7 @@ trait Counted {
 
     public function limit($n = null) {
         $this->index->ksort();
-        if (self::$side) {
+        if (static::$side) {
             $this->index->reverse();
         }
         $values = $this->index->values()->toArray();
@@ -245,7 +245,7 @@ class LimitedCountedOrderBookSide extends CountedOrderBookSide {
 
     public function limit($n = null) {
         $this->index->sort();
-        if (self::$side) {
+        if (static::$side) {
             $this->index->reverse();
         }
         $keys = $this->index->keys()->toArray();
@@ -316,11 +316,3 @@ class IncrementalIndexedAsks extends IncrementalIndexedOrderBookSide { public st
 class IncrementalIndexedBids extends IncrementalIndexedOrderBookSide { public static $side = true; }
 
 // ----------------------------------------------------------------------------
-
-$x = new Asks([[1,2], [3,4], [5,6]]);
-
-$x->limit();
-
-foreach ($x as $k) {
-    print_r($k);
-}

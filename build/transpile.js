@@ -10,12 +10,17 @@ const fs = require ('fs')
     , { unCamelCase } = require ('ccxt/js/base/functions.js')
     , {
         createFolderRecursively,
+        overwriteFile,
     } = require ('ccxt/build/fs.js')
     , Transpiler = require ('ccxt/build/transpile.js')
 
 // ============================================================================
 
 class CCXTProTranspiler extends Transpiler {
+    constructor () {
+        super()
+        this.phpPreamble = this.phpPreamble.replace (/ccxt/g, "ccxtpro")
+    }
 
     createPHPClass (className, baseClass, body, methods) {
 
@@ -53,6 +58,50 @@ class CCXTProTranspiler extends Transpiler {
 
     // ------------------------------------------------------------------------
 
+    transpileOrderBookTest () {
+        const jsFile = './js/test/base/test.OrderBook.js'
+        const pyFile = './python/test/test_order_book.py'
+        const phpFile = './php/test/OrderBook.php'
+
+        log.magenta ('Transpiling from', jsFile.yellow)
+        let js = fs.readFileSync (jsFile).toString ()
+
+        js = this.regexAll (js, [
+            [ /\'use strict\';?\s+/g, '' ],
+            [ /[^\n]+require[^\n]+\n/g, '' ],
+            [ /function equals \([\S\s]+?return true\n}\n/g, '' ],
+        ])
+
+        let { python3Body, python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+
+        const pythonHeader = [
+            "",
+            "from ccxtpro.base.order_book import OrderBook  # noqa: F402",
+            "",
+            "def equals(a, b):",
+            "    return a == b",
+            "",
+        ].join ("\n")
+
+        const phpHeader = [
+            "",
+            "function equals($a, $b) {",
+            "    return $a == $b;",
+            "}",
+        ].join ("\n")
+
+        const python = this.pyPreamble + pythonHeader + python2Body
+        const php = this.phpPreamble + phpHeader + phpBody
+
+        log.magenta ('→', pyFile.yellow)
+        log.magenta ('→', phpFile.yellow)
+
+        overwriteFile (pyFile, python)
+        overwriteFile (phpFile, php)
+    }
+
+    // ------------------------------------------------------------------------
+
     transpileEverything () {
 
         // default pattern is '.js'
@@ -66,6 +115,7 @@ class CCXTProTranspiler extends Transpiler {
         createFolderRecursively (python3Folder)
         createFolderRecursively (phpFolder)
 
+        this.transpileOrderBookTest ()
         const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern)
 
         if (classes === null) {
