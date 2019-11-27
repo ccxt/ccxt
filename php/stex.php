@@ -517,8 +517,8 @@ class stex extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'volume'),
-            'quoteVolume' => $this->safe_float($ticker, 'volumeQuote'),
+            'baseVolume' => $this->safe_float($ticker, 'volumeQuote'),
+            'quoteVolume' => $this->safe_float($ticker, 'volume'),
             'info' => $ticker,
         );
     }

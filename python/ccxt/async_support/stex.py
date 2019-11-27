@@ -513,8 +513,8 @@ class stex(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'volume'),
-            'quoteVolume': self.safe_float(ticker, 'volumeQuote'),
+            'baseVolume': self.safe_float(ticker, 'volumeQuote'),
+            'quoteVolume': self.safe_float(ticker, 'volume'),
             'info': ticker,
         }
 
