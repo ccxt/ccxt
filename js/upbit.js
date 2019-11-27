@@ -118,6 +118,7 @@ module.exports = class upbit extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    'This key has expired.': AuthenticationError,
                     'Missing request parameter error. Check the required parameters!': BadRequest,
                     'side is missing, side does not have a valid value': InvalidOrder,
                 },
