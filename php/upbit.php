@@ -119,6 +119,7 @@ class upbit extends Exchange {
             ),
             'exceptions' => array (
                 'exact' => array (
+                    'This key has expired.' => '\\ccxt\\AuthenticationError',
                     'Missing request parameter error. Check the required parameters!' => '\\ccxt\\BadRequest',
                     'side is missing, side does not have a valid value' => '\\ccxt\\InvalidOrder',
                 ),

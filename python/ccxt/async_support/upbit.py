@@ -126,6 +126,7 @@ class upbit(Exchange):
             },
             'exceptions': {
                 'exact': {
+                    'This key has expired.': AuthenticationError,
                     'Missing request parameter error. Check the required parametersnot ': BadRequest,
                     'side is missing, side does not have a valid value': InvalidOrder,
                 },
