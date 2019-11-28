@@ -949,6 +949,11 @@ class Exchange(object):
         return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
 
     @staticmethod
+    def gmt(timestamp):
+        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        return utc_datetime.strftime('%a, %d %b %Y %H:%M:%S GMT')
+
+    @staticmethod
     def parse_date(timestamp=None):
         if timestamp is None:
             return timestamp

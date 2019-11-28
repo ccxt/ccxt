@@ -697,6 +697,10 @@ class Exchange {
         return gmdate('Y-m-d\\' . $infix . 'H:i:s', (int) round($timestamp / 1000));
     }
 
+    public static function gmt ($timestamp) {
+        return gmdate("D, d M Y H:i:s", $timestamp) . ' GMT';
+    }
+
     public static function binary_concat() {
         return implode('', func_get_args());
     }
