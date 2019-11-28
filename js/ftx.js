@@ -1348,7 +1348,7 @@ module.exports = class ftx extends Exchange {
         //
         const success = this.safeValue (response, 'success');
         if (!success) {
-            const feedback = this.id + ' ' + this.json (response);
+            const feedback = this.id + ' ' + body;
             const error = this.safeString (response, 'error');
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
