@@ -902,8 +902,8 @@ module.exports = class dragonex extends Exchange {
         if (response === undefined) {
             return; // fallback to default error handler
         }
-        if ('msg' in response) {
-            if (!response['msg']) {
+        if ('code' in response) {
+            if (response['code'] !== 1) {
                 throw new ExchangeError (this.id + ' ' + JSON.parse (response));
             }
         }
