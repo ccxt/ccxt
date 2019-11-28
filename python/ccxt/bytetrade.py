@@ -1208,9 +1208,7 @@ class bytetrade(Exchange):
         if 'code' in response:
             status = self.safe_string(response, 'code')
             if status == '1':
-                msg = self.safe_string(response, 'msg')
-                feedback = self.id + ' ' + self.json(response)
-                exceptions = self.exceptions
-                if msg in exceptions:
-                    raise exceptions[msg](feedback)
+                message = self.safe_string(response, 'msg')
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions, message, feedback)
                 raise ExchangeError(feedback)

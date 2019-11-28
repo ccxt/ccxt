@@ -1275,23 +1275,20 @@ class binance(Exchange):
                             parsedMessage = None
                         if parsedMessage is not None:
                             response = parsedMessage
-                exceptions = self.exceptions
                 message = self.safe_string(response, 'msg')
-                if message in exceptions:
-                    ExceptionClass = exceptions[message]
-                    raise ExceptionClass(self.id + ' ' + message)
+                if message is not None:
+                    self.throw_exactly_matched_exception(self.exceptions, message, self.id + ' ' + message)
                 # checks against error codes
                 error = self.safe_string(response, 'code')
                 if error is not None:
-                    if error in exceptions:
-                        # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-                        # despite that their message is very confusing, it is raised by Binance
-                        # on a temporary ban(the API key is valid, but disabled for a while)
-                        if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
-                            raise DDoSProtection(self.id + ' temporary banned: ' + body)
-                        raise exceptions[error](self.id + ' ' + body)
-                    else:
-                        raise ExchangeError(self.id + ' ' + body)
+                    # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+                    # despite that their message is very confusing, it is raised by Binance
+                    # on a temporary ban(the API key is valid, but disabled for a while)
+                    if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
+                        raise DDoSProtection(self.id + ' temporary banned: ' + body)
+                    feedback = self.id + ' ' + body
+                    self.throw_exactly_matched_exception(self.exceptions, message, feedback)
+                    raise ExchangeError(feedback)
                 if not success:
                     raise ExchangeError(self.id + ' ' + body)
 
