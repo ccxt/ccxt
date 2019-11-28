@@ -1401,7 +1401,10 @@ class upbit(Exchange):
                 'nonce': nonce,
             }
             if query:
-                request['query'] = self.urlencode(query)
+                auth = self.urlencode(query)
+                hash = self.hash(self.encode(auth), 'sha512')
+                request['query_hash'] = hash
+                request['query_hash_alg'] = 'SHA512'
             jwt = self.jwt(request, self.encode(self.secret))
             headers = {
                 'Authorization': 'Bearer ' + jwt,

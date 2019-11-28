@@ -1482,7 +1482,10 @@ class upbit extends Exchange {
                 'nonce' => $nonce,
             );
             if ($query) {
-                $request['query'] = $this->urlencode ($query);
+                $auth = $this->urlencode ($query);
+                $hash = $this->hash ($this->encode ($auth), 'sha512');
+                $request['query_hash'] = $hash;
+                $request['query_hash_alg'] = 'SHA512';
             }
             $jwt = $this->jwt ($request, $this->encode ($this->secret));
             $headers = array (
