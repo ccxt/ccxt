@@ -997,9 +997,9 @@ class cex(Exchange):
                 fa = self.safe_float(item, 'fa:' + quoteId, 0)
                 tfa = self.safe_float(item, 'tfa:' + quoteId, 0)
                 if side == 'sell':
-                    cost = ta + tta + (fa + tfa)
+                    cost = self.sum(self.sum(ta, tta), self.sum(fa, tfa))
                 else:
-                    cost = ta + tta - (fa + tfa)
+                    cost = self.sum(ta, tta) - self.sum(fa, tfa)
                 type = 'limit'
                 orderAmount = amount
                 average = cost / filled

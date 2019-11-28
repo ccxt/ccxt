@@ -320,8 +320,8 @@ class stex extends Exchange {
             $minBuyPrice = $this->safe_float($market, 'min_buy_price');
             $minSellPrice = $this->safe_float($market, 'min_sell_price');
             $minPrice = max ($minBuyPrice, $minSellPrice);
-            $buyFee = $this->safe_float($market, 'buy_fee_percent');
-            $sellFee = $this->safe_float($market, 'sell_fee_percent');
+            $buyFee = $this->safe_float($market, 'buy_fee_percent') / 100;
+            $sellFee = $this->safe_float($market, 'sell_fee_percent') / 100;
             $fee = max ($buyFee, $sellFee);
             $result[] = array (
                 'id' => $id,
