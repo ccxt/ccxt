@@ -672,10 +672,8 @@ class bcex extends Exchange {
                 //
                 $message = $this->safe_string($response, 'msg');
                 $feedback = $this->id . ' ' . $message;
-                $exceptions = $this->exceptions;
-                if (is_array($exceptions) && array_key_exists($message, $exceptions)) {
-                    throw new $exceptions[$message]($feedback);
-                } else if (mb_strpos($message, '请您重新挂单') !== false) {  // minimum limit
+                $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
+                if (mb_strpos($message, '请您重新挂单') !== false) {  // minimum limit
                     throw new InvalidOrder($feedback);
                 } else {
                     throw new ExchangeError($feedback);

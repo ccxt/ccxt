@@ -546,11 +546,8 @@ class bitforex extends Exchange {
             if ($success !== null) {
                 if (!$success) {
                     $code = $this->safe_string($response, 'code');
-                    if (is_array($this->exceptions) && array_key_exists($code, $this->exceptions)) {
-                        throw new $this->exceptions[$code]($feedback);
-                    } else {
-                        throw new ExchangeError($feedback);
-                    }
+                    $this->throw_exactly_matched_exception($this->exceptions, $code, $feedback);
+                    throw new ExchangeError($feedback);
                 }
             }
         }

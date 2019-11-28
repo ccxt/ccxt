@@ -630,10 +630,8 @@ class bcex(Exchange):
                 #
                 message = self.safe_string(response, 'msg')
                 feedback = self.id + ' ' + message
-                exceptions = self.exceptions
-                if message in exceptions:
-                    raise exceptions[message](feedback)
-                elif message.find('请您重新挂单') >= 0:  # minimum limit
+                self.throw_exactly_matched_exception(self.exceptions, message, feedback)
+                if message.find('请您重新挂单') >= 0:  # minimum limit
                     raise InvalidOrder(feedback)
                 else:
                     raise ExchangeError(feedback)

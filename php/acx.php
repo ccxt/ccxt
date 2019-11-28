@@ -459,10 +459,7 @@ class acx extends Exchange {
             $error = $this->safe_value($response, 'error');
             $errorCode = $this->safe_string($error, 'code');
             $feedback = $this->id . ' ' . $this->json ($response);
-            $exceptions = $this->exceptions;
-            if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
-                throw new $exceptions[$errorCode]($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions, $errorCode, $feedback);
             // fallback to default $error handler
         }
     }

@@ -1125,12 +1125,8 @@ class bitbay extends Exchange {
             //
             $code = $this->safe_string($response, 'code'); // always an integer
             $feedback = $this->id . ' ' . $body;
-            $exceptions = $this->exceptions;
-            if (is_array($this->exceptions) && array_key_exists($code, $this->exceptions)) {
-                throw new $exceptions[$code]($feedback);
-            } else {
-                throw new ExchangeError($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions, $code, $feedback);
+            throw new ExchangeError($feedback);
         } else if (is_array($response) && array_key_exists('status', $response)) {
             //
             //      array("$status":"Fail","$errors":["OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS"])
@@ -1138,12 +1134,10 @@ class bitbay extends Exchange {
             $status = $this->safe_string($response, 'status');
             if ($status === 'Fail') {
                 $errors = $this->safe_value($response, 'errors');
-                $feedback = $this->id . ' ' . $this->json ($response);
+                $feedback = $this->id . ' ' . $body;
                 for ($i = 0; $i < count ($errors); $i++) {
                     $error = $errors[$i];
-                    if (is_array($this->exceptions) && array_key_exists($error, $this->exceptions)) {
-                        throw new $this->exceptions[$error]($feedback);
-                    }
+                    $this->throw_exactly_matched_exception($this->exceptions, $error, $feedback);
                 }
                 throw new ExchangeError($feedback);
             }

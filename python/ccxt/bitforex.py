@@ -527,7 +527,5 @@ class bitforex(Exchange):
             if success is not None:
                 if not success:
                     code = self.safe_string(response, 'code')
-                    if code in self.exceptions:
-                        raise self.exceptions[code](feedback)
-                    else:
-                        raise ExchangeError(feedback)
+                    self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                    raise ExchangeError(feedback)
