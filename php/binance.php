@@ -1392,26 +1392,22 @@ class binance extends Exchange {
                         }
                     }
                 }
-                $exceptions = $this->exceptions;
                 $message = $this->safe_string($response, 'msg');
-                if (is_array($exceptions) && array_key_exists($message, $exceptions)) {
-                    $ExceptionClass = $exceptions[$message];
-                    throw new $ExceptionClass($this->id . ' ' . $message);
+                if ($message !== null) {
+                    $this->throw_exactly_matched_exception($this->exceptions, $message, $this->id . ' ' . $message);
                 }
                 // checks against $error codes
                 $error = $this->safe_string($response, 'code');
                 if ($error !== null) {
-                    if (is_array($exceptions) && array_key_exists($error, $exceptions)) {
-                        // a workaround for array("$code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
-                        // despite that their $message is very confusing, it is raised by Binance
-                        // on a temporary ban (the API key is valid, but disabled for a while)
-                        if (($error === '-2015') && $this->options['hasAlreadyAuthenticatedSuccessfully']) {
-                            throw new DDoSProtection($this->id . ' temporary banned => ' . $body);
-                        }
-                        throw new $exceptions[$error]($this->id . ' ' . $body);
-                    } else {
-                        throw new ExchangeError($this->id . ' ' . $body);
+                    // a workaround for array("$code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
+                    // despite that their $message is very confusing, it is raised by Binance
+                    // on a temporary ban (the API key is valid, but disabled for a while)
+                    if (($error === '-2015') && $this->options['hasAlreadyAuthenticatedSuccessfully']) {
+                        throw new DDoSProtection($this->id . ' temporary banned => ' . $body);
                     }
+                    $feedback = $this->id . ' ' . $body;
+                    $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
+                    throw new ExchangeError($feedback);
                 }
                 if (!$success) {
                     throw new ExchangeError($this->id . ' ' . $body);
