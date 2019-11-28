@@ -580,7 +580,7 @@ module.exports = class tradesatoshi extends Exchange {
         const trades = this.safeValue (response, 'result', []);
         return this.parseTrades (trades, market, since, limit);
     }
-    
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
@@ -614,7 +614,7 @@ module.exports = class tradesatoshi extends Exchange {
         }
         return this.filterBySinceLimit (result, since, limit);
     }
-    
+
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -1119,13 +1119,14 @@ module.exports = class tradesatoshi extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, params);
+        const orders = await this.fetchOrders (symbol, params);
         return this.filterBy (orders, 'status', 'closed');
     }
 
     currencyId (currency) {
-        if (currency === 'BCH')
+        if (currency === 'BCH') {
             return 'BCC';
+        }
         return currency;
     }
 
