@@ -1038,9 +1038,9 @@ module.exports = class cex extends Exchange {
                 const fa = this.safeFloat (item, 'fa:' + quoteId, 0);
                 const tfa = this.safeFloat (item, 'tfa:' + quoteId, 0);
                 if (side === 'sell') {
-                    cost = ta + tta + (fa + tfa);
+                    cost = this.sum (this.sum (ta, tta), this.sum (fa, tfa));
                 } else {
-                    cost = ta + tta - (fa + tfa);
+                    cost = this.sum (ta, tta) - this.sum (fa, tfa);
                 }
                 type = 'limit';
                 orderAmount = amount;
