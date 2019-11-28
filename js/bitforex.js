@@ -545,11 +545,8 @@ module.exports = class bitforex extends Exchange {
             if (success !== undefined) {
                 if (!success) {
                     const code = this.safeString (response, 'code');
-                    if (code in this.exceptions) {
-                        throw new this.exceptions[code] (feedback);
-                    } else {
-                        throw new ExchangeError (feedback);
-                    }
+                    this.throwExactlyMatchedException (this.exceptions, code, feedback);
+                    throw new ExchangeError (feedback);
                 }
             }
         }
