@@ -1393,7 +1393,9 @@ module.exports = class binance extends Exchange {
                     }
                 }
                 const message = this.safeString (response, 'msg');
-                this.throwExactlyMatchedException (this.exceptions, message, this.id + ' ' + message);
+                if (message !== undefined) {
+                    this.throwExactlyMatchedException (this.exceptions, message, this.id + ' ' + message);
+                }
                 // checks against error codes
                 const error = this.safeString (response, 'code');
                 if (error !== undefined) {
