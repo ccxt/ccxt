@@ -906,7 +906,7 @@ module.exports = class tradesatoshi extends Exchange {
         //         ]
         //     }
         // }
-        const result = this.safeValue (response, 'result');
+        const result = this.safeValue (response, 'result', {});
         const orderIds = this.safeValue (result, 'CanceledOrders', []);
         for (let i = 0; i < orderIds.length; i++) {
             const id = orderIds[i].toString ();
@@ -1020,7 +1020,7 @@ module.exports = class tradesatoshi extends Exchange {
             'market': marketId,
         };
         const response = await this.publicGetGetMarketStatus (this.extend (request, params));
-        const result = this.safeValue (response, 'result');
+        const result = this.safeValue (response, 'result', {});
         return {
             'info': response,
             'status': this.safeValue (result, 'marketStatus'),
@@ -1186,7 +1186,7 @@ module.exports = class tradesatoshi extends Exchange {
         //         "WithdrawalId": 546474
         //     }
         // }
-        const result = this.safeValue (response, 'result');
+        const result = this.safeValue (response, 'result', {});
         return {
             'info': response,
             'id': this.safeString (result, 'WithdrawalId'),
