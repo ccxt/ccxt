@@ -13,7 +13,7 @@ module.exports = class bitopro extends Exchange {
             'id': 'bitopro',
             'name': 'BitoPro',
             'countries': [ 'TW' ],
-            'version': 'v2',
+            'version': 'v3',
             'rateLimit': 1000,
             'has': {
                 'CORS': false,
@@ -48,7 +48,7 @@ module.exports = class bitopro extends Exchange {
             },
             'urls': {
                 'logo': 'https://www.bitopro.com/bitoPro_logo.svg',
-                'api': 'https://api.bitopro.com/v2',
+                'api': 'https://api.bitopro.com/v3',
                 'www': 'https://www.bitopro.com',
                 'doc': [
                     'https://developers.bitopro.com',
