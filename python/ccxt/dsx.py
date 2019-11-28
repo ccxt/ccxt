@@ -1167,7 +1167,7 @@ class dsx(Exchange):
             if not success:
                 code = self.safe_string(response, 'code')
                 message = self.safe_string(response, 'error')
-                feedback = self.id + ' ' + self.json(response)
+                feedback = self.id + ' ' + body
                 self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
                 self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)

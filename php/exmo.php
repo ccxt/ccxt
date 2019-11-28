@@ -1392,13 +1392,9 @@ class exmo extends Exchange {
                     $numSubParts = is_array ($errorSubParts) ? count ($errorSubParts) : 0;
                     $code = ($numSubParts > 1) ? $errorSubParts[1] : $errorSubParts[0];
                 }
-                $feedback = $this->id . ' ' . $this->json ($response);
-                $exceptions = $this->exceptions;
-                if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
-                    throw new $exceptions[$code]($feedback);
-                } else {
-                    throw new ExchangeError($feedback);
-                }
+                $feedback = $this->id . ' ' . $body;
+                $this->throw_exactly_matched_exception($this->exceptions, $code, $feedback);
+                throw new ExchangeError($feedback);
             }
         }
     }

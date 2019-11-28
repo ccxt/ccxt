@@ -1348,7 +1348,7 @@ class ftx extends Exchange {
         //
         $success = $this->safe_value($response, 'success');
         if (!$success) {
-            $feedback = $this->id . ' ' . $this->json ($response);
+            $feedback = $this->id . ' ' . $body;
             $error = $this->safe_string($response, 'error');
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);

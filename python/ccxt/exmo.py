@@ -1287,9 +1287,6 @@ class exmo(Exchange):
                     errorSubParts = errorParts[0].split(' ')
                     numSubParts = len(errorSubParts)
                     code = errorSubParts[1] if (numSubParts > 1) else errorSubParts[0]
-                feedback = self.id + ' ' + self.json(response)
-                exceptions = self.exceptions
-                if code in exceptions:
-                    raise exceptions[code](feedback)
-                else:
-                    raise ExchangeError(feedback)
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                raise ExchangeError(feedback)

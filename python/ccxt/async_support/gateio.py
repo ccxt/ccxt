@@ -710,9 +710,7 @@ class gateio(Exchange):
         if resultString != 'false':
             return
         errorCode = self.safe_string(response, 'code')
+        message = self.safe_string(response, 'message', body)
         if errorCode is not None:
-            exceptions = self.exceptions
-            if errorCode in exceptions:
-                message = self.safe_string(response, 'message', body)
-                feedback = self.safe_string(self.errorCodeNames, errorCode, message)
-                raise exceptions[errorCode](feedback)
+            feedback = self.safe_string(self.errorCodeNames, errorCode, message)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)

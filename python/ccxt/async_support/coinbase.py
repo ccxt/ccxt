@@ -1101,13 +1101,10 @@ class coinbase(Exchange):
         #      ]
         #    }
         #
-        exceptions = self.exceptions
         errorCode = self.safe_string(response, 'error')
         if errorCode is not None:
-            if errorCode in exceptions:
-                raise exceptions[errorCode](feedback)
-            else:
-                raise ExchangeError(feedback)
+            self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+            raise ExchangeError(feedback)
         errors = self.safe_value(response, 'errors')
         if errors is not None:
             if isinstance(errors, list):
@@ -1115,10 +1112,8 @@ class coinbase(Exchange):
                 if numErrors > 0:
                     errorCode = self.safe_string(errors[0], 'id')
                     if errorCode is not None:
-                        if errorCode in exceptions:
-                            raise exceptions[errorCode](feedback)
-                        else:
-                            raise ExchangeError(feedback)
+                        self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+                        raise ExchangeError(feedback)
         data = self.safe_value(response, 'data')
         if data is None:
             raise ExchangeError(self.id + ' failed due to a malformed response ' + self.json(response))
