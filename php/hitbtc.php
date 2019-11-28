@@ -1027,7 +1027,7 @@ class hitbtc extends Exchange {
         $error = $this->safe_value($response, 'error');
         if ($error) {
             $code = $this->safe_value($error, 'code');
-            $feedback = $this->id . ' ' . $this->json ($response);
+            $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
             throw new ExchangeError($feedback); // unknown $error

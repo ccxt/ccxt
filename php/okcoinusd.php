@@ -1104,17 +1104,13 @@ class okcoinusd extends Exchange {
         }
         if (is_array($response) && array_key_exists('error_code', $response)) {
             $error = $this->safe_string($response, 'error_code');
-            $message = $this->id . ' ' . $this->json ($response);
-            if (is_array($this->exceptions) && array_key_exists($error, $this->exceptions)) {
-                $ExceptionClass = $this->exceptions[$error];
-                throw new $ExceptionClass($message);
-            } else {
-                throw new ExchangeError($message);
-            }
+            $message = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions, $error, $message);
+            throw new ExchangeError($message);
         }
         if (is_array($response) && array_key_exists('result', $response)) {
             if (!$response['result']) {
-                throw new ExchangeError($this->id . ' ' . $this->json ($response));
+                throw new ExchangeError($this->id . ' ' . $body);
             }
         }
     }

@@ -970,7 +970,7 @@ class hitbtc(Exchange):
         error = self.safe_value(response, 'error')
         if error:
             code = self.safe_value(error, 'code')
-            feedback = self.id + ' ' + self.json(response)
+            feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             raise ExchangeError(feedback)  # unknown error

@@ -1308,8 +1308,8 @@ class kraken(Exchange):
                 if 'error' in response:
                     numErrors = len(response['error'])
                     if numErrors:
-                        message = self.id + ' ' + self.json(response)
+                        message = self.id + ' ' + body
                         for i in range(0, len(response['error'])):
-                            if response['error'][i] in self.exceptions:
-                                raise self.exceptions[response['error'][i]](message)
+                            error = response['error'][i]
+                            self.throw_exactly_matched_exception(self.exceptions, error, message)
                         raise ExchangeError(message)

@@ -442,9 +442,7 @@ class tidebit(Exchange):
             feedback = self.id + ' ' + body
             if response is None:
                 raise ExchangeError(feedback)
-            error = self.safe_value(response, 'error')
+            error = self.safe_value(response, 'error', {})
             errorCode = self.safe_string(error, 'code')
-            exceptions = self.exceptions
-            if errorCode in exceptions:
-                raise exceptions[errorCode](feedback)
+            self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
             # fallback to default error handler
