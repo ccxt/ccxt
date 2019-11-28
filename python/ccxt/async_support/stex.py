@@ -324,8 +324,8 @@ class stex(Exchange):
             minBuyPrice = self.safe_float(market, 'min_buy_price')
             minSellPrice = self.safe_float(market, 'min_sell_price')
             minPrice = max(minBuyPrice, minSellPrice)
-            buyFee = self.safe_float(market, 'buy_fee_percent')
-            sellFee = self.safe_float(market, 'sell_fee_percent')
+            buyFee = self.safe_float(market, 'buy_fee_percent') / 100
+            sellFee = self.safe_float(market, 'sell_fee_percent') / 100
             fee = max(buyFee, sellFee)
             result.append({
                 'id': id,
