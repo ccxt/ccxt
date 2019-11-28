@@ -21,6 +21,7 @@ class okex (okcoinusd):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg',
                 'api': {
+                    'v3': 'https://www.okex.com/v3',
                     'web': 'https://www.okex.com/v2',
                     'public': 'https://www.okex.com/api',
                     'private': 'https://www.okex.com/api',
