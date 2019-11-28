@@ -43,7 +43,7 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
 
     public function limit($n = null) {
         $this->index->ksort();
-        if (self::$side) {
+        if (static::$side) {
             $this->index->reverse();
         }
         $keys = $this->index->keys()->toArray();
@@ -117,7 +117,7 @@ trait Counted {
     public function storeArray($delta) {
         $price = $delta[0];
         $size = $delta[1];
-        $count = $delta[3];
+        $count = $delta[2];
         if ($count && $size) {
             $this->index[$price] = $delta;
         } else {
@@ -167,7 +167,7 @@ trait Indexed {
 
     public function limit($n = null) {
         $this->index->sort();
-        if (false) {
+        if (static::$side) {
             $this->index->reverse();
         }
         $values = $this->index->values()->toArray();
@@ -188,12 +188,17 @@ class IndexedOrderBookSide extends OrderBookSide {
 
 class IncrementalOrderBookSide extends OrderBookSide {
     public function store($price, $size) {
-        if ($size) {
-            $this->index[$price] = $this->index->get($price, 0) + $size;
-            if ($this->index[$price] <= 0) {
-                unset($this->index[$price]);
-            }
-        } else {
+        $this->index[$price] = $this->index->get($price, 0) + $size;
+        if ($this->index[$price] <= 0) {
+            unset($this->index[$price]);
+        }
+    }
+
+    public function storeArray($delta) {
+        $price = $delta[0];
+        $size = $delta[1];
+        $this->index[$price] = $this->index->get($price, 0) + $size;
+        if ($this->index[$price] <= 0) {
             unset($this->index[$price]);
         }
     }
@@ -213,7 +218,7 @@ class LimitedIndexedOrderBookSide extends OrderBookSide {
 
     public function limit($n = null) {
         $this->index->sort();
-        if (false) {
+        if (static::$side) {
             $this->index->reverse();
         }
         $keys = $this->index->keys()->toArray();

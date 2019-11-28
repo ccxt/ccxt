@@ -107,12 +107,3 @@ class IncrementalIndexedOrderBook(OrderBook):
         snapshot['bids'] = order_book_side.IncrementalIndexedBids(
             snapshot['bids'] or [])
         super(IncrementalIndexedOrderBook, self).__init__(snapshot)
-
-
-x = OrderBook()
-
-x.update(10, 1000, [[i, i] for i in range(1, 100)], [[8, 9], [10, 11]])
-
-x.limit(10)
-
-print(x['asks'])

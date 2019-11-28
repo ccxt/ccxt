@@ -1,5 +1,6 @@
 'use strict';
 
+const { iso8601 } = require ('ccxt/js/base/functions/time')
 const { extend, deepExtend } = require ('ccxt/js/base/functions/generic.js')
     , {
         Asks,
@@ -39,8 +40,7 @@ class OrderBook {
         const entries = Object.entries (extend (defaults, snapshot))
         for (let i = 0; i < entries.length; i++) {
             const [property, value] = entries[i]
-            //  not sure why deepExtend is necessary here
-            this[property] = deepExtend (this[property], value)
+            this[property] = value
         }
 
         // wrap plain arrays with Bids/Asks classes if necessary
@@ -49,6 +49,9 @@ class OrderBook {
         }
         if (this.bids.constructor.name === 'Array') {
             this.bids = new Bids (this.bids)
+        }
+        if (this.timestamp) {
+            this.datetime = iso8601 (this.timestamp)
         }
     }
 
@@ -80,10 +83,10 @@ class OrderBook {
 
 class LimitedOrderBook extends OrderBook {
     constructor (snapshot = {}, depth = undefined) {
-        super ({
+        super (extend (snapshot, {
             'asks': new LimitedAsks (snapshot.asks || [], depth),
             'bids': new LimitedBids (snapshot.bids || [], depth),
-        })
+        }))
     }
 }
 
@@ -93,10 +96,10 @@ class LimitedOrderBook extends OrderBook {
 
 class CountedOrderBook extends OrderBook {
     constructor (snapshot = {}) {
-        super ({
+        super (extend (snapshot, {
             'asks': new CountedAsks (snapshot.asks || []),
             'bids': new CountedBids (snapshot.bids || []),
-        })
+        }))
     }
 }
 
@@ -105,10 +108,10 @@ class CountedOrderBook extends OrderBook {
 
 class IndexedOrderBook extends OrderBook {
     constructor (snapshot = {}) {
-        super ({
+        super (extend (snapshot, {
             'asks': new IndexedAsks (snapshot.asks || []),
             'bids': new IndexedBids (snapshot.bids || []),
-        })
+        }))
     }
 }
 
@@ -117,10 +120,10 @@ class IndexedOrderBook extends OrderBook {
 
 class IncrementalOrderBook extends OrderBook {
     constructor (snapshot = {}) {
-        super ({
+        super (extend (snapshot, {
             'asks': new IncrementalAsks (snapshot.asks || []),
             'bids': new IncrementalBids (snapshot.bids || []),
-        })
+        }))
     }
 }
 
@@ -129,10 +132,10 @@ class IncrementalOrderBook extends OrderBook {
 
 class LimitedIndexedOrderBook extends OrderBook {
     constructor (snapshot = {}, depth = undefined) {
-        super ({
-            'asks': new LimitedIndexedAsks (snapshot.asks || [], depth),
-            'bids': new LimitedIndexedBids (snapshot.bids || [], depth),
-        })
+        super (extend (snapshot, {
+            'asks': new LimitedAsks (snapshot.asks || []),
+            'bids': new LimitedBids (snapshot.bids || []),
+        }))
     }
 }
 
@@ -141,10 +144,10 @@ class LimitedIndexedOrderBook extends OrderBook {
 
 class LimitedCountedOrderBook extends OrderBook {
     constructor (snapshot = {}, depth = undefined) {
-        super ({
+        super (extend (snapshot, {
             'asks': new LimitedCountedAsks (snapshot.asks || [], depth),
             'bids': new LimitedCountedBids (snapshot.bids || [], depth),
-        })
+        }))
     }
 }
 
@@ -154,10 +157,10 @@ class LimitedCountedOrderBook extends OrderBook {
 
 class IncrementalIndexedOrderBook extends OrderBook {
     constructor (snapshot = {}) {
-        super ({
+        super (extend (snapshot, {
             'asks': new IncrementalIndexedAsks (snapshot.asks || []),
             'bids': new IncrementalIndexedBids (snapshot.bids || []),
-        })
+        }))
     }
 }
 

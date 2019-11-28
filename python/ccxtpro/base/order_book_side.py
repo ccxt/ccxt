@@ -85,6 +85,16 @@ class CountedOrderBookSide(OrderBookSide):
             if price in self._index:
                 del self._index[price]
 
+    def limit(self, n=None):
+        first_element = operator.itemgetter(0)
+        generator = (list(t) for t in self._index.values())
+        array = sorted(generator, key=first_element, reverse=self.side)
+        if n and n < len(array):
+            array = array[:n]
+        self.clear()
+        self.extend(array)
+        return self
+
 # -----------------------------------------------------------------------------
 # indexed by order ids (3rd value in a bidask delta)
 
@@ -106,6 +116,16 @@ class IndexedOrderBookSide(OrderBookSide):
             if order_id in self._index:
                 del self._index[order_id]
 
+    def limit(self, n=None):
+        first_element = operator.itemgetter(0)
+        generator = (list(t) for t in self._index.values())
+        array = sorted(generator, key=first_element, reverse=self.side)
+        if n and n < len(array):
+            array = array[:n]
+        self.clear()
+        self.extend(array)
+        return self
+
 # -----------------------------------------------------------------------------
 # limited and order-id-based
 
@@ -119,21 +139,19 @@ class LimitedIndexedOrderBookSide(IndexedOrderBookSide, LimitedOrderBookSide):
 
 class IncrementalOrderBookSide(OrderBookSide):
     def store(self, price, size):
-        if size:
-            result = self._index.get(price, 0) + size
-            if result > 0:
-                self._index[price] = result
-                return
+        result = self._index.get(price, 0) + size
+        if result > 0:
+            self._index[price] = result
+            return
         if price in self._index:
             del self._index[price]
 
     def storeArray(self, delta):
         price, size = delta
-        if size:
-            result = self._index.get(price, 0) + size
-            if result > 0:
-                self._index[price] = result
-                return
+        result = self._index.get(price, 0) + size
+        if result > 0:
+            self._index[price] = result
+            return
         if price in self._index:
             del self._index[price]
 

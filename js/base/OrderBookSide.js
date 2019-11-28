@@ -5,15 +5,12 @@
 // overwrites absolute volumes at price levels
 
 class OrderBookSide extends Array {
-
-    // static get [Symbol.species] () { return Array }
-
     constructor (deltas = []) {
         super (deltas.length)
         // a string-keyed dictionary of price levels / ids / indices
         Object.defineProperty (this, 'index', {
             __proto__: null, // make it invisible
-            value: {},
+            value: new Map (),
             writable: true,
         })
         if (deltas.length) {
@@ -31,9 +28,9 @@ class OrderBookSide extends Array {
 
     store (price, size) {
         if (size) {
-            this.index[price] = size // absolute volume at price level
+            this.index.set (price, size) // absolute volume at price level)
         } else {
-            delete this.index[price] // purge zero values
+            this.index.delete (price) // purge zero values
         }
     }
 
@@ -47,7 +44,7 @@ class OrderBookSide extends Array {
 
     // replace stored orders with new values
     limit (n = undefined) {
-        const array = Object.entries (this.index).map (this.convert).sort (this.compare)
+        const array = Array.from (this.index.entries ()).sort (this.compare)
         n = Math.min (n || Number.MAX_SAFE_INTEGER, array.length)
         // the following lines could be written as
         //     this.splice (0, this.length, ... array)
@@ -61,10 +58,23 @@ class OrderBookSide extends Array {
         this.length = n
         return this
     }
+}
 
-    // convert from string-keyed dict values to human types for userland
-    convert ([ price, size ]) {
-        return [ Number (price), size ]
+class LimitByValues extends OrderBookSide {
+    limit (n = undefined) {
+        const array = Array.from (this.index.values ()).sort (this.compare)  // use values here instead of entries
+        n = Math.min (n || Number.MAX_SAFE_INTEGER, array.length)
+        // the following lines could be written as
+        //     this.splice (0, this.length, ... array)
+        // however, both .splice and .slice copy-construct the arrays
+        // so we assign the elements manually in favor of splice and slice
+        for (let i = 0; i < n; i++) {
+            this[i] = array[i]
+        }
+        // truncate the array by setting the length
+        // which is a legitimate operation in JS
+        this.length = n
+        return this
     }
 }
 
@@ -74,7 +84,6 @@ class OrderBookSide extends Array {
 // those orders should not be returned to the user, they are outdated quickly
 
 class LimitedOrderBookSide extends OrderBookSide {
-
     constructor (deltas = [], depth = undefined) {
         super (deltas)
         Object.defineProperty (this, 'depth', {
@@ -85,15 +94,15 @@ class LimitedOrderBookSide extends OrderBookSide {
     }
 
     limit (n = undefined) {
-        const array = Object.entries (this.index).map (this.convert).sort (this.compare)
-        const depth = n ? Math.min (this.depth || Number.MAX_SAFE_INTEGER, n) : this.depth
+        const array = Array.from (this.index.entries ()).sort (this.compare)
+        const depth = Math.min (this.depth || Number.MAX_SAFE_INTEGER, n || Number.MAX_SAFE_INTEGER)
         const threshold = Math.min (array.length, depth)
-        this.index = {}
+        this.index = new Map ()
         for (let i = 0; i < threshold; i++) {
             this[i] = array[i];
             const price = array[i][0]
             const size = array[i][1]
-            this.index[price] = size
+            this.index.set (price, size)
         }
         this.length = threshold;
         return this
@@ -104,49 +113,44 @@ class LimitedOrderBookSide extends OrderBookSide {
 // overwrites absolute volumes at price levels
 // or deletes price levels based on order counts (3rd value in a bidask delta)
 
-class CountedOrderBookSide extends OrderBookSide {
-
+class CountedOrderBookSide extends LimitByValues {
     store (price, size, count) {
         if (count && size) {
-            this.index[price] = [ price, size, count ]
+            this.index.set (price, [ price, size, count ])
         } else {
-            delete this.index[price]
+            this.index.delete (price)
         }
     }
 
     storeArray (delta) {
         const [ price, size, count ] = delta
         if (count && size) {
-            this.index[price] = delta
+            this.index.set (price, delta)
         } else {
-            delete this.index[price]
+            this.index.delete (price)
         }
-    }
-
-    convert ([ _, [ price, size, count ]]) {
-        return [ price, size, count ]
     }
 }
 
 // ----------------------------------------------------------------------------
 // indexed by order ids (3rd value in a bidask delta)
 
-class IndexedOrderBookSide extends OrderBookSide {
-
+class IndexedOrderBookSide extends LimitByValues {
     store (price, size, id) {
         if (size) {
-            this.index[id] = [ price, size, id ]
+            this.index.set (id, [ price, size, id ])
         } else {
-            delete this.index[id]
+            this.index.delete (id)
         }
     }
 
     restore (price = undefined, size, id) {
         if (size) {
-            this.index[id][0] = price || this.index[id][0]
-            this.index[id][1] = size
+            const array = this.index.get (id)
+            array[0] = price || array[0]
+            array[1] = size
         } else {
-            delete this.index[id]
+            this.index.delete (id)
         }
     }
 
@@ -156,14 +160,10 @@ class IndexedOrderBookSide extends OrderBookSide {
         const size = delta[1]
             , id = delta[2]
         if (size) {
-            this.index[id] = delta
+            this.index.set (id, delta)
         } else {
-            delete this.index[id]
+            this.index.delete (id)
         }
-    }
-
-    convert ([ _, [ price, size, id ]]) {
-        return [ price, size, id ]
     }
 }
 
@@ -171,15 +171,19 @@ class IndexedOrderBookSide extends OrderBookSide {
 // adjusts the volumes by positive or negative relative changes or differences
 
 class IncrementalOrderBookSide extends OrderBookSide {
-
     store (price, size) {
-        if (size) {
-            this.index[price] = (this.index[price] || 0) + size
-            if (this.index[price] <= 0) {
-                delete this.index[price]
-            }
-        } else {
-            delete this.index[price]
+        this.index.set (price, (this.index.get (price) || 0) + size)
+        if (this.index.get (price) <= 0) {
+            this.index.delete (price)
+        }
+    }
+
+    storeArray (delta) {
+        const price = delta[0]
+        const size = delta[1]
+        this.index.set (price, (this.index.get (price) || 0) + size)
+        if (this.index.get (price) <= 0) {
+            this.index.delete (price)
         }
     }
 }
@@ -198,7 +202,7 @@ class LimitedIndexedOrderBookSide extends IndexedOrderBookSide {
     }
 
     limit (n = undefined) {
-        const array = Object.entries (this.index).map (this.convert).sort (this.compare)
+        const array = Array.from (this.index.entries ()).sort (this.compare)
         const depth = n ? Math.min (this.depth || Number.MAX_SAFE_INTEGER, n) : this.depth
         const threshold = Math.min (array.length, depth)
         this.index = {}
@@ -207,7 +211,7 @@ class LimitedIndexedOrderBookSide extends IndexedOrderBookSide {
             const price = array[i][0]
             const size = array[i][1]
             const id = array[i][2]
-            this.index[id] = array[i]
+            this.index.set (id, array[i])
         }
         this.length = threshold;
         return this
@@ -228,7 +232,7 @@ class LimitedCountedOrderBookSide extends CountedOrderBookSide {
     }
 
     limit (n = undefined) {
-        const array = Object.entries (this.index).map (this.convert).sort (this.compare)
+        const array = Array.from (this.index.entries ()).sort (this.compare)
         const depth = n ? Math.min (this.depth || Number.MAX_SAFE_INTEGER, n) : this.depth
         const threshold = Math.min (array.length, depth)
         this.index = {}
@@ -237,7 +241,7 @@ class LimitedCountedOrderBookSide extends CountedOrderBookSide {
             const price = array[i][0]
             const size = array[i][1]
             const id = array[i][2]
-            this.index[price] = array[i]
+            this.index.set (price, array[i])
         }
         this.length = threshold;
         return this
@@ -248,26 +252,34 @@ class LimitedCountedOrderBookSide extends CountedOrderBookSide {
 // incremental and indexed (2 in 1)
 
 class IncrementalIndexedOrderBookSide extends IndexedOrderBookSide {
-
     store (price, size, id) {
         if (size) {
-            size = (this.index[id] ? this.index[id][1] : 0) + size
+            size = (this.index.get (id) ? this.index.get (id)[1] : 0) + size
             if (size > 0) {
-                this.index[id] = [ price, size, id ]
+                this.index.set (id, [ price, size, id ])
             } else {
-                delete this.index[id]
+                this.index.delete (id)
             }
         } else {
-            delete this.index[id]
+            this.index.delete (id)
         }
     }
 
     storeArray (delta) {
         // const [ price, size, id ] = delta
         const price = delta[0]
-            , size = delta[1]
             , id = delta[2]
-        this.store (price, size, id)
+        let size = delta[1]
+        if (size) {
+            size = (this.index.get (id) ? this.index.get (id)[1] : 0) + size
+            if (size > 0) {
+                this.index.set (id, [ price, size, id ])
+            } else {
+                this.index.delete (id)
+            }
+        } else {
+            this.index.delete (id)
+        }
     }
 }
 

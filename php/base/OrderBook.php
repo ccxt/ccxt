@@ -18,6 +18,9 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
         if (!is_object($this['bids'])) {
             $this['bids'] = new Bids($this['bids']);
         }
+        if ($this['timestamp']) {
+            $this['datetime'] = \ccxt\Exchange::iso8601($this['timestamp']);
+        }
     }
 
     public function jsonSerialize() {
@@ -53,9 +56,9 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
 // those orders should not be returned to the user, they are outdated quickly
 
 class LimitedOrderBook extends OrderBook {
-    public function __construct($snapshot = array()) {
-        $snapshot['asks'] = new LimitedAsks($snapshot['asks'] ? $snapshot['asks'] : array());
-        $snapshot['bids'] = new LimitedBids($snapshot['bids'] ? $snapshot['bids'] : array());
+    public function __construct($snapshot = array(), $depth = null) {
+        $snapshot['asks'] = new LimitedAsks($snapshot['asks'] ? $snapshot['asks'] : array(), $depth);
+        $snapshot['bids'] = new LimitedBids($snapshot['bids'] ? $snapshot['bids'] : array(), $depth);
         parent::__construct($snapshot);
     }
 }
@@ -99,9 +102,9 @@ class IncrementalOrderBook extends OrderBook {
 // limited and indexed (2 in 1)
 
 class LimitedIndexedOrderBook extends OrderBook {
-    public function __construct($snapshot = array()) {
-        $snapshot['asks'] = new LimitedIndexedAsks($snapshot['asks'] ? $snapshot['asks'] : array());
-        $snapshot['bids'] = new LimitedIndexedBids($snapshot['bids'] ? $snapshot['bids'] : array());
+    public function __construct($snapshot = array(), $depth = null) {
+        $snapshot['asks'] = new LimitedIndexedAsks($snapshot['asks'] ? $snapshot['asks'] : array(), $depth);
+        $snapshot['bids'] = new LimitedIndexedBids($snapshot['bids'] ? $snapshot['bids'] : array(), $depth);
         parent::__construct($snapshot);
     }
 }
