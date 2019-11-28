@@ -1481,7 +1481,10 @@ module.exports = class upbit extends Exchange {
                 'nonce': nonce,
             };
             if (Object.keys (query).length) {
-                request['query'] = this.urlencode (query);
+                const auth = this.urlencode (query);
+                const hash = this.hash (this.encode (auth), 'sha512');
+                request['query_hash'] = hash;
+                request['query_hash_alg'] = 'SHA512';
             }
             const jwt = this.jwt (request, this.encode (this.secret));
             headers = {
