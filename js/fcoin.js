@@ -698,10 +698,7 @@ module.exports = class fcoin extends Exchange {
         const status = this.safeString (response, 'status');
         if (status !== '0' && status !== 'ok') {
             const feedback = this.id + ' ' + body;
-            if (status in this.exceptions) {
-                const exceptions = this.exceptions;
-                throw new exceptions[status] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions, status, feedback);
             throw new ExchangeError (feedback);
         }
     }

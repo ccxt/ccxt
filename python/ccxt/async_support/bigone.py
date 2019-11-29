@@ -1012,7 +1012,7 @@ class bigone(Exchange):
         txid = self.safe_string(transaction, 'txid')
         address = self.safe_string(transaction, 'target_address')
         tag = self.safe_string(transaction, 'memo')
-        type = 'deposit' if ('customer_id' in list(transaction.keys())) else 'withdrawal'
+        type = 'deposit' if ('customer_id' in transaction) else 'withdrawal'
         return {
             'info': transaction,
             'id': id,
@@ -1167,13 +1167,7 @@ class bigone(Exchange):
         message = self.safe_string(response, 'message')
         if code != '0':
             feedback = self.id + ' ' + body
-            exact = self.exceptions['exact']
-            if message in exact:
-                raise exact[message](feedback)
-            elif code in exact:
-                raise exact[code](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

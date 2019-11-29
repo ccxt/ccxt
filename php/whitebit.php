@@ -620,16 +620,9 @@ class whitebit extends Exchange {
                 $feedback = $this->id . ' ' . $body;
                 $message = $this->safe_value($response, 'message');
                 if (gettype ($message) === 'string') {
-                    $exact = $this->safe_value($this->exceptions, 'exact', array());
-                    if (is_array($exact) && array_key_exists($message, $exact)) {
-                        throw new $exact[$message]($feedback);
-                    }
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
                 }
-                $broad = $this->safe_value($this->exceptions, 'broad', array());
-                $broadKey = $this->findBroadlyMatchedKey ($broad, $body);
-                if ($broadKey !== null) {
-                    throw new $broad[$broadKey]($feedback);
-                }
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
                 throw new ExchangeError($feedback);
             }
         }

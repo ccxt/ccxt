@@ -1286,12 +1286,9 @@ module.exports = class bytetrade extends Exchange {
         if ('code' in response) {
             const status = this.safeString (response, 'code');
             if (status === '1') {
-                const msg = this.safeString (response, 'msg');
-                const feedback = this.id + ' ' + this.json (response);
-                const exceptions = this.exceptions;
-                if (msg in exceptions) {
-                    throw new exceptions[msg] (feedback);
-                }
+                const message = this.safeString (response, 'msg');
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (this.exceptions, message, feedback);
                 throw new ExchangeError (feedback);
             }
         }

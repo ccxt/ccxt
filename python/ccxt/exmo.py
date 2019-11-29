@@ -900,7 +900,7 @@ class exmo(Exchange):
             # - symbol mismatch(e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
             id = cachedOrderIds[k]
             order = self.orders[id]
-            if not (id in list(openOrdersIndexedById.keys())):
+            if not (id in openOrdersIndexedById):
                 # cached order is not in open orders array
                 # if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
                 if symbol is not None and symbol != order['symbol']:
@@ -988,12 +988,12 @@ class exmo(Exchange):
             marketId = None
             if 'pair' in order:
                 marketId = order['pair']
-            elif ('in_currency' in list(order.keys())) and ('out_currency' in list(order.keys())):
+            elif ('in_currency' in order) and ('out_currency' in order):
                 if side == 'buy':
                     marketId = order['in_currency'] + '_' + order['out_currency']
                 else:
                     marketId = order['out_currency'] + '_' + order['in_currency']
-            if (marketId is not None) and (marketId in list(self.markets_by_id.keys())):
+            if (marketId is not None) and (marketId in self.markets_by_id):
                 market = self.markets_by_id[marketId]
         amount = self.safe_float(order, 'quantity')
         if amount is None:
@@ -1287,9 +1287,6 @@ class exmo(Exchange):
                     errorSubParts = errorParts[0].split(' ')
                     numSubParts = len(errorSubParts)
                     code = errorSubParts[1] if (numSubParts > 1) else errorSubParts[0]
-                feedback = self.id + ' ' + self.json(response)
-                exceptions = self.exceptions
-                if code in exceptions:
-                    raise exceptions[code](feedback)
-                else:
-                    raise ExchangeError(feedback)
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                raise ExchangeError(feedback)

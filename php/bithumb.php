@@ -430,15 +430,10 @@ class bithumb extends Exchange {
                 if ($status === '0000') {
                     return; // no error
                 }
-                $feedback = $this->id . ' ' . $this->json ($response);
-                $exceptions = $this->exceptions;
-                if (is_array($exceptions) && array_key_exists($status, $exceptions)) {
-                    throw new $exceptions[$status]($feedback);
-                } else if (is_array($exceptions) && array_key_exists($message, $exceptions)) {
-                    throw new $exceptions[$message]($feedback);
-                } else {
-                    throw new ExchangeError($feedback);
-                }
+                $feedback = $this->id . ' ' . $body;
+                $this->throw_exactly_matched_exception($this->exceptions, $status, $feedback);
+                $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
+                throw new ExchangeError($feedback);
             }
         }
     }

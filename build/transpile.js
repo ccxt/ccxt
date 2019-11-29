@@ -6,7 +6,7 @@
 
 const fs = require ('fs')
     , log = require ('ololog')
-    , ansi = require ('ansicolor').nice
+    , _ = require ('ansicolor').nice
     , errors = require ('../js/base/errors.js')
     , { unCamelCase, precisionConstants, safeString } = require ('../js/base/functions.js')
     , { basename } = require ('path')
@@ -136,6 +136,9 @@ class Transpiler {
             [ /\.integerDivide/g, '.integer_divide'],
             [ /\.integerModulo/g, '.integer_modulo'],
             [ /\.integerPow/g, '.integer_pow'],
+            [ /\.findBroadlyMatchedKey\s/g, '.find_broadly_matched_key'],
+            [ /\.throwBroadlyMatchedException\s/g, '.throw_broadly_matched_exception'],
+            [ /\.throwExactlyMatchedException\s/g, '.throw_exactly_matched_exception'],
             [ /errorHierarchy/g, 'error_hierarchy'],
             [ /\.base16ToBinary/g, '.base16_to_binary'],
             [ /\'use strict\';?\s+/g, '' ],
@@ -234,7 +237,6 @@ class Transpiler {
             [ /\.indexOf/g, '.find'],
             [ /\strue/g, ' True'],
             [ /\sfalse/g, ' False'],
-            [ /\(([^\s]+)\sin\s([^\)]+)\)/g, '($1 in list($2.keys()))' ],
             [ /([^\s]+\s*\(\))\.toString\s+\(\)/g, 'str($1)' ],
             [ /([^\s]+)\.toString \(\)/g, 'str($1)' ],
             [ /([^\s]+)\.join\s*\(\s*([^\)\[\]]+?)\s*\)/g, '$2.join($1)' ],
@@ -248,8 +250,8 @@ class Transpiler {
             [ /\snot\(/g, ' not (' ],
             [ /\[ /g, '[' ],              // PEP8 E201 remove whitespaces after left [ square bracket
             [ /\{ /g, '{' ],              // PEP8 E201 remove whitespaces after left { bracket
-            [ /([^\s#]+) \]/g, '$1]' ],    // PEP8 E202 remove whitespaces before right ] square bracket
-            [ /([^\s#]+) \}/g, '$1}' ],    // PEP8 E202 remove whitespaces before right } bracket
+            [ /(?<=[^\s#]) \]/g, ']' ],    // PEP8 E202 remove whitespaces before right ] square bracket
+            [ /(?<=[^\s#]) \}/g, '}' ],    // PEP8 E202 remove whitespaces before right } bracket
             [ /([^a-z])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
             [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
             [ /\sdelete\s/g, ' del ' ],

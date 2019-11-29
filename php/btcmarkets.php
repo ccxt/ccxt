@@ -746,13 +746,9 @@ class btcmarkets extends Exchange {
         if (is_array($response) && array_key_exists('success', $response)) {
             if (!$response['success']) {
                 $error = $this->safe_string($response, 'errorCode');
-                $message = $this->id . ' ' . $this->json ($response);
-                if (is_array($this->exceptions) && array_key_exists($error, $this->exceptions)) {
-                    $ExceptionClass = $this->exceptions[$error];
-                    throw new $ExceptionClass($message);
-                } else {
-                    throw new ExchangeError($message);
-                }
+                $feedback = $this->id . ' ' . $body;
+                $this->throw_exactly_matched_exception($this->exceptions, $error, $feedback);
+                throw new ExchangeError($feedback);
             }
         }
     }

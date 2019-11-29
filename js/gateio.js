@@ -764,13 +764,10 @@ module.exports = class gateio extends Exchange {
             return;
         }
         const errorCode = this.safeString (response, 'code');
+        const message = this.safeString (response, 'message', body);
         if (errorCode !== undefined) {
-            const exceptions = this.exceptions;
-            if (errorCode in exceptions) {
-                const message = this.safeString (response, 'message', body);
-                const feedback = this.safeString (this.errorCodeNames, errorCode, message);
-                throw new exceptions[errorCode] (feedback);
-            }
+            const feedback = this.safeString (this.errorCodeNames, errorCode, message);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         }
     }
 };

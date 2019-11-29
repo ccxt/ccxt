@@ -1289,13 +1289,8 @@ class ftx(Exchange):
         #
         success = self.safe_value(response, 'success')
         if not success:
-            feedback = self.id + ' ' + self.json(response)
+            feedback = self.id + ' ' + body
             error = self.safe_string(response, 'error')
-            exact = self.exceptions['exact']
-            if error in exact:
-                raise exact[error](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, error)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             raise ExchangeError(feedback)  # unknown message

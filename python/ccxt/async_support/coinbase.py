@@ -496,7 +496,7 @@ class coinbase(Exchange):
         for i in range(0, len(baseIds)):
             baseId = baseIds[i]
             base = self.safe_currency_code(baseId)
-            type = 'fiat' if (baseId in list(dataById.keys())) else 'crypto'
+            type = 'fiat' if (baseId in dataById) else 'crypto'
             # https://github.com/ccxt/ccxt/issues/6066
             if type == 'crypto':
                 for j in range(0, len(data)):
@@ -588,7 +588,7 @@ class coinbase(Exchange):
         result = {}
         for i in range(0, len(keys)):
             key = keys[i]
-            type = 'fiat' if (key in list(dataById.keys())) else 'crypto'
+            type = 'fiat' if (key in dataById) else 'crypto'
             currency = self.safe_value(dataById, key, {})
             id = self.safe_string(currency, 'id', key)
             name = self.safe_string(currency, 'name')
@@ -1101,13 +1101,10 @@ class coinbase(Exchange):
         #      ]
         #    }
         #
-        exceptions = self.exceptions
         errorCode = self.safe_string(response, 'error')
         if errorCode is not None:
-            if errorCode in exceptions:
-                raise exceptions[errorCode](feedback)
-            else:
-                raise ExchangeError(feedback)
+            self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+            raise ExchangeError(feedback)
         errors = self.safe_value(response, 'errors')
         if errors is not None:
             if isinstance(errors, list):
@@ -1115,10 +1112,8 @@ class coinbase(Exchange):
                 if numErrors > 0:
                     errorCode = self.safe_string(errors[0], 'id')
                     if errorCode is not None:
-                        if errorCode in exceptions:
-                            raise exceptions[errorCode](feedback)
-                        else:
-                            raise ExchangeError(feedback)
+                        self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+                        raise ExchangeError(feedback)
         data = self.safe_value(response, 'data')
         if data is None:
             raise ExchangeError(self.id + ' failed due to a malformed response ' + self.json(response))

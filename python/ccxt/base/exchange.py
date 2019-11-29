@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.19.75'
+__version__ = '1.20.15'
 
 # -----------------------------------------------------------------------------
 
@@ -467,6 +467,15 @@ class Exchange(object):
                 return gzip.GzipFile('', 'rb', 9, io.BytesIO(text)).read()
         return text
 
+    def throw_exactly_matched_exception(self, exact, string, message):
+        if string in exact:
+            raise exact[string](message)
+
+    def throw_broadly_matched_exception(self, broad, string, message):
+        broad_key = self.find_broadly_matched_key(broad, string)
+        if broad_key is not None:
+            raise broad[broad_key](message)
+
     def find_broadly_matched_key(self, broad, string):
         """A helper method for matching error strings exactly vs broadly"""
         keys = list(broad.keys())
@@ -597,7 +606,7 @@ class Exchange(object):
             pass
 
     def is_text_response(self, headers):
-        return headers['Content-Type'].startswith('text/')
+        return headers.get('Content-Type', '').startswith('text/')
 
     @staticmethod
     def key_exists(dictionary, key):

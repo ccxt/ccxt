@@ -1061,15 +1061,10 @@ class huobipro extends Exchange {
             $status = $this->safe_string($response, 'status');
             if ($status === 'error') {
                 $code = $this->safe_string($response, 'err-code');
-                $feedback = $this->id . ' ' . $this->json ($response);
-                $exceptions = $this->exceptions['exact'];
-                if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
-                    throw new $exceptions[$code]($feedback);
-                }
+                $feedback = $this->id . ' ' . $body;
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
                 $message = $this->safe_string($response, 'err-msg');
-                if (is_array($exceptions) && array_key_exists($message, $exceptions)) {
-                    throw new $exceptions[$message]($feedback);
-                }
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
                 throw new ExchangeError($feedback);
             }
         }

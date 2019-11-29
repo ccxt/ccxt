@@ -545,12 +545,8 @@ class bitso extends Exchange {
                     throw new ExchangeError($feedback);
                 }
                 $code = $this->safe_string($error, 'code');
-                $exceptions = $this->exceptions;
-                if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
-                    throw new $exceptions[$code]($feedback);
-                } else {
-                    throw new ExchangeError($feedback);
-                }
+                $this->throw_exactly_matched_exception($this->exceptions, $code, $feedback);
+                throw new ExchangeError($feedback);
             }
         }
     }

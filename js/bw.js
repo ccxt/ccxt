@@ -484,16 +484,17 @@ module.exports = class bw extends Exchange {
         //
         //     ...
         //
-        const timestamp = parseInt (trade[2]) * 1000;
-        const price = parseFloat (trade[5]);
-        const amount = parseFloat (trade[6]);
-        const marketId = trade[1];
+        const timestamp = this.safeTimestamp (trade, 2);
+        const price = this.safeFloat (trade, 5);
+        const amount = this.safeFloat (trade, 6);
+        const marketId = this.safeString (trade, 1);
         let symbol = undefined;
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             } else {
-                const [ baseId, quoteId ] = trade[3].split ('_');
+                const marketName = this.safeString (trade, 3);
+                const [ baseId, quoteId ] = marketName.split ('_');
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
@@ -508,10 +509,10 @@ module.exports = class bw extends Exchange {
                 cost = this.costToPrecision (symbol, price * amount);
             }
         }
-        const side = (trade[4] === 'ask') ? 'sell' : 'buy';
-        const id = this.safeString (trade, 'id');
+        const sideString = this.safeString (trade, 4);
+        const side = (sideString === 'ask') ? 'sell' : 'buy';
         return {
-            'id': id,
+            'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -559,7 +560,7 @@ module.exports = class bw extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            parseInt (this.safeFloat (ohlcv, 3) * 1000),
+            this.safeTimestamp (ohlcv, 3),
             this.safeFloat (ohlcv, 4),
             this.safeFloat (ohlcv, 5),
             this.safeFloat (ohlcv, 6),
@@ -981,9 +982,6 @@ module.exports = class bw extends Exchange {
             '-1': 'canceled', // or auditing failed
             '0': 'pending',
             '1': 'ok',
-            //         "verifyStatus": 1,                           // Audit status, 0: to be audited, 1: auditing passed, -1: auditing failed
-            //         "status": 1,                                          // Deposit status, 0: not received, 1: received
-            //         "status": 1,                                          // Deposit status, 0: not received, 1: received
         };
         return this.safeString (statuses, status, status);
     }
@@ -1047,8 +1045,8 @@ module.exports = class bw extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'addressFrom': undefined,
-            'address': undefined,
-            'addressTo': address,
+            'address': address,
+            'addressTo': undefined,
             'tagFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
@@ -1158,10 +1156,7 @@ module.exports = class bw extends Exchange {
         const errorCode = this.safeString (resMsg, 'code');
         if (errorCode !== '1') {
             const feedback = this.id + ' ' + this.json (response);
-            const exact = this.exceptions['exact'];
-            if (errorCode in exact) {
-                throw new exact[errorCode] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             throw new ExchangeError (feedback); // unknown error
         }
     }

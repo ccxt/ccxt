@@ -118,6 +118,7 @@ module.exports = class upbit extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    'This key has expired.': AuthenticationError,
                     'Missing request parameter error. Check the required parameters!': BadRequest,
                     'side is missing, side does not have a valid value': InvalidOrder,
                 },
@@ -1467,7 +1468,7 @@ module.exports = class upbit extends Exchange {
         });
         url += '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (method === 'GET') {
+        if (method !== 'POST') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
@@ -1480,13 +1481,16 @@ module.exports = class upbit extends Exchange {
                 'nonce': nonce,
             };
             if (Object.keys (query).length) {
-                request['query'] = this.urlencode (query);
+                const auth = this.urlencode (query);
+                const hash = this.hash (this.encode (auth), 'sha512');
+                request['query_hash'] = hash;
+                request['query_hash_alg'] = 'SHA512';
             }
             const jwt = this.jwt (request, this.encode (this.secret));
             headers = {
                 'Authorization': 'Bearer ' + jwt,
             };
-            if (method !== 'GET') {
+            if ((method !== 'GET') && (method !== 'DELETE')) {
                 body = this.json (params);
                 headers['Content-Type'] = 'application/json';
             }
@@ -1513,23 +1517,11 @@ module.exports = class upbit extends Exchange {
         if (error !== undefined) {
             const message = this.safeString (error, 'message');
             const name = this.safeString (error, 'name');
-            const feedback = this.id + ' ' + this.json (response);
-            const exact = this.exceptions['exact'];
-            if (message in exact) {
-                throw new exact[message] (feedback);
-            }
-            if (name in exact) {
-                throw new exact[name] (feedback);
-            }
-            const broad = this.exceptions['broad'];
-            let broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
-            broadKey = this.findBroadlyMatchedKey (broad, name);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], name, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], name, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }
