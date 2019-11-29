@@ -255,7 +255,7 @@ class LimitedCountedOrderBookSide extends CountedOrderBookSide {
 class IncrementalIndexedOrderBookSide extends IndexedOrderBookSide {
     store (price, size, id) {
         if (size) {
-            size = (this.index.get (id) ? this.index.get (id)[1] : 0) + size
+            size = (this.index.get (id) || 0) + size
             if (size > 0) {
                 this.index.set (id, [ price, size, id ])
             } else {
@@ -272,7 +272,7 @@ class IncrementalIndexedOrderBookSide extends IndexedOrderBookSide {
             , id = delta[2]
         let size = delta[1]
         if (size) {
-            size = (this.index.get (id) ? this.index.get (id)[1] : 0) + size
+            size = (this.index.get (id) || 0) + size
             if (size > 0) {
                 this.index.set (id, [ price, size, id ])
             } else {
