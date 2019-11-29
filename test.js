@@ -6,9 +6,56 @@ const ccxtpro = require ('./ccxt.pro.js')
 
     const symbol = 'ETH/BTC'
 
+    const exchange = new ccxtpro.binance ({
+        'enableRateLimit': true,
+    })
+
+    // console.log (exchange.sum (undefined, 2));
+    // process.exit ();
+
+    // for (let i = 0; i < 2; i++) {
+    while (true) {
+        try {
+            let response = undefined
+            for (let i = 0; i < 10; i++) {
+                response = await exchange.fetchWsOrderBook (symbol)
+            }
+            console.log (new Date (), response.asks.length, 'asks', response.asks[0], response.bids.length, 'bids', response.bids[0])
+        } catch (e) {
+            console.log (new Date (), e)
+            process.exit ()
+        }
+    }
+
+    process.exit ();
+
+    /*
+
+    const symbol = 'ETH/BTC'
+
     const kraken = new ccxtpro.kraken ({
         'enableRateLimit': true,
     })
+
+    while (true) {
+        try {
+            const response = await kraken.fetchWsOHLCV (symbol)
+            console.log (new Date (), response)
+        } catch (e) {
+            console.log ('ERROR', e)
+        }
+    }
+
+    process.exit ();
+
+    try {
+        let response = await kraken.fetchWsOrderBook (symbol)
+        console.log (new Date (), response.asks.length, 'asks', response.asks[0], response.bids.length, 'bids', response.bids[0])
+    } catch (e) {
+        console.log ('ERROR', e)
+    }
+
+    process.exit ();
 
     // for (let i = 0; i < 2; i++) {
     while (true) {
@@ -107,4 +154,6 @@ const ccxtpro = require ('./ccxt.pro.js')
     //     await sleep (5000)
     //     process.exit ()
     // }
+
+    //*/
 }) ()

@@ -23,11 +23,13 @@ module.exports = class WebSocketClient {
             callback,             // onMessage callback
             protocols: undefined, // ws protocols
             options: undefined,   // ws options
-            reconnect: false, // reconnect on connection loss, not really needed here
-            reconnectDelay: 1000, // not used atm
+            // todo: implement proper back-off
+            backOff: true,
+            // reconnect: false, // reconnect on connection loss, not really needed here
+            // reconnectDelay: 1000, // not used atm
             timers: {},
-            futures: {},
-            subscriptions: {},
+            futures: {}, // i don't think they belong here
+            subscriptions: {}, // i don't think they belong here
             timeouts: {
                 // delay should be equal to the interval at which your
                 // server sends out pings plus a conservative assumption
@@ -35,12 +37,13 @@ module.exports = class WebSocketClient {
                 // ping: 5000 + 1000,
                 ping: false,
                 heartbeat: 1500,
-            }
+            },
             // pingTimeout: 30000 + 1000,
             // enabledTimeouts: {
             //     ping: true,
             //     heartbeat: true,
             // },
+            keepAlive: true,
         }
         Object.assign (this, deepExtend (defaults, config))
         this.connect ()
@@ -100,8 +103,8 @@ module.exports = class WebSocketClient {
     }
 
     async send (message) {
-        // await this.connect () // for auto-reconnecting
-        await this.connected // for one-time connections
+        await this.connect () // for auto-reconnecting
+        // await this.connected // for one-time connections
         this.ws.send (JSON.stringify (message))
     }
 
@@ -124,9 +127,11 @@ module.exports = class WebSocketClient {
         // }))
     }
 
+    // this method is not used at this time, because in JS the ws client will
+    // respond to pings coming from the server with pongs automatically
+    // however, some devs may want to track connection states in their app
     onPing () {
         console.log (new Date (), 'ping')
-        this.resetTimeout ('ping', 'ping')
     }
 
     onPong () {
@@ -135,21 +140,18 @@ module.exports = class WebSocketClient {
     }
 
     onError (error) {
-        console.log (new Date (), 'error')
-        // TODO: convert ws errors to ccxt errors
+        console.log (new Date (), 'error', error)
+        // TODO: convert ws errors to ccxt errors if necessary
         this.connected.reject (new ccxt.NetworkError (error))
     }
 
     onClose () {
-        // whatever the reason to close the connection - reopen it if needed
         console.log (new Date (), 'close')
         this.clearTimeout ('ping', 'close')
-        if (this.reconnect) {
-            console.log (new Date (), 'reconnecting...')
-            this.connect ()
-        }
     }
 
+    // this method is not used at this time
+    // but may be used to read protocol-level data like cookies, headers, etc
     onUpgrade (message) {
         console.log (new Date (), 'upgrade')
     }
