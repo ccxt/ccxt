@@ -810,21 +810,13 @@ class latoken(Exchange):
         #     {"error": {"message": "Order 1563460289.571254.704945@0370:1 is not found","errorType":"RequestError","statusCode":400}}
         #
         message = self.safe_string(response, 'message')
-        exact = self.exceptions['exact']
-        broad = self.exceptions['broad']
         feedback = self.id + ' ' + body
         if message is not None:
-            if message in exact:
-                raise exact[message](feedback)
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
         error = self.safe_value(response, 'error', {})
         errorMessage = self.safe_string(error, 'message')
         if errorMessage is not None:
-            if errorMessage in exact:
-                raise exact[errorMessage](feedback)
-            broadKey = self.findBroadlyMatchedKey(broad, errorMessage)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorMessage, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
             raise ExchangeError(feedback)  # unknown message

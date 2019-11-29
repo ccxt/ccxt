@@ -1286,12 +1286,9 @@ class bytetrade extends Exchange {
         if (is_array($response) && array_key_exists('code', $response)) {
             $status = $this->safe_string($response, 'code');
             if ($status === '1') {
-                $msg = $this->safe_string($response, 'msg');
-                $feedback = $this->id . ' ' . $this->json ($response);
-                $exceptions = $this->exceptions;
-                if (is_array($exceptions) && array_key_exists($msg, $exceptions)) {
-                    throw new $exceptions[$msg]($feedback);
-                }
+                $message = $this->safe_string($response, 'msg');
+                $feedback = $this->id . ' ' . $body;
+                $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
                 throw new ExchangeError($feedback);
             }
         }

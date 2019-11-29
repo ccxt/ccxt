@@ -634,7 +634,7 @@ class hitbtc2(hitbtc):
                 if currency['disabled']:
                     active = False
             type = 'fiat'
-            if ('crypto' in list(currency.keys())) and currency['crypto']:
+            if ('crypto' in currency) and currency['crypto']:
                 type = 'crypto'
             name = self.safe_string(currency, 'fullName')
             result[code] = {
@@ -1393,10 +1393,8 @@ class hitbtc2(hitbtc):
             # {"error":{"code":20002,"message":"Order not found","description":""}}
             if body[0] == '{':
                 if 'error' in response:
-                    code = self.safe_string(response['error'], 'code')
-                    exceptions = self.exceptions
-                    if code in exceptions:
-                        raise exceptions[code](feedback)
+                    errorCode = self.safe_string(response['error'], 'code')
+                    self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
                     message = self.safe_string(response['error'], 'message')
                     if message == 'Duplicate clientOrderId':
                         raise InvalidOrder(feedback)

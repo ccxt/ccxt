@@ -415,10 +415,10 @@ class idex(Exchange):
             #      amountSell: '153300000000000000',
             #      expires: 100000,
             #      nonce: 1,
-            #      user: '0x0ab991497116f7f5532a4c2f4f7b1784488628e1'} }
+            #      user: '0x0ab991497116f7f5532a4c2f4f7b1784488628e1'}}
             return self.parse_order(response, market)
         elif type == 'market':
-            if not ('orderHash' in list(params.keys())):
+            if not ('orderHash' in params):
                 raise ArgumentsRequired(self.id + ' market order requires an order structure such as that in fetchOrderBook()[\'bids\'][0][2], fetchOrder()[\'info\'], or fetchOpenOrders()[0][\'info\']')
             # {price: '0.000132247803328924',
             #   amount: '19980',
@@ -436,7 +436,7 @@ class idex(Exchange):
             #      amountSell: '19980000000000000000000',
             #      expires: 10000,
             #      nonce: 1564656561510,
-            #      user: '0xc3f8304270e49b8e8197bfcfd8567b83d9e4479b'} }
+            #      user: '0xc3f8304270e49b8e8197bfcfd8567b83d9e4479b'}}
             orderToSign = {
                 'orderHash': params['orderHash'],
                 'amount': params['params']['amountBuy'],
@@ -703,7 +703,7 @@ class idex(Exchange):
         if 'market' in order:
             marketId = order['market']
             symbol = self.markets_by_id[marketId]['symbol']
-        elif (side is not None) and ('params' in list(order.keys())):
+        elif (side is not None) and ('params' in order):
             params = order['params']
             buy = self.safe_currency_code(self.safe_string(params, 'tokenBuy'))
             sell = self.safe_currency_code(self.safe_string(params, 'tokenSell'))

@@ -1159,14 +1159,10 @@ class coinbase extends Exchange {
         //      )
         //    }
         //
-        $exceptions = $this->exceptions;
         $errorCode = $this->safe_string($response, 'error');
         if ($errorCode !== null) {
-            if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
-                throw new $exceptions[$errorCode]($feedback);
-            } else {
-                throw new ExchangeError($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions, $errorCode, $feedback);
+            throw new ExchangeError($feedback);
         }
         $errors = $this->safe_value($response, 'errors');
         if ($errors !== null) {
@@ -1175,11 +1171,8 @@ class coinbase extends Exchange {
                 if ($numErrors > 0) {
                     $errorCode = $this->safe_string($errors[0], 'id');
                     if ($errorCode !== null) {
-                        if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
-                            throw new $exceptions[$errorCode]($feedback);
-                        } else {
-                            throw new ExchangeError($feedback);
-                        }
+                        $this->throw_exactly_matched_exception($this->exceptions, $errorCode, $feedback);
+                        throw new ExchangeError($feedback);
                     }
                 }
             }

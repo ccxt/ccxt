@@ -696,10 +696,7 @@ module.exports = class deribit extends Exchange {
         const error = this.safeString (response, 'error');
         if ((error !== undefined) && (error !== '0')) {
             const feedback = this.id + ' ' + body;
-            const exceptions = this.exceptions;
-            if (error in exceptions) {
-                throw new exceptions[error] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions, error, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

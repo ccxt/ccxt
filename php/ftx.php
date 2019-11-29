@@ -1348,17 +1348,10 @@ class ftx extends Exchange {
         //
         $success = $this->safe_value($response, 'success');
         if (!$success) {
-            $feedback = $this->id . ' ' . $this->json ($response);
+            $feedback = $this->id . ' ' . $body;
             $error = $this->safe_string($response, 'error');
-            $exact = $this->exceptions['exact'];
-            if (is_array($exact) && array_key_exists($error, $exact)) {
-                throw new $exact[$error]($feedback);
-            }
-            $broad = $this->exceptions['broad'];
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $error);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
     }

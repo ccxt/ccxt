@@ -34,6 +34,7 @@ See Also
 -  \ `Nomics API <https://p.nomics.com/cryptocurrency-bitcoin-api>`__\   `Nomics API <https://p.nomics.com/cryptocurrency-bitcoin-api>`__ — enterprise-grade `crypto market cap & pricing data <https://nomics.com>`__ API for your fund, smart contract, or app.
 -  \ `Quadency <https://quadency.com?utm_source=ccxt>`__\   `Quadency <https://quadency.com?utm_source=ccxt>`__ — professional crypto terminal, algo trading, and unified streaming APIs.
 -  \ `TabTrader <https://tab-trader.com/?utm_source=ccxt>`__\   `TabTrader <https://tab-trader.com/?utm_source=ccxt>`__ — trading on all exchanges in one app. Avaliable on `Android <https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt>`__ and `iOS <https://itunes.apple.com/app/apple-store/id1095716562?mt=8>`__.
+-  \ `CoinFabrik <https://www.coinfabrik.com/#contact_us>`__\   `CoinFabrik <https://www.coinfabrik.com/#contact_us>`__ — development, research, and security audit for cryptocurrency and blockchain applications.
 
 Certified Cryptocurrency Exchanges
 ----------------------------------
@@ -208,8 +209,6 @@ The ccxt library currently supports the following 126 cryptocurrency exchange ma
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | dsx                | `DSX <https://dsx.uk>`__                                                                   | 3   | `API <https://dsx.uk/developers/publicApi>`__                                                   |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| dx                 | `DX.Exchange <https://dx.exchange/registration?dx_cid=20&dx_scname=100001100000038139>`__  | 1   | `API <https://apidocs.dx.exchange>`__                                                           |                                                                      |
-+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | exmo               | `EXMO <https://exmo.me/?ref=131685>`__                                                     | 1   | `API <https://exmo.me/en/api_doc?ref=131685>`__                                                 |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | exx                | `EXX <https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f?recommQd=1>`__                | \*  | `API <https://www.exx.com/help/restApi>`__                                                      |                                                                      |
@@ -296,6 +295,8 @@ The ccxt library currently supports the following 126 cryptocurrency exchange ma
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | southxchange       | `SouthXchange <https://www.southxchange.com>`__                                            | \*  | `API <https://www.southxchange.com/Home/Api>`__                                                 |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
+| stex               | `STEX <https://app.stex.com?ref=36416021>`__                                               | 3   | `API <https://help.stex.com/en/collections/1593608-api-v3-documentation>`__                     |                                                                      |
++--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | stronghold         | `Stronghold <https://stronghold.co>`__                                                     | 1   | `API <https://docs.stronghold.co>`__                                                            |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | surbitcoin         | `SurBitcoin <https://surbitcoin.com>`__                                                    | 1   | `API <https://blinktrade.com/docs>`__                                                           |                                                                      |
@@ -376,14 +377,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@undefined/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@undefined/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.20.15/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.20.15/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@undefined/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.20.15/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

@@ -699,10 +699,7 @@ class fcoin extends Exchange {
         $status = $this->safe_string($response, 'status');
         if ($status !== '0' && $status !== 'ok') {
             $feedback = $this->id . ' ' . $body;
-            if (is_array($this->exceptions) && array_key_exists($status, $this->exceptions)) {
-                $exceptions = $this->exceptions;
-                throw new $exceptions[$status]($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions, $status, $feedback);
             throw new ExchangeError($feedback);
         }
     }

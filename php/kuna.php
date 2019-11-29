@@ -138,7 +138,7 @@ class kuna extends acx {
         if ($market) {
             $symbol = $market['symbol'];
         }
-        $side = $this->safe_string($trade, 'side');
+        $side = $this->safe_string_2($trade, 'side', 'trend');
         if ($side !== null) {
             $sideMap = array (
                 'ask' => 'sell',

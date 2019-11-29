@@ -671,10 +671,8 @@ module.exports = class bcex extends Exchange {
                 //
                 const message = this.safeString (response, 'msg');
                 const feedback = this.id + ' ' + message;
-                const exceptions = this.exceptions;
-                if (message in exceptions) {
-                    throw new exceptions[message] (feedback);
-                } else if (message.indexOf ('请您重新挂单') >= 0) {  // minimum limit
+                this.throwExactlyMatchedException (this.exceptions, message, feedback);
+                if (message.indexOf ('请您重新挂单') >= 0) {  // minimum limit
                     throw new InvalidOrder (feedback);
                 } else {
                     throw new ExchangeError (feedback);

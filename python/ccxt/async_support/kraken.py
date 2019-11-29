@@ -658,7 +658,7 @@ class kraken(Exchange):
         #                                        asset: "XETH",
         #                                       amount: "-0.2805800000",
         #                                          fee: "0.0050000000",
-        #                                      balance: "0.0000051000"           }} }
+        #                                      balance: "0.0000051000"           }}}
         result = response['result']
         keys = list(result.keys())
         items = []
@@ -1220,7 +1220,7 @@ class kraken(Exchange):
         if method is None:
             if self.options['cacheDepositMethodsOnFetchDepositAddress']:
                 # cache depositMethods
-                if not (code in list(self.options['depositMethods'].keys())):
+                if not (code in self.options['depositMethods']):
                     self.options['depositMethods'][code] = await self.fetch_deposit_methods(code)
                 method = self.options['depositMethods'][code][0]['method']
             else:
@@ -1308,8 +1308,8 @@ class kraken(Exchange):
                 if 'error' in response:
                     numErrors = len(response['error'])
                     if numErrors:
-                        message = self.id + ' ' + self.json(response)
+                        message = self.id + ' ' + body
                         for i in range(0, len(response['error'])):
-                            if response['error'][i] in self.exceptions:
-                                raise self.exceptions[response['error'][i]](message)
+                            error = response['error'][i]
+                            self.throw_exactly_matched_exception(self.exceptions, error, message)
                         raise ExchangeError(message)

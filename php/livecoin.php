@@ -891,25 +891,17 @@ class livecoin extends Exchange {
         }
         if ($code >= 300) {
             $feedback = $this->id . ' ' . $body;
-            $exact = $this->exceptions['exact'];
             $errorCode = $this->safe_string($response, 'errorCode');
-            if (is_array($exact) && array_key_exists($errorCode, $exact)) {
-                throw new $exact[$errorCode]($feedback);
-            } else {
-                throw new ExchangeError($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            throw new ExchangeError($feedback);
         }
         // returns status $code 200 even if $success === false
         $success = $this->safe_value($response, 'success', true);
         if (!$success) {
             $feedback = $this->id . ' ' . $body;
-            $broad = $this->exceptions['broad'];
             $message = $this->safe_string_2($response, 'message', 'exception');
             if ($message !== null) {
-                $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
-                if ($broadKey !== null) {
-                    throw new $broad[$broadKey]($feedback);
-                }
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             }
             throw new ExchangeError($feedback);
         }

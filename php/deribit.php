@@ -696,10 +696,7 @@ class deribit extends Exchange {
         $error = $this->safe_string($response, 'error');
         if (($error !== null) && ($error !== '0')) {
             $feedback = $this->id . ' ' . $body;
-            $exceptions = $this->exceptions;
-            if (is_array($exceptions) && array_key_exists($error, $exceptions)) {
-                throw new $exceptions[$error]($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions, $error, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
     }
