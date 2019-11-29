@@ -940,7 +940,7 @@ class okex3 extends Exchange {
         if ($feeCost !== null) {
             $feeCurrency = null;
             if ($market !== null) {
-                $feeCurrency = $side === 'buy' ? $market['base'] : $market['quote'];
+                $feeCurrency = ($side === 'buy') ? $market['base'] : $market['quote'];
             }
             $fee = array (
                 // $fee is either a positive number (invitation rebate)
