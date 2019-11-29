@@ -935,7 +935,7 @@ class okex3(Exchange):
         if feeCost is not None:
             feeCurrency = None
             if market is not None:
-                feeCurrency = side == market['base'] if 'buy' else market['quote']
+                feeCurrency = market['base'] if (side == 'buy') else market['quote']
             fee = {
                 # fee is either a positive number(invitation rebate)
                 # or a negative number(transaction fee deduction)
