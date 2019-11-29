@@ -206,7 +206,7 @@ class LimitedIndexedOrderBookSide extends IndexedOrderBookSide {
         const array = Array.from (this.index.entries ()).sort (this.compare)
         const depth = n ? Math.min (this.depth || Number.MAX_SAFE_INTEGER, n) : this.depth
         const threshold = Math.min (array.length, depth)
-        this.index = {}
+        this.index = new Map ()
         for (let i = 0; i < threshold; i++) {
             this[i] = array[i];
             const price = array[i][0]
@@ -236,7 +236,7 @@ class LimitedCountedOrderBookSide extends CountedOrderBookSide {
         const array = Array.from (this.index.entries ()).sort (this.compare)
         const depth = n ? Math.min (this.depth || Number.MAX_SAFE_INTEGER, n) : this.depth
         const threshold = Math.min (array.length, depth)
-        this.index = {}
+        this.index = new Map ()
         for (let i = 0; i < threshold; i++) {
             this[i] = array[i];
             const price = array[i][0]
