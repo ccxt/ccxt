@@ -78,6 +78,7 @@ class CCXTProTranspiler extends Transpiler {
             "",
             "from ccxtpro.base.order_book import OrderBook, LimitedOrderBook, IndexedOrderBook, CountedOrderBook, IncrementalOrderBook  # noqa: F402",
             "",
+            "",
             "def equals(a, b):",
             "    return a == b",
             "",
