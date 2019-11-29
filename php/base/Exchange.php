@@ -780,10 +780,6 @@ class Exchange {
         return array();
     }
 
-    public function __destruct() {
-        curl_close ($this->curl);
-    }
-
     public function __construct($options = array()) {
         // todo auto-camelcasing for methods in PHP
         // $method_names = get_class_methods ($this);
@@ -802,7 +798,7 @@ class Exchange {
         // }
 
         $this->defined_rest_api = array();
-        $this->curl = curl_init();
+        $this->curl = null;
         $this->curl_options = array(); // overrideable by user, empty by default
 
         $this->id = null;
@@ -1254,7 +1250,11 @@ class Exchange {
         // we don't do a reset here to save those cookies in between the calls
         // if the user wants to reset the curl handle between his requests
         // then curl_reset can be called manually in userland
-        // curl_reset($this->curl);
+        // curl_reset($this->curl); // this was removed because it kills cookies
+        if ($this->curl) {
+            curl_close($this->curl); // we properly close the curl channel here to save cookies
+        }
+        $this->curl = curl_init(); // we need a "clean" curl object for additional calls, so we initialize curl again
 
         curl_setopt($this->curl, CURLOPT_URL, $url);
 
