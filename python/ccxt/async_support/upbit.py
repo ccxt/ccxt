@@ -1418,15 +1418,15 @@ class upbit(Exchange):
         if response is None:
             return  # fallback to default error handler
         #
-        #   {'error': {'message': "Missing request parameter error. Check the required parametersnot ", 'name':  400} },
-        #   {'error': {'message': "side is missing, side does not have a valid value", 'name': "validation_error"} },
-        #   {'error': {'message': "개인정보 제 3자 제공 동의가 필요합니다.", 'name': "thirdparty_agreement_required"} },
-        #   {'error': {'message': "권한이 부족합니다.", 'name': "out_of_scope"} },
-        #   {'error': {'message': "주문을 찾지 못했습니다.", 'name': "order_not_found"} },
-        #   {'error': {'message': "주문가능한 금액(ETH)이 부족합니다.", 'name': "insufficient_funds_ask"} },
-        #   {'error': {'message': "주문가능한 금액(BTC)이 부족합니다.", 'name': "insufficient_funds_bid"} },
-        #   {'error': {'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key"} },
-        #   {'error': {'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification"} }
+        #   {'error': {'message': "Missing request parameter error. Check the required parametersnot ", 'name':  400}},
+        #   {'error': {'message': "side is missing, side does not have a valid value", 'name': "validation_error"}},
+        #   {'error': {'message': "개인정보 제 3자 제공 동의가 필요합니다.", 'name': "thirdparty_agreement_required"}},
+        #   {'error': {'message': "권한이 부족합니다.", 'name': "out_of_scope"}},
+        #   {'error': {'message': "주문을 찾지 못했습니다.", 'name': "order_not_found"}},
+        #   {'error': {'message': "주문가능한 금액(ETH)이 부족합니다.", 'name': "insufficient_funds_ask"}},
+        #   {'error': {'message': "주문가능한 금액(BTC)이 부족합니다.", 'name': "insufficient_funds_bid"}},
+        #   {'error': {'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key"}},
+        #   {'error': {'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification"}}
         #
         error = self.safe_value(response, 'error')
         if error is not None:

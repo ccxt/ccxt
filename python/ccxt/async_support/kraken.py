@@ -658,7 +658,7 @@ class kraken(Exchange):
         #                                        asset: "XETH",
         #                                       amount: "-0.2805800000",
         #                                          fee: "0.0050000000",
-        #                                      balance: "0.0000051000"           }} }
+        #                                      balance: "0.0000051000"           }}}
         result = response['result']
         keys = list(result.keys())
         items = []

@@ -651,7 +651,7 @@ class cobinhood(Exchange):
         #                                            created_at:  1536768050235,
         #                                              currency: "EOS",
         #                                                  memo: "12345678",
-        #                                                  type: "exchange"      }]} }
+        #                                                  type: "exchange"      }]}}
         #
         addresses = self.safe_value(response['result'], 'deposit_addresses', [])
         address = None

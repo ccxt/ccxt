@@ -260,7 +260,7 @@ class bcex(Exchange):
         #                   min_trade: "0.01500000",
         #                   max_trade: "100.00000000",
         #                number_float: "4",
-        #                 price_float: "8"             }} }
+        #                 price_float: "8"             }}}
         #
         return self.parse_trading_limits(self.safe_value(response, 'data', {}))
 

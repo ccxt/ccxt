@@ -914,7 +914,7 @@ class binance(Exchange):
         #                                                           operateTime: "2018-10-07 17:56:07",
         #                                                      transferedAmount: "0.00628141",
         #                                                             fromAsset: "ADA"                  }],
-        #                                 operate_time: "2018-10-07 17:56:06"                                }]} }
+        #                                 operate_time: "2018-10-07 17:56:06"                                }]}}
         results = self.safe_value(response, 'results', {})
         rows = self.safe_value(results, 'rows', [])
         data = []
