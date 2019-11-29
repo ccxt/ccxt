@@ -3,6 +3,7 @@
 // ----------------------------------------------------------------------------
 // one half-side of an orderbook (bids or asks)
 // overwrites absolute volumes at price levels
+// this class stores scalar order sizes indexed by price
 
 class OrderBookSide extends Array {
     constructor (deltas = []) {
@@ -60,24 +61,6 @@ class OrderBookSide extends Array {
     }
 }
 
-class LimitByValues extends OrderBookSide {
-    limit (n = undefined) {
-        const array = Array.from (this.index.values ()).sort (this.compare)  // use values here instead of entries
-        n = Math.min (n || Number.MAX_SAFE_INTEGER, array.length)
-        // the following lines could be written as
-        //     this.splice (0, this.length, ... array)
-        // however, both .splice and .slice copy-construct the arrays
-        // so we assign the elements manually in favor of splice and slice
-        for (let i = 0; i < n; i++) {
-            this[i] = array[i]
-        }
-        // truncate the array by setting the length
-        // which is a legitimate operation in JS
-        this.length = n
-        return this
-    }
-}
-
 // ----------------------------------------------------------------------------
 // some exchanges limit the number of bids/asks in the aggregated orderbook
 // orders beyond the limit threshold are not updated with new ws deltas
@@ -112,8 +95,9 @@ class LimitedOrderBookSide extends OrderBookSide {
 // ----------------------------------------------------------------------------
 // overwrites absolute volumes at price levels
 // or deletes price levels based on order counts (3rd value in a bidask delta)
+// this class stores vector arrays of values indexed by price
 
-class CountedOrderBookSide extends LimitByValues {
+class CountedOrderBookSide extends OrderBookSide {
     store (price, size, count) {
         if (count && size) {
             this.index.set (price, [ price, size, count ])
@@ -130,12 +114,23 @@ class CountedOrderBookSide extends LimitByValues {
             this.index.delete (price)
         }
     }
+
+    limit (n = undefined) {
+        // use values here instead of entries
+        const array = Array.from (this.index.values ()).sort (this.compare)
+        n = Math.min (n || Number.MAX_SAFE_INTEGER, array.length)
+        for (let i = 0; i < n; i++) {
+            this[i] = array[i]
+        }
+        this.length = n
+        return this
+    }
 }
 
 // ----------------------------------------------------------------------------
-// indexed by order ids (3rd value in a bidask delta)
+// stores vector arrays indexed by id (3rd value in a bidask delta array)
 
-class IndexedOrderBookSide extends LimitByValues {
+class IndexedOrderBookSide extends OrderBookSide {
     store (price, size, id) {
         if (size) {
             this.index.set (id, [ price, size, id ])
@@ -164,6 +159,17 @@ class IndexedOrderBookSide extends LimitByValues {
         } else {
             this.index.delete (id)
         }
+    }
+
+    limit (n = undefined) {
+        // use values here instead of entries
+        const array = Array.from (this.index.values ()).sort (this.compare)
+        n = Math.min (n || Number.MAX_SAFE_INTEGER, array.length)
+        for (let i = 0; i < n; i++) {
+            this[i] = array[i]
+        }
+        this.length = n
+        return this
     }
 }
 
