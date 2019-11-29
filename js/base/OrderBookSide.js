@@ -172,17 +172,18 @@ class IndexedOrderBookSide extends LimitByValues {
 
 class IncrementalOrderBookSide extends OrderBookSide {
     store (price, size) {
-        this.index.set (price, (this.index.get (price) || 0) + size)
-        if (this.index.get (price) <= 0) {
+        size = (this.index.get (price) || 0) + size
+        this.index.set (price, size)
+        if (size <= 0) {
             this.index.delete (price)
         }
     }
 
     storeArray (delta) {
         const price = delta[0]
-        const size = delta[1]
-        this.index.set (price, (this.index.get (price) || 0) + size)
-        if (this.index.get (price) <= 0) {
+            , size = (this.index.get (price) || 0) + delta[1]
+        this.index.set (price, size)
+        if (size <= 0) {
             this.index.delete (price)
         }
     }
