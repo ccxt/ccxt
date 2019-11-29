@@ -939,7 +939,7 @@ module.exports = class okex3 extends Exchange {
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
             if (market !== undefined) {
-                feeCurrency = side === 'buy' ? market['base'] : market['quote'];
+                feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
             }
             fee = {
                 // fee is either a positive number (invitation rebate)
