@@ -78,8 +78,7 @@ class LimitedOrderBookSide extends OrderBookSide {
 
     limit (n = undefined) {
         const array = Array.from (this.index.entries ()).sort (this.compare)
-        const depth = Math.min (this.depth || Number.MAX_SAFE_INTEGER, n || Number.MAX_SAFE_INTEGER)
-        const threshold = Math.min (array.length, depth)
+        const threshold = Math.min (this.depth || Number.MAX_SAFE_INTEGER, n || Number.MAX_SAFE_INTEGER, array.length)
         this.index = new Map ()
         for (let i = 0; i < threshold; i++) {
             this[i] = array[i];
@@ -209,9 +208,8 @@ class LimitedIndexedOrderBookSide extends IndexedOrderBookSide {
     }
 
     limit (n = undefined) {
-        const array = Array.from (this.index.entries ()).sort (this.compare)
-        const depth = n ? Math.min (this.depth || Number.MAX_SAFE_INTEGER, n) : this.depth
-        const threshold = Math.min (array.length, depth)
+        const array = Array.from (this.index.values ()).sort (this.compare)
+        const threshold = Math.min (this.depth || Number.MAX_SAFE_INTEGER, n || Number.MAX_SAFE_INTEGER, array.length)
         this.index = new Map ()
         for (let i = 0; i < threshold; i++) {
             this[i] = array[i];
