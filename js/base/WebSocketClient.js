@@ -86,8 +86,56 @@ module.exports = class WebSocketClient {
         return this.ws.readyState === WebSocket.CONNECTING
     }
 
+    clear () {
+        this.connected.reject ()
+    }
+
+    createFuture (messageHash) {
+        if (!this.futures[messageHash]) {
+            this.futures[messageHash] = externallyResolvablePromise ()
+        }
+        return this.futures[messageHash]
+    }
+
+    resolveFuture (messageHash, result) {
+        if (this.futures[messageHash]) {
+            const promise = this.futures[messageHash]
+            promise.resolve (result)
+            delete this.futures[messageHash]
+        }
+        return result
+    }
+
+    resolveFutures (result) {
+        const messageHashes = Object.keys (this.futures)
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i]
+            this.resolveFuture (messageHash, result)
+        }
+        return result
+    }
+
+    rejectFuture (messageHash, result) {
+        if (this.futures[messageHash]) {
+            const promise = this.futures[messageHash]
+            promise.reject (result)
+            delete this.futures[messageHash]
+        }
+        return result
+    }
+
+    rejectFutures (result) {
+        const messageHashes = Object.keys (this.futures)
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i]
+            this.rejectFuture (messageHash, result)
+        }
+        return result
+    }
+
     connect () {
         if (!this.ws || !(this.isConnecting () || this.isConnected ())) {
+            // this.()
             console.log (new Date (), 'connecting...')
             this.connected = externallyResolvablePromise ()
             this.ws = new WebSocket (this.url, this.protocols, this.options)
@@ -100,10 +148,17 @@ module.exports = class WebSocketClient {
                 .on ('close', this.onClose.bind (this))
                 .on ('upgrade', this.onUpgrade.bind (this))
                 .on ('message', this.onMessage.bind (this))
-            // this.ws.terminate ()
-            this.ws.close ()
+            this.ws.terminate ()
+            // this.ws.close ()
         }
-        return this.connected
+        // if the connection promise is rejected the following catch-clause
+        // will catch the exception and the subsequent then-clauses will not
+        // be executed at all (connection failed)
+        return this.connected.catch ((error) => {
+            this.rejectFutures (error)
+            // we do not return a resolvable value from here
+            // to avoid triggering then-clauses that will follow
+        })
     }
 
     async send (message) {
@@ -113,20 +168,20 @@ module.exports = class WebSocketClient {
     }
 
     async keepAlive () {
-        // ping every second
-        const pinger = setInterval (() => {
-            this.ping ()
-            if (new Date ().getTime () - this.lastPong > this.timeout) {
-                this.timedoutFuture.resolve ()
-            }
-        }, 1000)
-        await this.timedoutFuture.promise ()
-        clearInterval (pinger)
-        for (let messageKey of Object.keys (this.futures)) {
-            let error = new RequestTimeout ('Websocket did not recieve a pong in reply to a ping within ' + this.timeout + ' seconds');
-            this.futures[messageKey].reject (error)
-        }
-        this.futures = {}
+        // // ping every second
+        // const pinger = setInterval (() => {
+        //     this.ping ()
+        //     if (new Date ().getTime () - this.lastPong > this.timeout) {
+        //         this.timedoutFuture.resolve ()
+        //     }
+        // }, 1000)
+        // await this.timedoutFuture.promise ()
+        // clearInterval (pinger)
+        // for (let messageKey of Object.keys (this.futures)) {
+        //     let error = new RequestTimeout ('Websocket did not recieve a pong in reply to a ping within ' + this.timeout + ' seconds');
+        //     this.futures[messageKey].reject (error)
+        // }
+        // this.futures = {}
     }
 
     ping () {
@@ -141,6 +196,7 @@ module.exports = class WebSocketClient {
     onOpen () {
         // console.log (new Date (), 'onOpen')
         this.connected.resolve (this.url)
+        // this.ws.close ()
         // this.setTimeout ('ping', 'onOpen')
         // this.send (JSON.stringify ({
         //     'command': 'subscribe',
@@ -162,7 +218,7 @@ module.exports = class WebSocketClient {
     }
 
     onError (error) {
-        // console.log (new Date (), 'onError', error)
+        console.log (new Date (), 'onError', error)
         // TODO: convert ws errors to ccxt errors if necessary
         this.connected.reject (new ccxt.NetworkError (error))
     }

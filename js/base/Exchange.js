@@ -53,13 +53,30 @@ module.exports = class Exchange extends ccxt.Exchange {
 
     sendWsMessage (url, messageHash, message = undefined, subscribeHash = undefined) {
         const client = this.websocket (url)
-        if (!client.futures[messageHash]) {
-            client.futures[messageHash] = externallyResolvablePromise ()
-        }
+        //
+        //  fetchWsOrderBook -----+------------→ future -----------+-----→ user
+        //                        ↓                                ↑
+        //                      connect → subscribe → receive → resolve
+        //
+        const future = client.createFuture (messageHash)
+        // if (!client.futures[messageHash]) {
+        //     client.futures[messageHash] = externallyResolvablePromise ()
+        // }
+        // we intentionally do not use await here to avoid unhandled exceptions
+        // the policy is to make sure that 100% of promises are resolved or rejected
+        // either with a call to client.resolve or client.reject
         client.connect ()
-            .catch ((error) => {
-                this.rejectWsFutures (client, error)
-            })
+            // // if the connection promise is rejected the following catch-clause
+            // // will catch the exception and the subsequent then-clause will not
+            // // be executed at all (connection failed)
+            // .catch ((error) => {
+            //     this.rejectWsFutures (client, error)
+            //     // we do not return a resolvable value from here
+            //     // to avoid triggering the following then-clause
+            // })
+            // the following is executed only if the catch-clause does not
+            // catch any connection-level exceptions from the websocket client
+            // (connection succeeded)
             .then (() => {
                 if (message && !client.subscriptions[subscribeHash]) {
                     client.subscriptions[subscribeHash] = true
@@ -67,7 +84,8 @@ module.exports = class Exchange extends ccxt.Exchange {
                     client.send (message)
                 }
             })
-        return client.futures[messageHash]
+        // return client.futures[messageHash]
+        return future
     }
 
     resolveWsFuture (client, messageHash, result) {
