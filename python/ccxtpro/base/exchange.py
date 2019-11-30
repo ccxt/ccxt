@@ -29,7 +29,7 @@ class Exchange(BaseExchange):
         future = client.futures[message_hash]
         future.resolve(response)
 
-    def handle_ws_dropped(self, client, response, message_hash):
+    def handle_ws_dropped(self, client, response, message_hash, fucker):
         pass
 
     @classmethod
@@ -43,3 +43,6 @@ class Exchange(BaseExchange):
             return ws_x_message
         for key in methods:
             setattr(cls, key + 'Message', key_closure(cls.underscore(key)))
+
+    def __repr__(self):
+        return 'ccxtpro.' + self.id + '()'

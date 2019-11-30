@@ -22,6 +22,14 @@ class CCXTProTranspiler extends Transpiler {
         this.phpPreamble = this.phpPreamble.replace (/ccxt/g, "ccxtpro")
     }
 
+    createPythonClass (className, baseClass, body, methods, async = false) {
+        baseClass = baseClass + ', ccxtpro.Exchange'
+        const pythonBody = super.createPythonClass (className, baseClass, body, methods, async);
+        const split = pythonBody.split (/(import ccxt.async_support as ccxt)/)
+        split.splice (1, 0, 'import ccxtpro\n')
+        return split.join ('')
+    }
+
     createPHPClass (className, baseClass, body, methods) {
 
         const header = [
