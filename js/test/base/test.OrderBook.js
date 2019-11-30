@@ -1,6 +1,6 @@
 'use strict';
 
-const { OrderBook, LimitedOrderBook, IndexedOrderBook, CountedOrderBook, IncrementalOrderBook } = require ('../../base/OrderBook');
+const { OrderBook, LimitedOrderBook, IndexedOrderBook, CountedOrderBook, IncrementalOrderBook, LimitedIndexedOrderBook } = require ('../../base/OrderBook');
 const assert = require ('assert');
 
 function equals (a, b) {
@@ -90,6 +90,14 @@ const incremetalOrderBookTarget = {
     'nonce': 69,
 };
 
+const limitedIndexedOrderBookTarget = {
+    'bids': [ [ 10.0, 10, '1234' ], [ 9.1, 11, '1235' ], [ 8.2, 12, '1236' ], [ 7.3, 13, '1237' ], [ 6.4, 14, '1238' ] ],
+    'asks': [ [ 11.1, 13, '1244' ], [ 13.3, 13, '1243' ], [ 14.4, 12, '1242' ], [ 15.5, 11, '1241' ], [ 16.6, 10, '1240' ] ],
+    'timestamp': 1574827239000,
+    'datetime': '2019-11-27T04:00:39.000Z',
+    'nonce': 69,
+};
+
 // --------------------------------------------------------------------------------------------------------------------
 
 const orderBook = new OrderBook (orderBookInput);
@@ -102,9 +110,12 @@ const countedOrderBook = new CountedOrderBook (countedOrderBookInput);
 countedOrderBook.limit ();
 const incrementalOrderBook = new IncrementalOrderBook (incrementalOrderBookInput);
 incrementalOrderBook.limit ();
+const limitedIndexedOrderBook = new LimitedIndexedOrderBook (indexedOrderBookInput, 5);
+limitedIndexedOrderBook.limit ();
 
 assert (equals (orderBook, orderBookTarget));
 assert (equals (limitedOrderBook, limitedOrderBookTarget));
 assert (equals (indexedOrderBook, indexedOrderBookTarget));
 assert (equals (countedOrderBook, countedOrderBookTarget));
 assert (equals (incrementalOrderBook, incremetalOrderBookTarget));
+assert (equals (limitedIndexedOrderBook, limitedIndexedOrderBookTarget));
