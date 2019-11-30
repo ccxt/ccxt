@@ -1,33 +1,133 @@
 'use strict';
 
 const ccxtpro = require ('./ccxt.pro.js')
+    , WebSocket = require ('ws')
+    , {
+        ExternallyResolvablePromise,
+        externallyResolvablePromise
+    } = require ('./js/base/MultiPromise')
+
+// ----------------------------------------------------------------------------
 
 ;(async () => {
 
+    // const wss = new WebSocket.Server ({ port: 8080 })
+
+    // wss.on ('connection', function connection (ws) {
+
+    //     ws.on ('message', function incoming (message) {
+    //         console.log ('server received message', message)
+    //     })
+
+    //     ws.on ('ping', function incoming (message) {
+    //         console.log ('server received ping', message)
+    //     })
+
+    //     ws.on ('pong', function incoming (message) {
+    //         console.log ('server received pong', message)
+    //     })
+
+    //     ws.send ('something')
+    //     ws.ping ()
+
+    //     // ws.terminate ()
+    // })
+
+    // wss.on ('error', function onError (error) {
+    //     console.log ('server error', error)
+    //     process.exit ()
+    // })
+
     const symbol = 'ETH/BTC'
 
-    const exchange = new ccxtpro.binance ({
+    const exchange = new ccxtpro.poloniex ({
         'enableRateLimit': true,
     })
+
+    const ob = exchange.fetchWsOrderBook (symbol)
+    const td = exchange.fetchWsTrades (symbol)
+    const hb = exchange.fetchWsHeartbeat (symbol)
+
+    await Promise.all ([
+        (async () => {
+            try {
+                await hb
+            } catch (e) {
+                console.log ('hb failure', e)
+            }
+        }) (),
+        (async () => {
+            try {
+                await ob
+            } catch (e) {
+                console.log ('ob failure', e)
+            }
+        }) (),
+        (async () => {
+            try {
+                await td
+            } catch (e) {
+                console.log ('td failure', e)
+            }
+        }) (),
+    ]).catch ((e) => {
+        console.log ('----------------', e)
+    })
+
+    // console.log ('are we connecting?')
+
+    try {
+        const o = await ob
+        console.log (o)
+    } catch (e) {
+        console.log ('ob failure', e)
+    }
+    try {
+        const t = await td
+        console.log (t)
+    } catch (e) {
+        console.log ('td failure', e)
+    }
+    try {
+        const h = await hb
+        console.log (h)
+    } catch (e) {
+        console.log ('hb failure', e)
+    }
+
+    console.log ('ok??')
+
+    // delete exchange
+
+    /*
 
     // console.log (exchange.sum (undefined, 2));
     // process.exit ();
 
     // for (let i = 0; i < 2; i++) {
     while (true) {
-        try {
-            let response = undefined
-            for (let i = 0; i < 10; i++) {
+
+        let response = undefined;
+        for (let i = 0; i < 10; i++) {
+            try {
+                console.log (i)
                 response = await exchange.fetchWsOrderBook (symbol)
+                // ; console.log ('---------------------------------------')
+                // process.exit ();
+            } catch (e) {
+                console.log (new Date (), e)
             }
-            console.log (new Date (), response.asks.length, 'asks', response.asks[0], response.bids.length, 'bids', response.bids[0])
-        } catch (e) {
-            console.log (new Date (), e)
+        }
+
+        if (!response) {
             process.exit ()
         }
-    }
 
-    process.exit ();
+        console.log (new Date (), response.asks.length, 'asks', response.asks[0], response.bids.length, 'bids', response.bids[0])
+    }
+    */
+
+    // process.exit ();
 
     /*
 
