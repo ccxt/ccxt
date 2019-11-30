@@ -133,8 +133,8 @@ class IncrementalOrderBook extends OrderBook {
 class LimitedIndexedOrderBook extends OrderBook {
     constructor (snapshot = {}, depth = undefined) {
         super (extend (snapshot, {
-            'asks': new LimitedAsks (snapshot.asks || []),
-            'bids': new LimitedBids (snapshot.bids || []),
+            'asks': new LimitedIndexedAsks (snapshot.asks || [], depth),
+            'bids': new LimitedIndexedBids (snapshot.bids || [], depth),
         }))
     }
 }

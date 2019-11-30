@@ -4,7 +4,6 @@
 
 # -----------------------------------------------------------------------------
 
-import inspect
 import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
@@ -121,7 +120,6 @@ from ccxt.async_support.crex24 import crex24                              # noqa
 from ccxt.async_support.deribit import deribit                            # noqa: F401
 from ccxt.async_support.digifinex import digifinex                        # noqa: F401
 from ccxt.async_support.dsx import dsx                                    # noqa: F401
-from ccxt.async_support.dx import dx                                      # noqa: F401
 from ccxt.async_support.exmo import exmo                                  # noqa: F401
 from ccxt.async_support.exx import exx                                    # noqa: F401
 from ccxt.async_support.fcoin import fcoin                                # noqa: F401
@@ -163,6 +161,7 @@ from ccxt.async_support.okex3 import okex3                                # noqa
 from ccxt.async_support.paymium import paymium                            # noqa: F401
 from ccxt.async_support.rightbtc import rightbtc                          # noqa: F401
 from ccxt.async_support.southxchange import southxchange                  # noqa: F401
+from ccxt.async_support.stex import stex                                  # noqa: F401
 from ccxt.async_support.stronghold import stronghold                      # noqa: F401
 from ccxt.async_support.surbitcoin import surbitcoin                      # noqa: F401
 from ccxt.async_support.theocean import theocean                          # noqa: F401
@@ -187,47 +186,4 @@ from ccxtpro.bitmex import bitmex                                         # noqa
 from ccxtpro.kraken import kraken                                         # noqa: F401
 from ccxtpro.poloniex import poloniex                                     # noqa: F401
 
-exchanges_by_ids = {
-    'binance': binance,                                                   # noqa: F401
-    'bitfinex': bitfinex,                                                 # noqa: F401
-    'bitmex': bitmex,                                                     # noqa: F401
-    'kraken': kraken,                                                     # noqa: F401
-    'poloniex': poloniex,                                                 # noqa: F401
-}
-
-base = [
-    'Exchange',
-    'exchanges',
-    'decimal_to_precision',
-]
-
-
-# -----------------------------------------------------------------------------
-# monkey patch
-
-def get_child_members(parent_class, child_class):
-    parent_members = dict(inspect.getmembers(parent_class))
-    child_members = dict(inspect.getmembers(child_class))
-    return dict([(k, v) for k, v in child_members.items() if k not in parent_members])
-
-
-def monkey_patch_exchange(exchange, child_members):
-    for name, value in child_members.items():
-        setattr(exchange, name, value)
-    return exchange
-
-
-def monkey_patch_all_exchanges(exchanges, parent_class, child_class):
-    child_members = get_child_members(parent_class, child_class)
-    result = {}
-    for id, exchange in exchanges.items():
-        result[id] = monkey_patch_exchange(exchange, child_members)
-    return result
-
-
-exchanges_by_ids = monkey_patch_all_exchanges(exchanges_by_ids, BaseExchange, Exchange)
-
-ccxt_exchanges = [id for id in ccxt.exchanges if id not in exchanges_by_ids]
-exchanges = sorted(list(exchanges_by_ids.keys()) + ccxt_exchanges)
-
-__all__ = base + errors.__all__ + exchanges
+__all__ = ccxt.__all__

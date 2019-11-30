@@ -43,3 +43,6 @@ class Exchange(BaseExchange):
             return ws_x_message
         for key in methods:
             setattr(cls, key + 'Message', key_closure(cls.underscore(key)))
+
+    def __repr__(self):
+        return 'ccxtpro.' + self.id + '()'
