@@ -186,6 +186,7 @@ class stex extends Exchange {
                     'Unauthenticated.' => '\\ccxt\\AuthenticationError', // array("message":"Unauthenticated.")
                     'Server Error' => '\\ccxt\\ExchangeError', // array( "message" => "Server Error" )
                     'This feature is only enabled for users verifies by Cryptonomica' => '\\ccxt\\PermissionDenied', // array("success":false,"message":"This feature is only enabled for users verifies by Cryptonomica")
+                    'Too Many Attempts.' => '\\ccxt\\DDoSProtection', // array( "message" => "Too Many Attempts." )
                 ),
                 'broad' => array (
                     'Not enough' => '\\ccxt\\InsufficientFunds', // array("success":false,"message":"Not enough  ETH")
