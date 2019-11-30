@@ -6,7 +6,8 @@ const ccxt = require ('ccxt')
         isNode,
         isJsonEncodedObject,
         RequestTimeout,
-        deepExtend
+        deepExtend,
+        milliseconds,
     } = ccxt
     , {
         ExternallyResolvablePromise,
@@ -18,6 +19,7 @@ const ccxt = require ('ccxt')
 module.exports = class WebSocketClient {
 
     constructor (url, callback, config = {}) {
+
         const defaults = {
             url,
             callback,             // onMessage callback
@@ -43,10 +45,9 @@ module.exports = class WebSocketClient {
             //     ping: true,
             //     heartbeat: true,
             // },
-            keepAlive: true,
+            // keepAlive: true,
         }
         Object.assign (this, deepExtend (defaults, config))
-        this.connect ()
     }
 
     // handle auto-reconnection after a period of inactivity
@@ -90,6 +91,7 @@ module.exports = class WebSocketClient {
             console.log (new Date (), 'connecting...')
             this.connected = externallyResolvablePromise ()
             this.ws = new WebSocket (this.url, this.protocols, this.options)
+            // add support for connection timeout
             this.ws
                 .on ('open', this.onOpen.bind (this))
                 .on ('ping', this.onPing.bind (this))
@@ -98,14 +100,33 @@ module.exports = class WebSocketClient {
                 .on ('close', this.onClose.bind (this))
                 .on ('upgrade', this.onUpgrade.bind (this))
                 .on ('message', this.onMessage.bind (this))
+            // this.ws.terminate ()
+            this.ws.close ()
         }
         return this.connected
     }
 
     async send (message) {
-        await this.connect () // for auto-reconnecting
+        // await this.connect () // for auto-reconnecting
         // await this.connected // for one-time connections
         this.ws.send (JSON.stringify (message))
+    }
+
+    async keepAlive () {
+        // ping every second
+        const pinger = setInterval (() => {
+            this.ping ()
+            if (new Date ().getTime () - this.lastPong > this.timeout) {
+                this.timedoutFuture.resolve ()
+            }
+        }, 1000)
+        await this.timedoutFuture.promise ()
+        clearInterval (pinger)
+        for (let messageKey of Object.keys (this.futures)) {
+            let error = new RequestTimeout ('Websocket did not recieve a pong in reply to a ping within ' + this.timeout + ' seconds');
+            this.futures[messageKey].reject (error)
+        }
+        this.futures = {}
     }
 
     ping () {
@@ -118,9 +139,9 @@ module.exports = class WebSocketClient {
     }
 
     onOpen () {
-        console.log (new Date (), 'open')
+        // console.log (new Date (), 'onOpen')
         this.connected.resolve (this.url)
-        // this.setTimeout ('ping', 'open')
+        // this.setTimeout ('ping', 'onOpen')
         // this.send (JSON.stringify ({
         //     'command': 'subscribe',
         //     'channel': '175',
@@ -131,29 +152,30 @@ module.exports = class WebSocketClient {
     // respond to pings coming from the server with pongs automatically
     // however, some devs may want to track connection states in their app
     onPing () {
-        console.log (new Date (), 'ping')
+        // console.log (new Date (), 'onPing')
     }
 
     onPong () {
-        console.log (new Date (), 'pong')
-        this.resetTimeout ('ping', 'pong')
+        this.lastPong = milliseconds ()
+        console.log (new Date (), 'onPong')
+        this.resetTimeout ('ping', 'onPong')
     }
 
     onError (error) {
-        console.log (new Date (), 'error', error)
+        // console.log (new Date (), 'onError', error)
         // TODO: convert ws errors to ccxt errors if necessary
         this.connected.reject (new ccxt.NetworkError (error))
     }
 
-    onClose () {
-        console.log (new Date (), 'close')
-        this.clearTimeout ('ping', 'close')
+    onClose (x) {
+        console.log (new Date (), 'onClose', x)
+        this.clearTimeout ('ping', 'onClose')
     }
 
     // this method is not used at this time
     // but may be used to read protocol-level data like cookies, headers, etc
     onUpgrade (message) {
-        console.log (new Date (), 'upgrade')
+        // console.log (new Date (), 'onUpgrade')
     }
 
     onMessage (message) {
