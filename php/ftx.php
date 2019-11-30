@@ -447,12 +447,15 @@ class ftx extends Exchange {
         return $this->parse_tickers ($tickers, $symbols);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
             'market_name' => $market['id'],
         );
+        if ($limit !== null) {
+            $request['depth'] = $limit; // max 100, default 20
+        }
         $response = $this->publicGetMarketsMarketNameOrderbook (array_merge ($request, $params));
         //
         //     {

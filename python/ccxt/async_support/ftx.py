@@ -440,12 +440,14 @@ class ftx(Exchange):
         tickers = self.safe_value(response, 'result', [])
         return self.parse_tickers(tickers, symbols)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'market_name': market['id'],
         }
+        if limit is not None:
+            request['depth'] = limit  # max 100, default 20
         response = await self.publicGetMarketsMarketNameOrderbook(self.extend(request, params))
         #
         #     {
