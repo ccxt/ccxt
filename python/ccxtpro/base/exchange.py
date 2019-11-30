@@ -29,7 +29,7 @@ class Exchange(BaseExchange):
         future = client.futures[message_hash]
         future.resolve(response)
 
-    def handle_ws_dropped(self, client, response, message_hash, fucker):
+    def handle_ws_dropped(self, client, response, message_hash):
         pass
 
     @classmethod
