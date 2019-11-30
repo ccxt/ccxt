@@ -56,11 +56,17 @@ module.exports = class Exchange extends ccxt.Exchange {
         if (!client.futures[messageHash]) {
             client.futures[messageHash] = externallyResolvablePromise ()
         }
-        if (message && !client.subscriptions[subscribeHash]) {
-            client.subscriptions[subscribeHash] = true
-            message = this.signWsMessage (client, messageHash, message)
-            client.send (message)
-        }
+        client.connect ()
+            .catch ((error) => {
+                this.rejectWsFutures (client, error)
+            })
+            .then (() => {
+                if (message && !client.subscriptions[subscribeHash]) {
+                    client.subscriptions[subscribeHash] = true
+                    message = this.signWsMessage (client, messageHash, message)
+                    client.send (message)
+                }
+            })
         return client.futures[messageHash]
     }
 
@@ -69,6 +75,14 @@ module.exports = class Exchange extends ccxt.Exchange {
             const promise = client.futures[messageHash]
             promise.resolve (result)
             delete client.futures[messageHash]
+        }
+        return result
+    }
+
+    rejectWsFutures (client, result) {
+        const keys = Object.keys (client.futures)
+        for (let i = 0; i < keys.length; i++) {
+            this.rejectWsFuture (client, keys[i], result)
         }
         return result
     }
