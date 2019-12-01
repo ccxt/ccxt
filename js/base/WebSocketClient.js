@@ -14,21 +14,22 @@ const ccxt = require ('ccxt')
 
 module.exports = class WebSocketClient {
 
-    constructor (url, callback, config = {}) {
+    constructor (url, onMessageCallback, config = {}) {
 
         const defaults = {
             url,
-            callback,             // onMessage callback
+            onMessageCallback,
             protocols: undefined, // ws protocols
             options: undefined,   // ws options
             // todo: implement proper back-off
             backOff: true,
             // reconnect: false, // reconnect on connection loss, not really needed here
             // reconnectDelay: 1000, // not used atm
+            futures: {},
+            subscriptions: {},
+            connectionTimer: undefined, // for the connection-related setTimeout
+            connectionTimeout: 30000, // 30 seconds by default, false to disable
             timers: {},
-            futures: {}, // i don't think they belong here
-            subscriptions: {}, // i don't think they belong here
-            connectionTimeout: 30000, // 30 seconds by default
             timeouts: {
                 // delay should be equal to the interval at which your
                 // server sends out pings plus a conservative assumption
@@ -236,7 +237,7 @@ module.exports = class WebSocketClient {
         } catch (e) {
             // reset with a json encoding error ?
         }
-        this.callback (this, message)
+        this.onMessageCallback (this, message)
     }
 }
 

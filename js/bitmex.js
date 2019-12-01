@@ -99,7 +99,7 @@ module.exports = class bitmex extends ccxt.bitmex {
         // trigger correct fetchWsTickers calls upon receiving any of symbols
         // --------------------------------------------------------------------
         // if there's a corresponding fetchWsTicker call - trigger it
-        this.resolveWsFuture (client, messageHash, result);
+        client.resolve (result, messageHash);
     }
 
     async fetchWsBalance (params = {}) {
@@ -190,7 +190,7 @@ module.exports = class bitmex extends ccxt.bitmex {
             parseFloat (candle[7]),
         ];
         const messageHash = wsName + ':' + name;
-        this.resolveWsFuture (client, messageHash, result);
+        client.resolve (result, messageHash);
     }
 
     async fetchWsOrderBook (symbol, limit = undefined, params = {}) {
@@ -364,7 +364,8 @@ module.exports = class bitmex extends ccxt.bitmex {
                     bookside.store (price, size, id);
                 }
                 const messageHash = table + ':' + marketId;
-                this.resolveWsFuture (client, messageHash, orderbook.limit ());
+                // the .limit () operation will be moved to the fetchWSOrderBook
+                client.resolve (orderbook.limit (), messageHash);
             }
         } else {
             const numUpdatesByMarketId = {};
@@ -398,7 +399,8 @@ module.exports = class bitmex extends ccxt.bitmex {
                 const market = this.markets_by_id[marketId];
                 const symbol = market['symbol'];
                 const orderbook = this.orderbooks[symbol];
-                this.resolveWsFuture (client, messageHash, orderbook.limit ());
+                // the .limit () operation will be moved to the fetchWSOrderBook
+                client.resolve (orderbook.limit (), messageHash);
             }
         }
     }

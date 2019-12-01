@@ -107,13 +107,15 @@ module.exports = class bitfinex extends ccxt.bitfinex {
                 const bookside = orderbook[side];
                 this.handleWsDelta (bookside, delta);
             }
-            this.resolveWsFuture (client, messageHash, orderbook.limit ());
+            // the .limit () operation will be moved to the fetchWSOrderBook
+            client.resolve (orderbook.limit (), messageHash);
         } else {
             const orderbook = this.orderbooks[symbol];
             const side = (message[1][2] < 0) ? 'asks' : 'bids';
             const bookside = orderbook[side];
             this.handleWsDelta (bookside, message[1]);
-            this.resolveWsFuture (client, messageHash, orderbook.limit ());
+            // the .limit () operation will be moved to the fetchWSOrderBook
+            client.resolve (orderbook.limit (), messageHash);
         }
     }
 
@@ -131,7 +133,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         //     { "event": "heartbeat" }
         //
         const event = this.safeString (message, 'event');
-        this.resolveWsFuture (client, event, message);
+        client.resolve (message, event);
     }
 
     handleWsSystemStatus (client, message) {

@@ -103,7 +103,7 @@ module.exports = class kraken extends ccxt.kraken {
         // trigger correct fetchWsTickers calls upon receiving any of symbols
         // --------------------------------------------------------------------
         // if there's a corresponding fetchWsTicker call - trigger it
-        this.resolveWsFuture (client, messageHash, result);
+        client.resolve (result, messageHash);
     }
 
     async fetchWsBalance (params = {}) {
@@ -194,7 +194,7 @@ module.exports = class kraken extends ccxt.kraken {
             parseFloat (candle[7]),
         ];
         const messageHash = wsName + ':' + name;
-        this.resolveWsFuture (client, messageHash, result);
+        client.resolve (result, messageHash);
     }
 
     async fetchWsPublicMessage (name, symbol, params = {}) {
@@ -280,7 +280,7 @@ module.exports = class kraken extends ccxt.kraken {
         //     { "event": "heartbeat" }
         //
         const event = this.safeString (message, 'event');
-        this.resolveWsFuture (client, event, message);
+        client.resolve (message, event);
     }
 
     parseWsTrade (client, trade, market = undefined) {
@@ -387,7 +387,8 @@ module.exports = class kraken extends ccxt.kraken {
                 timestamp = this.handleWsDeltas (bookside, deltas, timestamp);
             }
             orderbook['timestamp'] = timestamp;
-            this.resolveWsFuture (client, messageHash, orderbook.limit ());
+            // the .limit () operation will be moved to the fetchWSOrderBook
+            client.resolve (orderbook.limit (), messageHash);
         } else {
             const orderbook = this.orderbooks[symbol];
             // else, if this is an orderbook update
@@ -410,7 +411,8 @@ module.exports = class kraken extends ccxt.kraken {
                 timestamp = this.handleWsDeltas (orderbook['bids'], b, timestamp);
             }
             orderbook['timestamp'] = timestamp;
-            this.resolveWsFuture (client, messageHash, orderbook.limit ());
+            // the .limit () operation will be moved to the fetchWSOrderBook
+            client.resolve (orderbook.limit (), messageHash);
         }
     }
 

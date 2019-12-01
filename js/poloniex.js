@@ -149,7 +149,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         //     [ 1010 ]
         //
         const channelId = '1010';
-        this.resolveWsFuture (client, channelId, message);
+        client.resolve (message, channelId);
     }
 
     parseWsTrade (client, trade, market = undefined) {
@@ -270,12 +270,14 @@ module.exports = class poloniex extends ccxt.poloniex {
             // resolve the orderbook future
             const messageHash = marketId + ':orderbook';
             const orderbook = this.orderbooks[symbol];
-            this.resolveWsFuture (client, messageHash, orderbook.limit ());
+            // the .limit () operation will be moved to the fetchWSOrderBook
+            client.resolve (orderbook.limit (), messageHash);
         }
         if (tradesCount) {
             // resolve the trades future
             const messageHash = marketId + ':trades';
-            this.resolveWsFuture (client, messageHash, this.trades);
+            // todo: incremental trades
+            client.resolve (this.trades, messageHash);
         }
     }
 
