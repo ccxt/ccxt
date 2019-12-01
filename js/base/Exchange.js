@@ -10,7 +10,6 @@ const ccxt = require ('ccxt')
         LimitedCountedOrderBook,
         CountedOrderBook,
     } = require ('./OrderBook')
-    , log = require ('ololog').unlimited
 
 module.exports = class Exchange extends ccxt.Exchange {
 
@@ -65,38 +64,13 @@ module.exports = class Exchange extends ccxt.Exchange {
             .then (() => {
                 if (message && !client.subscriptions[subscribeHash]) {
                     client.subscriptions[subscribeHash] = true
+                    // todo: decouple this
                     message = this.signWsMessage (client, messageHash, message)
                     client.send (message)
                 }
             })
         return future
     }
-
-    // resolveWsFuture (client, messageHash, result) {
-    //     if (client.futures[messageHash]) {
-    //         const promise = client.futures[messageHash]
-    //         promise.resolve (result)
-    //         delete client.futures[messageHash]
-    //     }
-    //     return result
-    // }
-
-    // rejectWsFutures (client, result) {
-    //     const keys = Object.keys (client.futures)
-    //     for (let i = 0; i < keys.length; i++) {
-    //         this.rejectWsFuture (client, keys[i], result)
-    //     }
-    //     return result
-    // }
-
-    // rejectWsFuture (client, messageHash, result) {
-    //     if (client.futures[messageHash]) {
-    //         const promise = client.futures[messageHash]
-    //         promise.reject (result)
-    //         delete client.futures[messageHash]
-    //     }
-    //     return result
-    // }
 
     async close () {
         const clients = Object.values (this.clients)
