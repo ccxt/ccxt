@@ -601,14 +601,14 @@ class cex(Exchange):
                 feeRate = self.safe_float(order, 'tradingFeeTaker', feeRate)
             if feeRate:
                 feeRate /= 100.0  # convert to mathematically-correct percentage coefficients: 1.0 = 100%
-            if (baseFee in list(order.keys())) or (baseTakerFee in list(order.keys())):
+            if (baseFee in order) or (baseTakerFee in order):
                 baseFeeCost = self.safe_float_2(order, baseFee, baseTakerFee)
                 fee = {
                     'currency': market['base'],
                     'rate': feeRate,
                     'cost': baseFeeCost,
                 }
-            elif (quoteFee in list(order.keys())) or (quoteTakerFee in list(order.keys())):
+            elif (quoteFee in order) or (quoteTakerFee in order):
                 quoteFeeCost = self.safe_float_2(order, quoteFee, quoteTakerFee)
                 fee = {
                     'currency': market['quote'],
@@ -782,7 +782,7 @@ class cex(Exchange):
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': None,
+            'type': 'market' if (price is None) else 'limit',
             'side': side,
             'price': price,
             'cost': cost,
@@ -997,9 +997,9 @@ class cex(Exchange):
                 fa = self.safe_float(item, 'fa:' + quoteId, 0)
                 tfa = self.safe_float(item, 'tfa:' + quoteId, 0)
                 if side == 'sell':
-                    cost = ta + tta + (fa + tfa)
+                    cost = self.sum(self.sum(ta, tta), self.sum(fa, tfa))
                 else:
-                    cost = ta + tta - (fa + tfa)
+                    cost = self.sum(ta, tta) - self.sum(fa, tfa)
                 type = 'limit'
                 orderAmount = amount
                 average = cost / filled
@@ -1107,11 +1107,6 @@ class cex(Exchange):
         if 'error' in response:
             message = self.safe_string(response, 'error')
             feedback = self.id + ' ' + body
-            exact = self.exceptions['exact']
-            if message in exact:
-                raise exact[message](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)

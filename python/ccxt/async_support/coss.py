@@ -123,6 +123,7 @@ class coss(Exchange):
             },
             'commonCurrencies': {
                 'COS': 'COSS',
+                'COSS': 'COSS.io',
             },
         })
 

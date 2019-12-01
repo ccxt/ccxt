@@ -256,7 +256,7 @@ class cointiger(huobipro):
         market = self.market(symbol)
         marketId = market['uppercaseId']
         response = await self.exchangeGetApiPublicMarketDetail(params)
-        if not (marketId in list(response.keys())):
+        if not (marketId in response):
             raise ExchangeError(self.id + ' fetchTicker symbol ' + symbol + '(' + marketId + ') not found')
         return self.parse_ticker(response[marketId], market)
 
@@ -652,10 +652,10 @@ class cointiger(huobipro):
         average = None
         if side is not None:
             amount = self.safe_float(order['volume'], 'amount')
-            remaining = self.safe_float(order['remain_volume'], 'amount') if ('remain_volume' in list(order.keys())) else None
-            filled = self.safe_float(order['deal_volume'], 'amount') if ('deal_volume' in list(order.keys())) else None
-            price = self.safe_float(order['price'], 'amount') if ('price' in list(order.keys())) else None
-            average = self.safe_float(order['age_price'], 'amount') if ('age_price' in list(order.keys())) else None
+            remaining = self.safe_float(order['remain_volume'], 'amount') if ('remain_volume' in order) else None
+            filled = self.safe_float(order['deal_volume'], 'amount') if ('deal_volume' in order) else None
+            price = self.safe_float(order['price'], 'amount') if ('price' in order) else None
+            average = self.safe_float(order['age_price'], 'amount') if ('age_price' in order) else None
         else:
             if orderType is not None:
                 parts = orderType.split('-')

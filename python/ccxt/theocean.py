@@ -825,24 +825,18 @@ class theocean(Exchange):
         # self error is sent if you do not submit a proper Content-Type
         if body == "'Authentication failed'":
             raise AuthenticationError(self.id + ' ' + body)
-        if (body[0] == '{') or (body[0] == '['):
-            message = self.safe_string(response, 'message')
-            if message is not None:
-                #
-                # {"message":"Schema validation failed for 'query'","errors":[{"name":"required","argument":"startTime","message":"requires property \"startTime\"","instance":{"baseTokenAddress":"0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570","quoteTokenAddress":"0xd0a1e359811322d97991e03f863a0c30c2cf029c","interval":"300"},"property":"instance"}]}
-                # {"message":"Logic validation failed for 'query'","errors":[{"message":"startTime should be between 0 and current date","type":"startTime"}]}
-                # {"message":"Order not found","errors":[]}
-                # {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
-                # {"message":"Intent validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]}
-                # {"message":"Schema validation failed for 'body'","errors":[{"name":"anyOf","argument":["[subschema 0]","[subschema 1]","[subschema 2]"],"message":"is not any of [subschema 0],[subschema 1],[subschema 2]","instance":{"signedTargetOrder":{"error":{"message":"Unsigned target order validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]},"maker":"0x1709c02cd7327d391a39a7671af8a91a1ef8a47b","orderHash":"0xda007ea8b5eca71ac96fe4072f7c1209bb151d898a9cc89bbeaa594f0491ee49","ecSignature":{"v":27,"r":"0xb23ce6c4a7b5d51d77e2d00f6d1d472a3b2e72d5b2be1510cfeb122f9366b79e","s":"0x07d274e6d7a00b65fc3026c2f9019215b1e47a5ac4d1f05e03f90550d27109be"}}},"property":"instance"}]}
-                # {"message":"Schema validation failed for 'params'","errors":[{"name":"pattern","argument":"^0x[0-9a-fA-F]{64}$","message":"does not match pattern \"^0x[0-9a-fA-F]{64}$\"","instance":"1","property":"instance.orderHash"}]}
-                #
-                feedback = self.id + ' ' + self.json(response)
-                exact = self.exceptions['exact']
-                if message in exact:
-                    raise exact[message](feedback)
-                broad = self.exceptions['broad']
-                broadKey = self.findBroadlyMatchedKey(broad, body)
-                if broadKey is not None:
-                    raise broad[broadKey](feedback)
-                raise ExchangeError(feedback)  # unknown message
+        message = self.safe_string(response, 'message')
+        if message is not None:
+            #
+            # {"message":"Schema validation failed for 'query'","errors":[{"name":"required","argument":"startTime","message":"requires property \"startTime\"","instance":{"baseTokenAddress":"0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570","quoteTokenAddress":"0xd0a1e359811322d97991e03f863a0c30c2cf029c","interval":"300"},"property":"instance"}]}
+            # {"message":"Logic validation failed for 'query'","errors":[{"message":"startTime should be between 0 and current date","type":"startTime"}]}
+            # {"message":"Order not found","errors":[]}
+            # {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
+            # {"message":"Intent validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]}
+            # {"message":"Schema validation failed for 'body'","errors":[{"name":"anyOf","argument":["[subschema 0]","[subschema 1]","[subschema 2]"],"message":"is not any of [subschema 0],[subschema 1],[subschema 2]","instance":{"signedTargetOrder":{"error":{"message":"Unsigned target order validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]},"maker":"0x1709c02cd7327d391a39a7671af8a91a1ef8a47b","orderHash":"0xda007ea8b5eca71ac96fe4072f7c1209bb151d898a9cc89bbeaa594f0491ee49","ecSignature":{"v":27,"r":"0xb23ce6c4a7b5d51d77e2d00f6d1d472a3b2e72d5b2be1510cfeb122f9366b79e","s":"0x07d274e6d7a00b65fc3026c2f9019215b1e47a5ac4d1f05e03f90550d27109be"}}},"property":"instance"}]}
+            # {"message":"Schema validation failed for 'params'","errors":[{"name":"pattern","argument":"^0x[0-9a-fA-F]{64}$","message":"does not match pattern \"^0x[0-9a-fA-F]{64}$\"","instance":"1","property":"instance.orderHash"}]}
+            #
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
+            raise ExchangeError(feedback)  # unknown message

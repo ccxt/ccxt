@@ -70,6 +70,7 @@ class latoken(Exchange):
                         'MarketData/tickers',
                         'MarketData/ticker/{symbol}',
                         'MarketData/orderBook/{symbol}',
+                        'MarketData/orderBook/{symbol}/{limit}',
                         'MarketData/trades/{symbol}',
                         'MarketData/trades/{symbol}/{limit}',
                     ],
@@ -311,22 +312,25 @@ class latoken(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
+            'limit': 10,
         }
-        response = self.publicGetMarketDataOrderBookSymbol(self.extend(request, params))
+        if limit is not None:
+            request['limit'] = limit  # default 10, max 100
+        response = self.publicGetMarketDataOrderBookSymbolLimit(self.extend(request, params))
         #
         #     {
         #         "pairId": 502,
         #         "symbol": "LAETH",
         #         "spread": 0.07,
         #         "asks": [
-        #             {"price": 136.3, "amount": 7.024}
+        #             {"price": 136.3, "quantity": 7.024}
         #         ],
         #         "bids": [
-        #             {"price": 136.2, "amount": 6.554}
+        #             {"price": 136.2, "quantity": 6.554}
         #         ]
         #     }
         #
-        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'quantity')
 
     def parse_ticker(self, ticker, market=None):
         symbol = self.find_symbol(self.safe_string(ticker, 'symbol'), market)
@@ -806,21 +810,13 @@ class latoken(Exchange):
         #     {"error": {"message": "Order 1563460289.571254.704945@0370:1 is not found","errorType":"RequestError","statusCode":400}}
         #
         message = self.safe_string(response, 'message')
-        exact = self.exceptions['exact']
-        broad = self.exceptions['broad']
         feedback = self.id + ' ' + body
         if message is not None:
-            if message in exact:
-                raise exact[message](feedback)
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
         error = self.safe_value(response, 'error', {})
         errorMessage = self.safe_string(error, 'message')
         if errorMessage is not None:
-            if errorMessage in exact:
-                raise exact[errorMessage](feedback)
-            broadKey = self.findBroadlyMatchedKey(broad, errorMessage)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorMessage, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
             raise ExchangeError(feedback)  # unknown message

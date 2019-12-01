@@ -183,7 +183,7 @@ class exx(Exchange):
         ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            if not (id in list(self.marketsById.keys())):
+            if not (id in self.marketsById):
                 continue
             market = self.marketsById[id]
             symbol = market['symbol']
@@ -200,7 +200,8 @@ class exx(Exchange):
             'currency': self.market_id(symbol),
         }
         response = await self.publicGetDepth(self.extend(request, params))
-        return self.parse_order_book(response, response['timestamp'])
+        timestamp = self.safe_timestamp(response, 'timestamp')
+        return self.parse_order_book(response, timestamp)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_timestamp(trade, 'date')
@@ -382,14 +383,12 @@ class exx(Exchange):
         #
         code = self.safe_string(response, 'code')
         message = self.safe_string(response, 'message')
-        feedback = self.id + ' ' + self.json(response)
+        feedback = self.id + ' ' + body
         if code == '100':
             return
         if code is not None:
-            exceptions = self.exceptions
-            if code in exceptions:
-                raise exceptions[code](feedback)
-            elif code == '308':
+            self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+            if code == '308':
                 # self is returned by the exchange when there are no open orders
                 # {"code":308,"message":"Not Found Transaction Record"}
                 return

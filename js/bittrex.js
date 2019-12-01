@@ -1157,6 +1157,7 @@ module.exports = class bittrex extends Exchange {
             'id': this.safeString (order, 'id'),
             'side': this.safeString (order, 'side'),
             'order': this.safeString (order, 'id'),
+            'type': this.safeString (order, 'type'),
             'price': this.safeFloat (order, 'average'),
             'amount': this.safeFloat (order, 'filled'),
             'cost': this.safeFloat (order, 'cost'),
@@ -1370,8 +1371,7 @@ module.exports = class bittrex extends Exchange {
             }
             if (!success) {
                 const message = this.safeString (response, 'message');
-                const feedback = this.id + ' ' + this.json (response);
-                const exceptions = this.exceptions;
+                const feedback = this.id + ' ' + body;
                 if (message === 'APIKEY_INVALID') {
                     if (this.options['hasAlreadyAuthenticatedSuccessfully']) {
                         throw new DDoSProtection (feedback);
@@ -1416,9 +1416,7 @@ module.exports = class bittrex extends Exchange {
                         }
                     }
                 }
-                if (message in exceptions) {
-                    throw new exceptions[message] (feedback);
-                }
+                this.throwExactlyMatchedException (this.exceptions, message, feedback);
                 if (message !== undefined) {
                     if (message.indexOf ('throttled. Try again') >= 0) {
                         throw new DDoSProtection (feedback);

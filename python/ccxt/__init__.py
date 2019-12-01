@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.19.1'
+__version__ = '1.20.20'
 
 # ----------------------------------------------------------------------------
 
@@ -53,8 +53,10 @@ from ccxt.base.errors import DuplicateOrderId               # noqa: F401
 from ccxt.base.errors import CancelPending                  # noqa: F401
 from ccxt.base.errors import NetworkError                   # noqa: F401
 from ccxt.base.errors import DDoSProtection                 # noqa: F401
+from ccxt.base.errors import RateLimitExceeded              # noqa: F401
 from ccxt.base.errors import RequestTimeout                 # noqa: F401
 from ccxt.base.errors import ExchangeNotAvailable           # noqa: F401
+from ccxt.base.errors import OnMaintenance                  # noqa: F401
 from ccxt.base.errors import InvalidAddress                 # noqa: F401
 from ccxt.base.errors import AddressPending                 # noqa: F401
 from ccxt.base.errors import ArgumentsRequired              # noqa: F401
@@ -106,6 +108,7 @@ from ccxt.btctradeim import btctradeim                      # noqa: F401
 from ccxt.btctradeua import btctradeua                      # noqa: F401
 from ccxt.btcturk import btcturk                            # noqa: F401
 from ccxt.buda import buda                                  # noqa: F401
+from ccxt.bw import bw                                      # noqa: F401
 from ccxt.bytetrade import bytetrade                        # noqa: F401
 from ccxt.cex import cex                                    # noqa: F401
 from ccxt.chilebit import chilebit                          # noqa: F401
@@ -131,7 +134,6 @@ from ccxt.crex24 import crex24                              # noqa: F401
 from ccxt.deribit import deribit                            # noqa: F401
 from ccxt.digifinex import digifinex                        # noqa: F401
 from ccxt.dsx import dsx                                    # noqa: F401
-from ccxt.dx import dx                                      # noqa: F401
 from ccxt.exmo import exmo                                  # noqa: F401
 from ccxt.exx import exx                                    # noqa: F401
 from ccxt.fcoin import fcoin                                # noqa: F401
@@ -175,6 +177,7 @@ from ccxt.paymium import paymium                            # noqa: F401
 from ccxt.poloniex import poloniex                          # noqa: F401
 from ccxt.rightbtc import rightbtc                          # noqa: F401
 from ccxt.southxchange import southxchange                  # noqa: F401
+from ccxt.stex import stex                                  # noqa: F401
 from ccxt.stronghold import stronghold                      # noqa: F401
 from ccxt.surbitcoin import surbitcoin                      # noqa: F401
 from ccxt.theocean import theocean                          # noqa: F401
@@ -233,6 +236,7 @@ exchanges = [
     'btctradeua',
     'btcturk',
     'buda',
+    'bw',
     'bytetrade',
     'cex',
     'chilebit',
@@ -258,7 +262,6 @@ exchanges = [
     'deribit',
     'digifinex',
     'dsx',
-    'dx',
     'exmo',
     'exx',
     'fcoin',
@@ -302,6 +305,7 @@ exchanges = [
     'poloniex',
     'rightbtc',
     'southxchange',
+    'stex',
     'stronghold',
     'surbitcoin',
     'theocean',

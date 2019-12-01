@@ -580,12 +580,14 @@ module.exports = class kucoin extends Exchange {
         //   bids: [ [ '5c419328ef83c75456bd615c', '0.9', '0.09' ], ... ], }
         //
         const data = response['data'];
-        const timestamp = this.safeInteger (data, 'sequence');
+        const timestamp = this.safeInteger (data, 'time');
         // level can be a string such as 2_20 or 2_100
         const levelString = this.safeString (request, 'level');
         const levelParts = levelString.split ('_');
         const level = parseInt (levelParts[0]);
-        return this.parseOrderBook (data, timestamp, 'bids', 'asks', level - 2, level - 1);
+        const orderbook = this.parseOrderBook (data, timestamp, 'bids', 'asks', level - 2, level - 1);
+        orderbook['nonce'] = this.safeInteger (data, 'sequence');
+        return orderbook;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1592,9 +1594,7 @@ module.exports = class kucoin extends Exchange {
         //
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
-        const ExceptionClass = this.safeValue2 (this.exceptions, message, errorCode);
-        if (ExceptionClass !== undefined) {
-            throw new ExceptionClass (this.id + ' ' + message);
-        }
+        this.throwExactlyMatchedException (this.exceptions, message, message);
+        this.throwExactlyMatchedException (this.exceptions, errorCode, message);
     }
 };

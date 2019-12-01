@@ -1158,14 +1158,10 @@ module.exports = class coinbase extends Exchange {
         //      ]
         //    }
         //
-        const exceptions = this.exceptions;
         let errorCode = this.safeString (response, 'error');
         if (errorCode !== undefined) {
-            if (errorCode in exceptions) {
-                throw new exceptions[errorCode] (feedback);
-            } else {
-                throw new ExchangeError (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
+            throw new ExchangeError (feedback);
         }
         const errors = this.safeValue (response, 'errors');
         if (errors !== undefined) {
@@ -1174,11 +1170,8 @@ module.exports = class coinbase extends Exchange {
                 if (numErrors > 0) {
                     errorCode = this.safeString (errors[0], 'id');
                     if (errorCode !== undefined) {
-                        if (errorCode in exceptions) {
-                            throw new exceptions[errorCode] (feedback);
-                        } else {
-                            throw new ExchangeError (feedback);
-                        }
+                        this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
+                        throw new ExchangeError (feedback);
                     }
                 }
             }

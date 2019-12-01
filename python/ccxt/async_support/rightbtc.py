@@ -244,7 +244,7 @@ class rightbtc(Exchange):
         for i in range(0, len(tickers)):
             ticker = tickers[i]
             id = ticker['market']
-            if not (id in list(self.marketsById.keys())):
+            if not (id in self.marketsById):
                 continue
             market = self.marketsById[id]
             symbol = market['symbol']
@@ -555,7 +555,7 @@ class rightbtc(Exchange):
         #
         orders = self.parse_orders(response['result'], market)
         ordersById = self.index_by(orders, 'id')
-        if not (id in list(ordersById.keys())):
+        if not (id in ordersById):
             raise OrderNotFound(self.id + ' fetchOrder could not find order ' + str(id) + ' in open orders.')
         return ordersById[id]
 
@@ -701,8 +701,6 @@ class rightbtc(Exchange):
             success = self.safe_string(status, 'success')
             if success != '1':
                 message = self.safe_string(status, 'message')
-                feedback = self.id + ' ' + self.json(response)
-                exceptions = self.exceptions
-                if message in exceptions:
-                    raise exceptions[message](feedback)
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions, message, feedback)
                 raise ExchangeError(feedback)

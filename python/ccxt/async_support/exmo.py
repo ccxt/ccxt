@@ -19,7 +19,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 
 
@@ -268,14 +268,18 @@ class exmo(Exchange):
                             {'pair': 'DCR/RUB', 'min_q': '0.01', 'max_q': '50000', 'min_p': '0.00001', 'max_p': '100000', 'min_a': '0.5', 'max_a': '3000000'},
                             {'pair': 'DCR/UAH', 'min_q': '0.01', 'max_q': '50000', 'min_p': '0.00001', 'max_p': '100000', 'min_a': '0.25', 'max_a': '1000000'},
                             {'pair': 'ZAG/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100'},
-                            {'pair': 'EXM/BTC', 'min_q': '1', 'max_q': '157022513', 'min_p': '0.0000009', 'max_p': '0.0000009', 'min_a': '0.000001', 'max_a': '141'},
+                            {'pair': 'EXM/BTC', 'min_q': '1', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0000001', 'max_a': '100'},
+                            {'pair': 'VLX/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100'},
+                            {'pair': 'BTT/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100'},
+                            {'pair': 'BTT/RUB', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '0.000001', 'max_a': '100'},
+                            {'pair': 'BTT/UAH', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '0.000001', 'max_a': '100'},
                         ],
                         'fees': [
                             {
                                 'group': 'crypto',
                                 'title': 'Криптовалюта',
                                 'items': [
-                                    {'prov': 'EXM', 'dep': '0%', 'wd': '-'},
+                                    {'prov': 'EXM', 'dep': '0%', 'wd': '1 EXM'},
                                     {'prov': 'BTC', 'dep': '0%', 'wd': '0.0005 BTC'},
                                     {'prov': 'LTC', 'dep': '0%', 'wd': '0.01 LTC'},
                                     {'prov': 'DOGE', 'dep': '0%', 'wd': '1 DOGE'},
@@ -286,7 +290,7 @@ class exmo(Exchange):
                                     {'prov': 'USDT', 'dep': '0%', 'wd': '5 USDT'},
                                     {'prov': 'XMR', 'dep': '0%', 'wd': '0.05 XMR'},
                                     {'prov': 'XRP', 'dep': '0%', 'wd': '0.02 XRP'},
-                                    {'prov': 'KICK', 'dep': '0 KICK', 'wd': '50 KICK'},
+                                    {'prov': 'KICK', 'dep': '0%', 'wd': '50 KICK'},
                                     {'prov': 'ETC', 'dep': '0%', 'wd': '0.01 ETC'},
                                     {'prov': 'BCH', 'dep': '0%', 'wd': '0.001 BCH'},
                                     {'prov': 'BTG', 'dep': '0%', 'wd': '0.001 BTG'},
@@ -316,9 +320,11 @@ class exmo(Exchange):
                                     {'prov': 'ATMCASH', 'dep': '0%', 'wd': '5 ATMCASH'},
                                     {'prov': 'ETZ', 'dep': '0%', 'wd': '1 ETZ'},
                                     {'prov': 'USDC', 'dep': '0%', 'wd': '0.5 USDC'},
-                                    {'prov': 'ROOBEE', 'dep': '0%', 'wd': '0%'},
+                                    {'prov': 'ROOBEE', 'dep': '0%', 'wd': '200 ROOBEE'},
                                     {'prov': 'DCR', 'dep': '0%', 'wd': '0.01 DCR'},
                                     {'prov': 'ZAG', 'dep': '0%', 'wd': '0%'},
+                                    {'prov': 'BTT', 'dep': '0%', 'wd': '100 BTT'},
+                                    {'prov': 'VLX', 'dep': '0%', 'wd': '1 VLX'},
                                 ],
                             },
                             {
@@ -398,7 +404,7 @@ class exmo(Exchange):
                 '40005': AuthenticationError,  # Authorization error, incorrect signature
                 '40009': InvalidNonce,  #
                 '40015': ExchangeError,  # API function do not exist
-                '40016': ExchangeNotAvailable,  # Maintenance work in progress
+                '40016': OnMaintenance,  # {"result":false,"error":"Error 40016: Maintenance work in progress"}
                 '40017': AuthenticationError,  # Wrong API Key
                 '50052': InsufficientFunds,
                 '50054': InsufficientFunds,
@@ -894,7 +900,7 @@ class exmo(Exchange):
             # - symbol mismatch(e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
             id = cachedOrderIds[k]
             order = self.orders[id]
-            if not (id in list(openOrdersIndexedById.keys())):
+            if not (id in openOrdersIndexedById):
                 # cached order is not in open orders array
                 # if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
                 if symbol is not None and symbol != order['symbol']:
@@ -982,12 +988,12 @@ class exmo(Exchange):
             marketId = None
             if 'pair' in order:
                 marketId = order['pair']
-            elif ('in_currency' in list(order.keys())) and ('out_currency' in list(order.keys())):
+            elif ('in_currency' in order) and ('out_currency' in order):
                 if side == 'buy':
                     marketId = order['in_currency'] + '_' + order['out_currency']
                 else:
                     marketId = order['out_currency'] + '_' + order['in_currency']
-            if (marketId is not None) and (marketId in list(self.markets_by_id.keys())):
+            if (marketId is not None) and (marketId in self.markets_by_id):
                 market = self.markets_by_id[marketId]
         amount = self.safe_float(order, 'quantity')
         if amount is None:
@@ -1281,9 +1287,6 @@ class exmo(Exchange):
                     errorSubParts = errorParts[0].split(' ')
                     numSubParts = len(errorSubParts)
                     code = errorSubParts[1] if (numSubParts > 1) else errorSubParts[0]
-                feedback = self.id + ' ' + self.json(response)
-                exceptions = self.exceptions
-                if code in exceptions:
-                    raise exceptions[code](feedback)
-                else:
-                    raise ExchangeError(feedback)
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                raise ExchangeError(feedback)

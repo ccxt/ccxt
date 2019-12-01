@@ -233,22 +233,26 @@ class poloniex(Exchange):
     def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        if since is None:
-            since = 0
         request = {
             'currencyPair': market['id'],
             'period': self.timeframes[timeframe],
-            'start': int(since / 1000),
         }
-        if limit is not None:
-            request['end'] = self.sum(request['start'], limit * self.timeframes[timeframe])
+        if since is None:
+            request['end'] = self.seconds()
+            if limit is None:
+                request['start'] = request['end'] - self.parse_timeframe('1w')  # max range = 1 week
+            else:
+                request['start'] = request['end'] - self.sum(limit) * self.parse_timeframe(timeframe)
         else:
-            request['end'] = self.sum(self.seconds(), 1)
+            request['start'] = int(since / 1000)
+            if limit is not None:
+                end = self.sum(request['start'], limit * self.parse_timeframe(timeframe))
+                request['end'] = end
         response = self.publicGetReturnChartData(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetReturnTicker()
+        markets = self.publicGetReturnTicker(params)
         keys = list(markets.keys())
         result = []
         for i in range(0, len(keys)):
@@ -265,8 +269,10 @@ class poloniex(Exchange):
             })
             isFrozen = self.safe_string(market, 'isFrozen')
             active = (isFrozen != '1')
-            result.append(self.extend(self.fees['trading'], {
+            numericId = self.safe_integer(market, 'id')
+            result.append({
                 'id': id,
+                'numericId': numericId,
                 'symbol': symbol,
                 'baseId': baseId,
                 'quoteId': quoteId,
@@ -275,7 +281,7 @@ class poloniex(Exchange):
                 'active': active,
                 'limits': limits,
                 'info': market,
-            }))
+            })
         return result
 
     def fetch_balance(self, params={}):
@@ -419,8 +425,10 @@ class poloniex(Exchange):
             precision = 8  # default precision, todo: fix "magic constants"
             code = self.safe_currency_code(id)
             active = (currency['delisted'] == 0) and not currency['disabled']
+            numericId = self.safe_integer(currency, 'id')
             result[code] = {
                 'id': id,
+                'numericId': numericId,
                 'code': code,
                 'info': currency,
                 'name': currency['name'],
@@ -490,7 +498,7 @@ class poloniex(Exchange):
         symbol = None
         base = None
         quote = None
-        if (not market) and ('currencyPair' in list(trade.keys())):
+        if (not market) and ('currencyPair' in trade):
             currencyPair = trade['currencyPair']
             if currencyPair in self.markets_by_id:
                 market = self.markets_by_id[currencyPair]
@@ -824,7 +832,7 @@ class poloniex(Exchange):
         return self.filter_orders_by_status(orders, 'closed')
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if type == 'market':
+        if type != 'limit':
             raise ExchangeError(self.id + ' allows limit orders only')
         self.load_markets()
         method = 'privatePost' + self.capitalize(side)
@@ -965,7 +973,7 @@ class poloniex(Exchange):
         self.load_markets()
         orders = self.fetch_open_orders(symbol, None, None, params)
         indexed = self.index_by(orders, 'id')
-        return 'open' if (id in list(indexed.keys())) else 'closed'
+        return 'open' if (id in indexed) else 'closed'
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1229,12 +1237,7 @@ class poloniex(Exchange):
         # {"error":"Permission denied."}
         if 'error' in response:
             message = response['error']
-            feedback = self.id + ' ' + self.json(response)
-            exact = self.exceptions['exact']
-            if message in exact:
-                raise exact[message](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

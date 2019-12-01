@@ -429,7 +429,7 @@ class dsx(Exchange):
         if limit is not None:
             request['limit'] = limit  # default = 150, max = 2000
         response = await self.publicGetDepthPair(self.extend(request, params))
-        market_id_in_reponse = (market['id'] in list(response.keys()))
+        market_id_in_reponse = (market['id'] in response)
         if not market_id_in_reponse:
             raise ExchangeError(self.id + ' ' + market['symbol'] + ' order book is empty or not available')
         orderbook = response[market['id']]
@@ -1167,14 +1167,8 @@ class dsx(Exchange):
             if not success:
                 code = self.safe_string(response, 'code')
                 message = self.safe_string(response, 'error')
-                feedback = self.id + ' ' + self.json(response)
-                exact = self.exceptions['exact']
-                if code in exact:
-                    raise exact[code](feedback)
-                elif message in exact:
-                    raise exact[message](feedback)
-                broad = self.exceptions['broad']
-                broadKey = self.findBroadlyMatchedKey(broad, message)
-                if broadKey is not None:
-                    raise broad[broadKey](feedback)
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 raise ExchangeError(feedback)  # unknown message

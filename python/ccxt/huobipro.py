@@ -52,6 +52,7 @@ class huobipro(Exchange):
                 '15m': '15min',
                 '30m': '30min',
                 '1h': '60min',
+                '4h': '4hour',
                 '1d': '1day',
                 '1w': '1week',
                 '1M': '1mon',
@@ -173,6 +174,10 @@ class huobipro(Exchange):
                 'language': 'en-US',
             },
             'commonCurrencies': {
+                # https://github.com/ccxt/ccxt/issues/6081
+                # https://github.com/ccxt/ccxt/issues/3365
+                # https://github.com/ccxt/ccxt/issues/2873
+                'GET': 'Themis',  # conflict with GET(Guaranteed Entrance Token, GET Protocol)
                 'HOT': 'Hydro Protocol',  # conflict with HOT(Holo) https://github.com/ccxt/ccxt/issues/4929
             },
         })
@@ -262,6 +267,7 @@ class huobipro(Exchange):
             maker = 0 if (base == 'OMG') else 0.2 / 100
             taker = 0 if (base == 'OMG') else 0.2 / 100
             minAmount = self.safe_float(market, 'min-order-amt', math.pow(10, -precision['amount']))
+            maxAmount = self.safe_float(market, 'max-order-amt')
             minCost = self.safe_float(market, 'min-order-value', 0)
             state = self.safe_string(market, 'state')
             active = (state == 'online')
@@ -279,7 +285,7 @@ class huobipro(Exchange):
                 'limits': {
                     'amount': {
                         'min': minAmount,
-                        'max': None,
+                        'max': maxAmount,
                     },
                     'price': {
                         'min': math.pow(10, -precision['price']),
@@ -921,12 +927,15 @@ class huobipro(Exchange):
         if api == 'private':
             self.check_required_credentials()
             timestamp = self.ymdhms(self.milliseconds(), 'T')
-            request = self.keysort(self.extend({
+            request = {
                 'SignatureMethod': 'HmacSHA256',
                 'SignatureVersion': '2',
                 'AccessKeyId': self.apiKey,
                 'Timestamp': timestamp,
-            }, query))
+            }
+            if method != 'POST':
+                request = self.extend(request, query)
+            request = self.keysort(request)
             auth = self.urlencode(request)
             # unfortunately, PHP demands double quotes for the escaped newline symbol
             # eslint-disable-next-line quotes
@@ -961,13 +970,10 @@ class huobipro(Exchange):
             status = self.safe_string(response, 'status')
             if status == 'error':
                 code = self.safe_string(response, 'err-code')
-                feedback = self.id + ' ' + self.json(response)
-                exceptions = self.exceptions['exact']
-                if code in exceptions:
-                    raise exceptions[code](feedback)
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
                 message = self.safe_string(response, 'err-msg')
-                if message in exceptions:
-                    raise exceptions[message](feedback)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 raise ExchangeError(feedback)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):

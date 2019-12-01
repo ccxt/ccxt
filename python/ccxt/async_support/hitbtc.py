@@ -492,6 +492,7 @@ class hitbtc(Exchange):
             'commonCurrencies': {
                 'BET': 'DAO.Casino',
                 'CAT': 'BitClave',
+                'CPT': 'Cryptaur',  # conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
                 'DRK': 'DASH',
                 'EMGO': 'MGO',
                 'GET': 'Themis',
@@ -969,12 +970,7 @@ class hitbtc(Exchange):
         error = self.safe_value(response, 'error')
         if error:
             code = self.safe_value(error, 'code')
-            feedback = self.id + ' ' + self.json(response)
-            exact = self.exceptions['exact']
-            if code in exact:
-                raise exact[code](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, error)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             raise ExchangeError(feedback)  # unknown error

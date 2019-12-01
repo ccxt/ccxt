@@ -816,7 +816,7 @@ module.exports = class cex extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': undefined,
+            'type': (price === undefined) ? 'market' : 'limit',
             'side': side,
             'price': price,
             'cost': cost,
@@ -1038,9 +1038,9 @@ module.exports = class cex extends Exchange {
                 const fa = this.safeFloat (item, 'fa:' + quoteId, 0);
                 const tfa = this.safeFloat (item, 'tfa:' + quoteId, 0);
                 if (side === 'sell') {
-                    cost = ta + tta + (fa + tfa);
+                    cost = this.sum (this.sum (ta, tta), this.sum (fa, tfa));
                 } else {
-                    cost = ta + tta - (fa + tfa);
+                    cost = this.sum (ta, tta) - this.sum (fa, tfa);
                 }
                 type = 'limit';
                 orderAmount = amount;
@@ -1168,15 +1168,8 @@ module.exports = class cex extends Exchange {
         if ('error' in response) {
             const message = this.safeString (response, 'error');
             const feedback = this.id + ' ' + body;
-            const exact = this.exceptions['exact'];
-            if (message in exact) {
-                throw new exact[message] (feedback);
-            }
-            const broad = this.exceptions['broad'];
-            const broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback);
         }
     }

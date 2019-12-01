@@ -438,11 +438,11 @@ class tidebit(Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
-        if code == 400:
-            error = self.safe_value(response, 'error')
+        if (code == 400) or (response is None):
+            feedback = self.id + ' ' + body
+            if response is None:
+                raise ExchangeError(feedback)
+            error = self.safe_value(response, 'error', {})
             errorCode = self.safe_string(error, 'code')
-            feedback = self.id + ' ' + self.json(response)
-            exceptions = self.exceptions
-            if errorCode in exceptions:
-                raise exceptions[errorCode](feedback)
+            self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
             # fallback to default error handler

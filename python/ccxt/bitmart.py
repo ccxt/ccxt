@@ -9,6 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
@@ -143,6 +144,7 @@ class bitmart(Exchange):
                     'Place order error': InvalidOrder,  # {"message":"Place order error"}
                     'Not found': OrderNotFound,  # {"message":"Not found"}
                     'Visit too often, please try again later': DDoSProtection,  # {"code":-30,"msg":"Visit too often, please try again later","subMsg":"","data":{}}
+                    'Unknown symbol': BadSymbol,  # {"message":"Unknown symbol"}
                 },
                 'broad': {
                     'Maximum price is': InvalidOrder,  # {"message":"Maximum price is 0.112695"}
@@ -385,20 +387,23 @@ class bitmart(Exchange):
         # fetchMyTrades(private)
         #
         #     {
-        #         "symbol": "BMX_ETH",
-        #         "amount": "1.0",
-        #         "fees": "0.0005000000",
-        #         "trade_id": 2734956,
-        #         "price": "0.00013737",
-        #         "active": True,
-        #         "entrust_id": 5576623,
-        #         "timestamp": 1545292334000
-        #     }
+        #         active: True,
+        #             amount: '0.2000',
+        #             entrustType: 1,
+        #             entrust_id: 979648824,
+        #             fees: '0.0000085532',
+        #             price: '0.021383',
+        #             symbol: 'ETH_BTC',
+        #             timestamp: 1574343514000,
+        #             trade_id: 329418828
+        #     },
         #
         id = self.safe_string(trade, 'trade_id')
         timestamp = self.safe_integer_2(trade, 'timestamp', 'order_time')
         type = None
         side = self.safe_string_lower(trade, 'type')
+        if (side is None) and ('entrustType' in trade):
+            side = 'sell' if trade['entrustType'] else 'buy'
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         cost = None
@@ -423,8 +428,9 @@ class bitmart(Exchange):
         feeCost = self.safe_float(trade, 'fees')
         fee = None
         if feeCost is not None:
-            # is it always quote, always base, or base-quote depending on the side?
             feeCurrencyCode = None
+            if market is not None:
+                feeCurrencyCode = market['base'] if (side == 'buy') else market['quote']
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -472,7 +478,8 @@ class bitmart(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            # 'offset': 0,  # current page, starts from 0
+            'offset': 0,  # current page, starts from 0
+            'limit': 500,
         }
         if limit is not None:
             request['limit'] = limit  # default 500, max 1000
@@ -661,8 +668,8 @@ class bitmart(Exchange):
         request = {
             'symbol': market['id'],
             'side': side.lower(),
-            'amount': float(self.amount_to_precision(symbol, amount)),
-            'price': float(self.price_to_precision(symbol, price)),
+            'amount': self.amount_to_precision(symbol, amount),
+            'price': self.price_to_precision(symbol, price),
         }
         response = self.privatePostOrders(self.extend(request, params))
         #
@@ -832,11 +839,6 @@ class bitmart(Exchange):
         feedback = self.id + ' ' + body
         message = self.safe_string_2(response, 'message', 'msg')
         if message is not None:
-            exact = self.exceptions['exact']
-            if message in exact:
-                raise exact[message](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
