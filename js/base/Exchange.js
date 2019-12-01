@@ -3,10 +3,6 @@
 const ccxt = require ('ccxt')
     , WebSocketClient = require ('./WebSocketClient')
     , {
-        ExternallyResolvablePromise,
-        externallyResolvablePromise
-    } = require ('./MultiPromise')
-    , {
         OrderBook,
         LimitedOrderBook,
         IndexedOrderBook,
@@ -58,25 +54,14 @@ module.exports = class Exchange extends ccxt.Exchange {
         //                        ↓                                ↑
         //                      connect → subscribe → receive → resolve
         //
-        const future = client.createFuture (messageHash)
-        // if (!client.futures[messageHash]) {
-        //     client.futures[messageHash] = externallyResolvablePromise ()
-        // }
+        const future = client.future (messageHash)
         // we intentionally do not use await here to avoid unhandled exceptions
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject
         client.connect ()
-            // // if the connection promise is rejected the following catch-clause
-            // // will catch the exception and the subsequent then-clause will not
-            // // be executed at all (connection failed)
-            // .catch ((error) => {
-            //     this.rejectWsFutures (client, error)
-            //     // we do not return a resolvable value from here
-            //     // to avoid triggering the following then-clause
-            // })
             // the following is executed only if the catch-clause does not
             // catch any connection-level exceptions from the websocket client
-            // (connection succeeded)
+            // (connection established successfully)
             .then (() => {
                 if (message && !client.subscriptions[subscribeHash]) {
                     client.subscriptions[subscribeHash] = true
@@ -84,35 +69,34 @@ module.exports = class Exchange extends ccxt.Exchange {
                     client.send (message)
                 }
             })
-        // return client.futures[messageHash]
         return future
     }
 
-    resolveWsFuture (client, messageHash, result) {
-        if (client.futures[messageHash]) {
-            const promise = client.futures[messageHash]
-            promise.resolve (result)
-            delete client.futures[messageHash]
-        }
-        return result
-    }
+    // resolveWsFuture (client, messageHash, result) {
+    //     if (client.futures[messageHash]) {
+    //         const promise = client.futures[messageHash]
+    //         promise.resolve (result)
+    //         delete client.futures[messageHash]
+    //     }
+    //     return result
+    // }
 
-    rejectWsFutures (client, result) {
-        const keys = Object.keys (client.futures)
-        for (let i = 0; i < keys.length; i++) {
-            this.rejectWsFuture (client, keys[i], result)
-        }
-        return result
-    }
+    // rejectWsFutures (client, result) {
+    //     const keys = Object.keys (client.futures)
+    //     for (let i = 0; i < keys.length; i++) {
+    //         this.rejectWsFuture (client, keys[i], result)
+    //     }
+    //     return result
+    // }
 
-    rejectWsFuture (client, messageHash, result) {
-        if (client.futures[messageHash]) {
-            const promise = client.futures[messageHash]
-            promise.reject (result)
-            delete client.futures[messageHash]
-        }
-        return result
-    }
+    // rejectWsFuture (client, messageHash, result) {
+    //     if (client.futures[messageHash]) {
+    //         const promise = client.futures[messageHash]
+    //         promise.reject (result)
+    //         delete client.futures[messageHash]
+    //     }
+    //     return result
+    // }
 
     async close () {
         const clients = Object.values (this.clients)

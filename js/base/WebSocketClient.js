@@ -9,11 +9,7 @@ const ccxt = require ('ccxt')
         deepExtend,
         milliseconds,
     } = ccxt
-    , {
-        ExternallyResolvablePromise,
-        externallyResolvablePromise
-    } = require ('./MultiPromise')
-    // , Future = require ('./Future')
+    , Future = require ('./Future')
     , WebSocket = isNode ? require ('ws') : window.WebSocket
 
 module.exports = class WebSocketClient {
@@ -32,6 +28,7 @@ module.exports = class WebSocketClient {
             timers: {},
             futures: {}, // i don't think they belong here
             subscriptions: {}, // i don't think they belong here
+            connectionTimeout: 30000, // 30 seconds by default
             timeouts: {
                 // delay should be equal to the interval at which your
                 // server sends out pings plus a conservative assumption
@@ -46,6 +43,9 @@ module.exports = class WebSocketClient {
             //     heartbeat: true,
             // },
             // keepAlive: true,
+            ws: {
+                readyState: undefined,
+            },
         }
         Object.assign (this, deepExtend (defaults, config))
     }
@@ -78,68 +78,67 @@ module.exports = class WebSocketClient {
         this.setTimeout (id, event)
     }
 
-    isConnected () {
-        return this.ws.readyState === WebSocket.OPEN
-    }
-
-    isConnecting () {
-        return this.ws.readyState === WebSocket.CONNECTING
-    }
-
-    clear () {
-        this.connected.reject ()
-    }
-
-    createFuture (messageHash) {
+    future (messageHash) {
         if (!this.futures[messageHash]) {
-            this.futures[messageHash] = externallyResolvablePromise ()
+            this.futures[messageHash] = Future ()
         }
         return this.futures[messageHash]
     }
 
-    resolveFuture (messageHash, result) {
-        if (this.futures[messageHash]) {
-            const promise = this.futures[messageHash]
-            promise.resolve (result)
-            delete this.futures[messageHash]
+    resolve (result, messageHash = undefined) {
+        if (messageHash) {
+            if (this.futures[messageHash]) {
+                const promise = this.futures[messageHash]
+                promise.resolve (result)
+                delete this.futures[messageHash]
+            }
+        } else {
+            const messageHashes = Object.keys (this.futures)
+            for (let i = 0; i < messageHashes.length; i++) {
+                this.resolve (result, messageHashes[i])
+            }
         }
         return result
     }
 
-    resolveFutures (result) {
-        const messageHashes = Object.keys (this.futures)
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i]
-            this.resolveFuture (messageHash, result)
+    reject (result, messageHash = undefined) {
+        if (messageHash) {
+            if (this.futures[messageHash]) {
+                const promise = this.futures[messageHash]
+                promise.reject (result)
+                delete this.futures[messageHash]
+            }
+        } else {
+            const messageHashes = Object.keys (this.futures)
+            for (let i = 0; i < messageHashes.length; i++) {
+                this.reject (result, messageHashes[i])
+            }
         }
-        return result
     }
 
-    rejectFuture (messageHash, result) {
-        if (this.futures[messageHash]) {
-            const promise = this.futures[messageHash]
-            promise.reject (result)
-            delete this.futures[messageHash]
-        }
-        return result
+    reset (error) {
+        this.connected.reject (error)
+        this.reject (error)
     }
 
-    rejectFutures (result) {
-        const messageHashes = Object.keys (this.futures)
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i]
-            this.rejectFuture (messageHash, result)
+    onConnectionTimeout () {
+        if (this.ws.readyState !== WebSocket.OPEN) {
+            this.reset (new ccxt.RequestTimeout ('Connection to ' + this.ws.url + ' failed due to a timeout'))
         }
-        return result
     }
 
     connect () {
-        if (!this.ws || !(this.isConnecting () || this.isConnected ())) {
-            // this.()
+        if ((this.ws.readyState !== WebSocket.OPEN) &&
+            (this.ws.readyState !== WebSocket.CONNECTING)) {
+            this.futures = {}
+            this.subscriptions = {}
+            // todo: add support for reconnection backoff here
             console.log (new Date (), 'connecting...')
-            this.connected = externallyResolvablePromise ()
+            this.connected = Future ()
             this.ws = new WebSocket (this.url, this.protocols, this.options)
-            // add support for connection timeout
+            if (this.connectionTimeout) {
+                this.connectionTimer = setTimeout (this.onConnectionTimeout.bind (this), this.connectionTimeout)
+            }
             this.ws
                 .on ('open', this.onOpen.bind (this))
                 .on ('ping', this.onPing.bind (this))
@@ -148,16 +147,17 @@ module.exports = class WebSocketClient {
                 .on ('close', this.onClose.bind (this))
                 .on ('upgrade', this.onUpgrade.bind (this))
                 .on ('message', this.onMessage.bind (this))
-            this.ws.terminate ()
-            // this.ws.close ()
+            // this.ws.terminate () // debugging
+            // this.ws.close () // debugging
         }
         // if the connection promise is rejected the following catch-clause
         // will catch the exception and the subsequent then-clauses will not
         // be executed at all (connection failed)
         return this.connected.catch ((error) => {
-            this.rejectFutures (error)
-            // we do not return a resolvable value from here
-            // to avoid triggering then-clauses that will follow
+            // we do nothing and don't return a resolvable value from here
+            // we leave it in a rejected state to avoid
+            // triggering the then-clauses that will follow (if any)
+            // removing this catch-clause will raise UnhandledPromiseRejection
         })
     }
 
@@ -196,12 +196,8 @@ module.exports = class WebSocketClient {
     onOpen () {
         // console.log (new Date (), 'onOpen')
         this.connected.resolve (this.url)
-        // this.ws.close ()
+        // this.ws.close () // debugging
         // this.setTimeout ('ping', 'onOpen')
-        // this.send (JSON.stringify ({
-        //     'command': 'subscribe',
-        //     'channel': '175',
-        // }))
     }
 
     // this method is not used at this time, because in JS the ws client will
@@ -219,8 +215,8 @@ module.exports = class WebSocketClient {
 
     onError (error) {
         console.log (new Date (), 'onError', error)
-        // TODO: convert ws errors to ccxt errors if necessary
-        this.connected.reject (new ccxt.NetworkError (error))
+        // // TODO: convert ws errors to ccxt errors if necessary
+        this.reset (new ccxt.NetworkError (error.message))
     }
 
     onClose (x) {
@@ -238,7 +234,7 @@ module.exports = class WebSocketClient {
         try {
             message = isJsonEncodedObject (message) ? JSON.parse (message) : message
         } catch (e) {
-            // throw json encoding error
+            // reset with a json encoding error ?
         }
         this.callback (this, message)
     }
