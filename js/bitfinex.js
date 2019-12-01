@@ -138,7 +138,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
 
     handleWsSystemStatus (client, message) {
         //
-        // todo: answer the question whether this method should be renamed
+        // todo: answer the question whether handleWsSystemStatus should be renamed
         // and unified as handleWsStatus for any usage pattern that
         // involves system status and maintenance updates
         //
@@ -154,7 +154,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
 
     handleWsSubscriptionStatus (client, message) {
         //
-        // todo: answer the question whether this method should be renamed
+        // todo: answer the question whether handleWsSubscriptionStatus should be renamed
         // and unified as handleWsResponse for any usage pattern that
         // involves an identified request/response sequence
         //
@@ -177,7 +177,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
     }
 
     signWsMessage (client, messageHash, message, params = {}) {
-        // todo: not implemented yet
+        // todo: bitfinex signWsMessage not implemented yet
         return message;
     }
 
@@ -200,7 +200,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
                 return this[method] (client, message);
             }
         } else {
-            // todo: add handleWsErrors
+            // todo: add bitfinex handleWsErrors
             //
             //     {
             //         event: 'info',

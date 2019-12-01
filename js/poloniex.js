@@ -17,7 +17,7 @@ module.exports = class poloniex extends ccxt.poloniex {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://api2.poloniex.com/',
+                    'ws': 'wss://api2.poloniex.com',
                 },
             },
         });
@@ -108,7 +108,7 @@ module.exports = class poloniex extends ccxt.poloniex {
             'channel': numericId,
         };
         // the commented lines below won't work in sync php
-        // todo: figure out a way to wrap it in a base method
+        // todo: resolve future results via a base proxy-method
         //
         // const orderbook = await this.sendWsMessage (url, messageHash, {
         //     'command': 'subscribe',

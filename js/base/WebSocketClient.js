@@ -6,6 +6,7 @@ const ccxt = require ('ccxt')
         isNode,
         isJsonEncodedObject,
         RequestTimeout,
+        NetworkError,
         deepExtend,
         milliseconds,
     } = ccxt
@@ -21,32 +22,34 @@ module.exports = class WebSocketClient {
             onMessageCallback,
             protocols: undefined, // ws protocols
             options: undefined,   // ws options
-            // todo: implement proper back-off
-            backOff: true,
-            // reconnect: false, // reconnect on connection loss, not really needed here
+            backoff: true,
             // reconnectDelay: 1000, // not used atm
             futures: {},
             subscriptions: {},
-            connectionTimer: undefined, // for the connection-related setTimeout
+            connected: undefined, // connection-related Future
+            connectionTimer: undefined, // connection-related setTimeout
             connectionTimeout: 30000, // 30 seconds by default, false to disable
-            timers: {},
-            timeouts: {
-                // delay should be equal to the interval at which your
-                // server sends out pings plus a conservative assumption
-                // of the latency
-                // ping: 5000 + 1000,
-                ping: false,
-                heartbeat: 1500,
-            },
-            // pingTimeout: 30000 + 1000,
-            // enabledTimeouts: {
-            //     ping: true,
-            //     heartbeat: true,
-            // },
-            // keepAlive: true,
+            pingInterval: undefined, // ping-related interval
+            keepAlive: 30000, // throw if pong is not received in 30 seconds, false to disable
+            timeout: 30000, // throw if a request is not satisfied in 30 seconds, false to disable
             ws: {
                 readyState: undefined,
             },
+            // timers: {},
+            // timeouts: {
+            //     // delay should be equal to the interval at which your
+            //     // server sends out pings plus a conservative assumption
+            //     // of the latency
+            //     // ping: 5000 + 1000,
+            //     ping: false,
+            //     heartbeat: 1500,
+            // },
+            // // pingTimeout: 30000 + 1000,
+            // // enabledTimeouts: {
+            // //     ping: true,
+            // //     heartbeat: true,
+            // // },
+            // // keepAlive: true,
         }
         Object.assign (this, deepExtend (defaults, config))
     }
@@ -83,6 +86,7 @@ module.exports = class WebSocketClient {
         if (!this.futures[messageHash]) {
             this.futures[messageHash] = Future ()
         }
+        console.log (this.futures)
         return this.futures[messageHash]
     }
 
@@ -118,37 +122,57 @@ module.exports = class WebSocketClient {
     }
 
     reset (error) {
+        this.clearConnectionTimeout ()
+        this.clearPingInterval ()
         this.connected.reject (error)
         this.reject (error)
     }
 
     onConnectionTimeout () {
         if (this.ws.readyState !== WebSocket.OPEN) {
-            this.reset (new ccxt.RequestTimeout ('Connection to ' + this.ws.url + ' failed due to a timeout'))
+            this.reset (new RequestTimeout ('Connection to ' + this.ws.url + ' failed due to a timeout'))
+        }
+    }
+
+    setConnectionTimeout () {
+        if (this.connectionTimeout) {
+            const onConnectionTimeout = this.onConnectionTimeout.bind (this)
+            this.connectionTimer = setTimeout (onConnectionTimeout, this.connectionTimeout)
+        }
+    }
+
+    clearConnectionTimeout () {
+        if (this.connectionTimer) {
+            this.connectionTimer = clearTimeout (this.connectionTimer)
         }
     }
 
     connect () {
         if ((this.ws.readyState !== WebSocket.OPEN) &&
             (this.ws.readyState !== WebSocket.CONNECTING)) {
-            this.futures = {}
             this.subscriptions = {}
             // todo: add support for reconnection backoff here
             console.log (new Date (), 'connecting...')
-            this.connected = Future ()
-            this.ws = new WebSocket (this.url, this.protocols, this.options)
+            this.connected = Future ().catch ((error) => {})
+            const ws = new WebSocket (this.url, this.protocols, this.options)
+            let connectionTimeout = undefined
             if (this.connectionTimeout) {
-                this.connectionTimer = setTimeout (this.onConnectionTimeout.bind (this), this.connectionTimeout)
+                connectionTimeout = setTimeout (() => {
+                    if (ws.readyState !== WebSocket.OPEN) {
+                        this.reset (new RequestTimeout ('Connection to ' + this.ws.url + ' failed due to a timeout'))
+                    }
+                }, this.connectionTimeout)
             }
-            this.ws
-                .on ('open', this.onOpen.bind (this))
+            this.setConnectionTimeout ()
+            ws.on ('open', this.onOpen.bind (this))
                 .on ('ping', this.onPing.bind (this))
                 .on ('pong', this.onPong.bind (this))
                 .on ('error', this.onError.bind (this))
                 .on ('close', this.onClose.bind (this))
                 .on ('upgrade', this.onUpgrade.bind (this))
                 .on ('message', this.onMessage.bind (this))
-            // this.ws.terminate () // debugging
+            this.ws = ws
+            this.ws.terminate () // debugging
             // this.ws.close () // debugging
         }
         // if the connection promise is rejected the following catch-clause
@@ -168,23 +192,6 @@ module.exports = class WebSocketClient {
         this.ws.send (JSON.stringify (message))
     }
 
-    async keepAlive () {
-        // // ping every second
-        // const pinger = setInterval (() => {
-        //     this.ping ()
-        //     if (new Date ().getTime () - this.lastPong > this.timeout) {
-        //         this.timedoutFuture.resolve ()
-        //     }
-        // }, 1000)
-        // await this.timedoutFuture.promise ()
-        // clearInterval (pinger)
-        // for (let messageKey of Object.keys (this.futures)) {
-        //     let error = new RequestTimeout ('Websocket did not recieve a pong in reply to a ping within ' + this.timeout + ' seconds');
-        //     this.futures[messageKey].reject (error)
-        // }
-        // this.futures = {}
-    }
-
     ping () {
         this.ws.ping ()
     }
@@ -194,41 +201,64 @@ module.exports = class WebSocketClient {
         this.ws.terminate ()
     }
 
+    setPingInterval () {
+        if (this.pingTimeout) {
+            const onPingInterval = this.onPingInterval.bind (this)
+            this.pingInterval = setInterval (onPingInterval, this.pingTimeout)
+        }
+    }
+
+    clearPingInterval () {
+        if (this.pingInterval) {
+            this.pingInterval = clearInterval (this.pingInterval)
+        }
+    }
+
+    onPingInterval () {
+        if ((this.lastPong + this.pingRate) < milliseconds ()) {
+            this.reset (new RequestTimeout ('Connection to ' + this.ws.url + ' failed due to a timeout'))
+        } else {
+            if (this.ws.readyState === WebSocket.OPEN) {
+                this.ws.ping ()
+            }
+        }
+    }
+
     onOpen () {
-        // console.log (new Date (), 'onOpen')
+        console.log (new Date (), 'onOpen')
         this.connected.resolve (this.url)
-        // this.ws.close () // debugging
-        // this.setTimeout ('ping', 'onOpen')
+        this.clearConnectionTimeout ()
+        this.setPingInterval ()
     }
 
     // this method is not used at this time, because in JS the ws client will
     // respond to pings coming from the server with pongs automatically
     // however, some devs may want to track connection states in their app
     onPing () {
-        // console.log (new Date (), 'onPing')
+        console.log (new Date (), 'onPing')
     }
 
     onPong () {
         this.lastPong = milliseconds ()
         console.log (new Date (), 'onPong')
-        this.resetTimeout ('ping', 'onPong')
+        // this.resetTimeout ('ping', 'onPong')
     }
 
     onError (error) {
-        console.log (new Date (), 'onError', error)
-        // // TODO: convert ws errors to ccxt errors if necessary
-        this.reset (new ccxt.NetworkError (error.message))
+        console.log (new Date (), 'onError', error.message)
+        // convert ws errors to ccxt errors if necessary
+        this.reset (new NetworkError (error.message))
     }
 
-    onClose (x) {
-        console.log (new Date (), 'onClose', x)
-        this.clearTimeout ('ping', 'onClose')
+    onClose (message) {
+        console.log (new Date (), 'onClose', message)
+        // this.clearTimeout ('ping', 'onClose')
     }
 
     // this method is not used at this time
     // but may be used to read protocol-level data like cookies, headers, etc
     onUpgrade (message) {
-        // console.log (new Date (), 'onUpgrade')
+        console.log (new Date (), 'onUpgrade', message)
     }
 
     onMessage (message) {

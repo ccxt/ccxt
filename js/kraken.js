@@ -429,7 +429,7 @@ module.exports = class kraken extends ccxt.kraken {
 
     handleWsSystemStatus (client, message) {
         //
-        // todo: answer the question whether this method should be renamed
+        // todo: answer the question whether handleWsSystemStatus should be renamed
         // and unified as handleWsStatus for any usage pattern that
         // involves system status and maintenance updates
         //
@@ -445,7 +445,7 @@ module.exports = class kraken extends ccxt.kraken {
 
     handleWsSubscriptionStatus (client, message) {
         //
-        // todo: answer the question whether this method should be renamed
+        // todo: answer the question whether handleWsSubscriptionStatus should be renamed
         // and unified as handleWsResponse for any usage pattern that
         // involves an identified request/response sequence
         //
@@ -463,7 +463,6 @@ module.exports = class kraken extends ccxt.kraken {
         this.options['subscriptionStatusByChannelId'][channelId] = message;
         const requestId = this.safeString (message, 'reqid');
         if (client.futures[requestId]) {
-            // todo: transpile delete in ccxt
             delete client.futures[requestId];
         }
     }
@@ -501,7 +500,7 @@ module.exports = class kraken extends ccxt.kraken {
     }
 
     signWsMessage (client, messageHash, message, params = {}) {
-        // todo: not implemented yet
+        // todo: kraken signWsMessage not implemented yet
         return message;
     }
 

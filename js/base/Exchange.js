@@ -40,8 +40,8 @@ module.exports = class Exchange extends ccxt.Exchange {
     websocket (url) {
         this.clients = this.clients || {}
         if (!this.clients[url]) {
-            const callback = this.handleWsMessage.bind (this)
-            this.clients[url] = new WebSocketClient (url, callback)
+            const onMessageCallback = this.handleWsMessage.bind (this)
+            this.clients[url] = new WebSocketClient (url, onMessageCallback)
         }
         return this.clients[url]
     }
@@ -57,18 +57,18 @@ module.exports = class Exchange extends ccxt.Exchange {
         // we intentionally do not use await here to avoid unhandled exceptions
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject
-        client.connect ()
-            // the following is executed only if the catch-clause does not
-            // catch any connection-level exceptions from the websocket client
-            // (connection established successfully)
-            .then (() => {
-                if (message && !client.subscriptions[subscribeHash]) {
-                    client.subscriptions[subscribeHash] = true
-                    // todo: decouple this
-                    message = this.signWsMessage (client, messageHash, message)
-                    client.send (message)
-                }
-            })
+        const connected = client.connect ()
+        // the following is executed only if the catch-clause does not
+        // catch any connection-level exceptions from the websocket client
+        // (connection established successfully)
+        connected.then (() => {
+            if (message && !client.subscriptions[subscribeHash]) {
+                client.subscriptions[subscribeHash] = true
+                // todo: decouple signing from subscriptions
+                message = this.signWsMessage (client, messageHash, message)
+                client.send (message)
+            }
+        })
         return future
     }
 

@@ -254,7 +254,7 @@ module.exports = class bitmex extends ccxt.bitmex {
     }
 
     signWsMessage (client, messageHash, message, params = {}) {
-        // todo: not implemented yet
+        // todo: bitmex signWsMessage not implemented yet
         return message;
     }
 
@@ -418,7 +418,7 @@ module.exports = class bitmex extends ccxt.bitmex {
 
     handleWsSystemStatus (client, message) {
         //
-        // todo: answer the question whether this method should be renamed
+        // todo: answer the question whether handleWsSystemStatus should be renamed
         // and unified as handleWsStatus for any usage pattern that
         // involves system status and maintenance updates
         //
@@ -435,7 +435,7 @@ module.exports = class bitmex extends ccxt.bitmex {
 
     handleWsSubscriptionStatus (client, message) {
         //
-        // todo: answer the question whether this method should be renamed
+        // todo: answer the question whether handleWsSubscriptionStatus should be renamed
         // and unified as handleWsResponse for any usage pattern that
         // involves an identified request/response sequence
         //
@@ -451,7 +451,6 @@ module.exports = class bitmex extends ccxt.bitmex {
         // this.options['subscriptionStatusByChannelId'][channelId] = message;
         // const requestId = this.safeString (message, 'reqid');
         // if (client.futures[requestId]) {
-        //     // todo: transpile delete in ccxt
         //     delete client.futures[requestId];
         // }
         //
