@@ -66,6 +66,7 @@ module.exports = class bitbns extends Exchange {
                 'private1': { 'post': [
                     'orderStatus',
                     'listOpenOrders',
+                    'currentCoinBalance',
                 ] },
             },
             'fees': {
@@ -76,7 +77,7 @@ module.exports = class bitbns extends Exchange {
                     'taker': 0.0025,
                 },
             },
-            'verbose': true,
+            'verbose': false,
             // 'proxy': '',
             'apiKey': '',
             'secret': '',
@@ -349,5 +350,48 @@ module.exports = class bitbns extends Exchange {
             openOrders.push (orderObj);
         }
         return openOrders;
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        // console.log('exchange.currencies :', exchange.currencies);
+        const symbols = Object.keys (this.currencies);
+        // same as previous line
+        // console.log('symbols :', symbols);
+        await this.loadMarkets ();
+        const request = {
+            'symbol': 'EVERYTHING',
+        };
+        const data = await this.private1PostCurrentCoinBalance (this.extend (request, params));
+        // console.log('Data ::', data);
+        const balances = {};
+        // balances['info'] = data;
+        // console.log('balances :', balances);
+        const currencybalances = data['data'];
+        // console.log('currencybalances :', currencybalances);
+        const freefiat = currencybalances['availableorderMoney'] ? currencybalances['availableorderMoney'] : 0;
+        const usedfiat = currencybalances['inorderMoney'] ? currencybalances['inorderMoney'] : 0;
+        // console.log('freefiat :', { INR: freefiat });
+        // console.log('usedfiat :', { INR: usedfiat },{INR: freefiat + usedfiat});
+        balances['free'] = { 'INR': freefiat };
+        balances['used'] = { 'INR': usedfiat };
+        balances['total'] = { 'INR': freefiat + usedfiat };
+        // console.log('balances :', balances);
+        for (let i = 0; i < this.symbols.length; i += 1) {
+            const symbol = symbols[i];
+            const currency = symbol;
+            const availableOrderString = 'availableorder' + symbol;
+            const free = currencybalances[availableOrderString] ? currencybalances[availableOrderString] : 0;
+            const inorderString = 'inorder' + symbol;
+            const used = currencybalances[inorderString] ? currencybalances[inorderString] : 0;
+            const total = free + used;
+            balances[currency] = {
+                'free': free,
+                'used': used,
+                'total': total,
+            };
+        }
+        // console.log ('balances :', balances);
+        return balances;
     }
 };
