@@ -56,11 +56,13 @@ module.exports = class Exchange extends ccxt.Exchange {
         //                      connect → subscribe → receive → resolve
         //
         const future = client.future (messageHash)
+        // todo: calculate the backoff using the clients cache
+        const backoffDelay = 0
         // we intentionally do not use await here to avoid unhandled exceptions
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject with
         //  a proper exception class instance
-        const connected = client.connect ()
+        const connected = client.connect (backoffDelay)
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the websocket client
         // (connection established successfully)
@@ -81,17 +83,10 @@ module.exports = class Exchange extends ccxt.Exchange {
         return future
     }
 
-    onWsDisconnect (client, error) {
-        if (this.clients[client.url]) {
-            if (this.clients[client.url].error) {
-                delete this.clients[client.url]
-            } else {
-            }
-        }
-    }
-
     onWsError (client, error) {
-        this.onWsDisconnect (client, error)
+        if (this.clients[client.url].error) {
+            delete this.clients[client.url]
+        }
     }
 
     onWsClose (client, error) {
