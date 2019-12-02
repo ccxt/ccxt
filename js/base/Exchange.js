@@ -40,8 +40,10 @@ module.exports = class Exchange extends ccxt.Exchange {
     websocket (url) {
         this.clients = this.clients || {}
         if (!this.clients[url]) {
-            const onMessageCallback = this.handleWsMessage.bind (this)
-            this.clients[url] = new WebSocketClient (url, onMessageCallback)
+            const onMessage = this.handleWsMessage.bind (this)
+            const onError = this.onWsError.bind (this)
+            const onClose = this.onWsClose.bind (this)
+            this.clients[url] = new WebSocketClient (url, onMessage, onError, onClose)
         }
         return this.clients[url]
     }
@@ -56,7 +58,8 @@ module.exports = class Exchange extends ccxt.Exchange {
         const future = client.future (messageHash)
         // we intentionally do not use await here to avoid unhandled exceptions
         // the policy is to make sure that 100% of promises are resolved or rejected
-        // either with a call to client.resolve or client.reject
+        // either with a call to client.resolve or client.reject with
+        //  a proper exception class instance
         const connected = client.connect ()
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the websocket client
@@ -68,9 +71,29 @@ module.exports = class Exchange extends ccxt.Exchange {
                 message = this.signWsMessage (client, messageHash, message)
                 client.send (message)
             }
+        }).catch ((error) => {
+            // we do nothing and don't return a resolvable value from here
+            // we leave it in a rejected state to avoid
+            // triggering the then-clauses that will follow (if any)
+            // removing this catch-clause will raise UnhandledPromiseRejection
+
         })
         return future
     }
+
+    onWsError (client, error) {
+        console.log (this.clients[client.url].toString ())
+        delete this.clients[client.url]
+        // console.log (error, 'onWsError');
+        // process.exit ();
+    }
+
+    onWsClose (client, error) {
+        delete this.clients[client.url]
+        // console.log (error, 'onWsClose');
+        // process.exit ();
+    }
+
 
     async close () {
         const clients = Object.values (this.clients)
