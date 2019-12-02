@@ -7,25 +7,25 @@ const ccxtpro = require ('./ccxt.pro.js')
 
 ;(async () => {
 
-    const wss = new WebSocket.Server ({ port: 8080 })
-    wss.on ('connection', function connection (ws) {
-        ws.on ('message', function incoming (message) {
-            console.log ('server received message', message)
-        })
-        ws.on ('ping', function incoming (message) {
-            console.log ('server received ping', message)
-        })
-        ws.on ('pong', function incoming (message) {
-            console.log ('server received pong', message)
-        })
-        // ws.send ('something')
-        // ws.ping ()
-        // ws.terminate ()
-    })
-    wss.on ('error', function onError (error) {
-        console.log ('server error', error)
-        process.exit ()
-    })
+    // const wss = new WebSocket.Server ({ port: 8080 })
+    // wss.on ('connection', function connection (ws) {
+    //     ws.on ('message', function incoming (message) {
+    //         console.log ('server received message', message)
+    //     })
+    //     ws.on ('ping', function incoming (message) {
+    //         console.log ('server received ping', message)
+    //     })
+    //     ws.on ('pong', function incoming (message) {
+    //         console.log ('server received pong', message)
+    //     })
+    //     // ws.send ('something')
+    //     // ws.ping ()
+    //     // ws.terminate ()
+    // })
+    // wss.on ('error', function onError (error) {
+    //     console.log ('server error', error)
+    //     process.exit ()
+    // })
 
     const symbol = 'ETH/BTC'
 
@@ -38,63 +38,72 @@ const ccxtpro = require ('./ccxt.pro.js')
         },
     })
 
-    const ob = exchange.fetchWsOrderBook (symbol)
-    const td = exchange.fetchWsTrades (symbol)
-    const hb = exchange.fetchWsHeartbeat (symbol)
-
-    await Promise.all ([
-        (async () => {
-            try {
-                await hb
-                console.log (hb)
-            } catch (e) {
-                console.log ('1: hb failure', e.constructor.name, e.message)
-            }
-        }) (),
-        (async () => {
-            try {
-                await ob
-                console.log (ob)
-            } catch (e) {
-                console.log ('1: ob failure', e.constructor.name, e.message)
-            }
-        }) (),
-        (async () => {
-            try {
-                await td
-                console.log (td)
-            } catch (e) {
-                console.log ('1: td failure', e.constructor.name, e.message)
-            }
-        }) (),
-    ]).catch ((e) => {
-        console.log ('-------------------------------------------', e)
-    })
-
-    console.log ("\n\n\n\n\n\n")
-
-    await ccxtpro.sleep (20000);
-
-    try {
-        const o = await ob
-        console.log (o)
-    } catch (e) {
-        console.log ('2: ob failure', e.constructor.name, e)
-    }
-    try {
-        const t = await td
-        console.log (t)
-    } catch (e) {
-        console.log ('2: td failure', e.constructor.name, e)
-    }
-    try {
-        const h = await hb
-        console.log (h)
-    } catch (e) {
-        console.log ('2: hb failure', e.constructor.name, e)
+    while (true) {
+        try {
+            const orderbook = await exchange.fetchWsOrderBook (symbol)
+        } catch (e) {
+            console.log (e)
+            // process.exit ()
+        }
     }
 
-    console.log ('no mistakes??')
+    // const ob = exchange.fetchWsOrderBook (symbol)
+    // const td = exchange.fetchWsTrades (symbol)
+    // const hb = exchange.fetchWsHeartbeat (symbol)
+
+    // await Promise.all ([
+    //     (async () => {
+    //         try {
+    //             await hb
+    //             console.log (hb)
+    //         } catch (e) {
+    //             console.log ('1: hb failure', e.constructor.name, e.message)
+    //         }
+    //     }) (),
+    //     (async () => {
+    //         try {
+    //             await ob
+    //             console.log (ob)
+    //         } catch (e) {
+    //             console.log ('1: ob failure', e.constructor.name, e.message)
+    //         }
+    //     }) (),
+    //     (async () => {
+    //         try {
+    //             await td
+    //             console.log (td)
+    //         } catch (e) {
+    //             console.log ('1: td failure', e.constructor.name, e.message)
+    //         }
+    //     }) (),
+    // ]).catch ((e) => {
+    //     console.log ('-------------------------------------------', e)
+    // })
+
+    // console.log ("\n\n\n\n\n\n")
+
+    // await ccxtpro.sleep (20000);
+
+    // try {
+    //     const o = await ob
+    //     console.log (o)
+    // } catch (e) {
+    //     console.log ('2: ob failure', e.constructor.name, e)
+    // }
+    // try {
+    //     const t = await td
+    //     console.log (t)
+    // } catch (e) {
+    //     console.log ('2: td failure', e.constructor.name, e)
+    // }
+    // try {
+    //     const h = await hb
+    //     console.log (h)
+    // } catch (e) {
+    //     console.log ('2: hb failure', e.constructor.name, e)
+    // }
+
+    // console.log ('no mistakes??')
 
     // delete exchange
 
