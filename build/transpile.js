@@ -168,6 +168,7 @@ class Transpiler {
             [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'string\'/g, 'isinstance($1, basestring)' ],
             [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'string\'/g, 'not isinstance($1, basestring)' ],
             [ /undefined/g, 'None' ],
+            [ /null/g, 'None' ],
             [ /\=\=\=?/g, '==' ],
             [ /\!\=\=?/g, '!=' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
