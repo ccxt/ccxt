@@ -26,11 +26,13 @@ module.exports = class WebSocketClient {
             options: undefined,   // ws options
             futures: {},
             subscriptions: {},
+            connectionStarted: undefined, // initiation timestamp in milliseconds
+            connectionEstablished: undefined, // success timestamp in milliseconds
             // connected: Future (), // connection-related Future
             connectionTimer: undefined, // connection-related setTimeout
             connectionTimeout: 30000, // 30 seconds by default, false to disable
             pingInterval: undefined, // ping-related interval
-            pingTimeout: 3000,
+            keepAlive: 3000, // ping-pong keep-alive frequency
             // timeout is not used atm
             // timeout: 30000, // throw if a request is not satisfied in 30 seconds, false to disable
             ws: {
@@ -82,8 +84,9 @@ module.exports = class WebSocketClient {
 
     createWebsocket () {
         console.log (new Date (), 'connecting...')
-        this.ws = new WebSocket (this.url, this.protocols, this.options)
+        this.connectionStarted = milliseconds ()
         this.setConnectionTimeout ()
+        this.ws = new WebSocket (this.url, this.protocols, this.options)
         this.ws
             .on ('open', this.onOpen.bind (this))
             .on ('ping', this.onPing.bind (this))
@@ -119,7 +122,7 @@ module.exports = class WebSocketClient {
     }
 
     onConnectionTimeout () {
-        if (this.readyState !== WebSocket.OPEN) {
+        if (this.ws.readyState !== WebSocket.OPEN) {
             const error = new RequestTimeout ('Connection to ' + this.url + ' failed due to a timeout')
             this.reset (error)
             this.onErrorCallback (this, error)
@@ -140,9 +143,9 @@ module.exports = class WebSocketClient {
     }
 
     setPingInterval () {
-        if (this.pingTimeout) {
+        if (this.keepAlive) {
             const onPingInterval = this.onPingInterval.bind (this)
-            this.pingInterval = setInterval (onPingInterval, this.pingTimeout)
+            this.pingInterval = setInterval (onPingInterval, this.keepAlive)
         }
     }
 
@@ -164,6 +167,7 @@ module.exports = class WebSocketClient {
 
     onOpen () {
         console.log (new Date (), 'onOpen')
+        this.connectionEstablished = milliseconds ()
         this.connected.resolve (this.url)
         // this.ws.terminate () // debugging
         this.clearConnectionTimeout ()
