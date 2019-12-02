@@ -143,39 +143,10 @@ module.exports = class binance extends ccxt.binance {
         return incrementalBook.orderBook;
     }
 
-    // parseSymbol (message) {
-    //     return this.marketsById[message['s']]['symbol'];
-    // }
-
-    // handleWsDropped (client, message, messageHash) {
-    //     const orderBookHash = 'wss://stream.binance.com:9443/ws/ethbtc@depth';
-    //     if (messageHash !== undefined && messageHash.startsWith (orderBookHash)) {
-    //         this.handleWsOrderBook (message);
-    //     }
-    // }
-
     signWsMessage (client, messageHash, message, params = {}) {
         // todo: binance signWsMessage not implemented yet
         return message;
     }
-
-    // handleWsSubscriptionStatus (client, message) {
-    //     //
-    // todo: answer the question whether handleWsSubscriptionStatus should be renamed
-    // and unified as handleWsResponse for any usage pattern that
-    // involves an identified request/response sequence
-    //     //
-    //     //     {
-    //     //         "result": null,
-    //     //         "id": 1574649734450
-    //     //     }
-    //     //
-    //     // --------------------------------------------------------------------
-    //     //
-    //     const channelId = this.safeString (message, 'chanId');
-    //     this.options['subscriptionsByChannelId'][channelId] = message;
-    //     return message;
-    // }
 
     handleWsSubscriptionStatus (client, message) {
         //
@@ -205,7 +176,7 @@ module.exports = class binance extends ccxt.binance {
         //     this.rejectWsFuture ()
         // }
         //
-        //---------------------------------------------------------------------
+        // --------------------------------------------------------------------
         //
         // console.log (new Date (), JSON.stringify (message, null, 4));
         // console.log ('---------------------------------------------------------');
