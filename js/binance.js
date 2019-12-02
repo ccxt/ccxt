@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-// const IncrementalOrderBook = require ('./base/IncrementalOrderBook');
+const { NotImplemented } = require ('ccxt/js/base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -44,41 +44,41 @@ module.exports = class binance extends ccxt.binance {
         return markets;
     }
 
-    // getWsMessageHash (client, response) {
-    //     return client.url;
-    // }
+    async fetchWsTrades (symbol) {
+        //     await this.loadMarkets ();
+        //     const market = this.market (symbol);
+        //     const url = this.urls['api']['ws'] + market['id'].toLowerCase () + '@trade';
+        //     return await this.WsTradesMessage (url, url);
+        throw new NotImplemented (this.id + ' fetchWsTrades not implemented yet');
+    }
 
-    // async fetchWsTrades (symbol) {
-    //     await this.loadMarkets ();
-    //     const market = this.market (symbol);
-    //     const url = this.urls['api']['ws'] + market['id'].toLowerCase () + '@trade';
-    //     return await this.WsTradesMessage (url, url);
-    // }
+    handleWsTrades (response) {
+        //     const parsed = this.parseTrade (response);
+        //     parsed['symbol'] = this.parseSymbol (response);
+        //     return parsed;
+        throw new NotImplemented (this.id + ' handleWsTrades not implemented yet');
+    }
 
-    // handleWsTrades (response) {
-    //     const parsed = this.parseTrade (response);
-    //     parsed['symbol'] = this.parseSymbol (response);
-    //     return parsed;
-    // }
+    async fetchWsOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        //     await this.loadMarkets ();
+        //     const interval = this.timeframes[timeframe];
+        //     const market = this.market (symbol);
+        //     const url = this.urls['api']['ws'] + market['id'].toLowerCase () + '@kline_' + interval;
+        //     return await this.WsOHLCVMessage (url, url);
+        throw new NotImplemented (this.id + ' fetchWsOHLCV not implemented yet');
+    }
 
-    // async fetchWsOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-    //     await this.loadMarkets ();
-    //     const interval = this.timeframes[timeframe];
-    //     const market = this.market (symbol);
-    //     const url = this.urls['api']['ws'] + market['id'].toLowerCase () + '@kline_' + interval;
-    //     return await this.WsOHLCVMessage (url, url);
-    // }
-
-    // handleWsOHLCV (ohlcv) {
-    //     const data = ohlcv['k'];
-    //     const timestamp = this.safeInteger (data, 'T');
-    //     const open = this.safeFloat (data, 'o');
-    //     const high = this.safeFloat (data, 'h');
-    //     const close = this.safeFloat (data, 'l');
-    //     const low = this.safeFloat (data, 'c');
-    //     const volume = this.safeFloat (data, 'v');
-    //     return [timestamp, open, high, close, low, volume];
-    // }
+    handleWsOHLCV (ohlcv) {
+        //     const data = ohlcv['k'];
+        //     const timestamp = this.safeInteger (data, 'T');
+        //     const open = this.safeFloat (data, 'o');
+        //     const high = this.safeFloat (data, 'h');
+        //     const close = this.safeFloat (data, 'l');
+        //     const low = this.safeFloat (data, 'c');
+        //     const volume = this.safeFloat (data, 'v');
+        //     return [timestamp, open, high, close, low, volume];
+        throw new NotImplemented (this.id + ' handleWsOHLCV not implemented yet ' + this.json (ohlcv));
+    }
 
     async fetchWsOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
@@ -88,7 +88,7 @@ module.exports = class binance extends ccxt.binance {
         // const request = {};
         const name = 'depth';
         const stream = market['lowercaseId'] + '@' + name;
-        const url = this.urls['api']['ws'];// + '/' + stream;
+        const url = this.urls['api']['ws']; // + '/' + stream;
         const requestId = this.nonce ();
         const request = {
             'method': 'SUBSCRIBE',
@@ -161,9 +161,9 @@ module.exports = class binance extends ccxt.binance {
 
     // handleWsSubscriptionStatus (client, message) {
     //     //
-    //     // todo: answer the question whether handleWsSubscriptionStatus should be renamed
-    //     // and unified as handleWsResponse for any usage pattern that
-    //     // involves an identified request/response sequence
+    // todo: answer the question whether handleWsSubscriptionStatus should be renamed
+    // and unified as handleWsResponse for any usage pattern that
+    // involves an identified request/response sequence
     //     //
     //     //     {
     //     //         "result": null,
@@ -197,11 +197,16 @@ module.exports = class binance extends ccxt.binance {
     }
 
     handleWsMessage (client, message) {
-        const keys = Object.keys (client.futures);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            this.rejectWsFuture ()
-        }
+        console.log (message);
+        //
+        // const keys = Object.keys (client.futures);
+        // for (let i = 0; i < keys.length; i++) {
+        //     const key = keys[i];
+        //     this.rejectWsFuture ()
+        // }
+        //
+        //---------------------------------------------------------------------
+        //
         // console.log (new Date (), JSON.stringify (message, null, 4));
         // console.log ('---------------------------------------------------------');
         // if (Array.isArray (message)) {
