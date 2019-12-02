@@ -97,6 +97,7 @@ class bw extends Exchange {
             'exceptions' => array (
                 'exact' => array (
                     '999' => '\\ccxt\\AuthenticationError',
+                    '1000' => '\\ccxt\\ExchangeNotAvailable', // array("datas":null,"resMsg":array("message":"getKlines error:data not exitsts\uff0cplease wait ,dataType=4002_KLINE_1M","method":null,"code":"1000"))
                 ),
             ),
             'api' => array (
