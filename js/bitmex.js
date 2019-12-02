@@ -119,7 +119,8 @@ module.exports = class bitmex extends ccxt.bitmex {
         //         "XBT/USD"
         //     ]
         //
-        //     // todo: add max limit to the dequeue of trades, unshift and push
+        // todo: incremental trades – add max limit to the dequeue of trades, unshift and push
+        //
         //     const trade = this.parseWsTrade (client, delta, market);
         //     this.trades.push (trade);
         //     tradesCount += 1;
