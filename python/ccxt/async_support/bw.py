@@ -334,35 +334,35 @@ class bw(Exchange):
         #     ]
         #
         symbol = None
-        marketId = ticker[0]
+        marketId = self.safe_string(ticker, 0)
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         timestamp = self.milliseconds()
-        close = float(ticker[1])
+        close = float(self.safe_value(ticker, 1))
         bid = self.safe_value(ticker, 'bid', {})
         ask = self.safe_value(ticker, 'ask', {})
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker[2]),
-            'low': float(ticker[3]),
-            'bid': float(ticker[7]),
+            'high': float(self.safe_value(ticker, 2)),
+            'low': float(self.safe_value(ticker, 3)),
+            'bid': float(self.safe_value(ticker, 7)),
             'bidVolume': self.safe_float(bid, 'quantity'),
-            'ask': float(ticker[8]),
+            'ask': float(self.safe_value(ticker, 8)),
             'askVolume': self.safe_float(ask, 'quantity'),
             'vwap': None,
-            'open': self.safe_float(ticker, 'open'),
+            'open': None,
             'close': close,
             'last': close,
             'previousClose': None,
-            'change': float(ticker[5]),
+            'change': float(self.safe_value(ticker, 5)),
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker[4]),
-            'quoteVolume': float(ticker[9]),
+            'baseVolume': float(self.safe_value(ticker, 4)),
+            'quoteVolume': float(self.safe_value(ticker, 9)),
             'info': ticker,
         }
 

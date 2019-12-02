@@ -337,7 +337,7 @@ class bw extends Exchange {
         //     ]
         //
         $symbol = null;
-        $marketId = $ticker[0];
+        $marketId = $this->safe_string($ticker, 0);
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
         }
@@ -345,29 +345,29 @@ class bw extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->milliseconds ();
-        $close = floatval ($ticker[1]);
+        $close = floatval ($this->safe_value($ticker, 1));
         $bid = $this->safe_value($ticker, 'bid', array());
         $ask = $this->safe_value($ticker, 'ask', array());
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker[2]),
-            'low' => floatval ($ticker[3]),
-            'bid' => floatval ($ticker[7]),
+            'high' => floatval ($this->safe_value($ticker, 2)),
+            'low' => floatval ($this->safe_value($ticker, 3)),
+            'bid' => floatval ($this->safe_value($ticker, 7)),
             'bidVolume' => $this->safe_float($bid, 'quantity'),
-            'ask' => floatval ($ticker[8]),
+            'ask' => floatval ($this->safe_value($ticker, 8)),
             'askVolume' => $this->safe_float($ask, 'quantity'),
             'vwap' => null,
-            'open' => $this->safe_float($ticker, 'open'),
+            'open' => null,
             'close' => $close,
             'last' => $close,
             'previousClose' => null,
-            'change' => floatval ($ticker[5]),
+            'change' => floatval ($this->safe_value($ticker, 5)),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker[4]),
-            'quoteVolume' => floatval ($ticker[9]),
+            'baseVolume' => floatval ($this->safe_value($ticker, 4)),
+            'quoteVolume' => floatval ($this->safe_value($ticker, 9)),
             'info' => $ticker,
         );
     }
