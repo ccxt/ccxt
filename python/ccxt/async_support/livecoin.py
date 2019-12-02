@@ -668,7 +668,7 @@ class livecoin(Exchange):
         raise ExchangeError(self.id + ' cancelOrder() failed: ' + self.json(response))
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
-        # Sometimes the response with be {key: null} for all keys.
+        # Sometimes the response with be {key: None} for all keys.
         # An example is if you attempt to withdraw more than is allowed when withdrawal fees are considered.
         self.check_address(address)
         await self.load_markets()
@@ -699,8 +699,8 @@ class livecoin(Exchange):
         #        "fee": 0,
         #        "fixedCurrency": "XVG",
         #        "taxCurrency": "XVG",
-        #        "variableAmount": null,
-        #        "variableCurrency": null,
+        #        "variableAmount": None,
+        #        "variableCurrency": None,
         #        "external": "Coin",
         #        "login": "USERNAME",
         #        "externalKey": "....87diPBy......3hTtuwUT78Yi",(address on deposits, tx on withdrawals)

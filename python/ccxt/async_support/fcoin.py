@@ -192,7 +192,7 @@ class fcoin(Exchange):
         #                     "quote_currency":"eth",
         #                     "symbol":"mdaeth",
         #                     "category":"fone::bitangel",
-        #                     "leveraged_multiple":null,
+        #                     "leveraged_multiple":None,
         #                     "tradeable":false,
         #                     "market_order_enabled":false,
         #                     "limit_amount_min":"1",

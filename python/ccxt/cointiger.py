@@ -111,10 +111,10 @@ class cointiger(huobipro):
                 },
             },
             'exceptions': {
-                #    {"code":"1","msg":"系统错误","data":null}
-                #    {"code":"1","msg":"Balance insufficient,余额不足","data":null}
+                #    {"code":"1","msg":"系统错误","data":None}
+                #    {"code":"1","msg":"Balance insufficient,余额不足","data":None}
                 '1': ExchangeError,
-                '2': BadRequest,  # {"code":"2","msg":"Parameter error","data":null}
+                '2': BadRequest,  # {"code":"2","msg":"Parameter error","data":None}
                 '5': InvalidOrder,
                 '6': InvalidOrder,
                 '8': OrderNotFound,
@@ -846,7 +846,7 @@ class cointiger(huobipro):
             return  # fallback to default error handler
         if 'code' in response:
             #
-            #     {"code": "100005", "msg": "request sign illegal", "data": null}
+            #     {"code": "100005", "msg": "request sign illegal", "data": None}
             #
             code = self.safe_string(response, 'code')
             if code is not None:
@@ -857,8 +857,8 @@ class cointiger(huobipro):
                     if code in exceptions:
                         if code == '1':
                             #
-                            #    {"code":"1","msg":"系统错误","data":null}
-                            #    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
+                            #    {"code":"1","msg":"系统错误","data":None}
+                            #    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:None}
                             #
                             if message.find('Balance insufficient') >= 0:
                                 raise InsufficientFunds(feedback)

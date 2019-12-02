@@ -345,7 +345,7 @@ class buda(Exchange):
         response = await self.publicGetMarketsMarketTrades(self.extend(request, params))
         #
         #     {trades: {     market_id:   "ETH-BTC",
-        #                      timestamp:    null,
+        #                      timestamp:    None,
         #                 last_timestamp:   "1536901277302",
         #                        entries: [["1540077456791", "0.0063767", "0.03", "sell", 479842],
         #                                   ["1539916642772", "0.01888263", "0.03019563", "sell", 479438],
@@ -591,7 +591,7 @@ class buda(Exchange):
             'currency': currency['id'],
         }
         response = await self.privatePostCurrenciesCurrencyReceiveAddresses(self.extend(request, params))
-        address = self.safe_string(response['receive_address'], 'address')  # the creation is async and returns a null address, returns only the id
+        address = self.safe_string(response['receive_address'], 'address')  # the creation is async and returns a None address, returns only the id
         return {
             'currency': code,
             'address': address,
@@ -603,7 +603,7 @@ class buda(Exchange):
         statuses = {
             'rejected': 'failed',
             'confirmed': 'ok',
-            'anulled': 'canceled',
+            'aNoneed': 'canceled',
             'retained': 'canceled',
             'pending_confirmation': 'pending',
         }

@@ -291,7 +291,7 @@ class bitmex(Exchange):
             price = self.safe_float(order, 'price')
             # https://github.com/ccxt/ccxt/issues/4926
             # https://github.com/ccxt/ccxt/issues/4927
-            # the exchange sometimes returns null price in the orderbook
+            # the exchange sometimes returns None price in the orderbook
             if price is not None:
                 result[side].append([price, amount])
         result['bids'] = self.sort_by(result['bids'], 0, True)
@@ -442,7 +442,7 @@ class bitmex(Exchange):
         #         text: "",
         #         transactTime: "2017-03-21T20:05:14.388Z",
         #         walletBalance:  0,  # balance after
-        #         marginBalance:  null,
+        #         marginBalance:  None,
         #         timestamp: "2017-03-22T13:09:23.514Z"
         #     }
         #
@@ -463,10 +463,10 @@ class bitmex(Exchange):
         #         "address":"XBTUSD",
         #         "tx":"",
         #         "text":"",
-        #         "transactTime":null,  # ←---------------------------- null
+        #         "transactTime":None,  # ←---------------------------- None
         #         "walletBalance":139198767,
         #         "marginBalance":139193259,
-        #         "timestamp":null  # ←---------------------------- null
+        #         "timestamp":None  # ←---------------------------- None
         #     }
         #
         id = self.safe_string(item, 'transactID')
@@ -552,7 +552,7 @@ class bitmex(Exchange):
         #             text: "",
         #             transactTime: "2017-03-21T20:05:14.388Z",
         #             walletBalance:  0,  # balance after
-        #             marginBalance:  null,
+        #             marginBalance:  None,
         #             timestamp: "2017-03-22T13:09:23.514Z"
         #         }
         #     ]
@@ -686,23 +686,23 @@ class bitmex(Exchange):
         #                                front: "2019-02-22T12:00:00.000Z",
         #                               expiry: "2019-03-29T12:00:00.000Z",
         #                               settle: "2019-03-29T12:00:00.000Z",
-        #                       relistInterval:  null,
+        #                       relistInterval:  None,
         #                           inverseLeg: "",
         #                              sellLeg: "",
         #                               buyLeg: "",
-        #                     optionStrikePcnt:  null,
-        #                    optionStrikeRound:  null,
-        #                    optionStrikePrice:  null,
-        #                     optionMultiplier:  null,
+        #                     optionStrikePcnt:  None,
+        #                    optionStrikeRound:  None,
+        #                    optionStrikePrice:  None,
+        #                     optionMultiplier:  None,
         #                     positionCurrency: "ETH",
         #                           underlying: "ETH",
         #                        quoteCurrency: "XBT",
         #                     underlyingSymbol: "ETHXBT=",
         #                            reference: "BMEX",
         #                      referenceSymbol: ".BETHXBT30M",
-        #                         calcInterval:  null,
-        #                      publishInterval:  null,
-        #                          publishTime:  null,
+        #                         calcInterval:  None,
+        #                      publishInterval:  None,
+        #                          publishTime:  None,
         #                          maxOrderQty:  100000000,
         #                             maxPrice:  10,
         #                              lotSize:  1,
@@ -710,7 +710,7 @@ class bitmex(Exchange):
         #                           multiplier:  100000000,
         #                        settlCurrency: "XBt",
         #       underlyingToPositionMultiplier:  1,
-        #         underlyingToSettleMultiplier:  null,
+        #         underlyingToSettleMultiplier:  None,
         #              quoteToSettleMultiplier:  100000000,
         #                             isQuanto:  False,
         #                            isInverse:  False,
@@ -718,7 +718,7 @@ class bitmex(Exchange):
         #                          maintMargin:  0.01,
         #                            riskLimit:  5000000000,
         #                             riskStep:  5000000000,
-        #                                limit:  null,
+        #                                limit:  None,
         #                               capped:  False,
         #                                taxed:  True,
         #                           deleverage:  True,
@@ -729,20 +729,20 @@ class bitmex(Exchange):
         #                    fundingBaseSymbol: "",
         #                   fundingQuoteSymbol: "",
         #                 fundingPremiumSymbol: "",
-        #                     fundingTimestamp:  null,
-        #                      fundingInterval:  null,
-        #                          fundingRate:  null,
-        #                indicativeFundingRate:  null,
-        #                   rebalanceTimestamp:  null,
-        #                    rebalanceInterval:  null,
+        #                     fundingTimestamp:  None,
+        #                      fundingInterval:  None,
+        #                          fundingRate:  None,
+        #                indicativeFundingRate:  None,
+        #                   rebalanceTimestamp:  None,
+        #                    rebalanceInterval:  None,
         #                     openingTimestamp: "2019-02-13T08:00:00.000Z",
         #                     closingTimestamp: "2019-02-13T09:00:00.000Z",
         #                      sessionInterval: "2000-01-01T01:00:00.000Z",
         #                       prevClosePrice:  0.03347,
-        #                       limitDownPrice:  null,
-        #                         limitUpPrice:  null,
-        #               bankruptLimitDownPrice:  null,
-        #                 bankruptLimitUpPrice:  null,
+        #                       limitDownPrice:  None,
+        #                         limitUpPrice:  None,
+        #               bankruptLimitDownPrice:  None,
+        #                 bankruptLimitUpPrice:  None,
         #                      prevTotalVolume:  1386531,
         #                          totalVolume:  1387062,
         #                               volume:  531,
@@ -778,8 +778,8 @@ class bitmex(Exchange):
         #                            markPrice:  0.03406,
         #                    indicativeTaxRate:  0,
         #                indicativeSettlePrice:  0.03406,
-        #                optionUnderlyingPrice:  null,
-        #                         settledPrice:  null,
+        #                optionUnderlyingPrice:  None,
+        #                         settledPrice:  None,
         #                            timestamp: "2019-02-13T08:40:30.000Z",
         #     }
         #

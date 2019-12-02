@@ -158,7 +158,7 @@ class okcoinusd(Exchange):
             },
             'exceptions': {
                 # see https://github.com/okcoin-okex/API-docs-OKEx.com/blob/master/API-For-Spot-EN/Error%20Code%20For%20Spot.md
-                '10000': ExchangeError,  # "Required field, can not be null"
+                '10000': ExchangeError,  # "Required field, can not be None"
                 '10001': DDoSProtection,  # "Request frequency too high to exceed the limit allowed"
                 '10005': AuthenticationError,  # "'SecretKey' does not exist"
                 '10006': AuthenticationError,  # "'Api_key' does not exist"

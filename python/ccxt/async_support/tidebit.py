@@ -307,7 +307,7 @@ class tidebit(Exchange):
         else:
             request['timestamp'] = 1800000
         response = await self.publicGetK(self.extend(request, params))
-        if response == 'null':
+        if response == 'None':
             return []
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 

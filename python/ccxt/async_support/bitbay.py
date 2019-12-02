@@ -310,7 +310,7 @@ class bitbay(Exchange):
         #                 wasTaker: False,
         #                 userAction: 'Buy',
         #                 offerId: 'bd19804a-6f89-4a69-adb8-eb078900d006',
-        #                 commissionValue: null
+        #                 commissionValue: None
         #             },
         #         ]
         #     }
@@ -411,7 +411,7 @@ class bitbay(Exchange):
         #        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
         #        "name": "LTC"
         #      },
-        #      "detailId": null,
+        #      "detailId": None,
         #      "time": 1506128252968,
         #      "type": "FUNDS_MIGRATION",
         #      "value": 0.0009957,
@@ -430,11 +430,11 @@ class bitbay(Exchange):
         #        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
         #        "name": "BTG"
         #      },
-        #      "detailId": null,
+        #      "detailId": None,
         #      "time": 1508895244751,
         #      "type": "CREATE_BALANCE",
         #      "value": 0,
-        #      "fundsBefore": {"total": null, "available": null, "locked": null},
+        #      "fundsBefore": {"total": None, "available": None, "locked": None},
         #      "fundsAfter": {"total": 0, "available": 0, "locked": 0},
         #      "change": {"total": 0, "available": 0, "locked": 0}
         #    }
@@ -449,7 +449,7 @@ class bitbay(Exchange):
         #        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
         #        "name": "BTG"
         #      },
-        #      "detailId": null,
+        #      "detailId": None,
         #      "time": 1508895244778,
         #      "type": "BITCOIN_GOLD_FORK",
         #      "value": 0.00453512,
@@ -487,7 +487,7 @@ class bitbay(Exchange):
         #        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
         #        "name": "BTC"
         #      },
-        #      "detailId": null,
+        #      "detailId": None,
         #      "time": 1520706403868,
         #      "type": "TRANSACTION_PRE_LOCKING",
         #      "value": -0.1,
@@ -563,7 +563,7 @@ class bitbay(Exchange):
         #        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
         #        "name": "BTC"
         #      },
-        #      "detailId": null,
+        #      "detailId": None,
         #      "time": 1520714886425,
         #      "type": "TRANSACTION_OFFER_COMPLETED_RETURN",
         #      "value": 0.00000196,
@@ -620,7 +620,7 @@ class bitbay(Exchange):
         #        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
         #        "name": "BTC"
         #      },
-        #      "detailId": null,
+        #      "detailId": None,
         #      "time": 1522512298662,
         #      "type": "TRANSACTION_OFFER_ABORTED_RETURN",
         #      "value": 0.0564931,
@@ -658,7 +658,7 @@ class bitbay(Exchange):
         #        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
         #        "name": "EUR"
         #      },
-        #      "detailId": null,
+        #      "detailId": None,
         #      "time": 1528304043063,
         #      "type": "TRANSACTION_COMMISSION_RETURN",
         #      "value": 0.6,

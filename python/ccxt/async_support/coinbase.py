@@ -186,8 +186,8 @@ class coinbase(Exchange):
         #             "amount": "0.0000000",
         #             "currency": "XLM"
         #         },
-        #         "created_at": null,
-        #         "updated_at": null,
+        #         "created_at": None,
+        #         "updated_at": None,
         #         "resource": "account",
         #         "resource_path": "/v2/accounts/XLM",
         #         "allow_deposits": True,
@@ -234,7 +234,7 @@ class coinbase(Exchange):
         #                 "address": "coinbasebase",
         #                 "destination_tag": "287594668"
         #             },
-        #             "name": null,
+        #             "name": None,
         #             "created_at": "2019-07-01T14:39:29Z",
         #             "updated_at": "2019-07-01T14:39:29Z",
         #             "network": "eosio",
@@ -257,7 +257,7 @@ class coinbase(Exchange):
         #             "warning_details": "Sending any other cryptocurrency will result in permanent loss.",
         #             "destination_tag": "287594668",
         #             "deposit_uri": "eosio:coinbasebase?dt=287594668",
-        #             "callback_url": null
+        #             "callback_url": None
         #         }
         #     }
         #
@@ -338,10 +338,10 @@ class coinbase(Exchange):
         #         "fee": {"amount": "0.00", "currency": "EUR"},
         #         "amount": {"amount": "114.02", "currency": "EUR"},
         #         "subtotal": {"amount": "114.02", "currency": "EUR"},
-        #         "hold_until": null,
+        #         "hold_until": None,
         #         "hold_days": 0,
         #         "hold_business_days": 0,
-        #         "next_step": null
+        #         "next_step": None
         #     }
         #
         # fiat_withdrawal
@@ -371,7 +371,7 @@ class coinbase(Exchange):
         #         "amount": {"amount": "13130.69", "currency": "EUR"},
         #         "subtotal": {"amount": "13130.84", "currency": "EUR"},
         #         "idem": "e549dee5-63ed-4e79-8a96",
-        #         "next_step": null
+        #         "next_step": None
         #     }
         #
         amountObject = self.safe_value(transaction, 'amount', {})
@@ -729,7 +729,7 @@ class coinbase(Exchange):
         #         status: 'completed',
         #         amount: {amount: '28.31976528', currency: 'BCH'},
         #         native_amount: {amount: '2799.65', currency: 'GBP'},
-        #         description: null,
+        #         description: None,
         #         created_at: '2019-02-28T12:35:20Z',
         #         updated_at: '2019-02-28T12:43:24Z',
         #         resource: 'transaction',
@@ -752,7 +752,7 @@ class coinbase(Exchange):
         #         status: 'completed',
         #         amount: {amount: '-0.36775642', currency: 'BTC'},
         #         native_amount: {amount: '-1111.65', currency: 'GBP'},
-        #         description: null,
+        #         description: None,
         #         created_at: '2019-03-20T08:37:07Z',
         #         updated_at: '2019-03-20T08:49:33Z',
         #         resource: 'transaction',
@@ -789,7 +789,7 @@ class coinbase(Exchange):
         #         status: 'completed',
         #         amount: {amount: '-0.00001111', currency: 'BCH'},
         #         native_amount: {amount: '0.00', currency: 'GBP'},
-        #         description: null,
+        #         description: None,
         #         created_at: '2019-02-28T13:31:58Z',
         #         updated_at: '2019-02-28T13:31:58Z',
         #         resource: 'transaction',
@@ -811,7 +811,7 @@ class coinbase(Exchange):
         #         status: 'completed',
         #         amount: {amount: '-0.43704149', currency: 'BCH'},
         #         native_amount: {amount: '-51.90', currency: 'GBP'},
-        #         description: null,
+        #         description: None,
         #         created_at: '2019-03-19T10:30:40Z',
         #         updated_at: '2019-03-19T10:30:40Z',
         #         resource: 'transaction',
@@ -828,7 +828,7 @@ class coinbase(Exchange):
         #         status: 'completed',
         #         amount: {amount: '0.57729420', currency: 'BTC'},
         #         native_amount: {amount: '4418.72', currency: 'GBP'},
-        #         description: null,
+        #         description: None,
         #         created_at: '2018-02-17T11:33:33Z',
         #         updated_at: '2018-02-17T11:33:33Z',
         #         resource: 'transaction',
@@ -845,7 +845,7 @@ class coinbase(Exchange):
         #         status: 'completed',
         #         amount: {amount: '0.40555386', currency: 'BTC'},
         #         native_amount: {amount: '1140.27', currency: 'GBP'},
-        #         description: null,
+        #         description: None,
         #         created_at: '2019-03-04T19:41:58Z',
         #         updated_at: '2019-03-04T19:41:58Z',
         #         resource: 'transaction',
@@ -867,7 +867,7 @@ class coinbase(Exchange):
         #         status: 'completed',
         #         amount: {amount: '-9.09922880', currency: 'BTC'},
         #         native_amount: {amount: '-7285.73', currency: 'GBP'},
-        #         description: null,
+        #         description: None,
         #         created_at: '2017-03-27T15:38:34Z',
         #         updated_at: '2017-03-27T15:38:34Z',
         #         resource: 'transaction',
@@ -893,7 +893,7 @@ class coinbase(Exchange):
         #         status: 'completed',
         #         amount: {amount: '2.39605772', currency: 'ETH'},
         #         native_amount: {amount: '98.31', currency: 'GBP'},
-        #         description: null,
+        #         description: None,
         #         created_at: '2017-03-27T09:07:56Z',
         #         updated_at: '2017-03-27T09:07:57Z',
         #         resource: 'transaction',
@@ -919,7 +919,7 @@ class coinbase(Exchange):
         #         status: 'completed',
         #         amount: {amount: '114.02', currency: 'EUR'},
         #         native_amount: {amount: '97.23', currency: 'GBP'},
-        #         description: null,
+        #         description: None,
         #         created_at: '2017-02-09T07:01:21Z',
         #         updated_at: '2017-02-09T07:01:22Z',
         #         resource: 'transaction',
@@ -945,7 +945,7 @@ class coinbase(Exchange):
         #         status: 'completed',
         #         amount: {amount: '-11000.00', currency: 'EUR'},
         #         native_amount: {amount: '-9698.22', currency: 'GBP'},
-        #         description: null,
+        #         description: None,
         #         created_at: '2017-12-06T13:19:19Z',
         #         updated_at: '2017-12-06T13:19:19Z',
         #         resource: 'transaction',

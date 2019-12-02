@@ -220,15 +220,15 @@ class coss(Exchange):
         #                minimum_deposit_amount: "0.6",
         #                  minimum_order_amount: "0.00000001",
         #                        decimal_format: "0.########",
-        #                            token_type:  null,  # "erc", "eos", "stellar", "tron", "ripple"...
+        #                            token_type:  None,  # "erc", "eos", "stellar", "tron", "ripple"...
         #                                buy_at:  0,
         #                               sell_at:  0,
         #                              min_rate:  0,
         #                              max_rate:  0,
         #                       allow_withdrawn:  False,
         #                         allow_deposit:  False,
-        #         explorer_website_mainnet_link:  null,
-        #         explorer_website_testnet_link:  null,
+        #         explorer_website_mainnet_link:  None,
+        #         explorer_website_testnet_link:  None,
         #            deposit_block_confirmation: "6",
         #           withdraw_block_confirmation: "0",
         #                              icon_url: "https://s2.coinmarketcap.com/static/img/coins/32x32/3077.png",
@@ -257,7 +257,7 @@ class coss(Exchange):
             #     0.##
             #     ''(empty string)
             #     0.000000
-            #     null(None)
+            #     None(None)
             #     0.0000
             #     0.###
             #
@@ -300,13 +300,13 @@ class coss(Exchange):
         #                 total: "0.20399125",
         #             available: "0.20399125",
         #              in_order: "0",
-        #                  memo:  null                                         },  # tag, if any
+        #                  memo:  None                                         },  # tag, if any
         #       {currency_code: "ICX",
         #               address: "",
         #                 total: "0",
         #             available: "0",
         #              in_order: "0",
-        #                  memo:  null  }                                         ]
+        #                  memo:  None  }                                         ]
         #
         result = {}
         for i in range(0, len(response)):
@@ -553,7 +553,7 @@ class coss(Exchange):
         #
         # fetchOrderTrades(private)
         #
-        #     [{        hex_id:  null,
+        #     [{        hex_id:  None,
         #                 symbol: "COSS_ETH",
         #               order_id: "ad6f6b47-3def-4add-a5d5-2549a9df1593",
         #             order_side: "BUY",
@@ -704,7 +704,7 @@ class coss(Exchange):
         }
         response = await self.tradePostOrderTradeDetail(self.extend(request, params))
         #
-        #     [{        hex_id:  null,
+        #     [{        hex_id:  None,
         #                 symbol: "COSS_ETH",
         #               order_id: "ad6f6b47-3def-4add-a5d5-2549a9df1593",
         #             order_side: "BUY",
@@ -847,7 +847,7 @@ class coss(Exchange):
         #         order_size:  0,
         #         account_id: "a0c20128-b9e0-484e-9bc8-b8bb86340e5b",
         #          timestamp:  1545202728814,
-        #         recvWindow:  null                                   }
+        #         recvWindow:  None                                   }
         #
         return self.parse_order(response)
 

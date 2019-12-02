@@ -196,12 +196,12 @@ class upbit(Exchange):
         #         },
         #         "withdraw_limit": {
         #             "currency": "BTC",
-        #             "minimum": null,
-        #             "onetime": null,
+        #             "minimum": None,
+        #             "onetime": None,
         #             "daily": "10.0",
         #             "remaining_daily": "10.0",
         #             "remaining_daily_krw": "0.0",
-        #             "fixed": null,
+        #             "fixed": None,
         #             "can_withdraw": True
         #         }
         #     }
@@ -271,10 +271,10 @@ class upbit(Exchange):
         #                      order_types: ["limit"],
         #                      order_sides: ["ask", "bid"],
         #                              bid: {  currency: "KRW",
-        #                                     price_unit:  null,
+        #                                     price_unit:  None,
         #                                      min_total:  1000  },
         #                              ask: {  currency: "BTC",
-        #                                     price_unit:  null,
+        #                                     price_unit:  None,
         #                                      min_total:  1000  },
         #                        max_total:   "1000000000.0",
         #                            state:   "active"              },
@@ -930,10 +930,10 @@ class upbit(Exchange):
         #             "type": "withdraw",
         #             "uuid": "9f432943-54e0-40b7-825f-b6fec8b42b79",
         #             "currency": "BTC",
-        #             "txid": null,
+        #             "txid": None,
         #             "state": "processing",
         #             "created_at": "2018-04-13T11:24:01+09:00",
-        #             "done_at": null,
+        #             "done_at": None,
         #             "amount": "0.01",
         #             "fee": "0.0",
         #             "krw_amount": "80420.0"
@@ -983,7 +983,7 @@ class upbit(Exchange):
         #         "txid": "cd81e9b45df8da29f936836e58c907a106057e454a45767a7b06fcb19b966bba",
         #         "state": "processing",
         #         "created_at": "2018-04-13T11:24:01+09:00",
-        #         "done_at": null,
+        #         "done_at": None,
         #         "amount": "0.01",
         #         "fee": "0.0",
         #         "krw_amount": "80420.0"
@@ -1265,12 +1265,12 @@ class upbit(Exchange):
         #         {
         #             "currency": "BTC",
         #             "deposit_address": "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
-        #             "secondary_address": null
+        #             "secondary_address": None
         #         },
         #         {
         #             "currency": "ETH",
         #             "deposit_address": "0x0d73e0a482b8cf568976d2e8688f4a899d29301c",
-        #             "secondary_address": null
+        #             "secondary_address": None
         #         },
         #         {
         #             "currency": "XRP",
@@ -1286,7 +1286,7 @@ class upbit(Exchange):
         #     {
         #         "currency": "BTC",
         #         "deposit_address": "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
-        #         "secondary_address": null
+        #         "secondary_address": None
         #     }
         #
         address = self.safe_string(depositAddress, 'deposit_address')
@@ -1311,7 +1311,7 @@ class upbit(Exchange):
         #     {
         #         "currency": "BTC",
         #         "deposit_address": "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
-        #         "secondary_address": null
+        #         "secondary_address": None
         #     }
         #
         return self.parse_deposit_address(response)
@@ -1335,7 +1335,7 @@ class upbit(Exchange):
         #     {
         #         "currency": "BTC",
         #         "deposit_address": "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
-        #         "secondary_address": null
+        #         "secondary_address": None
         #     }
         #
         message = self.safe_string(response, 'message')
@@ -1373,7 +1373,7 @@ class upbit(Exchange):
         #         "txid": "ebe6937b-130e-4066-8ac6-4b0e67f28adc",
         #         "state": "processing",
         #         "created_at": "2018-04-13T11:24:01+09:00",
-        #         "done_at": null,
+        #         "done_at": None,
         #         "amount": "0.01",
         #         "fee": "0.0",
         #         "krw_amount": "80420.0"

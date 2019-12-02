@@ -620,15 +620,15 @@ class crex24(Exchange):
         #         "side": "buy",
         #         "type": "limit",
         #         "status": "submitting",
-        #         "cancellationReason": null,
+        #         "cancellationReason": None,
         #         "timeInForce": "GTC",
         #         "volume": 4.0,
         #         "price": 0.000025,
-        #         "stopPrice": null,
+        #         "stopPrice": None,
         #         "remainingVolume": 4.0,
-        #         "lastUpdate": null,
-        #         "parentOrderId": null,
-        #         "childOrderId": null
+        #         "lastUpdate": None,
+        #         "parentOrderId": None,
+        #         "childOrderId": None
         #     }
         #
         status = self.parse_order_status(self.safe_string(order, 'status'))
@@ -727,15 +727,15 @@ class crex24(Exchange):
         #         "side": "buy",
         #         "type": "limit",
         #         "status": "submitting",
-        #         "cancellationReason": null,
+        #         "cancellationReason": None,
         #         "timeInForce": "GTC",
         #         "volume": 4.0,
         #         "price": 0.000025,
-        #         "stopPrice": null,
+        #         "stopPrice": None,
         #         "remainingVolume": 4.0,
-        #         "lastUpdate": null,
-        #         "parentOrderId": null,
-        #         "childOrderId": null
+        #         "lastUpdate": None,
+        #         "parentOrderId": None,
+        #         "childOrderId": None
         #     }
         #
         return self.parse_order(response, market)
@@ -755,15 +755,15 @@ class crex24(Exchange):
         #           "side": "sell",
         #           "type": "limit",
         #           "status": "partiallyFilledActive",
-        #           "cancellationReason": null,
+        #           "cancellationReason": None,
         #           "timeInForce": "GTC",
         #           "volume": 5700.0,
         #           "price": 0.000005,
-        #           "stopPrice": null,
+        #           "stopPrice": None,
         #           "remainingVolume": 1.948051948052,
-        #           "lastUpdate": null,
-        #           "parentOrderId": null,
-        #           "childOrderId": null
+        #           "lastUpdate": None,
+        #           "parentOrderId": None,
+        #           "childOrderId": None
         #         }
         #     ]
         #
@@ -793,15 +793,15 @@ class crex24(Exchange):
         #             "side": "sell",
         #             "type": "limit",
         #             "status": "submitting",
-        #             "cancellationReason": null,
+        #             "cancellationReason": None,
         #             "timeInForce": "GTC",
         #             "volume": 0.00770733,
         #             "price": 6724.9,
-        #             "stopPrice": null,
+        #             "stopPrice": None,
         #             "remainingVolume": 0.00770733,
         #             "lastUpdate": "2018-06-02T16:42:40Z",
-        #             "parentOrderId": null,
-        #             "childOrderId": null
+        #             "parentOrderId": None,
+        #             "childOrderId": None
         #         }
         #     ]
         #
@@ -822,15 +822,15 @@ class crex24(Exchange):
         #           "side": "sell",
         #           "type": "limit",
         #           "status": "partiallyFilledActive",
-        #           "cancellationReason": null,
+        #           "cancellationReason": None,
         #           "timeInForce": "GTC",
         #           "volume": 5700.0,
         #           "price": 0.000005,
-        #           "stopPrice": null,
+        #           "stopPrice": None,
         #           "remainingVolume": 1.948051948052,
-        #           "lastUpdate": null,
-        #           "parentOrderId": null,
-        #           "childOrderId": null
+        #           "lastUpdate": None,
+        #           "parentOrderId": None,
+        #           "childOrderId": None
         #         }
         #     ]
         #
@@ -853,15 +853,15 @@ class crex24(Exchange):
         #             "side": "sell",
         #             "type": "limit",
         #             "status": "partiallyFilledActive",
-        #             "cancellationReason": null,
+        #             "cancellationReason": None,
         #             "timeInForce": "GTC",
         #             "volume": 5700.0,
         #             "price": 0.000005,
-        #             "stopPrice": null,
+        #             "stopPrice": None,
         #             "remainingVolume": 1.948051948052,
-        #             "lastUpdate": null,
-        #             "parentOrderId": null,
-        #             "childOrderId": null
+        #             "lastUpdate": None,
+        #             "parentOrderId": None,
+        #             "childOrderId": None
         #         },
         #         {
         #             "id": 466748077,
@@ -870,15 +870,15 @@ class crex24(Exchange):
         #             "side": "sell",
         #             "type": "limit",
         #             "status": "partiallyFilledActive",
-        #             "cancellationReason": null,
+        #             "cancellationReason": None,
         #             "timeInForce": "GTC",
         #             "volume": 10000.0,
         #             "price": 0.0000007,
-        #             "stopPrice": null,
+        #             "stopPrice": None,
         #             "remainingVolume": 9975.0,
-        #             "lastUpdate": null,
-        #             "parentOrderId": null,
-        #             "childOrderId": null
+        #             "lastUpdate": None,
+        #             "parentOrderId": None,
+        #             "childOrderId": None
         #         },
         #         ...
         #     ]
@@ -906,15 +906,15 @@ class crex24(Exchange):
         #             "side": "sell",
         #             "type": "limit",
         #             "status": "submitting",
-        #             "cancellationReason": null,
+        #             "cancellationReason": None,
         #             "timeInForce": "GTC",
         #             "volume": 0.00770733,
         #             "price": 6724.9,
-        #             "stopPrice": null,
+        #             "stopPrice": None,
         #             "remainingVolume": 0.00770733,
-        #             "lastUpdate": null,
-        #             "parentOrderId": null,
-        #             "childOrderId": null
+        #             "lastUpdate": None,
+        #             "parentOrderId": None,
+        #             "childOrderId": None
         #         },
         #         {
         #             "id": 468535707,
@@ -923,15 +923,15 @@ class crex24(Exchange):
         #             "side": "buy",
         #             "type": "limit",
         #             "status": "unfilledActive",
-        #             "cancellationReason": null,
+        #             "cancellationReason": None,
         #             "timeInForce": "GTC",
         #             "volume": 0.0173737,
         #             "price": 0.00589027,
-        #             "stopPrice": null,
+        #             "stopPrice": None,
         #             "remainingVolume": 0.0173737,
-        #             "lastUpdate": null,
-        #             "parentOrderId": null,
-        #             "childOrderId": null
+        #             "lastUpdate": None,
+        #             "parentOrderId": None,
+        #             "childOrderId": None
         #         },
         #         ...
         #     ]
@@ -1022,32 +1022,32 @@ class crex24(Exchange):
         #           "type": "deposit",
         #           "currency": "ETH",
         #           "address": "0x451d5a1b7519aa75164f440df78c74aac96023fe",
-        #           "paymentId": null,
+        #           "paymentId": None,
         #           "amount": 0.142,
-        #           "fee": null,
+        #           "fee": None,
         #           "txId": "0x2b49098749840a9482c4894be94f94864b498a1306b6874687a5640cc9871918",
         #           "createdAt": "2018-06-02T19:30:28Z",
         #           "processedAt": "2018-06-02T21:10:41Z",
         #           "confirmationsRequired": 12,
         #           "confirmationCount": 12,
         #           "status": "success",
-        #           "errorDescription": null
+        #           "errorDescription": None
         #         },
         #         {
         #           "id": 754618,
         #           "type": "deposit",
         #           "currency": "BTC",
         #           "address": "1IgNfmERVcier4IhfGEfutkLfu4AcmeiUC",
-        #           "paymentId": null,
+        #           "paymentId": None,
         #           "amount": 0.09,
-        #           "fee": null,
+        #           "fee": None,
         #           "txId": "6876541687a9187e987c9187654f7198b9718af974641687b19a87987f91874f",
         #           "createdAt": "2018-06-02T16:19:44Z",
         #           "processedAt": "2018-06-02T16:20:50Z",
         #           "confirmationsRequired": 1,
         #           "confirmationCount": 1,
         #           "status": "success",
-        #           "errorDescription": null
+        #           "errorDescription": None
         #         },
         #         ...
         #     ]
@@ -1081,16 +1081,16 @@ class crex24(Exchange):
         #         "type": "deposit",
         #         "currency": "ETH",
         #         "address": "0x451d5a1b7519aa75164f440df78c74aac96023fe",
-        #         "paymentId": null,
+        #         "paymentId": None,
         #         "amount": 0.142,
-        #         "fee": null,
+        #         "fee": None,
         #         "txId": "0x2b49098749840a9482c4894be94f94864b498a1306b6874687a5640cc9871918",
         #         "createdAt": "2018-06-02T19:30:28Z",
         #         "processedAt": "2018-06-02T21:10:41Z",
         #         "confirmationsRequired": 12,
         #         "confirmationCount": 12,
         #         "status": "success",
-        #         "errorDescription": null,
+        #         "errorDescription": None,
         #     }
         #
         id = self.safe_string(transaction, 'id')

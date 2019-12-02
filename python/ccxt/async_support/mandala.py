@@ -213,19 +213,19 @@ class mandala(Exchange):
                     'Exception_TimeStamp': BadRequest,  # {"status":"BadRequest","message":"Exception_TimeStamp","data":"Invalid timestamp."}
                     'Exception_HMAC_Validation': AuthenticationError,  # {"status":"Error","message":"Exception_HMAC_Validation","data":"HMAC validation failed."}
                     'Exception_General': BadRequest,  # {"status":"BadRequest","message":"Exception_General","data":"Our servers are experiencing some glitch, please try again later."}
-                    'Must provide the orderID param.': BadRequest,  # {"Status":"BadRequest","Message":"Must provide the orderID param.","Data":null}
-                    'Invalid Market_Currency pairnot ': ExchangeError,  # {"status":"Error","errorMessage":"Invalid Market_Currency pairnot ","data":null}
-                    'Invalid volume parameter.': InvalidOrder,  # {"Status":"BadRequest","Message":"Invalid volume parameter.","Data":null}
-                    'Invalid rate parameter.': InvalidOrder,  # {"Status":"BadRequest","Message":"Invalid rate parameter.","Data":null}
-                    "Invalid parameter 'side', must be 'BUY' or 'SELL'.": InvalidOrder,  # {"Status":"BadRequest","Message":"Invalid parameter 'side', must be 'BUY' or 'SELL'.","Data":null}
-                    'Invalid Type': BadRequest,  # on fetchOrders with a wrong type {"status":"Error","errorMessage":"Invalid Type","data":null}
+                    'Must provide the orderID param.': BadRequest,  # {"Status":"BadRequest","Message":"Must provide the orderID param.","Data":None}
+                    'Invalid Market_Currency pairnot ': ExchangeError,  # {"status":"Error","errorMessage":"Invalid Market_Currency pairnot ","data":None}
+                    'Invalid volume parameter.': InvalidOrder,  # {"Status":"BadRequest","Message":"Invalid volume parameter.","Data":None}
+                    'Invalid rate parameter.': InvalidOrder,  # {"Status":"BadRequest","Message":"Invalid rate parameter.","Data":None}
+                    "Invalid parameter 'side', must be 'BUY' or 'SELL'.": InvalidOrder,  # {"Status":"BadRequest","Message":"Invalid parameter 'side', must be 'BUY' or 'SELL'.","Data":None}
+                    'Invalid Type': BadRequest,  # on fetchOrders with a wrong type {"status":"Error","errorMessage":"Invalid Type","data":None}
                     'Exception_Invalid_CurrencyName': BadRequest,  # {"status":"BadRequest","message":"Exception_Invalid_CurrencyName","data":"Invalid Currency name"}
                     'Exception_BadRequest': BadRequest,  # {"status":"BadRequest","message":"Exception_BadRequest","data":"Invalid Payload"}
-                    'Blacklisted IP Address': PermissionDenied,  # {"status":"Error","errorMessage":"Blacklisted IP Address","data":null}
+                    'Blacklisted IP Address': PermissionDenied,  # {"status":"Error","errorMessage":"Blacklisted IP Address","data":None}
                     'Trade_Invalid_Size': InvalidOrder,  # {"status":"Error","errorMessage":"Trade_Invalid_Size","data":"Invalid trade size."}
                 },
                 'broad': {
-                    'Some error occurred, try again later.': ExchangeNotAvailable,  # {"status":"Error","errorMessage":"Some error occurred, try again later.","data":null}
+                    'Some error occurred, try again later.': ExchangeNotAvailable,  # {"status":"Error","errorMessage":"Some error occurred, try again later.","data":None}
                 },
             },
             'options': {
@@ -326,7 +326,7 @@ class mandala(Exchange):
         #                 withdrawalServiceCharge: 0.25,
         #                 withdrawalServiceChargeInBTC: 0,
         #                 confirmationCount: 29,
-        #                 contractAddress: null,
+        #                 contractAddress: None,
         #                 minWithdrawalLimit: 100,
         #                 maxWithdrawalLimit: 2000000,
         #                 decimalPrecision: 18,
@@ -346,7 +346,7 @@ class mandala(Exchange):
         #                 withdrawalServiceCharge: 0.25,
         #                 withdrawalServiceChargeInBTC: 0.001,
         #                 confirmationCount: 3,
-        #                 contractAddress: null,
+        #                 contractAddress: None,
         #                 minWithdrawalLimit: 0.1,
         #                 maxWithdrawalLimit: 300,
         #                 decimalPrecision: 8,
@@ -550,7 +550,7 @@ class mandala(Exchange):
         #                 feature_Unavailable: "This feature is not available for your account.",
         #                 chainAlysis_Blacklisted: "AML Risk Assessment Failed for self transaction."
         #             },
-        #             themes:    null,
+        #             themes:    None,
         #             trade_setting: [
         #                 {
         #                     coinName: "BCH",
@@ -633,7 +633,7 @@ class mandala(Exchange):
         #
         #     {
         #         status: 'Success',
-        #         errorMessage: null,
+        #         errorMessage: None,
         #         data: [
         #             {currency: 'BCH', balance: 0, balanceInTrade: 0},
         #             {currency: 'BTC', balance: 0, balanceInTrade: 0},
@@ -741,7 +741,7 @@ class mandala(Exchange):
         #
         #     {
         #         status: 'Success',
-        #         errorMessage: null,
+        #         errorMessage: None,
         #         data: {
         #             BTC_BAT: {
         #                 Last: 0.00003431,
@@ -791,7 +791,7 @@ class mandala(Exchange):
         #
         #     {
         #         status: 'Success',
-        #         errorMessage: null,
+        #         errorMessage: None,
         #         data: {
         #             Pair: 'ETH_MDX',
         #             Last: 0.000055,
@@ -887,7 +887,7 @@ class mandala(Exchange):
         #
         #     {
         #         status:   "Success",
-        #         errorMessage:    null,
+        #         errorMessage:    None,
         #         data: [
         #             {
         #                 TradeID:  619255,
@@ -951,7 +951,7 @@ class mandala(Exchange):
         #
         #     {
         #         status: 'Success',
-        #         errorMessage: null,
+        #         errorMessage: None,
         #         data: [
         #             {
         #                 time: 1552830600000,
@@ -1092,7 +1092,7 @@ class mandala(Exchange):
         #         "amount":0.07226100,
         #         "serviceCharge":0.00000000,
         #         "placementDate":"2019-07-31T22:14:30.193",
-        #         "completionDate":null,
+        #         "completionDate":None,
         #         "side":"Buy"
         #     }
         #
@@ -1184,7 +1184,7 @@ class mandala(Exchange):
         #
         #     {
         #         status: 'Success',
-        #         errorMessage: null,
+        #         errorMessage: None,
         #         data: [
         #             {
         #                 orderId: 20000038,
@@ -1197,7 +1197,7 @@ class mandala(Exchange):
         #                 amount: 1,
         #                 serviceCharge: 0,
         #                 placementDate: '2019-03-19T18:28:43.553',
-        #                 completionDate: null
+        #                 completionDate: None
         #                 side: 'Buy'
         #             },
         #             {
@@ -1239,7 +1239,7 @@ class mandala(Exchange):
         #
         #     {
         #         "status":"Success",
-        #         "errorMessage":null,
+        #         "errorMessage":None,
         #         "data":[
         #             {
         #                 "orderId":20991907,
@@ -1291,7 +1291,7 @@ class mandala(Exchange):
         #
         #     {
         #         "status":"Success",
-        #         "errorMessage":null,
+        #         "errorMessage":None,
         #         "data":[
         #             {
         #                 "orderId":29894309,
@@ -1304,7 +1304,7 @@ class mandala(Exchange):
         #                 "amount":0.07226100,
         #                 "serviceCharge":0.00000000,
         #                 "placementDate":"2019-07-31T22:14:30.193",
-        #                 "completionDate":null,
+        #                 "completionDate":None,
         #                 "side":"Buy"
         #             }
         #         ]
@@ -1329,7 +1329,7 @@ class mandala(Exchange):
         #
         #     {
         #         "status":"Success",
-        #         "errorMessage":null,
+        #         "errorMessage":None,
         #         "data":{
         #             "orderId":"29885793",
         #             "side":"ALL",
@@ -1363,7 +1363,7 @@ class mandala(Exchange):
         #
         #     {
         #         status: 'Success',
-        #         errorMessage: null,
+        #         errorMessage: None,
         #         data: [
         #             {
         #                 orderId: 20000040,
@@ -1604,7 +1604,7 @@ class mandala(Exchange):
         #
         #     {
         #         "status": "Success",
-        #         "errorMessage": null,
+        #         "errorMessage": None,
         #         "data": {
         #             "btc": "3PLKhwm59C21U3KN3YZVQmrQhoE3q1p1i8",
         #             "eth": "0x8143c11ed6b100e5a96419994846c890598647cf",
@@ -1665,7 +1665,7 @@ class mandala(Exchange):
         #
         #     {
         #         "status": "Success",
-        #         "message": null,
+        #         "message": None,
         #         "data": {
         #             "withdrawalId": "E26AA92F-F526-4F6C-85FD-B1EA9B1B118D"
         #         }
@@ -1752,7 +1752,7 @@ class mandala(Exchange):
             return  # fallback to default error handler
         #
         #     {"Status":"Error","Message":"Exception_Insufficient_Funds","Data":"Insufficient Funds."}
-        #     {"status":"Error","errorMessage":"Invalid Market_Currency pairnot ","data":null}
+        #     {"status":"Error","errorMessage":"Invalid Market_Currency pairnot ","data":None}
         #     {"status":"BadRequest","message":"Exception_BadRequest","data":"Invalid Payload"}
         #
         #
