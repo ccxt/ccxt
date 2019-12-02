@@ -2214,7 +2214,7 @@ module.exports = class okex3 extends Exchange {
             id = withdrawalId;
             address = addressTo;
         } else {
-            // the payment_id will appear on new deposits but appears to be removed form the response after 2 months
+            // the payment_id will appear on new deposits but appears to be removed from the response after 2 months
             id = this.safeString (transaction, 'payment_id');
             type = 'deposit';
             address = addressTo;
