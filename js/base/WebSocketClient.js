@@ -6,161 +6,223 @@ const ccxt = require ('ccxt')
         isNode,
         isJsonEncodedObject,
         RequestTimeout,
-        deepExtend
+        NetworkError,
+        deepExtend,
+        milliseconds,
     } = ccxt
-    , {
-        ExternallyResolvablePromise,
-        externallyResolvablePromise
-    } = require ('./MultiPromise')
-    // , Future = require ('./Future')
+    , Future = require ('./Future')
     , WebSocket = isNode ? require ('ws') : window.WebSocket
 
 module.exports = class WebSocketClient {
 
-    constructor (url, callback, config = {}) {
+    constructor (url, onMessageCallback, onErrorCallback, onCloseCallback, config = {}) {
+
         const defaults = {
             url,
-            callback,             // onMessage callback
+            onMessageCallback,
+            onErrorCallback,
+            onCloseCallback,
             protocols: undefined, // ws protocols
             options: undefined,   // ws options
-            reconnect: false, // reconnect on connection loss, not really needed here
-            reconnectDelay: 1000, // not used atm
-            timers: {},
             futures: {},
             subscriptions: {},
-            timeouts: {
-                // delay should be equal to the interval at which your
-                // server sends out pings plus a conservative assumption
-                // of the latency
-                // ping: 5000 + 1000,
-                ping: false,
-                heartbeat: 1500,
-            }
-            // pingTimeout: 30000 + 1000,
-            // enabledTimeouts: {
-            //     ping: true,
-            //     heartbeat: true,
-            // },
+            connectionStarted: undefined, // initiation timestamp in milliseconds
+            connectionEstablished: undefined, // success timestamp in milliseconds
+            // connected: Future (), // connection-related Future
+            connectionTimer: undefined, // connection-related setTimeout
+            connectionTimeout: 30000, // 30 seconds by default, false to disable
+            pingInterval: undefined, // ping-related interval
+            keepAlive: 3000, // ping-pong keep-alive frequency
+            // timeout is not used atm
+            // timeout: 30000, // throw if a request is not satisfied in 30 seconds, false to disable
+            ws: {
+                readyState: undefined,
+            },
         }
+
         Object.assign (this, deepExtend (defaults, config))
-        this.connect ()
+        this.connected = Future ()
     }
 
-    // handle auto-reconnection after a period of inactivity
-    // whatever the reason to close the connection - reopen it if needed
-
-    clearTimeout (id, event) {
-        if (this.timers[id]) {
-            clearTimeout (this.timers[id])
+    future (messageHash) {
+        if (!this.futures[messageHash]) {
+            this.futures[messageHash] = Future ()
         }
-        this.timers[id] = undefined
-        return this.timers[id]
+        return this.futures[messageHash]
     }
 
-    setTimeout (id, event) {
-        if (this.timeouts[id]) {
-            this.timers[id] = setTimeout (() => {
-                console.log (new Date (), id, 'timer from', event, 'event will terminate')
-                // Use `WebSocket#terminate()`, which immediately destroys the connection,
-                // instead of `WebSocket#close()`, which waits for the close timer.
-                this.ws.terminate ()
-            }, this.timeouts[id])
+    resolve (result, messageHash = undefined) {
+        if (messageHash) {
+            if (this.futures[messageHash]) {
+                const promise = this.futures[messageHash]
+                promise.resolve (result)
+                delete this.futures[messageHash]
+            }
+        } else {
+            const messageHashes = Object.keys (this.futures)
+            for (let i = 0; i < messageHashes.length; i++) {
+                this.resolve (result, messageHashes[i])
+            }
         }
-        return this.timers[id]
+        return result
     }
 
-    resetTimeout (id, event) {
-        this.clearTimeout (id, event)
-        this.setTimeout (id, event)
+    reject (result, messageHash = undefined) {
+        if (messageHash) {
+            if (this.futures[messageHash]) {
+                const promise = this.futures[messageHash]
+                promise.reject (result)
+                delete this.futures[messageHash]
+            }
+        } else {
+            const messageHashes = Object.keys (this.futures)
+            for (let i = 0; i < messageHashes.length; i++) {
+                this.reject (result, messageHashes[i])
+            }
+        }
     }
 
-    isConnected () {
-        return this.ws.readyState === WebSocket.OPEN
+    createWebsocket () {
+        console.log (new Date (), 'connecting...')
+        this.connectionStarted = milliseconds ()
+        this.setConnectionTimeout ()
+        this.ws = new WebSocket (this.url, this.protocols, this.options)
+        this.ws
+            .on ('open', this.onOpen.bind (this))
+            .on ('ping', this.onPing.bind (this))
+            .on ('pong', this.onPong.bind (this))
+            .on ('error', this.onError.bind (this))
+            .on ('close', this.onClose.bind (this))
+            .on ('upgrade', this.onUpgrade.bind (this))
+            .on ('message', this.onMessage.bind (this))
+        // this.ws.terminate () // debugging
+        // this.ws.close () // debugging
     }
 
-    isConnecting () {
-        return this.ws.readyState === WebSocket.CONNECTING
-    }
-
-    connect () {
-        if (!this.ws || !(this.isConnecting () || this.isConnected ())) {
-            console.log (new Date (), 'connecting...')
-            this.connected = externallyResolvablePromise ()
-            this.ws = new WebSocket (this.url, this.protocols, this.options)
-            this.ws
-                .on ('open', this.onOpen.bind (this))
-                .on ('ping', this.onPing.bind (this))
-                .on ('pong', this.onPong.bind (this))
-                .on ('error', this.onError.bind (this))
-                .on ('close', this.onClose.bind (this))
-                .on ('upgrade', this.onUpgrade.bind (this))
-                .on ('message', this.onMessage.bind (this))
+    connect (backoffDelay = 0) {
+        if ((this.ws.readyState !== WebSocket.OPEN) &&
+            (this.ws.readyState !== WebSocket.CONNECTING)) {
+            // prevent multiple calls overwriting each other
+            this.ws.readyState = WebSocket.CONNECTING
+            // exponential backoff for consequent ws connections if necessary
+            if (backoffDelay) {
+                sleep (backoffDelay).then (this.createWebsocket.bind (this))
+            } else {
+                this.createWebsocket ()
+            }
         }
         return this.connected
     }
 
-    async send (message) {
-        // await this.connect () // for auto-reconnecting
-        await this.connected // for one-time connections
-        this.ws.send (JSON.stringify (message))
+    reset (error) {
+        this.clearConnectionTimeout ()
+        this.clearPingInterval ()
+        this.connected.reject (error)
+        this.reject (error)
     }
 
-    ping () {
-        this.ws.ping ()
+    onConnectionTimeout () {
+        if (this.ws.readyState !== WebSocket.OPEN) {
+            const error = new RequestTimeout ('Connection to ' + this.url + ' failed due to a timeout')
+            this.reset (error)
+            this.onErrorCallback (this, error)
+        }
+    }
+
+    setConnectionTimeout () {
+        if (this.connectionTimeout) {
+            const onConnectionTimeout = this.onConnectionTimeout.bind (this)
+            this.connectionTimer = setTimeout (onConnectionTimeout, this.connectionTimeout)
+        }
+    }
+
+    clearConnectionTimeout () {
+        if (this.connectionTimer) {
+            this.connectionTimer = clearTimeout (this.connectionTimer)
+        }
+    }
+
+    setPingInterval () {
+        if (this.keepAlive) {
+            const onPingInterval = this.onPingInterval.bind (this)
+            this.pingInterval = setInterval (onPingInterval, this.keepAlive)
+        }
+    }
+
+    clearPingInterval () {
+        if (this.pingInterval) {
+            this.pingInterval = clearInterval (this.pingInterval)
+        }
+    }
+
+    onPingInterval () {
+        if ((this.lastPong + this.pingRate) < milliseconds ()) {
+            this.reset (new RequestTimeout ('Connection to ' + this.url + ' timed out'))
+        } else {
+            if (this.ws.readyState === WebSocket.OPEN) {
+                this.ws.ping ()
+            }
+        }
+    }
+
+    onOpen () {
+        console.log (new Date (), 'onOpen')
+        this.connectionEstablished = milliseconds ()
+        this.connected.resolve (this.url)
+        // this.ws.terminate () // debugging
+        this.clearConnectionTimeout ()
+        this.setPingInterval ()
+    }
+
+    // this method is not used at this time, because in JS the ws client will
+    // respond to pings coming from the server with pongs automatically
+    // however, some devs may want to track connection states in their app
+    onPing () {
+        console.log (new Date (), 'onPing')
+    }
+
+    onPong () {
+        this.lastPong = milliseconds ()
+        console.log (new Date (), 'onPong')
+    }
+
+    onError (error) {
+        console.log (new Date (), 'onError', error.message)
+        // convert ws errors to ccxt errors if necessary
+        error = new NetworkError (error.message)
+        this.error = error
+        this.reset (error)
+        this.onErrorCallback (this, error)
+    }
+
+    onClose (message) {
+        console.log (new Date (), 'onClose', message)
+        this.reset (new NetworkError (message))
+        this.onCloseCallback (this, message)
+    }
+
+    // this method is not used at this time
+    // but may be used to read protocol-level data like cookies, headers, etc
+    onUpgrade (message) {
+        console.log (new Date (), 'onUpgrade')
+    }
+
+    send (message) {
+        this.ws.send (JSON.stringify (message))
     }
 
     close () {
         this.reconnect = false
-        this.ws.terminate ()
-    }
-
-    onOpen () {
-        console.log (new Date (), 'open')
-        this.connected.resolve (this.url)
-        // this.setTimeout ('ping', 'open')
-        // this.send (JSON.stringify ({
-        //     'command': 'subscribe',
-        //     'channel': '175',
-        // }))
-    }
-
-    onPing () {
-        console.log (new Date (), 'ping')
-        this.resetTimeout ('ping', 'ping')
-    }
-
-    onPong () {
-        console.log (new Date (), 'pong')
-        this.resetTimeout ('ping', 'pong')
-    }
-
-    onError (error) {
-        console.log (new Date (), 'error')
-        // TODO: convert ws errors to ccxt errors
-        this.connected.reject (new ccxt.NetworkError (error))
-    }
-
-    onClose () {
-        // whatever the reason to close the connection - reopen it if needed
-        console.log (new Date (), 'close')
-        this.clearTimeout ('ping', 'close')
-        if (this.reconnect) {
-            console.log (new Date (), 'reconnecting...')
-            this.connect ()
-        }
-    }
-
-    onUpgrade (message) {
-        console.log (new Date (), 'upgrade')
+        this.ws.close ()
     }
 
     onMessage (message) {
         try {
             message = isJsonEncodedObject (message) ? JSON.parse (message) : message
         } catch (e) {
-            // throw json encoding error
+            // reset with a json encoding error ?
         }
-        this.callback (this, message)
+        this.onMessageCallback (this, message)
     }
 }
 

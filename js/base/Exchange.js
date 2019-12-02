@@ -3,10 +3,6 @@
 const ccxt = require ('ccxt')
     , WebSocketClient = require ('./WebSocketClient')
     , {
-        ExternallyResolvablePromise,
-        externallyResolvablePromise
-    } = require ('./MultiPromise')
-    , {
         OrderBook,
         LimitedOrderBook,
         IndexedOrderBook,
@@ -14,7 +10,6 @@ const ccxt = require ('ccxt')
         LimitedCountedOrderBook,
         CountedOrderBook,
     } = require ('./OrderBook')
-    , log = require ('ololog').unlimited
 
 module.exports = class Exchange extends ccxt.Exchange {
 
@@ -45,41 +40,64 @@ module.exports = class Exchange extends ccxt.Exchange {
     websocket (url) {
         this.clients = this.clients || {}
         if (!this.clients[url]) {
-            const callback = this.handleWsMessage.bind (this)
-            this.clients[url] = new WebSocketClient (url, callback)
+            const onMessage = this.handleWsMessage.bind (this)
+            const onError = this.onWsError.bind (this)
+            const onClose = this.onWsClose.bind (this)
+            this.clients[url] = new WebSocketClient (url, onMessage, onError, onClose)
         }
         return this.clients[url]
     }
 
     sendWsMessage (url, messageHash, message = undefined, subscribeHash = undefined) {
         const client = this.websocket (url)
-        if (!client.futures[messageHash]) {
-            client.futures[messageHash] = externallyResolvablePromise ()
-        }
-        if (message && !client.subscriptions[subscribeHash]) {
-            client.subscriptions[subscribeHash] = true
-            message = this.signWsMessage (client, messageHash, message)
-            client.send (message)
-        }
-        return client.futures[messageHash]
+        //
+        //  fetchWsOrderBook -----+------------→ future -----------+-----→ user
+        //                        ↓                                ↑
+        //                      connect → subscribe → receive → resolve
+        //
+        const future = client.future (messageHash)
+        // todo: calculate the backoff using the clients cache
+        const backoffDelay = 0
+        // we intentionally do not use await here to avoid unhandled exceptions
+        // the policy is to make sure that 100% of promises are resolved or rejected
+        // either with a call to client.resolve or client.reject with
+        //  a proper exception class instance
+        const connected = client.connect (backoffDelay)
+        // the following is executed only if the catch-clause does not
+        // catch any connection-level exceptions from the websocket client
+        // (connection established successfully)
+        connected.then (() => {
+            if (message && !client.subscriptions[subscribeHash]) {
+                client.subscriptions[subscribeHash] = true
+                // todo: decouple signing from subscriptions
+                message = this.signWsMessage (client, messageHash, message)
+                client.send (message)
+            }
+        }).catch ((error) => {
+            // we do nothing and don't return a resolvable value from here
+            // we leave it in a rejected state to avoid triggering the
+            // then-clauses that will follow (if any)
+            // removing this catch will raise UnhandledPromiseRejection in JS
+            // upon connection failure
+        })
+        return future
     }
 
-    resolveWsFuture (client, messageHash, result) {
-        if (client.futures[messageHash]) {
-            const promise = client.futures[messageHash]
-            promise.resolve (result)
-            delete client.futures[messageHash]
+    onWsError (client, error) {
+        if (this.clients[client.url].error) {
+            delete this.clients[client.url]
         }
-        return result
     }
 
-    rejectWsFuture (client, messageHash, result) {
-        if (client.futures[messageHash]) {
-            const promise = client.futures[messageHash]
-            promise.reject (result)
-            delete client.futures[messageHash]
+    onWsClose (client, error) {
+        if (client.error) {
+            // connection closed due to an error, do nothing
+        } else {
+            // server disconnected a working connection
+            if (this.clients[client.url]) {
+                delete this.clients[client.url]
+            }
         }
-        return result
     }
 
     async close () {

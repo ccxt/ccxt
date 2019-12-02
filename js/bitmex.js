@@ -99,7 +99,7 @@ module.exports = class bitmex extends ccxt.bitmex {
         // trigger correct fetchWsTickers calls upon receiving any of symbols
         // --------------------------------------------------------------------
         // if there's a corresponding fetchWsTicker call - trigger it
-        this.resolveWsFuture (client, messageHash, result);
+        client.resolve (result, messageHash);
     }
 
     async fetchWsBalance (params = {}) {
@@ -119,7 +119,8 @@ module.exports = class bitmex extends ccxt.bitmex {
         //         "XBT/USD"
         //     ]
         //
-        //     // todo: add max limit to the dequeue of trades, unshift and push
+        // todo: incremental trades – add max limit to the dequeue of trades, unshift and push
+        //
         //     const trade = this.parseWsTrade (client, delta, market);
         //     this.trades.push (trade);
         //     tradesCount += 1;
@@ -190,7 +191,7 @@ module.exports = class bitmex extends ccxt.bitmex {
             parseFloat (candle[7]),
         ];
         const messageHash = wsName + ':' + name;
-        this.resolveWsFuture (client, messageHash, result);
+        client.resolve (result, messageHash);
     }
 
     async fetchWsOrderBook (symbol, limit = undefined, params = {}) {
@@ -254,7 +255,7 @@ module.exports = class bitmex extends ccxt.bitmex {
     }
 
     signWsMessage (client, messageHash, message, params = {}) {
-        // todo: not implemented yet
+        // todo: bitmex signWsMessage not implemented yet
         return message;
     }
 
@@ -364,7 +365,8 @@ module.exports = class bitmex extends ccxt.bitmex {
                     bookside.store (price, size, id);
                 }
                 const messageHash = table + ':' + marketId;
-                this.resolveWsFuture (client, messageHash, orderbook.limit ());
+                // the .limit () operation will be moved to the fetchWSOrderBook
+                client.resolve (orderbook.limit (), messageHash);
             }
         } else {
             const numUpdatesByMarketId = {};
@@ -398,7 +400,8 @@ module.exports = class bitmex extends ccxt.bitmex {
                 const market = this.markets_by_id[marketId];
                 const symbol = market['symbol'];
                 const orderbook = this.orderbooks[symbol];
-                this.resolveWsFuture (client, messageHash, orderbook.limit ());
+                // the .limit () operation will be moved to the fetchWSOrderBook
+                client.resolve (orderbook.limit (), messageHash);
             }
         }
     }
@@ -416,7 +419,7 @@ module.exports = class bitmex extends ccxt.bitmex {
 
     handleWsSystemStatus (client, message) {
         //
-        // todo: answer the question whether this method should be renamed
+        // todo: answer the question whether handleWsSystemStatus should be renamed
         // and unified as handleWsStatus for any usage pattern that
         // involves system status and maintenance updates
         //
@@ -433,7 +436,7 @@ module.exports = class bitmex extends ccxt.bitmex {
 
     handleWsSubscriptionStatus (client, message) {
         //
-        // todo: answer the question whether this method should be renamed
+        // todo: answer the question whether handleWsSubscriptionStatus should be renamed
         // and unified as handleWsResponse for any usage pattern that
         // involves an identified request/response sequence
         //
@@ -449,7 +452,6 @@ module.exports = class bitmex extends ccxt.bitmex {
         // this.options['subscriptionStatusByChannelId'][channelId] = message;
         // const requestId = this.safeString (message, 'reqid');
         // if (client.futures[requestId]) {
-        //     // todo: transpile delete in ccxt
         //     delete client.futures[requestId];
         // }
         //

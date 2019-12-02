@@ -107,13 +107,15 @@ module.exports = class bitfinex extends ccxt.bitfinex {
                 const bookside = orderbook[side];
                 this.handleWsDelta (bookside, delta);
             }
-            this.resolveWsFuture (client, messageHash, orderbook.limit ());
+            // the .limit () operation will be moved to the fetchWSOrderBook
+            client.resolve (orderbook.limit (), messageHash);
         } else {
             const orderbook = this.orderbooks[symbol];
             const side = (message[1][2] < 0) ? 'asks' : 'bids';
             const bookside = orderbook[side];
             this.handleWsDelta (bookside, message[1]);
-            this.resolveWsFuture (client, messageHash, orderbook.limit ());
+            // the .limit () operation will be moved to the fetchWSOrderBook
+            client.resolve (orderbook.limit (), messageHash);
         }
     }
 
@@ -131,12 +133,12 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         //     { "event": "heartbeat" }
         //
         const event = this.safeString (message, 'event');
-        this.resolveWsFuture (client, event, message);
+        client.resolve (message, event);
     }
 
     handleWsSystemStatus (client, message) {
         //
-        // todo: answer the question whether this method should be renamed
+        // todo: answer the question whether handleWsSystemStatus should be renamed
         // and unified as handleWsStatus for any usage pattern that
         // involves system status and maintenance updates
         //
@@ -152,7 +154,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
 
     handleWsSubscriptionStatus (client, message) {
         //
-        // todo: answer the question whether this method should be renamed
+        // todo: answer the question whether handleWsSubscriptionStatus should be renamed
         // and unified as handleWsResponse for any usage pattern that
         // involves an identified request/response sequence
         //
@@ -175,7 +177,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
     }
 
     signWsMessage (client, messageHash, message, params = {}) {
-        // todo: not implemented yet
+        // todo: bitfinex signWsMessage not implemented yet
         return message;
     }
 
@@ -198,7 +200,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
                 return this[method] (client, message);
             }
         } else {
-            // todo: add handleWsErrors
+            // todo: add bitfinex handleWsErrors
             //
             //     {
             //         event: 'info',

@@ -21,88 +21,201 @@ class binance extends \ccxt\binance {
             ),
             'urls' => array (
                 'api' => array (
-                    'wss' => 'wss://stream.binance.com:9443/ws/',
+                    // 'ws' => 'wss://stream.binance.com:9443/ws',
+                    // 'ws' => 'wss://echo.websocket.org/',
+                    'ws' => 'ws://127.0.0.1:8080',
                 ),
+            ),
+            'options' => array (
+                'marketsByLowerCaseId' => array(),
             ),
         ));
     }
 
-    public function get_ws_message_hash ($client, $response) {
-        return $client->url;
+    public function load_markets ($reload = false, $params = array ()) {
+        $markets = parent::load_markets($reload, $params);
+        $marketsByLowercaseId = $this->safe_value($this->options, 'marketsByLowercaseId');
+        if (($marketsByLowercaseId === null) || $reload) {
+            $marketsByLowercaseId = array();
+            for ($i = 0; $i < count ($this->symbols); $i++) {
+                $symbol = $this->symbols[$i];
+                $lowercaseId = strtolower($this->markets[$symbol]['id']);
+                $this->markets[$symbol]['lowercaseId'] = $lowercaseId;
+                $marketsByLowercaseId[$lowercaseId] = $this->markets[$symbol];
+            }
+            $this->options['marketsByLowercaseId'] = $marketsByLowercaseId;
+        }
+        return $markets;
     }
 
     public function fetch_ws_trades ($symbol) {
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        $url = $this->urls['api']['websocket']['public'] . strtolower($market['id']) . '@trade';
-        return $this->WsTradesMessage ($url, $url);
+        //     $this->load_markets();
+        //     $market = $this->market ($symbol);
+        //     $url = $this->urls['api']['ws'] . strtolower($market['id']) . '@trade';
+        //     return $this->WsTradesMessage ($url, $url);
+        throw new NotImplemented($this->id . ' fetchWsTrades not implemented yet');
     }
 
     public function handle_ws_trades ($response) {
-        $parsed = $this->parse_trade($response);
-        $parsed['symbol'] = $this->parse_symbol ($response);
-        return $parsed;
+        //     $parsed = $this->parse_trade($response);
+        //     $parsed['symbol'] = $this->parseSymbol ($response);
+        //     return $parsed;
+        throw new NotImplemented($this->id . ' handleWsTrades not implemented yet');
     }
 
     public function fetch_ws_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $interval = $this->timeframes[$timeframe];
-        $market = $this->market ($symbol);
-        $url = $this->urls['api']['websocket']['public'] . strtolower($market['id']) . '@kline_' . $interval;
-        return $this->WsOHLCVMessage ($url, $url);
+        //     $this->load_markets();
+        //     $interval = $this->timeframes[$timeframe];
+        //     $market = $this->market ($symbol);
+        //     $url = $this->urls['api']['ws'] . strtolower($market['id']) . '@kline_' . $interval;
+        //     return $this->WsOHLCVMessage ($url, $url);
+        throw new NotImplemented($this->id . ' fetchWsOHLCV not implemented yet');
     }
 
     public function handle_ws_ohlcv ($ohlcv) {
-        $data = $ohlcv['k'];
-        $timestamp = $this->safe_integer($data, 'T');
-        $open = $this->safe_float($data, 'o');
-        $high = $this->safe_float($data, 'h');
-        $close = $this->safe_float($data, 'l');
-        $low = $this->safe_float($data, 'c');
-        $volume = $this->safe_float($data, 'v');
-        return [$timestamp, $open, $high, $close, $low, $volume];
+        //     $data = $ohlcv['k'];
+        //     $timestamp = $this->safe_integer($data, 'T');
+        //     $open = $this->safe_float($data, 'o');
+        //     $high = $this->safe_float($data, 'h');
+        //     $close = $this->safe_float($data, 'l');
+        //     $low = $this->safe_float($data, 'c');
+        //     $volume = $this->safe_float($data, 'v');
+        //     return [$timestamp, $open, $high, $close, $low, $volume];
+        throw new NotImplemented($this->id . ' handleWsOHLCV not implemented yet ' . $this->json ($ohlcv));
     }
 
     public function fetch_ws_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $url = $this->urls['api']['websocket']['public'] . strtolower($market['id']) . '@depth';
-        // if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
-        //     $snapshot = $this->fetch_order_book($symbol, $limit, $params);
-        //     $this->orderbooks[$symbol] = new IncrementalOrderBook ($snapshot);
-        // }
-        return $this->WsOrderBookMessage ($url, $url);
+        // this should be executed much later
+        // $orderbook = $this->fetch_order_book($symbol, $limit, $params);
+        // $request = array();
+        $name = 'depth';
+        $stream = $market['lowercaseId'] . '@' . $name;
+        $url = $this->urls['api']['ws']; // . '/' . $stream;
+        $requestId = $this->nonce ();
+        $request = array (
+            'method' => 'SUBSCRIBE',
+            'params' => array (
+                $stream,
+            ),
+            'id' => $requestId,
+        );
+        $messageHash = $stream;
+        $future = $this->sendWsMessage ($url, $messageHash, array_merge ($request, $params), $messageHash);
+        $client = $this->clients[$url];
+        $client['futures'][$requestId] = $future;
+        return $future;
     }
 
-    public function handle_ws_order_book ($orderBook) {
+    public function handle_ws_order_book ($client, $message) {
+        //
+        // initial snapshot is fetched with ccxt's fetchOrderBook
+        // the feed does not include a snapshot, just the $deltas
+        //
+        //     {
+        //         "e" => "depthUpdate", // Event type
+        //         "E" => 123456789, // Event time
+        //         "s" => "BNBBTC", // Symbol
+        //         "U" => 157, // First update ID in event
+        //         "u" => 160, // Final update ID in event
+        //         "b" => array ( // bids
+        //             array ( "0.0024", "10" ), // price, size
+        //         ),
+        //         "a" => array ( // $asks
+        //             array ( "0.0026", "100" ), // price, size
+        //         )
+        //     }
+        //
         $deltas = array();
-        $nonce = $orderBook['u'];
-        for ($i = 0; $i < count ($orderBook['b']); $i++) {
-            $bid = $orderBook['b'][$i];
+        $nonce = $message['u'];
+        for ($i = 0; $i < count ($message['b']); $i++) {
+            $bid = $message['b'][$i];
             $deltas[] = [$nonce, 'absolute', 'bids', floatval ($bid[0]), floatval ($bid[1])];
         }
-        for ($i = 0; $i < count ($orderBook['a']); $i++) {
-            $asks = $orderBook['a'][$i];
+        for ($i = 0; $i < count ($message['a']); $i++) {
+            $asks = $message['a'][$i];
             $deltas[] = [$nonce, 'absolute', 'asks', floatval ($asks[0]), floatval ($asks[1])];
         }
-        $symbol = $this->parse_symbol ($orderBook);
+        $symbol = $this->parseSymbol ($message);
         $incrementalBook = $this->orderbooks[$symbol];
         $incrementalBook->update ($deltas);
-        $timestamp = $this->safe_integer($orderBook, 'E');
-        $incrementalBook->orderBook['timestamp'] = $timestamp;
-        $incrementalBook->orderBook['datetime'] = $this->iso8601 ($timestamp);
-        $incrementalBook->orderBook['nonce'] = $orderBook['u'];
+        $timestamp = $this->safe_integer($message, 'E');
+        $incrementalBook->message['timestamp'] = $timestamp;
+        $incrementalBook->message['datetime'] = $this->iso8601 ($timestamp);
+        $incrementalBook->message['nonce'] = $message['u'];
         return $incrementalBook->orderBook;
     }
 
-    public function parse_symbol ($message) {
-        return $this->marketsById[$message['s']]['symbol'];
+    public function sign_ws_message ($client, $messageHash, $message, $params = array ()) {
+        // todo => binance signWsMessage not implemented yet
+        return $message;
     }
 
-    public function handle_ws_dropped ($client, $message, $messageHash) {
-        $orderBookHash = 'wss://stream.binance.com:9443/ws/ethbtc@depth';
-        if ($messageHash !== null && $messageHash->startsWith ($orderBookHash)) {
-            $this->handle_ws_order_book ($message);
+    public function handle_ws_subscription_status ($client, $message) {
+        //
+        // todo => answer the question whether handleWsSubscriptionStatus should be renamed
+        // and unified as handleWsResponse for any usage pattern that
+        // involves an identified request/response sequence
+        //
+        //     {
+        //         "result" => null,
+        //         "id" => 1574649734450
+        //     }
+        //
+        $channelId = $this->safe_string($message, 'channelID');
+        $this->options['subscriptionStatusByChannelId'][$channelId] = $message;
+        $requestId = $this->safe_string($message, 'reqid');
+        if ($client->futures[$requestId]) {
+            unset($client->futures[$requestId]);
         }
+    }
+
+    public function handle_ws_message ($client, $message) {
+        var_dump ($message);
+        //
+        // $keys = is_array($client->futures) ? array_keys($client->futures) : array();
+        // for ($i = 0; $i < count ($keys); $i++) {
+        //     $key = $keys[$i];
+        //     $this->rejectWsFuture ()
+        // }
+        //
+        // --------------------------------------------------------------------
+        //
+        // var_dump (new Date (), json_encode ($message, null, 4));
+        // var_dump ('---------------------------------------------------------');
+        // if (gettype ($message) === 'array' && count (array_filter (array_keys ($message), 'is_string')) == 0) {
+        //     $channelId = (string) $message[0];
+        //     $subscriptionStatus = $this->safe_value($this->options['subscriptionStatusByChannelId'], $channelId, array());
+        //     $subscription = $this->safe_value($subscriptionStatus, 'subscription', array());
+        //     $name = $this->safe_string($subscription, 'name');
+        //     $methods = array (
+        //         'book' => 'handleWsOrderBook',
+        //         'ohlc' => 'handleWsOHLCV',
+        //         'ticker' => 'handleWsTicker',
+        //         'trade' => 'handleWsTrades',
+        //     );
+        //     $method = $this->safe_string($methods, $name);
+        //     if ($method === null) {
+        //         return $message;
+        //     } else {
+        //         return $this->$method ($client, $message);
+        //     }
+        // } else {
+        //     if ($this->handleWsErrors ($client, $message)) {
+        //         $event = $this->safe_string($message, 'event');
+        //         $methods = array (
+        //             'heartbeat' => 'handleWsHeartbeat',
+        //             'systemStatus' => 'handleWsSystemStatus',
+        //             'subscriptionStatus' => 'handleWsSubscriptionStatus',
+        //         );
+        //         $method = $this->safe_string($methods, $event);
+        //         if ($method === null) {
+        //             return $message;
+        //         } else {
+        //             return $this->$method ($client, $message);
+        //         }
+        //     }
+        // }
     }
 }

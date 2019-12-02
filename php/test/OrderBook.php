@@ -82,6 +82,14 @@ $incremetalOrderBookTarget = array (
     'nonce' => 69,
 );
 
+$limitedIndexedOrderBookTarget = array (
+    'bids' => array ( array ( 10.0, 10, '1234' ), array ( 9.1, 11, '1235' ), array ( 8.2, 12, '1236' ), array ( 7.3, 13, '1237' ), array ( 6.4, 14, '1238' ) ),
+    'asks' => array ( array ( 11.1, 13, '1244' ), array ( 13.3, 13, '1243' ), array ( 14.4, 12, '1242' ), array ( 15.5, 11, '1241' ), array ( 16.6, 10, '1240' ) ),
+    'timestamp' => 1574827239000,
+    'datetime' => '2019-11-27T04:00:39.000Z',
+    'nonce' => 69,
+);
+
 // --------------------------------------------------------------------------------------------------------------------
 
 $orderBook = new OrderBook ($orderBookInput);
@@ -94,9 +102,12 @@ $countedOrderBook = new CountedOrderBook ($countedOrderBookInput);
 $countedOrderBook->limit ();
 $incrementalOrderBook = new IncrementalOrderBook ($incrementalOrderBookInput);
 $incrementalOrderBook->limit ();
+$limitedIndexedOrderBook = new LimitedIndexedOrderBook ($indexedOrderBookInput, 5);
+$limitedIndexedOrderBook->limit ();
 
 assert (equals ($orderBook, $orderBookTarget));
 assert (equals ($limitedOrderBook, $limitedOrderBookTarget));
 assert (equals ($indexedOrderBook, $indexedOrderBookTarget));
 assert (equals ($countedOrderBook, $countedOrderBookTarget));
 assert (equals ($incrementalOrderBook, $incremetalOrderBookTarget));
+assert (equals ($limitedIndexedOrderBook, $limitedIndexedOrderBookTarget));

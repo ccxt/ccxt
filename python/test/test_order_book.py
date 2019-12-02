@@ -11,7 +11,7 @@ sys.path.append(root)
 
 # ----------------------------------------------------------------------------
 
-from ccxtpro.base.order_book import OrderBook, LimitedOrderBook, IndexedOrderBook, CountedOrderBook, IncrementalOrderBook  # noqa: F402
+from ccxtpro.base.order_book import OrderBook, LimitedOrderBook, IndexedOrderBook, CountedOrderBook, IncrementalOrderBook, LimitedIndexedOrderBook  # noqa: F402
 
 
 def equals(a, b):
@@ -88,6 +88,14 @@ incremetalOrderBookTarget = {
     'nonce': 69,
 }
 
+limitedIndexedOrderBookTarget = {
+    'bids': [[10.0, 10, '1234'], [9.1, 11, '1235'], [8.2, 12, '1236'], [7.3, 13, '1237'], [6.4, 14, '1238']],
+    'asks': [[11.1, 13, '1244'], [13.3, 13, '1243'], [14.4, 12, '1242'], [15.5, 11, '1241'], [16.6, 10, '1240']],
+    'timestamp': 1574827239000,
+    'datetime': '2019-11-27T04:00:39.000Z',
+    'nonce': 69,
+}
+
 # --------------------------------------------------------------------------------------------------------------------
 
 orderBook = OrderBook(orderBookInput)
@@ -100,9 +108,12 @@ countedOrderBook = CountedOrderBook(countedOrderBookInput)
 countedOrderBook.limit()
 incrementalOrderBook = IncrementalOrderBook(incrementalOrderBookInput)
 incrementalOrderBook.limit()
+limitedIndexedOrderBook = LimitedIndexedOrderBook(indexedOrderBookInput, 5)
+limitedIndexedOrderBook.limit()
 
 assert(equals(orderBook, orderBookTarget))
 assert(equals(limitedOrderBook, limitedOrderBookTarget))
 assert(equals(indexedOrderBook, indexedOrderBookTarget))
 assert(equals(countedOrderBook, countedOrderBookTarget))
 assert(equals(incrementalOrderBook, incremetalOrderBookTarget))
+assert(equals(limitedIndexedOrderBook, limitedIndexedOrderBookTarget))

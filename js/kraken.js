@@ -103,7 +103,7 @@ module.exports = class kraken extends ccxt.kraken {
         // trigger correct fetchWsTickers calls upon receiving any of symbols
         // --------------------------------------------------------------------
         // if there's a corresponding fetchWsTicker call - trigger it
-        this.resolveWsFuture (client, messageHash, result);
+        client.resolve (result, messageHash);
     }
 
     async fetchWsBalance (params = {}) {
@@ -123,7 +123,8 @@ module.exports = class kraken extends ccxt.kraken {
         //         "XBT/USD"
         //     ]
         //
-        //     // todo: add max limit to the dequeue of trades, unshift and push
+        // todo: incremental trades – add max limit to the dequeue of trades, unshift and push
+        //
         //     const trade = this.parseWsTrade (client, delta, market);
         //     this.trades.push (trade);
         //     tradesCount += 1;
@@ -194,7 +195,7 @@ module.exports = class kraken extends ccxt.kraken {
             parseFloat (candle[7]),
         ];
         const messageHash = wsName + ':' + name;
-        this.resolveWsFuture (client, messageHash, result);
+        client.resolve (result, messageHash);
     }
 
     async fetchWsPublicMessage (name, symbol, params = {}) {
@@ -280,7 +281,7 @@ module.exports = class kraken extends ccxt.kraken {
         //     { "event": "heartbeat" }
         //
         const event = this.safeString (message, 'event');
-        this.resolveWsFuture (client, event, message);
+        client.resolve (message, event);
     }
 
     parseWsTrade (client, trade, market = undefined) {
@@ -387,7 +388,8 @@ module.exports = class kraken extends ccxt.kraken {
                 timestamp = this.handleWsDeltas (bookside, deltas, timestamp);
             }
             orderbook['timestamp'] = timestamp;
-            this.resolveWsFuture (client, messageHash, orderbook.limit ());
+            // the .limit () operation will be moved to the fetchWSOrderBook
+            client.resolve (orderbook.limit (), messageHash);
         } else {
             const orderbook = this.orderbooks[symbol];
             // else, if this is an orderbook update
@@ -410,7 +412,8 @@ module.exports = class kraken extends ccxt.kraken {
                 timestamp = this.handleWsDeltas (orderbook['bids'], b, timestamp);
             }
             orderbook['timestamp'] = timestamp;
-            this.resolveWsFuture (client, messageHash, orderbook.limit ());
+            // the .limit () operation will be moved to the fetchWSOrderBook
+            client.resolve (orderbook.limit (), messageHash);
         }
     }
 
@@ -427,7 +430,7 @@ module.exports = class kraken extends ccxt.kraken {
 
     handleWsSystemStatus (client, message) {
         //
-        // todo: answer the question whether this method should be renamed
+        // todo: answer the question whether handleWsSystemStatus should be renamed
         // and unified as handleWsStatus for any usage pattern that
         // involves system status and maintenance updates
         //
@@ -443,7 +446,7 @@ module.exports = class kraken extends ccxt.kraken {
 
     handleWsSubscriptionStatus (client, message) {
         //
-        // todo: answer the question whether this method should be renamed
+        // todo: answer the question whether handleWsSubscriptionStatus should be renamed
         // and unified as handleWsResponse for any usage pattern that
         // involves an identified request/response sequence
         //
@@ -461,7 +464,6 @@ module.exports = class kraken extends ccxt.kraken {
         this.options['subscriptionStatusByChannelId'][channelId] = message;
         const requestId = this.safeString (message, 'reqid');
         if (client.futures[requestId]) {
-            // todo: transpile delete in ccxt
             delete client.futures[requestId];
         }
     }
@@ -499,7 +501,7 @@ module.exports = class kraken extends ccxt.kraken {
     }
 
     signWsMessage (client, messageHash, message, params = {}) {
-        // todo: not implemented yet
+        // todo: kraken signWsMessage not implemented yet
         return message;
     }
 

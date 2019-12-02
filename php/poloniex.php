@@ -21,7 +21,7 @@ class poloniex extends \ccxt\poloniex {
             ),
             'urls' => array (
                 'api' => array (
-                    'ws' => 'wss://api2.poloniex.com/',
+                    'ws' => 'wss://api2.poloniex.com',
                 ),
             ),
         ));
@@ -112,7 +112,7 @@ class poloniex extends \ccxt\poloniex {
             'channel' => $numericId,
         );
         // the commented lines below won't work in sync php
-        // todo => figure out a way to wrap it in a base method
+        // todo => resolve future results via a base proxy-method
         //
         // $orderbook = $this->sendWsMessage ($url, $messageHash, array (
         //     'command' => 'subscribe',
@@ -153,7 +153,7 @@ class poloniex extends \ccxt\poloniex {
         //     array ( 1010 )
         //
         $channelId = '1010';
-        $this->resolveWsFuture ($client, $channelId, $message);
+        $client->resolve ($message, $channelId);
     }
 
     public function parse_ws_trade ($client, $trade, $market = null) {
@@ -274,12 +274,14 @@ class poloniex extends \ccxt\poloniex {
             // resolve the $orderbook future
             $messageHash = $marketId . ':orderbook';
             $orderbook = $this->orderbooks[$symbol];
-            $this->resolveWsFuture ($client, $messageHash, $orderbook->limit ());
+            // the .limit () operation will be moved to the fetchWSOrderBook
+            $client->resolve ($orderbook->limit (), $messageHash);
         }
         if ($tradesCount) {
             // resolve the trades future
             $messageHash = $marketId . ':trades';
-            $this->resolveWsFuture ($client, $messageHash, $this->trades);
+            // todo => incremental trades
+            $client->resolve ($this->trades, $messageHash);
         }
     }
 
