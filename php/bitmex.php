@@ -20,7 +20,9 @@ class bitmex extends \ccxt\bitmex {
                 'fetchWsOrderBook' => true,
             ),
             'urls' => array (
-                'ws' => 'wss://www.bitmex.com/realtime',
+                'api' => array (
+                    'ws' => 'wss://www.bitmex.com/realtime',
+                ),
             ),
             'versions' => array (
                 'ws' => '0.2.0',
@@ -101,7 +103,7 @@ class bitmex extends \ccxt\bitmex {
         // trigger correct fetchWsTickers calls upon receiving any of symbols
         // --------------------------------------------------------------------
         // if there's a corresponding fetchWsTicker call - trigger it
-        $this->resolveWsFuture ($client, $messageHash, $result);
+        $client->resolve ($result, $messageHash);
     }
 
     public function fetch_ws_balance ($params = array ()) {
@@ -121,7 +123,8 @@ class bitmex extends \ccxt\bitmex {
         //         "XBT/USD"
         //     )
         //
-        //     // todo => add max limit to the dequeue of trades, unshift and push
+        // todo => incremental trades – add max limit to the dequeue of trades, unshift and push
+        //
         //     $trade = $this->parse_ws_trade ($client, delta, $market);
         //     $this->trades[] = $trade;
         //     tradesCount .= 1;
@@ -192,7 +195,7 @@ class bitmex extends \ccxt\bitmex {
             floatval ($candle[7]),
         ];
         $messageHash = $wsName . ':' . $name;
-        $this->resolveWsFuture ($client, $messageHash, $result);
+        $client->resolve ($result, $messageHash);
     }
 
     public function fetch_ws_order_book ($symbol, $limit = null, $params = array ()) {
@@ -209,7 +212,7 @@ class bitmex extends \ccxt\bitmex {
         $this->load_markets();
         $market = $this->market ($symbol);
         $messageHash = $name . ':' . $market['id'];
-        $url = $this->urls['ws'];
+        $url = $this->urls['api']['ws'];
         $request = array (
             'op' => 'subscribe',
             'args' => array (
@@ -256,7 +259,7 @@ class bitmex extends \ccxt\bitmex {
     }
 
     public function sign_ws_message ($client, $messageHash, $message, $params = array ()) {
-        // todo => not implemented yet
+        // todo => bitmex signWsMessage not implemented yet
         return $message;
     }
 
@@ -366,7 +369,8 @@ class bitmex extends \ccxt\bitmex {
                     $bookside->store ($price, $size, $id);
                 }
                 $messageHash = $table . ':' . $marketId;
-                $this->resolveWsFuture ($client, $messageHash, $orderbook->limit ());
+                // the .limit () operation will be moved to the fetchWSOrderBook
+                $client->resolve ($orderbook->limit (), $messageHash);
             }
         } else {
             $numUpdatesByMarketId = array();
@@ -400,12 +404,13 @@ class bitmex extends \ccxt\bitmex {
                 $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
                 $orderbook = $this->orderbooks[$symbol];
-                $this->resolveWsFuture ($client, $messageHash, $orderbook->limit ());
+                // the .limit () operation will be moved to the fetchWSOrderBook
+                $client->resolve ($orderbook->limit (), $messageHash);
             }
         }
     }
 
-    public function handle_ws_deltas ($deltas, $bookside, $timestamp) {
+    public function handle_ws_deltas ($bookside, $deltas, $timestamp) {
         for ($j = 0; $j < count ($deltas); $j++) {
             $delta = $deltas[$j];
             $price = floatval ($delta[0]);
@@ -418,7 +423,7 @@ class bitmex extends \ccxt\bitmex {
 
     public function handle_ws_system_status ($client, $message) {
         //
-        // todo => answer the question whether this method should be renamed
+        // todo => answer the question whether handleWsSystemStatus should be renamed
         // and unified as handleWsStatus for any usage pattern that
         // involves system status and maintenance updates
         //
@@ -435,7 +440,7 @@ class bitmex extends \ccxt\bitmex {
 
     public function handle_ws_subscription_status ($client, $message) {
         //
-        // todo => answer the question whether this method should be renamed
+        // todo => answer the question whether handleWsSubscriptionStatus should be renamed
         // and unified as handleWsResponse for any usage pattern that
         // involves an identified request/response sequence
         //
@@ -451,7 +456,6 @@ class bitmex extends \ccxt\bitmex {
         // $this->options['subscriptionStatusByChannelId'][$channelId] = $message;
         // $requestId = $this->safe_string($message, 'reqid');
         // if ($client->futures[$requestId]) {
-        //     // todo => transpile delete in ccxt
         //     unset($client->futures[$requestId]);
         // }
         //
@@ -483,7 +487,7 @@ class bitmex extends \ccxt\bitmex {
             if ($numArgs > 0) {
                 $messageHash = $args[0];
                 $broad = $this->exceptions['ws']['broad'];
-                $broadKey = $this->findBroadlyMatchedKey ($broad, $error);
+                $broadKey = $this->find_broadly_matched_key($broad, $error);
                 $exception = null;
                 if ($broadKey === null) {
                     $exception = new ExchangeError ($error);
