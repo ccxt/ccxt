@@ -24,8 +24,6 @@ module.exports = class WebSocketClient {
             onCloseCallback,
             protocols: undefined, // ws protocols
             options: undefined,   // ws options
-            backoff: true,
-            // reconnectDelay: 1000, // not used atm
             futures: {},
             subscriptions: {},
             // connected: Future (), // connection-related Future
@@ -33,7 +31,8 @@ module.exports = class WebSocketClient {
             connectionTimeout: 30000, // 30 seconds by default, false to disable
             pingInterval: undefined, // ping-related interval
             pingTimeout: 3000,
-            timeout: 30000, // throw if a request is not satisfied in 30 seconds, false to disable
+            // timeout is not used atm
+            // timeout: 30000, // throw if a request is not satisfied in 30 seconds, false to disable
             ws: {
                 readyState: undefined,
             },
@@ -81,29 +80,33 @@ module.exports = class WebSocketClient {
         }
     }
 
-    connect () {
+    createWebsocket () {
+        console.log (new Date (), 'connecting...')
+        this.ws = new WebSocket (this.url, this.protocols, this.options)
+        this.setConnectionTimeout ()
+        this.ws
+            .on ('open', this.onOpen.bind (this))
+            .on ('ping', this.onPing.bind (this))
+            .on ('pong', this.onPong.bind (this))
+            .on ('error', this.onError.bind (this))
+            .on ('close', this.onClose.bind (this))
+            .on ('upgrade', this.onUpgrade.bind (this))
+            .on ('message', this.onMessage.bind (this))
+        // this.ws.terminate () // debugging
+        // this.ws.close () // debugging
+    }
+
+    connect (backoffDelay = 0) {
         if ((this.ws.readyState !== WebSocket.OPEN) &&
             (this.ws.readyState !== WebSocket.CONNECTING)) {
             // prevent multiple calls overwriting each other
             this.ws.readyState = WebSocket.CONNECTING
-            // todo: add support for reconnection backoff here
-            sleep (5000).then (() => {
-                console.log (new Date (), 'connecting...')
-                this.ws = new WebSocket (this.url, this.protocols, this.options)
-                console.log (this.ws)
-                process.exit ();
-                this.setConnectionTimeout ()
-                this.ws
-                    .on ('open', this.onOpen.bind (this))
-                    .on ('ping', this.onPing.bind (this))
-                    .on ('pong', this.onPong.bind (this))
-                    .on ('error', this.onError.bind (this))
-                    .on ('close', this.onClose.bind (this))
-                    .on ('upgrade', this.onUpgrade.bind (this))
-                    .on ('message', this.onMessage.bind (this))
-                // this.ws.terminate () // debugging
-                // this.ws.close () // debugging
-            })
+            // exponential backoff for consequent ws connections if necessary
+            if (backoffDelay) {
+                sleep (backoffDelay).then (this.createWebsocket.bind (this))
+            } else {
+                this.createWebsocket ()
+            }
         }
         return this.connected
     }
@@ -137,9 +140,7 @@ module.exports = class WebSocketClient {
     }
 
     setPingInterval () {
-        console.log ('oh, come on!--')
         if (this.pingTimeout) {
-            console.log ('oh, come on!--')
             const onPingInterval = this.onPingInterval.bind (this)
             this.pingInterval = setInterval (onPingInterval, this.pingTimeout)
         }
@@ -152,7 +153,6 @@ module.exports = class WebSocketClient {
     }
 
     onPingInterval () {
-        console.log ('oh, come on!')
         if ((this.lastPong + this.pingRate) < milliseconds ()) {
             this.reset (new RequestTimeout ('Connection to ' + this.url + ' timed out'))
         } else {
@@ -185,7 +185,9 @@ module.exports = class WebSocketClient {
     onError (error) {
         console.log (new Date (), 'onError', error.message)
         // convert ws errors to ccxt errors if necessary
-        this.reset (new NetworkError (error.message))
+        error = new NetworkError (error.message)
+        this.error = error
+        this.reset (error)
         this.onErrorCallback (this, error)
     }
 

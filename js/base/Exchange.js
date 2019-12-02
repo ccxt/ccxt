@@ -73,27 +73,37 @@ module.exports = class Exchange extends ccxt.Exchange {
             }
         }).catch ((error) => {
             // we do nothing and don't return a resolvable value from here
-            // we leave it in a rejected state to avoid
-            // triggering the then-clauses that will follow (if any)
-            // removing this catch-clause will raise UnhandledPromiseRejection
-
+            // we leave it in a rejected state to avoid triggering the
+            // then-clauses that will follow (if any)
+            // removing this catch will raise UnhandledPromiseRejection in JS
+            // upon connection failure
         })
         return future
     }
 
+    onWsDisconnect (client, error) {
+        if (this.clients[client.url]) {
+            if (this.clients[client.url].error) {
+                delete this.clients[client.url]
+            } else {
+            }
+        }
+    }
+
     onWsError (client, error) {
-        console.log (this.clients[client.url].toString ())
-        delete this.clients[client.url]
-        // console.log (error, 'onWsError');
-        // process.exit ();
+        this.onWsDisconnect (client, error)
     }
 
     onWsClose (client, error) {
-        delete this.clients[client.url]
-        // console.log (error, 'onWsClose');
-        // process.exit ();
+        if (client.error) {
+            // connection closed due to an error, do nothing
+        } else {
+            // server disconnected a working connection
+            if (this.clients[client.url]) {
+                delete this.clients[client.url]
+            }
+        }
     }
-
 
     async close () {
         const clients = Object.values (this.clients)
