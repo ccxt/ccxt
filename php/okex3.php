@@ -2215,6 +2215,7 @@ class okex3 extends Exchange {
             $id = $withdrawalId;
             $address = $addressTo;
         } else {
+            // the payment_id will appear on new deposits but appears to be removed from the response after 2 months
             $id = $this->safe_string($transaction, 'payment_id');
             $type = 'deposit';
             $address = $addressTo;
