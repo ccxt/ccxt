@@ -930,6 +930,7 @@ module.exports = class coss extends Exchange {
             headers = {
                 'Signature': this.hmac (this.encode (request), this.encode (this.secret)),
                 'Authorization': this.apiKey,
+                'X-Requested-With': 'XMLHttpRequest',
             };
         } else {
             if (Object.keys (params).length) {
