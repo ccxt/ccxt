@@ -25,9 +25,16 @@ module.exports = class coindcx extends Exchange {
             'api': {
                 'api': {
                     'get': [
-                        '/exchange/v1/markets',
-                        '/exchange/v1/markets_details',
                         'exchange/ticker',
+                        'exchange/v1/markets',
+                        'exchange/v1/markets_details',
+                    ],
+                },
+                'public': {
+                    'get': [
+                        'market_data/trade_history',
+                        'market_data/order_book',
+                        'market_data/candles',
                     ],
                 },
             },
@@ -81,12 +88,11 @@ module.exports = class coindcx extends Exchange {
                 'info': market,
             });
         }
-        console.log ('response', result);
         return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        console.log (path, api, method, headers, body);
+        // console.log (path, api, method, headers, body);
         const base = this.urls['api'][api];
         const url = base + '/' + path;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
