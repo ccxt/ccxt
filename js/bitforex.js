@@ -375,7 +375,7 @@ module.exports = class bitforex extends Exchange {
             'info': response,
         };
     }
-    
+
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
             this.safeInteger (ohlcv, 'time'),
