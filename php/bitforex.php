@@ -28,6 +28,20 @@ class bitforex extends Exchange {
                 'fetchOrders' => false,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchOHLCV' => true,
+            ),
+            'timeframes' => array (
+                '1m' => '1min',
+                '5m' => 'M5',
+                '15m' => '15min',
+                '30m' => '30min',
+                '1h' => '1hour',
+                '2h' => '2hour',
+                '4h' => '4hour',
+                '12h' => '12hour',
+                '1d' => '1day',
+                '1w' => '1week',
+                '1M' => '1month',
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/44310033-69e9e600-a3d8-11e8-873d-54d74d1bc4e4.jpg',
@@ -361,6 +375,32 @@ class bitforex extends Exchange {
             'quoteVolume' => null,
             'info' => $response,
         );
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        return array (
+            $this->safe_integer($ohlcv, 'time'),
+            $this->safe_float($ohlcv, 'open'),
+            $this->safe_float($ohlcv, 'high'),
+            $this->safe_float($ohlcv, 'low'),
+            $this->safe_float($ohlcv, 'close'),
+            $this->safe_float($ohlcv, 'vol'),
+        );
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'symbol' => $market['id'],
+            'ktype' => $this->timeframes[$timeframe],
+        );
+        if ($limit !== null) {
+            $request['size'] = $limit; // default 1, max 600
+        }
+        $response = $this->publicGetApiV1MarketKline (array_merge ($request, $params));
+        $ohlcvs = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
