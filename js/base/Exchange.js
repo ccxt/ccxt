@@ -51,9 +51,15 @@ module.exports = class Exchange extends ccxt.Exchange {
     sendWsMessage (url, messageHash, message = undefined, subscribeHash = undefined) {
         const client = this.websocket (url)
         //
-        //  fetchWsOrderBook -----+------------→ future -----------+-----→ user
-        //                        ↓                                ↑
-        //                      connect → subscribe → receive → resolve
+        //  fetchWsOrderBook ---- future ----+---------------+----→ user
+        //                                   |               |
+        //                                   ↓               ↑
+        //                                   |               |
+        //                                connect ......→ resolve
+        //                                   |               |
+        //                                   ↓               ↑
+        //                                   |               |
+        //                               subscribe -----→ receive
         //
         const future = client.future (messageHash)
         // todo: calculate the backoff using the clients cache
