@@ -49,7 +49,27 @@ module.exports = class Exchange extends ccxt.Exchange {
     }
 
     sendWsMessage (url, messageHash, message = undefined, subscribeHash = undefined) {
+        //
+        // Without comments the code of this method is short and easy:
+        //
+        //     const client = this.websocket (url)
+        //     const backoffDelay = 0
+        //     const future = client.future (messageHash)
+        //     const connected = client.connect (backoffDelay)
+        //     connected.then (() => {
+        //         if (message && !client.subscriptions[subscribeHash]) {
+        //             client.subscriptions[subscribeHash] = true
+        //             message = this.signWsMessage (client, messageHash, message)
+        //             client.send (message)
+        //         }
+        //     }).catch ((error) => {})
+        //     return future
+        //
+        // The following is a longer version of this method with comments
+        //
         const client = this.websocket (url)
+        // todo: calculate the backoff using the clients cache
+        const backoffDelay = 0
         //
         //  fetchWsOrderBook ---- future ----+---------------+----→ user
         //                                   |               |
@@ -62,8 +82,6 @@ module.exports = class Exchange extends ccxt.Exchange {
         //                               subscribe -----→ receive
         //
         const future = client.future (messageHash)
-        // todo: calculate the backoff using the clients cache
-        const backoffDelay = 0
         // we intentionally do not use await here to avoid unhandled exceptions
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject with
