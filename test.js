@@ -49,16 +49,20 @@ const ccxtpro = require ('./ccxt.pro.js')
 
     const exchange = new ccxtpro.poloniex ({
         'enableRateLimit': true,
-        'urls': {
-            'api': {
-                'ws': 'ws://127.0.0.1:8080',
-            },
-        },
+        // 'urls': {
+        //     'api': {
+        //         'ws': 'ws://127.0.0.1:8080',
+        //     },
+        // },
     })
 
     while (true) {
         try {
-            const orderbook = await exchange.fetchWsOrderBook (symbol)
+            let response = undefined
+            for (let i = 0; i < 10; i++) {
+                response = await exchange.fetchWsOrderBook (symbol)
+            }
+            console.log (new Date (), response.asks.length, 'asks', response.asks[0], response.bids.length, 'bids', response.bids[0])
         } catch (e) {
             console.log (new Date (), e)
         }
