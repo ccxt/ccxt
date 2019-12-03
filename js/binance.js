@@ -103,6 +103,7 @@ module.exports = class binance extends Exchange {
                         'margin/myTrades',
                         'margin/maxBorrowable',
                         'margin/maxTransferable',
+                        'futures/transfer',
                     ],
                     'post': [
                         'asset/dust',
@@ -111,6 +112,7 @@ module.exports = class binance extends Exchange {
                         'margin/repay',
                         'margin/order',
                         'userDataStream',
+                        'futures/transfer',
                     ],
                     'put': [
                         'userDataStream',
