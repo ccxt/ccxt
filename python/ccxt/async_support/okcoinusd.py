@@ -52,6 +52,11 @@ class okcoinusd(Exchange):
                 '1w': '1week',
             },
             'api': {
+                'v3': {
+                    'get': [
+                        'futures/pc/market/futuresCoin',
+                    ],
+                },
                 'web': {
                     'get': [
                         'futures/pc/market/marketOverview',
@@ -131,6 +136,7 @@ class okcoinusd(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api': {
+                    'v3': 'https://www.okcoin.com/v3',
                     'web': 'https://www.okcoin.com/v2',
                     'public': 'https://www.okcoin.com/api',
                     'private': 'https://www.okcoin.com',
@@ -375,7 +381,9 @@ class okcoinusd(Exchange):
         spotMarkets = self.safe_value(spotResponse, 'data', [])
         markets = spotMarkets
         if self.has['futures']:
-            futuresResponse = await self.webPostFuturesPcMarketFuturesCoin()
+            futuresResponse = await self.v3GetFuturesPcMarketFuturesCoin({
+                'currencyCode': 0,
+            })
             #
             #     {
             #         "msg":"success",
@@ -409,7 +417,8 @@ class okcoinusd(Exchange):
             #         ]
             #     }
             #
-            futuresMarkets = self.safe_value(futuresResponse, 'data', [])
+            data = self.safe_value(futuresResponse, 'data', {})
+            futuresMarkets = self.safe_value(data, 'usd', [])
             markets = self.array_concat(spotMarkets, futuresMarkets)
         for i in range(0, len(markets)):
             market = markets[i]
@@ -443,8 +452,8 @@ class okcoinusd(Exchange):
                 contracts = [{}]
             else:
                 # futures markets
-                quoteId = self.safe_string(market, 'quote')
-                uppercaseBaseId = self.safe_string(market, 'symbolDesc')
+                quoteId = self.safe_string_lower_2(market, 'quote', 'denomination')
+                uppercaseBaseId = self.safe_string_lower(market, 'symbolDesc')
                 baseId = uppercaseBaseId.lower()
                 lowercaseId = baseId + '_' + quoteId
                 base = self.safe_currency_code(uppercaseBaseId)
@@ -713,7 +722,7 @@ class okcoinusd(Exchange):
         usedField = 'freezed'
         # wtf, okex?
         # https://github.com/okcoin-okex/API-docs-OKEx.com/commit/01cf9dd57b1f984a8737ef76a037d4d3795d2ac7
-        if not (usedField in list(balances.keys())):
+        if not (usedField in balances):
             usedField = 'holds'
         usedKeys = list(balances[usedField].keys())
         ids = self.array_concat(ids, usedKeys)
@@ -827,7 +836,7 @@ class okcoinusd(Exchange):
                 type = 'market'
             else:
                 side = self.parse_order_side(order['type'])
-                if ('contract_name' in list(order.keys())) or ('lever_rate' in list(order.keys())):
+                if ('contract_name' in order) or ('lever_rate' in order):
                     type = 'margin'
         status = self.parse_order_status(self.safe_string(order, 'status'))
         symbol = None
@@ -904,12 +913,12 @@ class okcoinusd(Exchange):
         market = self.market(symbol)
         method = 'privatePostFutureOrdersInfo' if market['future'] else 'privatePost'
         request = self.create_request(market)
-        order_id_in_params = ('order_id' in list(params.keys()))
+        order_id_in_params = ('order_id' in params)
         if market['future']:
             if not order_id_in_params:
                 raise ExchangeError(self.id + ' fetchOrders() requires order_id param for futures market ' + symbol + '(a string of one or more order ids, comma-separated)')
         else:
-            status = params['type'] if ('type' in list(params.keys())) else params['status']
+            status = params['type'] if ('type' in params) else params['status']
             if status is None:
                 name = 'type' if order_id_in_params else 'status'
                 raise ExchangeError(self.id + ' fetchOrders() requires ' + name + ' param for spot market ' + symbol + '(0 - for unfilled orders, 1 - for filled/canceled orders)')
@@ -973,7 +982,7 @@ class okcoinusd(Exchange):
         elif 'trade_pwd' in query:
             request['trade_pwd'] = query['trade_pwd']
             query = self.omit(query, 'trade_pwd')
-        passwordInRequest = ('trade_pwd' in list(request.keys()))
+        passwordInRequest = ('trade_pwd' in request)
         if not passwordInRequest:
             raise ExchangeError(self.id + ' withdraw() requires self.password set on the exchange instance or a password / trade_pwd parameter')
         response = await self.privatePostWithdraw(self.extend(request, query))
@@ -984,10 +993,11 @@ class okcoinusd(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/'
-        if api != 'web':
+        isWebApi = (api == 'web') or (api == 'v3')
+        if not isWebApi:
             url += self.version + '/'
         url += path
-        if api != 'web':
+        if not isWebApi:
             url += self.extension
         if api == 'private':
             self.check_required_credentials()
@@ -1020,12 +1030,9 @@ class okcoinusd(Exchange):
             return  # fallback to default error handler
         if 'error_code' in response:
             error = self.safe_string(response, 'error_code')
-            message = self.id + ' ' + self.json(response)
-            if error in self.exceptions:
-                ExceptionClass = self.exceptions[error]
-                raise ExceptionClass(message)
-            else:
-                raise ExchangeError(message)
+            message = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions, error, message)
+            raise ExchangeError(message)
         if 'result' in response:
             if not response['result']:
-                raise ExchangeError(self.id + ' ' + self.json(response))
+                raise ExchangeError(self.id + ' ' + body)

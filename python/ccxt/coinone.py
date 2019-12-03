@@ -8,9 +8,10 @@ import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 
 
 class coinone(Exchange):
@@ -121,8 +122,9 @@ class coinone(Exchange):
                 },
             },
             'exceptions': {
-                '405': ExchangeNotAvailable,
+                '405': OnMaintenance,  # {"errorCode":"405","status":"maintenance","result":"error"}
                 '104': OrderNotFound,
+                '108': BadSymbol,  # {"errorCode":"108","errorMsg":"Unknown CryptoCurrency","result":"error"}
             },
         })
 
@@ -459,12 +461,9 @@ class coinone(Exchange):
                 #
                 #    { "errorCode": "405",  "status": "maintenance",  "result": "error"}
                 #
-                code = self.safe_string(response, 'errorCode')
-                feedback = self.id + ' ' + self.json(response)
-                exceptions = self.exceptions
-                if code in exceptions:
-                    raise exceptions[code](feedback)
-                else:
-                    raise ExchangeError(feedback)
+                errorCode = self.safe_string(response, 'errorCode')
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+                raise ExchangeError(feedback)
         else:
             raise ExchangeError(self.id + ' ' + body)

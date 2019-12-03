@@ -496,10 +496,8 @@ module.exports = class coinegg extends Exchange {
         const errorCode = this.safeString (response, 'code');
         const errorMessages = this.errorMessages;
         const message = this.safeString (errorMessages, errorCode, 'Unknown Error');
-        if (errorCode in this.exceptions) {
-            throw new this.exceptions[errorCode] (this.id + ' ' + message);
-        } else {
-            throw new ExchangeError (this.id + ' ' + message);
-        }
+        const feedback = this.id + ' ' + message;
+        this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
+        throw new ExchangeError (this.id + ' ' + message);
     }
 };

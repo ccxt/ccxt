@@ -71,7 +71,7 @@ class binance(Exchange):
                     'wapi': 'https://api.binance.com/wapi/v3',
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'fapiPrivate': 'https://fapi.binance.com/fapi/v1',
-                    'public': 'https://api.binance.com/api/v1',
+                    'public': 'https://api.binance.com/api/v3',
                     'private': 'https://api.binance.com/api/v3',
                     'v3': 'https://api.binance.com/api/v3',
                     'v1': 'https://api.binance.com/api/v1',
@@ -114,6 +114,8 @@ class binance(Exchange):
                         'margin/myTrades',
                         'margin/maxBorrowable',
                         'margin/maxTransferable',
+                        # https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
+                        'capital/config/getall',  # get networks for withdrawing USDT ERC20 vs USDT Omni
                     ],
                     'post': [
                         'asset/dust',
@@ -184,8 +186,6 @@ class binance(Exchange):
                         'historicalTrades',
                         'klines',
                         'ticker/24hr',
-                        'ticker/allPrices',
-                        'ticker/allBookTickers',
                         'ticker/price',
                         'ticker/bookTicker',
                         'exchangeInfo',
@@ -397,7 +397,7 @@ class binance(Exchange):
             'symbol': market['id'],
         }
         if limit is not None:
-            request['limit'] = limit  # default = maximum = 100
+            request['limit'] = limit  # default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         response = await self.publicGetDepth(self.extend(request, params))
         orderbook = self.parse_order_book(response)
         orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
@@ -914,7 +914,7 @@ class binance(Exchange):
         #                                                           operateTime: "2018-10-07 17:56:07",
         #                                                      transferedAmount: "0.00628141",
         #                                                             fromAsset: "ADA"                  }],
-        #                                 operate_time: "2018-10-07 17:56:06"                                }]} }
+        #                                 operate_time: "2018-10-07 17:56:06"                                }]}}
         results = self.safe_value(response, 'results', {})
         rows = self.safe_value(results, 'rows', [])
         data = []
@@ -1063,7 +1063,7 @@ class binance(Exchange):
                 '6': 'ok',  # Completed
             },
         }
-        return statuses[type][status] if (status in list(statuses[type].keys())) else status
+        return statuses[type][status] if (status in statuses[type]) else status
 
     def parse_transaction(self, transaction, currency=None):
         #
@@ -1185,12 +1185,16 @@ class binance(Exchange):
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
+        # name is optional, can be overrided via params
         name = address[0:20]
         request = {
             'asset': currency['id'],
             'address': address,
             'amount': float(amount),
-            'name': name,
+            'name': name,  # name is optional, can be overrided via params
+            # https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
+            # issue sapiGetCapitalConfigGetall() to get networks for withdrawing USDT ERC20 vs USDT Omni
+            # 'network': 'ETH',  # 'BTC', 'TRX', etc, optional
         }
         if tag is not None:
             request['addressTag'] = tag
@@ -1271,23 +1275,20 @@ class binance(Exchange):
                             parsedMessage = None
                         if parsedMessage is not None:
                             response = parsedMessage
-                exceptions = self.exceptions
                 message = self.safe_string(response, 'msg')
-                if message in exceptions:
-                    ExceptionClass = exceptions[message]
-                    raise ExceptionClass(self.id + ' ' + message)
+                if message is not None:
+                    self.throw_exactly_matched_exception(self.exceptions, message, self.id + ' ' + message)
                 # checks against error codes
                 error = self.safe_string(response, 'code')
                 if error is not None:
-                    if error in exceptions:
-                        # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-                        # despite that their message is very confusing, it is raised by Binance
-                        # on a temporary ban(the API key is valid, but disabled for a while)
-                        if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
-                            raise DDoSProtection(self.id + ' temporary banned: ' + body)
-                        raise exceptions[error](self.id + ' ' + body)
-                    else:
-                        raise ExchangeError(self.id + ' ' + body)
+                    # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+                    # despite that their message is very confusing, it is raised by Binance
+                    # on a temporary ban(the API key is valid, but disabled for a while)
+                    if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
+                        raise DDoSProtection(self.id + ' temporary banned: ' + body)
+                    feedback = self.id + ' ' + body
+                    self.throw_exactly_matched_exception(self.exceptions, message, feedback)
+                    raise ExchangeError(feedback)
                 if not success:
                     raise ExchangeError(self.id + ' ' + body)
 

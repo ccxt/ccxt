@@ -60,7 +60,7 @@ module.exports = class binance extends Exchange {
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
                     'fapiPrivate': 'https://fapi.binance.com/fapi/v1',
-                    'public': 'https://api.binance.com/api/v1',
+                    'public': 'https://api.binance.com/api/v3',
                     'private': 'https://api.binance.com/api/v3',
                     'v3': 'https://api.binance.com/api/v3',
                     'v1': 'https://api.binance.com/api/v1',
@@ -104,6 +104,8 @@ module.exports = class binance extends Exchange {
                         'margin/maxBorrowable',
                         'margin/maxTransferable',
                         'futures/transfer',
+                        // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
+                        'capital/config/getall', // get networks for withdrawing USDT ERC20 vs USDT Omni
                     ],
                     'post': [
                         'asset/dust',
@@ -193,8 +195,6 @@ module.exports = class binance extends Exchange {
                         'historicalTrades',
                         'klines',
                         'ticker/24hr',
-                        'ticker/allPrices',
-                        'ticker/allBookTickers',
                         'ticker/price',
                         'ticker/bookTicker',
                         'exchangeInfo',
@@ -452,7 +452,7 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default = maximum = 100
+            request['limit'] = limit; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
         const marketType = this.options['defaultMarket'];
         let method = 'publicGetDepth';
@@ -1477,12 +1477,16 @@ module.exports = class binance extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
+        // name is optional, can be overrided via params
         const name = address.slice (0, 20);
         const request = {
             'asset': currency['id'],
             'address': address,
             'amount': parseFloat (amount),
-            'name': name,
+            'name': name, // name is optional, can be overrided via params
+            // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
+            // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni
+            // 'network': 'ETH', // 'BTC', 'TRX', etc, optional
         };
         if (tag !== undefined) {
             request['addressTag'] = tag;
@@ -1581,26 +1585,22 @@ module.exports = class binance extends Exchange {
                         }
                     }
                 }
-                const exceptions = this.exceptions;
                 const message = this.safeString (response, 'msg');
-                if (message in exceptions) {
-                    const ExceptionClass = exceptions[message];
-                    throw new ExceptionClass (this.id + ' ' + message);
+                if (message !== undefined) {
+                    this.throwExactlyMatchedException (this.exceptions, message, this.id + ' ' + message);
                 }
                 // checks against error codes
                 const error = this.safeString (response, 'code');
                 if (error !== undefined) {
-                    if (error in exceptions) {
-                        // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-                        // despite that their message is very confusing, it is raised by Binance
-                        // on a temporary ban (the API key is valid, but disabled for a while)
-                        if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
-                            throw new DDoSProtection (this.id + ' temporary banned: ' + body);
-                        }
-                        throw new exceptions[error] (this.id + ' ' + body);
-                    } else {
-                        throw new ExchangeError (this.id + ' ' + body);
+                    // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+                    // despite that their message is very confusing, it is raised by Binance
+                    // on a temporary ban (the API key is valid, but disabled for a while)
+                    if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
+                        throw new DDoSProtection (this.id + ' temporary banned: ' + body);
                     }
+                    const feedback = this.id + ' ' + body;
+                    this.throwExactlyMatchedException (this.exceptions, message, feedback);
+                    throw new ExchangeError (feedback);
                 }
                 if (!success) {
                     throw new ExchangeError (this.id + ' ' + body);

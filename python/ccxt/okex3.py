@@ -295,8 +295,7 @@ class okex3(Exchange):
                 'exact': {
                     '1': ExchangeError,  # {"code": 1, "message": "System error"}
                     # undocumented
-                    'failure to get a peer from the ring-balancer': ExchangeError,  # {"message": "failure to get a peer from the ring-balancer"}
-                    '"instrument_id" is an invalid parameter': BadSymbol,  # {"code":30024,"message":"\"instrument_id\" is an invalid parameter"}
+                    'failure to get a peer from the ring-balancer': ExchangeNotAvailable,  # {"message": "failure to get a peer from the ring-balancer"}
                     '4010': PermissionDenied,  # {"code": 4010, "message": "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings "}
                     # common
                     '30001': AuthenticationError,  # {"code": 30001, "message": 'request header "OK_ACCESS_KEY" cannot be blank'}
@@ -322,7 +321,7 @@ class okex3(Exchange):
                     '30021': BadRequest,  # {"code": 30021, "message": "Json data format error"}, {"code": 30021, "message": "json data format error"}
                     '30022': PermissionDenied,  # {"code": 30022, "message": "Api has been frozen"}
                     '30023': BadRequest,  # {"code": 30023, "message": "{0} parameter cannot be blank"}
-                    '30024': BadRequest,  # {"code": 30024, "message": "{0} parameter value error"}
+                    '30024': BadSymbol,  # {"code":30024,"message":"\"instrument_id\" is an invalid parameter"}
                     '30025': BadRequest,  # {"code": 30025, "message": "{0} parameter category error"}
                     '30026': DDoSProtection,  # {"code": 30026, "message": "requested too frequent"}
                     '30027': AuthenticationError,  # {"code": 30027, "message": "login failure"}
@@ -936,7 +935,7 @@ class okex3(Exchange):
         if feeCost is not None:
             feeCurrency = None
             if market is not None:
-                feeCurrency = side == market['base'] if 'buy' else market['quote']
+                feeCurrency = market['base'] if (side == 'buy') else market['quote']
             fee = {
                 # fee is either a positive number(invitation rebate)
                 # or a negative number(transaction fee deduction)
@@ -1223,7 +1222,7 @@ class okex3(Exchange):
                     account['free'] = self.safe_float(marketBalance, 'available')
                     accounts[code] = account
                 else:
-                    raise NotSupported(self.id + ' margin balance response format has changednot ')
+                    raise NotSupported(self.id + ' margin balance response format has changed!')
             result[symbol] = self.parse_balance(accounts)
         return result
 
@@ -1555,7 +1554,7 @@ class okex3(Exchange):
             request['order_id'] = id
         query = self.omit(params, 'type')
         response = getattr(self, method)(self.extend(request, query))
-        result = response if ('result' in list(response.keys())) else self.safe_value(response, market['id'], {})
+        result = response if ('result' in response) else self.safe_value(response, market['id'], {})
         #
         # spot, margin
         #
@@ -2006,7 +2005,7 @@ class okex3(Exchange):
         elif 'trade_pwd' in params:
             request['trade_pwd'] = params['trade_pwd']
         query = self.omit(params, ['fee', 'password', 'trade_pwd'])
-        if not ('trade_pwd' in list(request.keys())):
+        if not ('trade_pwd' in request):
             raise ExchangeError(self.id + ' withdraw() requires self.password set on the exchange instance or a password / trade_pwd parameter')
         response = self.accountPostWithdrawal(self.extend(request, query))
         #
@@ -2130,6 +2129,7 @@ class okex3(Exchange):
             id = withdrawalId
             address = addressTo
         else:
+            # the payment_id will appear on new deposits but appears to be removed from the response after 2 months
             id = self.safe_string(transaction, 'payment_id')
             type = 'deposit'
             address = addressTo
@@ -2586,7 +2586,7 @@ class okex3(Exchange):
 
     def get_path_authentication_type(self, path):
         auth = self.safe_value(self.options, 'auth', {})
-        key = self.findBroadlyMatchedKey(auth, path)
+        key = self.find_broadly_matched_key(auth, path)
         return self.safe_string(auth, key, 'private')
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
@@ -2595,17 +2595,11 @@ class okex3(Exchange):
             raise ExchangeError(feedback)
         if not response:
             return  # fallback to default error handler
-        exact = self.exceptions['exact']
         message = self.safe_string(response, 'message')
         errorCode = self.safe_string_2(response, 'code', 'error_code')
         if message is not None:
-            if message in exact:
-                raise exact[message](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
-        if errorCode in exact:
-            raise exact[errorCode](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         if message is not None:
             raise ExchangeError(feedback)  # unknown message

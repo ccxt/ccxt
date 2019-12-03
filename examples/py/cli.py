@@ -26,7 +26,6 @@ class Argv(object):
     exchange_id = None
     method = None
     symbol = None
-    pass
 
 
 argv = Argv()

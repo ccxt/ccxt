@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { NotSupported, DDoSProtection, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce } = require ('./base/errors');
+const { NotSupported, RateLimitExceeded, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce } = require ('./base/errors');
 const { SIGNIFICANT_DIGITS } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -60,6 +60,7 @@ module.exports = class bitfinex extends Exchange {
                     'private': 'https://api.bitfinex.com',
                 },
                 'www': 'https://www.bitfinex.com',
+                'referral': 'https://www.bitfinex.com/?refcode=P61eYxFL',
                 'doc': [
                     'https://docs.bitfinex.com/v1/docs',
                     'https://github.com/bitfinexcom/bitfinex-api-node',
@@ -319,16 +320,16 @@ module.exports = class bitfinex extends Exchange {
                     'Could not find a key matching the given X-BFX-APIKEY.': AuthenticationError,
                     'Key price should be a decimal number, e.g. "123.456"': InvalidOrder, // on isNaN (price)
                     'Key amount should be a decimal number, e.g. "123.456"': InvalidOrder, // on isNaN (amount)
-                    'ERR_RATE_LIMIT': DDoSProtection,
-                    'Ratelimit': DDoSProtection,
+                    'ERR_RATE_LIMIT': RateLimitExceeded,
+                    'Ratelimit': RateLimitExceeded,
                     'Nonce is too small.': InvalidNonce,
                     'No summary found.': ExchangeError, // fetchTradingFees (summary) endpoint can give this vague error message
                     'Cannot evaluate your available balance, please try again': ExchangeNotAvailable,
                 },
                 'broad': {
                     'This API key does not have permission': PermissionDenied, // authenticated but not authorized
-                    'Invalid order: not enough exchange balance for ': InsufficientFunds, // when buying cost is greater than the available quote currency
-                    'Invalid order: minimum size for ': InvalidOrder, // when amount below limits.amount.min
+                    'not enough exchange balance for ': InsufficientFunds, // when buying cost is greater than the available quote currency
+                    'minimum size for ': InvalidOrder, // when amount below limits.amount.min
                     'Invalid order': InvalidOrder, // ?
                     'The available balance is only': InsufficientFunds, // {"status":"error","message":"Cannot withdraw 1.0027 ETH from your exchange wallet. The available balance is only 0.0 ETH. If you have limit orders, open positions, unused or active margin funding, this will decrease your available balance. To increase it, you can cancel limit orders or reduce/close your positions.","withdrawal_id":0,"fees":"0.0027"}
                 },
@@ -1159,24 +1160,10 @@ module.exports = class bitfinex extends Exchange {
         }
         if (code >= 400) {
             if (body[0] === '{') {
-                const feedback = this.id + ' ' + this.json (response);
-                let message = undefined;
-                if ('message' in response) {
-                    message = response['message'];
-                } else if ('error' in response) {
-                    message = response['error'];
-                } else {
-                    throw new ExchangeError (feedback); // malformed (to our knowledge) response
-                }
-                const exact = this.exceptions['exact'];
-                if (message in exact) {
-                    throw new exact[message] (feedback);
-                }
-                const broad = this.exceptions['broad'];
-                const broadKey = this.findBroadlyMatchedKey (broad, message);
-                if (broadKey !== undefined) {
-                    throw new broad[broadKey] (feedback);
-                }
+                const feedback = this.id + ' ' + body;
+                const message = this.safeString2 (response, 'message', 'error');
+                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
                 throw new ExchangeError (feedback); // unknown message
             }
         }
