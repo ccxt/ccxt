@@ -1222,7 +1222,7 @@ class okex3(Exchange):
                     account['free'] = self.safe_float(marketBalance, 'available')
                     accounts[code] = account
                 else:
-                    raise NotSupported(self.id + ' margin balance response format has changednot ')
+                    raise NotSupported(self.id + ' margin balance response format has changed!')
             result[symbol] = self.parse_balance(accounts)
         return result
 

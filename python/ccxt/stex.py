@@ -188,7 +188,7 @@ class stex(Exchange):
             },
             'exceptions': {
                 'exact': {
-                    # {"success":false,"message":"Wrong parameters","errors":{"candleType":["Invalid Candle Typenot "]}}
+                    # {"success":false,"message":"Wrong parameters","errors":{"candleType":["Invalid Candle Type!"]}}
                     # {"success":false,"message":"Wrong parameters","errors":{"time":["timeStart or timeEnd is less then 1"]}}
                     'Wrong parameters': BadRequest,
                     'Unauthenticated.': AuthenticationError,  # {"message":"Unauthenticated."}
@@ -1625,7 +1625,7 @@ class stex(Exchange):
         if response is None:
             return  # fallback to default error handler
         #
-        #     {"success":false,"message":"Wrong parameters","errors":{"candleType":["Invalid Candle Typenot "]}}
+        #     {"success":false,"message":"Wrong parameters","errors":{"candleType":["Invalid Candle Type!"]}}
         #     {"success":false,"message":"Wrong parameters","errors":{"time":["timeStart or timeEnd is less then 1"]}}
         #     {"success":false,"message":"Not enough  ETH"}
         #

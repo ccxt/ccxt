@@ -155,7 +155,7 @@ class kucoin(Exchange):
                 '500': ExchangeError,
                 '503': ExchangeNotAvailable,
                 '200004': InsufficientFunds,
-                '230003': InsufficientFunds,  # {"code":"230003","msg":"Balance insufficientnot "}
+                '230003': InsufficientFunds,  # {"code":"230003","msg":"Balance insufficient!"}
                 '260100': InsufficientFunds,  # {"code":"260100","msg":"account.noBalance"}
                 '300000': InvalidOrder,
                 '400000': BadSymbol,

@@ -176,7 +176,7 @@ class bleutrade(bittrex):
                 'EPC': 'Epacoin',
             },
             'exceptions': {
-                'Insufficient fundsnot ': InsufficientFunds,
+                'Insufficient funds!': InsufficientFunds,
                 'Invalid Order ID': InvalidOrder,
                 'Invalid apikey or apisecret': AuthenticationError,
             },
