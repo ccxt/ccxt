@@ -7,25 +7,28 @@ const ccxtpro = require ('./ccxt.pro.js')
 
 ;(async () => {
 
-    // const wss = new WebSocket.Server ({ port: 8080 })
-    // wss.on ('connection', function connection (ws) {
-    //     ws.on ('message', function incoming (message) {
-    //         console.log ('server received message', message)
-    //     })
-    //     ws.on ('ping', function incoming (message) {
-    //         console.log ('server received ping', message)
-    //     })
-    //     ws.on ('pong', function incoming (message) {
-    //         console.log ('server received pong', message)
-    //     })
-    //     // ws.send ('something')
-    //     // ws.ping ()
-    //     // ws.terminate ()
-    // })
-    // wss.on ('error', function onError (error) {
-    //     console.log ('server error', error)
-    //     process.exit ()
-    // })
+    const wss = new WebSocket.Server ({ port: 8080 })
+    wss.on ('connection', function connection (ws) {
+        ws.on ('message', function incoming (message) {
+            console.log ('server received message', message)
+        })
+        ws.on ('ping', function incoming (message) {
+            console.log ('server received ping', message)
+        })
+        ws.on ('pong', function incoming (message) {
+            console.log ('server received pong', message)
+        })
+        setTimeout (() => {
+            ws.close (1000)
+        }, 10000)
+        // ws.send ('something')
+        // ws.ping ()
+        // ws.terminate ()
+    })
+    wss.on ('error', function onError (error) {
+        console.log ('server error', error)
+        process.exit ()
+    })
 
     const symbol = 'ETH/BTC'
 

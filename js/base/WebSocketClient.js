@@ -22,16 +22,16 @@ module.exports = class WebSocketClient {
             onMessageCallback,
             onErrorCallback,
             onCloseCallback,
-            protocols: undefined, // ws protocols
-            options: undefined,   // ws options
+            protocols: undefined, // ws-specific protocols
+            options: undefined, // ws-sepcific options
             futures: {},
             subscriptions: {},
+            error: undefined, // stores low-level networking exception, if any
             connectionStarted: undefined, // initiation timestamp in milliseconds
             connectionEstablished: undefined, // success timestamp in milliseconds
-            // connected: Future (), // connection-related Future
             connectionTimer: undefined, // connection-related setTimeout
             connectionTimeout: 30000, // 30 seconds by default, false to disable
-            pingInterval: undefined, // ping-related interval
+            pingInterval: undefined, // stores the ping-related interval
             keepAlive: 3000, // ping-pong keep-alive frequency
             // timeout is not used atm
             // timeout: 30000, // throw if a request is not satisfied in 30 seconds, false to disable
@@ -41,6 +41,7 @@ module.exports = class WebSocketClient {
         }
 
         Object.assign (this, deepExtend (defaults, config))
+        // connection-related Future
         this.connected = Future ()
     }
 
@@ -189,15 +190,17 @@ module.exports = class WebSocketClient {
     onError (error) {
         console.log (new Date (), 'onError', error.message)
         // convert ws errors to ccxt errors if necessary
-        error = new NetworkError (error.message)
-        this.error = error
-        this.reset (error)
-        this.onErrorCallback (this, error)
+        this.error = new NetworkError (error.message)
+        this.reset (this.error)
+        this.onErrorCallback (this, this.error)
     }
 
     onClose (message) {
         console.log (new Date (), 'onClose', message)
-        this.reset (new NetworkError (message))
+        if (!this.error) {
+            // todo: exception types for server-side disconnects
+            this.reset (new NetworkError (message))
+        }
         this.onCloseCallback (this, message)
     }
 
