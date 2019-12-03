@@ -7,8 +7,15 @@ const ccxtpro = require ('./ccxt.pro.js')
 
 ;(async () => {
 
-    const wss = new WebSocket.Server ({ port: 8080 })
-    wss.on ('connection', function connection (ws) {
+    // ========================================================================
+    // a sandbox ws server for testing
+
+    const http = require('http')
+
+    const server = http.createServer ()
+    const wss = new WebSocket.Server ({ noServer: true })
+
+    wss.on ('connection', function connection(ws, request, client) {
         ws.on ('message', function incoming (message) {
             console.log ('server received message', message)
         })
@@ -18,17 +25,25 @@ const ccxtpro = require ('./ccxt.pro.js')
         ws.on ('pong', function incoming (message) {
             console.log ('server received pong', message)
         })
-        setTimeout (() => {
-            ws.close (1000)
-        }, 10000)
+        // setTimeout (() => { ws.close (1000) }, 10000) // for debugging
         // ws.send ('something')
         // ws.ping ()
         // ws.terminate ()
     })
-    wss.on ('error', function onError (error) {
-        console.log ('server error', error)
-        process.exit ()
+
+    server.on ('upgrade', function upgrade (request, socket, head) {
+        const delay = 60000 // for debugging
+        setTimeout (() => {
+            wss.handleUpgrade (request, socket, head, function done (ws) {
+                wss.emit ('connection', ws, request, client)
+            })
+        }, delay)
     })
+
+    server.listen (8080)
+
+    // ========================================================================
+    // a sandbox ws client for testing
 
     const symbol = 'ETH/BTC'
 
@@ -45,10 +60,42 @@ const ccxtpro = require ('./ccxt.pro.js')
         try {
             const orderbook = await exchange.fetchWsOrderBook (symbol)
         } catch (e) {
-            console.log (e)
-            // process.exit ()
+            console.log (new Date (), e)
         }
     }
+
+    // ========================================================================
+    // a sandbox ws server for testing v1
+
+    // const wss = new WebSocket.Server ({ port: 8080 })
+    // wss.on('upgrade', function upgrade(request, socket, head) {
+    //     console.log ('sever received an upgrade message')
+    //     process.exit ()
+    // });
+    // wss.on ('connection', function connection (ws) {
+    //     ws.on ('message', function incoming (message) {
+    //         console.log ('server received message', message)
+    //     })
+    //     ws.on ('ping', function incoming (message) {
+    //         console.log ('server received ping', message)
+    //     })
+    //     ws.on ('pong', function incoming (message) {
+    //         console.log ('server received pong', message)
+    //     })
+    //     setTimeout (() => {
+    //         ws.close (1000)
+    //     }, 10000)
+    //     // ws.send ('something')
+    //     // ws.ping ()
+    //     // ws.terminate ()
+    // })
+    // wss.on ('error', function onError (error) {
+    //     console.log ('server error', error)
+    //     process.exit ()
+    // })
+
+    // ========================================================================
+    // all sorts of testing and debugging snippets and junk
 
     // const ob = exchange.fetchWsOrderBook (symbol)
     // const td = exchange.fetchWsTrades (symbol)

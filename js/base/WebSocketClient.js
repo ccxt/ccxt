@@ -30,7 +30,7 @@ module.exports = class WebSocketClient {
             connectionStarted: undefined, // initiation timestamp in milliseconds
             connectionEstablished: undefined, // success timestamp in milliseconds
             connectionTimer: undefined, // connection-related setTimeout
-            connectionTimeout: 30000, // 30 seconds by default, false to disable
+            connectionTimeout: 10000, // 10 seconds by default, false to disable
             pingInterval: undefined, // stores the ping-related interval
             keepAlive: 3000, // ping-pong keep-alive frequency
             // timeout is not used atm
@@ -124,9 +124,10 @@ module.exports = class WebSocketClient {
 
     onConnectionTimeout () {
         if (this.ws.readyState !== WebSocket.OPEN) {
-            const error = new RequestTimeout ('Connection to ' + this.url + ' failed due to a timeout')
+            const error = new RequestTimeout ('Connection to ' + this.url + ' failed due to a connection timeout')
             this.reset (error)
             this.onErrorCallback (this, error)
+            this.ws.close (1006)
         }
     }
 
@@ -158,7 +159,7 @@ module.exports = class WebSocketClient {
 
     onPingInterval () {
         if ((this.lastPong + this.pingRate) < milliseconds ()) {
-            this.reset (new RequestTimeout ('Connection to ' + this.url + ' timed out'))
+            this.reset (new RequestTimeout ('Connection to ' + this.url + ' timed out due to a ping-pong keepalive missing on time'))
         } else {
             if (this.ws.readyState === WebSocket.OPEN) {
                 this.ws.ping ()
