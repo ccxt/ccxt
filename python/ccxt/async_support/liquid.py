@@ -136,8 +136,8 @@ class liquid(Exchange):
         #             quoting_precision: 5,
         #             minimum_withdrawal: '15.0',
         #             withdrawal_fee: 5,
-        #             minimum_fee: None,
-        #             minimum_order_quantity: None,
+        #             minimum_fee: null,
+        #             minimum_order_quantity: null,
         #             display_precision: 2,
         #             depositable: True,
         #             withdrawable: True,
@@ -198,8 +198,8 @@ class liquid(Exchange):
         #             currency: 'SGD',
         #             currency_pair_code: 'BTCSGD',
         #             symbol: 'S$',
-        #             btc_minimum_withdraw: None,
-        #             fiat_minimum_withdraw: None,
+        #             btc_minimum_withdraw: null,
+        #             fiat_minimum_withdraw: null,
         #             pusher_channel: 'product_cash_btcsgd_7',
         #             taker_fee: 0,
         #             maker_fee: 0,
@@ -736,7 +736,7 @@ class liquid(Exchange):
         #         "withdrawal_fee": 0.0,
         #         "created_at": 1568016450,
         #         "updated_at": 1568016450,
-        #         "payment_id": None
+        #         "payment_id": null
         #     }
         #
         return self.parse_transaction(response, currency)
@@ -762,7 +762,7 @@ class liquid(Exchange):
         #         "withdrawal_fee": 0.0,
         #         "created_at": 1568016450,
         #         "updated_at": 1568016450,
-        #         "payment_id": None
+        #         "payment_id": null
         #     }
         #
         # fetchDeposits, fetchWithdrawals

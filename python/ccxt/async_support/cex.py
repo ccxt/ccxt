@@ -306,7 +306,7 @@ class cex(Exchange):
         #                     "symbol2":"EUR",
         #                     "minLotSize":0.1,
         #                     "minLotSizeS2":20,
-        #                     "maxLotSize":None,
+        #                     "maxLotSize":null,
         #                     "minPrice":"25",
         #                     "maxPrice":"8192"
         #                 }
@@ -638,10 +638,10 @@ class cex(Exchange):
                     #     balance: '0.42580261',
                     #     symbol: 'BCH',
                     #     order: '4426728375',
-                    #     buy: None,
-                    #     sell: None,
-                    #     pair: None,
-                    #     pos: None,
+                    #     buy: null,
+                    #     sell: null,
+                    #     pair: null,
+                    #     pos: null,
                     #     cs: '0.42580261',
                     #     ds: 0}
                     continue
@@ -654,10 +654,10 @@ class cex(Exchange):
                     #     "cs": "1432.93",
                     #     "ds": "476.72",
                     #     "id": "6065499249",
-                    #     "buy": None,
-                    #     "pos": None,
-                    #     "pair": None,
-                    #     "sell": None,
+                    #     "buy": null,
+                    #     "pos": null,
+                    #     "pair": null,
+                    #     "sell": null,
                     #     "time": "2018-04-22T13:07:22.152Z",
                     #     "type": "buy",
                     #     "user": "up106404164",
@@ -673,9 +673,9 @@ class cex(Exchange):
                     continue
                 # --
                 # if side != tradeSide:
-                #     raise Error(json.dumps(order, None, 2))
+                #     raise Error(json.dumps(order, null, 2))
                 # if orderId != item['order']:
-                #     raise Error(json.dumps(order, None, 2))
+                #     raise Error(json.dumps(order, null, 2))
                 # --
                 # partial buy trade
                 #   {
@@ -686,8 +686,8 @@ class cex(Exchange):
                 #     "ds": 0,
                 #     "id": "6067991213",
                 #     "buy": "6065499239",
-                #     "pos": None,
-                #     "pair": None,
+                #     "pos": null,
+                #     "pair": null,
                 #     "sell": "6067991206",
                 #     "time": "2018-04-22T23:09:11.773Z",
                 #     "type": "buy",
@@ -709,8 +709,8 @@ class cex(Exchange):
                 #     "ds": 0,
                 #     "id": "5840654429",
                 #     "buy": "5807238573",
-                #     "pos": None,
-                #     "pair": None,
+                #     "pos": null,
+                #     "pair": null,
                 #     "sell": "5840654423",
                 #     "time": "2018-03-15T03:20:14.010Z",
                 #     "type": "sell",
@@ -732,8 +732,8 @@ class cex(Exchange):
                 #     "ds": 0,
                 #     "id": "9927401610",
                 #     "buy": "9927401601",
-                #     "pos": None,
-                #     "pair": None,
+                #     "pos": null,
+                #     "pair": null,
                 #     "sell": "9927386681",
                 #     "time": "2019-08-21T15:25:37.777Z",
                 #     "type": "sell",
@@ -843,7 +843,7 @@ class cex(Exchange):
             #     time: '2017-07-18T19:08:34.223Z',
             #     lastTxTime: '2017-07-18T19:08:34.396Z',
             #     lastTx: '4005785522',
-            #     pos: None,
+            #     pos: null,
             #     status: 'c',
             #     symbol1: 'ETH',
             #     symbol2: 'GBP',
@@ -862,7 +862,7 @@ class cex(Exchange):
             #     time: '2017-08-05T03:18:39.596Z',
             #     lastTxTime: '2019-03-19T17:37:46.404Z',
             #     lastTx: '8459265833',
-            #     pos: None,
+            #     pos: null,
             #     status: 'cd',
             #     symbol1: 'BTC',
             #     symbol2: 'GBP',
@@ -886,7 +886,7 @@ class cex(Exchange):
             #     time: '2017-09-22T00:24:20.126Z',
             #     lastTxTime: '2017-09-22T00:24:30.476Z',
             #     lastTx: '4426729543',
-            #     pos: None,
+            #     pos: null,
             #     status: 'cd',
             #     symbol1: 'BCH',
             #     symbol2: 'BTC',
@@ -910,7 +910,7 @@ class cex(Exchange):
             #     time: '2018-01-04T00:28:12.992Z',
             #     lastTxTime: '2018-01-04T00:28:12.992Z',
             #     lastTx: '5342275393',
-            #     pos: None,
+            #     pos: null,
             #     status: 'd',
             #     symbol1: 'BCH',
             #     symbol2: 'BTC',
@@ -930,7 +930,7 @@ class cex(Exchange):
             # --
             # market order(buy):
             #    {"id": "6281946200",
-            #     "pos": None,
+            #     "pos": null,
             #     "time": "2018-05-23T11:55:43.467Z",
             #     "type": "buy",
             #     "amount": "0.00000000",
@@ -952,7 +952,7 @@ class cex(Exchange):
             # --
             # market order(sell):
             #   {"id": "6282200948",
-            #     "pos": None,
+            #     "pos": null,
             #     "time": "2018-05-23T12:42:58.315Z",
             #     "type": "sell",
             #     "amount": "-0.05000000",

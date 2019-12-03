@@ -440,7 +440,7 @@ class rightbtc(Exchange):
         #         "quantity": 20000000,
         #         "rest": 20000000,
         #         "limit": 1000000,
-        #         "price": None,
+        #         "price": null,
         #         "side": "BUY",
         #         "created": 1496005693738
         #     }
@@ -546,7 +546,7 @@ class rightbtc(Exchange):
         #                 "quantity": 20000000,
         #                 "rest": 20000000,
         #                 "limit": 1000000,
-        #                 "price": None,
+        #                 "price": null,
         #                 "side": "BUY",
         #                 "created": 1496005693738
         #             }
@@ -583,7 +583,7 @@ class rightbtc(Exchange):
         #                     "quantity": 20000000,
         #                     "rest": 20000000,
         #                     "limit": 1000000,
-        #                     "price": None,
+        #                     "price": null,
         #                     "side": "BUY",
         #                     "created": 1496005693738
         #                 }
@@ -610,7 +610,7 @@ class rightbtc(Exchange):
         # response = {
         #         "status": {
         #             "success": 1,
-        #             "message": None
+        #             "message": null
         #         },
         #         "result": [
         #             {
@@ -644,7 +644,7 @@ class rightbtc(Exchange):
         # response = {
         #         "status": {
         #             "success": 1,
-        #             "message": None
+        #             "message": null
         #         },
         #         "result": [
         #             {

@@ -241,7 +241,7 @@ class bittrex(Exchange):
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
                 'DUST_TRADE_DISALLOWED_MIN_VALUE': InvalidOrder,
                 'RESTRICTED_MARKET': BadSymbol,
-                'We are down for scheduled maintenance, but we\u2019ll be back up shortly.': OnMaintenance,  # {"success":false,"message":"We are down for scheduled maintenance, but we\u2019ll be back up shortly.","result":None,"explanation":None}
+                'We are down for scheduled maintenance, but we\u2019ll be back up shortly.': OnMaintenance,  # {"success":false,"message":"We are down for scheduled maintenance, but we\u2019ll be back up shortly.","result":null,"explanation":null}
             },
             'options': {
                 'parseOrderStatus': False,
@@ -407,7 +407,7 @@ class bittrex(Exchange):
         #                 "IsRestricted":false,
         #                 "CoinType":"BITCOIN",
         #                 "BaseAddress":"1N52wHoVR79PMDishab2XmRHsbekCdGquK",
-        #                 "Notice":None
+        #                 "Notice":null
         #             },
         #             ...,
         #         ]
@@ -733,7 +733,7 @@ class bittrex(Exchange):
         #                 "Authorized" : True,
         #                 "PendingPayment" : False,
         #                 "TxCost" : 0.00020000,
-        #                 "TxId" : None,
+        #                 "TxId" : null,
         #                 "Canceled" : True,
         #                 "InvalidAddress" : False
         #             }, {
@@ -960,9 +960,9 @@ class bittrex(Exchange):
         #         "Limit": 1e-8,
         #         "CommissionPaid": 0,
         #         "Price": 0,
-        #         "PricePerUnit": None,
+        #         "PricePerUnit": null,
         #         "Opened": "2014-07-09T03:55:48.583",
-        #         "Closed": None,
+        #         "Closed": null,
         #         "CancelInitiated": "boolean",
         #         "ImmediateOrCancel": "boolean",
         #         "IsConditional": "boolean"
@@ -1159,7 +1159,7 @@ class bittrex(Exchange):
         }
         response = await self.accountGetDepositaddress(self.extend(request, params))
         #
-        #     {"success": False, "message": "ADDRESS_GENERATING", "result": None}
+        #     {"success": False, "message": "ADDRESS_GENERATING", "result": null}
         #
         #     {success:    True,
         #       message:   "",

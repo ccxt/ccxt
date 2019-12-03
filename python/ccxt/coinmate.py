@@ -104,7 +104,7 @@ class coinmate(Exchange):
         #
         #     {
         #         "error":false,
-        #         "errorMessage":None,
+        #         "errorMessage":null,
         #         "data": [
         #             {
         #                 "name":"BTC_EUR",
@@ -258,7 +258,7 @@ class coinmate(Exchange):
         #         txid:
         #         'ccb9255dfa874e6c28f1a64179769164025329d65e5201849c2400abd6bce245',
         #         destination: 'LQrtSKA6LnhcwRrEuiborQJnjFF56xqsFn',
-        #         destinationTag: None
+        #         destinationTag: null
         #     }
         #
         # withdrawals
@@ -272,9 +272,9 @@ class coinmate(Exchange):
         #         walletType: 'BANK_WIRE',
         #         transferType: 'WITHDRAWAL',
         #         transferStatus: 'COMPLETED',
-        #         txid: None,
-        #         destination: None,
-        #         destinationTag: None
+        #         txid: null,
+        #         destination: null,
+        #         destinationTag: null
         #     }
         #
         timestamp = self.safe_integer(item, 'timestamp')
@@ -409,7 +409,7 @@ class coinmate(Exchange):
         #
         #     {
         #         "error":false,
-        #         "errorMessage":None,
+        #         "errorMessage":null,
         #         "data":[
         #             {
         #                 "timestamp":1561598833416,

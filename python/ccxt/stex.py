@@ -227,7 +227,7 @@ class stex(Exchange):
         #                 "withdrawal_fee_const":"0.00100000",
         #                 "withdrawal_fee_percent":"0.00000000",
         #                 "block_explorer_url":"https:\/\/blockchain.info\/tx\/",
-        #                 "protocol_specific_settings":None
+        #                 "protocol_specific_settings":null
         #             },
         #         ]
         #     }
@@ -733,7 +733,7 @@ class stex(Exchange):
         #         "success": True,
         #         "data": [
         #             {
-        #                 "id": None,
+        #                 "id": null,
         #                 "currency_id": 665,
         #                 "delisted": False,
         #                 "disabled": False,
@@ -745,11 +745,11 @@ class stex(Exchange):
         #                 "frozen_balance": "0",
         #                 "bonus_balance": "0",
         #                 "total_balance": "0",
-        #                 "protocol_specific_settings": None,
+        #                 "protocol_specific_settings": null,
         #                 "rates": {"BTC": "0.00000000020", "USD": "0.00000147"},
         #             },
         #             {
-        #                 "id": None,
+        #                 "id": null,
         #                 "currency_id": 272,
         #                 "delisted": False,
         #                 "disabled": False,
@@ -1417,7 +1417,7 @@ class stex(Exchange):
         #         "created_ts": "1548063365",
         #         "updated_at": "2019-01-21 09:36:05",
         #         "updated_ts": "1548063365",
-        #         "txid": None,
+        #         "txid": null,
         #         "protocol_id": 0,
         #         "withdrawal_address": {
         #             "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
@@ -1552,7 +1552,7 @@ class stex(Exchange):
         #                 "created_ts": "1548063365",
         #                 "updated_at": "2019-01-21 09:36:05",
         #                 "updated_ts": "1548063365",
-        #                 "txid": None,
+        #                 "txid": null,
         #                 "protocol_id": 0,
         #                 "withdrawal_address": {
         #                     "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
@@ -1603,7 +1603,7 @@ class stex(Exchange):
         #             "created_ts": "1548063365",
         #             "updated_at": "2019-01-21 09:36:05",
         #             "updated_ts": "1548063365",
-        #             "txid": None,
+        #             "txid": null,
         #             "protocol_id": 0,
         #             "withdrawal_address": {
         #                 "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",

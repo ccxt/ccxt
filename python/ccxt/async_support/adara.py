@@ -205,8 +205,8 @@ class adara(Exchange):
         #                                               allowWithdraw:  False,
         #                                                        name: "USD",
         #                                                   shortName: "USD",
-        #                                      transactionUriTemplate:  None,
-        #                                           walletUriTemplate:  None,
+        #                                      transactionUriTemplate:  null,
+        #                                           walletUriTemplate:  null,
         #                                                 withdrawFee: "0.00000000",
         #                                           withdrawMinAmount: "0.00000000"  },
         #                     relationships: {}                                       }                          ]}
@@ -281,8 +281,8 @@ class adara(Exchange):
         #                                               allowWithdraw:  False,
         #                                                        name: "USD",
         #                                                   shortName: "USD",
-        #                                      transactionUriTemplate:  None,
-        #                                           walletUriTemplate:  None,
+        #                                      transactionUriTemplate:  null,
+        #                                           walletUriTemplate:  null,
         #                                                 withdrawFee: "0.00000000",
         #                                           withdrawMinAmount: "0.00000000"  },
         #                     relationships: {}                                       },
@@ -787,7 +787,7 @@ class adara(Exchange):
         #                                    averagePrice:    0,
         #                                             fee:    0,
         #                                        timeOpen:   "2018-11-28T19:47:57.435Z",
-        #                                       timeClose:    None,
+        #                                       timeClose:    null,
         #                                          status:   "open",
         #                                          filled:    0,
         #                                           flags: []                                        },
@@ -848,7 +848,7 @@ class adara(Exchange):
         #                                    averagePrice:    0,
         #                                             fee:    0,
         #                                        timeOpen:   "2018-11-28T20:42:35.486Z",
-        #                                       timeClose:    None,
+        #                                       timeClose:    null,
         #                                          status:   "canceled",
         #                                          filled:    0,
         #                                           flags: []                                        },
@@ -880,7 +880,7 @@ class adara(Exchange):
         #                               timeClose: "2018-11-28T19:47:57.452Z",
         #                                  status: "closed",
         #                                  filled:  220,
-        #                                   flags:  None                                   },
+        #                                   flags:  null                                   },
         #           relationships: {symbol: {data: {type: "symbol", id: "XLMBTC"}}}}
         #
         id = self.safe_string(order, 'id')
@@ -980,7 +980,7 @@ class adara(Exchange):
         #                                         timeClose: "2018-11-28T19:47:57.452Z",
         #                                            status: "closed",
         #                                            filled:  220,
-        #                                             flags:  None                       },
+        #                                             flags:  null                       },
         #                     relationships: {symbol: {data: {type: "symbol", id: "XLMBTC"}},
         #                                      trades: {data: [{type: "trade", id: "34789_34793"}]}}}],
         #       included: [{      type:   "currency",
@@ -1129,7 +1129,7 @@ class adara(Exchange):
         #                                       timeClose: "2018-11-28T19:47:57.452Z",
         #                                          status: "closed",
         #                                          filled:  220,
-        #                                           flags:  None                                   },
+        #                                           flags:  null                                   },
         #                   relationships: {symbol: {data: {type: "symbol", id: "XLMBTC"}},
         #                                    trades: {data: [{type: "trade", id: "34789_34793"}]}}}}
         #

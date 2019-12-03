@@ -136,7 +136,7 @@ class btcmarkets(Exchange):
         #         amount: 828965701,
         #         fee: 0,
         #         transferType: 'WITHDRAW',
-        #         errorMessage: None,
+        #         errorMessage: null,
         #         lastUpdate: 1529418376754,
         #         cryptoPaymentDetail: {
         #             address: '0xF123aa44FadEa913a7da99cc2eE202Db684Ce0e3',
@@ -153,9 +153,9 @@ class btcmarkets(Exchange):
         #         amount: 10000000,
         #         fee: 0,
         #         transferType: 'DEPOSIT',
-        #         errorMessage: None,
+        #         errorMessage: null,
         #         lastUpdate: 1501077601133,
-        #         cryptoPaymentDetail: None
+        #         cryptoPaymentDetail: null
         #     }
         #
         #     {
@@ -166,10 +166,10 @@ class btcmarkets(Exchange):
         #         "lastUpdate": 1542339164044,
         #         "description": "BitcoinCashABC Deposit, P 0.00000056",
         #         "creationTime": 1542339164003,
-        #         "errorMessage": None,
+        #         "errorMessage": null,
         #         "transferType": "DEPOSIT",
         #         "fundTransferId": 2527326972,
-        #         "cryptoPaymentDetail": None
+        #         "cryptoPaymentDetail": null
         #     }
         #
         timestamp = self.safe_integer(item, 'creationTime')

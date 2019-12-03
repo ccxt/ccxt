@@ -218,7 +218,7 @@ class ftx(Exchange):
         #         "result": [
         #             {
         #                 "ask":170.37,
-        #                 "baseCurrency":None,
+        #                 "baseCurrency":null,
         #                 "bid":170.31,
         #                 "change1h":-0.019001554672655036,
         #                 "change24h":-0.024841165359738997,
@@ -228,7 +228,7 @@ class ftx(Exchange):
         #                 "name":"ETH-PERP",
         #                 "price":170.37,
         #                 "priceIncrement":0.01,
-        #                 "quoteCurrency":None,
+        #                 "quoteCurrency":null,
         #                 "quoteVolume24h":7742164.59889,
         #                 "sizeIncrement":0.001,
         #                 "type":"future",
@@ -251,7 +251,7 @@ class ftx(Exchange):
         #                 "quoteVolume24h":382802.0252,
         #                 "sizeIncrement":0.001,
         #                 "type":"spot",
-        #                 "underlying":None,
+        #                 "underlying":null,
         #                 "volumeUsd24h":382802.0252
         #             },
         #         ],
@@ -311,7 +311,7 @@ class ftx(Exchange):
         #
         #     {
         #         "ask":171.29,
-        #         "baseCurrency":None,  # base currency for spot markets
+        #         "baseCurrency":null,  # base currency for spot markets
         #         "bid":171.24,
         #         "change1h":-0.0012244897959183673,
         #         "change24h":-0.031603346901854366,
@@ -321,11 +321,11 @@ class ftx(Exchange):
         #         "name":"ETH-PERP",
         #         "price":171.29,
         #         "priceIncrement":0.01,
-        #         "quoteCurrency":None,  # quote currency for spot markets
+        #         "quoteCurrency":null,  # quote currency for spot markets
         #         "quoteVolume24h":8570651.12113,
         #         "sizeIncrement":0.001,
         #         "type":"future",
-        #         "underlying":"ETH",  # None for spot markets
+        #         "underlying":"ETH",  # null for spot markets
         #         "volumeUsd24h":8570651.12113,
         #     }
         #
@@ -380,7 +380,7 @@ class ftx(Exchange):
         #         "success":true,
         #         "result":{
         #             "ask":171.29,
-        #             "baseCurrency":None,  # base currency for spot markets
+        #             "baseCurrency":null,  # base currency for spot markets
         #             "bid":171.24,
         #             "change1h":-0.0012244897959183673,
         #             "change24h":-0.031603346901854366,
@@ -390,11 +390,11 @@ class ftx(Exchange):
         #             "name":"ETH-PERP",
         #             "price":171.29,
         #             "priceIncrement":0.01,
-        #             "quoteCurrency":None,  # quote currency for spot markets
+        #             "quoteCurrency":null,  # quote currency for spot markets
         #             "quoteVolume24h":8570651.12113,
         #             "sizeIncrement":0.001,
         #             "type":"future",
-        #             "underlying":"ETH",  # None for spot markets
+        #             "underlying":"ETH",  # null for spot markets
         #             "volumeUsd24h":8570651.12113,
         #         }
         #     }
@@ -431,7 +431,7 @@ class ftx(Exchange):
         #                 "quoteVolume24h":382802.0252,
         #                 "sizeIncrement":0.001,
         #                 "type":"spot",
-        #                 "underlying":None,
+        #                 "underlying":null,
         #                 "volumeUsd24h":382802.0252
         #             },
         #         ],
@@ -552,8 +552,8 @@ class ftx(Exchange):
         #         "id": 11215,
         #         "liquidity": "taker",
         #         "market": "EOS-0329",
-        #         "baseCurrency": None,
-        #         "quoteCurrency": None,
+        #         "baseCurrency": null,
+        #         "quoteCurrency": null,
         #         "orderId": 8436981,
         #         "price": 4.201,
         #         "side": "buy",
@@ -751,7 +751,7 @@ class ftx(Exchange):
         #         "reduceOnly": False,
         #         "ioc": False,
         #         "postOnly": False,
-        #         "clientId": None,
+        #         "clientId": null,
         #     }
         #
         # createOrder(conditional, "stop", "trailingStop", or "takeProfit")
@@ -762,14 +762,14 @@ class ftx(Exchange):
         #         "id": 9596912,
         #         "market": "XRP-PERP",
         #         "triggerPrice": 0.306525,
-        #         "orderId": None,
+        #         "orderId": null,
         #         "side": "sell",
         #         "size": 31431,
         #         "status": "open",
         #         "type": "stop",
-        #         "orderPrice": None,
-        #         "error": None,
-        #         "triggeredAt": None,
+        #         "orderPrice": null,
+        #         "error": null,
+        #         "triggeredAt": null,
         #         "reduceOnly": False
         #     }
         #
@@ -819,7 +819,7 @@ class ftx(Exchange):
         request = {
             'market': market['id'],
             'side': side,  # "buy" or "sell"
-            # 'price': 0.306525,  # send None for market orders
+            # 'price': 0.306525,  # send null for market orders
             'type': type,  # "limit", "market", "stop", "trailingStop", or "takeProfit"
             'size': float(self.amount_to_precision(symbol, amount)),
             # 'reduceOnly': False,  # optional, default is False
@@ -866,7 +866,7 @@ class ftx(Exchange):
         #                 "reduceOnly": False,
         #                 "ioc": False,
         #                 "postOnly": False,
-        #                 "clientId": None,
+        #                 "clientId": null,
         #             }
         #         ]
         #     }
@@ -882,14 +882,14 @@ class ftx(Exchange):
         #                 "id": 9596912,
         #                 "market": "XRP-PERP",
         #                 "triggerPrice": 0.306525,
-        #                 "orderId": None,
+        #                 "orderId": null,
         #                 "side": "sell",
         #                 "size": 31431,
         #                 "status": "open",
         #                 "type": "stop",
-        #                 "orderPrice": None,
-        #                 "error": None,
-        #                 "triggeredAt": None,
+        #                 "orderPrice": null,
+        #                 "error": null,
+        #                 "triggeredAt": null,
         #                 "reduceOnly": False
         #             }
         #         ]
@@ -960,7 +960,7 @@ class ftx(Exchange):
         #             "reduceOnly": False,
         #             "ioc": False,
         #             "postOnly": False,
-        #             "clientId": None
+        #             "clientId": null
         #         }
         #     }
         #
@@ -995,7 +995,7 @@ class ftx(Exchange):
         #                 "reduceOnly": False,
         #                 "ioc": False,
         #                 "postOnly": False,
-        #                 "clientId": None
+        #                 "clientId": null
         #             }
         #         ]
         #     }
@@ -1035,7 +1035,7 @@ class ftx(Exchange):
         #                 "reduceOnly": False,
         #                 "ioc": False,
         #                 "postOnly": False,
-        #                 "clientId": None
+        #                 "clientId": null
         #             }
         #         ]
         #     }
@@ -1065,8 +1065,8 @@ class ftx(Exchange):
         #                 "id": 11215,
         #                 "liquidity": "taker",
         #                 "market": "EOS-0329",
-        #                 "baseCurrency": None,
-        #                 "quoteCurrency": None,
+        #                 "baseCurrency": null,
+        #                 "quoteCurrency": null,
         #                 "orderId": 8436981,
         #                 "price": 4.201,
         #                 "side": "buy",
@@ -1100,13 +1100,13 @@ class ftx(Exchange):
         #         "result": {
         #             "coin": "USDTBEAR",
         #             "address": "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
-        #             "tag": "None",
+        #             "tag": "null",
         #             "fee": 0,
         #             "id": 1,
         #             "size": "20.2",
         #             "status": "requested",
         #             "time": "2019-03-05T09:56:55.728933+00:00",
-        #             "txid": "None"
+        #             "txid": "null"
         #         }
         #     }
         #
@@ -1125,7 +1125,7 @@ class ftx(Exchange):
         #         "success": True,
         #         "result": {
         #             "address": "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
-        #             "tag": "None"
+        #             "tag": "null"
         #         }
         #     }
         #
@@ -1170,7 +1170,7 @@ class ftx(Exchange):
         #     {
         #         "coin": "TUSD",
         #         "address": "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
-        #         "tag": "None",
+        #         "tag": "null",
         #         "fee": 0,
         #         "id": 1,
         #         "size": "99.0",
@@ -1244,7 +1244,7 @@ class ftx(Exchange):
         #         "result": {
         #             "coin": "TUSD",
         #             "address": "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
-        #             "tag": "None",
+        #             "tag": "null",
         #             "fee": 0,
         #             "id": 1,
         #             "size": "99.0",

@@ -245,10 +245,10 @@ class coinfloor(Exchange):
         #         "id": 97669,
         #         "type": 1,
         #         "xbt": "-3.0000",
-        #         "xbt_eur": None,
+        #         "xbt_eur": null,
         #         "eur": "0",
         #         "fee": "0.0000",
-        #         "order_id": None
+        #         "order_id": null
         #     }
         #
         # transaction(deposit)
@@ -258,10 +258,10 @@ class coinfloor(Exchange):
         #         "id": 98277,
         #         "type": 0,
         #         "xbt": "0",
-        #         "xbt_eur": None,
+        #         "xbt_eur": null,
         #         "eur": "4970.04",
         #         "fee": "0.00",
-        #         "order_id": None
+        #         "order_id": null
         #     }
         #
         keys = list(item.keys())

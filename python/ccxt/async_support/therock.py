@@ -438,9 +438,9 @@ class therock(Exchange):
         #         "type": "withdraw",
         #         "price": 103.00,
         #         "currency": "EUR",
-        #         "fund_id": None,
-        #         "order_id": None,
-        #         "trade_id": None,
+        #         "fund_id": null,
+        #         "order_id": null,
+        #         "trade_id": null,
         #         "transfer_detail": {
         #             "method": "wire_transfer",
         #             "id": "F112DD3",
@@ -457,9 +457,9 @@ class therock(Exchange):
         #         "type": "atm_payment",
         #         "price": 2.01291,
         #         "currency": "BTC",
-        #         "fund_id": "None",
-        #         "order_id": None,
-        #         "trade_id": None,
+        #         "fund_id": "null",
+        #         "order_id": null,
+        #         "trade_id": null,
         #         "transfer_detail": {
         #             "method": "bitcoin",
         #             "id": "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098",
@@ -479,7 +479,7 @@ class therock(Exchange):
         #         "order_id": 12832371,
         #         "trade_id": 12923212,
         #         "currency": "BTC",
-        #         "transfer_detail": None
+        #         "transfer_detail": null
         #     }
         #
         id = self.safe_string(item, 'id')
@@ -543,9 +543,9 @@ class therock(Exchange):
         #                 "type": "withdraw",
         #                 "price": 103.00,
         #                 "currency": "EUR",
-        #                 "fund_id": None,
-        #                 "order_id": None,
-        #                 "trade_id": None,
+        #                 "fund_id": null,
+        #                 "order_id": null,
+        #                 "trade_id": null,
         #                 "transfer_detail": {
         #                     "method": "wire_transfer",
         #                     "id": "F112DD3",
@@ -559,9 +559,9 @@ class therock(Exchange):
         #                 "type": "atm_payment",
         #                 "price": 2.01291,
         #                 "currency": "BTC",
-        #                 "fund_id": "None",
-        #                 "order_id": None,
-        #                 "trade_id": None,
+        #                 "fund_id": "null",
+        #                 "order_id": null,
+        #                 "trade_id": null,
         #                 "transfer_detail": {
         #                     "method": "bitcoin",
         #                     "id": "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098",
@@ -578,13 +578,13 @@ class therock(Exchange):
         #                 "order_id": 12832371,
         #                 "trade_id": 12923212,
         #                 "currency": "BTC",
-        #                 "transfer_detail": None
+        #                 "transfer_detail": null
         #             }
         #         ],
         #         "meta": {
         #             "total_count": 1221,
         #             "first": {"page": 1, "href": "https://api.therocktrading.com/v1/transactions?page=1"},
-        #             "previous": None,
+        #             "previous": null,
         #             "current": {"page": 1, "href": "https://api.therocktrading.com/v1/transactions?page=1"},
         #             "next": {"page": 2, "href": "https://api.therocktrading.com/v1/transactions?page=2"},
         #             "last": {"page": 1221, "href": "https://api.therocktrading.com/v1/transactions?page=1221"}
@@ -613,9 +613,9 @@ class therock(Exchange):
         #         "type": "withdraw",
         #         "price": 103.00,
         #         "currency": "EUR",
-        #         "fund_id": None,
-        #         "order_id": None,
-        #         "trade_id": None,
+        #         "fund_id": null,
+        #         "order_id": null,
+        #         "trade_id": null,
         #         "transfer_detail": {
         #             "method": "wire_transfer",
         #             "id": "F112DD3",
@@ -630,10 +630,10 @@ class therock(Exchange):
         #         "note": "GB7IDL401573388",
         #         "type": "withdraw",
         #         "price": 4345.93,
-        #         "fund_id": None,
+        #         "fund_id": null,
         #         "currency": "EUR",
-        #         "order_id": None,
-        #         "trade_id": None,
+        #         "order_id": null,
+        #         "trade_id": null,
         #         "transfer_detail": {
         #             "id": "EXECUTEDBUTUNCHECKED",
         #             "method": "wire_transfer",
@@ -650,9 +650,9 @@ class therock(Exchange):
         #         type: 'withdraw',
         #         price: 2.70883607,
         #         currency: 'BCH',
-        #         fund_id: None,
-        #         order_id: None,
-        #         trade_id: None,
+        #         fund_id: null,
+        #         order_id: null,
+        #         trade_id: null,
         #         note: '1MAHLhJoz9W2ydbRf972WSgJYJ3Ui7aotm',
         #         transfer_detail: {
         #             method: 'bitcoin_cash',
@@ -673,14 +673,14 @@ class therock(Exchange):
         #         type: 'atm_payment',
         #         price: 5000,
         #         currency: 'EUR',
-        #         fund_id: None,
-        #         order_id: None,
-        #         trade_id: None,
+        #         fund_id: null,
+        #         order_id: null,
+        #         trade_id: null,
         #         note: 'Mistral deposit',
         #         transfer_detail: {
         #             method: 'wire_transfer',
         #             id: '972JQ49337DX769T',
-        #             recipient: None,
+        #             recipient: null,
         #             confirmations: 0
         #         }
         #     }
@@ -693,9 +693,9 @@ class therock(Exchange):
         #         "type": "atm_payment",
         #         "price": 2.01291,
         #         "currency": "BTC",
-        #         "fund_id": "None",
-        #         "order_id": None,
-        #         "trade_id": None,
+        #         "fund_id": "null",
+        #         "order_id": null,
+        #         "trade_id": null,
         #         "transfer_detail": {
         #             "method": "bitcoin",
         #             "id": "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098",
@@ -784,9 +784,9 @@ class therock(Exchange):
         #                 "type": "withdraw",
         #                 "price": 103.00,
         #                 "currency": "EUR",
-        #                 "fund_id": None,
-        #                 "order_id": None,
-        #                 "trade_id": None,
+        #                 "fund_id": null,
+        #                 "order_id": null,
+        #                 "trade_id": null,
         #                 "transfer_detail": {
         #                     "method": "wire_transfer",
         #                     "id": "F112DD3",
@@ -800,9 +800,9 @@ class therock(Exchange):
         #                 "type": "atm_payment",
         #                 "price": 2.01291,
         #                 "currency": "BTC",
-        #                 "fund_id": "None",
-        #                 "order_id": None,
-        #                 "trade_id": None,
+        #                 "fund_id": "null",
+        #                 "order_id": null,
+        #                 "trade_id": null,
         #                 "transfer_detail": {
         #                     "method": "bitcoin",
         #                     "id": "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098",
@@ -819,13 +819,13 @@ class therock(Exchange):
         #                 "order_id": 12832371,
         #                 "trade_id": 12923212,
         #                 "currency": "BTC",
-        #                 "transfer_detail": None
+        #                 "transfer_detail": null
         #             }
         #         ],
         #         "meta": {
         #             "total_count": 1221,
         #             "first": {"page": 1, "href": "https://api.therocktrading.com/v1/transactions?page=1"},
-        #             "previous": None,
+        #             "previous": null,
         #             "current": {"page": 1, "href": "https://api.therocktrading.com/v1/transactions?page=1"},
         #             "next": {"page": 2, "href": "https://api.therocktrading.com/v1/transactions?page=2"},
         #             "last": {"page": 1221, "href": "https://api.therocktrading.com/v1/transactions?page=1221"}
@@ -858,12 +858,12 @@ class therock(Exchange):
         #         "price":0.0102,
         #         "amount": 50.0,
         #         "amount_unfilled": 0.0,
-        #         "conditional_type": None,
-        #         "conditional_price": None,
+        #         "conditional_type": null,
+        #         "conditional_price": null,
         #         "date":"2015-06-03T00:49:48.000Z",
         #         "close_on": nil,
         #         "leverage": 1.0,
-        #         "position_id": None,
+        #         "position_id": null,
         #         "trades": [
         #             {
         #                 "id":237338,
@@ -976,10 +976,10 @@ class therock(Exchange):
         #                 price: 5821,
         #                 amount: 0.1,
         #                 amount_unfilled: 0,
-        #                 conditional_type: None,
-        #                 conditional_price: None,
+        #                 conditional_type: null,
+        #                 conditional_price: null,
         #                 date: '2018-06-18T17:38:16.129Z',
-        #                 close_on: None,
+        #                 close_on: null,
         #                 dark: False,
         #                 leverage: 1,
         #                 position_id: 0
@@ -1064,7 +1064,7 @@ class therock(Exchange):
         #                                     trade_id:  440492                     }   ]}],
         #         meta: {total_count:    31,
         #                       first: {href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1"},
-        #                    previous:    None,
+        #                    previous:    null,
         #                     current: {href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1"},
         #                        next: {href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2"},
         #                        last: {href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2"}  }}
@@ -1097,15 +1097,15 @@ class therock(Exchange):
         #                      side: "buy",
         #                      dark:  False,
         #                      date: "2018-11-30T07:03:03.897Z"}  ],
-        #         meta: {total_count:    None,
+        #         meta: {total_count:    null,
         #                       first: {page:  1,
         #                                href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1"},
-        #                    previous:    None,
+        #                    previous:    null,
         #                     current: {page:  1,
         #                                href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1"},
         #                        next: {page:  2,
         #                                href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=2"},
-        #                        last:    None                                                                   }}
+        #                        last:    null                                                                   }}
         #
         return self.parse_trades(response['trades'], market, since, limit)
 

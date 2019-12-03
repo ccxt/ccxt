@@ -149,8 +149,8 @@ class coincheck(Exchange):
         #                            rate:  26890,
         #                            pair: "btc_jpy",
         #                  pending_amount: "0.5527",
-        #       pending_market_buy_amount:  None,
-        #                  stop_loss_rate:  None,
+        #       pending_market_buy_amount:  null,
+        #                  stop_loss_rate:  null,
         #                      created_at: "2015-01-10T05:55:38.000Z"}
         #
         # todo: add formats for fetchOrder, fetchClosedOrders here

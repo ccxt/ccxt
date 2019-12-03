@@ -198,7 +198,7 @@ class mixcoins(Exchange):
             #
             # todo add a unified standard handleErrors with self.exceptions in describe()
             #
-            #     {"status":503,"message":"Maintenancing, try again later","result":None}
+            #     {"status":503,"message":"Maintenancing, try again later","result":null}
             #
             if response['status'] == 200:
                 return response

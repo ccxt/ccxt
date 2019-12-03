@@ -1164,7 +1164,7 @@ class poloniex(Exchange):
         #         "currency": "BTC",
         #         "canCancel": 0,
         #         "ipAddress": "185.230.101.31",
-        #         "paymentID": None,
+        #         "paymentID": null,
         #         "timestamp": 1523834337,
         #         "canResendEmail": 0,
         #         "withdrawalNumber": 11162900

@@ -146,8 +146,8 @@ class huobipro(Exchange):
                 'exact': {
                     # err-code
                     'timeout': RequestTimeout,  # {"ts":1571653730865,"status":"error","err-code":"timeout","err-msg":"Request Timeout"}
-                    'gateway-internal-error': ExchangeNotAvailable,  # {"status":"error","err-code":"gateway-internal-error","err-msg":"Failed to load data. Try again later.","data":None}
-                    'account-frozen-balance-insufficient-error': InsufficientFunds,  # {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":None}
+                    'gateway-internal-error': ExchangeNotAvailable,  # {"status":"error","err-code":"gateway-internal-error","err-msg":"Failed to load data. Try again later.","data":null}
+                    'account-frozen-balance-insufficient-error': InsufficientFunds,  # {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
                     'invalid-amount': InvalidOrder,  # eg "Paramemter `amount` is invalid."
                     'order-limitorder-amount-min-error': InvalidOrder,  # limit order amount error, min: `0.001`
                     'order-marketorder-amount-min-error': InvalidOrder,  # market order amount error, min: `0.01`
@@ -157,7 +157,7 @@ class huobipro(Exchange):
                     'order-queryorder-invalid': OrderNotFound,  # querying a non-existent order
                     'order-update-error': ExchangeNotAvailable,  # undocumented error
                     'api-signature-check-failed': AuthenticationError,
-                    'api-signature-not-valid': AuthenticationError,  # {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: Incorrect Access key [Access key错误]","data":None}
+                    'api-signature-not-valid': AuthenticationError,  # {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: Incorrect Access key [Access key错误]","data":null}
                     'base-record-invalid': OrderNotFound,  # https://github.com/ccxt/ccxt/issues/5750
                     # err-msg
                     'invalid symbol': BadSymbol,  # {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
@@ -530,7 +530,7 @@ class huobipro(Exchange):
             #        'withdraw-precision':  8,
             #             'currency-type': "eth",
             #        'currency-partition': "pro",
-            #             'support-sites':  None,
+            #             'support-sites':  null,
             #                'otc-enable':  0,
             #        'deposit-min-amount': "2",
             #       'withdraw-min-amount': "4",
@@ -965,7 +965,7 @@ class huobipro(Exchange):
             return  # fallback to default error handler
         if 'status' in response:
             #
-            #     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":None}
+            #     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
             #
             status = self.safe_string(response, 'status')
             if status == 'error':

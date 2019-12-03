@@ -352,7 +352,7 @@ class indodax(Exchange):
             request['pair'] = market['id']
         response = await self.privatePostOpenOrders(self.extend(request, params))
         rawOrders = response['return']['orders']
-        # {success: 1, return: {orders: None}} if no orders
+        # {success: 1, return: {orders: null}} if no orders
         if not rawOrders:
             return []
         # {success: 1, return: {orders: [... objects]}} for orders fetched by symbol

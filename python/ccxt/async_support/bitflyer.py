@@ -277,7 +277,7 @@ class bitflyer(Exchange):
             'size': amount,
         }
         result = await self.privatePostSendchildorder(self.extend(request, params))
-        # {"status": - 200, "error_message": "Insufficient funds", "data": None}
+        # {"status": - 200, "error_message": "Insufficient funds", "data": null}
         id = self.safe_string(result, 'child_order_acceptance_id')
         return {
             'info': result,
