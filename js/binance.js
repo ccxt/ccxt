@@ -654,12 +654,11 @@ module.exports = class binance extends Exchange {
 
     async fetchBidsAsks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const marketType = this.options['defaultMarket'];
-        let method = 'publicGetTickerBookTicker';
-        if (marketType === 'futures') {
-            method = 'fapiPublicGetTickerBookTicker';
-        }
-        const response = await this[method] (params);
+        const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        const method = (type === 'spot') ? 'publicGetTickerBookTicker' : 'fapiPublicGetTickerBookTicker';
+        const response = await this[method] (query);
         return this.parseTickers (response, symbols);
     }
 
