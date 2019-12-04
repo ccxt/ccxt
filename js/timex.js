@@ -49,35 +49,127 @@ module.exports = class timex extends Exchange {
                 'doc': 'https://docs.timex.io',
             },
             'api': {
-                'public': {
+                'custody': {
                     'get': [
-                        '/public/candles',
-                        '/public/currencies',
-                        '/public/markets',
-                        '/public/orderbook/v2',
-                        '/public/tickers',
-                        '/public/trades',
+                        'credentials', // Get api key for address
+                        'credentials/h/{hash}', // Get api key by hash
+                        'credentials/k/{key}', // Get api key by key
+                        'credentials/me/address', // Get api key by hash
+                        'deposit-addresses', // Get deposit addresses list
+                        'deposit-addresses/h/{hash}', // Get deposit address by hash
                     ],
                 },
-                'private': {
+                'history': {
                     'get': [
-                        '/custody/deposit-addresses',
-                        '/history/orders',
-                        '/history/orders/details',
-                        '/history/trades',
-                        '/trading/balances',
-                        '/trading/orders',
+                        'orders', // Gets historical orders
+                        'orders/details', // Gets order details
+                        'orders/export/csv', // Export orders to csv
+                        'trades', // Gets historical trades
+                        'trades/export/csv', // Export trades to csv
+                    ],
+                },
+                'currencies': {
+                    'get': [
+                        'a/{address}', // Gets currency by address
+                        'i/{id}', // Gets currency by id
+                        's/{symbol}', // Gets currency by symbol
                     ],
                     'post': [
-                        '/trading/orders',
-                    ],
-                    'put': [
-                        '/trading/orders',
-                    ],
-                    'delete': [
-                        '/trading/orders',
+                        'perform', // Creates new currency
+                        'prepare', // Prepare creates new currency
+                        'remove/perform', // Removes currency by symbol
+                        's/{symbol}/remove/prepare', // Prepare remove currency by symbol
+                        's/{symbol}/update/perform', // Prepare update currency by symbol
+                        's/{symbol}/update/prepare', // Prepare update currency by symbol
                     ],
                 },
+                'markets': {
+                    'get': [
+                        'i/{id}', // Gets market by id
+                        's/{symbol}', // Gets market by symbol
+                    ],
+                    'post': [
+                        'perform', // Creates new market
+                        'prepare', // Prepare creates new market
+                        'remove/perform', // Removes market by symbol
+                        's/{symbol}/remove/prepare', // Prepare remove market by symbol
+                        's/{symbol}/update/perform', // Prepare update market by symbol
+                        's/{symbol}/update/prepare', // Prepare update market by symbol
+                    ],
+                },
+                'public': {
+                    'get': [
+                        'candles', // Gets candles
+                        'currencies', // Gets all the currencies
+                        'markets', // Gets all the markets
+                        'orderbook', // Gets orderbook
+                        'orderbook/raw', // Gets raw orderbook
+                        'orderbook/v2', // Gets orderbook v2
+                        'tickers', // Gets all the tickers
+                        'trades', // Gets trades
+                    ],
+                },
+                'statistics': {
+                    'get': [
+                        'address', // calculateAddressStatistics
+                    ],
+                },
+                'trading': {
+                    'get': [
+                        'balances', // Get trading balances for all (or selected) currencies
+                        'fees', // Get trading fee rates for all (or selected) markets
+                        'orders', // Gets open orders
+                    ],
+                    'post': [
+                        'orders', // Create new order
+                        'orders/json', // Create orders
+                    ],
+                    'put': [
+                        'orders', // Cancel or update orders
+                        'orders/json', // Update orders
+                    ],
+                    'delete': [
+                        'orders', // Delete orders
+                        'orders/json', // Delete orders
+                    ],
+                },
+                'tradingview': {
+                    'get': [
+                        'config', // Gets config
+                        'history', // Gets history
+                        'symbol_info', // Gets symbol info
+                        'time', // Gets time
+                    ],
+                },
+                // 'public': {
+                //     'get': [
+                //         '/public/candles',
+                //         '/public/currencies',
+                //         '/public/markets',
+                //         '/public/orderbook/v2',
+                //         '/public/tickers',
+                //         '/public/trades',
+                //     ],
+                // },
+                // 'private': {
+                //     'get': [
+                //         '/custody/deposit-addresses',
+                //         '/history/orders',
+                //         '/history/orders/details',
+                //         '/history/trades',
+                //         '/trading/balances',
+                //         '/trading/orders',
+                //     ],
+                //     'post': [
+                //         '/trading/orders',
+                //     ],
+                //     'put': [
+                //         '/trading/orders',
+                //     ],
+                //     'delete': [
+                //         '/trading/orders',
+                //     ],
+                // },
             },
             'exceptions': {
                 '0': ExchangeError,
@@ -113,6 +205,27 @@ module.exports = class timex extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetPublicMarkets (params);
+        //
+        //     [
+        //         {
+        //             "symbol": "ETHBTC",
+        //             "name": "ETH/BTC",
+        //             "baseCurrency": "ETH",
+        //             "baseTokenAddress": "0x45932db54b38af1f5a57136302eeba66a5975c15",
+        //             "quoteCurrency": "BTC",
+        //             "quoteTokenAddress": "0x8370fbc6ddec1e18b4e41e72ed943e238458487c",
+        //             "feeCurrency": "BTC",
+        //             "feeTokenAddress": "0x8370fbc6ddec1e18b4e41e72ed943e238458487c",
+        //             "quantityIncrement": "0.0000001",
+        //             "takerFee": "0.005",
+        //             "makerFee": "0.0025",
+        //             "tickSize": "0.00000001",
+        //             "baseMinSize": "0.0001",
+        //             "quoteMinSize": "0.00001",
+        //             "locked": false
+        //         }
+        //     ]
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             result.push (this.parseMarket (response[i]));
@@ -424,13 +537,32 @@ module.exports = class timex extends Exchange {
     }
 
     parseMarket (market) {
+        //
+        //     {
+        //         "symbol": "ETHBTC",
+        //         "name": "ETH/BTC",
+        //         "baseCurrency": "ETH",
+        //         "baseTokenAddress": "0x45932db54b38af1f5a57136302eeba66a5975c15",
+        //         "quoteCurrency": "BTC",
+        //         "quoteTokenAddress": "0x8370fbc6ddec1e18b4e41e72ed943e238458487c",
+        //         "feeCurrency": "BTC",
+        //         "feeTokenAddress": "0x8370fbc6ddec1e18b4e41e72ed943e238458487c",
+        //         "quantityIncrement": "0.0000001",
+        //         "takerFee": "0.005",
+        //         "makerFee": "0.0025",
+        //         "tickSize": "0.00000001",
+        //         "baseMinSize": "0.0001",
+        //         "quoteMinSize": "0.00001",
+        //         "locked": false
+        //     }
+        //
         const active = !market['locked'];
         const id = this.safeString (market, 'symbol');
-        const symbol = market['name'];
-        const baseId = market['baseCurrency'];
-        const quoteId = market['quoteCurrency'];
+        const baseId = this.safeString (market, 'baseCurrency');
+        const quoteId = this.safeString (market, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        const symbol = base + '/' + quote;
         const precision = {
             'amount': this.precisionFromString (this.safeString (market, 'quantityIncrement')),
             'price': this.precisionFromString (this.safeString (market, 'tickSize')),
@@ -441,15 +573,9 @@ module.exports = class timex extends Exchange {
         const priceIncrement = this.safeFloat (market, 'tickSize');
         const minCost = this.safeFloat (market, 'quoteMinSize');
         const limits = {
-            'amount': {
-                'min': minAmount,
-            },
-            'price': {
-                'min': priceIncrement,
-            },
-            'cost': {
-                'min': Math.max (minCost, minAmount * priceIncrement),
-            },
+            'amount': { 'min': minAmount, 'max': undefined },
+            'price': { 'min': priceIncrement, 'max': undefined },
+            'cost': { 'min': Math.max (minCost, minAmount * priceIncrement), 'max': undefined },
         };
         const taker = this.safeFloat (market, 'takerFee');
         const maker = this.safeFloat (market, 'makerFee');
