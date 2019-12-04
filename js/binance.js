@@ -404,34 +404,91 @@ module.exports = class binance extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const marketType = this.options['defaultMarket'];
-        let method = 'privateGetAccount';
-        if (marketType === 'futures') {
-            method = 'fapiPrivateGetAccount';
-        }
-        const response = await this[method] (params);
+        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const method = (type === 'spot') ? 'privateGetAccount' : 'fapiPrivateGetAccount';
+        const query = this.omit (params, 'type');
+        const response = await this[method] (query);
+        //
+        // spot
+        //
+        //     {
+        //         makerCommission: 10,
+        //         takerCommission: 10,
+        //         buyerCommission: 0,
+        //         sellerCommission: 0,
+        //         canTrade: true,
+        //         canWithdraw: true,
+        //         canDeposit: true,
+        //         updateTime: 1575357359602,
+        //         accountType: "MARGIN",
+        //         balances: [
+        //             { asset: "BTC", free: "0.00219821", locked: "0.00000000"  },
+        //         ]
+        //     }
+        //
+        // futures (fapi)
+        //
+        //     {
+        //         "feeTier":0,
+        //         "canTrade":true,
+        //         "canDeposit":true,
+        //         "canWithdraw":true,
+        //         "updateTime":0,
+        //         "totalInitialMargin":"0.00000000",
+        //         "totalMaintMargin":"0.00000000",
+        //         "totalWalletBalance":"4.54000000",
+        //         "totalUnrealizedProfit":"0.00000000",
+        //         "totalMarginBalance":"4.54000000",
+        //         "totalPositionInitialMargin":"0.00000000",
+        //         "totalOpenOrderInitialMargin":"0.00000000",
+        //         "maxWithdrawAmount":"4.54000000",
+        //         "assets":[
+        //             {
+        //                 "asset":"USDT",
+        //                 "walletBalance":"4.54000000",
+        //                 "unrealizedProfit":"0.00000000",
+        //                 "marginBalance":"4.54000000",
+        //                 "maintMargin":"0.00000000",
+        //                 "initialMargin":"0.00000000",
+        //                 "positionInitialMargin":"0.00000000",
+        //                 "openOrderInitialMargin":"0.00000000",
+        //                 "maxWithdrawAmount":"4.54000000"
+        //             }
+        //         ],
+        //         "positions":[
+        //             {
+        //                 "symbol":"BTCUSDT",
+        //                 "initialMargin":"0.00000",
+        //                 "maintMargin":"0.00000",
+        //                 "unrealizedProfit":"0.00000000",
+        //                 "positionInitialMargin":"0.00000",
+        //                 "openOrderInitialMargin":"0.00000"
+        //             }
+        //         ]
+        //     }
+        //
         const result = { 'info': response };
-        if (marketType === 'futures') {
-            const assets = this.safeValue (response, 'assets', []);
-            for (let i = 0; i < assets.length; i++) {
-                const asset = assets[i];
-                const currencyId = asset['asset'];
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['used'] = this.safeFloat (asset, 'initialMargin');
-                account['total'] = this.safeFloat (asset, 'marginBalance');
-                account['free'] = account['total'] - account['used'];
-                result[code] = account;
-            }
-        } else {
+        if (type === 'spot') {
             const balances = this.safeValue (response, 'balances', []);
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
-                const currencyId = balance['asset'];
+                const currencyId = this.safeString (balance, 'asset');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
                 account['free'] = this.safeFloat (balance, 'free');
                 account['used'] = this.safeFloat (balance, 'locked');
+                result[code] = account;
+            }
+        } else {
+            const balances = this.safeValue (response, 'assets', []);
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
+                const currencyId = this.safeString (balance, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['used'] = this.safeFloat (balance, 'initialMargin');
+                account['total'] = this.safeFloat (balance, 'marginBalance');
                 result[code] = account;
             }
         }
