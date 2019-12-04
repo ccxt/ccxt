@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -17,9 +17,9 @@ module.exports = class bkex extends Exchange {
             'rateLimit': 1000,
             'has': {
                 'createMarketOrder': false,
-                'fetchOrder': false,
-                'fetchOrders': false,
-                'fetchOpenOrders': false,
+                'fetchOrder': true,
+                'fetchOrders': true,
+                'fetchOpenOrders': true,
                 'fetchCurrencies': false,
                 'fetchTicker': true,
                 'fetchTickers': false,
@@ -191,6 +191,99 @@ module.exports = class bkex extends Exchange {
             result[code] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const method = 'privatePostTradeOrderCreate';
+        const direction = side === 'buy' ? 'BID' : 'ASK';
+        const request = {
+            'direction': direction,
+            'pair': market['id'],
+            'amount': this.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
+        };
+        const response = await this[method] (this.extend (request, params));
+        return {
+            'id': this.safeValue (response, 'data'),
+            'info': response,
+        };
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'pair': this.marketId (symbol),
+            'orderNo': parseInt (id),
+        };
+        return await this.privatePostTradeOrderCancel (this.extend (request, params));
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+            'size': 100,
+            'page': 1,
+            'direction': 'BID',
+        };
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this.privateGetTradeOrderListUnfinished (this.extend (request, params));
+        const result = this.safeValue (response, 'data');
+        return this.parseOrders (this.safeValue (result, 'data'), market, since, limit);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+            'orderNo': id,
+        };
+        const response = await this.privateGetTradeOrderUnfinishedDetail (this.extend (request, params));
+        const data = this.safeValue (response, 'data');
+        if (!data) {
+            throw new OrderNotFound (this.id + ' order ' + id + ' not found');
+        }
+        return this.parseOrder (data);
+    }
+
+    parseOrder (order, market = undefined) {
+        const marketName = this.safeString (order, 'pair');
+        market = market || this.findMarket (marketName);
+        let timestamp = this.safeString (order, 'createdTime');
+        if (timestamp !== undefined) {
+            timestamp = Math.round (parseFloat (timestamp) * 1000);
+        }
+        const direction = this.safeValue (order, 'direction');
+        const side = direction === 'BID' ? 'BUY' : 'SELL';
+        const amount = this.safeFloat (order, 'totalAmount');
+        const fillAmount = this.safeFloat (order, 'dealAmount', amount);
+        const remaining = amount - fillAmount;
+        return {
+            'id': this.safeString (order, 'id'),
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
+            'status': undefined,
+            'symbol': market,
+            'side': side,
+            'type': this.safeString (order, 'orderType'),
+            'price': this.safeFloat (order, 'price'),
+            'cost': undefined,
+            'amount': amount,
+            'filled': fillAmount,
+            'remaining': remaining,
+            'fee': undefined,
+            'info': order,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
