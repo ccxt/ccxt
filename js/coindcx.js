@@ -42,6 +42,16 @@ module.exports = class coindcx extends Exchange {
             'has': {
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
+                'fetchTrades': true,
+                'fetchOrderBook': true,
+                'cancelOrder': false,
+                'createLimitOrder': false,
+                'createMarketOrder': false,
+                'createOrder': false,
+                'editOrder': false,
+                'fetchBalance': false,
+                'fetchOHLCV': false,
+                'fetchStatus': false,
             },
             'timeframes': {
                 '1m': '1m',
@@ -69,7 +79,7 @@ module.exports = class coindcx extends Exchange {
         const result = [];
         for (let i = 0; i < details.length; i++) {
             const market = details[i];
-            const id = this.safeString (market, 'symbol');
+            const id = this.safeString (market, 'pair');
             const baseId = this.safeString (market, 'base_currency_short_name');
             const base = this.safeCurrencyCode (baseId);
             const quoteId = this.safeString (market, 'target_currency_short_name');
@@ -126,12 +136,13 @@ module.exports = class coindcx extends Exchange {
         const response = await this.generalGetExchangeTicker (params);
         let result = {};
         const market = this.findMarket (symbol);
-        const marketId = market['id'];
-        if (marketId === undefined) {
+        const marketInfo = this.safeValue (market, 'info');
+        const marketName = this.safeString (marketInfo, 'symbol');
+        if (marketName === undefined) {
             return result;
         }
         for (let i = 0; i < response.length; i++) {
-            if (response[i]['market'] !== marketId) {
+            if (response[i]['market'] !== marketName) {
                 continue;
             }
             result = this.parseTicker (response[i]);
@@ -172,9 +183,8 @@ module.exports = class coindcx extends Exchange {
         // https://coindcx-official.github.io/rest-api/?shell#trades
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketInfo = market['info'];
         const request = {
-            'pair': this.safeString2 (marketInfo, 'pair', 'id'),
+            'pair': this.safeString (market, 'id'),
             'limit': limit,
         };
         const response = await this.publicGetMarketDataTradeHistory (this.extend (request, params));
@@ -218,9 +228,8 @@ module.exports = class coindcx extends Exchange {
         // https://coindcx-official.github.io/rest-api/?shell#order-book
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketInfo = market['info'];
         const request = {
-            'pair': this.safeString2 (marketInfo, 'pair', 'id'),
+            'pair': this.safeString (market, 'id'),
         };
         const response = await this.publicGetMarketDataOrderbook (this.extend (request, params));
         return this.parseOrderBookData (response);
@@ -242,8 +251,10 @@ module.exports = class coindcx extends Exchange {
         const priceKeys = Object.keys (bidsOrAsks);
         const parsedData = [];
         for (let i = 0; i < priceKeys.length; i++) {
-            const price = priceKeys[i];
-            parsedData.push ([price, bidsOrAsks[price]]);
+            const key = priceKeys[i];
+            const price = parseFloat (key);
+            const amount = parseFloat (bidsOrAsks[key]);
+            parsedData.push ([price, amount]);
         }
         return parsedData;
     }
