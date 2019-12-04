@@ -361,13 +361,13 @@ module.exports = class timex extends Exchange {
         const request = {
             'market': market['id'],
             'period': this.timeframes[timeframe],
-            'from': this.iso8601 (this.parseDate ('2019-08-01T00:00:00Z')),
+            // 'from': this.iso8601 (this.parseDate ('2019-08-01T00:00:00Z')),
             'till': this.iso8601 (this.milliseconds ()),
         };
         if (since !== undefined) {
             request['from'] = this.iso8601 (since);
         }
-        const response = await this.publicGetPublicCandles (this.extend (request, params));
+        const response = await this.publicGetCandles (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
