@@ -889,14 +889,10 @@ class liquid extends Exchange {
         if ($code >= 200 && $code < 300) {
             return;
         }
-        $exceptions = $this->exceptions;
         if ($code === 401) {
             // expected non-json $response
-            if (is_array($exceptions) && array_key_exists($body, $exceptions)) {
-                throw new $exceptions[$body]($this->id . ' ' . $body);
-            } else {
-                return;
-            }
+            $this->throw_exactly_matched_exception($this->exceptions, $body, $body);
+            return;
         }
         if ($code === 429) {
             throw new DDoSProtection($this->id . ' ' . $body);
@@ -911,9 +907,7 @@ class liquid extends Exchange {
             //
             //  array( "$message" => "Order not found" )
             //
-            if (is_array($exceptions) && array_key_exists($message, $exceptions)) {
-                throw new $exceptions[$message]($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
         } else if ($errors !== null) {
             //
             //  array( "$errors" => array( "user" => ["not_enough_free_balance"] ))
@@ -926,9 +920,7 @@ class liquid extends Exchange {
                 $errorMessages = $errors[$type];
                 for ($j = 0; $j < count ($errorMessages); $j++) {
                     $message = $errorMessages[$j];
-                    if (is_array($exceptions) && array_key_exists($message, $exceptions)) {
-                        throw new $exceptions[$message]($feedback);
-                    }
+                    $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
                 }
             }
         } else {

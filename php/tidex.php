@@ -842,18 +842,10 @@ class tidex extends Exchange {
             if (!$success) {
                 $code = $this->safe_string($response, 'code');
                 $message = $this->safe_string($response, 'error');
-                $feedback = $this->id . ' ' . $this->json ($response);
-                $exact = $this->exceptions['exact'];
-                if (is_array($exact) && array_key_exists($code, $exact)) {
-                    throw new $exact[$code]($feedback);
-                } else if (is_array($exact) && array_key_exists($message, $exact)) {
-                    throw new $exact[$message]($feedback);
-                }
-                $broad = $this->exceptions['broad'];
-                $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
-                if ($broadKey !== null) {
-                    throw new $broad[$broadKey]($feedback);
-                }
+                $feedback = $this->id . ' ' . $body;
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
                 throw new ExchangeError($feedback); // unknown $message
             }
         }

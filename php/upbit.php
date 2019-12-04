@@ -48,9 +48,10 @@ class upbit extends Exchange {
                 '1w' => 'weeks',
                 '1M' => 'months',
             ),
+            'hostname' => 'api.upbit.com',
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg',
-                'api' => 'https://api.upbit.com',
+                'api' => 'https://{hostname}',
                 'www' => 'https://upbit.com',
                 'doc' => 'https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C',
                 'fees' => 'https://upbit.com/service_center/guide',
@@ -118,6 +119,7 @@ class upbit extends Exchange {
             ),
             'exceptions' => array (
                 'exact' => array (
+                    'This key has expired.' => '\\ccxt\\AuthenticationError',
                     'Missing request parameter error. Check the required parameters!' => '\\ccxt\\BadRequest',
                     'side is missing, side does not have a valid value' => '\\ccxt\\InvalidOrder',
                 ),
@@ -1462,9 +1464,12 @@ class upbit extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $url = $this->implode_params($this->urls['api'], array (
+            'hostname' => $this->hostname,
+        ));
+        $url .= '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($method === 'GET') {
+        if ($method !== 'POST') {
             if ($query) {
                 $url .= '?' . $this->urlencode ($query);
             }
@@ -1477,13 +1482,16 @@ class upbit extends Exchange {
                 'nonce' => $nonce,
             );
             if ($query) {
-                $request['query'] = $this->urlencode ($query);
+                $auth = $this->urlencode ($query);
+                $hash = $this->hash ($this->encode ($auth), 'sha512');
+                $request['query_hash'] = $hash;
+                $request['query_hash_alg'] = 'SHA512';
             }
             $jwt = $this->jwt ($request, $this->encode ($this->secret));
             $headers = array (
                 'Authorization' => 'Bearer ' . $jwt,
             );
-            if ($method !== 'GET') {
+            if (($method !== 'GET') && ($method !== 'DELETE')) {
                 $body = $this->json ($params);
                 $headers['Content-Type'] = 'application/json';
             }
@@ -1510,23 +1518,11 @@ class upbit extends Exchange {
         if ($error !== null) {
             $message = $this->safe_string($error, 'message');
             $name = $this->safe_string($error, 'name');
-            $feedback = $this->id . ' ' . $this->json ($response);
-            $exact = $this->exceptions['exact'];
-            if (is_array($exact) && array_key_exists($message, $exact)) {
-                throw new $exact[$message]($feedback);
-            }
-            if (is_array($exact) && array_key_exists($name, $exact)) {
-                throw new $exact[$name]($feedback);
-            }
-            $broad = $this->exceptions['broad'];
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
-            }
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $name);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
-            }
+            $feedback = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $name, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $name, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
     }

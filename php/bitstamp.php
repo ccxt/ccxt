@@ -1131,18 +1131,11 @@ class bitstamp extends Exchange {
             if ($code === 'API0005') {
                 throw new AuthenticationError($this->id . ' invalid signature, use the uid for the main account if you have subaccounts');
             }
-            $exact = $this->exceptions['exact'];
-            $broad = $this->exceptions['broad'];
             $feedback = $this->id . ' ' . $body;
             for ($i = 0; $i < count ($errors); $i++) {
                 $value = $errors[$i];
-                if (is_array($exact) && array_key_exists($value, $exact)) {
-                    throw new $exact[$value]($feedback);
-                }
-                $broadKey = $this->findBroadlyMatchedKey ($broad, $value);
-                if ($broadKey !== null) {
-                    throw new $broad[$broadKey]($feedback);
-                }
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $value, $feedback);
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $value, $feedback);
             }
             throw new ExchangeError($feedback);
         }

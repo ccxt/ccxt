@@ -425,8 +425,10 @@ class poloniex(Exchange):
             precision = 8  # default precision, todo: fix "magic constants"
             code = self.safe_currency_code(id)
             active = (currency['delisted'] == 0) and not currency['disabled']
+            numericId = self.safe_integer(currency, 'id')
             result[code] = {
                 'id': id,
+                'numericId': numericId,
                 'code': code,
                 'info': currency,
                 'name': currency['name'],
@@ -496,7 +498,7 @@ class poloniex(Exchange):
         symbol = None
         base = None
         quote = None
-        if (not market) and ('currencyPair' in list(trade.keys())):
+        if (not market) and ('currencyPair' in trade):
             currencyPair = trade['currencyPair']
             if currencyPair in self.markets_by_id:
                 market = self.markets_by_id[currencyPair]
@@ -971,7 +973,7 @@ class poloniex(Exchange):
         self.load_markets()
         orders = self.fetch_open_orders(symbol, None, None, params)
         indexed = self.index_by(orders, 'id')
-        return 'open' if (id in list(indexed.keys())) else 'closed'
+        return 'open' if (id in indexed) else 'closed'
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1235,12 +1237,7 @@ class poloniex(Exchange):
         # {"error":"Permission denied."}
         if 'error' in response:
             message = response['error']
-            feedback = self.id + ' ' + self.json(response)
-            exact = self.exceptions['exact']
-            if message in exact:
-                raise exact[message](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

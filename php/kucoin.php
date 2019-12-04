@@ -1595,9 +1595,7 @@ class kucoin extends Exchange {
         //
         $errorCode = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'msg');
-        $ExceptionClass = $this->safe_value_2($this->exceptions, $message, $errorCode);
-        if ($ExceptionClass !== null) {
-            throw new $ExceptionClass($this->id . ' ' . $message);
-        }
+        $this->throw_exactly_matched_exception($this->exceptions, $message, $message);
+        $this->throw_exactly_matched_exception($this->exceptions, $errorCode, $message);
     }
 }

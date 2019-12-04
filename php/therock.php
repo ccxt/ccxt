@@ -1216,19 +1216,12 @@ class therock extends Exchange {
         $numErrors = is_array ($errors) ? count ($errors) : 0;
         if ($numErrors > 0) {
             $feedback = $this->id . ' ' . $body;
-            $exact = $this->exceptions['exact'];
-            $broad = $this->exceptions['broad'];
             // here we throw the first $error we can identify
             for ($i = 0; $i < $numErrors; $i++) {
                 $error = $errors[$i];
                 $message = $this->safe_string($error, 'message');
-                if (is_array($exact) && array_key_exists($message, $exact)) {
-                    throw new $exact[$message]($feedback);
-                }
-                $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
-                if ($broadKey !== null) {
-                    throw new $broad[$broadKey]($feedback);
-                }
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             }
             throw new ExchangeError($feedback); // unknown $message
         }

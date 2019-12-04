@@ -817,7 +817,7 @@ class cex extends Exchange {
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
-            'type' => null,
+            'type' => ($price === null) ? 'market' : 'limit',
             'side' => $side,
             'price' => $price,
             'cost' => $cost,
@@ -1039,9 +1039,9 @@ class cex extends Exchange {
                 $fa = $this->safe_float($item, 'fa:' . $quoteId, 0);
                 $tfa = $this->safe_float($item, 'tfa:' . $quoteId, 0);
                 if ($side === 'sell') {
-                    $cost = $ta . $tta . ($fa . $tfa);
+                    $cost = $this->sum ($this->sum ($ta, $tta), $this->sum ($fa, $tfa));
                 } else {
-                    $cost = $ta . $tta - ($fa . $tfa);
+                    $cost = $this->sum ($ta, $tta) - $this->sum ($fa, $tfa);
                 }
                 $type = 'limit';
                 $orderAmount = $amount;
@@ -1169,15 +1169,8 @@ class cex extends Exchange {
         if (is_array($response) && array_key_exists('error', $response)) {
             $message = $this->safe_string($response, 'error');
             $feedback = $this->id . ' ' . $body;
-            $exact = $this->exceptions['exact'];
-            if (is_array($exact) && array_key_exists($message, $exact)) {
-                throw new $exact[$message]($feedback);
-            }
-            $broad = $this->exceptions['broad'];
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback);
         }
     }

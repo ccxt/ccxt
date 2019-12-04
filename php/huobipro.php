@@ -264,6 +264,7 @@ class huobipro extends Exchange {
             $maker = ($base === 'OMG') ? 0 : 0.2 / 100;
             $taker = ($base === 'OMG') ? 0 : 0.2 / 100;
             $minAmount = $this->safe_float($market, 'min-order-amt', pow(10, -$precision['amount']));
+            $maxAmount = $this->safe_float($market, 'max-order-amt');
             $minCost = $this->safe_float($market, 'min-order-value', 0);
             $state = $this->safe_string($market, 'state');
             $active = ($state === 'online');
@@ -281,7 +282,7 @@ class huobipro extends Exchange {
                 'limits' => array (
                     'amount' => array (
                         'min' => $minAmount,
-                        'max' => null,
+                        'max' => $maxAmount,
                     ),
                     'price' => array (
                         'min' => pow(10, -$precision['price']),
@@ -1011,12 +1012,16 @@ class huobipro extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             $timestamp = $this->ymdhms ($this->milliseconds (), 'T');
-            $request = $this->keysort (array_merge (array (
+            $request = array (
                 'SignatureMethod' => 'HmacSHA256',
                 'SignatureVersion' => '2',
                 'AccessKeyId' => $this->apiKey,
                 'Timestamp' => $timestamp,
-            ), $query));
+            );
+            if ($method !== 'POST') {
+                $request = array_merge ($request, $query);
+            }
+            $request = $this->keysort ($request);
             $auth = $this->urlencode ($request);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             // eslint-disable-next-line quotes
@@ -1056,15 +1061,10 @@ class huobipro extends Exchange {
             $status = $this->safe_string($response, 'status');
             if ($status === 'error') {
                 $code = $this->safe_string($response, 'err-code');
-                $feedback = $this->id . ' ' . $this->json ($response);
-                $exceptions = $this->exceptions['exact'];
-                if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
-                    throw new $exceptions[$code]($feedback);
-                }
+                $feedback = $this->id . ' ' . $body;
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
                 $message = $this->safe_string($response, 'err-msg');
-                if (is_array($exceptions) && array_key_exists($message, $exceptions)) {
-                    throw new $exceptions[$message]($feedback);
-                }
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
                 throw new ExchangeError($feedback);
             }
         }

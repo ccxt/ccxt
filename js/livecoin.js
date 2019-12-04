@@ -100,6 +100,7 @@ module.exports = class livecoin extends Exchange {
                 'FORTYTWO': '42',
                 'LEO': 'LeoCoin',
                 'ORE': 'Orectic',
+                'PLN': 'Plutaneum', // conflict with Polish Zloty
                 'RUR': 'RUB',
                 'SCT': 'SpaceCoin',
                 'TPI': 'ThaneCoin',
@@ -890,25 +891,17 @@ module.exports = class livecoin extends Exchange {
         }
         if (code >= 300) {
             const feedback = this.id + ' ' + body;
-            const exact = this.exceptions['exact'];
             const errorCode = this.safeString (response, 'errorCode');
-            if (errorCode in exact) {
-                throw new exact[errorCode] (feedback);
-            } else {
-                throw new ExchangeError (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            throw new ExchangeError (feedback);
         }
         // returns status code 200 even if success === false
         const success = this.safeValue (response, 'success', true);
         if (!success) {
             const feedback = this.id + ' ' + body;
-            const broad = this.exceptions['broad'];
             const message = this.safeString2 (response, 'message', 'exception');
             if (message !== undefined) {
-                const broadKey = this.findBroadlyMatchedKey (broad, message);
-                if (broadKey !== undefined) {
-                    throw new broad[broadKey] (feedback);
-                }
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             }
             throw new ExchangeError (feedback);
         }

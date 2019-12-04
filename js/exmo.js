@@ -251,14 +251,18 @@ module.exports = class exmo extends Exchange {
                             { 'pair': 'DCR/RUB', 'min_q': '0.01', 'max_q': '50000', 'min_p': '0.00001', 'max_p': '100000', 'min_a': '0.5', 'max_a': '3000000' },
                             { 'pair': 'DCR/UAH', 'min_q': '0.01', 'max_q': '50000', 'min_p': '0.00001', 'max_p': '100000', 'min_a': '0.25', 'max_a': '1000000' },
                             { 'pair': 'ZAG/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100' },
-                            { 'pair': 'EXM/BTC', 'min_q': '1', 'max_q': '157022513', 'min_p': '0.0000009', 'max_p': '0.0000009', 'min_a': '0.000001', 'max_a': '141' },
+                            { 'pair': 'EXM/BTC', 'min_q': '1', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0000001', 'max_a': '100' },
+                            { 'pair': 'VLX/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100' },
+                            { 'pair': 'BTT/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100' },
+                            { 'pair': 'BTT/RUB', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '0.000001', 'max_a': '100' },
+                            { 'pair': 'BTT/UAH', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '0.000001', 'max_a': '100' },
                         ],
                         'fees': [
                             {
                                 'group': 'crypto',
                                 'title': 'Криптовалюта',
                                 'items': [
-                                    { 'prov': 'EXM', 'dep': '0%', 'wd': '-' },
+                                    { 'prov': 'EXM', 'dep': '0%', 'wd': '1 EXM' },
                                     { 'prov': 'BTC', 'dep': '0%', 'wd': '0.0005 BTC' },
                                     { 'prov': 'LTC', 'dep': '0%', 'wd': '0.01 LTC' },
                                     { 'prov': 'DOGE', 'dep': '0%', 'wd': '1 DOGE' },
@@ -269,7 +273,7 @@ module.exports = class exmo extends Exchange {
                                     { 'prov': 'USDT', 'dep': '0%', 'wd': '5 USDT' },
                                     { 'prov': 'XMR', 'dep': '0%', 'wd': '0.05 XMR' },
                                     { 'prov': 'XRP', 'dep': '0%', 'wd': '0.02 XRP' },
-                                    { 'prov': 'KICK', 'dep': '0 KICK', 'wd': '50 KICK' },
+                                    { 'prov': 'KICK', 'dep': '0%', 'wd': '50 KICK' },
                                     { 'prov': 'ETC', 'dep': '0%', 'wd': '0.01 ETC' },
                                     { 'prov': 'BCH', 'dep': '0%', 'wd': '0.001 BCH' },
                                     { 'prov': 'BTG', 'dep': '0%', 'wd': '0.001 BTG' },
@@ -299,9 +303,11 @@ module.exports = class exmo extends Exchange {
                                     { 'prov': 'ATMCASH', 'dep': '0%', 'wd': '5 ATMCASH' },
                                     { 'prov': 'ETZ', 'dep': '0%', 'wd': '1 ETZ' },
                                     { 'prov': 'USDC', 'dep': '0%', 'wd': '0.5 USDC' },
-                                    { 'prov': 'ROOBEE', 'dep': '0%', 'wd': '0%' },
+                                    { 'prov': 'ROOBEE', 'dep': '0%', 'wd': '200 ROOBEE' },
                                     { 'prov': 'DCR', 'dep': '0%', 'wd': '0.01 DCR' },
                                     { 'prov': 'ZAG', 'dep': '0%', 'wd': '0%' },
+                                    { 'prov': 'BTT', 'dep': '0%', 'wd': '100 BTT' },
+                                    { 'prov': 'VLX', 'dep': '0%', 'wd': '1 VLX' },
                                 ],
                             },
                             {
@@ -1385,13 +1391,9 @@ module.exports = class exmo extends Exchange {
                     const numSubParts = errorSubParts.length;
                     code = (numSubParts > 1) ? errorSubParts[1] : errorSubParts[0];
                 }
-                const feedback = this.id + ' ' + this.json (response);
-                const exceptions = this.exceptions;
-                if (code in exceptions) {
-                    throw new exceptions[code] (feedback);
-                } else {
-                    throw new ExchangeError (feedback);
-                }
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (this.exceptions, code, feedback);
+                throw new ExchangeError (feedback);
             }
         }
     }

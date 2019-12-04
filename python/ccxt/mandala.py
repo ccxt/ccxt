@@ -214,7 +214,7 @@ class mandala(Exchange):
                     'Exception_HMAC_Validation': AuthenticationError,  # {"status":"Error","message":"Exception_HMAC_Validation","data":"HMAC validation failed."}
                     'Exception_General': BadRequest,  # {"status":"BadRequest","message":"Exception_General","data":"Our servers are experiencing some glitch, please try again later."}
                     'Must provide the orderID param.': BadRequest,  # {"Status":"BadRequest","Message":"Must provide the orderID param.","Data":null}
-                    'Invalid Market_Currency pairnot ': ExchangeError,  # {"status":"Error","errorMessage":"Invalid Market_Currency pairnot ","data":null}
+                    'Invalid Market_Currency pair!': ExchangeError,  # {"status":"Error","errorMessage":"Invalid Market_Currency pair!","data":null}
                     'Invalid volume parameter.': InvalidOrder,  # {"Status":"BadRequest","Message":"Invalid volume parameter.","Data":null}
                     'Invalid rate parameter.': InvalidOrder,  # {"Status":"BadRequest","Message":"Invalid rate parameter.","Data":null}
                     "Invalid parameter 'side', must be 'BUY' or 'SELL'.": InvalidOrder,  # {"Status":"BadRequest","Message":"Invalid parameter 'side', must be 'BUY' or 'SELL'.","Data":null}
@@ -255,7 +255,7 @@ class mandala(Exchange):
         #
         #     {
         #         status: 'Success',
-        #         message: 'Successnot ',
+        #         message: 'Success!',
         #         data: {
         #             tempAuthToken: 'e1b0603a-5996-4bac-9ec4-f097a02d9696',
         #             tokenExpiry: '2019-03-19T21:16:15.999201Z',
@@ -316,7 +316,7 @@ class mandala(Exchange):
         #
         #     {
         #         status: 'Success',
-        #         message: 'Successnot ',
+        #         message: 'Success!',
         #         data: [
         #             {
         #                 shortName: 'BAT',
@@ -408,7 +408,7 @@ class mandala(Exchange):
         #
         #     {
         #         status: "Success",
-        #         message: "Successnot ",
+        #         message: "Success!",
         #         data: {
         #             server_Time_UTC:   "1567260547",
         #             default_Pair:   "ETH_BTC",
@@ -477,8 +477,8 @@ class mandala(Exchange):
         #                 address_No_Unused_Address: "No unused address available.",
         #                 withdrawal_Invalid_Amount: "Sorrynot  Invalid Withdrawal Amount.",
         #                 withdrawal_Suspended: "Sorrynot  Withdrawals Suspended",
-        #                 success_General: "Successnot ",
-        #                 success_NoRowsFound: "No Rows Foundnot ",
+        #                 success_General: "Success!",
+        #                 success_NoRowsFound: "No Rows Found!",
         #                 success_Saved: "Details Saved Successfully.",
         #                 success_Deleted: "Details deleted Successfully.",
         #                 error_Disabled_BY_Admin: "Feature disabled by admin.",
@@ -517,7 +517,7 @@ class mandala(Exchange):
         #                 kyC_Custom_Error: "",
         #                 kyC_Provider_Error: "KYC service provider not found.",
         #                 kyC_Upload_Error: "Unable to Upload KYC.",
-        #                 kyC_Image_NotFound: "No Image Foundnot ",
+        #                 kyC_Image_NotFound: "No Image Found!",
         #                 kyC_Approved_Error: "KYC already approved.",
         #                 kyC_Pending_Error: "Your KYC is processing. We\'ll notify once it\'s processed.",
         #                 kyC_Invalid_CID_Email: "Email or CID does not exists.",
@@ -1136,11 +1136,12 @@ class mandala(Exchange):
             status = self.safe_value_2(order, 'orderStatus', 'Status')
             status = 'closed' if status else 'open'
         lastTradeTimestamp = None
-        if filled > 0:
-            lastTradeTimestamp = completionDate
-        if (filled is not None) and (amount is not None):
-            if (filled < amount) and (status == 'closed'):
-                status = 'canceled'
+        if filled is not None:
+            if filled > 0:
+                lastTradeTimestamp = completionDate
+            if amount is not None:
+                if (filled < amount) and (status == 'closed'):
+                    status = 'canceled'
         feeCost = self.safe_value(order, 'serviceCharge')
         fee = None
         if feeCost is not None:
@@ -1417,7 +1418,7 @@ class mandala(Exchange):
         #
         #     {
         #         "status":"Success",
-        #         "errorMessage":"Successnot ",
+        #         "errorMessage":"Success!",
         #         "data":{
         #             "Deposits":[
         #                 {
@@ -1453,7 +1454,7 @@ class mandala(Exchange):
         #
         #     {
         #         "status": "Success",
-        #         "errorMessage": "Successnot ",
+        #         "errorMessage": "Success!",
         #         "data": {
         #             "Withdrawals": [
         #                 {
@@ -1516,7 +1517,7 @@ class mandala(Exchange):
         txid = self.safe_string(transaction, 'TXNHash')
         updated = self.parse8601(self.safe_string_2(transaction, 'WithdrawalConfirmDate', 'DepositConfirmDate'))
         timestamp = self.parse8601(self.safe_string_2(transaction, 'WithdrawalReqDate', 'DepositReqDate', updated))
-        type = 'withdrawal' if ('WithdrawalReqDate' in list(transaction.keys())) else 'deposit'
+        type = 'withdrawal' if ('WithdrawalReqDate' in transaction) else 'deposit'
         currencyId = self.safe_string(transaction, 'WithdrawalType', 'DepositType')
         code = self.safe_currency_code(currencyId, currency)
         currency = self.currency(code)
@@ -1751,7 +1752,7 @@ class mandala(Exchange):
             return  # fallback to default error handler
         #
         #     {"Status":"Error","Message":"Exception_Insufficient_Funds","Data":"Insufficient Funds."}
-        #     {"status":"Error","errorMessage":"Invalid Market_Currency pairnot ","data":null}
+        #     {"status":"Error","errorMessage":"Invalid Market_Currency pair!","data":null}
         #     {"status":"BadRequest","message":"Exception_BadRequest","data":"Invalid Payload"}
         #
         #
@@ -1759,12 +1760,7 @@ class mandala(Exchange):
         if (status is not None) and (status != 'Success'):
             message = self.safe_string_2(response, 'errorMessage', 'Message')
             message = self.safe_string(response, 'message', message)
-            feedback = self.id + ' ' + self.json(response)
-            exact = self.exceptions['exact']
-            if message in exact:
-                raise exact[message](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

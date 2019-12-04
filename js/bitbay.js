@@ -1124,12 +1124,8 @@ module.exports = class bitbay extends Exchange {
             //
             const code = this.safeString (response, 'code'); // always an integer
             const feedback = this.id + ' ' + body;
-            const exceptions = this.exceptions;
-            if (code in this.exceptions) {
-                throw new exceptions[code] (feedback);
-            } else {
-                throw new ExchangeError (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions, code, feedback);
+            throw new ExchangeError (feedback);
         } else if ('status' in response) {
             //
             //      {"status":"Fail","errors":["OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS"]}
@@ -1137,12 +1133,10 @@ module.exports = class bitbay extends Exchange {
             const status = this.safeString (response, 'status');
             if (status === 'Fail') {
                 const errors = this.safeValue (response, 'errors');
-                const feedback = this.id + ' ' + this.json (response);
+                const feedback = this.id + ' ' + body;
                 for (let i = 0; i < errors.length; i++) {
                     const error = errors[i];
-                    if (error in this.exceptions) {
-                        throw new this.exceptions[error] (feedback);
-                    }
+                    this.throwExactlyMatchedException (this.exceptions, error, feedback);
                 }
                 throw new ExchangeError (feedback);
             }

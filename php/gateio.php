@@ -741,6 +741,7 @@ class gateio extends Exchange {
         $statuses = array (
             'PEND' => 'pending',
             'REQUEST' => 'pending',
+            'DMOVE' => 'pending',
             'CANCEL' => 'failed',
             'DONE' => 'ok',
         );
@@ -764,13 +765,10 @@ class gateio extends Exchange {
             return;
         }
         $errorCode = $this->safe_string($response, 'code');
+        $message = $this->safe_string($response, 'message', $body);
         if ($errorCode !== null) {
-            $exceptions = $this->exceptions;
-            if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
-                $message = $this->safe_string($response, 'message', $body);
-                $feedback = $this->safe_string($this->errorCodeNames, $errorCode, $message);
-                throw new $exceptions[$errorCode]($feedback);
-            }
+            $feedback = $this->safe_string($this->errorCodeNames, $errorCode, $message);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
         }
     }
 }

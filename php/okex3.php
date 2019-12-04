@@ -940,7 +940,7 @@ class okex3 extends Exchange {
         if ($feeCost !== null) {
             $feeCurrency = null;
             if ($market !== null) {
-                $feeCurrency = $side === 'buy' ? $market['base'] : $market['quote'];
+                $feeCurrency = ($side === 'buy') ? $market['base'] : $market['quote'];
             }
             $fee = array (
                 // $fee is either a positive number (invitation rebate)
@@ -2215,6 +2215,7 @@ class okex3 extends Exchange {
             $id = $withdrawalId;
             $address = $addressTo;
         } else {
+            // the payment_id will appear on new deposits but appears to be removed from the response after 2 months
             $id = $this->safe_string($transaction, 'payment_id');
             $type = 'deposit';
             $address = $addressTo;
@@ -2693,7 +2694,7 @@ class okex3 extends Exchange {
 
     public function get_path_authentication_type ($path) {
         $auth = $this->safe_value($this->options, 'auth', array());
-        $key = $this->findBroadlyMatchedKey ($auth, $path);
+        $key = $this->find_broadly_matched_key($auth, $path);
         return $this->safe_string($auth, $key, 'private');
     }
 
@@ -2705,22 +2706,13 @@ class okex3 extends Exchange {
         if (!$response) {
             return; // fallback to default error handler
         }
-        $exact = $this->exceptions['exact'];
         $message = $this->safe_string($response, 'message');
         $errorCode = $this->safe_string_2($response, 'code', 'error_code');
         if ($message !== null) {
-            if (is_array($exact) && array_key_exists($message, $exact)) {
-                throw new $exact[$message]($feedback);
-            }
-            $broad = $this->exceptions['broad'];
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
         }
-        if (is_array($exact) && array_key_exists($errorCode, $exact)) {
-            throw new $exact[$errorCode]($feedback);
-        }
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
         if ($message !== null) {
             throw new ExchangeError($feedback); // unknown $message
         }

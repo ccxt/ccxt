@@ -229,8 +229,8 @@ class itbit(Exchange):
                     'cost': feeCost,
                     'currency': feeCurrency,
                 }
-        if not ('fee' in list(result.keys())):
-            if not ('fees' in list(result.keys())):
+        if not ('fee' in result):
+            if not ('fees' in result):
                 result['fee'] = None
         return result
 
@@ -414,7 +414,7 @@ class itbit(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        walletIdInParams = ('walletId' in list(params.keys()))
+        walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
             raise ExchangeError(self.id + ' fetchOrders requires a walletId parameter')
         walletId = params['walletId']
@@ -473,7 +473,7 @@ class itbit(Exchange):
         await self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
-        walletIdInParams = ('walletId' in list(params.keys()))
+        walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
             raise ExchangeError(self.id + ' createOrder requires a walletId parameter')
         amount = str(amount)
@@ -496,7 +496,7 @@ class itbit(Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        walletIdInParams = ('walletId' in list(params.keys()))
+        walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
             raise ExchangeError(self.id + ' fetchOrder requires a walletId parameter')
         request = {
@@ -506,7 +506,7 @@ class itbit(Exchange):
         return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
-        walletIdInParams = ('walletId' in list(params.keys()))
+        walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
             raise ExchangeError(self.id + ' cancelOrder requires a walletId parameter')
         request = {

@@ -1152,15 +1152,10 @@ class therock(Exchange):
         numErrors = len(errors)
         if numErrors > 0:
             feedback = self.id + ' ' + body
-            exact = self.exceptions['exact']
-            broad = self.exceptions['broad']
             # here we raise the first error we can identify
             for i in range(0, numErrors):
                 error = errors[i]
                 message = self.safe_string(error, 'message')
-                if message in exact:
-                    raise exact[message](feedback)
-                broadKey = self.findBroadlyMatchedKey(broad, message)
-                if broadKey is not None:
-                    raise broad[broadKey](feedback)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

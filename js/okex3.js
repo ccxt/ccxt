@@ -939,7 +939,7 @@ module.exports = class okex3 extends Exchange {
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
             if (market !== undefined) {
-                feeCurrency = side === 'buy' ? market['base'] : market['quote'];
+                feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
             }
             fee = {
                 // fee is either a positive number (invitation rebate)
@@ -2214,6 +2214,7 @@ module.exports = class okex3 extends Exchange {
             id = withdrawalId;
             address = addressTo;
         } else {
+            // the payment_id will appear on new deposits but appears to be removed from the response after 2 months
             id = this.safeString (transaction, 'payment_id');
             type = 'deposit';
             address = addressTo;
@@ -2704,22 +2705,13 @@ module.exports = class okex3 extends Exchange {
         if (!response) {
             return; // fallback to default error handler
         }
-        const exact = this.exceptions['exact'];
         const message = this.safeString (response, 'message');
         const errorCode = this.safeString2 (response, 'code', 'error_code');
         if (message !== undefined) {
-            if (message in exact) {
-                throw new exact[message] (feedback);
-            }
-            const broad = this.exceptions['broad'];
-            const broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
         }
-        if (errorCode in exact) {
-            throw new exact[errorCode] (feedback);
-        }
+        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         if (message !== undefined) {
             throw new ExchangeError (feedback); // unknown message
         }

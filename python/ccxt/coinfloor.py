@@ -448,9 +448,7 @@ class coinfloor(Exchange):
             return
         message = self.safe_string(response, 'error_msg')
         feedback = self.id + ' ' + body
-        exact = self.exceptions['exact']
-        if message in exact:
-            raise exact[message](feedback)
+        self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
         raise ExchangeError(feedback)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

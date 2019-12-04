@@ -607,7 +607,7 @@ class crex24(Exchange):
             'partiallyFilledCancelled': 'canceled',  # part of the order has been filled, the other part has been cancelled either by the trader or by the system(see the value of cancellationReason of an Order for more details on the reason of cancellation)
             'unfilledCancelled': 'canceled',  # order has been cancelled, no trades have taken place(see the value of cancellationReason of an Order for more details on the reason of cancellation)
         }
-        return statuses[status] if (status in list(statuses.keys())) else status
+        return statuses[status] if (status in statuses) else status
 
     def parse_order(self, order, market=None):
         #
@@ -1196,14 +1196,9 @@ class crex24(Exchange):
         if (code >= 200) and (code < 300):
             return  # no error
         message = self.safe_string(response, 'errorDescription')
-        feedback = self.id + ' ' + self.json(response)
-        exact = self.exceptions['exact']
-        if message in exact:
-            raise exact[message](feedback)
-        broad = self.exceptions['broad']
-        broadKey = self.findBroadlyMatchedKey(broad, message)
-        if broadKey is not None:
-            raise broad[broadKey](feedback)
+        feedback = self.id + ' ' + body
+        self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+        self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
         if code == 400:
             raise BadRequest(feedback)
         elif code == 401:

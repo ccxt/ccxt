@@ -151,7 +151,7 @@ module.exports = class ftx extends Exchange {
                     'An unexpected error occurred': ExchangeError, // {"error":"An unexpected error occurred, please try again later (58BC21C795).","success":false}
                 },
             },
-            'roundingMode': TICK_SIZE,
+            'precisionMode': TICK_SIZE,
         });
     }
 
@@ -447,12 +447,15 @@ module.exports = class ftx extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'market_name': market['id'],
         };
+        if (limit !== undefined) {
+            request['depth'] = limit; // max 100, default 20
+        }
         const response = await this.publicGetMarketsMarketNameOrderbook (this.extend (request, params));
         //
         //     {
@@ -865,7 +868,7 @@ module.exports = class ftx extends Exchange {
             request['price'] = priceToPrecision;
         } else if (type === 'market') {
             method = 'privatePostOrders';
-            request['price'] = undefined;
+            request['price'] = null;
         } else if ((type === 'stop') || (type === 'takeProfit')) {
             request['triggerPrice'] = priceToPrecision;
             // request['orderPrice'] = number; // optional, order type is limit if this is specified, otherwise market
@@ -1348,17 +1351,10 @@ module.exports = class ftx extends Exchange {
         //
         const success = this.safeValue (response, 'success');
         if (!success) {
-            const feedback = this.id + ' ' + this.json (response);
+            const feedback = this.id + ' ' + body;
             const error = this.safeString (response, 'error');
-            const exact = this.exceptions['exact'];
-            if (error in exact) {
-                throw new exact[error] (feedback);
-            }
-            const broad = this.exceptions['broad'];
-            const broadKey = this.findBroadlyMatchedKey (broad, error);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

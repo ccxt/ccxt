@@ -307,7 +307,7 @@ class tidebit(Exchange):
         else:
             request['timestamp'] = 1800000
         response = self.publicGetK(self.extend(request, params))
-        if response == 'null':
+        if response == 'None':
             return []
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -442,9 +442,7 @@ class tidebit(Exchange):
             feedback = self.id + ' ' + body
             if response is None:
                 raise ExchangeError(feedback)
-            error = self.safe_value(response, 'error')
+            error = self.safe_value(response, 'error', {})
             errorCode = self.safe_string(error, 'code')
-            exceptions = self.exceptions
-            if errorCode in exceptions:
-                raise exceptions[errorCode](feedback)
+            self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
             # fallback to default error handler

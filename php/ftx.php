@@ -151,7 +151,7 @@ class ftx extends Exchange {
                     'An unexpected error occurred' => '\\ccxt\\ExchangeError', // array("error":"An unexpected error occurred, please try again later (58BC21C795).","success":false)
                 ),
             ),
-            'roundingMode' => TICK_SIZE,
+            'precisionMode' => TICK_SIZE,
         ));
     }
 
@@ -447,12 +447,15 @@ class ftx extends Exchange {
         return $this->parse_tickers ($tickers, $symbols);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
             'market_name' => $market['id'],
         );
+        if ($limit !== null) {
+            $request['depth'] = $limit; // max 100, default 20
+        }
         $response = $this->publicGetMarketsMarketNameOrderbook (array_merge ($request, $params));
         //
         //     {
@@ -1348,17 +1351,10 @@ class ftx extends Exchange {
         //
         $success = $this->safe_value($response, 'success');
         if (!$success) {
-            $feedback = $this->id . ' ' . $this->json ($response);
+            $feedback = $this->id . ' ' . $body;
             $error = $this->safe_string($response, 'error');
-            $exact = $this->exceptions['exact'];
-            if (is_array($exact) && array_key_exists($error, $exact)) {
-                throw new $exact[$error]($feedback);
-            }
-            $broad = $this->exceptions['broad'];
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $error);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
     }

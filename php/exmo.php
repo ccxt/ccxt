@@ -252,14 +252,18 @@ class exmo extends Exchange {
                             array( 'pair' => 'DCR/RUB', 'min_q' => '0.01', 'max_q' => '50000', 'min_p' => '0.00001', 'max_p' => '100000', 'min_a' => '0.5', 'max_a' => '3000000' ),
                             array( 'pair' => 'DCR/UAH', 'min_q' => '0.01', 'max_q' => '50000', 'min_p' => '0.00001', 'max_p' => '100000', 'min_a' => '0.25', 'max_a' => '1000000' ),
                             array( 'pair' => 'ZAG/BTC', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '0.1', 'min_a' => '0.00001', 'max_a' => '100' ),
-                            array( 'pair' => 'EXM/BTC', 'min_q' => '1', 'max_q' => '157022513', 'min_p' => '0.0000009', 'max_p' => '0.0000009', 'min_a' => '0.000001', 'max_a' => '141' ),
+                            array( 'pair' => 'EXM/BTC', 'min_q' => '1', 'max_q' => '100000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.0000001', 'max_a' => '100' ),
+                            array( 'pair' => 'VLX/BTC', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '0.1', 'min_a' => '0.00001', 'max_a' => '100' ),
+                            array( 'pair' => 'BTT/BTC', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '0.1', 'min_a' => '0.00001', 'max_a' => '100' ),
+                            array( 'pair' => 'BTT/RUB', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.000001', 'max_p' => '1000', 'min_a' => '0.000001', 'max_a' => '100' ),
+                            array( 'pair' => 'BTT/UAH', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.000001', 'max_p' => '1000', 'min_a' => '0.000001', 'max_a' => '100' ),
                         ),
                         'fees' => array (
                             array (
                                 'group' => 'crypto',
                                 'title' => 'Криптовалюта',
                                 'items' => array (
-                                    array( 'prov' => 'EXM', 'dep' => '0%', 'wd' => '-' ),
+                                    array( 'prov' => 'EXM', 'dep' => '0%', 'wd' => '1 EXM' ),
                                     array( 'prov' => 'BTC', 'dep' => '0%', 'wd' => '0.0005 BTC' ),
                                     array( 'prov' => 'LTC', 'dep' => '0%', 'wd' => '0.01 LTC' ),
                                     array( 'prov' => 'DOGE', 'dep' => '0%', 'wd' => '1 DOGE' ),
@@ -270,7 +274,7 @@ class exmo extends Exchange {
                                     array( 'prov' => 'USDT', 'dep' => '0%', 'wd' => '5 USDT' ),
                                     array( 'prov' => 'XMR', 'dep' => '0%', 'wd' => '0.05 XMR' ),
                                     array( 'prov' => 'XRP', 'dep' => '0%', 'wd' => '0.02 XRP' ),
-                                    array( 'prov' => 'KICK', 'dep' => '0 KICK', 'wd' => '50 KICK' ),
+                                    array( 'prov' => 'KICK', 'dep' => '0%', 'wd' => '50 KICK' ),
                                     array( 'prov' => 'ETC', 'dep' => '0%', 'wd' => '0.01 ETC' ),
                                     array( 'prov' => 'BCH', 'dep' => '0%', 'wd' => '0.001 BCH' ),
                                     array( 'prov' => 'BTG', 'dep' => '0%', 'wd' => '0.001 BTG' ),
@@ -300,9 +304,11 @@ class exmo extends Exchange {
                                     array( 'prov' => 'ATMCASH', 'dep' => '0%', 'wd' => '5 ATMCASH' ),
                                     array( 'prov' => 'ETZ', 'dep' => '0%', 'wd' => '1 ETZ' ),
                                     array( 'prov' => 'USDC', 'dep' => '0%', 'wd' => '0.5 USDC' ),
-                                    array( 'prov' => 'ROOBEE', 'dep' => '0%', 'wd' => '0%' ),
+                                    array( 'prov' => 'ROOBEE', 'dep' => '0%', 'wd' => '200 ROOBEE' ),
                                     array( 'prov' => 'DCR', 'dep' => '0%', 'wd' => '0.01 DCR' ),
                                     array( 'prov' => 'ZAG', 'dep' => '0%', 'wd' => '0%' ),
+                                    array( 'prov' => 'BTT', 'dep' => '0%', 'wd' => '100 BTT' ),
+                                    array( 'prov' => 'VLX', 'dep' => '0%', 'wd' => '1 VLX' ),
                                 ),
                             ),
                             array (
@@ -1386,13 +1392,9 @@ class exmo extends Exchange {
                     $numSubParts = is_array ($errorSubParts) ? count ($errorSubParts) : 0;
                     $code = ($numSubParts > 1) ? $errorSubParts[1] : $errorSubParts[0];
                 }
-                $feedback = $this->id . ' ' . $this->json ($response);
-                $exceptions = $this->exceptions;
-                if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
-                    throw new $exceptions[$code]($feedback);
-                } else {
-                    throw new ExchangeError($feedback);
-                }
+                $feedback = $this->id . ' ' . $body;
+                $this->throw_exactly_matched_exception($this->exceptions, $code, $feedback);
+                throw new ExchangeError($feedback);
             }
         }
     }

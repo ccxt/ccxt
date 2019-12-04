@@ -485,10 +485,7 @@ class coinfloor extends Exchange {
         }
         $message = $this->safe_string($response, 'error_msg');
         $feedback = $this->id . ' ' . $body;
-        $exact = $this->exceptions['exact'];
-        if (is_array($exact) && array_key_exists($message, $exact)) {
-            throw new $exact[$message]($feedback);
-        }
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
         throw new ExchangeError($feedback);
     }
 

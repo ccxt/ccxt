@@ -852,10 +852,7 @@ class cobinhood extends Exchange {
                 }
             }
         }
-        $exceptions = $this->exceptions;
-        if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
-            throw new $exceptions[$errorCode]($feedback);
-        }
+        $this->throw_exactly_matched_exception($this->exceptions, $errorCode, $feedback);
         throw new ExchangeError($feedback);
     }
 

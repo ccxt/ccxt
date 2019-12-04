@@ -1487,11 +1487,8 @@ class hitbtc2 extends hitbtc {
             // array("error":array("$code":20002,"$message":"Order not found","description":""))
             if ($body[0] === '{') {
                 if (is_array($response) && array_key_exists('error', $response)) {
-                    $code = $this->safe_string($response['error'], 'code');
-                    $exceptions = $this->exceptions;
-                    if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
-                        throw new $exceptions[$code]($feedback);
-                    }
+                    $errorCode = $this->safe_string($response['error'], 'code');
+                    $this->throw_exactly_matched_exception($this->exceptions, $errorCode, $feedback);
                     $message = $this->safe_string($response['error'], 'message');
                     if ($message === 'Duplicate clientOrderId') {
                         throw new InvalidOrder($feedback);

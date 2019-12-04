@@ -378,7 +378,7 @@ class btcbox extends Exchange {
         if ($response === null) {
             return; // resort to defaultErrorHandler
         }
-        // typical error $response => array("$result":false,"code":"401")
+        // typical error $response => array("$result":false,"$code":"401")
         if ($httpCode >= 400) {
             return; // resort to defaultErrorHandler
         }
@@ -386,12 +386,9 @@ class btcbox extends Exchange {
         if ($result === null || $result === true) {
             return; // either public API (no error codes expected) or success
         }
-        $errorCode = $this->safe_value($response, 'code');
-        $feedback = $this->id . ' ' . $this->json ($response);
-        $exceptions = $this->exceptions;
-        if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
-            throw new $exceptions[$errorCode]($feedback);
-        }
+        $code = $this->safe_value($response, 'code');
+        $feedback = $this->id . ' ' . $body;
+        $this->throw_exactly_matched_exception($this->exceptions, $code, $feedback);
         throw new ExchangeError($feedback); // unknown message
     }
 

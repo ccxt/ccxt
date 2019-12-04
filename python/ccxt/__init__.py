@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.19.44'
+__version__ = '1.20.32'
 
 # ----------------------------------------------------------------------------
 
@@ -108,6 +108,7 @@ from ccxt.btctradeim import btctradeim                      # noqa: F401
 from ccxt.btctradeua import btctradeua                      # noqa: F401
 from ccxt.btcturk import btcturk                            # noqa: F401
 from ccxt.buda import buda                                  # noqa: F401
+from ccxt.bw import bw                                      # noqa: F401
 from ccxt.bytetrade import bytetrade                        # noqa: F401
 from ccxt.cex import cex                                    # noqa: F401
 from ccxt.chilebit import chilebit                          # noqa: F401
@@ -118,7 +119,6 @@ from ccxt.coinbasepro import coinbasepro                    # noqa: F401
 from ccxt.coincheck import coincheck                        # noqa: F401
 from ccxt.coinegg import coinegg                            # noqa: F401
 from ccxt.coinex import coinex                              # noqa: F401
-from ccxt.coinexchange import coinexchange                  # noqa: F401
 from ccxt.coinfalcon import coinfalcon                      # noqa: F401
 from ccxt.coinfloor import coinfloor                        # noqa: F401
 from ccxt.coingi import coingi                              # noqa: F401
@@ -133,7 +133,6 @@ from ccxt.crex24 import crex24                              # noqa: F401
 from ccxt.deribit import deribit                            # noqa: F401
 from ccxt.digifinex import digifinex                        # noqa: F401
 from ccxt.dsx import dsx                                    # noqa: F401
-from ccxt.dx import dx                                      # noqa: F401
 from ccxt.exmo import exmo                                  # noqa: F401
 from ccxt.exx import exx                                    # noqa: F401
 from ccxt.fcoin import fcoin                                # noqa: F401
@@ -177,6 +176,7 @@ from ccxt.paymium import paymium                            # noqa: F401
 from ccxt.poloniex import poloniex                          # noqa: F401
 from ccxt.rightbtc import rightbtc                          # noqa: F401
 from ccxt.southxchange import southxchange                  # noqa: F401
+from ccxt.stex import stex                                  # noqa: F401
 from ccxt.stronghold import stronghold                      # noqa: F401
 from ccxt.surbitcoin import surbitcoin                      # noqa: F401
 from ccxt.theocean import theocean                          # noqa: F401
@@ -235,6 +235,7 @@ exchanges = [
     'btctradeua',
     'btcturk',
     'buda',
+    'bw',
     'bytetrade',
     'cex',
     'chilebit',
@@ -245,7 +246,6 @@ exchanges = [
     'coincheck',
     'coinegg',
     'coinex',
-    'coinexchange',
     'coinfalcon',
     'coinfloor',
     'coingi',
@@ -260,7 +260,6 @@ exchanges = [
     'deribit',
     'digifinex',
     'dsx',
-    'dx',
     'exmo',
     'exx',
     'fcoin',
@@ -304,6 +303,7 @@ exchanges = [
     'poloniex',
     'rightbtc',
     'southxchange',
+    'stex',
     'stronghold',
     'surbitcoin',
     'theocean',
