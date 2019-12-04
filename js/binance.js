@@ -694,11 +694,7 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default == max == 500
         }
-        const marketType = this.options['defaultMarket'];
-        let method = 'publicGetKlines';
-        if (marketType === 'futures') {
-            method = 'fapiPublicGetKlines';
-        }
+        const method = market['spot'] ? 'publicGetKlines' : 'fapiPublicGetKlines';
         const response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
