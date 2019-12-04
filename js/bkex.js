@@ -228,9 +228,6 @@ module.exports = class bkex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
-            'size': 100,
-            'page': 1,
-            'direction': 'BID',
         };
         if (limit !== undefined) {
             request['size'] = limit;
