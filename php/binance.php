@@ -1406,7 +1406,7 @@ class binance extends Exchange {
                         throw new DDoSProtection($this->id . ' temporary banned => ' . $body);
                     }
                     $feedback = $this->id . ' ' . $body;
-                    $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
+                    $this->throw_exactly_matched_exception($this->exceptions, $error, $feedback);
                     throw new ExchangeError($feedback);
                 }
                 if (!$success) {

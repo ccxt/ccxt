@@ -1287,7 +1287,7 @@ class binance(Exchange):
                     if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
                         raise DDoSProtection(self.id + ' temporary banned: ' + body)
                     feedback = self.id + ' ' + body
-                    self.throw_exactly_matched_exception(self.exceptions, message, feedback)
+                    self.throw_exactly_matched_exception(self.exceptions, error, feedback)
                     raise ExchangeError(feedback)
                 if not success:
                     raise ExchangeError(self.id + ' ' + body)
