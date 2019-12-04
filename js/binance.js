@@ -1006,7 +1006,8 @@ module.exports = class binance extends Exchange {
             }
         }
         const uppercaseType = type.toUpperCase ();
-        if (!this.inArray (uppercaseType, market['info']['orderTypes'])) {
+        const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
+        if (!this.inArray (uppercaseType, validOrderTypes)) {
             throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type in ' + market['type'] + ' market ' + symbol);
         }
         const request = {
