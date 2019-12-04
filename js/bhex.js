@@ -50,10 +50,10 @@ module.exports = class bhex extends Exchange {
             'urls': {
                 'logo': 'https://static.bhfastime.com/bhop/image/TeQv9ZmFEzsLEaZkhrU2lIm9SppCC0_b7rcxAAhWqvA.png', // 交易所LOGO
                 'api': {
-                    'market': 'https://www.bhex.us/openapi/quote',  // 市场API数据端点
-                    'contract': 'https://www.bhex.us/openapi/contract', // 合约API数据端点
-                    'public': 'https://www.bhex.us/openapi', // 公共API数据端点
-                    'private': 'https://www.bhex.us/openapi', // 私有API数据端点
+                    'market': 'https://www.bhex.com/openapi/quote',  // 市场API数据端点
+                    'contract': 'https://www.bhex.com/openapi/contract', // 合约API数据端点
+                    'public': 'https://www.bhex.com/openapi', // 公共API数据端点
+                    'private': 'https://www.bhex.com/openapi', // 私有API数据端点
                     'zendesk': 'https://bhex.zendesk.com/hc/en-us/articles',
                 },
                 'www': 'https://www.bhex.com', // 公司主页
@@ -415,12 +415,18 @@ module.exports = class bhex extends Exchange {
         const amount = this.safeFloat (trade, 'qty');
         return {
             'info': trade,
+            'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
+            'side': undefined,
+            'cost': undefined,
+            'type': undefined,
+            'order': undefined,
+            'fee': undefined,
         };
     }
 
