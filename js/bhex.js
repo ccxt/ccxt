@@ -419,7 +419,7 @@ module.exports = class bhex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': takerOrMaker ? 'taker' : 'maker',
             'price': price,
             'amount': amount,
             'side': undefined,
