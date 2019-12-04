@@ -361,11 +361,20 @@ module.exports = class timex extends Exchange {
         const request = {
             'market': market['id'],
             'period': this.timeframes[timeframe],
-            // 'from': this.iso8601 (this.parseDate ('2019-08-01T00:00:00Z')),
-            'till': this.iso8601 (this.milliseconds ()),
         };
+        // if since and limit are not specified
+        const duration = this.parseTimeframe (timeframe);
         if (since !== undefined) {
             request['from'] = this.iso8601 (since);
+            if (limit !== undefined) {
+                request['till'] = this.iso8601 (this.sum (since, this.sum (limit, 1) * duration * 1000));
+            }
+        } else if (limit !== undefined) {
+            const now = this.milliseconds ();
+            request['till'] = this.iso8601 (now);
+            request['from'] = this.iso8601 (now - limit * duration * 1000 - 1);
+        } else {
+            request['till'] = this.iso8601 (this.milliseconds ());
         }
         const response = await this.publicGetCandles (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
