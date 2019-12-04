@@ -1111,11 +1111,7 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const marketType = this.options['defaultMarket'];
-        let method = 'privateGetAllOrders';
-        if (marketType === 'futures') {
-            method = 'fapiPrivateGetAllOrders';
-        }
+        const method = market['spot'] ? 'privateGetAllOrders' : 'fapiPrivateGetAllOrders';
         const response = await this[method] (this.extend (request, params));
         //
         //  Spot:
