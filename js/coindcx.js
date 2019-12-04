@@ -34,7 +34,7 @@ module.exports = class coindcx extends Exchange {
                 'public': {
                     'get': [
                         'market_data/trade_history',
-                        'market_data/order_book',
+                        'market_data/orderbook',
                         'market_data/candles',
                     ],
                 },
@@ -141,10 +141,7 @@ module.exports = class coindcx extends Exchange {
     }
 
     parseTicker (ticker) {
-        let timestamp = this.safeInteger (ticker, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const symbol = this.findSymbol (this.safeString (ticker, 'market'));
         const last = this.safeFloat (ticker, 'lastPrice');
         return {
@@ -180,15 +177,12 @@ module.exports = class coindcx extends Exchange {
             'pair': this.safeString2 (marketInfo, 'pair', 'id'),
             'limit': limit,
         };
-        const response = await this.publicGetTradesSymbol (this.extend (request, params));
+        const response = await this.publicGetMarketDataTradeHistory (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger (trade, 't');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 't');
         let symbol = undefined;
         if (market === undefined) {
             const marketId = this.safeString (trade, 's');
@@ -202,7 +196,7 @@ module.exports = class coindcx extends Exchange {
             takerOrMaker = trade['m'] ? 'maker' : 'taker';
         }
         const price = this.safeFloat (trade, 'p');
-        const amount = this.safeFloat (trade, 'a');
+        const amount = this.safeFloat (trade, 'q');
         return {
             'id': undefined,
             'info': trade,
@@ -220,10 +214,49 @@ module.exports = class coindcx extends Exchange {
         };
     }
 
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        // https://coindcx-official.github.io/rest-api/?shell#order-book
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketInfo = market['info'];
+        const request = {
+            'pair': this.safeString2 (marketInfo, 'pair', 'id'),
+        };
+        const response = await this.publicGetMarketDataOrderbook (this.extend (request, params));
+        return this.parseOrderBookData (response);
+    }
+
+    parseOrderBookData (orderBook) {
+        const bids = this.safeValue (orderBook, 'bids', {});
+        const asks = this.safeValue (orderBook, 'asks', {});
+        return {
+            'bids': this.sortBy (this.parseBidAskData (bids), 0, true),
+            'asks': this.sortBy (this.parseBidAskData (asks), 0),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'nonce': undefined,
+        };
+    }
+
+    parseBidAskData (bidsOrAsks) {
+        const priceKeys = Object.keys (bidsOrAsks);
+        const parsedData = [];
+        for (let i = 0; i < priceKeys.length; i++) {
+            const price = priceKeys[i];
+            parsedData.push ([price, bidsOrAsks[price]]);
+        }
+        return parsedData;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        // console.log (path, api, method, headers, body);
+        // console.log (path, api, method, params, headers, body);
         const base = this.urls['api'][api];
-        const url = base + '/' + path;
+        let url = base + '/' + path;
+        const query = this.omit (params, this.extractParams (path));
+        if (Object.keys (query).length) {
+            const suffix = '?' + this.urlencode (query);
+            url += suffix;
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
