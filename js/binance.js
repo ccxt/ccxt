@@ -1214,12 +1214,8 @@ module.exports = class binance extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         }
         await this.loadMarkets ();
-        const marketType = this.options['defaultMarket'];
         const market = this.market (symbol);
-        let method = 'privateGetMyTrades';
-        if (marketType === 'futures') {
-            method = 'fapiPrivateGetUserTrades';
-        }
+        const method = market['spot'] ? 'privateGetMyTrades' : 'fapiPrivateGetUserTrades';
         const request = {
             'symbol': market['id'],
         };
