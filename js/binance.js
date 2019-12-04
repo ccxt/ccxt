@@ -1406,7 +1406,7 @@ module.exports = class binance extends Exchange {
                         throw new DDoSProtection (this.id + ' temporary banned: ' + body);
                     }
                     const feedback = this.id + ' ' + body;
-                    this.throwExactlyMatchedException (this.exceptions, message, feedback);
+                    this.throwExactlyMatchedException (this.exceptions, error, feedback);
                     throw new ExchangeError (feedback);
                 }
                 if (!success) {
