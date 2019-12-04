@@ -281,7 +281,7 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const type = this.safeString (this.options, 'defaultType', 'spot');
+        const type = this.safeString2 (this.options, 'fetchTime', 'defaultType', 'spot');
         const method = (type === 'spot') ? 'publicGetTime' : 'fapiPublicGetTime';
         const response = await this[method] (params);
         return this.safeFloat (response, 'serverTime');
