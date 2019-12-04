@@ -835,7 +835,7 @@ module.exports = class timex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + path;
+        let url = this.urls['api'] + '/' + api + '/' + path;
         if (Object.keys (params).length) {
             url += '?' + this.urlencodewitharrayrepeat (params);
         }
