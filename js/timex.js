@@ -19,15 +19,12 @@ module.exports = class timex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
-                'fetchFundingLimits': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchTickers': true,
-                'fetchTradingFee': true,
-                'fetchTradingFees': true,
             },
             'timeframes': {
                 '1m': 'I1',
@@ -266,44 +263,6 @@ module.exports = class timex extends Exchange {
             result.push (this.parseCurrency (currency));
         }
         return this.indexBy (result, 'code');
-    }
-
-    async fetchTradingFees (params = {}) {
-        await this.loadMarkets ();
-        const result = [];
-        const symbols = Object.keys (this.markets);
-        for (let i = 0; i < symbols.length; ++i) {
-            const market = this.market (symbols[i]);
-            result[market['symbol']] = {
-                'maker': market['maker'],
-                'taker': market['taker'],
-                'currency': market['feeCurrency'],
-            };
-        }
-        return result;
-    }
-
-    async fetchTradingFee (symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.findMarket (symbol);
-        return {
-            'maker': market['maker'],
-            'taker': market['taker'],
-            'currency': market['feeCurrency'],
-        };
-    }
-
-    async fetchFundingLimits (codes = undefined) {
-        await this.loadMarkets ();
-        const result = [];
-        if (codes === undefined) {
-            codes = Object.keys (this.currencies);
-        }
-        for (let i = 0; i < codes.length; ++i) {
-            const currency = this.currency (codes[i]);
-            result[currency['code']] = currency['limits'];
-        }
-        return result;
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -651,7 +610,23 @@ module.exports = class timex extends Exchange {
         const name = this.safeString (currency, 'name');
         const precision = this.safeInteger (currency, 'decimals');
         const active = this.safeValue (currency, 'active');
-        const fee = this.safeFloat (currency, 'withdrawalFee');
+        // const fee = this.safeFloat (currency, 'withdrawalFee');
+        const feeString = this.safeString (currency, 'withdrawalFee');
+        const feeStringLen = feeString.length;
+        const tradeDecimals = this.safeInteger (currency, 'tradeDecimals');
+        let fee = undefined;
+        const dotIndex = feeStringLen - tradeDecimals;
+        if (dotIndex > 0) {
+            const whole = feeString.slice (0, dotIndex);
+            const fraction = feeString.slice (-dotIndex);
+            fee = parseFloat (whole + '.' + fraction);
+        } else {
+            let fraction = '.';
+            for (let i = 0; i < -dotIndex; i++) {
+                fraction += '0';
+            }
+            fee = parseFloat (fraction + feeString);
+        }
         return {
             'id': code,
             'code': code,
