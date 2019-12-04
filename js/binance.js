@@ -1082,11 +1082,7 @@ module.exports = class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketType = this.options['defaultMarket'];
-        let method = 'privateGetOrder';
-        if (marketType === 'futures') {
-            method = 'fapiPrivateGetOrder';
-        }
+        const method = market['spot'] ? 'privateGetOrder' : 'fapiPrivateGetOrder';
         const request = {
             'symbol': market['id'],
         };
