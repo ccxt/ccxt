@@ -174,6 +174,25 @@ module.exports = class bkex extends Exchange {
         return this.parseOrderBook (data, undefined, 'bids', 'asks', 'price', 'amt');
     }
 
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const query = this.omit (params, 'type');
+        const response = await this.privateGetWalletBalance (query);
+        const balances = this.safeValue (response, 'data');
+        const wallets = this.safeValue (balances, 'WALLET');
+        const result = { 'info': wallets };
+        for (let i = 0; i < wallets.length; i++) {
+            const wallet = wallets[i];
+            const currencyId = wallet['coinType'];
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeFloat (wallet, 'available');
+            account['total'] = this.safeFloat (wallet, 'total');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
