@@ -585,11 +585,7 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
-        const marketType = this.options['defaultMarket'];
-        let method = 'publicGetDepth';
-        if (marketType === 'futures') {
-            method = 'fapiPublicGetDepth';
-        }
+        const method = market['spot'] ? 'publicGetDepth' : 'fapiPublicGetDepth';
         const response = await this[method] (this.extend (request, params));
         const orderbook = this.parseOrderBook (response);
         orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
