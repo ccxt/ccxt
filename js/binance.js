@@ -295,12 +295,87 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const marketType = this.options['defaultMarket'];
-        let method = 'publicGetExchangeInfo';
-        if (marketType === 'futures') {
-            method = 'fapiPublicGetExchangeInfo';
-        }
-        const response = await this[method] (params);
+        const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        const method = (type === 'spot') ? 'publicGetExchangeInfo' : 'fapiPublicGetExchangeInfo';
+        const response = await this[method] (query);
+        //
+        // spot
+        //
+        //     {
+        //         "timezone":"UTC",
+        //         "serverTime":1575416692969,
+        //         "rateLimits":[
+        //             {"rateLimitType":"REQUEST_WEIGHT","interval":"MINUTE","intervalNum":1,"limit":1200},
+        //             {"rateLimitType":"ORDERS","interval":"SECOND","intervalNum":10,"limit":100},
+        //             {"rateLimitType":"ORDERS","interval":"DAY","intervalNum":1,"limit":200000}
+        //         ],
+        //         "exchangeFilters":[],
+        //         "symbols":[
+        //             {
+        //                 "symbol":"ETHBTC",
+        //                 "status":"TRADING",
+        //                 "baseAsset":"ETH",
+        //                 "baseAssetPrecision":8,
+        //                 "quoteAsset":"BTC",
+        //                 "quotePrecision":8,
+        //                 "baseCommissionPrecision":8,
+        //                 "quoteCommissionPrecision":8,
+        //                 "orderTypes":["LIMIT","LIMIT_MAKER","MARKET","STOP_LOSS_LIMIT","TAKE_PROFIT_LIMIT"],
+        //                 "icebergAllowed":true,
+        //                 "ocoAllowed":true,
+        //                 "quoteOrderQtyMarketAllowed":true,
+        //                 "isSpotTradingAllowed":true,
+        //                 "isMarginTradingAllowed":true,
+        //                 "filters":[
+        //                     {"filterType":"PRICE_FILTER","minPrice":"0.00000100","maxPrice":"100000.00000000","tickSize":"0.00000100"},
+        //                     {"filterType":"PERCENT_PRICE","multiplierUp":"5","multiplierDown":"0.2","avgPriceMins":5},
+        //                     {"filterType":"LOT_SIZE","minQty":"0.00100000","maxQty":"100000.00000000","stepSize":"0.00100000"},
+        //                     {"filterType":"MIN_NOTIONAL","minNotional":"0.00010000","applyToMarket":true,"avgPriceMins":5},
+        //                     {"filterType":"ICEBERG_PARTS","limit":10},
+        //                     {"filterType":"MARKET_LOT_SIZE","minQty":"0.00000000","maxQty":"63100.00000000","stepSize":"0.00000000"},
+        //                     {"filterType":"MAX_NUM_ALGO_ORDERS","maxNumAlgoOrders":5}
+        //                 ]
+        //             },
+        //         ],
+        //     }
+        //
+        // futures (fapi)
+        //
+        //     {
+        //         "timezone":"UTC",
+        //         "serverTime":1575417244353,
+        //         "rateLimits":[
+        //             {"rateLimitType":"REQUEST_WEIGHT","interval":"MINUTE","intervalNum":1,"limit":1200},
+        //             {"rateLimitType":"ORDERS","interval":"MINUTE","intervalNum":1,"limit":1200}
+        //         ],
+        //         "exchangeFilters":[],
+        //         "symbols":[
+        //             {
+        //                 "symbol":"BTCUSDT",
+        //                 "status":"TRADING",
+        //                 "maintMarginPercent":"2.5000",
+        //                 "requiredMarginPercent":"5.0000",
+        //                 "baseAsset":"BTC",
+        //                 "quoteAsset":"USDT",
+        //                 "pricePrecision":2,
+        //                 "quantityPrecision":3,
+        //                 "baseAssetPrecision":8,
+        //                 "quotePrecision":8,
+        //                 "filters":[
+        //                     {"minPrice":"0.01","maxPrice":"100000","filterType":"PRICE_FILTER","tickSize":"0.01"},
+        //                     {"stepSize":"0.001","filterType":"LOT_SIZE","maxQty":"1000","minQty":"0.001"},
+        //                     {"stepSize":"0.001","filterType":"MARKET_LOT_SIZE","maxQty":"1000","minQty":"0.001"},
+        //                     {"limit":200,"filterType":"MAX_NUM_ORDERS"},
+        //                     {"multiplierDown":"0.8500","multiplierUp":"1.1500","multiplierDecimal":"4","filterType":"PERCENT_PRICE"}
+        //                 ],
+        //                 "orderTypes":["LIMIT","MARKET","STOP"],
+        //                 "timeInForce":["GTC","IOC","FOK","GTX"]
+        //             }
+        //         ]
+        //     }
+        //
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
@@ -308,6 +383,9 @@ module.exports = class binance extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
+            const future = ('maintMarginPercent' in market);
+            const spot = !future;
+            const marketType = spot ? 'spot' : 'future';
             const id = this.safeString (market, 'symbol');
             const baseId = market['baseAsset'];
             const quoteId = market['quoteAsset'];
@@ -331,6 +409,9 @@ module.exports = class binance extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'type': marketType,
+                'spot': spot,
+                'future': future,
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -1649,7 +1730,7 @@ module.exports = class binance extends Exchange {
                         throw new DDoSProtection (this.id + ' temporary banned: ' + body);
                     }
                     const feedback = this.id + ' ' + body;
-                    this.throwExactlyMatchedException (this.exceptions, message, feedback);
+                    this.throwExactlyMatchedException (this.exceptions, error, feedback);
                     throw new ExchangeError (feedback);
                 }
                 if (!success) {
