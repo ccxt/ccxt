@@ -204,7 +204,7 @@ module.exports = class timex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetPublicMarkets (params);
+        const response = await this.publicGetMarkets (params);
         //
         //     [
         //         {
