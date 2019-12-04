@@ -171,6 +171,55 @@ module.exports = class coindcx extends Exchange {
         };
     }
 
+    async fetchTrades (symbol, since = undefined, limit = 50, params = {}) {
+        // https://coindcx-official.github.io/rest-api/?shell#trades
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketInfo = market['info'];
+        const request = {
+            'pair': this.safeString2 (marketInfo, 'pair', 'id'),
+            'limit': limit,
+        };
+        const response = await this.publicGetTradesSymbol (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        let timestamp = this.safeInteger (trade, 't');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
+        let symbol = undefined;
+        if (market === undefined) {
+            const marketId = this.safeString (trade, 's');
+            market = this.safeValue (this.markets_by_id, marketId);
+        }
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        let takerOrMaker = undefined;
+        if ('m' in trade) {
+            takerOrMaker = trade['m'] ? 'maker' : 'taker';
+        }
+        const price = this.safeFloat (trade, 'p');
+        const amount = this.safeFloat (trade, 'a');
+        return {
+            'id': undefined,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'order': undefined,
+            'type': undefined,
+            'takerOrMaker': takerOrMaker,
+            'side': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': price * amount,
+            'fee': undefined,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         // console.log (path, api, method, headers, body);
         const base = this.urls['api'][api];
