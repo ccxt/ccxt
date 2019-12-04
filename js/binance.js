@@ -1161,22 +1161,26 @@ module.exports = class binance extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
+        let query = undefined;
+        let type = undefined;
         const request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
+            type = market['type'];
+            query = params;
         } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
             const symbols = this.symbols;
             const numSymbols = symbols.length;
             const fetchOpenOrdersRateLimit = parseInt (numSymbols / 2);
             throw new ExchangeError (this.id + ' fetchOpenOrders WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
+        } else {
+            const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
+            type = this.safeString (params, 'type', defaultType);
+            query = this.omit (params, 'type');
         }
-        const marketType = this.options['defaultMarket'];
-        let method = 'privateGetOpenOrders';
-        if (marketType === 'futures') {
-            method = 'fapiPrivateGetOpenOrders';
-        }
-        const response = await this[method] (this.extend (request, params));
+        const method = (type === 'spot') ? 'privateGetOpenOrders' : 'fapiPrivateGetOpenOrders';
+        const response = await this[method] (this.extend (request, query));
         return this.parseOrders (response, market, since, limit);
     }
 
