@@ -1200,11 +1200,7 @@ module.exports = class binance extends Exchange {
             'orderId': parseInt (id),
             // 'origClientOrderId': id,
         };
-        const marketType = this.options['defaultMarket'];
-        let method = 'privateDeleteOrder';
-        if (marketType === 'futures') {
-            method = 'fapiPrivateDeleteOrder';
-        }
+        const method = market['spot'] ? 'privateDeleteOrder' : 'fapiPrivateDeleteOrder';
         const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response);
     }
