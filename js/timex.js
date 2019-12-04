@@ -193,7 +193,9 @@ module.exports = class timex extends Exchange {
                 '503': ExchangeNotAvailable,
             },
             'options': {
-                'defaultPeriod': '1d',
+                'fetchTickers': {
+                    'period': '1d',
+                },
                 'defaultSort': 'timestamp,asc',
                 'defaultSortOrders': 'createdAt,asc',
             },
@@ -267,22 +269,59 @@ module.exports = class timex extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
+        const period = this.safeString (this.options['fetchTickers'], 'period', '1d');
         const request = {
-            'period': this.timeframes[this.options['defaultPeriod']],
+            'period': this.timeframes[period], // I1, I5, I15, I30, H1, H2, H4, H6, H12, D1, W1
         };
-        const response = await this.publicGetPublicTickers (this.extend (request, params));
+        const response = await this.publicGetTickers (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "ask": 0.017,
+        //             "bid": 0.016,
+        //             "high": 0.019,
+        //             "last": 0.017,
+        //             "low": 0.015,
+        //             "market": "TIME/ETH",
+        //             "open": 0.016,
+        //             "period": "H1",
+        //             "timestamp": "2018-12-14T20:50:36.134Z",
+        //             "volume": 4.57,
+        //             "volumeQuote": 0.07312
+        //         }
+        //     ]
+        //
         return this.parseTickers (response, symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const period = this.safeString (this.options['fetchTickers'], 'period', '1d');
         const request = {
             'market': market['id'],
-            'period': this.timeframes[this.options['defaultPeriod']],
+            'period': this.timeframes[period], // I1, I5, I15, I30, H1, H2, H4, H6, H12, D1, W1
         };
-        const response = await this.publicGetPublicTickers (this.extend (request, params));
-        return this.parseTicker (response.shift (), market);
+        const response = await this.publicGetTickers (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "ask": 0.017,
+        //             "bid": 0.016,
+        //             "high": 0.019,
+        //             "last": 0.017,
+        //             "low": 0.015,
+        //             "market": "TIME/ETH",
+        //             "open": 0.016,
+        //             "period": "H1",
+        //             "timestamp": "2018-12-14T20:50:36.134Z",
+        //             "volume": 4.57,
+        //             "volumeQuote": 0.07312
+        //         }
+        //     ]
+        //
+        const ticker = this.safeValue (response, 0);
+        return this.parseTicker (ticker, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -654,12 +693,38 @@ module.exports = class timex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        const symbol = this.findSymbol (this.safeString (ticker, 'market'), market);
+        //
+        //     {
+        //         "ask": 0.017,
+        //         "bid": 0.016,
+        //         "high": 0.019,
+        //         "last": 0.017,
+        //         "low": 0.015,
+        //         "market": "TIME/ETH",
+        //         "open": 0.016,
+        //         "period": "H1",
+        //         "timestamp": "2018-12-14T20:50:36.134Z",
+        //         "volume": 4.57,
+        //         "volumeQuote": 0.07312
+        //     }
+        //
+        let symbol = undefined;
+        const marketId = this.safeString (ticker, 'market');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('/');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
-        const high = this.safeFloat (ticker, 'high');
-        const low = this.safeFloat (ticker, 'low');
-        const bid = this.safeFloat (ticker, 'bid');
-        const ask = this.safeFloat (ticker, 'ask');
         const last = this.safeFloat (ticker, 'last');
         const open = this.safeFloat (ticker, 'open');
         let change = undefined;
@@ -672,18 +737,16 @@ module.exports = class timex extends Exchange {
         if (change !== undefined && open) {
             percentage = (change / open) * 100;
         }
-        const baseVolume = this.safeFloat (ticker, 'volume');
-        const quoteVolume = this.safeFloat (ticker, 'volumeQuote');
         return {
             'symbol': symbol,
             'info': ticker,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': high,
-            'low': low,
-            'bid': bid,
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': ask,
+            'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -693,8 +756,8 @@ module.exports = class timex extends Exchange {
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'quoteVolume': this.safeFloat (ticker, 'volumeQuote'),
         };
     }
 
@@ -847,7 +910,8 @@ module.exports = class timex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + api + '/' + path;
         if (Object.keys (params).length) {
-            url += '?' + this.urlencodewitharrayrepeat (params);
+            // url += '?' + this.urlencodewitharrayrepeat (params);
+            url += '?' + this.urlencode (params);
         }
         if (api === 'private') {
             const secret = 'Basic ' + this.stringToBase64 (this.apiKey + ':' + this.secret);
