@@ -996,13 +996,10 @@ module.exports = class binance extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        const marketType = this.options['defaultMarket'];
         const market = this.market (symbol);
         // the next 5 lines are added to support for testing orders
-        let method = 'privatePostOrder';
-        if (marketType === 'futures') {
-            method = 'fapiPrivatePostOrder';
-        } else {
+        let method = market['spot'] ? 'privatePostOrder' : 'fapiPrivatePostOrder';
+        if (market['spot']) {
             const test = this.safeValue (params, 'test', false);
             if (test) {
                 method += 'Test';
@@ -1011,7 +1008,7 @@ module.exports = class binance extends Exchange {
         }
         const uppercaseType = type.toUpperCase ();
         const marketOrderType = {
-            'spotMargin': [
+            'spot': [
                 'LIMIT',
                 'MARKET',
                 'STOP_LOSS',
@@ -1020,15 +1017,15 @@ module.exports = class binance extends Exchange {
                 'TAKE_PROFIT_LIMIT',
                 'LIMIT_MAKER',
             ],
-            'futures': [
+            'future': [
                 'LIMIT',
                 'MARKET',
                 'STOP',
             ],
         };
-        const validOrderTypes = this.safeValue (marketOrderType, marketType, []);
+        const validOrderTypes = this.safeValue (marketOrderType, market['type'], []);
         if (!this.inArray (uppercaseType, validOrderTypes)) {
-            throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type in ' + marketType + ' market');
+            throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type in ' + market['type'] + ' market ' + symbol);
         }
         const request = {
             'symbol': market['id'],
@@ -1036,7 +1033,7 @@ module.exports = class binance extends Exchange {
             'type': uppercaseType,
             'side': side.toUpperCase (),
         };
-        if (marketType === 'spotMargin') {
+        if (market['spot']) {
             request['newOrderRespType'] = this.safeValue (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         }
         let timeInForceIsRequired = false;
