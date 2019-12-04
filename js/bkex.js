@@ -24,8 +24,7 @@ module.exports = class bkex extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchOHLCV': false,
-                'fetchOrderBook': false,
-                'fetchL2OrderBook': false,
+                'fetchOrderBook': true,
                 'fetchTrades': false,
             },
             'urls': {
@@ -160,6 +159,19 @@ module.exports = class bkex extends Exchange {
             'quoteVolume': undefined,
             'info': ticker,
         };
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'pair': this.marketId (symbol),
+        };
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this.publicGetQDepth (this.extend (request, params));
+        const data = this.safeValue (response, 'data');
+        return this.parseOrderBook (data, undefined, 'bids', 'asks', 'price', 'amt');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
