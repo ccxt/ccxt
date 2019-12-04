@@ -44,13 +44,13 @@ module.exports = class coindcx extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchOrderBook': true,
+                'fetchOHLCV': true,
                 'cancelOrder': false,
                 'createLimitOrder': false,
                 'createMarketOrder': false,
                 'createOrder': false,
                 'editOrder': false,
                 'fetchBalance': false,
-                'fetchOHLCV': false,
                 'fetchStatus': false,
             },
             'timeframes': {
@@ -257,6 +257,36 @@ module.exports = class coindcx extends Exchange {
             parsedData.push ([price, amount]);
         }
         return parsedData;
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        // https://coindcx-official.github.io/rest-api/?shell#candles
+        await this.loadMarkets ();
+        if (limit === undefined) {
+            limit = 500; // coindcx default
+        }
+        if (limit > 1000) {
+            limit = 1000; // coindcx limitation
+        }
+        const market = this.market (symbol);
+        const request = {
+            'pair': this.safeString (market, 'id'),
+            'interval': this.timeframes[timeframe],
+            'limit': limit,
+        };
+        const response = await this.publicGetMarketDataCandles (this.extend (request, params));
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            this.safeInteger (ohlcv, 'time'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
+        ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
