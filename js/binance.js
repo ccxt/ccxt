@@ -243,7 +243,7 @@ module.exports = class binance extends Exchange {
                 'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType': 'limit', // or 'limit_maker'
-                'defaultMarket': 'spotMargin', // 'spotMargin', 'futures'
+                'defaultType': 'spot', // 'spot', 'future'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 'recvWindow': 5 * 1000, // 5 sec, binance default
