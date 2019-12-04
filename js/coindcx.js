@@ -39,7 +39,10 @@ module.exports = class coindcx extends Exchange {
                     ],
                 },
             },
-            'has': {},
+            'has': {
+                'fetchTicker': 'emulated',
+                'fetchTickers': true,
+            },
             'timeframes': {
                 '1m': '1m',
                 '5m': '5m',
@@ -77,8 +80,8 @@ module.exports = class coindcx extends Exchange {
                 active = true;
             }
             const precision = {
-                'price': market['base_currency_precision'],
-                'amount': market['target_currency_precision'],
+                'price': this.safeFloat (market, 'base_currency_precision'),
+                'amount': this.safeFloat (market, 'target_currency_precision'),
             };
             const limits = {
                 'amount': {
@@ -108,7 +111,6 @@ module.exports = class coindcx extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        console.log (this.markets)
         const response = await this.generalGetExchangeTicker (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
@@ -122,20 +124,51 @@ module.exports = class coindcx extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const response = await this.generalGetExchangeTicker (params);
-        const result = {};
+        let result = {};
+        const market = this.findMarket (symbol);
+        const marketId = market['id'];
+        if (marketId === undefined) {
+            return result;
+        }
         for (let i = 0; i < response.length; i++) {
-            if (response[i].market !== this.markets[symbol]['id']) {
+            if (response[i]['market'] !== marketId) {
                 continue;
             }
-            const ticker = this.parseTicker (response[i]);
-            const parsedSymbol = ticker['symbol'];
-            result[parsedSymbol] = ticker;
+            result = this.parseTicker (response[i]);
+            break;
         }
         return result;
     }
 
     parseTicker (ticker) {
-        return ticker;
+        let timestamp = this.safeInteger (ticker, 'timestamp');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
+        const symbol = this.findSymbol (this.safeString (ticker, 'market'));
+        const last = this.safeFloat (ticker, 'lastPrice');
+        return {
+            'symbol': symbol,
+            'info': ticker,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': this.safeFloat (ticker, 'last_price'),
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'quoteVolume': undefined,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
