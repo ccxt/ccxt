@@ -190,18 +190,9 @@ class bytetrade extends Exchange {
                 ),
                 'fee' => null,
                 'limits' => array (
-                    'amount' => array (
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'price' => array (
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array (
-                        'min' => null,
-                        'max' => null,
-                    ),
+                    'amount' => array( 'min' => null, 'max' => null ),
+                    'price' => array( 'min' => null, 'max' => null ),
+                    'cost' => array( 'min' => null, 'max' => null ),
                     'deposit' => array (
                         'min' => $this->safe_float($deposit, 'min'),
                         'max' => $maxDeposit,
@@ -234,14 +225,10 @@ class bytetrade extends Exchange {
                 $quote = $this->commonCurrencies[$quoteId];
             }
             $symbol = $base . '/' . $quote;
-            $amountMin = $this->safe_float($market['limits']['amount'], 'min');
-            $amountMax = $this->safe_float($market['limits']['amount'], 'max');
-            $priceMin = $this->safe_float($market['limits']['price'], 'min');
-            $priceMax = $this->safe_float($market['limits']['price'], 'max');
-            $precision = array (
-                'amount' => $this->safe_integer($market['precision'], 'amount'),
-                'price' => $this->safe_integer($market['precision'], 'price'),
-            );
+            $limits = $this->safe_value($market, 'limits', array());
+            $amount = $this->safe_value($limits, 'amount', array());
+            $price = $this->safe_value($limits, 'price', array());
+            $precision = $this->safe_value($market, 'precision', array());
             $active = $this->safe_string($market, 'active');
             $normalBase = explode('@', $base)[0];
             $normalQuote = explode('@', $quote)[0];
@@ -255,16 +242,19 @@ class bytetrade extends Exchange {
                 'quoteId' => $quoteId,
                 'info' => $market,
                 'active' => $active,
-                'precision' => $precision,
+                'precision' => array (
+                    'amount' => $this->safe_integer($precision, 'amount'),
+                    'price' => $this->safe_integer($precision, 'price'),
+                ),
                 'normalSymbol' => $normalSymbol,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $amountMin,
-                        'max' => $amountMax,
+                        'min' => $this->safe_float($amount, 'min'),
+                        'max' => $this->safe_float($amount, 'max'),
                     ),
                     'price' => array (
-                        'min' => $priceMin,
-                        'max' => $priceMax,
+                        'min' => $this->safe_float($price, 'min'),
+                        'max' => $this->safe_float($price, 'max'),
                     ),
                     'cost' => array (
                         'min' => null,

@@ -195,18 +195,9 @@ class bytetrade(Exchange):
                 },
                 'fee': None,
                 'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
+                    'amount': {'min': None, 'max': None},
+                    'price': {'min': None, 'max': None},
+                    'cost': {'min': None, 'max': None},
                     'deposit': {
                         'min': self.safe_float(deposit, 'min'),
                         'max': maxDeposit,
@@ -235,14 +226,10 @@ class bytetrade(Exchange):
             if quoteId in self.commonCurrencies:
                 quote = self.commonCurrencies[quoteId]
             symbol = base + '/' + quote
-            amountMin = self.safe_float(market['limits']['amount'], 'min')
-            amountMax = self.safe_float(market['limits']['amount'], 'max')
-            priceMin = self.safe_float(market['limits']['price'], 'min')
-            priceMax = self.safe_float(market['limits']['price'], 'max')
-            precision = {
-                'amount': self.safe_integer(market['precision'], 'amount'),
-                'price': self.safe_integer(market['precision'], 'price'),
-            }
+            limits = self.safe_value(market, 'limits', {})
+            amount = self.safe_value(limits, 'amount', {})
+            price = self.safe_value(limits, 'price', {})
+            precision = self.safe_value(market, 'precision', {})
             active = self.safe_string(market, 'active')
             normalBase = base.split('@')[0]
             normalQuote = quote.split('@')[0]
@@ -256,16 +243,19 @@ class bytetrade(Exchange):
                 'quoteId': quoteId,
                 'info': market,
                 'active': active,
-                'precision': precision,
+                'precision': {
+                    'amount': self.safe_integer(precision, 'amount'),
+                    'price': self.safe_integer(precision, 'price'),
+                },
                 'normalSymbol': normalSymbol,
                 'limits': {
                     'amount': {
-                        'min': amountMin,
-                        'max': amountMax,
+                        'min': self.safe_float(amount, 'min'),
+                        'max': self.safe_float(amount, 'max'),
                     },
                     'price': {
-                        'min': priceMin,
-                        'max': priceMax,
+                        'min': self.safe_float(price, 'min'),
+                        'max': self.safe_float(price, 'max'),
                     },
                     'cost': {
                         'min': None,
