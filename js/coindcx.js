@@ -49,6 +49,7 @@ module.exports = class coindcx extends Exchange {
                         'exchange/v1/users/balances',
                         'exchange/v1/orders/create',
                         'exchange/v1/orders/status',
+                        'exchange/v1/orders/active_orders',
                         'exchange/v1/orders/trade_history',
                     ],
                 },
@@ -61,10 +62,11 @@ module.exports = class coindcx extends Exchange {
                 'fetchOHLCV': true,
                 'fetchBalance': true,
                 'fetchOrder': true,
+                'fetchOpenOrders': true,
+                'createLimitOrder': true,
+                'createMarketOrder': true,
+                'createOrder': true,
                 'cancelOrder': false,
-                'createLimitOrder': false,
-                'createMarketOrder': false,
-                'createOrder': false,
                 'editOrder': false,
                 'fetchStatus': false,
             },
@@ -355,9 +357,40 @@ module.exports = class coindcx extends Exchange {
         return this.parseOrder (response);
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol !== undefined) {
+            if (!(symbol in this.markets)) {
+                throw new ExchangeError (this.id + ' has no symbol ' + symbol);
+            }
+        }
+        const market = this.market (symbol);
+        const marketInfo = this.safeValue (market, 'info');
+        const request = {
+            'market': this.safeValue (marketInfo, 'symbol'),
+            'timestamp': this.milliseconds (),
+        };
+        const response = await this.privatePostExchangeV1OrdersActiveOrders (this.extend (request, params));
+        const orders = this.safeValue (response, 'orders');
+        if (orders !== undefined) {
+            const parsedOrders = this.parseOrders (orders, market, since, limit);
+            return parsedOrders;
+        } else {
+            throw new ExchangeError ('No order received');
+        }
+        // if (symbol !== undefined) {
+        //     orders = this.filterBy (orders, 'symbol', symbol);
+        // }
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         // https://coindcx-official.github.io/rest-api/?javascript#new-order
         await this.loadMarkets ();
+        if (symbol !== undefined) {
+            if (!(symbol in this.markets)) {
+                throw new ExchangeError (this.id + ' has no symbol ' + symbol);
+            }
+        }
         const market = this.market (symbol);
         const marketInfo = this.safeValue (market, 'info');
         let orderType = 'limit_order';
@@ -386,8 +419,14 @@ module.exports = class coindcx extends Exchange {
     parseOrder (order, market = undefined) {
         // console.log (order, market);
         const id = this.safeString (order, 'id');
-        const timestamp = this.safeInteger (order, 'created_at');
-        const lastTradeTimestamp = this.safeInteger (order, 'updated_at');
+        let timestamp = this.safeValue (order, 'created_at');
+        if (this.isString (timestamp)) {
+            timestamp = this.parseDate (timestamp);
+        }
+        let lastTradeTimestamp = this.safeValue (order, 'updated_at');
+        if (this.isString (lastTradeTimestamp)) {
+            lastTradeTimestamp = this.parseDate (lastTradeTimestamp);
+        }
         let status = this.safeString (order, 'status');
         if (status === 'partially_filled') {
             status = 'open';
