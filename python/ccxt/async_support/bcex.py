@@ -325,18 +325,9 @@ class bcex(Exchange):
                     },
                     # overrided by defaults from self.options['limits']
                     'limits': {
-                        'amount': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'price': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'cost': {
-                            'min': None,
-                            'max': None,
-                        },
+                        'amount': {'min': None, 'max': None},
+                        'price': {'min': None, 'max': None},
+                        'cost': {'min': None, 'max': None},
                     },
                     'info': market,
                 }, defaults))

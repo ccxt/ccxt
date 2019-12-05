@@ -466,7 +466,7 @@ class bitmax(Exchange):
         if since is not None:
             request['from'] = since
             if limit is not None:
-                request['to'] = self.sum(request['from'], limit * duration * 1000, 1)
+                request['to'] = self.sum(since, limit * duration * 1000, 1)
         elif limit is not None:
             request['to'] = self.milliseconds()
             request['from'] = request['to'] - limit * duration * 1000 - 1
