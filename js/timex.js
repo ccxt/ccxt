@@ -677,7 +677,7 @@ module.exports = class timex extends Exchange {
         const sort = this.safeString (params, 'sort', defaultSort);
         const query = this.omit (params, 'sort');
         const request = {
-            'clientOrderId': '123', // order’s client id list for filter
+            // 'clientOrderId': '123', // order’s client id list for filter
             // page: 0, // results page you want to retrieve (0 .. N)
             'sort': sort, // sorting criteria in the format "property,asc" or "property,desc", default order is ascending, multiple sort criteria are supported
         };
@@ -717,19 +717,52 @@ module.exports = class timex extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        const options = this.safeValue (this.options, 'fetchClosedOrders', {});
+        const defaultSort = this.safeValue (options, 'sort', 'createdAt,asc');
+        const sort = this.safeString (params, 'sort', defaultSort);
+        const query = this.omit (params, 'sort');
         const request = {
-            'sort': this.options['defaultSortOrders'],
+            // 'clientOrderId': '123', // order’s client id list for filter
+            // page: 0, // results page you want to retrieve (0 .. N)
+            'sort': sort,
+            'side': 'BUY', // or 'SELL'
+            // 'till': this.iso8601 (this.milliseconds ()),
         };
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
+        if (since !== undefined) {
+            request['from'] = this.iso8601 (since);
+        }
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this.privateGetHistoryOrders (this.extend (request, params));
-        return this.parseOrders (response['orders'], market, since, limit);
+        const response = await this.privateGetHistoryOrders (this.extend (request, query));
+        //
+        //     {
+        //         "orders": [
+        //             {
+        //                 "cancelledQuantity": "0.3",
+        //                 "clientOrderId": "my-order-1",
+        //                 "createdAt": "1970-01-01T00:00:00",
+        //                 "cursorId": 50,
+        //                 "expireTime": "1970-01-01T00:00:00",
+        //                 "filledQuantity": "0.3",
+        //                 "id": "string",
+        //                 "price": "0.017",
+        //                 "quantity": "0.3",
+        //                 "side": "BUY",
+        //                 "symbol": "TIMEETH",
+        //                 "type": "LIMIT",
+        //                 "updatedAt": "1970-01-01T00:00:00"
+        //             }
+        //         ]
+        //     }
+        //
+        const orders = this.safeValue (response, 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1091,7 +1124,7 @@ module.exports = class timex extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // fetchOrder, createOrder, cancelOrder, cancelOrders
+        // fetchOrder, createOrder, cancelOrder, cancelOrders, fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         "cancelledQuantity": "0.3",
