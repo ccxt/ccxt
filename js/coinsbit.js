@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors');
-const { isArray } = require ('./base/functions/type');
 
 //  ---------------------------------------------------------------------------
 
@@ -61,17 +60,6 @@ module.exports = class coinsbit extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetMarkets (params);
-        const isSuccess = this.safeValue (response, 'success');
-        const message = this.safeValue (response, 'message');
-        if (!isSuccess) {
-            let errorMessage = '';
-            if (isArray (message)) {
-                errorMessage = message[0];
-            } else {
-                errorMessage = message;
-            }
-            throw new ExchangeError (this.id + ' publicGetMarkets returned response with error:' + errorMessage);
-        }
         const marketsList = this.safeValue (response, 'result');
         const parsedMarketList = [];
         for (let marketIndex = 0; marketIndex < marketsList.length; marketIndex++) {
@@ -101,7 +89,6 @@ module.exports = class coinsbit extends Exchange {
                     'max': undefined,
                 },
             };
-            const info = market;
             parsedMarketList.push ({
                 'id': id,
                 'symbol': symbol,
@@ -112,7 +99,7 @@ module.exports = class coinsbit extends Exchange {
                 'active': isActive,
                 'precision': precision,
                 'limits': limits,
-                'info': info,
+                'info': market,
             });
         }
         return parsedMarketList;
@@ -145,5 +132,24 @@ module.exports = class coinsbit extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return;
+        }
+        if (code >= 200) {
+            if (body.indexOf ('Server Error') >= 0) {
+                throw new ExchangeError (this.id + ' Server Error');
+            }
+        }
+        if (body.length > 0) {
+            if (body[0] === '{') {
+                const isSuccess = this.safeValue (response, 'success');
+                if (!isSuccess) {
+                    throw new ExchangeError (this.name + ' error: ' + this.json (this.safeValue (response, 'message')));
+                }
+            }
+        }
     }
 };
