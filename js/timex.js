@@ -1025,29 +1025,16 @@ module.exports = class timex extends Exchange {
             return;
         }
         if (statusCode >= 400) {
-            if (responseBody[0] === '{') {
-                let error = response;
-                if (this.isObject (response['error'])) {
-                    error = response['error'];
-                }
-                const errorCode = this.safeInteger (error, 'code') || this.safeInteger (error, 'status');
-                let message = this.safeString (error, 'message') || this.safeString (error, 'debugMessage');
-                const ExceptionClass = this.safeValue2 (this.exceptions, message, errorCode);
-                if (message === 'Validation error') {
-                    const fieldErrors = error['subErrors'];
-                    const messages = [];
-                    for (let i = 0; i < fieldErrors.length; ++i) {
-                        const fieldError = fieldErrors[i];
-                        messages.push (fieldError['field'] + ' ' + fieldError['problem']);
-                    }
-                    message = messages.join ('; ');
-                }
-                if (ExceptionClass !== undefined) {
-                    throw new ExceptionClass (this.id + ' ' + message);
-                }
-                const feedback = this.id + ' ' + responseBody;
-                throw new ExchangeError (feedback);
+            const feedback = this.id + ' ' + responseBody;
+            let error = this.safeValue (response, 'error');
+            if (error === undefined) {
+                error = response;
             }
+            const code = this.safeString2 (error, 'code', 'status');
+            const message = this.safeString2 (error, 'message', 'debugMessage');
+            this.throwExactlyMatchedException (this.exceptions, code);
+            this.throwExactlyMatchedException (this.exceptions, message);
+            throw new ExchangeError (feedback);
         }
     }
 };
