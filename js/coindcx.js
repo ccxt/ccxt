@@ -93,18 +93,18 @@ module.exports = class coindcx extends Exchange {
         for (let i = 0; i < details.length; i++) {
             const market = details[i];
             const id = this.safeString (market, 'pair');
-            const baseId = this.safeString (market, 'base_currency_short_name');
-            const base = this.safeCurrencyCode (baseId);
-            const quoteId = this.safeString (market, 'target_currency_short_name');
+            const quoteId = this.safeString (market, 'base_currency_short_name');
             const quote = this.safeCurrencyCode (quoteId);
+            const baseId = this.safeString (market, 'target_currency_short_name');
+            const base = this.safeCurrencyCode (baseId);
             const symbol = base + '/' + quote;
             let active = false;
             if (market['status'] === 'active') {
                 active = true;
             }
             const precision = {
-                'price': this.safeFloat (market, 'base_currency_precision'),
-                'amount': this.safeFloat (market, 'target_currency_precision'),
+                'amount': this.safeFloat (market, 'base_currency_precision'),
+                'price': this.safeFloat (market, 'target_currency_precision'),
             };
             const limits = {
                 'amount': {
