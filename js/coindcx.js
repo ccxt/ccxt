@@ -46,6 +46,7 @@ module.exports = class coindcx extends Exchange {
                 'private': {
                     'post': [
                         'exchange/v1/users/balances',
+                        'exchange/v1/orders/status',
                         'exchange/v1/orders/trade_history',
                     ],
                 },
@@ -332,11 +333,15 @@ module.exports = class coindcx extends Exchange {
         // https://coindcx-official.github.io/rest-api/?javascript#account-trade-history
         await this.loadMarkets ();
         const request = {
-            'from_id': parseInt (id),
-            'limit': parseInt (1),
+            'id': parseInt (id),
         };
-        const response = await this.privatePostExchangeV1OrdersTradeHistory (this.extend (request, params));
+        const response = await this.privatePostExchangeV1OrdersStatus (this.extend (request, params));
         return this.parseOrder (response);
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        // https://coindcx-official.github.io/rest-api/?javascript#new-order
+        await this.loadMarkets ();
     }
 
     parseOrder (order, market = undefined) {
