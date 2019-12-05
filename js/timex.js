@@ -377,6 +377,19 @@ module.exports = class timex extends Exchange {
             request['till'] = this.iso8601 (this.milliseconds ());
         }
         const response = await this.publicGetCandles (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "timestamp":"2019-12-04T23:00:00",
+        //             "open":"0.02024009",
+        //             "high":"0.02024009",
+        //             "low":"0.02024009",
+        //             "close":"0.02024009",
+        //             "volume":"0.00008096036",
+        //             "volumeQuote":"0.004",
+        //         },
+        //     ]
+        //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
@@ -832,13 +845,24 @@ module.exports = class timex extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     {
+        //         "timestamp":"2019-12-04T23:00:00",
+        //         "open":"0.02024009",
+        //         "high":"0.02024009",
+        //         "low":"0.02024009",
+        //         "close":"0.02024009",
+        //         "volume":"0.00008096036",
+        //         "volumeQuote":"0.004",
+        //     }
+        //
         return [
             this.parse8601 (this.safeString (ohlcv, 'timestamp')),
-            parseFloat (ohlcv['open']),
-            parseFloat (ohlcv['high']),
-            parseFloat (ohlcv['low']),
-            parseFloat (ohlcv['close']),
-            parseFloat (ohlcv['volume']),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
         ];
     }
 
