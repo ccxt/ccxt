@@ -185,22 +185,10 @@ class ftx extends Exchange {
                 'fee' => null,
                 'precision' => null,
                 'limits' => array (
-                    'amount' => array (
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'price' => array (
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array (
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'withdraw' => array (
-                        'min' => null,
-                        'max' => null,
-                    ),
+                    'withdraw' => array( 'min' => null, 'max' => null ),
+                    'amount' => array( 'min' => null, 'max' => null ),
+                    'price' => array( 'min' => null, 'max' => null ),
+                    'cost' => array( 'min' => null, 'max' => null ),
                 ),
             );
         }
