@@ -105,6 +105,49 @@ module.exports = class coinsbit extends Exchange {
         return parsedMarketList;
     }
 
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const timestamp = this.milliseconds ();
+        const response = await this.publicGetTicker (this.extend ({ 'market': market['id'] }, params));
+        const ticker = this.safeValue (response, 'result');
+        const dateTime = this.iso8601 (timestamp);
+        const high = this.safeFloat (ticker, 'high');
+        const low = this.safeFloat (ticker, 'low');
+        const bid = this.safeFloat (ticker, 'bid');
+        const ask = this.safeFloat (ticker, 'ask');
+        const open = this.safeFloat (ticker, 'open');
+        const close = this.safeFloat (ticker, 'last');
+        const last = this.safeFloat (ticker, 'last');
+        const change = last - open;
+        const percentage = (change / open) * 100;
+        const average = (last + open) / 2;
+        const baseVolume = this.safeFloat (ticker, 'volume');
+        const quoteVolume = this.safeFloat (ticker, 'deal');
+        return {
+            'symbol': symbol,
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': dateTime,
+            'high': high,
+            'low': low,
+            'bid': bid,
+            'bidVolume': undefined,
+            'ask': ask,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': open,
+            'close': close,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + this.version + '/' + api + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
