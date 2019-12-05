@@ -46,6 +46,7 @@ module.exports = class coindcx extends Exchange {
                 'private': {
                     'post': [
                         'exchange/v1/users/balances',
+                        'exchange/v1/orders/trade_history',
                     ],
                 },
             },
@@ -56,6 +57,7 @@ module.exports = class coindcx extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOHLCV': true,
                 'fetchBalance': true,
+                'fetchOrder': true,
                 'cancelOrder': false,
                 'createLimitOrder': false,
                 'createMarketOrder': false,
@@ -324,6 +326,85 @@ module.exports = class coindcx extends Exchange {
             }
         }
         return result;
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        // https://coindcx-official.github.io/rest-api/?javascript#account-trade-history
+        await this.loadMarkets ();
+        const request = {
+            'from_id': parseInt (id),
+            'limit': parseInt (1),
+        };
+        const response = await this.privatePostExchangeV1OrdersTradeHistory (this.extend (request, params));
+        return this.parseOrder (response);
+    }
+
+    parseOrder (order, market = undefined) {
+        const id = this.safeString (order, 'id');
+        let timestamp = this.safeString (order, 'created_at');
+        if (timestamp) {
+            timestamp = this.parseDate (timestamp);
+        }
+        let lastTradeTimestamp = this.safeString (order, 'updated_at');
+        if (lastTradeTimestamp) {
+            lastTradeTimestamp = this.parseDate (lastTradeTimestamp);
+        }
+        const datetime = this.iso8601 (timestamp);
+        let status = this.safeString (order, 'status');
+        if (status === 'partially_filled') {
+            status = 'open';
+        } else if (status === 'filled') {
+            status = 'closed';
+        } else if (status === 'cancelled') {
+            status = 'canceled';
+        } else if (status === 'rejected') {
+            status = 'canceled';
+        } else if (status === 'partially_cancelled') {
+            status = 'canceled';
+        } else if (status === 'partially_cancelled') {
+            status = 'open';
+        }
+        const marketId = this.safeString (market, 'market');
+        const symbol = this.findSymbol (marketId);
+        if (market === undefined) {
+            market = this.safeValue (this.markets_by_id, marketId);
+        }
+        let quoteSymbol = undefined;
+        let fee = undefined;
+        if (market !== undefined) {
+            quoteSymbol = this.safeString (market, 'quote');
+            if (quoteSymbol !== undefined) {
+                fee = {
+                    'currency': quoteSymbol,
+                    'cost': this.float (order, 'fee'),
+                    'rate': this.float (order, 'fee_amount'),
+                };
+            }
+        }
+        let type = this.safeString (order, 'order_type');
+        if (type === 'market_order') {
+            type = 'market';
+        } else if (type === 'limit_order') {
+            type = 'limit';
+        }
+        return {
+            'id': id,
+            'datetime': datetime,
+            'timestamp': timestamp,
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': this.safeString (order, 'side'),
+            'price': this.safeFloat2 (order, 'price', 'price_per_unit'),
+            'amount': this.safeFloat (order, 'total_quantity'),
+            'filled': undefined,
+            'remaining': undefined,
+            'cost': undefined,
+            'trades': undefined,
+            'fee': fee,
+            'info': order,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
