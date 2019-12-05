@@ -23,6 +23,11 @@ module.exports = class coindcx extends Exchange {
                 'fees': 'https://coindcx.com/fees',
             },
             'version': 'v1',
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'token': false,
+            },
             'api': {
                 'general': {
                     'get': [
@@ -38,6 +43,11 @@ module.exports = class coindcx extends Exchange {
                         'market_data/candles',
                     ],
                 },
+                'private': {
+                    'post': [
+                        'exchange/v1/users/balances',
+                    ],
+                },
             },
             'has': {
                 'fetchTicker': 'emulated',
@@ -45,12 +55,12 @@ module.exports = class coindcx extends Exchange {
                 'fetchTrades': true,
                 'fetchOrderBook': true,
                 'fetchOHLCV': true,
+                'fetchBalance': true,
                 'cancelOrder': false,
                 'createLimitOrder': false,
                 'createMarketOrder': false,
                 'createOrder': false,
                 'editOrder': false,
-                'fetchBalance': false,
                 'fetchStatus': false,
             },
             'timeframes': {
@@ -289,15 +299,53 @@ module.exports = class coindcx extends Exchange {
         ];
     }
 
+    async fetchBalance (params = {}) {
+        // https://coindcx-official.github.io/rest-api/?javascript#get-balances
+        await this.loadMarkets ();
+        const timeStamp = this.now ();
+        const body = {
+            'timestamp': timeStamp,
+        };
+        const response = await this.privatePostExchangeV1UsersBalances (this.extend (body, params));
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            if (!(code in result)) {
+                const account = this.account ();
+                const free = this.safeFloat (balance, 'balance');
+                const used = this.safeFloat (balance, 'locked_balance');
+                const total = parseFloat (free + used);
+                account['free'] = free;
+                account['used'] = used;
+                account['total'] = total;
+                result[code] = account;
+            }
+        }
+        return result;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         // console.log (path, api, method, params, headers, body);
         const base = this.urls['api'][api];
-        let url = base + '/' + path;
+        const request = '/' + this.implodeParams (path, params);
+        let url = base + request;
         const query = this.omit (params, this.extractParams (path));
         if (Object.keys (query).length) {
             const suffix = '?' + this.urlencode (query);
             url += suffix;
         }
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            body = this.json (query);
+            const signature = this.hmac (this.encode (body), this.encode (this.secret));
+            headers = {
+                'X-AUTH-APIKEY': this.apiKey,
+                'X-AUTH-SIGNATURE': signature,
+            };
+        }
+        // console.log (url, method, body, headers);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
