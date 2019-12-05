@@ -339,7 +339,31 @@ module.exports = class timex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetPublicOrderbookV2 (this.extend (request, params));
+        const response = await this.publicGetOrderbookV2 (this.extend (request, params));
+        //
+        //     {
+        //         "timestamp":"2019-12-05T00:21:09.538",
+        //         "bid":[
+        //             {
+        //                 "index":"2",
+        //                 "price":"0.02024007",
+        //                 "baseTokenAmount":"0.0096894",
+        //                 "baseTokenCumulativeAmount":"0.0096894",
+        //                 "quoteTokenAmount":"0.000196114134258",
+        //                 "quoteTokenCumulativeAmount":"0.000196114134258"
+        //             },
+        //         "ask":[
+        //             {
+        //                 "index":"-3",
+        //                 "price":"0.02024012",
+        //                 "baseTokenAmount":"0.005",
+        //                 "baseTokenCumulativeAmount":"0.005",
+        //                 "quoteTokenAmount":"0.0001012006",
+        //                 "quoteTokenCumulativeAmount":"0.0001012006"
+        //             },
+        //         ]
+        //     }
+        //
         const timestamp = this.parse8601 (this.safeString (response, 'timestamp'));
         return this.parseOrderBook (response, timestamp, 'bid', 'ask', 'price', 'baseTokenAmount');
     }
