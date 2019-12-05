@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -46,6 +47,7 @@ module.exports = class coindcx extends Exchange {
                 'private': {
                     'post': [
                         'exchange/v1/users/balances',
+                        'exchange/v1/orders/create',
                         'exchange/v1/orders/status',
                         'exchange/v1/orders/trade_history',
                     ],
@@ -305,11 +307,10 @@ module.exports = class coindcx extends Exchange {
     async fetchBalance (params = {}) {
         // https://coindcx-official.github.io/rest-api/?javascript#get-balances
         await this.loadMarkets ();
-        const timeStamp = this.now ();
-        const body = {
-            'timestamp': timeStamp,
+        const request = {
+            'timestamp': this.milliseconds (),
         };
-        const response = await this.privatePostExchangeV1UsersBalances (this.extend (body, params));
+        const response = await this.privatePostExchangeV1UsersBalances (this.extend (request, params));
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -342,19 +343,36 @@ module.exports = class coindcx extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         // https://coindcx-official.github.io/rest-api/?javascript#new-order
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketInfo = this.safeValue (market, 'info');
+        let orderType = 'limit_order';
+        if (type === 'market') {
+            orderType = 'market_order';
+        }
+        const request = {
+            'market': this.safeValue (marketInfo, 'symbol'),
+            'total_quantity': amount,
+            'side': side,
+            'order_type': orderType,
+            'timestamp': this.milliseconds (),
+        };
+        if (orderType === 'limit_order') {
+            request['price_per_unit'] = price;
+        }
+        const response = await this.privatePostExchangeV1OrdersCreate (this.extend (request, params));
+        const orders = this.safeValue (response, 'orders');
+        if (orders[0] !== undefined) {
+            return this.parseOrder (orders[0], market);
+        } else {
+            throw new ExchangeError ('No order received');
+        }
     }
 
     parseOrder (order, market = undefined) {
+        // console.log (order, market);
         const id = this.safeString (order, 'id');
-        let timestamp = this.safeString (order, 'created_at');
-        if (timestamp) {
-            timestamp = this.parseDate (timestamp);
-        }
-        let lastTradeTimestamp = this.safeString (order, 'updated_at');
-        if (lastTradeTimestamp) {
-            lastTradeTimestamp = this.parseDate (lastTradeTimestamp);
-        }
-        const datetime = this.iso8601 (timestamp);
+        const timestamp = this.safeInteger (order, 'created_at');
+        const lastTradeTimestamp = this.safeInteger (order, 'updated_at');
         let status = this.safeString (order, 'status');
         if (status === 'partially_filled') {
             status = 'open';
@@ -369,20 +387,21 @@ module.exports = class coindcx extends Exchange {
         } else if (status === 'partially_cancelled') {
             status = 'open';
         }
-        const marketId = this.safeString (market, 'market');
-        const symbol = this.findSymbol (marketId);
+        const marketId = this.safeString (market, 'symbol');
         if (market === undefined) {
             market = this.safeValue (this.markets_by_id, marketId);
         }
+        let symbol = undefined;
         let quoteSymbol = undefined;
         let fee = undefined;
         if (market !== undefined) {
+            symbol = this.safeString (market, 'symbol');
             quoteSymbol = this.safeString (market, 'quote');
             if (quoteSymbol !== undefined) {
                 fee = {
                     'currency': quoteSymbol,
-                    'cost': this.float (order, 'fee'),
-                    'rate': this.float (order, 'fee_amount'),
+                    'rate': this.safeFloat (order, 'fee'),
+                    'cost': this.safeFloat (order, 'fee_amount'),
                 };
             }
         }
@@ -394,7 +413,7 @@ module.exports = class coindcx extends Exchange {
         }
         return {
             'id': id,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
@@ -418,9 +437,11 @@ module.exports = class coindcx extends Exchange {
         const request = '/' + this.implodeParams (path, params);
         let url = base + request;
         const query = this.omit (params, this.extractParams (path));
-        if (Object.keys (query).length) {
-            const suffix = '?' + this.urlencode (query);
-            url += suffix;
+        if (method === 'GET') {
+            if (Object.keys (query).length) {
+                const suffix = '?' + this.urlencode (query);
+                url += suffix;
+            }
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
@@ -431,7 +452,7 @@ module.exports = class coindcx extends Exchange {
                 'X-AUTH-SIGNATURE': signature,
             };
         }
-        // console.log (url, method, body, headers);
+        console.log (url, method, body, headers);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
