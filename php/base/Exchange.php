@@ -1452,7 +1452,7 @@ class Exchange {
     public function set_markets($markets, $currencies = null) {
         $values = is_array($markets) ? array_values($markets) : array();
         for ($i = 0; $i < count($values); $i++) {
-            $values[$i] = array_merge(
+            $values[$i] = array_replace_recursive(
                 $this->fees['trading'],
                 array('precision' => $this->precision, 'limits' => $this->limits),
                 $values[$i]
