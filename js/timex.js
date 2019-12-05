@@ -447,10 +447,19 @@ module.exports = class timex extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const balances = await this.tradingGetBalances (params);
+        //
+        //     [
+        //         {"currency":"BTC","totalBalance":"0","lockedBalance":"0"},
+        //         {"currency":"AUDT","totalBalance":"0","lockedBalance":"0"},
+        //         {"currency":"ETH","totalBalance":"0","lockedBalance":"0"},
+        //         {"currency":"TIME","totalBalance":"0","lockedBalance":"0"},
+        //         {"currency":"USDT","totalBalance":"0","lockedBalance":"0"}
+        //     ]
+        //
         const result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const currencyId = balance['currency'];
+            const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['total'] = this.safeFloat (balance, 'totalBalance');
@@ -1013,7 +1022,8 @@ module.exports = class timex extends Exchange {
             // url += '?' + this.urlencodewitharrayrepeat (params);
             url += '?' + this.urlencode (params);
         }
-        if (api === 'private') {
+        if (api !== 'public') {
+            this.checkRequiredCredentials ();
             const secret = 'Basic ' + this.stringToBase64 (this.apiKey + ':' + this.secret);
             headers = { 'authorization': secret };
         }
