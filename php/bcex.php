@@ -326,18 +326,9 @@ class bcex extends Exchange {
                     ),
                     // overrided by $defaults from $this->options['limits']
                     'limits' => array (
-                        'amount' => array (
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'price' => array (
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'cost' => array (
-                            'min' => null,
-                            'max' => null,
-                        ),
+                        'amount' => array( 'min' => null, 'max' => null ),
+                        'price' => array( 'min' => null, 'max' => null ),
+                        'cost' => array( 'min' => null, 'max' => null ),
                     ),
                     'info' => $market,
                 ), $defaults);

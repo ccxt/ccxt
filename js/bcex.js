@@ -325,18 +325,9 @@ module.exports = class bcex extends Exchange {
                     },
                     // overrided by defaults from this.options['limits']
                     'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'price': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'cost': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
+                        'amount': { 'min': undefined, 'max': undefined },
+                        'price': { 'min': undefined, 'max': undefined },
+                        'cost': { 'min': undefined, 'max': undefined },
                     },
                     'info': market,
                 }, defaults));
