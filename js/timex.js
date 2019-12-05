@@ -169,28 +169,33 @@ module.exports = class timex extends Exchange {
                 // },
             },
             'exceptions': {
-                '0': ExchangeError,
-                '1': NotSupported,
-                '4000': BadRequest,
-                '4001': BadRequest,
-                '4002': InsufficientFunds,
-                '4003': AuthenticationError,
-                '4004': AuthenticationError,
-                '4005': BadRequest,
-                '4006': BadRequest,
-                '4007': BadRequest,
-                '4300': PermissionDenied,
-                '4100': AuthenticationError,
-                '4400': OrderNotFound,
-                '5001': InvalidOrder,
-                '5002': ExchangeError,
-                '400': BadRequest,
-                '401': AuthenticationError,
-                '403': PermissionDenied,
-                '404': OrderNotFound,
-                '429': DDoSProtection,
-                '500': ExchangeError,
-                '503': ExchangeNotAvailable,
+                'exact': {
+                    '0': ExchangeError,
+                    '1': NotSupported,
+                    '4000': BadRequest,
+                    '4001': BadRequest,
+                    '4002': InsufficientFunds,
+                    '4003': AuthenticationError,
+                    '4004': AuthenticationError,
+                    '4005': BadRequest,
+                    '4006': BadRequest,
+                    '4007': BadRequest,
+                    '4300': PermissionDenied,
+                    '4100': AuthenticationError,
+                    '4400': OrderNotFound,
+                    '5001': InvalidOrder,
+                    '5002': ExchangeError,
+                    '400': BadRequest,
+                    '401': AuthenticationError,
+                    '403': PermissionDenied,
+                    '404': OrderNotFound,
+                    '429': DDoSProtection,
+                    '500': ExchangeError,
+                    '503': ExchangeNotAvailable,
+                },
+                'broad': {
+                    'Insufficient': InsufficientFunds,
+                },
             },
             'options': {
                 'fetchTickers': {
@@ -476,29 +481,52 @@ module.exports = class timex extends Exchange {
             'symbol': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
             'side': side.toUpperCase (),
+            // 'clientOrderId': '123',
+            // 'expireIn': 1575523308, // in seconds
+            // 'expireTime': 1575523308, // unix timestamp
         };
-        let expireTimeIsRequired = false;
-        let priceIsRequired = false;
+        let query = params;
         if (type === 'limit') {
-            priceIsRequired = true;
-            expireTimeIsRequired = true;
+            request['price'] = this.priceToPrecision (symbol, price);
+            const defaultExpireIn = this.safeInteger (this.options, 'expireIn');
+            const expireTime = this.safeValue (params, 'expireTime');
+            const expireIn = this.safeValue (params, 'expireIn', defaultExpireIn);
+            if (expireTime !== undefined) {
+                request['expireTime'] = expireTime;
+            } else if (expireIn === undefined) {
+                request['expireIn'] = expireIn;
+            } else {
+                throw new InvalidOrder (this.id + ' createOrder method requires a expireTime or expireIn param for a ' + type + ' order, you can also set the expireIn exchange-wide option');
+            }
+            query = this.omit (params, [ 'expireTime', 'expireIn' ]);
         } else {
             request['price'] = 0;
         }
-        if (priceIsRequired) {
-            if (price === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
-            }
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
-        if (expireTimeIsRequired) {
-            const expireTime = this.safeValue (params, 'expireTime') || this.safeValue (params, 'expireIn');
-            if (expireTime === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder method requires a expireTime or expireIn param for a ' + type + ' order');
-            }
-        }
-        const response = await this.privatePostTradingOrders (this.extend (request, params));
-        return this.parseOrder (response['orders'].shift (), market);
+        const response = await this.tradingPostOrders (this.extend (request, query));
+        //
+        //     {
+        //         "orders": [
+        //             {
+        //                 "cancelledQuantity": "0.3",
+        //                 "clientOrderId": "my-order-1",
+        //                 "createdAt": "1970-01-01T00:00:00",
+        //                 "cursorId": 50,
+        //                 "expireTime": "1970-01-01T00:00:00",
+        //                 "filledQuantity": "0.3",
+        //                 "id": "string",
+        //                 "price": "0.017",
+        //                 "quantity": "0.3",
+        //                 "side": "BUY",
+        //                 "symbol": "TIMEETH",
+        //                 "type": "LIMIT",
+        //                 "updatedAt": "1970-01-01T00:00:00"
+        //             }
+        //         ]
+        //     }
+        //
+        const orders = this.safeValue (response, 'orders', []);
+        const order = this.safeValue (orders, 0, {});
+        return this.parseOrder (order, market);
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -1035,6 +1063,10 @@ module.exports = class timex extends Exchange {
             return;
         }
         if (statusCode >= 400) {
+            //
+            //     {"error":{"timestamp":"05.12.2019T05:25:43.584+0000","status":"BAD_REQUEST","message":"Insufficient ETH balance. Required: 1, actual: 0.","code":4001}}
+            //     {"error":{"timestamp":"05.12.2019T04:03:25.419+0000","status":"FORBIDDEN","message":"Access denied","code":4300}}
+            //
             const feedback = this.id + ' ' + responseBody;
             let error = this.safeValue (response, 'error');
             if (error === undefined) {
@@ -1042,8 +1074,9 @@ module.exports = class timex extends Exchange {
             }
             const code = this.safeString2 (error, 'code', 'status');
             const message = this.safeString2 (error, 'message', 'debugMessage');
-            this.throwExactlyMatchedException (this.exceptions, code);
-            this.throwExactlyMatchedException (this.exceptions, message);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             throw new ExchangeError (feedback);
         }
     }
