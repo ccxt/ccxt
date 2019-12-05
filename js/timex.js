@@ -23,7 +23,6 @@ module.exports = class timex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrders': true,
                 'fetchTickers': true,
             },
             'timeframes': {
@@ -531,24 +530,54 @@ module.exports = class timex extends Exchange {
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
             'id': id,
         };
         if (amount !== undefined) {
-            request['quantity'] = amount;
+            request['quantity'] = this.amountToPrecision (symbol, amount);
         }
         if (price !== undefined) {
-            request['price'] = price;
+            request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.privatePutTradingOrders (this.extend (request, params));
+        const response = await this.tradingPutOrders (this.extend (request, params));
+        //
+        //     {
+        //         "changedOrders": [
+        //             {
+        //                 "newOrder": {
+        //                 "cancelledQuantity": "0.3",
+        //                 "clientOrderId": "my-order-1",
+        //                 "createdAt": "1970-01-01T00:00:00",
+        //                 "cursorId": 50,
+        //                 "expireTime": "1970-01-01T00:00:00",
+        //                 "filledQuantity": "0.3",
+        //                 "id": "string",
+        //                 "price": "0.017",
+        //                 "quantity": "0.3",
+        //                 "side": "BUY",
+        //                 "symbol": "TIMEETH",
+        //                 "type": "LIMIT",
+        //                 "updatedAt": "1970-01-01T00:00:00"
+        //                 },
+        //                 "oldId": "string",
+        //             },
+        //         ],
+        //         "unchangedOrders": [ "string" ],
+        //     }
+        //
         if ('unchangedOrders' in response) {
-            const orderId = response['unchangedOrders'][0];
+            const orderIds = this.safeValue (response, 'unchangedOrders', []);
+            const orderId = this.safeString (orderIds, 0);
             return {
                 'id': orderId,
                 'info': response,
             };
         }
-        return this.parseOrder (response['changedOrders'].shift ()['newOrder']);
+        const orders = this.safeValue (response, 'changedOrders', []);
+        const firstOrder = this.safeValue (orders, 0, {});
+        const order = this.safeValue (firstOrder, 'newOrder', {});
+        return this.parseOrder (order, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -562,6 +591,30 @@ module.exports = class timex extends Exchange {
             'id': ids,
         };
         const response = await this.privateDeleteTradingOrders (this.extend (request, params));
+        //
+        //     {
+        //         "changedOrders": [
+        //             {
+        //                 "newOrder": {
+        //                     "cancelledQuantity": "0.3",
+        //                     "clientOrderId": "my-order-1",
+        //                     "createdAt": "1970-01-01T00:00:00",
+        //                     "cursorId": 50,
+        //                     "expireTime": "1970-01-01T00:00:00",
+        //                     "filledQuantity": "0.3",
+        //                     "id": "string",
+        //                     "price": "0.017",
+        //                     "quantity": "0.3",
+        //                     "side": "BUY",
+        //                     "symbol": "TIMEETH",
+        //                     "type": "LIMIT",
+        //                     "updatedAt": "1970-01-01T00:00:00"
+        //                 },
+        //                 "oldId": "string",
+        //             },
+        //         ],
+        //         "unchangedOrders": [ "string" ],
+        //     }
         return {
             'info': response,
         };
@@ -572,16 +625,41 @@ module.exports = class timex extends Exchange {
         const request = {
             'orderHash': id,
         };
-        const response = await this.privateGetHistoryOrdersDetails (request);
+        const response = await this.historyGetOrdersDetails (request);
+        //
+        //     {
+        //         "order": {
+        //             "cancelledQuantity": "0.3",
+        //             "clientOrderId": "my-order-1",
+        //             "createdAt": "1970-01-01T00:00:00",
+        //             "cursorId": 50,
+        //             "expireTime": "1970-01-01T00:00:00",
+        //             "filledQuantity": "0.3",
+        //             "id": "string",
+        //             "price": "0.017",
+        //             "quantity": "0.3",
+        //             "side": "BUY",
+        //             "symbol": "TIMEETH",
+        //             "type": "LIMIT",
+        //             "updatedAt": "1970-01-01T00:00:00"
+        //         },
+        //         "trades": [
+        //             {
+        //                 "fee": "0.3",
+        //                 "id": 100,
+        //                 "makerOrTaker": "MAKER",
+        //                 "makerOrderId": "string",
+        //                 "price": "0.017",
+        //                 "quantity": "0.3",
+        //                 "side": "BUY",
+        //                 "symbol": "TIMEETH",
+        //                 "takerOrderId": "string",
+        //                 "timestamp": "2019-12-05T07:48:26.310Z"
+        //             }
+        //         ]
+        //     }
+        //
         return this.parseOrder (this.extend (response['order'], { 'trades': response['trades'] }));
-    }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const openOrders = await this.fetchOpenOrders (symbol, since, limit, params);
-        const closedOrders = await this.fetchClosedOrders (symbol, since, limit, params);
-        let orders = this.arrayConcat (openOrders, closedOrders);
-        orders = this.sortBy (orders, 'timestamp');
-        return this.filterBySinceLimit (orders, undefined, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -886,6 +964,21 @@ module.exports = class timex extends Exchange {
         // fetchMyTrades (private)
         //
         //     ...
+        //
+        // fetchOrder trades (private)
+        //
+        //     {
+        //         "fee": "0.3",
+        //         "id": 100,
+        //         "makerOrTaker": "MAKER",
+        //         "makerOrderId": "string",
+        //         "price": "0.017",
+        //         "quantity": "0.3",
+        //         "side": "BUY",
+        //         "symbol": "TIMEETH",
+        //         "takerOrderId": "string",
+        //         "timestamp": "2019-12-05T07:48:26.310Z"
+        //     }
         //
         if (market === undefined) {
             market = this.findMarket (this.safeString (trade, 'symbol'));
