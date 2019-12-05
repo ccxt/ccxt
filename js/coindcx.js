@@ -197,6 +197,11 @@ module.exports = class coindcx extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = 50, params = {}) {
         // https://coindcx-official.github.io/rest-api/?shell#trades
         await this.loadMarkets ();
+        if (symbol !== undefined) {
+            if (!(symbol in this.markets)) {
+                throw new ExchangeError (this.id + ' has no symbol ' + symbol);
+            }
+        }
         const market = this.market (symbol);
         const request = {
             'pair': this.safeString (market, 'id'),
@@ -242,6 +247,11 @@ module.exports = class coindcx extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         // https://coindcx-official.github.io/rest-api/?shell#order-book
         await this.loadMarkets ();
+        if (symbol !== undefined) {
+            if (!(symbol in this.markets)) {
+                throw new ExchangeError (this.id + ' has no symbol ' + symbol);
+            }
+        }
         const market = this.market (symbol);
         const request = {
             'pair': this.safeString (market, 'id'),
@@ -277,6 +287,11 @@ module.exports = class coindcx extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         // https://coindcx-official.github.io/rest-api/?shell#candles
         await this.loadMarkets ();
+        if (symbol !== undefined) {
+            if (!(symbol in this.markets)) {
+                throw new ExchangeError (this.id + ' has no symbol ' + symbol);
+            }
+        }
         if (limit === undefined) {
             limit = 500; // coindcx default
         }
