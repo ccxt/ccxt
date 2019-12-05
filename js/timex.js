@@ -206,6 +206,12 @@ module.exports = class timex extends Exchange {
                 'fetchMyTrades': {
                     'sort': 'timestamp,asc',
                 },
+                'fetchOpenOrders': {
+                    'sort': 'createdAt,asc',
+                },
+                'fetchClosedOrders': {
+                    'sort': 'createdAt,asc',
+                },
                 'defaultSort': 'timestamp,asc',
                 'defaultSortOrders': 'createdAt,asc',
             },
@@ -659,13 +665,21 @@ module.exports = class timex extends Exchange {
         //         ]
         //     }
         //
-        return this.parseOrder (this.extend (response['order'], { 'trades': response['trades'] }));
+        const order = this.safeValue (response, 'order', {});
+        const trades = this.safeValue (response, 'trades', []);
+        return this.parseOrder (this.extend (order, { 'trades': trades }));
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        const options = this.safeValue (this.options, 'fetchOpenOrders', {});
+        const defaultSort = this.safeValue (options, 'sort', 'createdAt,asc');
+        const sort = this.safeString (params, 'sort', defaultSort);
+        const query = this.omit (params, 'sort');
         const request = {
-            'sort': this.options['defaultSortOrders'],
+            'clientOrderId': '123', // order’s client id list for filter
+            // page: 0, // results page you want to retrieve (0 .. N)
+            'sort': sort, // sorting criteria in the format "property,asc" or "property,desc", default order is ascending, multiple sort criteria are supported
         };
         let market = undefined;
         if (symbol !== undefined) {
@@ -675,8 +689,30 @@ module.exports = class timex extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this.privateGetTradingOrders (this.extend (request, params));
-        return this.parseOrders (response['orders'], market, since, limit);
+        const response = await this.tradingGetOrders (this.extend (request, query));
+        //
+        //     {
+        //         "orders": [
+        //             {
+        //                 "cancelledQuantity": "0.3",
+        //                 "clientOrderId": "my-order-1",
+        //                 "createdAt": "1970-01-01T00:00:00",
+        //                 "cursorId": 50,
+        //                 "expireTime": "1970-01-01T00:00:00",
+        //                 "filledQuantity": "0.3",
+        //                 "id": "string",
+        //                 "price": "0.017",
+        //                 "quantity": "0.3",
+        //                 "side": "BUY",
+        //                 "symbol": "TIMEETH",
+        //                 "type": "LIMIT",
+        //                 "updatedAt": "1970-01-01T00:00:00"
+        //             }
+        //         ]
+        //     }
+        //
+        const orders = this.safeValue (response, 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1031,16 +1067,6 @@ module.exports = class timex extends Exchange {
         };
     }
 
-    parseTrades (trades, market = undefined, since = undefined, limit = undefined, orderId = undefined, params = {}) {
-        let result = [];
-        for (let i = 0; i < trades.length; ++i) {
-            result.push (this.extend (this.parseTrade (trades[i], market, orderId), params));
-        }
-        result = this.sortBy (result, 'timestamp');
-        const symbol = this.findSymbol (undefined, market);
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
-    }
-
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         //
         //     {
@@ -1064,6 +1090,26 @@ module.exports = class timex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // fetchOrder, createOrder, cancelOrder, cancelOrders
+        //
+        //     {
+        //         "cancelledQuantity": "0.3",
+        //         "clientOrderId": "my-order-1",
+        //         "createdAt": "1970-01-01T00:00:00",
+        //         "cursorId": 50,
+        //         "expireTime": "1970-01-01T00:00:00",
+        //         "filledQuantity": "0.3",
+        //         "id": "string",
+        //         "price": "0.017",
+        //         "quantity": "0.3",
+        //         "side": "BUY",
+        //         "symbol": "TIMEETH",
+        //         "type": "LIMIT",
+        //         "updatedAt": "1970-01-01T00:00:00"
+        //         "trades": [], // injected from the outside
+        //     }
+        //
         const id = this.safeString (order, 'id');
         const type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
