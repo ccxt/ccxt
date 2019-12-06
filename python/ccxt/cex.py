@@ -625,7 +625,7 @@ class cex(Exchange):
             for i in range(0, len(order['vtx'])):
                 item = order['vtx'][i]
                 tradeSide = self.safe_string(item, 'type')
-                if item['type'] == 'cancel':
+                if tradeSide == 'cancel':
                     # looks like self might represent the cancelled part of an order
                     #   {id: '4426729543',
                     #     type: 'cancel',
@@ -645,7 +645,8 @@ class cex(Exchange):
                     #     cs: '0.42580261',
                     #     ds: 0}
                     continue
-                if not item['price']:
+                tradePrice = self.safe_float(item, 'price')
+                if tradePrice is None:
                     # self represents the order
                     #   {
                     #     "a": "0.47000000",
@@ -666,10 +667,8 @@ class cex(Exchange):
                     #     "symbol": "EUR",
                     #     "balance": "1432.93000000"}
                     continue
-                # if item['type'] == 'costsNothing':
-                #     print(item)
                 # todo: deal with these
-                if item['type'] == 'costsNothing':
+                if tradeSide == 'costsNothing':
                     continue
                 # --
                 # if side != tradeSide:
@@ -747,10 +746,8 @@ class cex(Exchange):
                 #     "symbol2": "BTC",
                 #     "fee_amount": "0.03"
                 #   }
-                tradeTime = self.safe_string(item, 'time')
-                tradeTimestamp = self.parse8601(tradeTime)
+                tradeTimestamp = self.parse8601(self.safe_string(item, 'time'))
                 tradeAmount = self.safe_float(item, 'amount')
-                tradePrice = self.safe_float(item, 'price')
                 feeCost = self.safe_float(item, 'fee_amount')
                 absTradeAmount = -tradeAmount if (tradeAmount < 0) else tradeAmount
                 tradeCost = None
