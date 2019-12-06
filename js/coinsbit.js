@@ -57,9 +57,9 @@ module.exports = class coinsbit extends Exchange {
                 'fetchTradingLimits': false,
                 'fetchTradingFees': false,
                 'fetchFundingLimits': false,
-                'fetchTicker': false,
-                'fetchOrderBook': false,
-                'fetchTrades': false,
+                'fetchTicker': true,
+                'fetchOrderBook': true,
+                'fetchTrades': true,
                 'fetchOHLCV': false,
                 'fetchBalance': false,
                 'fetchAccounts': false,
@@ -186,6 +186,67 @@ module.exports = class coinsbit extends Exchange {
         };
     }
 
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'market': this.marketId (symbol),
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetDepthResult (this.extend (request, params));
+        return this.parseOrderBook (response, undefined, 'bids', 'asks');
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'market': this.marketId (symbol),
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['since'] = since;
+        } else {
+            request['since'] = 0;
+        }
+        const trades = await this.publicGetHistoryResult (this.extend (request, params));
+        let parsedTrades = [];
+        for (let tradeIndex = 0; tradeIndex < trades.length; tradeIndex++) {
+            const trade = trades[tradeIndex];
+            const id = this.safeString (trade, 'tid');
+            let timestamp = undefined;
+            if ('date' in trade) {
+                timestamp = this.safeTimestamp (trade, 'date');
+            } else {
+                timestamp = this.safeTimestamp (trade, 'time');
+            }
+            const dateTime = this.iso8601 (timestamp);
+            const side = this.safeString (trade, 'type');
+            const price = this.safeFloat (trade, 'price');
+            const amount = this.safeFloat (trade, 'amount');
+            const cost = this.safeFloat (trade, 'total');
+            parsedTrades.push ({
+                'info': trade,
+                'id': id,
+                'timestamp': timestamp,
+                'datetime': dateTime,
+                'symbol': symbol,
+                'order': undefined,
+                'type': undefined,
+                'side': side,
+                'takerOrMaker': undefined,
+                'price': price,
+                'amount': amount,
+                'cost': cost,
+                'fee': undefined,
+            });
+        }
+        parsedTrades = this.sortBy (parsedTrades, 'timestamp');
+        return parsedTrades;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + this.version + '/' + api + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
@@ -215,18 +276,6 @@ module.exports = class coinsbit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'market': this.marketId (symbol),
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.publicGetDepthResult (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'bids', 'asks');
-    }
-
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return;
@@ -254,7 +303,7 @@ module.exports = class coinsbit extends Exchange {
                     } else {
                         errorMessage = messages;
                     }
-                    const feedback = 'id: ' + this.id + '\n' + 'Error: ' + errorMessage + '\n' + 'Body: ' + body;
+                    const feedback = '\nid: ' + this.id + '\n' + 'Error: ' + errorMessage + '\n' + 'Body: ' + body;
                     this.throwExactlyMatchedException (this.exceptions, errorMessage, feedback);
                     throw new ExchangeError (feedback);
                 }
