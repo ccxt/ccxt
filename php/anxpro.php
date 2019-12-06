@@ -128,6 +128,7 @@ class anxpro extends Exchange {
                     'Order Engine is offline' => '\\ccxt\\ExchangeNotAvailable',
                     'No executed order with that identifer found' => '\\ccxt\\OrderNotFound',
                     'Unknown server error, please contact support.' => '\\ccxt\\ExchangeError',
+                    'Not available' => '\\ccxt\\ExchangeNotAvailable', // array( "status" => "Not available" )
                 ),
             ),
             'fees' => array (
@@ -1195,11 +1196,13 @@ class anxpro extends Exchange {
         }
         $result = $this->safe_string($response, 'result');
         $code = $this->safe_string($response, 'resultCode');
-        if ((($result !== null) && ($result !== 'success')) || (($code !== null) && ($code !== 'OK'))) {
+        $status = $this->safe_string($response, 'status');
+        if ((($result !== null) && ($result !== 'success')) || (($code !== null) && ($code !== 'OK')) || ($status !== null)) {
             $message = $this->safe_string($response, 'error');
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $status, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
