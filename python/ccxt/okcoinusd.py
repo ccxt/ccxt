@@ -1030,12 +1030,9 @@ class okcoinusd(Exchange):
             return  # fallback to default error handler
         if 'error_code' in response:
             error = self.safe_string(response, 'error_code')
-            message = self.id + ' ' + self.json(response)
-            if error in self.exceptions:
-                ExceptionClass = self.exceptions[error]
-                raise ExceptionClass(message)
-            else:
-                raise ExchangeError(message)
+            message = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions, error, message)
+            raise ExchangeError(message)
         if 'result' in response:
             if not response['result']:
-                raise ExchangeError(self.id + ' ' + self.json(response))
+                raise ExchangeError(self.id + ' ' + body)

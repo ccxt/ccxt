@@ -190,22 +190,10 @@ class ftx(Exchange):
                 'fee': None,
                 'precision': None,
                 'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
+                    'withdraw': {'min': None, 'max': None},
+                    'amount': {'min': None, 'max': None},
+                    'price': {'min': None, 'max': None},
+                    'cost': {'min': None, 'max': None},
                 },
             }
         return result
@@ -440,12 +428,14 @@ class ftx(Exchange):
         tickers = self.safe_value(response, 'result', [])
         return self.parse_tickers(tickers, symbols)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
             'market_name': market['id'],
         }
+        if limit is not None:
+            request['depth'] = limit  # max 100, default 20
         response = self.publicGetMarketsMarketNameOrderbook(self.extend(request, params))
         #
         #     {
@@ -1289,7 +1279,7 @@ class ftx(Exchange):
         #
         success = self.safe_value(response, 'success')
         if not success:
-            feedback = self.id + ' ' + self.json(response)
+            feedback = self.id + ' ' + body
             error = self.safe_string(response, 'error')
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)

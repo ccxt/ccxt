@@ -755,11 +755,8 @@ class rightbtc extends Exchange {
             $success = $this->safe_string($status, 'success');
             if ($success !== '1') {
                 $message = $this->safe_string($status, 'message');
-                $feedback = $this->id . ' ' . $this->json ($response);
-                $exceptions = $this->exceptions;
-                if (is_array($exceptions) && array_key_exists($message, $exceptions)) {
-                    throw new $exceptions[$message]($feedback);
-                }
+                $feedback = $this->id . ' ' . $body;
+                $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
                 throw new ExchangeError($feedback);
             }
         }

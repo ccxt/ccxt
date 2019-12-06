@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.19.86';
+$version = '1.20.39';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.19.86';
+    const VERSION = '1.20.39';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -136,7 +136,6 @@ class Exchange {
         'coincheck',
         'coinegg',
         'coinex',
-        'coinexchange',
         'coinfalcon',
         'coinfloor',
         'coingi',
@@ -144,7 +143,6 @@ class Exchange {
         'coinmate',
         'coinone',
         'coinspot',
-        'cointiger',
         'coolcoin',
         'coss',
         'crex24',
@@ -194,6 +192,7 @@ class Exchange {
         'poloniex',
         'rightbtc',
         'southxchange',
+        'stex',
         'stronghold',
         'surbitcoin',
         'theocean',
@@ -779,10 +778,6 @@ class Exchange {
         return array();
     }
 
-    public function __destruct() {
-        curl_close ($this->curl);
-    }
-
     public function __construct($options = array()) {
         // todo auto-camelcasing for methods in PHP
         // $method_names = get_class_methods ($this);
@@ -801,7 +796,7 @@ class Exchange {
         // }
 
         $this->defined_rest_api = array();
-        $this->curl = curl_init();
+        $this->curl = null;
         $this->curl_options = array(); // overrideable by user, empty by default
 
         $this->id = null;
@@ -1253,7 +1248,11 @@ class Exchange {
         // we don't do a reset here to save those cookies in between the calls
         // if the user wants to reset the curl handle between his requests
         // then curl_reset can be called manually in userland
-        // curl_reset($this->curl);
+        // curl_reset($this->curl); // this was removed because it kills cookies
+        if ($this->curl) {
+            curl_close($this->curl); // we properly close the curl channel here to save cookies
+        }
+        $this->curl = curl_init(); // we need a "clean" curl object for additional calls, so we initialize curl again
 
         curl_setopt($this->curl, CURLOPT_URL, $url);
 
@@ -1452,7 +1451,7 @@ class Exchange {
     public function set_markets($markets, $currencies = null) {
         $values = is_array($markets) ? array_values($markets) : array();
         for ($i = 0; $i < count($values); $i++) {
-            $values[$i] = array_merge(
+            $values[$i] = array_replace_recursive(
                 $this->fees['trading'],
                 array('precision' => $this->precision, 'limits' => $this->limits),
                 $values[$i]

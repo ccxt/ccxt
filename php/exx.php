@@ -408,15 +408,13 @@ class exx extends Exchange {
         //
         $code = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'message');
-        $feedback = $this->id . ' ' . $this->json ($response);
+        $feedback = $this->id . ' ' . $body;
         if ($code === '100') {
             return;
         }
         if ($code !== null) {
-            $exceptions = $this->exceptions;
-            if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
-                throw new $exceptions[$code]($feedback);
-            } else if ($code === '308') {
+            $this->throw_exactly_matched_exception($this->exceptions, $code, $feedback);
+            if ($code === '308') {
                 // this is returned by the exchange when there are no open orders
                 // array("$code":308,"$message":"Not Found Transaction Record")
                 return;

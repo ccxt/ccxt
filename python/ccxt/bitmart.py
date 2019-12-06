@@ -668,8 +668,8 @@ class bitmart(Exchange):
         request = {
             'symbol': market['id'],
             'side': side.lower(),
-            'amount': float(self.amount_to_precision(symbol, amount)),
-            'price': float(self.price_to_precision(symbol, price)),
+            'amount': self.amount_to_precision(symbol, amount),
+            'price': self.price_to_precision(symbol, price),
         }
         response = self.privatePostOrders(self.extend(request, params))
         #

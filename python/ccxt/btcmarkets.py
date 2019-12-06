@@ -684,9 +684,6 @@ class btcmarkets(Exchange):
         if 'success' in response:
             if not response['success']:
                 error = self.safe_string(response, 'errorCode')
-                message = self.id + ' ' + self.json(response)
-                if error in self.exceptions:
-                    ExceptionClass = self.exceptions[error]
-                    raise ExceptionClass(message)
-                else:
-                    raise ExchangeError(message)
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions, error, feedback)
+                raise ExchangeError(feedback)

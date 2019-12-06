@@ -935,7 +935,7 @@ class okex3(Exchange):
         if feeCost is not None:
             feeCurrency = None
             if market is not None:
-                feeCurrency = side == market['base'] if 'buy' else market['quote']
+                feeCurrency = market['base'] if (side == 'buy') else market['quote']
             fee = {
                 # fee is either a positive number(invitation rebate)
                 # or a negative number(transaction fee deduction)
@@ -1222,7 +1222,7 @@ class okex3(Exchange):
                     account['free'] = self.safe_float(marketBalance, 'available')
                     accounts[code] = account
                 else:
-                    raise NotSupported(self.id + ' margin balance response format has changednot ')
+                    raise NotSupported(self.id + ' margin balance response format has changed!')
             result[symbol] = self.parse_balance(accounts)
         return result
 
@@ -2129,6 +2129,7 @@ class okex3(Exchange):
             id = withdrawalId
             address = addressTo
         else:
+            # the payment_id will appear on new deposits but appears to be removed from the response after 2 months
             id = self.safe_string(transaction, 'payment_id')
             type = 'deposit'
             address = addressTo

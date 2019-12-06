@@ -659,7 +659,5 @@ class deribit(Exchange):
         error = self.safe_string(response, 'error')
         if (error is not None) and (error != '0'):
             feedback = self.id + ' ' + body
-            exceptions = self.exceptions
-            if error in exceptions:
-                raise exceptions[error](feedback)
+            self.throw_exactly_matched_exception(self.exceptions, error, feedback)
             raise ExchangeError(feedback)  # unknown message

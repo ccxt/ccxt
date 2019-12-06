@@ -1266,7 +1266,7 @@ class crex24 extends Exchange {
             return; // no error
         }
         $message = $this->safe_string($response, 'errorDescription');
-        $feedback = $this->id . ' ' . $this->json ($response);
+        $feedback = $this->id . ' ' . $body;
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
         $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
         if ($code === 400) {

@@ -851,10 +851,7 @@ module.exports = class cobinhood extends Exchange {
                 }
             }
         }
-        const exceptions = this.exceptions;
-        if (errorCode in exceptions) {
-            throw new exceptions[errorCode] (feedback);
-        }
+        this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
         throw new ExchangeError (feedback);
     }
 

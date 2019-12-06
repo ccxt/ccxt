@@ -396,14 +396,10 @@ class bithumb(Exchange):
             if status is not None:
                 if status == '0000':
                     return  # no error
-                feedback = self.id + ' ' + self.json(response)
-                exceptions = self.exceptions
-                if status in exceptions:
-                    raise exceptions[status](feedback)
-                elif message in exceptions:
-                    raise exceptions[message](feedback)
-                else:
-                    raise ExchangeError(feedback)
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions, status, feedback)
+                self.throw_exactly_matched_exception(self.exceptions, message, feedback)
+                raise ExchangeError(feedback)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)

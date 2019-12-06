@@ -1072,11 +1072,8 @@ class bitbay(Exchange):
             #
             code = self.safe_string(response, 'code')  # always an integer
             feedback = self.id + ' ' + body
-            exceptions = self.exceptions
-            if code in self.exceptions:
-                raise exceptions[code](feedback)
-            else:
-                raise ExchangeError(feedback)
+            self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+            raise ExchangeError(feedback)
         elif 'status' in response:
             #
             #      {"status":"Fail","errors":["OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS"]}
@@ -1084,9 +1081,8 @@ class bitbay(Exchange):
             status = self.safe_string(response, 'status')
             if status == 'Fail':
                 errors = self.safe_value(response, 'errors')
-                feedback = self.id + ' ' + self.json(response)
+                feedback = self.id + ' ' + body
                 for i in range(0, len(errors)):
                     error = errors[i]
-                    if error in self.exceptions:
-                        raise self.exceptions[error](feedback)
+                    self.throw_exactly_matched_exception(self.exceptions, error, feedback)
                 raise ExchangeError(feedback)

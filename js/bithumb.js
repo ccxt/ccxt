@@ -429,15 +429,10 @@ module.exports = class bithumb extends Exchange {
                 if (status === '0000') {
                     return; // no error
                 }
-                const feedback = this.id + ' ' + this.json (response);
-                const exceptions = this.exceptions;
-                if (status in exceptions) {
-                    throw new exceptions[status] (feedback);
-                } else if (message in exceptions) {
-                    throw new exceptions[message] (feedback);
-                } else {
-                    throw new ExchangeError (feedback);
-                }
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (this.exceptions, status, feedback);
+                this.throwExactlyMatchedException (this.exceptions, message, feedback);
+                throw new ExchangeError (feedback);
             }
         }
     }

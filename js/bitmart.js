@@ -704,8 +704,8 @@ module.exports = class bitmart extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': side.toLowerCase (),
-            'amount': parseFloat (this.amountToPrecision (symbol, amount)),
-            'price': parseFloat (this.priceToPrecision (symbol, price)),
+            'amount': this.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
         };
         const response = await this.privatePostOrders (this.extend (request, params));
         //

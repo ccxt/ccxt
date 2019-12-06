@@ -320,8 +320,8 @@ class bitfinex extends Exchange {
                     'Could not find a key matching the given X-BFX-APIKEY.' => '\\ccxt\\AuthenticationError',
                     'Key price should be a decimal number, e.g. "123.456"' => '\\ccxt\\InvalidOrder', // on isNaN (price)
                     'Key amount should be a decimal number, e.g. "123.456"' => '\\ccxt\\InvalidOrder', // on isNaN (amount)
-                    'ERR_RATE_LIMIT' => '\\ccxt\\DDoSProtection',
-                    'Ratelimit' => '\\ccxt\\DDoSProtection',
+                    'ERR_RATE_LIMIT' => '\\ccxt\\RateLimitExceeded',
+                    'Ratelimit' => '\\ccxt\\RateLimitExceeded',
                     'Nonce is too small.' => '\\ccxt\\InvalidNonce',
                     'No summary found.' => '\\ccxt\\ExchangeError', // fetchTradingFees (summary) endpoint can give this vague error message
                     'Cannot evaluate your available balance, please try again' => '\\ccxt\\ExchangeNotAvailable',

@@ -502,7 +502,6 @@ declare module 'ccxt' {
     export class coincheck extends Exchange {}
     export class coinegg extends Exchange {}
     export class coinex extends Exchange {}
-    export class coinexchange extends Exchange {}
     export class coinfalcon extends Exchange {}
     export class coinfloor extends Exchange {}
     export class coingi extends Exchange {}
@@ -510,7 +509,6 @@ declare module 'ccxt' {
     export class coinmate extends Exchange {}
     export class coinone extends Exchange {}
     export class coinspot extends Exchange {}
-    export class cointiger extends huobipro {}
     export class coolcoin extends coinegg {}
     export class coss extends Exchange {}
     export class crex24 extends Exchange {}
@@ -560,6 +558,7 @@ declare module 'ccxt' {
     export class poloniex extends Exchange {}
     export class rightbtc extends Exchange {}
     export class southxchange extends Exchange {}
+    export class stex extends Exchange {}
     export class stronghold extends Exchange {}
     export class surbitcoin extends foxbit {}
     export class theocean extends Exchange {}

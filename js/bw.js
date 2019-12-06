@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, ArgumentsRequired, ExchangeNotAvailable } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -96,6 +96,7 @@ module.exports = class bw extends Exchange {
             'exceptions': {
                 'exact': {
                     '999': AuthenticationError,
+                    '1000': ExchangeNotAvailable, // {"datas":null,"resMsg":{"message":"getKlines error:data not exitsts\uff0cplease wait ,dataType=4002_KLINE_1M","method":null,"code":"1000"}}
                 },
             },
             'api': {
@@ -336,7 +337,7 @@ module.exports = class bw extends Exchange {
         //     ]
         //
         let symbol = undefined;
-        const marketId = ticker[0];
+        const marketId = this.safeString (ticker, 0);
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
         }
@@ -344,29 +345,29 @@ module.exports = class bw extends Exchange {
             symbol = market['symbol'];
         }
         const timestamp = this.milliseconds ();
-        const close = parseFloat (ticker[1]);
+        const close = parseFloat (this.safeValue (ticker, 1));
         const bid = this.safeValue (ticker, 'bid', {});
         const ask = this.safeValue (ticker, 'ask', {});
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker[2]),
-            'low': parseFloat (ticker[3]),
-            'bid': parseFloat (ticker[7]),
+            'high': parseFloat (this.safeValue (ticker, 2)),
+            'low': parseFloat (this.safeValue (ticker, 3)),
+            'bid': parseFloat (this.safeValue (ticker, 7)),
             'bidVolume': this.safeFloat (bid, 'quantity'),
-            'ask': parseFloat (ticker[8]),
+            'ask': parseFloat (this.safeValue (ticker, 8)),
             'askVolume': this.safeFloat (ask, 'quantity'),
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open'),
+            'open': undefined,
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': parseFloat (ticker[5]),
+            'change': parseFloat (this.safeValue (ticker, 5)),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker[4]),
-            'quoteVolume': parseFloat (ticker[9]),
+            'baseVolume': parseFloat (this.safeValue (ticker, 4)),
+            'quoteVolume': parseFloat (this.safeValue (ticker, 9)),
             'info': ticker,
         };
     }
@@ -484,16 +485,17 @@ module.exports = class bw extends Exchange {
         //
         //     ...
         //
-        const timestamp = parseInt (trade[2]) * 1000;
-        const price = parseFloat (trade[5]);
-        const amount = parseFloat (trade[6]);
-        const marketId = trade[1];
+        const timestamp = this.safeTimestamp (trade, 2);
+        const price = this.safeFloat (trade, 5);
+        const amount = this.safeFloat (trade, 6);
+        const marketId = this.safeString (trade, 1);
         let symbol = undefined;
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             } else {
-                const [ baseId, quoteId ] = trade[3].split ('_');
+                const marketName = this.safeString (trade, 3);
+                const [ baseId, quoteId ] = marketName.split ('_');
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
@@ -508,10 +510,10 @@ module.exports = class bw extends Exchange {
                 cost = this.costToPrecision (symbol, price * amount);
             }
         }
-        const side = (trade[4] === 'ask') ? 'sell' : 'buy';
-        const id = this.safeString (trade, 'id');
+        const sideString = this.safeString (trade, 4);
+        const side = (sideString === 'ask') ? 'sell' : 'buy';
         return {
-            'id': id,
+            'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -559,7 +561,7 @@ module.exports = class bw extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            parseInt (this.safeFloat (ohlcv, 3) * 1000),
+            this.safeTimestamp (ohlcv, 3),
             this.safeFloat (ohlcv, 4),
             this.safeFloat (ohlcv, 5),
             this.safeFloat (ohlcv, 6),
@@ -981,9 +983,6 @@ module.exports = class bw extends Exchange {
             '-1': 'canceled', // or auditing failed
             '0': 'pending',
             '1': 'ok',
-            //         "verifyStatus": 1,                           // Audit status, 0: to be audited, 1: auditing passed, -1: auditing failed
-            //         "status": 1,                                          // Deposit status, 0: not received, 1: received
-            //         "status": 1,                                          // Deposit status, 0: not received, 1: received
         };
         return this.safeString (statuses, status, status);
     }
@@ -1047,8 +1046,8 @@ module.exports = class bw extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'addressFrom': undefined,
-            'address': undefined,
-            'addressTo': address,
+            'address': address,
+            'addressTo': undefined,
             'tagFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,

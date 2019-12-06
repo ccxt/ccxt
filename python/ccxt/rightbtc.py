@@ -701,8 +701,6 @@ class rightbtc(Exchange):
             success = self.safe_string(status, 'success')
             if success != '1':
                 message = self.safe_string(status, 'message')
-                feedback = self.id + ' ' + self.json(response)
-                exceptions = self.exceptions
-                if message in exceptions:
-                    raise exceptions[message](feedback)
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions, message, feedback)
                 raise ExchangeError(feedback)

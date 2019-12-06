@@ -58,6 +58,7 @@ module.exports = class binance extends Exchange {
                     'web': 'https://www.binance.com',
                     'wapi': 'https://api.binance.com/wapi/v3',
                     'sapi': 'https://api.binance.com/sapi/v1',
+                    'fapiPublic': 'https://fapi.binance.com/fapi/v1',
                     'fapiPrivate': 'https://fapi.binance.com/fapi/v1',
                     'public': 'https://api.binance.com/api/v3',
                     'private': 'https://api.binance.com/api/v3',
@@ -102,6 +103,9 @@ module.exports = class binance extends Exchange {
                         'margin/myTrades',
                         'margin/maxBorrowable',
                         'margin/maxTransferable',
+                        'futures/transfer',
+                        // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
+                        'capital/config/getall', // get networks for withdrawing USDT ERC20 vs USDT Omni
                     ],
                     'post': [
                         'asset/dust',
@@ -110,6 +114,7 @@ module.exports = class binance extends Exchange {
                         'margin/repay',
                         'margin/order',
                         'userDataStream',
+                        'futures/transfer',
                     ],
                     'put': [
                         'userDataStream',
@@ -139,6 +144,23 @@ module.exports = class binance extends Exchange {
                         'sub-account/assets',
                     ],
                 },
+                'fapiPublic': {
+                    'get': [
+                        'ping',
+                        'time',
+                        'exchangeInfo',
+                        'depth',
+                        'trades',
+                        'historicalTrades',
+                        'aggTrades',
+                        'klines',
+                        'premiumIndex',
+                        'ticker/24hr',
+                        'ticker/price',
+                        'ticker/bookTicker',
+                        'income',
+                    ],
+                },
                 'fapiPrivate': {
                     'get': [
                         'allOrders',
@@ -151,6 +173,7 @@ module.exports = class binance extends Exchange {
                     ],
                     'post': [
                         'order',
+                        'leverage',
                     ],
                     'delete': [
                         'order',
@@ -220,6 +243,7 @@ module.exports = class binance extends Exchange {
                 'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType': 'limit', // or 'limit_maker'
+                'defaultType': 'spot', // 'spot', 'future'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 'recvWindow': 5 * 1000, // 5 sec, binance default
@@ -257,7 +281,9 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.publicGetTime (params);
+        const type = this.safeString2 (this.options, 'fetchTime', 'defaultType', 'spot');
+        const method = (type === 'spot') ? 'publicGetTime' : 'fapiPublicGetTime';
+        const response = await this[method] (params);
         return this.safeFloat (response, 'serverTime');
     }
 
@@ -269,7 +295,87 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetExchangeInfo (params);
+        const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        const method = (type === 'spot') ? 'publicGetExchangeInfo' : 'fapiPublicGetExchangeInfo';
+        const response = await this[method] (query);
+        //
+        // spot
+        //
+        //     {
+        //         "timezone":"UTC",
+        //         "serverTime":1575416692969,
+        //         "rateLimits":[
+        //             {"rateLimitType":"REQUEST_WEIGHT","interval":"MINUTE","intervalNum":1,"limit":1200},
+        //             {"rateLimitType":"ORDERS","interval":"SECOND","intervalNum":10,"limit":100},
+        //             {"rateLimitType":"ORDERS","interval":"DAY","intervalNum":1,"limit":200000}
+        //         ],
+        //         "exchangeFilters":[],
+        //         "symbols":[
+        //             {
+        //                 "symbol":"ETHBTC",
+        //                 "status":"TRADING",
+        //                 "baseAsset":"ETH",
+        //                 "baseAssetPrecision":8,
+        //                 "quoteAsset":"BTC",
+        //                 "quotePrecision":8,
+        //                 "baseCommissionPrecision":8,
+        //                 "quoteCommissionPrecision":8,
+        //                 "orderTypes":["LIMIT","LIMIT_MAKER","MARKET","STOP_LOSS_LIMIT","TAKE_PROFIT_LIMIT"],
+        //                 "icebergAllowed":true,
+        //                 "ocoAllowed":true,
+        //                 "quoteOrderQtyMarketAllowed":true,
+        //                 "isSpotTradingAllowed":true,
+        //                 "isMarginTradingAllowed":true,
+        //                 "filters":[
+        //                     {"filterType":"PRICE_FILTER","minPrice":"0.00000100","maxPrice":"100000.00000000","tickSize":"0.00000100"},
+        //                     {"filterType":"PERCENT_PRICE","multiplierUp":"5","multiplierDown":"0.2","avgPriceMins":5},
+        //                     {"filterType":"LOT_SIZE","minQty":"0.00100000","maxQty":"100000.00000000","stepSize":"0.00100000"},
+        //                     {"filterType":"MIN_NOTIONAL","minNotional":"0.00010000","applyToMarket":true,"avgPriceMins":5},
+        //                     {"filterType":"ICEBERG_PARTS","limit":10},
+        //                     {"filterType":"MARKET_LOT_SIZE","minQty":"0.00000000","maxQty":"63100.00000000","stepSize":"0.00000000"},
+        //                     {"filterType":"MAX_NUM_ALGO_ORDERS","maxNumAlgoOrders":5}
+        //                 ]
+        //             },
+        //         ],
+        //     }
+        //
+        // futures (fapi)
+        //
+        //     {
+        //         "timezone":"UTC",
+        //         "serverTime":1575417244353,
+        //         "rateLimits":[
+        //             {"rateLimitType":"REQUEST_WEIGHT","interval":"MINUTE","intervalNum":1,"limit":1200},
+        //             {"rateLimitType":"ORDERS","interval":"MINUTE","intervalNum":1,"limit":1200}
+        //         ],
+        //         "exchangeFilters":[],
+        //         "symbols":[
+        //             {
+        //                 "symbol":"BTCUSDT",
+        //                 "status":"TRADING",
+        //                 "maintMarginPercent":"2.5000",
+        //                 "requiredMarginPercent":"5.0000",
+        //                 "baseAsset":"BTC",
+        //                 "quoteAsset":"USDT",
+        //                 "pricePrecision":2,
+        //                 "quantityPrecision":3,
+        //                 "baseAssetPrecision":8,
+        //                 "quotePrecision":8,
+        //                 "filters":[
+        //                     {"minPrice":"0.01","maxPrice":"100000","filterType":"PRICE_FILTER","tickSize":"0.01"},
+        //                     {"stepSize":"0.001","filterType":"LOT_SIZE","maxQty":"1000","minQty":"0.001"},
+        //                     {"stepSize":"0.001","filterType":"MARKET_LOT_SIZE","maxQty":"1000","minQty":"0.001"},
+        //                     {"limit":200,"filterType":"MAX_NUM_ORDERS"},
+        //                     {"multiplierDown":"0.8500","multiplierUp":"1.1500","multiplierDecimal":"4","filterType":"PERCENT_PRICE"}
+        //                 ],
+        //                 "orderTypes":["LIMIT","MARKET","STOP"],
+        //                 "timeInForce":["GTC","IOC","FOK","GTX"]
+        //             }
+        //         ]
+        //     }
+        //
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
@@ -277,11 +383,10 @@ module.exports = class binance extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
+            const future = ('maintMarginPercent' in market);
+            const spot = !future;
+            const marketType = spot ? 'spot' : 'future';
             const id = this.safeString (market, 'symbol');
-            // "123456" is a "test symbol/market"
-            if (id === '123456') {
-                continue;
-            }
             const baseId = market['baseAsset'];
             const quoteId = market['quoteAsset'];
             const base = this.safeCurrencyCode (baseId);
@@ -304,6 +409,9 @@ module.exports = class binance extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'type': marketType,
+                'spot': spot,
+                'future': future,
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -377,17 +485,93 @@ module.exports = class binance extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAccount (params);
+        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const method = (type === 'spot') ? 'privateGetAccount' : 'fapiPrivateGetAccount';
+        const query = this.omit (params, 'type');
+        const response = await this[method] (query);
+        //
+        // spot
+        //
+        //     {
+        //         makerCommission: 10,
+        //         takerCommission: 10,
+        //         buyerCommission: 0,
+        //         sellerCommission: 0,
+        //         canTrade: true,
+        //         canWithdraw: true,
+        //         canDeposit: true,
+        //         updateTime: 1575357359602,
+        //         accountType: "MARGIN",
+        //         balances: [
+        //             { asset: "BTC", free: "0.00219821", locked: "0.00000000"  },
+        //         ]
+        //     }
+        //
+        // futures (fapi)
+        //
+        //     {
+        //         "feeTier":0,
+        //         "canTrade":true,
+        //         "canDeposit":true,
+        //         "canWithdraw":true,
+        //         "updateTime":0,
+        //         "totalInitialMargin":"0.00000000",
+        //         "totalMaintMargin":"0.00000000",
+        //         "totalWalletBalance":"4.54000000",
+        //         "totalUnrealizedProfit":"0.00000000",
+        //         "totalMarginBalance":"4.54000000",
+        //         "totalPositionInitialMargin":"0.00000000",
+        //         "totalOpenOrderInitialMargin":"0.00000000",
+        //         "maxWithdrawAmount":"4.54000000",
+        //         "assets":[
+        //             {
+        //                 "asset":"USDT",
+        //                 "walletBalance":"4.54000000",
+        //                 "unrealizedProfit":"0.00000000",
+        //                 "marginBalance":"4.54000000",
+        //                 "maintMargin":"0.00000000",
+        //                 "initialMargin":"0.00000000",
+        //                 "positionInitialMargin":"0.00000000",
+        //                 "openOrderInitialMargin":"0.00000000",
+        //                 "maxWithdrawAmount":"4.54000000"
+        //             }
+        //         ],
+        //         "positions":[
+        //             {
+        //                 "symbol":"BTCUSDT",
+        //                 "initialMargin":"0.00000",
+        //                 "maintMargin":"0.00000",
+        //                 "unrealizedProfit":"0.00000000",
+        //                 "positionInitialMargin":"0.00000",
+        //                 "openOrderInitialMargin":"0.00000"
+        //             }
+        //         ]
+        //     }
+        //
         const result = { 'info': response };
-        const balances = this.safeValue (response, 'balances', []);
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = balance['asset'];
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'free');
-            account['used'] = this.safeFloat (balance, 'locked');
-            result[code] = account;
+        if (type === 'spot') {
+            const balances = this.safeValue (response, 'balances', []);
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
+                const currencyId = this.safeString (balance, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeFloat (balance, 'free');
+                account['used'] = this.safeFloat (balance, 'locked');
+                result[code] = account;
+            }
+        } else {
+            const balances = this.safeValue (response, 'assets', []);
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
+                const currencyId = this.safeString (balance, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['used'] = this.safeFloat (balance, 'initialMargin');
+                account['total'] = this.safeFloat (balance, 'marginBalance');
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
@@ -399,9 +583,10 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default = maximum = 100
+            request['limit'] = limit; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
-        const response = await this.publicGetDepth (this.extend (request, params));
+        const method = market['spot'] ? 'publicGetDepth' : 'fapiPublicGetDepth';
+        const response = await this[method] (this.extend (request, params));
         const orderbook = this.parseOrderBook (response);
         orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
         return orderbook;
@@ -454,7 +639,8 @@ module.exports = class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetTicker24hr (this.extend (request, params));
+        const method = market['spot'] ? 'publicGetTicker24hr' : 'fapiPublicGetTicker24hr';
+        const response = await this[method] (this.extend (request, params));
         return this.parseTicker (response, market);
     }
 
@@ -468,7 +654,11 @@ module.exports = class binance extends Exchange {
 
     async fetchBidsAsks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetTickerBookTicker (params);
+        const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        const method = (type === 'spot') ? 'publicGetTickerBookTicker' : 'fapiPublicGetTickerBookTicker';
+        const response = await this[method] (query);
         return this.parseTickers (response, symbols);
     }
 
@@ -503,7 +693,8 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default == max == 500
         }
-        const response = await this.publicGetKlines (this.extend (request, params));
+        const method = market['spot'] ? 'publicGetKlines' : 'fapiPublicGetKlines';
+        const response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
@@ -556,6 +747,27 @@ module.exports = class binance extends Exchange {
         //         "isBestMatch": true
         //     }
         //
+        // futures trades
+        // https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+        //
+        //     {
+        //       "accountId": 20,
+        //       "buyer": False,
+        //       "commission": "-0.07819010",
+        //       "commissionAsset": "USDT",
+        //       "counterPartyId": 653,
+        //       "id": 698759,
+        //       "maker": False,
+        //       "orderId": 25851813,
+        //       "price": "7819.01",
+        //       "qty": "0.002",
+        //       "quoteQty": "0.01563",
+        //       "realizedPnl": "-0.91539999",
+        //       "side": "SELL",
+        //       "symbol": "BTCUSDT",
+        //       "time": 1569514978020
+        //     }
+        //
         const timestamp = this.safeInteger2 (trade, 'T', 'time');
         const price = this.safeFloat2 (trade, 'p', 'price');
         const amount = this.safeFloat2 (trade, 'q', 'qty');
@@ -566,6 +778,8 @@ module.exports = class binance extends Exchange {
             side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
         } else if ('isBuyerMaker' in trade) {
             side = trade['isBuyerMaker'] ? 'sell' : 'buy';
+        } else if ('side' in trade) {
+            side = this.safeStringLower (trade, 'side');
         } else {
             if ('isBuyer' in trade) {
                 side = trade['isBuyer'] ? 'buy' : 'sell'; // this is a true side
@@ -695,7 +909,10 @@ module.exports = class binance extends Exchange {
         const amount = this.safeFloat (order, 'origQty');
         const filled = this.safeFloat (order, 'executedQty');
         let remaining = undefined;
-        let cost = this.safeFloat (order, 'cummulativeQuoteQty');
+        // - Spot/Margin market: cummulativeQuoteQty
+        // - Futures market: cumQuote.
+        //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
+        let cost = this.safeFloat2 (order, 'cummulativeQuoteQty', 'cumQuote');
         if (filled !== undefined) {
             if (amount !== undefined) {
                 remaining = amount - filled;
@@ -780,21 +997,28 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         // the next 5 lines are added to support for testing orders
-        let method = 'privatePostOrder';
-        const test = this.safeValue (params, 'test', false);
-        if (test) {
-            method += 'Test';
-            params = this.omit (params, 'test');
+        let method = market['spot'] ? 'privatePostOrder' : 'fapiPrivatePostOrder';
+        if (market['spot']) {
+            const test = this.safeValue (params, 'test', false);
+            if (test) {
+                method += 'Test';
+                params = this.omit (params, 'test');
+            }
         }
         const uppercaseType = type.toUpperCase ();
-        const newOrderRespType = this.safeValue (this.options['newOrderRespType'], type, 'RESULT');
+        const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
+        if (!this.inArray (uppercaseType, validOrderTypes)) {
+            throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type in ' + market['type'] + ' market ' + symbol);
+        }
         const request = {
             'symbol': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
             'type': uppercaseType,
             'side': side.toUpperCase (),
-            'newOrderRespType': newOrderRespType, // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         };
+        if (market['spot']) {
+            request['newOrderRespType'] = this.safeValue (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        }
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
         let stopPriceIsRequired = false;
@@ -808,6 +1032,9 @@ module.exports = class binance extends Exchange {
             priceIsRequired = true;
             timeInForceIsRequired = true;
         } else if (uppercaseType === 'LIMIT_MAKER') {
+            priceIsRequired = true;
+        } else if (uppercaseType === 'STOP') {
+            stopPriceIsRequired = true;
             priceIsRequired = true;
         }
         if (priceIsRequired) {
@@ -838,16 +1065,17 @@ module.exports = class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const origClientOrderId = this.safeValue (params, 'origClientOrderId');
+        const method = market['spot'] ? 'privateGetOrder' : 'fapiPrivateGetOrder';
         const request = {
             'symbol': market['id'],
         };
+        const origClientOrderId = this.safeValue (params, 'origClientOrderId');
         if (origClientOrderId !== undefined) {
             request['origClientOrderId'] = origClientOrderId;
         } else {
             request['orderId'] = parseInt (id);
         }
-        const response = await this.privateGetOrder (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -866,8 +1094,10 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetAllOrders (this.extend (request, params));
+        const method = market['spot'] ? 'privateGetAllOrders' : 'fapiPrivateGetAllOrders';
+        const response = await this[method] (this.extend (request, params));
         //
+        //  Spot:
         //     [
         //         {
         //             "symbol": "LTCBTC",
@@ -889,23 +1119,51 @@ module.exports = class binance extends Exchange {
         //         }
         //     ]
         //
+        //  Futures:
+        //     [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "orderId": 1,
+        //             "clientOrderId": "myOrder1",
+        //             "price": "0.1",
+        //             "origQty": "1.0",
+        //             "executedQty": "1.0",
+        //             "cumQuote": "10.0",
+        //             "status": "NEW",
+        //             "timeInForce": "GTC",
+        //             "type": "LIMIT",
+        //             "side": "BUY",
+        //             "stopPrice": "0.0",
+        //             "updateTime": 1499827319559
+        //         }
+        //     ]
+        //
         return this.parseOrders (response, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
+        let query = undefined;
+        let type = undefined;
         const request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
+            type = market['type'];
+            query = params;
         } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
             const symbols = this.symbols;
             const numSymbols = symbols.length;
             const fetchOpenOrdersRateLimit = parseInt (numSymbols / 2);
             throw new ExchangeError (this.id + ' fetchOpenOrders WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
+        } else {
+            const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
+            type = this.safeString (params, 'type', defaultType);
+            query = this.omit (params, 'type');
         }
-        const response = await this.privateGetOpenOrders (this.extend (request, params));
+        const method = (type === 'spot') ? 'privateGetOpenOrders' : 'fapiPrivateGetOpenOrders';
+        const response = await this[method] (this.extend (request, query));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -925,7 +1183,8 @@ module.exports = class binance extends Exchange {
             'orderId': parseInt (id),
             // 'origClientOrderId': id,
         };
-        const response = await this.privateDeleteOrder (this.extend (request, params));
+        const method = market['spot'] ? 'privateDeleteOrder' : 'fapiPrivateDeleteOrder';
+        const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -935,6 +1194,7 @@ module.exports = class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const method = market['spot'] ? 'privateGetMyTrades' : 'fapiPrivateGetUserTrades';
         const request = {
             'symbol': market['id'],
         };
@@ -944,8 +1204,9 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetMyTrades (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
+        // spot trade
         //     [
         //         {
         //             "symbol": "BNBBTC",
@@ -962,12 +1223,33 @@ module.exports = class binance extends Exchange {
         //         }
         //     ]
         //
+        // futures trade
+        //
+        //     [
+        //         {
+        //             "accountId": 20,
+        //             "buyer": False,
+        //             "commission": "-0.07819010",
+        //             "commissionAsset": "USDT",
+        //             "counterPartyId": 653,
+        //             "id": 698759,
+        //             "maker": False,
+        //             "orderId": 25851813,
+        //             "price": "7819.01",
+        //             "qty": "0.002",
+        //             "quoteQty": "0.01563",
+        //             "realizedPnl": "-0.91539999",
+        //             "side": "SELL",
+        //             "symbol": "BTCUSDT",
+        //             "time": 1569514978020
+        //         }
+        //     ]
         return this.parseTrades (response, market, since, limit);
     }
 
     async fetchMyDustTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         //
-        // Bianance provides an opportunity to trade insignificant (i.e. non-tradable and non-withdrawable)
+        // Binance provides an opportunity to trade insignificant (i.e. non-tradable and non-withdrawable)
         // token leftovers (of any asset) into `BNB` coin which in turn can be used to pay trading fees with it.
         // The corresponding trades history is called the `Dust Log` and can be requested via the following end-point:
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
@@ -1282,12 +1564,16 @@ module.exports = class binance extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
+        // name is optional, can be overrided via params
         const name = address.slice (0, 20);
         const request = {
             'asset': currency['id'],
             'address': address,
             'amount': parseFloat (amount),
-            'name': name,
+            'name': name, // name is optional, can be overrided via params
+            // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
+            // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni
+            // 'network': 'ETH', // 'BTC', 'TRX', etc, optional
         };
         if (tag !== undefined) {
             request['addressTag'] = tag;
@@ -1386,26 +1672,22 @@ module.exports = class binance extends Exchange {
                         }
                     }
                 }
-                const exceptions = this.exceptions;
                 const message = this.safeString (response, 'msg');
-                if (message in exceptions) {
-                    const ExceptionClass = exceptions[message];
-                    throw new ExceptionClass (this.id + ' ' + message);
+                if (message !== undefined) {
+                    this.throwExactlyMatchedException (this.exceptions, message, this.id + ' ' + message);
                 }
                 // checks against error codes
                 const error = this.safeString (response, 'code');
                 if (error !== undefined) {
-                    if (error in exceptions) {
-                        // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-                        // despite that their message is very confusing, it is raised by Binance
-                        // on a temporary ban (the API key is valid, but disabled for a while)
-                        if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
-                            throw new DDoSProtection (this.id + ' temporary banned: ' + body);
-                        }
-                        throw new exceptions[error] (this.id + ' ' + body);
-                    } else {
-                        throw new ExchangeError (this.id + ' ' + body);
+                    // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+                    // despite that their message is very confusing, it is raised by Binance
+                    // on a temporary ban (the API key is valid, but disabled for a while)
+                    if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
+                        throw new DDoSProtection (this.id + ' temporary banned: ' + body);
                     }
+                    const feedback = this.id + ' ' + body;
+                    this.throwExactlyMatchedException (this.exceptions, error, feedback);
+                    throw new ExchangeError (feedback);
                 }
                 if (!success) {
                     throw new ExchangeError (this.id + ' ' + body);

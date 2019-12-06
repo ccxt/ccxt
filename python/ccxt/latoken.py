@@ -799,7 +799,7 @@ class latoken(Exchange):
         if not response:
             return
         #
-        #     {"message": "Request limit reachednot ", "details": "Request limit reached. Maximum allowed: 1 per 1s. Please try again in 1 second(s)."}
+        #     {"message": "Request limit reached!", "details": "Request limit reached. Maximum allowed: 1 per 1s. Please try again in 1 second(s)."}
         #     {"error": {"message": "Pair 370 is not found","errorType":"RequestError","statusCode":400}}
         #     {"error": {"message": "Signature or ApiKey is not valid","errorType":"RequestError","statusCode":400}}
         #     {"error": {"message": "Request is out of time", "errorType": "RequestError", "statusCode":400}}

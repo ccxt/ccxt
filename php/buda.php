@@ -778,13 +778,9 @@ class buda extends Exchange {
             $errorCode = $this->safe_string($response, 'code');
             $message = $this->safe_string($response, 'message', $body);
             $feedback = $this->id . ' ' . $message;
-            $exceptions = $this->exceptions;
             if ($errorCode !== null) {
-                if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
-                    throw new $exceptions[$errorCode]($feedback);
-                } else {
-                    throw new ExchangeError($feedback);
-                }
+                $this->throw_exactly_matched_exception($this->exceptions, $errorCode, $feedback);
+                throw new ExchangeError($feedback);
             }
         }
     }

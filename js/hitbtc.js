@@ -1026,7 +1026,7 @@ module.exports = class hitbtc extends Exchange {
         const error = this.safeValue (response, 'error');
         if (error) {
             const code = this.safeValue (error, 'code');
-            const feedback = this.id + ' ' + this.json (response);
+            const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
             throw new ExchangeError (feedback); // unknown error

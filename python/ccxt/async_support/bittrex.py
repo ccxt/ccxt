@@ -1164,7 +1164,7 @@ class bittrex(Exchange):
         #     {success:    True,
         #       message:   "",
         #        result: {Currency: "INCNT",
-        #                   Address: "3PHvQt9bK21f7eVQVdJzrNPcsMzXabEA5Ha"} }}
+        #                   Address: "3PHvQt9bK21f7eVQVdJzrNPcsMzXabEA5Ha"}}}
         #
         address = self.safe_string(response['result'], 'Address')
         message = self.safe_string(response, 'message')
@@ -1269,8 +1269,7 @@ class bittrex(Exchange):
                 success = True if (success == 'true') else False
             if not success:
                 message = self.safe_string(response, 'message')
-                feedback = self.id + ' ' + self.json(response)
-                exceptions = self.exceptions
+                feedback = self.id + ' ' + body
                 if message == 'APIKEY_INVALID':
                     if self.options['hasAlreadyAuthenticatedSuccessfully']:
                         raise DDoSProtection(feedback)
@@ -1307,8 +1306,7 @@ class bittrex(Exchange):
                                 raise OrderNotFound(self.id + ' cancelOrder ' + orderId + ' ' + self.json(response))
                             else:
                                 raise OrderNotFound(self.id + ' cancelOrder ' + self.json(response))
-                if message in exceptions:
-                    raise exceptions[message](feedback)
+                self.throw_exactly_matched_exception(self.exceptions, message, feedback)
                 if message is not None:
                     if message.find('throttled. Try again') >= 0:
                         raise DDoSProtection(feedback)

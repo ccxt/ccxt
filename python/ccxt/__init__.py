@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.19.86'
+__version__ = '1.20.39'
 
 # ----------------------------------------------------------------------------
 
@@ -119,7 +119,6 @@ from ccxt.coinbasepro import coinbasepro                    # noqa: F401
 from ccxt.coincheck import coincheck                        # noqa: F401
 from ccxt.coinegg import coinegg                            # noqa: F401
 from ccxt.coinex import coinex                              # noqa: F401
-from ccxt.coinexchange import coinexchange                  # noqa: F401
 from ccxt.coinfalcon import coinfalcon                      # noqa: F401
 from ccxt.coinfloor import coinfloor                        # noqa: F401
 from ccxt.coingi import coingi                              # noqa: F401
@@ -127,7 +126,6 @@ from ccxt.coinmarketcap import coinmarketcap                # noqa: F401
 from ccxt.coinmate import coinmate                          # noqa: F401
 from ccxt.coinone import coinone                            # noqa: F401
 from ccxt.coinspot import coinspot                          # noqa: F401
-from ccxt.cointiger import cointiger                        # noqa: F401
 from ccxt.coolcoin import coolcoin                          # noqa: F401
 from ccxt.coss import coss                                  # noqa: F401
 from ccxt.crex24 import crex24                              # noqa: F401
@@ -177,6 +175,7 @@ from ccxt.paymium import paymium                            # noqa: F401
 from ccxt.poloniex import poloniex                          # noqa: F401
 from ccxt.rightbtc import rightbtc                          # noqa: F401
 from ccxt.southxchange import southxchange                  # noqa: F401
+from ccxt.stex import stex                                  # noqa: F401
 from ccxt.stronghold import stronghold                      # noqa: F401
 from ccxt.surbitcoin import surbitcoin                      # noqa: F401
 from ccxt.theocean import theocean                          # noqa: F401
@@ -246,7 +245,6 @@ exchanges = [
     'coincheck',
     'coinegg',
     'coinex',
-    'coinexchange',
     'coinfalcon',
     'coinfloor',
     'coingi',
@@ -254,7 +252,6 @@ exchanges = [
     'coinmate',
     'coinone',
     'coinspot',
-    'cointiger',
     'coolcoin',
     'coss',
     'crex24',
@@ -304,6 +301,7 @@ exchanges = [
     'poloniex',
     'rightbtc',
     'southxchange',
+    'stex',
     'stronghold',
     'surbitcoin',
     'theocean',

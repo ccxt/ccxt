@@ -869,11 +869,8 @@ class bibox(Exchange):
             if 'code' in response['error']:
                 code = self.safe_string(response['error'], 'code')
                 feedback = self.id + ' ' + body
-                exceptions = self.exceptions
-                if code in exceptions:
-                    raise exceptions[code](feedback)
-                else:
-                    raise ExchangeError(feedback)
+                self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                raise ExchangeError(feedback)
             raise ExchangeError(self.id + ' ' + body)
         if not ('result' in response):
             raise ExchangeError(self.id + ' ' + body)

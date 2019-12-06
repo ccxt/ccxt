@@ -1416,11 +1416,10 @@ class kraken extends Exchange {
                 if (is_array($response) && array_key_exists('error', $response)) {
                     $numErrors = is_array ($response['error']) ? count ($response['error']) : 0;
                     if ($numErrors) {
-                        $message = $this->id . ' ' . $this->json ($response);
+                        $message = $this->id . ' ' . $body;
                         for ($i = 0; $i < count ($response['error']); $i++) {
-                            if (is_array($this->exceptions) && array_key_exists($response['error'][$i], $this->exceptions)) {
-                                throw new $this->exceptions[$response['error'][$i]]($message);
-                            }
+                            $error = $response['error'][$i];
+                            $this->throw_exactly_matched_exception($this->exceptions, $error, $message);
                         }
                         throw new ExchangeError($message);
                     }

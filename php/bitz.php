@@ -1188,7 +1188,6 @@ class bitz extends Exchange {
         $status = $this->safe_string($response, 'status');
         if ($status !== null) {
             $feedback = $this->id . ' ' . $body;
-            $exceptions = $this->exceptions;
             //
             //     array("$status":-107,"msg":"","data":"","time":1535968848,"microtime":"0.89092200 1535968848","source":"api")
             //
@@ -1198,20 +1197,14 @@ class bitz extends Exchange {
                 //
                 $code = $this->safe_integer($response, 'data');
                 if ($code !== null) {
-                    if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
-                        throw new $exceptions[$code]($feedback);
-                    } else {
-                        throw new ExchangeError($feedback);
-                    }
+                    $this->throw_exactly_matched_exception($this->exceptions, $code, $feedback);
+                    throw new ExchangeError($feedback);
                 } else {
                     return; // no error
                 }
             }
-            if (is_array($exceptions) && array_key_exists($status, $exceptions)) {
-                throw new $exceptions[$status]($feedback);
-            } else {
-                throw new ExchangeError($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions, $status, $feedback);
+            throw new ExchangeError($feedback);
         }
     }
 }

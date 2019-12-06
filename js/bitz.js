@@ -1187,7 +1187,6 @@ module.exports = class bitz extends Exchange {
         const status = this.safeString (response, 'status');
         if (status !== undefined) {
             const feedback = this.id + ' ' + body;
-            const exceptions = this.exceptions;
             //
             //     {"status":-107,"msg":"","data":"","time":1535968848,"microtime":"0.89092200 1535968848","source":"api"}
             //
@@ -1197,20 +1196,14 @@ module.exports = class bitz extends Exchange {
                 //
                 const code = this.safeInteger (response, 'data');
                 if (code !== undefined) {
-                    if (code in exceptions) {
-                        throw new exceptions[code] (feedback);
-                    } else {
-                        throw new ExchangeError (feedback);
-                    }
+                    this.throwExactlyMatchedException (this.exceptions, code, feedback);
+                    throw new ExchangeError (feedback);
                 } else {
                     return; // no error
                 }
             }
-            if (status in exceptions) {
-                throw new exceptions[status] (feedback);
-            } else {
-                throw new ExchangeError (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions, status, feedback);
+            throw new ExchangeError (feedback);
         }
     }
 };
