@@ -654,7 +654,7 @@ class cex extends Exchange {
             for ($i = 0; $i < count ($order['vtx']); $i++) {
                 $item = $order['vtx'][$i];
                 $tradeSide = $this->safe_string($item, 'type');
-                if ($item['type'] === 'cancel') {
+                if ($tradeSide === 'cancel') {
                     // looks like this might represent the cancelled part of an $order
                     //   { id => '4426729543',
                     //     type => 'cancel',
@@ -675,7 +675,8 @@ class cex extends Exchange {
                     //     ds => 0 }
                     continue;
                 }
-                if (!$item['price']) {
+                $tradePrice = $this->safe_float($item, 'price');
+                if ($tradePrice === null) {
                     // this represents the $order
                     //   {
                     //     "a" => "0.47000000",
@@ -697,10 +698,8 @@ class cex extends Exchange {
                     //     "balance" => "1432.93000000" }
                     continue;
                 }
-                // if ($item['type'] === 'costsNothing')
-                //     var_dump ($item);
                 // todo => deal with these
-                if ($item['type'] === 'costsNothing') {
+                if ($tradeSide === 'costsNothing') {
                     continue;
                 }
                 // --
@@ -779,10 +778,8 @@ class cex extends Exchange {
                 //     "symbol2" => "BTC",
                 //     "fee_amount" => "0.03"
                 //   }
-                $tradeTime = $this->safe_string($item, 'time');
-                $tradeTimestamp = $this->parse8601 ($tradeTime);
+                $tradeTimestamp = $this->parse8601 ($this->safe_string($item, 'time'));
                 $tradeAmount = $this->safe_float($item, 'amount');
-                $tradePrice = $this->safe_float($item, 'price');
                 $feeCost = $this->safe_float($item, 'fee_amount');
                 $absTradeAmount = ($tradeAmount < 0) ? -$tradeAmount : $tradeAmount;
                 $tradeCost = null;
