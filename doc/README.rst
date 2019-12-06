@@ -70,7 +70,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 125 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 124 cryptocurrency exchange markets and trading APIs:
 
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 |        logo                                                                               | id                 | name                                                                                       | ver | doc                                                                                             | certified                                                            |
@@ -192,8 +192,6 @@ The ccxt library currently supports the following 125 cryptocurrency exchange ma
 | `coinone <https://coinone.co.kr>`__                                                       | coinone            | `CoinOne <https://coinone.co.kr>`__                                                        | 2   | `API <https://doc.coinone.co.kr>`__                                                             |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `coinspot <https://www.coinspot.com.au/register?code=PJURCU>`__                           | coinspot           | `CoinSpot <https://www.coinspot.com.au/register?code=PJURCU>`__                            | \*  | `API <https://www.coinspot.com.au/api>`__                                                       |                                                                      |
-+-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `cointiger <https://www.cointiger.one/#/register?refCode=FfvDtt>`__                       | cointiger          | `CoinTiger <https://www.cointiger.one/#/register?refCode=FfvDtt>`__                        | 1   | `API <https://github.com/cointiger/api-docs-en/wiki>`__                                         |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `coolcoin <https://www.coolcoin.com/user/register?invite_code=bhaega>`__                  | coolcoin           | `CoolCoin <https://www.coolcoin.com/user/register?invite_code=bhaega>`__                   | \*  | `API <https://www.coolcoin.com/help.api.html>`__                                                |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -375,14 +373,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.20.38/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.20.38/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.20.39/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.20.39/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.20.38/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.20.39/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

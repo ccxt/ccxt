@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.20.38'
+__version__ = '1.20.39'
 
 # ----------------------------------------------------------------------------
 
@@ -126,7 +126,6 @@ from ccxt.coinmarketcap import coinmarketcap                # noqa: F401
 from ccxt.coinmate import coinmate                          # noqa: F401
 from ccxt.coinone import coinone                            # noqa: F401
 from ccxt.coinspot import coinspot                          # noqa: F401
-from ccxt.cointiger import cointiger                        # noqa: F401
 from ccxt.coolcoin import coolcoin                          # noqa: F401
 from ccxt.coss import coss                                  # noqa: F401
 from ccxt.crex24 import crex24                              # noqa: F401
@@ -253,7 +252,6 @@ exchanges = [
     'coinmate',
     'coinone',
     'coinspot',
-    'cointiger',
     'coolcoin',
     'coss',
     'crex24',
