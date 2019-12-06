@@ -51,6 +51,8 @@ module.exports = class coindcx extends Exchange {
                         'exchange/v1/orders/status',
                         'exchange/v1/orders/active_orders',
                         'exchange/v1/orders/trade_history',
+                        'exchange/v1/orders/cancel',
+                        'exchange/v1/orders/cancel_all',
                     ],
                 },
             },
@@ -66,7 +68,8 @@ module.exports = class coindcx extends Exchange {
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
-                'cancelOrder': false,
+                'cancelOrder': true,
+                'cancelAllOrders': true,
                 'editOrder': false,
                 'fetchStatus': false,
             },
@@ -351,7 +354,7 @@ module.exports = class coindcx extends Exchange {
         // https://coindcx-official.github.io/rest-api/?javascript#account-trade-history
         await this.loadMarkets ();
         const request = {
-            'id': parseInt (id),
+            'id': String (id),
         };
         const response = await this.privatePostExchangeV1OrdersStatus (this.extend (request, params));
         return this.parseOrder (response);
@@ -414,6 +417,31 @@ module.exports = class coindcx extends Exchange {
         } else {
             throw new ExchangeError ('No order received');
         }
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+            'timestamp': this.milliseconds (),
+        };
+        return await this.privatePostExchangeV1OrdersCancel (this.extend (request, params));
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol !== undefined) {
+            if (!(symbol in this.markets)) {
+                throw new ExchangeError (this.id + ' has no symbol ' + symbol);
+            }
+        }
+        const market = this.market (symbol);
+        const marketInfo = this.safeValue (market, 'info');
+        const request = {
+            'market': this.safeValue (marketInfo, 'symbol'),
+            'timestamp': this.milliseconds (),
+        };
+        return await this.privatePostExchangeV1OrdersCancelAll (this.extend (request, params));
     }
 
     parseOrder (order, market = undefined) {
