@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { AuthenticationError, DDoSProtection, ExchangeError, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -53,8 +53,46 @@ module.exports = class coinsbit extends Exchange {
             },
             'has': {
                 'fetchMarkets': true,
+                'fetchCurrencies': false,
+                'fetchTradingLimits': false,
+                'fetchTradingFees': false,
+                'fetchFundingLimits': false,
+                'fetchTicker': false,
+                'fetchOrderBook': false,
+                'fetchTrades': false,
+                'fetchOHLCV': false,
+                'fetchBalance': false,
+                'fetchAccounts': false,
+                'createOrder': false,
+                'cancelOrder': false,
+                'editOrder': false,
+                'fetchOrder': false,
+                'fetchOpenOrders': false,
+                'fetchAllOrders': false,
+                'fetchMyTrades': false,
+                'fetchDepositAddress': false,
+                'fetchDeposits': false,
+                'fetchWithdrawals': false,
+                'fetchTransactions': false,
+                'fetchLedger': false,
+                'withdraw': false,
+                'transfer': false,
             },
             'rateLimit': 1000,
+            'fees': {
+                'trading': {
+                    'maker': 0.002,
+                    'taker': 0.002,
+                },
+            },
+            'exceptions': {
+                'balance not enough': InsufficientFunds,
+                'amount is less than': InvalidOrder,
+                'Total is less than': InvalidOrder,
+                'validation.total': InvalidOrder,
+                'Too many requests': DDoSProtection,
+                'This action is unauthorized.': AuthenticationError,
+            },
         });
     }
 
@@ -120,8 +158,8 @@ module.exports = class coinsbit extends Exchange {
         const close = this.safeFloat (ticker, 'last');
         const last = this.safeFloat (ticker, 'last');
         const change = last - open;
-        const percentage = (change / open) * 100;
-        const average = (last + open) / 2;
+        const percentage = parseFloat (change / open) * parseFloat (100);
+        const average = parseFloat (last + open) / parseFloat (2);
         const baseVolume = this.safeFloat (ticker, 'volume');
         const quoteVolume = this.safeFloat (ticker, 'deal');
         return {
@@ -177,6 +215,18 @@ module.exports = class coinsbit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'market': this.marketId (symbol),
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetDepthResult (this.extend (request, params));
+        return this.parseOrderBook (response, undefined, 'bids', 'asks');
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return;
@@ -188,9 +238,25 @@ module.exports = class coinsbit extends Exchange {
         }
         if (body.length > 0) {
             if (body[0] === '{') {
-                const isSuccess = this.safeValue (response, 'success');
+                const isSuccess = this.safeValue (response, 'success', true);
                 if (!isSuccess) {
-                    throw new ExchangeError (this.name + ' error: ' + this.json (this.safeValue (response, 'message')));
+                    const messages = this.safeValue (response, 'message');
+                    let errorMessage = '';
+                    if (this.isObject (messages)) {
+                        const messagesKeys = Object.keys (messages);
+                        for (let messageIndex = 0; messageIndex < messagesKeys.length; messageIndex++) {
+                            errorMessage += messages[messagesKeys[messageIndex]];
+                        }
+                    } else if (this.isArray (messages)) {
+                        for (let messageIndex = 0; messageIndex < messages.length; messageIndex++) {
+                            errorMessage += messages[messageIndex];
+                        }
+                    } else {
+                        errorMessage = messages;
+                    }
+                    const feedback = 'id: ' + this.id + '\n' + 'Error: ' + errorMessage + '\n' + 'Body: ' + body;
+                    this.throwExactlyMatchedException (this.exceptions, errorMessage, feedback);
+                    throw new ExchangeError (feedback);
                 }
             }
         }
