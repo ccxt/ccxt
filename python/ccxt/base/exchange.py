@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.20.41'
+__version__ = '1.20.40'
 
 # -----------------------------------------------------------------------------
 
@@ -607,7 +607,7 @@ class Exchange(object):
 
     def is_text_response(self, headers):
         content_type = headers.get('Content-Type', '')
-        return (content_type == 'application/json') or (content_type == 'text/html')
+        return content_type.startswith ('application/json') or content_type.startswith ('text/html')
 
     @staticmethod
     def key_exists(dictionary, key):
