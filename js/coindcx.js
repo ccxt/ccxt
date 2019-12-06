@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -216,11 +216,28 @@ module.exports = class coindcx extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'timestamp': this.milliseconds (),
+        };
+        if (limit !== undefined) {
+            if (this.isNumber (limit)) {
+                if (limit < 0 && limit > 1000) {
+                    limit = 500;
+                }
+                request['limit'] = limit;
+            }
+        }
+        const response = await this.privatePostExchangeV1OrdersTradeHistory (this.extend (request, params));
+        return this.parseTrades (response, undefined, since, limit);
+    }
+
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeTimestamp (trade, 't');
+        const timestamp = this.safeInteger2 (trade, 't', 'timestamp');
         let symbol = undefined;
         if (market === undefined) {
-            const marketId = this.safeString (trade, 's');
+            const marketId = this.safeString2 (trade, 's', 'symbol');
             market = this.safeValue (this.markets_by_id, marketId);
         }
         if (market !== undefined) {
@@ -230,10 +247,10 @@ module.exports = class coindcx extends Exchange {
         if ('m' in trade) {
             takerOrMaker = trade['m'] ? 'maker' : 'taker';
         }
-        const price = this.safeFloat (trade, 'p');
-        const amount = this.safeFloat (trade, 'q');
+        const price = this.safeFloat2 (trade, 'p', 'price');
+        const amount = this.safeFloat2 (trade, 'q', 'quantity');
         return {
-            'id': undefined,
+            'id': this.safeString (trade, 'id'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -241,11 +258,11 @@ module.exports = class coindcx extends Exchange {
             'order': undefined,
             'type': undefined,
             'takerOrMaker': takerOrMaker,
-            'side': undefined,
+            'side': this.safeString (trade, 'side'),
             'price': price,
             'amount': amount,
             'cost': price * amount,
-            'fee': undefined,
+            'fee': this.safeFloat (trade, 'fee_amount'),
         };
     }
 
