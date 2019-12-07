@@ -156,7 +156,7 @@ module.exports = class WebSocketClient {
     }
 
     onPingInterval () {
-        if ((this.lastPong + this.pingRate) < milliseconds ()) {
+        if ((this.lastPong + this.keepAlive) < milliseconds ()) {
             this.reset (new RequestTimeout ('Connection to ' + this.url + ' timed out due to a ping-pong keepalive missing on time'))
         } else {
             if (this.ws.readyState === WebSocket.OPEN) {
