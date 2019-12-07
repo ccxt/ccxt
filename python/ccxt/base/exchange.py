@@ -607,7 +607,7 @@ class Exchange(object):
 
     def is_text_response(self, headers):
         content_type = headers.get('Content-Type', '')
-        return content_type.startswith('application/json') or content_type.startswith('text/html')
+        return content_type.startswith('application/json') or content_type.startswith('text/')
 
     @staticmethod
     def key_exists(dictionary, key):
