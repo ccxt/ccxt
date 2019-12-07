@@ -39,6 +39,62 @@ error_hierarchy = {
     },
 }
 
+ExchangeError = None
+AuthenticationError = None
+PermissionDenied = None
+AccountSuspended = None
+ArgumentsRequired = None
+BadRequest = None
+BadSymbol = None
+BadResponse = None
+NullResponse = None
+InsufficientFunds = None
+InvalidAddress = None
+AddressPending = None
+InvalidOrder = None
+OrderNotFound = None
+OrderNotCached = None
+CancelPending = None
+OrderImmediatelyFillable = None
+OrderNotFillable = None
+DuplicateOrderId = None
+NotSupported = None
+NetworkError = None
+DDoSProtection = None
+RateLimitExceeded = None
+ExchangeNotAvailable = None
+OnMaintenance = None
+InvalidNonce = None
+RequestTimeout = None
+BaseError = None
+ExchangeError = None
+AuthenticationError = None
+PermissionDenied = None
+AccountSuspended = None
+ArgumentsRequired = None
+BadRequest = None
+BadSymbol = None
+BadResponse = None
+NullResponse = None
+InsufficientFunds = None
+InvalidAddress = None
+AddressPending = None
+InvalidOrder = None
+OrderNotFound = None
+OrderNotCached = None
+CancelPending = None
+OrderImmediatelyFillable = None
+OrderNotFillable = None
+DuplicateOrderId = None
+NotSupported = None
+NetworkError = None
+DDoSProtection = None
+RateLimitExceeded = None
+ExchangeNotAvailable = None
+OnMaintenance = None
+InvalidNonce = None
+RequestTimeout = None
+
 # -----------------------------------------------------------------------------
 
 __all__ = []
