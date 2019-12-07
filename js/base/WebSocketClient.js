@@ -16,14 +16,13 @@ const ccxt = require ('ccxt')
 module.exports = class WebSocketClient {
 
     constructor (url, onMessageCallback, onErrorCallback, onCloseCallback, config = {}) {
-
         const defaults = {
             url,
             onMessageCallback,
             onErrorCallback,
             onCloseCallback,
             protocols: undefined, // ws-specific protocols
-            options: undefined, // ws-sepcific options
+            options: undefined, // ws-specific options
             futures: {},
             subscriptions: {},
             error: undefined, // stores low-level networking exception, if any
@@ -39,7 +38,6 @@ module.exports = class WebSocketClient {
                 readyState: undefined,
             },
         }
-
         Object.assign (this, deepExtend (defaults, config))
         // connection-related Future
         this.connected = Future ()
@@ -81,6 +79,7 @@ module.exports = class WebSocketClient {
                 this.reject (result, messageHashes[i])
             }
         }
+        return result
     }
 
     createWebsocket () {
@@ -101,8 +100,7 @@ module.exports = class WebSocketClient {
     }
 
     connect (backoffDelay = 0) {
-        if ((this.ws.readyState !== WebSocket.OPEN) &&
-            (this.ws.readyState !== WebSocket.CONNECTING)) {
+        if ((this.ws.readyState !== WebSocket.OPEN) && (this.ws.readyState !== WebSocket.CONNECTING)) {
             // prevent multiple calls overwriting each other
             this.ws.readyState = WebSocket.CONNECTING
             // exponential backoff for consequent ws connections if necessary
