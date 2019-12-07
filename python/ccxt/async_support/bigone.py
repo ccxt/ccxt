@@ -145,6 +145,9 @@ class bigone(Exchange):
                 'broad': {
                 },
             },
+            'commonCurrencies': {
+                'ONE': 'BigONE Token',
+            },
         })
 
     async def fetch_markets(self, params={}):

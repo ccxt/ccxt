@@ -149,6 +149,9 @@ class bitmart extends Exchange {
                     'is not present' => '\\ccxt\\BadRequest',
                 ),
             ),
+            'commonCurrencies' => array (
+                'ONE' => 'Menlo One',
+            ),
         ));
     }
 
