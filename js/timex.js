@@ -1043,39 +1043,37 @@ module.exports = class timex extends Exchange {
         //         "timestamp": "2019-12-08T04:54:11.171Z"
         //     }
         //
-        if (market === undefined) {
-            market = this.findMarket (this.safeString (trade, 'symbol'));
+        let symbol = undefined;
+        const marketId = this.safeString (trade, 'symbol');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
         }
-        const symbol = market['symbol'];
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'quantity');
         const id = this.safeString (trade, 'id');
-        let side = undefined;
-        if ('direction' in trade) {
-            side = this.safeString (trade, 'direction').toLowerCase ();
-        } else {
-            side = this.safeString (trade, 'side').toLowerCase ();
-        }
-        let takerOrMaker = this.safeString (trade, 'makerOrTaker');
+        const side = this.safeStringLower2 (trade, 'direction', 'side');
+        const takerOrMaker = this.safeStringLower (trade, 'makerOrTaker');
         let orderId = undefined;
         if (takerOrMaker !== undefined) {
-            takerOrMaker = takerOrMaker.toLowerCase ();
             orderId = this.safeString (trade, takerOrMaker + 'OrderId');
-        } else if (orderId !== undefined) {
-            if (this.safeString (trade, 'makerOrderId') === orderId) {
-                takerOrMaker = 'maker';
-            } else {
-                takerOrMaker = 'taker';
-            }
         }
         let fee = undefined;
-        const costFee = this.safeFloat (trade, 'fee');
-        if (costFee !== undefined) {
+        const feeCost = this.safeFloat (trade, 'fee');
+        if (feeCost !== undefined) {
+            const feeCurrency = (market === undefined) ? undefined : market['quote'];
             fee = {
-                'cost': costFee,
-                'currency': market['feeCurrency'],
+                'cost': feeCost,
+                'currency': feeCurrency,
             };
+        }
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = this.costToPrecision (symbol, amount * price);
         }
         return {
             'info': trade,
@@ -1088,7 +1086,7 @@ module.exports = class timex extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': this.costToPrecision (symbol, price * amount),
+            'cost': cost,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
         };
