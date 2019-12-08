@@ -887,6 +887,7 @@ class Transpiler {
     transpileErrorHierarchy () {
 
         const errorHierarchyFilename = './js/base/errorHierarchy.js'
+        const errorHierarchy = require ('.' + errorHierarchyFilename)
 
         let js = fs.readFileSync (errorHierarchyFilename, 'utf8')
 
@@ -896,12 +897,19 @@ class Transpiler {
 
         const { python3Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js })
 
+       const python3BodyIntellisense = python3Body + '\n\n' + Array.from (function* intellisense (map) {
+            for (const key in map) {
+                yield key + ' = Exception'
+                yield* intellisense (map[key])
+            }
+        } (errorHierarchy)).join ('\n')
+
         const message = 'Transpiling error hierachy →'
 
         const python = {
             filename: './python/ccxt/base/errors.py',
-            regex: /error_hierarchy = .+?\n\}/s,
-            replacement: python3Body,
+            regex: /error_hierarchy = [\S\s]+= Exception/s,
+            replacement: python3BodyIntellisense,
         }
 
         log.bright.cyan (message, python.filename.yellow)
