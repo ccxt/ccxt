@@ -596,7 +596,7 @@ module.exports = class timex extends Exchange {
         const request = {
             'id': ids,
         };
-        const response = await this.privateDeleteTradingOrders (this.extend (request, params));
+        const response = await this.tradingDeleteOrders (this.extend (request, params));
         //
         //     {
         //         "changedOrders": [
@@ -621,9 +621,7 @@ module.exports = class timex extends Exchange {
         //         ],
         //         "unchangedOrders": [ "string" ],
         //     }
-        return {
-            'info': response,
-        };
+        return response;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -739,7 +737,7 @@ module.exports = class timex extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this.privateGetHistoryOrders (this.extend (request, query));
+        const response = await this.historyGetOrders (this.extend (request, query));
         //
         //     {
         //         "orders": [
@@ -781,7 +779,7 @@ module.exports = class timex extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this.privateGetHistoryTrades (this.extend (request, params));
+        const response = await this.historyGetTrades (this.extend (request, params));
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
