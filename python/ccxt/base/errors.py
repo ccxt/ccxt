@@ -39,7 +39,6 @@ error_hierarchy = {
     },
 }
 
-BaseError = Exception
 ExchangeError = Exception
 AuthenticationError = Exception
 PermissionDenied = Exception
