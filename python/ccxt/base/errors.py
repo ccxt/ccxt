@@ -39,33 +39,34 @@ error_hierarchy = {
     },
 }
 
-ExchangeError = object()
-AuthenticationError = object()
-PermissionDenied = object()
-AccountSuspended = object()
-ArgumentsRequired = object()
-BadRequest = object()
-BadSymbol = object()
-BadResponse = object()
-NullResponse = object()
-InsufficientFunds = object()
-InvalidAddress = object()
-AddressPending = object()
-InvalidOrder = object()
-OrderNotFound = object()
-OrderNotCached = object()
-CancelPending = object()
-OrderImmediatelyFillable = object()
-OrderNotFillable = object()
-DuplicateOrderId = object()
-NotSupported = object()
-NetworkError = object()
-DDoSProtection = object()
-RateLimitExceeded = object()
-ExchangeNotAvailable = object()
-OnMaintenance = object()
-InvalidNonce = object()
-RequestTimeout = object()
+BaseError = Exception
+ExchangeError = Exception
+AuthenticationError = Exception
+PermissionDenied = Exception
+AccountSuspended = Exception
+ArgumentsRequired = Exception
+BadRequest = Exception
+BadSymbol = Exception
+BadResponse = Exception
+NullResponse = Exception
+InsufficientFunds = Exception
+InvalidAddress = Exception
+AddressPending = Exception
+InvalidOrder = Exception
+OrderNotFound = Exception
+OrderNotCached = Exception
+CancelPending = Exception
+OrderImmediatelyFillable = Exception
+OrderNotFillable = Exception
+DuplicateOrderId = Exception
+NotSupported = Exception
+NetworkError = Exception
+DDoSProtection = Exception
+RateLimitExceeded = Exception
+ExchangeNotAvailable = Exception
+OnMaintenance = Exception
+InvalidNonce = Exception
+RequestTimeout = Exception
 
 # -----------------------------------------------------------------------------
 
