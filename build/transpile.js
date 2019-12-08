@@ -899,7 +899,7 @@ class Transpiler {
 
        const python3BodyIntellisense = python3Body + '\n\n' + Array.from (function* intellisense (map) {
             for (const key in map) {
-                yield key + ' = object()'
+                yield key + ' = Exception'
                 yield* intellisense (map[key])
             }
         } (errorHierarchy)).join ('\n')
@@ -908,7 +908,7 @@ class Transpiler {
 
         const python = {
             filename: './python/ccxt/base/errors.py',
-            regex: /error_hierarchy = [\S\s]+= object\(\)/s,
+            regex: /error_hierarchy = [\S\s]+= Exception/s,
             replacement: python3BodyIntellisense,
         }
 
