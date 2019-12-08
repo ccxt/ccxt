@@ -17,8 +17,6 @@ module.exports = class timex extends Exchange {
                 'editOrder': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': true,
-                'fetchDepositAddresses': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -816,37 +814,6 @@ module.exports = class timex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchDepositAddress (code, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const response = await this.privateGetCustodyDepositAddresses (params);
-        const addresses = this.parseDepositAddresses (response, currency['code']);
-        if (addresses.length) {
-            return addresses.shift ();
-        }
-        throw new InvalidAddress (this.id + ' fetchDepositAddress returned an empty response – create the deposit address in the user settings first.');
-    }
-
-    async fetchDepositAddresses (codes = undefined, params = {}) {
-        await this.loadMarkets ();
-        if (codes === undefined) {
-            codes = Object.keys (this.currencies);
-        }
-        if (!Array.isArray (codes)) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddresses expected an array in the codes argument');
-        }
-        const response = await this.privateGetCustodyDepositAddresses (params);
-        let result = [];
-        for (let i = 0; i < codes.length; ++i) {
-            const currency = this.currency (codes[i]);
-            result = this.arrayConcat (result, this.parseDepositAddresses (response, currency['code']));
-        }
-        if (result.length) {
-            return result;
-        }
-        throw new InvalidAddress (this.id + ' fetchDepositAddresses returned an empty response – create the deposit address in the user settings first.');
-    }
-
     parseMarket (market) {
         //
         //     {
@@ -1218,28 +1185,6 @@ module.exports = class timex extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'fee': fee,
             'info': order,
-        };
-    }
-
-    parseDepositAddresses (addresses, code) {
-        const result = [];
-        const isBTC = (code === 'BTC');
-        for (let i = 0; i < addresses.length; ++i) {
-            const address = addresses[i]['address'];
-            if ((address['type'] !== 'ETHEREUM') === isBTC) {
-                result.push (this.parseDepositAddress (addresses[i], code));
-            }
-        }
-        return result;
-    }
-
-    parseDepositAddress (dataAddress, code) {
-        const address = dataAddress['address'];
-        return {
-            'currency': code,
-            'address': this.checkAddress (this.safeString (address, 'depositAddress')),
-            'tag': undefined,
-            'info': dataAddress,
         };
     }
 
