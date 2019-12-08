@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.20.35'
+__version__ = '1.20.46'
 
 # -----------------------------------------------------------------------------
 
@@ -107,7 +107,6 @@ from ccxt.async_support.coinmarketcap import coinmarketcap                # noqa
 from ccxt.async_support.coinmate import coinmate                          # noqa: F401
 from ccxt.async_support.coinone import coinone                            # noqa: F401
 from ccxt.async_support.coinspot import coinspot                          # noqa: F401
-from ccxt.async_support.cointiger import cointiger                        # noqa: F401
 from ccxt.async_support.coolcoin import coolcoin                          # noqa: F401
 from ccxt.async_support.coss import coss                                  # noqa: F401
 from ccxt.async_support.crex24 import crex24                              # noqa: F401
@@ -147,7 +146,6 @@ from ccxt.async_support.lykke import lykke                                # noqa
 from ccxt.async_support.mandala import mandala                            # noqa: F401
 from ccxt.async_support.mercado import mercado                            # noqa: F401
 from ccxt.async_support.mixcoins import mixcoins                          # noqa: F401
-from ccxt.async_support.negociecoins import negociecoins                  # noqa: F401
 from ccxt.async_support.oceanex import oceanex                            # noqa: F401
 from ccxt.async_support.okcoincny import okcoincny                        # noqa: F401
 from ccxt.async_support.okcoinusd import okcoinusd                        # noqa: F401
@@ -234,7 +232,6 @@ exchanges = [
     'coinmate',
     'coinone',
     'coinspot',
-    'cointiger',
     'coolcoin',
     'coss',
     'crex24',
@@ -274,7 +271,6 @@ exchanges = [
     'mandala',
     'mercado',
     'mixcoins',
-    'negociecoins',
     'oceanex',
     'okcoincny',
     'okcoinusd',

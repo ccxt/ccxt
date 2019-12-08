@@ -102,6 +102,9 @@ class idex(Exchange):
                 'apiKey': False,
                 'secret': False,
             },
+            'commonCurrencies': {
+                'ONE': 'Menlo One',
+            },
         })
 
     def fetch_markets(self, params={}):

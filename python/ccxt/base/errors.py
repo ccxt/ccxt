@@ -39,6 +39,34 @@ error_hierarchy = {
     },
 }
 
+ExchangeError = Exception
+AuthenticationError = Exception
+PermissionDenied = Exception
+AccountSuspended = Exception
+ArgumentsRequired = Exception
+BadRequest = Exception
+BadSymbol = Exception
+BadResponse = Exception
+NullResponse = Exception
+InsufficientFunds = Exception
+InvalidAddress = Exception
+AddressPending = Exception
+InvalidOrder = Exception
+OrderNotFound = Exception
+OrderNotCached = Exception
+CancelPending = Exception
+OrderImmediatelyFillable = Exception
+OrderNotFillable = Exception
+DuplicateOrderId = Exception
+NotSupported = Exception
+NetworkError = Exception
+DDoSProtection = Exception
+RateLimitExceeded = Exception
+ExchangeNotAvailable = Exception
+OnMaintenance = Exception
+InvalidNonce = Exception
+RequestTimeout = Exception
+
 # -----------------------------------------------------------------------------
 
 __all__ = []

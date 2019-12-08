@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.20.35';
+$version = '1.20.46';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.20.35';
+    const VERSION = '1.20.46';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -143,7 +143,6 @@ class Exchange {
         'coinmate',
         'coinone',
         'coinspot',
-        'cointiger',
         'coolcoin',
         'coss',
         'crex24',
@@ -183,7 +182,6 @@ class Exchange {
         'mandala',
         'mercado',
         'mixcoins',
-        'negociecoins',
         'oceanex',
         'okcoincny',
         'okcoinusd',
