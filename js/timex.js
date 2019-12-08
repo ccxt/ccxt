@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, PermissionDenied, InvalidAddress, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
 
 module.exports = class timex extends Exchange {
     describe () {
@@ -135,35 +135,6 @@ module.exports = class timex extends Exchange {
                         'time', // Gets time
                     ],
                 },
-                // 'public': {
-                //     'get': [
-                //         '/public/candles',
-                //         '/public/currencies',
-                //         '/public/markets',
-                //         '/public/orderbook/v2',
-                //         '/public/tickers',
-                //         '/public/trades',
-                //     ],
-                // },
-                // 'private': {
-                //     'get': [
-                //         '/custody/deposit-addresses',
-                //         '/history/orders',
-                //         '/history/orders/details',
-                //         '/history/trades',
-                //         '/trading/balances',
-                //         '/trading/orders',
-                //     ],
-                //     'post': [
-                //         '/trading/orders',
-                //     ],
-                //     'put': [
-                //         '/trading/orders',
-                //     ],
-                //     'delete': [
-                //         '/trading/orders',
-                //     ],
-                // },
             },
             'exceptions': {
                 'exact': {
@@ -1146,43 +1117,53 @@ module.exports = class timex extends Exchange {
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'quantity');
         const filled = this.safeFloat (order, 'filledQuantity');
-        const remaining = Math.max (amount - filled, 0.0);
-        const cost = parseFloat (this.costToPrecision (symbol, price * filled));
+        const canceledQuantity = this.safeFloat (order, 'cancelledQuantity');
+        let remaining = undefined;
         let status = undefined;
-        if (filled === amount) {
-            status = 'closed';
-        } else if (this.safeFloat (order, 'cancelledQuantity') > 0) {
-            status = 'canceled';
-        } else {
-            status = 'open';
+        if ((amount !== undefined) && (filled !== undefined)) {
+            remaining = Math.max (amount - filled, 0.0);
+            if (filled >= amount) {
+                status = 'closed';
+            } else if ((canceledQuantity !== undefined) && (canceledQuantity > 0)) {
+                status = 'canceled';
+            } else {
+                status = 'open';
+            }
         }
+        const cost = parseFloat (this.costToPrecision (symbol, price * filled));
         const fee = undefined;
         let lastTradeTimestamp = undefined;
         let trades = undefined;
-        if ('trades' in order) {
-            trades = this.parseTrades (order['trades'], market, undefined, undefined, id);
+        const rawTrades = this.safeValue (order, 'trades');
+        if (rawTrades !== undefined) {
+            trades = this.parseTrades (rawTrades, market, undefined, undefined, {
+                'order': id,
+            });
         }
-        if (trades && trades.length > 0) {
+        if (trades !== undefined) {
             const numTrades = trades.length;
-            lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
+            if (numTrades > 0) {
+                lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
+            }
         }
         return {
+            'info': order,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'status': status,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
             'amount': amount,
+            'cost': cost,
+            'average': undefined,
             'filled': filled,
             'remaining': remaining,
-            'cost': cost,
-            'trades': trades,
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'status': status,
             'fee': fee,
-            'info': order,
+            'trades': trades,
         };
     }
 
