@@ -722,7 +722,7 @@ module.exports = class timex extends Exchange {
         const request = {
             // 'clientOrderId': '123', // order’s client id list for filter
             // page: 0, // results page you want to retrieve (0 .. N)
-            'sort': sort,
+            'sort': sort, // sorting criteria in the format "property,asc" or "property,desc", default order is ascending, multiple sort criteria are supported
             'side': 'BUY', // or 'SELL'
             // 'till': this.iso8601 (this.milliseconds ()),
         };
@@ -765,8 +765,22 @@ module.exports = class timex extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        const options = this.safeValue (this.options, 'fetchMyTrades', {});
+        const defaultSort = this.safeValue (options, 'sort', 'timestamp,asc');
+        const sort = this.safeString (params, 'sort', defaultSort);
+        const query = this.omit (params, 'sort');
         const request = {
-            'sort': this.options['defaultSort'],
+            // 'cursorId': 123, // int64 (?)
+            // 'from': this.iso8601 (since),
+            // 'makerOrderId': '1234', // maker order hash
+            // 'owner': '...', // owner address (?)
+            // 'page': 0, // results page you want to retrieve (0 .. N)
+            // 'side': 'BUY', // or 'SELL'
+            // 'size': limit,
+            'sort': sort, // sorting criteria in the format "property,asc" or "property,desc", default order is ascending, multiple sort criteria are supported
+            // 'symbol': market['id'],
+            // 'takerOrderId': '1234',
+            // 'till': this.iso8601 (this.milliseconds ()),
         };
         let market = undefined;
         if (symbol !== undefined) {
@@ -779,8 +793,27 @@ module.exports = class timex extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this.historyGetTrades (this.extend (request, params));
-        return this.parseTrades (response['trades'], market, since, limit);
+        const response = await this.historyGetTrades (this.extend (request, query));
+        //
+        //     {
+        //         "trades": [
+        //             {
+        //                 "fee": "0.3",
+        //                 "id": 100,
+        //                 "makerOrTaker": "MAKER",
+        //                 "makerOrderId": "string",
+        //                 "price": "0.017",
+        //                 "quantity": "0.3",
+        //                 "side": "BUY",
+        //                 "symbol": "TIMEETH",
+        //                 "takerOrderId": "string",
+        //                 "timestamp": "2019-12-08T04:54:11.171Z"
+        //             }
+        //         ]
+        //     }
+        //
+        const trades = this.safeValue (response, 'trades', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -1028,11 +1061,7 @@ module.exports = class timex extends Exchange {
         //         "quantity":"0.001"
         //     }
         //
-        // fetchMyTrades (private)
-        //
-        //     ...
-        //
-        // fetchOrder trades (private)
+        // fetchMyTrades, fetchOrder (private)
         //
         //     {
         //         "fee": "0.3",
@@ -1044,7 +1073,7 @@ module.exports = class timex extends Exchange {
         //         "side": "BUY",
         //         "symbol": "TIMEETH",
         //         "takerOrderId": "string",
-        //         "timestamp": "2019-12-05T07:48:26.310Z"
+        //         "timestamp": "2019-12-08T04:54:11.171Z"
         //     }
         //
         if (market === undefined) {
