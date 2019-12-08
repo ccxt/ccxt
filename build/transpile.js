@@ -908,7 +908,7 @@ class Transpiler {
 
         const python = {
             filename: './python/ccxt/base/errors.py',
-            regex: /error_hierarchy = .+?\n\}/s,
+            regex: /error_hierarchy = [\S\s]+= object\(\)/s,
             replacement: python3BodyIntellisense,
         }
 
