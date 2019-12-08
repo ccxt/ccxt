@@ -1125,7 +1125,6 @@ class bitz(Exchange):
         status = self.safe_string(response, 'status')
         if status is not None:
             feedback = self.id + ' ' + body
-            exceptions = self.exceptions
             #
             #     {"status":-107,"msg":"","data":"","time":1535968848,"microtime":"0.89092200 1535968848","source":"api"}
             #
@@ -1135,13 +1134,9 @@ class bitz(Exchange):
                 #
                 code = self.safe_integer(response, 'data')
                 if code is not None:
-                    if code in exceptions:
-                        raise exceptions[code](feedback)
-                    else:
-                        raise ExchangeError(feedback)
+                    self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                    raise ExchangeError(feedback)
                 else:
                     return  # no error
-            if status in exceptions:
-                raise exceptions[status](feedback)
-            else:
-                raise ExchangeError(feedback)
+            self.throw_exactly_matched_exception(self.exceptions, status, feedback)
+            raise ExchangeError(feedback)

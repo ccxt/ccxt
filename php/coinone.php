@@ -495,16 +495,12 @@ class coinone extends Exchange {
             $result = $response['result'];
             if ($result !== 'success') {
                 //
-                //    array(  "errorCode" => "405",  "status" => "maintenance",  "$result" => "error")
+                //    array(  "$errorCode" => "405",  "status" => "maintenance",  "$result" => "error")
                 //
-                $code = $this->safe_string($response, 'errorCode');
-                $feedback = $this->id . ' ' . $this->json ($response);
-                $exceptions = $this->exceptions;
-                if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
-                    throw new $exceptions[$code]($feedback);
-                } else {
-                    throw new ExchangeError($feedback);
-                }
+                $errorCode = $this->safe_string($response, 'errorCode');
+                $feedback = $this->id . ' ' . $body;
+                $this->throw_exactly_matched_exception($this->exceptions, $errorCode, $feedback);
+                throw new ExchangeError($feedback);
             }
         } else {
             throw new ExchangeError($this->id . ' ' . $body);

@@ -603,7 +603,7 @@ class buda(Exchange):
         statuses = {
             'rejected': 'failed',
             'confirmed': 'ok',
-            'anulled': 'canceled',
+            'aNoneed': 'canceled',
             'retained': 'canceled',
             'pending_confirmation': 'pending',
         }
@@ -719,9 +719,6 @@ class buda(Exchange):
             errorCode = self.safe_string(response, 'code')
             message = self.safe_string(response, 'message', body)
             feedback = self.id + ' ' + message
-            exceptions = self.exceptions
             if errorCode is not None:
-                if errorCode in exceptions:
-                    raise exceptions[errorCode](feedback)
-                else:
-                    raise ExchangeError(feedback)
+                self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+                raise ExchangeError(feedback)

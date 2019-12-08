@@ -1196,7 +1196,7 @@ class crex24(Exchange):
         if (code >= 200) and (code < 300):
             return  # no error
         message = self.safe_string(response, 'errorDescription')
-        feedback = self.id + ' ' + self.json(response)
+        feedback = self.id + ' ' + body
         self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
         self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
         if code == 400:

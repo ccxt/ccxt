@@ -461,12 +461,9 @@ class coinone(Exchange):
                 #
                 #    { "errorCode": "405",  "status": "maintenance",  "result": "error"}
                 #
-                code = self.safe_string(response, 'errorCode')
-                feedback = self.id + ' ' + self.json(response)
-                exceptions = self.exceptions
-                if code in exceptions:
-                    raise exceptions[code](feedback)
-                else:
-                    raise ExchangeError(feedback)
+                errorCode = self.safe_string(response, 'errorCode')
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+                raise ExchangeError(feedback)
         else:
             raise ExchangeError(self.id + ' ' + body)

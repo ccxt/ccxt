@@ -23,12 +23,6 @@ const {
     , throttle
     , capitalize
     , now
-    , microseconds
-    , seconds
-    , iso8601
-    , parse8601
-    , parseDate
-    , sleep
     , timeout
     , TimedOut
     , buildOHLCVC
@@ -205,18 +199,9 @@ module.exports = class Exchange {
             },
             'precisionMode': DECIMAL_PLACES,
             'limits': {
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
+                'amount': { 'min': undefined, 'max': undefined },
+                'price': { 'min': undefined, 'max': undefined },
+                'cost': { 'min': undefined, 'max': undefined },
             },
         } // return
     } // describe ()
@@ -245,12 +230,6 @@ module.exports = class Exchange {
         // prepended to URL, like https://proxy.com/https://exchange.com/api...
         this.proxy = ''
         this.origin = '*' // CORS origin
-
-        this.iso8601      = iso8601
-        this.parse8601    = parse8601
-        this.parseDate    = parseDate
-        this.microseconds = microseconds
-        this.seconds      = seconds
 
         this.minFundingAddressLength = 1 // used in checkAddress
         this.substituteCommonCurrencyCodes = true  // reserved
@@ -336,10 +315,6 @@ module.exports = class Exchange {
         return this.seconds ()
     }
 
-    milliseconds () {
-        return now ()
-    }
-
     encodeURIComponent (...args) {
         return encodeURIComponent (...args)
     }
@@ -397,11 +372,7 @@ module.exports = class Exchange {
             } else if (this.httpsAgent && url.indexOf ('https://') === 0) {
                 params['agent'] = this.httpsAgent;
             } else if (this.agent) {
-                const [ protocol, ... rest ] = url.split ('//')
-                // this.agent.protocol contains a colon ('https:' or 'http:')
-                if (protocol === this.agent.protocol) {
-                    params['agent'] = this.agent;
-                }
+                params['agent'] = this.agent;
             }
 
             const promise =

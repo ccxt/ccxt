@@ -504,11 +504,8 @@ class bitso(Exchange):
                 if error is None:
                     raise ExchangeError(feedback)
                 code = self.safe_string(error, 'code')
-                exceptions = self.exceptions
-                if code in exceptions:
-                    raise exceptions[code](feedback)
-                else:
-                    raise ExchangeError(feedback)
+                self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                raise ExchangeError(feedback)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)

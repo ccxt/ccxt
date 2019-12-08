@@ -497,10 +497,8 @@ class coinegg extends Exchange {
         $errorCode = $this->safe_string($response, 'code');
         $errorMessages = $this->errorMessages;
         $message = $this->safe_string($errorMessages, $errorCode, 'Unknown Error');
-        if (is_array($this->exceptions) && array_key_exists($errorCode, $this->exceptions)) {
-            throw new $this->exceptions[$errorCode]($this->id . ' ' . $message);
-        } else {
-            throw new ExchangeError($this->id . ' ' . $message);
-        }
+        $feedback = $this->id . ' ' . $message;
+        $this->throw_exactly_matched_exception($this->exceptions, $errorCode, $feedback);
+        throw new ExchangeError($this->id . ' ' . $message);
     }
 }

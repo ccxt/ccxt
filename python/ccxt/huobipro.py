@@ -970,13 +970,10 @@ class huobipro(Exchange):
             status = self.safe_string(response, 'status')
             if status == 'error':
                 code = self.safe_string(response, 'err-code')
-                feedback = self.id + ' ' + self.json(response)
-                exceptions = self.exceptions['exact']
-                if code in exceptions:
-                    raise exceptions[code](feedback)
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
                 message = self.safe_string(response, 'err-msg')
-                if message in exceptions:
-                    raise exceptions[message](feedback)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 raise ExchangeError(feedback)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):

@@ -4,6 +4,7 @@
 
 const now = Date.now // TODO: figure out how to utilize performance.now () properly – it's not as easy as it does not return a unix timestamp...
 const microseconds = () => now () * 1000 // TODO: utilize performance.now for that purpose
+const milliseconds = now
 const seconds      = () => Math.floor (now () / 1000)
 
 /*  ------------------------------------------------------------------------ */
@@ -157,6 +158,7 @@ module.exports =
     {
         now
         , microseconds
+        , milliseconds
         , seconds
         , iso8601
         , parse8601

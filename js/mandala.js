@@ -15,7 +15,7 @@ module.exports = class mandala extends Exchange {
             'countries': [ 'MT' ],
             'version': 'v2',
             'rateLimit': 1500,
-            'certified': true,
+            'certified': false,
             // new metainfo interface
             'has': {
                 'cancelAllOrders': true,

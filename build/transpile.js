@@ -206,7 +206,7 @@ class Transpiler {
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\s*\;[^\)]+\)\s*{/g, 'for $1 in range($2, $3):'],
             [ /\s\|\|\s/g, ' or ' ],
             [ /\s\&\&\s/g, ' and ' ],
-            [ /\!([^\=])/g, 'not $1'],
+            [ /\!([^\='"])/g, 'not $1'],
             [ /([^\s(]+)\.length/g, 'len($1)' ],
             [ /\.push\s*\(([\s\S]+?)\);/g, '.append($1);' ],
             [ /^(\s*}\s*$)+/gm, '' ],
@@ -250,11 +250,12 @@ class Transpiler {
             [ /\snot\(/g, ' not (' ],
             [ /\[ /g, '[' ],              // PEP8 E201 remove whitespaces after left [ square bracket
             [ /\{ /g, '{' ],              // PEP8 E201 remove whitespaces after left { bracket
-            [ /([^\s#]+) \]/g, '$1]' ],    // PEP8 E202 remove whitespaces before right ] square bracket
-            [ /([^\s#]+) \}/g, '$1}' ],    // PEP8 E202 remove whitespaces before right } bracket
+            [ /(?<=[^\s#]) \]/g, ']' ],    // PEP8 E202 remove whitespaces before right ] square bracket
+            [ /(?<=[^\s#]) \}/g, '}' ],    // PEP8 E202 remove whitespaces before right } bracket
             [ /([^a-z])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
             [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
             [ /\sdelete\s/g, ' del ' ],
+            [ /(?<!#.+)null/, 'None' ],
         ])
 
         this.python2Regexes = [
@@ -886,6 +887,7 @@ class Transpiler {
     transpileErrorHierarchy () {
 
         const errorHierarchyFilename = './js/base/errorHierarchy.js'
+        const errorHierarchy = require ('.' + errorHierarchyFilename)
 
         let js = fs.readFileSync (errorHierarchyFilename, 'utf8')
 
@@ -895,12 +897,19 @@ class Transpiler {
 
         const { python3Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js })
 
+       const python3BodyIntellisense = python3Body + '\n\n' + Array.from (function* intellisense (map) {
+            for (const key in map) {
+                yield key + ' = Exception'
+                yield* intellisense (map[key])
+            }
+        } (errorHierarchy)).join ('\n')
+
         const message = 'Transpiling error hierachy →'
 
         const python = {
             filename: './python/ccxt/base/errors.py',
-            regex: /error_hierarchy = .+?\n\}/s,
-            replacement: python3Body,
+            regex: /error_hierarchy = [\S\s]+= Exception/s,
+            replacement: python3BodyIntellisense,
         }
 
         log.bright.cyan (message, python.filename.yellow)

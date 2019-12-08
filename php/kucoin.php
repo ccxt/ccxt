@@ -128,6 +128,7 @@ class kucoin extends Exchange {
                 '1w' => '1week',
             ),
             'exceptions' => array (
+                'order not exist' => '\\ccxt\\OrderNotFound',
                 'order_not_exist' => '\\ccxt\\OrderNotFound', // array("code":"order_not_exist","msg":"order_not_exist") ¯\_(ツ)_/¯
                 'order_not_exist_or_not_allow_to_cancel' => '\\ccxt\\InvalidOrder', // array("code":"400100","msg":"order_not_exist_or_not_allow_to_cancel")
                 'Order size below the minimum requirement.' => '\\ccxt\\InvalidOrder', // array("code":"400100","msg":"Order size below the minimum requirement.")
@@ -1595,9 +1596,7 @@ class kucoin extends Exchange {
         //
         $errorCode = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'msg');
-        $ExceptionClass = $this->safe_value_2($this->exceptions, $message, $errorCode);
-        if ($ExceptionClass !== null) {
-            throw new $ExceptionClass($this->id . ' ' . $message);
-        }
+        $this->throw_exactly_matched_exception($this->exceptions, $message, $message);
+        $this->throw_exactly_matched_exception($this->exceptions, $errorCode, $message);
     }
 }

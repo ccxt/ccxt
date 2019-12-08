@@ -56,8 +56,8 @@ function vssEverything () {
     vss ('./python/ccxt/async_support/__init__.py',      "__version__ = '{version}'",   version)
     vss ('./python/ccxt/async_support/base/exchange.py', "__version__ = '{version}'",   version)
 
-    vss ('./README.md',       "ccxt@{version}")
-    vss ('./wiki/Install.md', "ccxt@{version}")
+    vss ('./README.md',       "ccxt@{version}", version)
+    vss ('./wiki/Install.md', "ccxt@{version}", version)
 
     execSync ('cp ./package.json ./LICENSE.txt ./keys.json ./python/')
 

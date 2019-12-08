@@ -933,12 +933,8 @@ class bibox extends Exchange {
             if (is_array($response['error']) && array_key_exists('code', $response['error'])) {
                 $code = $this->safe_string($response['error'], 'code');
                 $feedback = $this->id . ' ' . $body;
-                $exceptions = $this->exceptions;
-                if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
-                    throw new $exceptions[$code]($feedback);
-                } else {
-                    throw new ExchangeError($feedback);
-                }
+                $this->throw_exactly_matched_exception($this->exceptions, $code, $feedback);
+                throw new ExchangeError($feedback);
             }
             throw new ExchangeError($this->id . ' ' . $body);
         }

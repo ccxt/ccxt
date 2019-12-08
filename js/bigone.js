@@ -135,6 +135,9 @@ module.exports = class bigone extends Exchange {
                 'broad': {
                 },
             },
+            'commonCurrencies': {
+                'ONE': 'BigONE Token',
+            },
         });
     }
 

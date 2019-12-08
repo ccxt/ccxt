@@ -1265,7 +1265,7 @@ module.exports = class crex24 extends Exchange {
             return; // no error
         }
         const message = this.safeString (response, 'errorDescription');
-        const feedback = this.id + ' ' + this.json (response);
+        const feedback = this.id + ' ' + body;
         this.throwExactlyMatchedException (message, feedback);
         this.throwBroadlyMatchedException (message, feedback);
         if (code === 400) {

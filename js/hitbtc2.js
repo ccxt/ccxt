@@ -1486,11 +1486,8 @@ module.exports = class hitbtc2 extends hitbtc {
             // {"error":{"code":20002,"message":"Order not found","description":""}}
             if (body[0] === '{') {
                 if ('error' in response) {
-                    const code = this.safeString (response['error'], 'code');
-                    const exceptions = this.exceptions;
-                    if (code in exceptions) {
-                        throw new exceptions[code] (feedback);
-                    }
+                    const errorCode = this.safeString (response['error'], 'code');
+                    this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
                     const message = this.safeString (response['error'], 'message');
                     if (message === 'Duplicate clientOrderId') {
                         throw new InvalidOrder (feedback);

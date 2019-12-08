@@ -496,14 +496,10 @@ module.exports = class coinone extends Exchange {
                 //
                 //    {  "errorCode": "405",  "status": "maintenance",  "result": "error"}
                 //
-                const code = this.safeString (response, 'errorCode');
-                const feedback = this.id + ' ' + this.json (response);
-                const exceptions = this.exceptions;
-                if (code in exceptions) {
-                    throw new exceptions[code] (feedback);
-                } else {
-                    throw new ExchangeError (feedback);
-                }
+                const errorCode = this.safeString (response, 'errorCode');
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
+                throw new ExchangeError (feedback);
             }
         } else {
             throw new ExchangeError (this.id + ' ' + body);

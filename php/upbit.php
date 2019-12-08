@@ -119,6 +119,7 @@ class upbit extends Exchange {
             ),
             'exceptions' => array (
                 'exact' => array (
+                    'This key has expired.' => '\\ccxt\\AuthenticationError',
                     'Missing request parameter error. Check the required parameters!' => '\\ccxt\\BadRequest',
                     'side is missing, side does not have a valid value' => '\\ccxt\\InvalidOrder',
                 ),
@@ -1468,7 +1469,7 @@ class upbit extends Exchange {
         ));
         $url .= '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($method === 'GET') {
+        if ($method !== 'POST') {
             if ($query) {
                 $url .= '?' . $this->urlencode ($query);
             }
@@ -1481,13 +1482,16 @@ class upbit extends Exchange {
                 'nonce' => $nonce,
             );
             if ($query) {
-                $request['query'] = $this->urlencode ($query);
+                $auth = $this->urlencode ($query);
+                $hash = $this->hash ($this->encode ($auth), 'sha512');
+                $request['query_hash'] = $hash;
+                $request['query_hash_alg'] = 'SHA512';
             }
             $jwt = $this->jwt ($request, $this->encode ($this->secret));
             $headers = array (
                 'Authorization' => 'Bearer ' . $jwt,
             );
-            if ($method !== 'GET') {
+            if (($method !== 'GET') && ($method !== 'DELETE')) {
                 $body = $this->json ($params);
                 $headers['Content-Type'] = 'application/json';
             }

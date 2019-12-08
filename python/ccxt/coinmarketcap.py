@@ -137,6 +137,8 @@ class coinmarketcap(Exchange):
             # https://github.com/ccxt/ccxt/issues/3365
             # https://github.com/ccxt/ccxt/issues/2873
             'Themis': 'Themis',  # conflict with GET(Guaranteed Entrance Token, GET Protocol)
+            'Menlo One': 'Menlo One',  # conflict with Harmony(ONE)
+            'BigONE Token': 'BigONE Token',  # conflict with Harmony(ONE)
         }
         return self.safe_value(currencies, name, base)
 

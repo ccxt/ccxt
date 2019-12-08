@@ -1371,8 +1371,7 @@ class bittrex extends Exchange {
             }
             if (!$success) {
                 $message = $this->safe_string($response, 'message');
-                $feedback = $this->id . ' ' . $this->json ($response);
-                $exceptions = $this->exceptions;
+                $feedback = $this->id . ' ' . $body;
                 if ($message === 'APIKEY_INVALID') {
                     if ($this->options['hasAlreadyAuthenticatedSuccessfully']) {
                         throw new DDoSProtection($feedback);
@@ -1417,9 +1416,7 @@ class bittrex extends Exchange {
                         }
                     }
                 }
-                if (is_array($exceptions) && array_key_exists($message, $exceptions)) {
-                    throw new $exceptions[$message]($feedback);
-                }
+                $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
                 if ($message !== null) {
                     if (mb_strpos($message, 'throttled. Try again') !== false) {
                         throw new DDoSProtection($feedback);

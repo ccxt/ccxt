@@ -469,7 +469,6 @@ class coinegg(Exchange):
         errorCode = self.safe_string(response, 'code')
         errorMessages = self.errorMessages
         message = self.safe_string(errorMessages, errorCode, 'Unknown Error')
-        if errorCode in self.exceptions:
-            raise self.exceptions[errorCode](self.id + ' ' + message)
-        else:
-            raise ExchangeError(self.id + ' ' + message)
+        feedback = self.id + ' ' + message
+        self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+        raise ExchangeError(self.id + ' ' + message)

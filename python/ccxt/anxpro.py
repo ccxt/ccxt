@@ -138,6 +138,7 @@ class anxpro(Exchange):
                     'Order Engine is offline': ExchangeNotAvailable,
                     'No executed order with that identifer found': OrderNotFound,
                     'Unknown server error, please contact support.': ExchangeError,
+                    'Not available': ExchangeNotAvailable,  # {"status": "Not available"}
                 },
             },
             'fees': {
@@ -1152,10 +1153,12 @@ class anxpro(Exchange):
             return
         result = self.safe_string(response, 'result')
         code = self.safe_string(response, 'resultCode')
-        if ((result is not None) and (result != 'success')) or ((code is not None) and (code != 'OK')):
+        status = self.safe_string(response, 'status')
+        if ((result is not None) and (result != 'success')) or ((code is not None) and (code != 'OK')) or (status is not None):
             message = self.safe_string(response, 'error')
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], status, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

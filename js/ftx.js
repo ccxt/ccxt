@@ -185,22 +185,10 @@ module.exports = class ftx extends Exchange {
                 'fee': undefined,
                 'precision': undefined,
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                    'withdraw': { 'min': undefined, 'max': undefined },
+                    'amount': { 'min': undefined, 'max': undefined },
+                    'price': { 'min': undefined, 'max': undefined },
+                    'cost': { 'min': undefined, 'max': undefined },
                 },
             };
         }
@@ -447,12 +435,15 @@ module.exports = class ftx extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'market_name': market['id'],
         };
+        if (limit !== undefined) {
+            request['depth'] = limit; // max 100, default 20
+        }
         const response = await this.publicGetMarketsMarketNameOrderbook (this.extend (request, params));
         //
         //     {
@@ -865,7 +856,7 @@ module.exports = class ftx extends Exchange {
             request['price'] = priceToPrecision;
         } else if (type === 'market') {
             method = 'privatePostOrders';
-            request['price'] = undefined;
+            request['price'] = null;
         } else if ((type === 'stop') || (type === 'takeProfit')) {
             request['triggerPrice'] = priceToPrecision;
             // request['orderPrice'] = number; // optional, order type is limit if this is specified, otherwise market
@@ -1348,7 +1339,7 @@ module.exports = class ftx extends Exchange {
         //
         const success = this.safeValue (response, 'success');
         if (!success) {
-            const feedback = this.id + ' ' + this.json (response);
+            const feedback = this.id + ' ' + body;
             const error = this.safeString (response, 'error');
             this.throwExactlyMatchedException (error, feedback);
             this.throwBroadlyMatchedException (error, feedback);

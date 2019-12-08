@@ -148,6 +148,7 @@ module.exports = class bitmex extends Exchange {
                     'Signature not valid': AuthenticationError,
                     'overloaded': ExchangeNotAvailable,
                     'Account has insufficient Available Balance': InsufficientFunds,
+                    'Service unavailable': ExchangeNotAvailable, // {"error":{"message":"Service unavailable","name":"HTTPError"}}
                 },
             },
             'precisionMode': TICK_SIZE,

@@ -651,7 +651,5 @@ class fcoin(Exchange):
         status = self.safe_string(response, 'status')
         if status != '0' and status != 'ok':
             feedback = self.id + ' ' + body
-            if status in self.exceptions:
-                exceptions = self.exceptions
-                raise exceptions[status](feedback)
+            self.throw_exactly_matched_exception(self.exceptions, status, feedback)
             raise ExchangeError(feedback)

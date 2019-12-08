@@ -127,6 +127,7 @@ module.exports = class anxpro extends Exchange {
                     'Order Engine is offline': ExchangeNotAvailable,
                     'No executed order with that identifer found': OrderNotFound,
                     'Unknown server error, please contact support.': ExchangeError,
+                    'Not available': ExchangeNotAvailable, // { "status": "Not available" }
                 },
             },
             'fees': {
@@ -1194,11 +1195,13 @@ module.exports = class anxpro extends Exchange {
         }
         const result = this.safeString (response, 'result');
         const code = this.safeString (response, 'resultCode');
-        if (((result !== undefined) && (result !== 'success')) || ((code !== undefined) && (code !== 'OK'))) {
+        const status = this.safeString (response, 'status');
+        if (((result !== undefined) && (result !== 'success')) || ((code !== undefined) && (code !== 'OK')) || (status !== undefined)) {
             const message = this.safeString (response, 'error');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (code, feedback);
             this.throwExactlyMatchedException (message, feedback);
+            this.throwExactlyMatchedException (status, feedback);
             this.throwBroadlyMatchedException (message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }

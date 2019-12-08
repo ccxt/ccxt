@@ -357,11 +357,9 @@ class btcbox(Exchange):
         result = self.safe_value(response, 'result')
         if result is None or result is True:
             return  # either public API(no error codes expected) or success
-        errorCode = self.safe_value(response, 'code')
-        feedback = self.id + ' ' + self.json(response)
-        exceptions = self.exceptions
-        if errorCode in exceptions:
-            raise exceptions[errorCode](feedback)
+        code = self.safe_value(response, 'code')
+        feedback = self.id + ' ' + body
+        self.throw_exactly_matched_exception(self.exceptions, code, feedback)
         raise ExchangeError(feedback)  # unknown message
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

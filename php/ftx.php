@@ -185,22 +185,10 @@ class ftx extends Exchange {
                 'fee' => null,
                 'precision' => null,
                 'limits' => array (
-                    'amount' => array (
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'price' => array (
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array (
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'withdraw' => array (
-                        'min' => null,
-                        'max' => null,
-                    ),
+                    'withdraw' => array( 'min' => null, 'max' => null ),
+                    'amount' => array( 'min' => null, 'max' => null ),
+                    'price' => array( 'min' => null, 'max' => null ),
+                    'cost' => array( 'min' => null, 'max' => null ),
                 ),
             );
         }
@@ -447,12 +435,15 @@ class ftx extends Exchange {
         return $this->parse_tickers ($tickers, $symbols);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
             'market_name' => $market['id'],
         );
+        if ($limit !== null) {
+            $request['depth'] = $limit; // max 100, default 20
+        }
         $response = $this->publicGetMarketsMarketNameOrderbook (array_merge ($request, $params));
         //
         //     {
@@ -1348,7 +1339,7 @@ class ftx extends Exchange {
         //
         $success = $this->safe_value($response, 'success');
         if (!$success) {
-            $feedback = $this->id . ' ' . $this->json ($response);
+            $feedback = $this->id . ' ' . $body;
             $error = $this->safe_string($response, 'error');
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);

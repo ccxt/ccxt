@@ -1103,17 +1103,13 @@ module.exports = class okcoinusd extends Exchange {
         }
         if ('error_code' in response) {
             const error = this.safeString (response, 'error_code');
-            const message = this.id + ' ' + this.json (response);
-            if (error in this.exceptions) {
-                const ExceptionClass = this.exceptions[error];
-                throw new ExceptionClass (message);
-            } else {
-                throw new ExchangeError (message);
-            }
+            const message = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions, error, message);
+            throw new ExchangeError (message);
         }
         if ('result' in response) {
             if (!response['result']) {
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+                throw new ExchangeError (this.id + ' ' + body);
             }
         }
     }

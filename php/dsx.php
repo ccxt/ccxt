@@ -1252,7 +1252,7 @@ class dsx extends Exchange {
             if (!$success) {
                 $code = $this->safe_string($response, 'code');
                 $message = $this->safe_string($response, 'error');
-                $feedback = $this->id . ' ' . $this->json ($response);
+                $feedback = $this->id . ' ' . $body;
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);

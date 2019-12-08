@@ -126,7 +126,8 @@ class upbit(Exchange):
             },
             'exceptions': {
                 'exact': {
-                    'Missing request parameter error. Check the required parametersnot ': BadRequest,
+                    'This key has expired.': AuthenticationError,
+                    'Missing request parameter error. Check the required parameters!': BadRequest,
                     'side is missing, side does not have a valid value': InvalidOrder,
                 },
                 'broad': {
@@ -812,7 +813,7 @@ class upbit(Exchange):
         elif side == 'sell':
             orderSide = 'ask'
         else:
-            raise InvalidOrder(self.id + ' createOrder allows buy or sell side onlynot ')
+            raise InvalidOrder(self.id + ' createOrder allows buy or sell side only!')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1389,7 +1390,7 @@ class upbit(Exchange):
         })
         url += '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if method == 'GET':
+        if method != 'POST':
             if query:
                 url += '?' + self.urlencode(query)
         if api == 'private':
@@ -1400,12 +1401,15 @@ class upbit(Exchange):
                 'nonce': nonce,
             }
             if query:
-                request['query'] = self.urlencode(query)
+                auth = self.urlencode(query)
+                hash = self.hash(self.encode(auth), 'sha512')
+                request['query_hash'] = hash
+                request['query_hash_alg'] = 'SHA512'
             jwt = self.jwt(request, self.encode(self.secret))
             headers = {
                 'Authorization': 'Bearer ' + jwt,
             }
-            if method != 'GET':
+            if (method != 'GET') and (method != 'DELETE'):
                 body = self.json(params)
                 headers['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
@@ -1414,15 +1418,15 @@ class upbit(Exchange):
         if response is None:
             return  # fallback to default error handler
         #
-        #   {'error': {'message': "Missing request parameter error. Check the required parametersnot ", 'name':  400} },
-        #   {'error': {'message': "side is missing, side does not have a valid value", 'name': "validation_error"} },
-        #   {'error': {'message': "개인정보 제 3자 제공 동의가 필요합니다.", 'name': "thirdparty_agreement_required"} },
-        #   {'error': {'message': "권한이 부족합니다.", 'name': "out_of_scope"} },
-        #   {'error': {'message': "주문을 찾지 못했습니다.", 'name': "order_not_found"} },
-        #   {'error': {'message': "주문가능한 금액(ETH)이 부족합니다.", 'name': "insufficient_funds_ask"} },
-        #   {'error': {'message': "주문가능한 금액(BTC)이 부족합니다.", 'name': "insufficient_funds_bid"} },
-        #   {'error': {'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key"} },
-        #   {'error': {'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification"} }
+        #   {'error': {'message': "Missing request parameter error. Check the required parameters!", 'name':  400}},
+        #   {'error': {'message': "side is missing, side does not have a valid value", 'name': "validation_error"}},
+        #   {'error': {'message': "개인정보 제 3자 제공 동의가 필요합니다.", 'name': "thirdparty_agreement_required"}},
+        #   {'error': {'message': "권한이 부족합니다.", 'name': "out_of_scope"}},
+        #   {'error': {'message': "주문을 찾지 못했습니다.", 'name': "order_not_found"}},
+        #   {'error': {'message': "주문가능한 금액(ETH)이 부족합니다.", 'name': "insufficient_funds_ask"}},
+        #   {'error': {'message': "주문가능한 금액(BTC)이 부족합니다.", 'name': "insufficient_funds_bid"}},
+        #   {'error': {'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key"}},
+        #   {'error': {'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification"}}
         #
         error = self.safe_value(response, 'error')
         if error is not None:

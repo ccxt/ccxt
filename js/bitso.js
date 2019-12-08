@@ -544,12 +544,8 @@ module.exports = class bitso extends Exchange {
                     throw new ExchangeError (feedback);
                 }
                 const code = this.safeString (error, 'code');
-                const exceptions = this.exceptions;
-                if (code in exceptions) {
-                    throw new exceptions[code] (feedback);
-                } else {
-                    throw new ExchangeError (feedback);
-                }
+                this.throwExactlyMatchedException (this.exceptions, code, feedback);
+                throw new ExchangeError (feedback);
             }
         }
     }

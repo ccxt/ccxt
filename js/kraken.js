@@ -1416,11 +1416,10 @@ module.exports = class kraken extends Exchange {
                 if ('error' in response) {
                     const numErrors = response['error'].length;
                     if (numErrors) {
-                        const message = this.id + ' ' + this.json (response);
+                        const message = this.id + ' ' + body;
                         for (let i = 0; i < response['error'].length; i++) {
-                            if (response['error'][i] in this.exceptions) {
-                                throw new this.exceptions[response['error'][i]] (message);
-                            }
+                            const error = response['error'][i];
+                            this.throwExactlyMatchedException (this.exceptions, error, message);
                         }
                         throw new ExchangeError (message);
                     }

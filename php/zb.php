@@ -626,10 +626,8 @@ class zb extends Exchange {
             $feedback = $this->id . ' ' . $body;
             if (is_array($response) && array_key_exists('code', $response)) {
                 $code = $this->safe_string($response, 'code');
-                if (is_array($this->exceptions) && array_key_exists($code, $this->exceptions)) {
-                    $ExceptionClass = $this->exceptions[$code];
-                    throw new $ExceptionClass($feedback);
-                } else if ($code !== '1000') {
+                $this->throw_exactly_matched_exception($this->exceptions, $code, $feedback);
+                if ($code !== '1000') {
                     throw new ExchangeError($feedback);
                 }
             }

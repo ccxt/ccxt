@@ -157,6 +157,9 @@ class bitmart(Exchange):
                     'is not present': BadRequest,
                 },
             },
+            'commonCurrencies': {
+                'ONE': 'Menlo One',
+            },
         })
 
     async def fetch_time(self, params={}):

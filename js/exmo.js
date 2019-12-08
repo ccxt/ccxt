@@ -1391,13 +1391,9 @@ module.exports = class exmo extends Exchange {
                     const numSubParts = errorSubParts.length;
                     code = (numSubParts > 1) ? errorSubParts[1] : errorSubParts[0];
                 }
-                const feedback = this.id + ' ' + this.json (response);
-                const exceptions = this.exceptions;
-                if (code in exceptions) {
-                    throw new exceptions[code] (feedback);
-                } else {
-                    throw new ExchangeError (feedback);
-                }
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (this.exceptions, code, feedback);
+                throw new ExchangeError (feedback);
             }
         }
     }

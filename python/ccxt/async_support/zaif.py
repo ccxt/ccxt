@@ -395,7 +395,7 @@ class zaif(Exchange):
             'currency': currency['id'],
             'amount': amount,
             'address': address,
-            # 'message': 'Hinot ',  # XEM and others
+            # 'message': 'Hi!',  # XEM and others
             # 'opt_fee': 0.003,  # BTC and MONA only
         }
         if tag is not None:
