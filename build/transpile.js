@@ -899,7 +899,7 @@ class Transpiler {
 
        const python3BodyIntellisense = python3Body + '\n\n' + Array.from (function* intellisense (map) {
             for (const key in map) {
-                yield key + ' = None'
+                yield key + ' = object()'
                 yield* intellisense (map[key])
             }
         } (errorHierarchy['BaseError'])).join ('\n')
