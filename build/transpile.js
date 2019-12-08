@@ -902,7 +902,7 @@ class Transpiler {
                 yield key + ' = Exception'
                 yield* intellisense (map[key])
             }
-        } (errorHierarchy)).join ('\n')
+        } (errorHierarchy['BaseError'])).join ('\n')
 
         const message = 'Transpiling error hierachy →'
 
