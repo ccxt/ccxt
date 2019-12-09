@@ -673,9 +673,13 @@ module.exports = class poloniex extends Exchange {
                         const symbol = base + '/' + quote;
                         const trades = response[id];
                         for (let j = 0; j < trades.length; j++) {
-                            result.push (this.extend (this.parseTrade (trades[j]), {
+                            const market = {
                                 'symbol': symbol,
-                            }));
+                                'base': base,
+                                'quote': quote,
+                            };
+                            const trade = this.extend (this.parseTrade (trades[j]), market);
+                            result.push (trade);
                         }
                     }
                 }
