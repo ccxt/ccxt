@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, DDoSProtection, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchOpenOrders': true, // true endpoint for open orders
                 'fetchOrder': 'emulated', // no endpoint for a single open-or-closed order (just for an open order only)
                 'fetchOrderBooks': true,
-                'fetchOrders': 'emulated', // no endpoint for open-or-closed orders (just for open orders only)
+                'fetchOrders': 'false',
                 'fetchOrderStatus': 'emulated', // no endpoint for status of a single open-or-closed order (just for open orders only)
                 'fetchOrderTrades': true, // true endpoint for trades of a single open or closed order
                 'fetchTickers': true,
@@ -184,6 +184,7 @@ module.exports = class poloniex extends Exchange {
                     'Nonce must be greater': InvalidNonce,
                     'You have already called cancelOrder or moveOrder on this order.': CancelPending,
                     'Amount must be at least': InvalidOrder, // {"error":"Amount must be at least 0.000001."}
+                    'Order not found': OrderNotFound,
                     'is either completed or does not exist': InvalidOrder, // {"error":"Order 587957810791 is either completed or does not exist."}
                 },
             },
@@ -678,7 +679,8 @@ module.exports = class poloniex extends Exchange {
                                 'base': base,
                                 'quote': quote,
                             };
-                            result.push (this.parseTrade (trades[j], market));
+                            const trade = this.extend (this.parseTrade (trades[j]), market);
+                            result.push (trade);
                         }
                     }
                 }
@@ -804,7 +806,7 @@ module.exports = class poloniex extends Exchange {
         return result;
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -827,56 +829,7 @@ module.exports = class poloniex extends Exchange {
                 openOrders = this.parseOpenOrders (orders, m, openOrders);
             }
         }
-        for (let j = 0; j < openOrders.length; j++) {
-            this.orders[openOrders[j]['id']] = openOrders[j];
-        }
-        const openOrdersIndexedById = this.indexBy (openOrders, 'id');
-        const cachedOrderIds = Object.keys (this.orders);
-        const result = [];
-        for (let k = 0; k < cachedOrderIds.length; k++) {
-            const id = cachedOrderIds[k];
-            if (id in openOrdersIndexedById) {
-                this.orders[id] = this.extend (this.orders[id], openOrdersIndexedById[id]);
-            } else {
-                let order = this.orders[id];
-                if (order['status'] === 'open') {
-                    order = this.extend (order, {
-                        'status': 'closed',
-                        'cost': undefined,
-                        'filled': order['amount'],
-                        'remaining': 0.0,
-                    });
-                    if (order['cost'] === undefined) {
-                        if (order['filled'] !== undefined) {
-                            order['cost'] = order['filled'] * order['price'];
-                        }
-                    }
-                    this.orders[id] = order;
-                }
-            }
-            const order = this.orders[id];
-            if (market !== undefined) {
-                if (order['symbol'] === symbol) {
-                    result.push (order);
-                }
-            } else {
-                result.push (order);
-            }
-        }
-        return this.filterBySinceLimit (result, since, limit);
-    }
-
-    async fetchOrder (id, symbol = undefined, params = {}) {
-        const since = this.safeValue (params, 'since');
-        const limit = this.safeValue (params, 'limit');
-        const request = this.omit (params, [ 'since', 'limit' ]);
-        const orders = await this.fetchOrders (symbol, since, limit, request);
-        for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['id'] === id) {
-                return orders[i];
-            }
-        }
-        throw new OrderNotCached (this.id + ' order id ' + id.toString () + ' is not in "open" state and not found in cache');
+        return openOrders;
     }
 
     filterOrdersByStatus (orders, status) {
@@ -887,16 +840,6 @@ module.exports = class poloniex extends Exchange {
             }
         }
         return result;
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterOrdersByStatus (orders, 'open');
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterOrdersByStatus (orders, 'closed');
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -921,8 +864,6 @@ module.exports = class poloniex extends Exchange {
             'price': price,
             'amount': amount,
         }, response), market);
-        const id = order['id'];
-        this.orders[id] = order;
         return this.extend ({ 'info': response }, order);
     }
 
@@ -937,59 +878,17 @@ module.exports = class poloniex extends Exchange {
             request['amount'] = this.amountToPrecision (symbol, amount);
         }
         const response = await this.privatePostMoveOrder (this.extend (request, params));
-        let result = undefined;
-        if (id in this.orders) {
-            this.orders[id]['status'] = 'canceled';
-            const newid = response['orderNumber'];
-            this.orders[newid] = this.extend (this.orders[id], {
-                'id': newid,
-                'price': price,
-                'status': 'open',
-            });
-            if (amount !== undefined) {
-                this.orders[newid]['amount'] = amount;
-            }
-            result = this.extend (this.orders[newid], { 'info': response });
-        } else {
-            let market = undefined;
-            if (symbol !== undefined) {
-                market = this.market (symbol);
-            }
-            result = this.parseOrder (response, market);
-            this.orders[result['id']] = result;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
         }
-        return result;
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        let response = undefined;
-        try {
-            response = await this.privatePostCancelOrder (this.extend ({
-                'orderNumber': id,
-            }, params));
-        } catch (e) {
-            if (e instanceof CancelPending) {
-                // A request to cancel the order has been sent already.
-                // If we then attempt to cancel the order the second time
-                // before the first request is processed the exchange will
-                // throw a CancelPending exception. Poloniex won't show the
-                // order in the list of active (open) orders and the cached
-                // order will be marked as 'closed' (see #1801 for details).
-                // To avoid that we proactively mark the order as 'canceled'
-                // here. If for some reason the order does not get canceled
-                // and still appears in the active list then the order cache
-                // will eventually get back in sync on a call to `fetchOrder`.
-                if (id in this.orders) {
-                    this.orders[id]['status'] = 'canceled';
-                }
-            }
-            throw e;
-        }
-        if (id in this.orders) {
-            this.orders[id]['status'] = 'canceled';
-        }
-        return response;
+        return this.privatePostCancelOrder (this.extend ({
+            'orderNumber': id,
+        }, params));
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -1012,13 +911,6 @@ module.exports = class poloniex extends Exchange {
         //         ]
         //     }
         //
-        const orderIds = this.safeValue (response, 'orderNumbers', []);
-        for (let i = 0; i < orderIds.length; i++) {
-            const id = orderIds[i].toString ();
-            if (id in this.orders) {
-                this.orders[id]['status'] = 'canceled';
-            }
-        }
         return response;
     }
 
@@ -1051,7 +943,6 @@ module.exports = class poloniex extends Exchange {
         }
         const order = this.parseOrder (result);
         order['id'] = id;
-        this.orders[id] = order;
         return order;
     }
 
