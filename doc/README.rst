@@ -155,7 +155,7 @@ The ccxt library currently supports the following 123 cryptocurrency exchange ma
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `buda <https://www.buda.com>`__                                                           | buda               | `Buda <https://www.buda.com>`__                                                            | 2   | `API <https://api.buda.com>`__                                                                  |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `bw <https://www.bw.com>`__                                                               | bw                 | `bw.com <https://www.bw.com>`__                                                            | 1   | `API <https://github.com/bw-exchange/api_docs_en/wiki>`__                                       |                                                                      |
+| `bw <https://www.bw.com>`__                                                               | bw                 | `BW <https://www.bw.com>`__                                                                | 1   | `API <https://github.com/bw-exchange/api_docs_en/wiki>`__                                       |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `bytetrade <https://www.bytetrade.com>`__                                                 | bytetrade          | `ByteTrade <https://www.bytetrade.com>`__                                                  | \*  | `API <https://github.com/Bytetrade/bytetrade-official-api-docs/wiki>`__                         | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -369,14 +369,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.20.65/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.20.65/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.20.66/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.20.66/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.20.65/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.20.66/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
