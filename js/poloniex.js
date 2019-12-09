@@ -828,7 +828,7 @@ module.exports = class poloniex extends Exchange {
                     'status': 'open',
                     'type': 'limit',
                 });
-                result = this.arrayConcat (result);
+                result = this.arrayConcat (result, orders);
             }
         }
         return result;
