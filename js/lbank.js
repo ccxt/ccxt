@@ -41,8 +41,8 @@ module.exports = class lbank extends Exchange {
                 'api': 'https://api.lbank.info',
                 'www': 'https://www.lbank.info',
                 'doc': 'https://github.com/LBank-exchange/lbank-official-api-docs',
-                'fees': 'https://lbankinfo.zendesk.com/hc/zh-cn/articles/115002295114--%E8%B4%B9%E7%8E%87%E8%AF%B4%E6%98%8E',
-                'referral': 'https://www.lbex.io/sign-up.html?icode=7QCY&lang=en-US',
+                'fees': 'https://lbankinfo.zendesk.com/hc/en-gb/articles/360012072873-Trading-Fees',
+                'referral': 'https://www.lbex.io/invite?icode=7QCY',
             },
             'api': {
                 'public': {
@@ -128,8 +128,8 @@ module.exports = class lbank extends Exchange {
                 baseId = parts[0];
                 quoteId = parts[1];
             }
-            const base = this.commonCurrencyCode (baseId.toUpperCase ());
-            const quote = this.commonCurrencyCode (quoteId.toUpperCase ());
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
                 'amount': this.safeInteger (market, 'quantityAccuracy'),
@@ -184,8 +184,8 @@ module.exports = class lbank extends Exchange {
                     baseId = parts[0];
                     quoteId = parts[1];
                 }
-                const base = this.commonCurrencyCode (baseId.toUpperCase ());
-                const quote = this.commonCurrencyCode (quoteId.toUpperCase ());
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
         }
@@ -194,10 +194,19 @@ module.exports = class lbank extends Exchange {
         ticker = info['ticker'];
         const last = this.safeFloat (ticker, 'latest');
         const percentage = this.safeFloat (ticker, 'change');
-        const relativeChange = percentage / 100;
-        const open = last / this.sum (1, relativeChange);
-        const change = last - open;
-        const average = this.sum (last, open) / 2;
+        let open = undefined;
+        if (percentage !== undefined) {
+            const relativeChange = this.sum (1, percentage / 100);
+            if (relativeChange > 0) {
+                open = last / this.sum (1, relativeChange);
+            }
+        }
+        let change = undefined;
+        let average = undefined;
+        if (last !== undefined && open !== undefined) {
+            change = last - open;
+            average = this.sum (last, open) / 2;
+        }
         if (market !== undefined) {
             symbol = market['symbol'];
         }
@@ -282,18 +291,19 @@ module.exports = class lbank extends Exchange {
         const type = undefined;
         const side = this.safeString (trade, 'type');
         return {
+            'id': id,
+            'info': this.safeValue (trade, 'info', trade),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': id,
             'order': undefined,
             'type': type,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': undefined,
-            'info': this.safeValue (trade, 'info', trade),
         };
     }
 
@@ -377,12 +387,7 @@ module.exports = class lbank extends Exchange {
         const currencyIds = Object.keys (free);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId.toUpperCase ());
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeFloat (free, currencyId);
             account['used'] = this.safeFloat (freeze, currencyId);
@@ -591,7 +596,7 @@ module.exports = class lbank extends Exchange {
             } else {
                 pem = this.convertSecretToPem (this.secret);
             }
-            const sign = this.binaryToBase64 (this.rsa (message, pem, 'RS256'));
+            const sign = this.binaryToBase64 (this.rsa (message, this.encode (pem), 'RS256'));
             query['sign'] = sign;
             body = this.urlencode (query);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };

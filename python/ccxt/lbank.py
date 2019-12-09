@@ -11,7 +11,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
 
 
-class lbank (Exchange):
+class lbank(Exchange):
 
     def describe(self):
         return self.deep_extend(super(lbank, self).describe(), {
@@ -46,8 +46,8 @@ class lbank (Exchange):
                 'api': 'https://api.lbank.info',
                 'www': 'https://www.lbank.info',
                 'doc': 'https://github.com/LBank-exchange/lbank-official-api-docs',
-                'fees': 'https://lbankinfo.zendesk.com/hc/zh-cn/articles/115002295114--%E8%B4%B9%E7%8E%87%E8%AF%B4%E6%98%8E',
-                'referral': 'https://www.lbex.io/sign-up.html?icode=7QCY&lang=en-US',
+                'fees': 'https://lbankinfo.zendesk.com/hc/en-gb/articles/360012072873-Trading-Fees',
+                'referral': 'https://www.lbex.io/invite?icode=7QCY',
             },
             'api': {
                 'public': {
@@ -131,8 +131,8 @@ class lbank (Exchange):
             else:
                 baseId = parts[0]
                 quoteId = parts[1]
-            base = self.common_currency_code(baseId.upper())
-            quote = self.common_currency_code(quoteId.upper())
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'quantityAccuracy'),
@@ -184,18 +184,24 @@ class lbank (Exchange):
                 else:
                     baseId = parts[0]
                     quoteId = parts[1]
-                base = self.common_currency_code(baseId.upper())
-                quote = self.common_currency_code(quoteId.upper())
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         timestamp = self.safe_integer(ticker, 'timestamp')
         info = ticker
         ticker = info['ticker']
         last = self.safe_float(ticker, 'latest')
         percentage = self.safe_float(ticker, 'change')
-        relativeChange = percentage / 100
-        open = last / self.sum(1, relativeChange)
-        change = last - open
-        average = self.sum(last, open) / 2
+        open = None
+        if percentage is not None:
+            relativeChange = self.sum(1, percentage / 100)
+            if relativeChange > 0:
+                open = last / self.sum(1, relativeChange)
+        change = None
+        average = None
+        if last is not None and open is not None:
+            change = last - open
+            average = self.sum(last, open) / 2
         if market is not None:
             symbol = market['symbol']
         return {
@@ -270,18 +276,19 @@ class lbank (Exchange):
         type = None
         side = self.safe_string(trade, 'type')
         return {
+            'id': id,
+            'info': self.safe_value(trade, 'info', trade),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': id,
             'order': None,
             'type': type,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': None,
-            'info': self.safe_value(trade, 'info', trade),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -357,11 +364,7 @@ class lbank (Exchange):
         currencyIds = list(free.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(free, currencyId)
             account['used'] = self.safe_float(freeze, currencyId)
@@ -547,7 +550,7 @@ class lbank (Exchange):
                     self.options['pem'] = pem
             else:
                 pem = self.convert_secret_to_pem(self.secret)
-            sign = self.binaryToBase64(self.rsa(message, pem, 'RS256'))
+            sign = self.binaryToBase64(self.rsa(message, self.encode(pem), 'RS256'))
             query['sign'] = sign
             body = self.urlencode(query)
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}

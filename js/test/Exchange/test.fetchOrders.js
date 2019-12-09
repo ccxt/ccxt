@@ -13,20 +13,30 @@ const log       = require ('ololog')
 
 module.exports = async (exchange, symbol) => {
 
+    const skippedExchanges = [
+        'mandala',
+        'rightbtc',
+    ]
+
+    if (skippedExchanges.includes (exchange.id)) {
+        log (exchange.id, 'found in ignored exchanges, skipping fetchMyTrades...')
+        return
+    }
+
     if (exchange.has.fetchOrders) {
 
         // log ('fetching orders...')
 
-        let orders = await exchange.fetchOrders (symbol)
+        const orders = await exchange.fetchOrders (symbol)
 
         log ('fetched', orders.length.toString ().green, 'orders, asserting each...')
 
         assert (orders instanceof Array)
 
-        let now = Date.now ()
+        const now = Date.now ()
 
         for (let i = 0; i < orders.length; i++) {
-            let order = orders[i]
+            const order = orders[i]
             testOrder (exchange, order, symbol, now)
         }
 

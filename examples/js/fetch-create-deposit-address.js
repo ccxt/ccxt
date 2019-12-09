@@ -22,7 +22,7 @@ const ccxt = require ('../../ccxt.js')
         // 'verbose': true, // ←- uncomment this for verbose output
 
         // additional credentials might be required in exchange-specific cases:
-        // uid or password for GDAX, etc...
+        // uid or password for Coinbase Pro, etc...
     })
 
 // ----------------------------------------------------------------------------

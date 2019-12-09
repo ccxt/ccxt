@@ -8,7 +8,7 @@ import math
 from ccxt.base.errors import ArgumentsRequired
 
 
-class kuna (acx):
+class kuna(acx):
 
     def describe(self):
         return self.deep_extend(super(kuna, self).describe(), {
@@ -26,6 +26,7 @@ class kuna (acx):
                 'withdraw': False,
             },
             'urls': {
+                'referral': 'https://kuna.io?r=kunaid-gvfihe8az7o4',
                 'logo': 'https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg',
                 'api': 'https://kuna.io',
                 'www': 'https://kuna.io',
@@ -72,12 +73,10 @@ class kuna (acx):
                 quoteId = quotes[j]
                 index = id.find(quoteId)
                 slice = id[index:]
-                if (index > 0) and(slice == quoteId):
+                if (index > 0) and (slice == quoteId):
                     baseId = id.replace(quoteId, '')
-                    base = baseId.upper()
-                    quote = quoteId.upper()
-                    base = self.common_currency_code(base)
-                    quote = self.common_currency_code(quote)
+                    base = self.safe_currency_code(baseId)
+                    quote = self.safe_currency_code(quoteId)
                     symbol = base + '/' + quote
                     precision = {
                         'amount': 6,
@@ -131,28 +130,32 @@ class kuna (acx):
         symbol = None
         if market:
             symbol = market['symbol']
-        side = self.safe_string(trade, 'side')
+        side = self.safe_string_2(trade, 'side', 'trend')
         if side is not None:
             sideMap = {
                 'ask': 'sell',
                 'bid': 'buy',
             }
             side = self.safe_string(sideMap, side)
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'volume')
         cost = self.safe_float(trade, 'funds')
         orderId = self.safe_string(trade, 'order_id')
         id = self.safe_string(trade, 'id')
         return {
             'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': None,
             'side': side,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'volume'),
-            'cost': cost,
             'order': orderId,
-            'info': trade,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

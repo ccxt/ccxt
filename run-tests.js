@@ -80,12 +80,29 @@ const exec = (bin, ...args) =>
         ps.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); hasWarnings = true })
 
         ps.on ('exit', code => {
+
+            output = ansi.strip (output.trim ())
+            stderr = ansi.strip (stderr)
+
+            const regex = /^\[[^\]]+\]/mg
+
+            let match = undefined
+            const warnings = []
+
+            match = regex.exec (output)
+
+            do {
+                if (match = regex.exec (output)) {
+                    warnings.push (match[0])
+                }
+            } while (match);
+
             return_ ({
                 failed: code !== 0,
                 output,
-                hasOutput: output.trim ().length > 0,
-                hasWarnings,
-                warnings: ansi.strip (stderr).match (/^\[[^\]]+\]/g) || []
+                hasOutput: output.length > 0,
+                hasWarnings: hasWarnings || warnings.length > 0,
+                warnings: warnings,
             })
         })
 

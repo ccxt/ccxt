@@ -13,7 +13,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
 
 
-class cobinhood (Exchange):
+class cobinhood(Exchange):
 
     def describe(self):
         return self.deep_extend(super(cobinhood, self).describe(), {
@@ -58,6 +58,7 @@ class cobinhood (Exchange):
                 '1M': '1M',
             },
             'urls': {
+                'referral': 'https://cobinhood.com?referrerId=a9d57842-99bb-4d7c-b668-0479a15a458b',
                 'logo': 'https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg',
                 'api': 'https://api.cobinhood.com',
                 'www': 'https://cobinhood.com',
@@ -204,7 +205,7 @@ class cobinhood (Exchange):
             currency = currencies[i]
             id = self.safe_string(currency, 'currency')
             name = self.safe_string(currency, 'name')
-            code = self.common_currency_code(id)
+            code = self.safe_currency_code(id)
             minUnit = self.safe_float(currency, 'min_unit')
             result[code] = {
                 'id': id,
@@ -251,8 +252,8 @@ class cobinhood (Exchange):
             market = markets[i]
             id = self.safe_string(market, 'id')
             baseId, quoteId = id.split('-')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -294,8 +295,8 @@ class cobinhood (Exchange):
                 market = self.markets_by_id[marketId]
             else:
                 baseId, quoteId = marketId.split('-')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         if market is not None:
             symbol = market['symbol']
@@ -442,11 +443,7 @@ class cobinhood (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['used'] = self.safe_float(balance, 'on_order')
             account['total'] = self.safe_float(balance, 'total')
@@ -654,7 +651,7 @@ class cobinhood (Exchange):
         #                                            created_at:  1536768050235,
         #                                              currency: "EOS",
         #                                                  memo: "12345678",
-        #                                                  type: "exchange"      }]} }
+        #                                                  type: "exchange"      }]}}
         #
         addresses = self.safe_value(response['result'], 'deposit_addresses', [])
         address = None
@@ -695,7 +692,7 @@ class cobinhood (Exchange):
             'currency': currency['id'],
         }
         response = self.privateGetWalletDeposits(self.extend(request, params))
-        return self.parseTransactions(response['result']['deposits'], currency)
+        return self.parse_transactions(response['result']['deposits'], currency)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -706,7 +703,7 @@ class cobinhood (Exchange):
             'currency': currency['id'],
         }
         response = self.privateGetWalletWithdrawals(self.extend(request, params))
-        return self.parseTransactions(response['result']['withdrawals'], currency)
+        return self.parse_transactions(response['result']['withdrawals'], currency)
 
     def parse_transaction_status(self, status):
         statuses = {
@@ -727,15 +724,8 @@ class cobinhood (Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         timestamp = self.safe_integer(transaction, 'created_at')
-        code = None
-        if currency is None:
-            currencyId = self.safe_string(transaction, 'currency')
-            if currencyId in self.currencies_by_id:
-                currency = self.currencies_by_id[currencyId]
-            else:
-                code = self.common_currency_code(currencyId)
-        if currency is not None:
-            code = currency['code']
+        currencyId = self.safe_string(transaction, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
         id = None
         withdrawalId = self.safe_string(transaction, 'withdrawal_id')
         depositId = self.safe_string(transaction, 'deposit_id')
@@ -784,11 +774,11 @@ class cobinhood (Exchange):
             if len(query):
                 url += '?' + query
         else:
-            headers['Content-type'] = 'application/json charset=UTF-8'
+            headers['Content-type'] = 'application/json; charset=UTF-8'
             body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if code < 400 or code >= 600:
             return
         if body[0] != '{':
@@ -801,9 +791,7 @@ class cobinhood (Exchange):
                     # Cobinhood returns vague "parameter_error" on fetchOrder() and cancelOrder() calls
                     # for invalid order IDs as well as orders that are not "open"
                     raise InvalidOrder(feedback)
-        exceptions = self.exceptions
-        if errorCode in exceptions:
-            raise exceptions[errorCode](feedback)
+        self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
         raise ExchangeError(feedback)
 
     def nonce(self):

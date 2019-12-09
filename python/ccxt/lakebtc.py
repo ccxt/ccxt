@@ -9,7 +9,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 
 
-class lakebtc (Exchange):
+class lakebtc(Exchange):
 
     def describe(self):
         return self.deep_extend(super(lakebtc, self).describe(), {
@@ -91,17 +91,9 @@ class lakebtc (Exchange):
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
-            balance = self.safe_float(balances, currencyId)
-            account = {
-                'free': balance,
-                'used': 0.0,
-                'total': balance,
-            }
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_float(balances, currencyId)
             result[code] = account
         return self.parse_balance(result)
 
@@ -163,19 +155,32 @@ class lakebtc (Exchange):
         tickers = self.publicGetTicker(params)
         return self.parse_ticker(tickers[market['id']], market)
 
-    def parse_trade(self, trade, market):
-        timestamp = self.safe_integer(trade, 'date') * 1000
+    def parse_trade(self, trade, market=None):
+        timestamp = self.safe_timestamp(trade, 'date')
+        id = self.safe_string(trade, 'tid')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'id': str(trade['tid']),
+            'symbol': symbol,
             'order': None,
             'type': None,
             'side': None,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'amount'),
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

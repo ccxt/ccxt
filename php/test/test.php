@@ -62,7 +62,9 @@ $config = json_decode(file_get_contents($keys_file), true);
 foreach ($config as $id => $params) {
     foreach ($params as $key => $value) {
         if (array_key_exists($id, $exchanges)) {
-            $exchanges[$id]->$key = $value;
+            if (property_exists($exchanges[$id], $key)) {
+                $exchanges[$id]->$key = is_array($exchanges[$id]->$key) ? array_replace_recursive($exchanges[$id]->$key, $value) : $value;
+            }
         }
     }
 }
@@ -134,7 +136,7 @@ function try_all_proxies($exchange, $proxies) {
     $max_retries = count($proxies);
 
     // a special case for ccex
-    if ($exchange->id == 'ccex')
+    if ($exchange->id == 'ccex') {
         $currentProxy = 1;
     }
 
@@ -187,7 +189,7 @@ function test_exchange($exchange) {
     );
 
     foreach ($symbols as $s) {
-        if (in_array($s, $exchange->symbols)) {
+        if (in_array ($s, $exchange->symbols) && (array_key_exists ('active', $exchange->markets[$s]) ? $exchange->markets[$s]['active'] : true)) {
             $symbol = $s;
             break;
         }

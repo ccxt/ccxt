@@ -91,18 +91,9 @@ module.exports = class lakebtc extends Exchange {
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId);
-            }
-            const balance = this.safeFloat (balances, currencyId);
-            const account = {
-                'free': balance,
-                'used': 0.0,
-                'total': balance,
-            };
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeFloat (balances, currencyId);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -173,19 +164,35 @@ module.exports = class lakebtc extends Exchange {
         return this.parseTicker (tickers[market['id']], market);
     }
 
-    parseTrade (trade, market) {
-        const timestamp = this.safeInteger (trade, 'date') * 1000;
+    parseTrade (trade, market = undefined) {
+        const timestamp = this.safeTimestamp (trade, 'date');
+        const id = this.safeString (trade, 'tid');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'id': trade['tid'].toString (),
+            'symbol': symbol,
             'order': undefined,
             'type': undefined,
             'side': undefined,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'amount'),
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 

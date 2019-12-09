@@ -154,15 +154,18 @@ function wordToByteArray(word, length) {
     return ba;
 }
 
-function wordArrayToBuffer(wordArray, length) {
+function wordArrayToBuffer(wordArray) {
+    let length = undefined;
     if (wordArray.hasOwnProperty("sigBytes") && wordArray.hasOwnProperty("words")) {
         length = wordArray.sigBytes;
         wordArray = wordArray.words;
+    } else {
+        throw Error('Argument not a wordArray')
     }
 
-    var result = [],
-        bytes
-    i = 0;
+    const result = []
+    let bytes = []
+    let i = 0;
     while (length > 0) {
         bytes = wordToByteArray(wordArray[i], Math.min(4, length));
         length -= bytes.length;

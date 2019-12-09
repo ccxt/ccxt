@@ -29,7 +29,7 @@ module.exports = class coinegg extends Exchange {
                 'www': 'https://www.coinegg.com',
                 'doc': 'https://www.coinegg.com/explain.api.html',
                 'fees': 'https://www.coinegg.com/fee.html',
-                'referral': 'http://www.coinegg.com/user/register?invite=523218',
+                'referral': 'https://www.coinegg.com/user/register?invite=523218',
             },
             'api': {
                 'web': {
@@ -166,8 +166,8 @@ module.exports = class coinegg extends Exchange {
                 const baseId = id.split ('_')[0];
                 let base = baseId.toUpperCase ();
                 let quote = quoteId.toUpperCase ();
-                base = this.commonCurrencyCode (base);
-                quote = this.commonCurrencyCode (quote);
+                base = this.safeCurrencyCode (base);
+                quote = this.safeCurrencyCode (quote);
                 const symbol = base + '/' + quote;
                 const precision = {
                     'amount': 8,
@@ -264,10 +264,7 @@ module.exports = class coinegg extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger (trade, 'date');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'date');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         const symbol = market['symbol'];
@@ -318,12 +315,7 @@ module.exports = class coinegg extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const [ currencyId, accountType ] = key.split ('_');
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId.toUpperCase ());
-            }
+            const code = this.safeCurrencyCode (currencyId);
             if (!(code in result)) {
                 result[code] = this.account ();
             }
@@ -334,7 +326,10 @@ module.exports = class coinegg extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        const symbol = market['symbol'];
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         const timestamp = this.parse8601 (this.safeString (order, 'datetime'));
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount_original');
@@ -352,15 +347,18 @@ module.exports = class coinegg extends Exchange {
             status = remaining ? 'open' : 'closed';
         }
         const info = this.safeValue (order, 'info', order);
+        const type = 'limit';
+        const side = this.safeString (order, 'type');
+        const id = this.safeString (order, 'id');
         return {
-            'id': this.safeString (order, 'id'),
+            'id': id,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': 'limit',
-            'side': order['type'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': undefined,
             'amount': amount,
@@ -477,7 +475,7 @@ module.exports = class coinegg extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return;
         }
@@ -498,10 +496,8 @@ module.exports = class coinegg extends Exchange {
         const errorCode = this.safeString (response, 'code');
         const errorMessages = this.errorMessages;
         const message = this.safeString (errorMessages, errorCode, 'Unknown Error');
-        if (errorCode in this.exceptions) {
-            throw new this.exceptions[errorCode] (this.id + ' ' + message);
-        } else {
-            throw new ExchangeError (this.id + ' ' + message);
-        }
+        const feedback = this.id + ' ' + message;
+        this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
+        throw new ExchangeError (this.id + ' ' + message);
     }
 };

@@ -4,7 +4,7 @@ const ccxt = require ('../../ccxt.js')
 const log  = require ('ololog')
 
 const symbol = 'ETH/BTC'
-const exchanges = [ 'gdax', 'hitbtc2', 'poloniex' ]
+const exchanges = [ 'coinbasepro', 'hitbtc2', 'poloniex' ]
 
 ;(async () => {
 

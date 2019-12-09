@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, NotSupported, OnMaintenance } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -181,15 +181,8 @@ module.exports = class exmo extends Exchange {
                             { 'pair': 'XLM/RUB', 'min_q': '0.01', 'max_q': '200000', 'min_p': '0.00001', 'max_p': '100000', 'min_a': '0.1', 'max_a': '50000000' },
                             { 'pair': 'EOS/BTC', 'min_q': '0.01', 'max_q': '100000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100' },
                             { 'pair': 'EOS/USD', 'min_q': '0.01', 'max_q': '100000', 'min_p': '0.01', 'max_p': '1000', 'min_a': '0.5', 'max_a': '500000' },
-                            { 'pair': 'STQ/BTC', 'min_q': '100', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '100' },
-                            { 'pair': 'STQ/USD', 'min_q': '100', 'max_q': '10000000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000' },
-                            { 'pair': 'STQ/EUR', 'min_q': '100', 'max_q': '10000000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000' },
-                            { 'pair': 'STQ/RUB', 'min_q': '100', 'max_q': '10000000', 'min_p': '0.00001', 'max_p': '50000', 'min_a': '1', 'max_a': '50000000' },
                             { 'pair': 'BTG/BTC', 'min_q': '0.01', 'max_q': '200000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100' },
                             { 'pair': 'BTG/USD', 'min_q': '0.01', 'max_q': '200000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '3', 'max_a': '500000' },
-                            { 'pair': 'HBZ/BTC', 'min_q': '100', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '100' },
-                            { 'pair': 'HBZ/ETH', 'min_q': '100', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '5000' },
-                            { 'pair': 'HBZ/USD', 'min_q': '100', 'max_q': '10000000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000' },
                             { 'pair': 'DXT/BTC', 'min_q': '100', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '100' },
                             { 'pair': 'DXT/USD', 'min_q': '100', 'max_q': '10000000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000' },
                             { 'pair': 'BTCZ/BTC', 'min_q': '100', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.1', 'max_a': '100' },
@@ -254,15 +247,25 @@ module.exports = class exmo extends Exchange {
                             { 'pair': 'DASH/UAH', 'min_q': '0.01', 'max_q': '200000', 'min_p': '0.01', 'max_p': '200000', 'min_a': '10', 'max_a': '15000000' },
                             { 'pair': 'XMR/ETH', 'min_q': '0.03', 'max_q': '1000', 'min_p': '0.00000001', 'max_p': '100', 'min_a': '0.001', 'max_a': '5000' },
                             { 'pair': 'WAVES/ETH', 'min_q': '0.5', 'max_q': '10000', 'min_p': '0.00001', 'max_p': '30', 'min_a': '0.0035', 'max_a': '3500' },
+                            { 'pair': 'DCR/BTC', 'min_q': '0.01', 'max_q': '50000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100' },
+                            { 'pair': 'DCR/RUB', 'min_q': '0.01', 'max_q': '50000', 'min_p': '0.00001', 'max_p': '100000', 'min_a': '0.5', 'max_a': '3000000' },
+                            { 'pair': 'DCR/UAH', 'min_q': '0.01', 'max_q': '50000', 'min_p': '0.00001', 'max_p': '100000', 'min_a': '0.25', 'max_a': '1000000' },
+                            { 'pair': 'ZAG/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100' },
+                            { 'pair': 'EXM/BTC', 'min_q': '1', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0000001', 'max_a': '100' },
+                            { 'pair': 'VLX/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100' },
+                            { 'pair': 'BTT/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100' },
+                            { 'pair': 'BTT/RUB', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '0.000001', 'max_a': '100' },
+                            { 'pair': 'BTT/UAH', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '0.000001', 'max_a': '100' },
                         ],
                         'fees': [
                             {
                                 'group': 'crypto',
                                 'title': 'Криптовалюта',
                                 'items': [
+                                    { 'prov': 'EXM', 'dep': '0%', 'wd': '1 EXM' },
                                     { 'prov': 'BTC', 'dep': '0%', 'wd': '0.0005 BTC' },
                                     { 'prov': 'LTC', 'dep': '0%', 'wd': '0.01 LTC' },
-                                    { 'prov': 'DOGE', 'dep': '0%', 'wd': '1 Doge' },
+                                    { 'prov': 'DOGE', 'dep': '0%', 'wd': '1 DOGE' },
                                     { 'prov': 'DASH', 'dep': '0%', 'wd': '0.01 DASH' },
                                     { 'prov': 'ETH', 'dep': '0%', 'wd': '0.01 ETH' },
                                     { 'prov': 'WAVES', 'dep': '0%', 'wd': '0.001 WAVES' },
@@ -270,15 +273,14 @@ module.exports = class exmo extends Exchange {
                                     { 'prov': 'USDT', 'dep': '0%', 'wd': '5 USDT' },
                                     { 'prov': 'XMR', 'dep': '0%', 'wd': '0.05 XMR' },
                                     { 'prov': 'XRP', 'dep': '0%', 'wd': '0.02 XRP' },
-                                    { 'prov': 'KICK', 'dep': '0 KICK', 'wd': '50 KICK' },
+                                    { 'prov': 'KICK', 'dep': '0%', 'wd': '50 KICK' },
                                     { 'prov': 'ETC', 'dep': '0%', 'wd': '0.01 ETC' },
                                     { 'prov': 'BCH', 'dep': '0%', 'wd': '0.001 BCH' },
                                     { 'prov': 'BTG', 'dep': '0%', 'wd': '0.001 BTG' },
-                                    { 'prov': 'EOS', 'dep': '', 'wd': '0.05 EOS' },
-                                    { 'prov': 'HBZ', 'dep': '65 HBZ', 'wd': '65 HBZ' },
+                                    { 'prov': 'EOS', 'dep': '0%', 'wd': '0.05 EOS' },
+                                    { 'prov': 'BTCZ', 'dep': '0%', 'wd': '5 BTCZ' },
                                     { 'prov': 'DXT', 'dep': '20 DXT', 'wd': '20 DXT' },
-                                    { 'prov': 'STQ', 'dep': '-', 'wd': '100 STQ' },
-                                    { 'prov': 'XLM', 'dep': '0%', 'wd': '-' },
+                                    { 'prov': 'XLM', 'dep': '0%', 'wd': '0.01 XLM' },
                                     { 'prov': 'MNX', 'dep': '0%', 'wd': '0.01 MNX' },
                                     { 'prov': 'OMG', 'dep': '0.1 OMG', 'wd': '0.5 OMG' },
                                     { 'prov': 'TRX', 'dep': '0%', 'wd': '1 TRX' },
@@ -296,11 +298,16 @@ module.exports = class exmo extends Exchange {
                                     { 'prov': 'HB', 'dep': '0%', 'wd': '10 HB' },
                                     { 'prov': 'DAI', 'dep': '0%', 'wd': '1 DAI' },
                                     { 'prov': 'MKR', 'dep': '0%', 'wd': '0.005 MKR' },
-                                    { 'prov': 'MNC', 'dep': '-', 'wd': '15 MNC' },
+                                    { 'prov': 'MNC', 'dep': '0%', 'wd': '15 MNC' },
                                     { 'prov': 'PTI', 'dep': '0%', 'wd': '10 PTI' },
                                     { 'prov': 'ATMCASH', 'dep': '0%', 'wd': '5 ATMCASH' },
                                     { 'prov': 'ETZ', 'dep': '0%', 'wd': '1 ETZ' },
-                                    { 'prov': 'USDC', 'dep': '', 'wd': '0.5 USDC' },
+                                    { 'prov': 'USDC', 'dep': '0%', 'wd': '0.5 USDC' },
+                                    { 'prov': 'ROOBEE', 'dep': '0%', 'wd': '200 ROOBEE' },
+                                    { 'prov': 'DCR', 'dep': '0%', 'wd': '0.01 DCR' },
+                                    { 'prov': 'ZAG', 'dep': '0%', 'wd': '0%' },
+                                    { 'prov': 'BTT', 'dep': '0%', 'wd': '100 BTT' },
+                                    { 'prov': 'VLX', 'dep': '0%', 'wd': '1 VLX' },
                                 ],
                             },
                             {
@@ -380,7 +387,7 @@ module.exports = class exmo extends Exchange {
                 '40005': AuthenticationError, // Authorization error, incorrect signature
                 '40009': InvalidNonce, //
                 '40015': ExchangeError, // API function do not exist
-                '40016': ExchangeNotAvailable, // Maintenance work in progress
+                '40016': OnMaintenance, // {"result":false,"error":"Error 40016: Maintenance work in progress"}
                 '40017': AuthenticationError, // Wrong API Key
                 '50052': InsufficientFunds,
                 '50054': InsufficientFunds,
@@ -398,13 +405,13 @@ module.exports = class exmo extends Exchange {
             let parts = response.split ('<td class="th_fees_2" colspan="2">');
             let numParts = parts.length;
             if (numParts !== 2) {
-                throw new ExchangeError (this.id + ' fetchTradingFees format has changed');
+                throw new NotSupported (this.id + ' fetchTradingFees format has changed');
             }
             const rest = parts[1];
             parts = rest.split ('</td>');
             numParts = parts.length;
             if (numParts < 2) {
-                throw new ExchangeError (this.id + ' fetchTradingFees format has changed');
+                throw new NotSupported (this.id + ' fetchTradingFees format has changed');
             }
             const fee = parseFloat (parts[0].replace ('%', '')) * 0.01;
             const taker = fee;
@@ -451,7 +458,7 @@ module.exports = class exmo extends Exchange {
         const items = groupsByGroup['crypto']['items'];
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
-            const code = this.commonCurrencyCode (this.safeString (item, 'prov'));
+            const code = this.safeCurrencyCode (this.safeString (item, 'prov'));
             const withdrawalFee = this.safeString (item, 'wd');
             const depositFee = this.safeString (item, 'dep');
             if (withdrawalFee !== undefined) {
@@ -468,7 +475,7 @@ module.exports = class exmo extends Exchange {
         // sets fiat fees to undefined
         const fiatGroups = this.toArray (this.omit (groupsByGroup, 'crypto'));
         for (let i = 0; i < fiatGroups.length; i++) {
-            const code = this.commonCurrencyCode (this.safeString (fiatGroups[i], 'title'));
+            const code = this.safeCurrencyCode (this.safeString (fiatGroups[i], 'title'));
             withdraw[code] = undefined;
             deposit[code] = undefined;
         }
@@ -498,8 +505,8 @@ module.exports = class exmo extends Exchange {
             const marketId = marketIds[i];
             const limit = limitsByMarketId[marketId];
             const [ baseId, quoteId ] = marketId.split ('/');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const maxAmount = this.safeFloat (limit, 'max_q');
             const maxPrice = this.safeFloat (limit, 'max_p');
             const maxCost = this.safeFloat (limit, 'max_a');
@@ -516,7 +523,7 @@ module.exports = class exmo extends Exchange {
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const code = this.commonCurrencyCode (id);
+            const code = this.safeCurrencyCode (id);
             const fee = this.safeValue (fees['withdraw'], code);
             const active = true;
             result[code] = {
@@ -556,8 +563,8 @@ module.exports = class exmo extends Exchange {
             const market = response[id];
             const symbol = id.replace ('_', '/');
             const [ baseId, quoteId ] = symbol.split ('/');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -596,17 +603,18 @@ module.exports = class exmo extends Exchange {
         await this.loadMarkets ();
         const response = await this.privatePostUserInfo (params);
         const result = { 'info': response };
-        const currencies = Object.keys (this.currencies);
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
+        const codes = Object.keys (this.currencies);
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currencyId = this.currencyId (code);
             const account = this.account ();
-            if (currency in response['balances']) {
-                account['free'] = this.safeFloat (response['balances'], currency);
+            if (currencyId in response['balances']) {
+                account['free'] = this.safeFloat (response['balances'], currencyId);
             }
-            if (currency in response['reserved']) {
-                account['used'] = this.safeFloat (response['reserved'], currency);
+            if (currencyId in response['reserved']) {
+                account['used'] = this.safeFloat (response['reserved'], currencyId);
             }
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -654,7 +662,7 @@ module.exports = class exmo extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.safeInteger (ticker, 'updated') * 1000;
+        const timestamp = this.safeTimestamp (ticker, 'updated');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -707,7 +715,7 @@ module.exports = class exmo extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeInteger (trade, 'date') * 1000;
+        const timestamp = this.safeTimestamp (trade, 'date');
         let fee = undefined;
         let symbol = undefined;
         const id = this.safeString (trade, 'trade_id');
@@ -760,29 +768,57 @@ module.exports = class exmo extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetTrades (this.extend (request, params));
-        return this.parseTrades (response[market['id']], market, since, limit);
+        const data = this.safeValue (response, market['id'], []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // their docs does not mention it, but if you don't supply a symbol
-        // their API will return an empty response as if you don't have any trades
-        // therefore we make it required here as calling it without a symbol is useless
+        // a symbol is required but it can be a single string, or a non-empty array
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument (a single symbol or an array)');
         }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let pair = undefined;
+        let market = undefined;
+        if (Array.isArray (symbol)) {
+            const numSymbols = symbol.length;
+            if (numSymbols < 1) {
+                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a non-empty symbol array');
+            }
+            const marketIds = this.marketIds (symbol);
+            pair = marketIds.join (',');
+        } else {
+            market = this.market (symbol);
+            pair = market['id'];
+        }
         const request = {
-            'pair': market['id'],
+            'pair': pair,
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = await this.privatePostUserTrades (this.extend (request, params));
-        if (market !== undefined) {
-            response = response[market['id']];
+        const response = await this.privatePostUserTrades (this.extend (request, params));
+        let result = [];
+        const marketIds = Object.keys (response);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            let symbol = undefined;
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+            const items = response[marketId];
+            const trades = this.parseTrades (items, market, since, limit, {
+                'symbol': symbol,
+            });
+            result = this.arrayConcat (result, trades);
         }
-        return this.parseTrades (response, market, since, limit);
+        return this.filterBySinceLimit (result, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -999,10 +1035,7 @@ module.exports = class exmo extends Exchange {
         //     }
         //
         let id = this.safeString (order, 'order_id');
-        let timestamp = this.safeInteger (order, 'created');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        let timestamp = this.safeTimestamp (order, 'created');
         let symbol = undefined;
         const side = this.safeString (order, 'type');
         if (market === undefined) {
@@ -1204,10 +1237,7 @@ module.exports = class exmo extends Exchange {
         //            "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
         //          }
         //
-        let timestamp = this.safeFloat (transaction, 'dt');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (transaction, 'dt');
         let amount = this.safeFloat (transaction, 'amount');
         if (amount !== undefined) {
             amount = Math.abs (amount);
@@ -1215,15 +1245,8 @@ module.exports = class exmo extends Exchange {
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const txid = this.safeString (transaction, 'txid');
         const type = this.safeString (transaction, 'type');
-        let code = this.safeString (transaction, 'curr');
-        if (currency === undefined) {
-            currency = this.safeValue (this.currencies_by_id, code);
-        }
-        if (currency !== undefined) {
-            code = currency['code'];
-        } else {
-            code = this.commonCurrencyCode (code);
-        }
+        const currencyId = this.safeString (transaction, 'curr');
+        const code = this.safeCurrencyCode (currencyId, currency);
         let address = this.safeString (transaction, 'account');
         if (address !== undefined) {
             const parts = address.split (':');
@@ -1342,7 +1365,7 @@ module.exports = class exmo extends Exchange {
         return this.milliseconds ();
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response) {
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return; // fallback to default error handler
         }
@@ -1368,13 +1391,9 @@ module.exports = class exmo extends Exchange {
                     const numSubParts = errorSubParts.length;
                     code = (numSubParts > 1) ? errorSubParts[1] : errorSubParts[0];
                 }
-                const feedback = this.id + ' ' + this.json (response);
-                const exceptions = this.exceptions;
-                if (code in exceptions) {
-                    throw new exceptions[code] (feedback);
-                } else {
-                    throw new ExchangeError (feedback);
-                }
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (this.exceptions, code, feedback);
+                throw new ExchangeError (feedback);
             }
         }
     }

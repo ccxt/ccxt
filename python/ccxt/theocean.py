@@ -19,7 +19,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 
 
-class theocean (Exchange):
+class theocean(Exchange):
 
     def describe(self):
         self.check_required_dependencies()
@@ -29,7 +29,6 @@ class theocean (Exchange):
             'countries': ['US'],
             'rateLimit': 3000,
             'version': 'v1',
-            'certified': True,
             'requiresWeb3': True,
             'timeframes': {
                 '5m': '300',
@@ -134,12 +133,12 @@ class theocean (Exchange):
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            baseToken = self.safe_string(market, 'baseToken')
-            quoteToken = self.safe_string(market, 'quoteToken')
+            baseToken = self.safe_value(market, 'baseToken', {})
+            quoteToken = self.safe_value(market, 'quoteToken', {})
             baseId = self.safe_string(baseToken, 'address')
             quoteId = self.safe_string(quoteToken, 'address')
-            base = self.common_currency_code(self.safe_string(baseToken, 'symbol'))
-            quote = self.common_currency_code(self.safe_string(quoteToken, 'symbol'))
+            base = self.safe_currency_code(self.safe_string(baseToken, 'symbol'))
+            quote = self.safe_currency_code(self.safe_string(quoteToken, 'symbol'))
             symbol = base + '/' + quote
             id = baseId + '/' + quoteId
             baseDecimals = self.safe_integer(baseToken, 'decimals')
@@ -185,7 +184,7 @@ class theocean (Exchange):
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
         baseDecimals = self.safe_integer(self.options['decimals'], market['base'], 18)
         return [
-            self.safe_integer(ohlcv, 'startTime') * 1000,
+            self.safe_timestamp(ohlcv, 'startTime'),
             self.safe_float(ohlcv, 'open'),
             self.safe_float(ohlcv, 'high'),
             self.safe_float(ohlcv, 'low'),
@@ -431,6 +430,8 @@ class theocean (Exchange):
         #         timestamp: "1532261686"                                                          }
         #
         timestamp = self.safe_integer(trade, 'lastUpdated')
+        if timestamp is not None:
+            timestamp /= 1000
         price = self.safe_float(trade, 'price')
         id = self.safe_string(trade, 'id')
         side = self.safe_string(trade, 'side')
@@ -571,7 +572,7 @@ class theocean (Exchange):
     def parse_order(self, order, market=None):
         zeroExOrder = self.safe_value(order, 'zeroExOrder')
         id = self.safe_string(order, 'orderHash')
-        if (id is None) and(zeroExOrder is not None):
+        if (id is None) and (zeroExOrder is not None):
             id = self.safe_string(zeroExOrder, 'orderHash')
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'type')  # injected from outside
@@ -817,31 +818,25 @@ class theocean (Exchange):
                 url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         # code 401 and plain body 'Authentication failed'(with single quotes)
         # self error is sent if you do not submit a proper Content-Type
         if body == "'Authentication failed'":
             raise AuthenticationError(self.id + ' ' + body)
-        if (body[0] == '{') or (body[0] == '['):
-            message = self.safe_string(response, 'message')
-            if message is not None:
-                #
-                # {"message":"Schema validation failed for 'query'","errors":[{"name":"required","argument":"startTime","message":"requires property \"startTime\"","instance":{"baseTokenAddress":"0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570","quoteTokenAddress":"0xd0a1e359811322d97991e03f863a0c30c2cf029c","interval":"300"},"property":"instance"}]}
-                # {"message":"Logic validation failed for 'query'","errors":[{"message":"startTime should be between 0 and current date","type":"startTime"}]}
-                # {"message":"Order not found","errors":[]}
-                # {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
-                # {"message":"Intent validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]}
-                # {"message":"Schema validation failed for 'body'","errors":[{"name":"anyOf","argument":["[subschema 0]","[subschema 1]","[subschema 2]"],"message":"is not any of [subschema 0],[subschema 1],[subschema 2]","instance":{"signedTargetOrder":{"error":{"message":"Unsigned target order validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]},"maker":"0x1709c02cd7327d391a39a7671af8a91a1ef8a47b","orderHash":"0xda007ea8b5eca71ac96fe4072f7c1209bb151d898a9cc89bbeaa594f0491ee49","ecSignature":{"v":27,"r":"0xb23ce6c4a7b5d51d77e2d00f6d1d472a3b2e72d5b2be1510cfeb122f9366b79e","s":"0x07d274e6d7a00b65fc3026c2f9019215b1e47a5ac4d1f05e03f90550d27109be"}}},"property":"instance"}]}
-                # {"message":"Schema validation failed for 'params'","errors":[{"name":"pattern","argument":"^0x[0-9a-fA-F]{64}$","message":"does not match pattern \"^0x[0-9a-fA-F]{64}$\"","instance":"1","property":"instance.orderHash"}]}
-                #
-                feedback = self.id + ' ' + self.json(response)
-                exact = self.exceptions['exact']
-                if message in exact:
-                    raise exact[message](feedback)
-                broad = self.exceptions['broad']
-                broadKey = self.findBroadlyMatchedKey(broad, body)
-                if broadKey is not None:
-                    raise broad[broadKey](feedback)
-                raise ExchangeError(feedback)  # unknown message
+        message = self.safe_string(response, 'message')
+        if message is not None:
+            #
+            # {"message":"Schema validation failed for 'query'","errors":[{"name":"required","argument":"startTime","message":"requires property \"startTime\"","instance":{"baseTokenAddress":"0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570","quoteTokenAddress":"0xd0a1e359811322d97991e03f863a0c30c2cf029c","interval":"300"},"property":"instance"}]}
+            # {"message":"Logic validation failed for 'query'","errors":[{"message":"startTime should be between 0 and current date","type":"startTime"}]}
+            # {"message":"Order not found","errors":[]}
+            # {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
+            # {"message":"Intent validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]}
+            # {"message":"Schema validation failed for 'body'","errors":[{"name":"anyOf","argument":["[subschema 0]","[subschema 1]","[subschema 2]"],"message":"is not any of [subschema 0],[subschema 1],[subschema 2]","instance":{"signedTargetOrder":{"error":{"message":"Unsigned target order validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]},"maker":"0x1709c02cd7327d391a39a7671af8a91a1ef8a47b","orderHash":"0xda007ea8b5eca71ac96fe4072f7c1209bb151d898a9cc89bbeaa594f0491ee49","ecSignature":{"v":27,"r":"0xb23ce6c4a7b5d51d77e2d00f6d1d472a3b2e72d5b2be1510cfeb122f9366b79e","s":"0x07d274e6d7a00b65fc3026c2f9019215b1e47a5ac4d1f05e03f90550d27109be"}}},"property":"instance"}]}
+            # {"message":"Schema validation failed for 'params'","errors":[{"name":"pattern","argument":"^0x[0-9a-fA-F]{64}$","message":"does not match pattern \"^0x[0-9a-fA-F]{64}$\"","instance":"1","property":"instance.orderHash"}]}
+            #
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
+            raise ExchangeError(feedback)  # unknown message

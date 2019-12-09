@@ -8,7 +8,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 
 
-class fybse (Exchange):
+class fybse(Exchange):
 
     def describe(self):
         return self.deep_extend(super(fybse, self).describe(), {
@@ -59,17 +59,11 @@ class fybse (Exchange):
         quote = self.markets[symbol]['quote']
         lowercase = quote.lower() + 'Bal'
         fiat = self.safe_float(response, lowercase)
-        crypto = {
-            'free': btc,
-            'used': 0.0,
-            'total': btc,
-        }
+        crypto = self.account()
+        crypto['total'] = btc
         result = {'BTC': crypto}
-        result[quote] = {
-            'free': fiat,
-            'used': 0.0,
-            'total': fiat,
-        }
+        result[quote] = self.account()
+        result[quote]['total'] = fiat
         result['info'] = response
         return self.parse_balance(result)
 
@@ -108,9 +102,7 @@ class fybse (Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(trade, 'date')
         id = self.safe_string(trade, 'tid')
         symbol = None
         if market is not None:

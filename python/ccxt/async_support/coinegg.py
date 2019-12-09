@@ -14,7 +14,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
 
 
-class coinegg (Exchange):
+class coinegg(Exchange):
 
     def describe(self):
         return self.deep_extend(super(coinegg, self).describe(), {
@@ -37,7 +37,7 @@ class coinegg (Exchange):
                 'www': 'https://www.coinegg.com',
                 'doc': 'https://www.coinegg.com/explain.api.html',
                 'fees': 'https://www.coinegg.com/fee.html',
-                'referral': 'http://www.coinegg.com/user/register?invite=523218',
+                'referral': 'https://www.coinegg.com/user/register?invite=523218',
             },
             'api': {
                 'web': {
@@ -173,8 +173,8 @@ class coinegg (Exchange):
                 baseId = id.split('_')[0]
                 base = baseId.upper()
                 quote = quoteId.upper()
-                base = self.common_currency_code(base)
-                quote = self.common_currency_code(quote)
+                base = self.safe_currency_code(base)
+                quote = self.safe_currency_code(quote)
                 symbol = base + '/' + quote
                 precision = {
                     'amount': 8,
@@ -264,9 +264,7 @@ class coinegg (Exchange):
         return self.parse_order_book(response)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(trade, 'date')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         symbol = market['symbol']
@@ -313,19 +311,17 @@ class coinegg (Exchange):
         for i in range(0, len(keys)):
             key = keys[i]
             currencyId, accountType = key.split('_')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
-            if not(code in list(result.keys())):
+            code = self.safe_currency_code(currencyId)
+            if not (code in result):
                 result[code] = self.account()
             type = 'used' if (accountType == 'lock') else 'free'
             result[code][type] = self.safe_float(balances, key)
         return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
-        symbol = market['symbol']
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string(order, 'datetime'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount_original')
@@ -340,15 +336,18 @@ class coinegg (Exchange):
         else:
             status = 'open' if remaining else 'closed'
         info = self.safe_value(order, 'info', order)
+        type = 'limit'
+        side = self.safe_string(order, 'type')
+        id = self.safe_string(order, 'id')
         return {
-            'id': self.safe_string(order, 'id'),
+            'id': id,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': 'limit',
-            'side': order['type'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': None,
             'amount': amount,
@@ -452,7 +451,7 @@ class coinegg (Exchange):
                 body = query
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
         # private endpoints return the following structure:
@@ -470,7 +469,6 @@ class coinegg (Exchange):
         errorCode = self.safe_string(response, 'code')
         errorMessages = self.errorMessages
         message = self.safe_string(errorMessages, errorCode, 'Unknown Error')
-        if errorCode in self.exceptions:
-            raise self.exceptions[errorCode](self.id + ' ' + message)
-        else:
-            raise ExchangeError(self.id + ' ' + message)
+        feedback = self.id + ' ' + message
+        self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+        raise ExchangeError(self.id + ' ' + message)

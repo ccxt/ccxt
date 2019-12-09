@@ -29,7 +29,7 @@ module.exports = class exx extends Exchange {
                 'www': 'https://www.exx.com/',
                 'doc': 'https://www.exx.com/help/restApi',
                 'fees': 'https://www.exx.com/help/rate',
-                'referral': 'https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f',
+                'referral': 'https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f?recommQd=1',
             },
             'api': {
                 'public': {
@@ -99,10 +99,8 @@ module.exports = class exx extends Exchange {
             const id = ids[i];
             const market = response[id];
             const [ baseId, quoteId ] = id.split ('_');
-            const upper = id.toUpperCase ();
-            let [ base, quote ] = upper.split ('_');
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const active = market['isOpen'] === true;
             const precision = {
@@ -205,14 +203,12 @@ module.exports = class exx extends Exchange {
             'currency': this.marketId (symbol),
         };
         const response = await this.publicGetDepth (this.extend (request, params));
-        return this.parseOrderBook (response, response['timestamp']);
+        const timestamp = this.safeTimestamp (response, 'timestamp');
+        return this.parseOrderBook (response, timestamp);
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger (trade, 'date');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'date');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
@@ -264,7 +260,7 @@ module.exports = class exx extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const currencyId = currencies[i];
             const balance = balances[currencyId];
-            const code = this.commonCurrencyCode (currencyId);
+            const code = this.safeCurrencyCode (currencyId);
             const account = {
                 'free': this.safeFloat (balance, 'balance'),
                 'used': this.safeFloat (balance, 'freeze'),
@@ -401,7 +397,7 @@ module.exports = class exx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response) {
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return; // fallback to default error handler
         }
@@ -411,15 +407,13 @@ module.exports = class exx extends Exchange {
         //
         const code = this.safeString (response, 'code');
         const message = this.safeString (response, 'message');
-        const feedback = this.id + ' ' + this.json (response);
+        const feedback = this.id + ' ' + body;
         if (code === '100') {
             return;
         }
         if (code !== undefined) {
-            const exceptions = this.exceptions;
-            if (code in exceptions) {
-                throw new exceptions[code] (feedback);
-            } else if (code === '308') {
+            this.throwExactlyMatchedException (this.exceptions, code, feedback);
+            if (code === '308') {
                 // this is returned by the exchange when there are no open orders
                 // {"code":308,"message":"Not Found Transaction Record"}
                 return;

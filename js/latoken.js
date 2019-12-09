@@ -21,7 +21,7 @@ module.exports = class latoken extends Exchange {
             'has': {
                 'CORS': false,
                 'publicAPI': true,
-                'pivateAPI': true,
+                'privateAPI': true,
                 'cancelOrder': true,
                 'cancelAllOrders': true,
                 'createMarketOrder': false,
@@ -43,7 +43,7 @@ module.exports = class latoken extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg',
                 'api': 'https://api.latoken.com',
-                'www': 'https://www.latoken.com',
+                'www': 'https://latoken.com',
                 'doc': [
                     'https://api.latoken.com',
                 ],
@@ -61,6 +61,7 @@ module.exports = class latoken extends Exchange {
                         'MarketData/tickers',
                         'MarketData/ticker/{symbol}',
                         'MarketData/orderBook/{symbol}',
+                        'MarketData/orderBook/{symbol}/{limit}',
                         'MarketData/trades/{symbol}',
                         'MarketData/trades/{symbol}/{limit}',
                     ],
@@ -90,25 +91,28 @@ module.exports = class latoken extends Exchange {
                     'taker': 0.1 / 100,
                 },
             },
+            'commonCurrencies': {
+                'TSL': 'Treasure SL',
+            },
             'options': {
                 'createOrderMethod': 'private_post_order_new', // private_post_order_test_order
             },
             'exceptions': {
                 'exact': {
-                    'Signature or ApiKey is not valid': AuthenticationError, // { "error": { "message": "Signature or ApiKey is not valid","errorType":"RequestError","statusCode":400 }}
-                    'Request is out of time': InvalidNonce, // { "error": { "message": "Request is out of time", "errorType": "RequestError", "statusCode":400 }}
-                    'Symbol must be specified': BadRequest, // { "error": { "message": "Symbol must be specified","errorType":"RequestError","statusCode":400 }}
+                    'Signature or ApiKey is not valid': AuthenticationError,
+                    'Request is out of time': InvalidNonce,
+                    'Symbol must be specified': BadRequest,
                 },
                 'broad': {
-                    'Request limit reached': DDoSProtection, // { "message": "Request limit reached!", "details": "Request limit reached. Maximum allowed: 1 per 1s. Please try again in 1 second(s)." }
-                    'Pair': BadRequest, // { "error": { "message": "Pair 370 is not found","errorType":"RequestError","statusCode":400 }}
-                    'Price needs to be greater than': InvalidOrder, // { "error": { "message": "Price needs to be greater than 0","errorType":"ValidationError","statusCode":400 }}
-                    'Amount needs to be greater than': InvalidOrder, // { "error": { "message": "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 }}
-                    'The Symbol field is required': InvalidOrder, // { "error": { "message": "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 }}
-                    'OrderType is not valid': InvalidOrder, // { "error": { "message": "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 }}
-                    'Side is not valid': InvalidOrder, // { "error": { "message": "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 }}
-                    'Cancelable order whit': OrderNotFound, // { "error": { "message": "Cancelable order whit ID 1563460289.571254.704945@0370:1 not found","errorType":"RequestError","statusCode":400 }}
-                    'Order': OrderNotFound, // { "error": { "message": "Order 1563460289.571254.704945@0370:1 is not found","errorType":"RequestError","statusCode":400 }}
+                    'Request limit reached': DDoSProtection,
+                    'Pair': BadRequest,
+                    'Price needs to be greater than': InvalidOrder,
+                    'Amount needs to be greater than': InvalidOrder,
+                    'The Symbol field is required': InvalidOrder,
+                    'OrderType is not valid': InvalidOrder,
+                    'Side is not valid': InvalidOrder,
+                    'Cancelable order whit': OrderNotFound,
+                    'Order': OrderNotFound,
                 },
             },
         });
@@ -168,7 +172,7 @@ module.exports = class latoken extends Exchange {
                     'max': undefined,
                 },
                 'price': {
-                    'min': undefined,
+                    'min': Math.pow (10, -precision['price']),
                     'max': undefined,
                 },
                 'cost': {
@@ -193,7 +197,7 @@ module.exports = class latoken extends Exchange {
         return result;
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (symbol = undefined, params = {}) {
         const response = await this.publicGetExchangeInfoCurrencies (params);
         //
         //     [
@@ -216,39 +220,72 @@ module.exports = class latoken extends Exchange {
             const precision = this.safeInteger (currency, 'precission');
             const fee = this.safeFloat (currency, 'fee');
             const active = undefined;
-            result[code] = {
-                'id': id,
-                'numericId': numericId,
-                'code': code,
-                'info': currency,
-                'name': code,
-                'active': active,
-                'fee': fee,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if ( symbol === undefined) {
+                result[code] = {
+                    'id': id,
+                    'numericId': numericId,
+                    'code': code,
+                    'info': currency,
+                    'name': code,
+                    'active': active,
+                    'fee': fee,
+                    'precision': precision,
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            } else {
+                if (id === symbol) {
+                    result[code] = {
+                        'id': id,
+                        'numericId': numericId,
+                        'code': code,
+                        'info': currency,
+                        'name': code,
+                        'active': active,
+                        'fee': fee,
+                        'precision': precision,
+                        'limits': {
+                            'amount': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'price': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'cost': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'withdraw': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                        },
+                    }; 
+                }               
+            }
         }
         return result;
     }
 
-    calculateFee (symbol, side, amount, price, takerOrMaker = 'taker') {
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         const market = this.markets[symbol];
         let key = 'quote';
         const rate = market[takerOrMaker];
@@ -271,7 +308,15 @@ module.exports = class latoken extends Exchange {
 
     async fetchBalance (currency = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAccountBalances (params);
+        let response;
+        if (currency === undefined) {
+            response = await this.privateGetAccountBalances (params);
+        } else {
+            const request = {
+                'currency': currency
+            };
+            response = await this.privateGetAccountBalancesCurrency (this.extend(request, params));
+        }
         //
         //     [
         //         {
@@ -310,22 +355,26 @@ module.exports = class latoken extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
+            'limit': 10,
         };
-        const response = await this.publicGetMarketDataOrderBookSymbol (this.extend (request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 10, max 100
+        }
+        const response = await this.publicGetMarketDataOrderBookSymbolLimit (this.extend (request, params));
         //
         //     {
         //         "pairId": 502,
         //         "symbol": "LAETH",
         //         "spread": 0.07,
         //         "asks": [
-        //             { "price": 136.3, "amount": 7.024 }
+        //             { "price": 136.3, "quantity": 7.024 }
         //         ],
         //         "bids": [
-        //             { "price": 136.2, "amount": 6.554 }
+        //             { "price": 136.2, "quantity": 6.554 }
         //         ]
         //     }
         //
-        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'quantity');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -356,8 +405,8 @@ module.exports = class latoken extends Exchange {
             'change': change,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': this.safeFloat (ticker, 'volume'),
             'info': ticker,
         };
     }
@@ -417,26 +466,32 @@ module.exports = class latoken extends Exchange {
         // fetchTrades (public)
         //
         //     {
-        //         "side":"buy",
-        //         "price":0.022315,
-        //         "amount":0.706,
-        //         "timestamp":1563454655
+        //         side: 'buy',
+        //         price: 0.33634,
+        //         amount: 0.01,
+        //         timestamp: 1564240008000 // milliseconds
         //     }
         //
         // fetchMyTrades (private)
         //
         //     {
-        //         "id": "1555492358.126073.126767@0502:2",
-        //         "orderId": "1555492358.126073.126767@0502:2",
-        //         "commission": 0.012,
-        //         "side": "buy",
-        //         "price": 136.2,
-        //         "amount": 0.7,
-        //         "time": 1555515807369
+        //         id: '1564223032.892829.3.tg15',
+        //         orderId: '1564223032.671436.707548@1379:1',
+        //         commission: 0,
+        //         side: 'buy',
+        //         price: 0.32874,
+        //         amount: 0.607,
+        //         timestamp: 1564223033 // seconds
         //     }
         //
         const type = undefined;
-        const timestamp = this.safeInteger2 (trade, 'timestamp', 'time');
+        let timestamp = this.safeInteger2 (trade, 'timestamp', 'time');
+        if (timestamp !== undefined) {
+            // 03 Jan 2009 - first block
+            if (timestamp < 1230940800000) {
+                timestamp *= 1000;
+            }
+        }
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         const side = this.safeString (trade, 'side');
@@ -494,10 +549,10 @@ module.exports = class latoken extends Exchange {
         //         "tradeCount":51,
         //         "trades": [
         //             {
-        //                 "side":"buy",
-        //                 "price":0.022315,
-        //                 "amount":0.706,
-        //                 "timestamp":1563454655
+        //                 side: 'buy',
+        //                 price: 0.33634,
+        //                 amount: 0.01,
+        //                 timestamp: 1564240008000 // milliseconds
         //             }
         //         ]
         //     }
@@ -523,13 +578,13 @@ module.exports = class latoken extends Exchange {
         //         "tradeCount": 1,
         //         "trades": [
         //             {
-        //                 "id": "1555492358.126073.126767@0502:2",
-        //                 "orderId": "1555492358.126073.126767@0502:2",
-        //                 "commission": 0.012,
-        //                 "side": "buy",
-        //                 "price": 136.2,
-        //                 "amount": 0.7,
-        //                 "time": 1555515807369
+        //                 id: '1564223032.892829.3.tg15',
+        //                 orderId: '1564223032.671436.707548@1379:1',
+        //                 commission: 0,
+        //                 side: 'buy',
+        //                 price: 0.32874,
+        //                 amount: 0.607,
+        //                 timestamp: 1564223033 // seconds
         //             }
         //         ]
         //     }
@@ -582,7 +637,7 @@ module.exports = class latoken extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'orderId');
-        const timestamp = this.safeValue (order, 'timeCreated');
+        const timestamp = this.safeTimestamp (order, 'timeCreated');
         const marketId = this.safeString (order, 'symbol');
         let symbol = marketId;
         if (marketId in this.markets_by_id) {
@@ -596,7 +651,12 @@ module.exports = class latoken extends Exchange {
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
         const filled = this.safeFloat (order, 'executedAmount');
-        const remaining = this.safeFloat (order, 'reaminingAmount');
+        let remaining = undefined;
+        if (amount !== undefined) {
+            if (filled !== undefined) {
+                remaining = amount - filled;
+            }
+        }
         const status = this.parseOrderStatus (this.safeString (order, 'orderStatus'));
         let cost = undefined;
         if (filled !== undefined) {
@@ -604,9 +664,9 @@ module.exports = class latoken extends Exchange {
                 cost = filled * price;
             }
         }
-        const timeFilled = this.safeInteger (order, 'timeFilled');
+        const timeFilled = this.safeTimestamp (order, 'timeFilled');
         let lastTradeTimestamp = undefined;
-        if (timeFilled !== undefined && timeFilled > 0) {
+        if ((timeFilled !== undefined) && (timeFilled > 0)) {
             lastTradeTimestamp = timeFilled;
         }
         return {
@@ -650,7 +710,7 @@ module.exports = class latoken extends Exchange {
 
     async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw ArgumentsRequired (this.id + ' fetchOrdersWithMethod requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrdersWithMethod requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -825,7 +885,7 @@ module.exports = class latoken extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             return;
         }
@@ -841,28 +901,16 @@ module.exports = class latoken extends Exchange {
         //     { "error": { "message": "Order 1563460289.571254.704945@0370:1 is not found","errorType":"RequestError","statusCode":400 }}
         //
         const message = this.safeString (response, 'message');
-        const exact = this.exceptions['exact'];
-        const broad = this.exceptions['broad'];
         const feedback = this.id + ' ' + body;
         if (message !== undefined) {
-            if (message in exact) {
-                throw new exact[message] (feedback);
-            }
-            const broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
         }
         const error = this.safeValue (response, 'error', {});
         const errorMessage = this.safeString (error, 'message');
         if (errorMessage !== undefined) {
-            if (errorMessage in exact) {
-                throw new exact[errorMessage] (feedback);
-            }
-            const broadKey = this.findBroadlyMatchedKey (broad, errorMessage);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

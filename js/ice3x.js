@@ -74,8 +74,8 @@ module.exports = class ice3x extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.01,
-                    'taker': 0.01,
+                    'maker': 0.005,
+                    'taker': 0.005,
                 },
             },
             'precision': {
@@ -93,9 +93,8 @@ module.exports = class ice3x extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'currency_id');
-            let code = this.safeString (currency, 'iso');
-            code = code.toUpperCase ();
-            code = this.commonCurrencyCode (code);
+            const currencyId = this.safeString (currency, 'iso');
+            const code = this.safeCurrencyCode (currencyId);
             result[code] = {
                 'id': id,
                 'code': code,
@@ -123,10 +122,10 @@ module.exports = class ice3x extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        if (!Object.keys (this.currencies).length) {
+        if (this.currencies_by_id === undefined) {
             this.currencies = await this.fetchCurrencies ();
+            this.currencies_by_id = this.indexBy (this.currencies, 'id');
         }
-        this.currencies_by_id = this.indexBy (this.currencies, 'id');
         const response = await this.publicGetPairList (params);
         const markets = this.safeValue (response['response'], 'entities');
         const result = [];
@@ -137,8 +136,8 @@ module.exports = class ice3x extends Exchange {
             const quoteId = this.safeString (market, 'currency_id_to');
             const baseCurrency = this.currencies_by_id[baseId];
             const quoteCurrency = this.currencies_by_id[quoteId];
-            const base = this.commonCurrencyCode (baseCurrency['code']);
-            const quote = this.commonCurrencyCode (quoteCurrency['code']);
+            const base = baseCurrency['code'];
+            const quote = quoteCurrency['code'];
             const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
@@ -147,7 +146,7 @@ module.exports = class ice3x extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': true,
+                'active': undefined,
                 'info': market,
             });
         }
@@ -230,11 +229,15 @@ module.exports = class ice3x extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeInteger (trade, 'created') * 1000;
+        const timestamp = this.safeTimestamp (trade, 'created');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'volume');
-        const symbol = market['symbol'];
-        const cost = parseFloat (this.costToPrecision (symbol, price * amount));
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
         let fee = undefined;
         const feeCost = this.safeFloat (trade, 'fee');
         if (feeCost !== undefined) {
@@ -243,20 +246,27 @@ module.exports = class ice3x extends Exchange {
                 'currency': market['quote'],
             };
         }
+        const type = 'limit';
         const side = this.safeString (trade, 'type');
+        const id = this.safeString (trade, 'trade_id');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': this.safeString (trade, 'trade_id'),
             'order': undefined,
-            'type': 'limit',
+            'type': type,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': fee,
-            'info': trade,
         };
     }
 
@@ -280,10 +290,7 @@ module.exports = class ice3x extends Exchange {
             const balance = balances[i];
             // currency ids are numeric strings
             const currencyId = this.safeString (balance, 'currency_id');
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['total'] = this.safeFloat (balance, 'balance');
             result[code] = account;
@@ -298,7 +305,7 @@ module.exports = class ice3x extends Exchange {
             market = this.marketsById[pairId];
             symbol = market['symbol'];
         }
-        const timestamp = this.safeInteger (order, 'created') * 1000;
+        const timestamp = this.safeTimestamp (order, 'created');
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'volume');
         let status = this.safeInteger (order, 'active');

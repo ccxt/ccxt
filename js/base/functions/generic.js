@@ -181,18 +181,26 @@ module.exports =
 
     , omit (x, ...args) {
 
-        const out = clone (x)
+        if (!Array.isArray (x)) {
 
-        for (const k of args) {
+            const out = clone (x)
 
-            if (isArray (k)) // omit (x, ['a', 'b'])
-                for (const kk of k)
-                    delete out[kk]
+            for (const k of args) {
 
-            else delete out[k] // omit (x, 'a', 'b')
+                if (isArray (k)) { // omit (x, ['a', 'b'])
+
+                    for (const kk of k) {
+                        delete out[kk]
+                    }
+                }
+
+                else delete out[k] // omit (x, 'a', 'b')
+            }
+
+            return out
         }
-
-        return out
+        
+        return x
     }
 
 /*  .............................................   */

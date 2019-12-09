@@ -29,6 +29,7 @@ module.exports = class bitlish extends Exchange {
                 'api': 'https://bitlish.com/api',
                 'www': 'https://bitlish.com',
                 'doc': 'https://bitlish.com/api',
+                'fees': 'https://bitlish.com/fees',
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -39,7 +40,7 @@ module.exports = class bitlish extends Exchange {
                     'tierBased': false,
                     'percentage': true,
                     'taker': 0.3 / 100, // anonymous 0.3%, verified 0.2%
-                    'maker': 0,
+                    'maker': 0.2 / 100, // anonymous 0.2%, verified 0.1%
                 },
                 'funding': {
                     'tierBased': false,
@@ -132,8 +133,8 @@ module.exports = class bitlish extends Exchange {
             const id = this.safeString (market, 'id');
             const name = this.safeString (market, 'name');
             const [ baseId, quoteId ] = name.split ('/');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
@@ -193,10 +194,8 @@ module.exports = class bitlish extends Exchange {
             } else {
                 const baseId = id.slice (0, 3);
                 const quoteId = id.slice (3, 6);
-                let base = baseId.toUpperCase ();
-                let quote = quoteId.toUpperCase ();
-                base = this.commonCurrencyCode (base);
-                quote = this.commonCurrencyCode (quote);
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
             const ticker = tickers[id];
@@ -293,12 +292,7 @@ module.exports = class bitlish extends Exchange {
         const currencyIds = Object.keys (response);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId.toUpperCase ());
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             const balance = this.safeValue (response, currencyId, {});
             account['free'] = this.safeFloat (balance, 'funds');
@@ -351,7 +345,7 @@ module.exports = class bitlish extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'currency': currency.toLowerCase (),
+            'currency': currency['id'],
             'amount': parseFloat (amount),
             'account': address,
             'payment_method': 'bitcoin', // they did not document other types...

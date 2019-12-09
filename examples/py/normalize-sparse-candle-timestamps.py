@@ -9,7 +9,7 @@ sys.path.append(root + '/python')
 
 import ccxt  # noqa: E402
 
-exchange = ccxt.cryptopia({'enableRateLimit': True})
+exchange = ccxt.binance({'enableRateLimit': True})
 
 symbol = 'ETH/BTC'
 timeframe = '1h'
