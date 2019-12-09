@@ -273,7 +273,7 @@ module.exports = class latoken extends Exchange {
         };
     }
 
-    async fetchBalance (currency = undefined, params = {}) {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetAccountBalances (params);
         //

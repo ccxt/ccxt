@@ -273,7 +273,7 @@ class latoken(Exchange):
             'cost': float(cost),
         }
 
-    def fetch_balance(self, currency=None, params={}):
+    def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privateGetAccountBalances(params)
         #
