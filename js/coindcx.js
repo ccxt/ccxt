@@ -216,12 +216,6 @@ module.exports = class coindcx extends Exchange {
         if (!(symbol in this.markets)) {
             throw new ExchangeError (this.id + ' has no symbol ' + symbol);
         }
-        if (limit < 0) {
-            limit = 500; // coindcx default
-        }
-        if (limit > 1000) {
-            limit = 1000; // coindcx limitation
-        }
         const market = this.market (symbol);
         const marketInfo = this.safeValue (market, 'info');
         const coindcxPair = this.safeString (marketInfo, 'pair');
@@ -267,12 +261,6 @@ module.exports = class coindcx extends Exchange {
         if (coindcxPair === undefined) {
             throw new ExchangeError (this.id + ' has no pair (look at market\'s info) value for ' + symbol);
         }
-        if (limit < 0) {
-            limit = 30; // coindcx default
-        }
-        if (limit > 500) {
-            limit = 500; // coindcx limitation
-        }
         const request = {
             'pair': coindcxPair,
             'limit': limit,
@@ -284,12 +272,6 @@ module.exports = class coindcx extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = 500, params = {}) {
         // https://coindcx-official.github.io/rest-api/?javascript#account-trade-history
         await this.loadMarkets ();
-        if (limit < 0) {
-            limit = 500;
-        }
-        if (limit > 1000) {
-            limit = 1000;
-        }
         const request = {
             'timestamp': this.milliseconds (),
             'limit': limit,
