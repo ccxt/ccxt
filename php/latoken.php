@@ -273,7 +273,7 @@ class latoken extends Exchange {
         );
     }
 
-    public function fetch_balance ($currency = null, $params = array ()) {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetAccountBalances ($params);
         //
