@@ -38,7 +38,7 @@ module.exports = class timex extends Exchange {
                 '1w': 'W1',
             },
             'urls': {
-                'logo': 'https://timex.io/static/img/exchange-logo.svg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/70423869-6839ab00-1a7f-11ea-8f94-13ae72c31115.jpg',
                 'api': 'https://plasma-relay-backend.timex.io',
                 'www': 'https://timex.io',
                 'doc': 'https://docs.timex.io',
@@ -1198,7 +1198,8 @@ module.exports = class timex extends Exchange {
         }
         if (api !== 'public') {
             this.checkRequiredCredentials ();
-            const secret = 'Basic ' + this.stringToBase64 (this.apiKey + ':' + this.secret);
+            const auth = this.stringToBase64 (this.encode (this.apiKey + ':' + this.secret));
+            const secret = 'Basic ' + this.decode (auth);
             headers = { 'authorization': secret };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

@@ -53,7 +53,7 @@ class timex(Exchange):
                 '1w': 'W1',
             },
             'urls': {
-                'logo': 'https://timex.io/static/img/exchange-logo.svg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/70423869-6839ab00-1a7f-11ea-8f94-13ae72c31115.jpg',
                 'api': 'https://plasma-relay-backend.timex.io',
                 'www': 'https://timex.io',
                 'doc': 'https://docs.timex.io',
@@ -1147,7 +1147,8 @@ class timex(Exchange):
             url += '?' + self.urlencode_with_array_repeat(params)
         if api != 'public':
             self.check_required_credentials()
-            secret = 'Basic ' + base64.b64encode(self.apiKey + ':' + self.secret)
+            auth = base64.b64encode(self.encode(self.apiKey + ':' + self.secret))
+            secret = 'Basic ' + self.decode(auth)
             headers = {'authorization': secret}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
