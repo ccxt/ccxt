@@ -641,7 +641,21 @@ class bitmart extends Exchange {
         $id = $this->safe_string($order, 'entrust_id');
         $timestamp = $this->milliseconds ();
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $symbol = $this->find_symbol($this->safe_string($order, 'symbol'), $market);
+        $symbol = null;
+        $marketId = $this->safe_string($order, 'symbol');
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            } else {
+                list($baseId, $quoteId) = explode('_', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
+        }
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'original_amount');
         $cost = null;
