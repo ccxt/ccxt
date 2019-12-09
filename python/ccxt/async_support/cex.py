@@ -967,17 +967,20 @@ class cex(Exchange):
             #     "lastTxTime": "2018-05-23T12:42:58.315Z",
             #     "tradingFeeTaker": "0.25",
             #     "tradingFeeUserVolumeAmount": "56294576"}
-            item = response[i]
-            status = self.parse_order_status(self.safe_string(item, 'status'))
-            baseId = item['symbol1']
-            quoteId = item['symbol2']
-            side = item['type']
-            baseAmount = self.safe_float(item, 'a:' + baseId + ':cds')
-            quoteAmount = self.safe_float(item, 'a:' + quoteId + ':cds')
-            fee = self.safe_float(item, 'f:' + quoteId + ':cds')
-            amount = self.safe_float(item, 'amount')
-            price = self.safe_float(item, 'price')
-            remaining = self.safe_float(item, 'remains')
+            order = response[i]
+            status = self.parse_order_status(self.safe_string(order, 'status'))
+            baseId = self.safe_string(order, 'symbol1')
+            quoteId = self.safe_string(order, 'symbol2')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
+            side = self.safe_string(order, 'type')
+            baseAmount = self.safe_float(order, 'a:' + baseId + ':cds')
+            quoteAmount = self.safe_float(order, 'a:' + quoteId + ':cds')
+            fee = self.safe_float(order, 'f:' + quoteId + ':cds')
+            amount = self.safe_float(order, 'amount')
+            price = self.safe_float(order, 'price')
+            remaining = self.safe_float(order, 'remains')
             filled = amount - remaining
             orderAmount = None
             cost = None
@@ -989,10 +992,10 @@ class cex(Exchange):
                 cost = quoteAmount
                 average = orderAmount / cost
             else:
-                ta = self.safe_float(item, 'ta:' + quoteId, 0)
-                tta = self.safe_float(item, 'tta:' + quoteId, 0)
-                fa = self.safe_float(item, 'fa:' + quoteId, 0)
-                tfa = self.safe_float(item, 'tfa:' + quoteId, 0)
+                ta = self.safe_float(order, 'ta:' + quoteId, 0)
+                tta = self.safe_float(order, 'tta:' + quoteId, 0)
+                fa = self.safe_float(order, 'fa:' + quoteId, 0)
+                tfa = self.safe_float(order, 'tfa:' + quoteId, 0)
                 if side == 'sell':
                     cost = self.sum(self.sum(ta, tta), self.sum(fa, tfa))
                 else:
@@ -1000,16 +1003,16 @@ class cex(Exchange):
                 type = 'limit'
                 orderAmount = amount
                 average = cost / filled
-            time = self.safe_string(item, 'time')
-            lastTxTime = self.safe_string(item, 'lastTxTime')
+            time = self.safe_string(order, 'time')
+            lastTxTime = self.safe_string(order, 'lastTxTime')
             timestamp = self.parse8601(time)
             results.append({
-                'id': item['id'],
+                'id': self.safe_string(order, 'id'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
                 'lastUpdated': self.parse8601(lastTxTime),
                 'status': status,
-                'symbol': self.find_symbol(baseId + '/' + quoteId),
+                'symbol': symbol,
                 'side': side,
                 'price': price,
                 'amount': orderAmount,
@@ -1020,9 +1023,9 @@ class cex(Exchange):
                 'remaining': remaining,
                 'fee': {
                     'cost': fee,
-                    'currency': self.currencyId(quoteId),
+                    'currency': quote,
                 },
-                'info': item,
+                'info': order,
             })
         return results
 
