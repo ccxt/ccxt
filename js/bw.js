@@ -11,7 +11,7 @@ module.exports = class bw extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bw',
-            'name': 'bw.com',
+            'name': 'BW',
             'countries': [ 'CN' ],
             'rateLimit': 1500,
             'version': 'v1',
