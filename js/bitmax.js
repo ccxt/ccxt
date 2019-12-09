@@ -479,7 +479,7 @@ module.exports = class bitmax extends Exchange {
         if (since !== undefined) {
             request['from'] = since;
             if (limit !== undefined) {
-                request['to'] = this.sum (request['from'], limit * duration * 1000, 1);
+                request['to'] = this.sum (since, limit * duration * 1000, 1);
             }
         } else if (limit !== undefined) {
             request['to'] = this.milliseconds ();

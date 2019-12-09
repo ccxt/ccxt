@@ -4,8 +4,8 @@ python:
 cache:
  directories:
    # - $HOME/.cache/pip
-   - $HOME/.npm
-   - node_modules
+   # - $HOME/.npm
+   # - node_modules
 
 before_install:
 - set -e

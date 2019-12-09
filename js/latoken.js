@@ -197,7 +197,7 @@ module.exports = class latoken extends Exchange {
         return result;
     }
 
-    async fetchCurrencies (symbol = undefined, params = {}) {
+    async fetchCurrencies (params = {}) {
         const response = await this.publicGetExchangeInfoCurrencies (params);
         //
         //     [
@@ -220,67 +220,34 @@ module.exports = class latoken extends Exchange {
             const precision = this.safeInteger (currency, 'precission');
             const fee = this.safeFloat (currency, 'fee');
             const active = undefined;
-            if ( symbol === undefined) {
-                result[code] = {
-                    'id': id,
-                    'numericId': numericId,
-                    'code': code,
-                    'info': currency,
-                    'name': code,
-                    'active': active,
-                    'fee': fee,
-                    'precision': precision,
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'price': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'cost': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
+            result[code] = {
+                'id': id,
+                'numericId': numericId,
+                'code': code,
+                'info': currency,
+                'name': code,
+                'active': active,
+                'fee': fee,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
                     },
-                };
-            } else {
-                if (id === symbol) {
-                    result[code] = {
-                        'id': id,
-                        'numericId': numericId,
-                        'code': code,
-                        'info': currency,
-                        'name': code,
-                        'active': active,
-                        'fee': fee,
-                        'precision': precision,
-                        'limits': {
-                            'amount': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                            'price': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                            'cost': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                            'withdraw': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                        },
-                    }; 
-                }               
-            }
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
         }
         return result;
     }
@@ -308,15 +275,7 @@ module.exports = class latoken extends Exchange {
 
     async fetchBalance (currency = undefined, params = {}) {
         await this.loadMarkets ();
-        let response;
-        if (currency === undefined) {
-            response = await this.privateGetAccountBalances (params);
-        } else {
-            const request = {
-                'currency': currency
-            };
-            response = await this.privateGetAccountBalancesCurrency (this.extend(request, params));
-        }
+        const response = await this.privateGetAccountBalances (params);
         //
         //     [
         //         {

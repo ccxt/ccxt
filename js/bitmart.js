@@ -147,6 +147,9 @@ module.exports = class bitmart extends Exchange {
                     'is not present': BadRequest,
                 },
             },
+            'commonCurrencies': {
+                'ONE': 'Menlo One',
+            },
         });
     }
 
