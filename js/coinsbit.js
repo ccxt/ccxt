@@ -209,7 +209,7 @@ module.exports = class coinsbit extends Exchange {
         }
         // 'since' param of the request is required a tid as a value.
         // The exchange will return the trades, starting with this tid
-        if (params.tid !== undefined) {
+        if ('tid' in params) {
             request['since'] = params.tid;
         } else {
             request['since'] = 0;
