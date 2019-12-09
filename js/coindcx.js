@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadRequest, ExchangeError, ArgumentsRequired, PermissionDenied, OrderNotFound, InvalidOrder, InsufficientFunds } = require ('./base/errors');
+const { BadRequest, ExchangeError, PermissionDenied, OrderNotFound, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -158,19 +158,12 @@ module.exports = class coindcx extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTicker requires a `symbol` argument');
-        }
         await this.loadMarkets ();
-        if (!(symbol in this.markets)) {
-            throw new ExchangeError (this.id + ' has no symbol ' + symbol);
-        }
         const response = await this.generalGetExchangeTicker (params);
-        const market = this.findMarket (symbol);
-        const marketId = this.safeValue (market, 'id');
+        const market = this.market (symbol);
         let result = {};
         for (let i = 0; i < response.length; i++) {
-            if (response[i]['market'] !== marketId) {
+            if (response[i]['market'] !== market['id']) {
                 continue;
             }
             result = this.parseTicker (response[i]);
@@ -209,19 +202,9 @@ module.exports = class coindcx extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 500, params = {}) {
         // https://coindcx-official.github.io/rest-api/?shell#candles
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a `symbol` argument');
-        }
         await this.loadMarkets ();
-        if (!(symbol in this.markets)) {
-            throw new ExchangeError (this.id + ' has no symbol ' + symbol);
-        }
         const market = this.market (symbol);
-        const marketInfo = this.safeValue (market, 'info');
-        const coindcxPair = this.safeString (marketInfo, 'pair');
-        if (coindcxPair === undefined) {
-            throw new ExchangeError (this.id + ' has no pair (look at market\'s info) value for ' + symbol);
-        }
+        const coindcxPair = this.getPairFromInfo (market);
         const coindcxTimeframe = this.timeframes[timeframe];
         if (coindcxTimeframe === undefined) {
             throw new ExchangeError (this.id + ' has no "' + timeframe + '" timeframe');
@@ -248,19 +231,9 @@ module.exports = class coindcx extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = 30, params = {}) {
         // https://coindcx-official.github.io/rest-api/?shell#trades
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTrades requires a `symbol` argument');
-        }
         await this.loadMarkets ();
-        if (!(symbol in this.markets)) {
-            throw new ExchangeError (this.id + ' has no symbol ' + symbol);
-        }
         const market = this.market (symbol);
-        const marketInfo = this.safeValue (market, 'info');
-        const coindcxPair = this.safeString (marketInfo, 'pair');
-        if (coindcxPair === undefined) {
-            throw new ExchangeError (this.id + ' has no pair (look at market\'s info) value for ' + symbol);
-        }
+        const coindcxPair = this.getPairFromInfo (market);
         const request = {
             'pair': coindcxPair,
             'limit': limit,
@@ -315,45 +288,23 @@ module.exports = class coindcx extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         // https://coindcx-official.github.io/rest-api/?shell#order-book
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderBook requires a `symbol` argument');
-        }
         await this.loadMarkets ();
-        if (!(symbol in this.markets)) {
-            throw new ExchangeError (this.id + ' has no symbol ' + symbol);
-        }
         const market = this.market (symbol);
-        const marketInfo = this.safeValue (market, 'info');
-        const coindcxPair = this.safeString (marketInfo, 'pair');
-        if (coindcxPair === undefined) {
-            throw new ExchangeError (this.id + ' has no pair (look at market\'s info) value for ' + symbol);
-        }
+        const coindcxPair = this.getPairFromInfo (market);
         const request = {
             'pair': coindcxPair,
         };
         const response = await this.publicGetMarketDataOrderbook (this.extend (request, params));
-        return this.parseOrderBookData (response);
+        return this.parseOrderBook (response);
     }
 
-    parseOrderBookData (orderBook) {
-        const bids = this.safeValue (orderBook, 'bids', {});
-        const asks = this.safeValue (orderBook, 'asks', {});
-        return {
-            'bids': this.sortBy (this.parseBidAskData (bids), 0, true),
-            'asks': this.sortBy (this.parseBidAskData (asks), 0),
-            'timestamp': undefined,
-            'datetime': undefined,
-            'nonce': undefined,
-        };
-    }
-
-    parseBidAskData (bidsOrAsks) {
-        const priceKeys = Object.keys (bidsOrAsks);
+    parseBidsAsks (bidasks, priceKey = undefined, amountKey = undefined) {
+        const priceKeys = Object.keys (bidasks);
         const parsedData = [];
         for (let i = 0; i < priceKeys.length; i++) {
-            const key = priceKeys[i];
-            const price = parseFloat (key);
-            const amount = parseFloat (bidsOrAsks[key]);
+            amountKey = priceKeys[i];
+            const price = parseFloat (amountKey);
+            const amount = parseFloat (bidasks[amountKey]);
             parsedData.push ([price, amount]);
         }
         return parsedData;
@@ -373,12 +324,8 @@ module.exports = class coindcx extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             if (!(code in result)) {
                 const account = this.account ();
-                const free = this.safeFloat (balance, 'balance');
-                const used = this.safeFloat (balance, 'locked_balance');
-                const total = parseFloat (free + used);
-                account['free'] = free;
-                account['used'] = used;
-                account['total'] = total;
+                account['free'] = this.safeFloat (balance, 'balance');
+                account['used'] = this.safeFloat (balance, 'locked_balance');
                 result[code] = account;
             }
         }
@@ -387,9 +334,6 @@ module.exports = class coindcx extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         // https://coindcx-official.github.io/rest-api/?javascript#account-trade-history
-        if (id === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder requires an `id` argument');
-        }
         await this.loadMarkets ();
         const request = {
             'id': id,
@@ -399,13 +343,7 @@ module.exports = class coindcx extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a `symbol` argument');
-        }
         await this.loadMarkets ();
-        if (!(symbol in this.markets)) {
-            throw new ExchangeError (this.id + ' has no symbol ' + symbol);
-        }
         const market = this.market (symbol);
         const request = {
             'market': this.safeValue (market, 'id'),
@@ -418,27 +356,7 @@ module.exports = class coindcx extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         // https://coindcx-official.github.io/rest-api/?javascript#new-order
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder requires a `symbol` argument');
-        }
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder requires a `type` argument');
-        }
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder requires a `side` argument');
-        }
-        if (amount === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder requires an `amount` argument');
-        }
-        if (type === 'limit') {
-            if (price === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder requires a `price` argument for limit order');
-            }
-        }
         await this.loadMarkets ();
-        if (!(symbol in this.markets)) {
-            throw new ExchangeError (this.id + ' has no symbol ' + symbol);
-        }
         const market = this.market (symbol);
         const marketInfo = this.safeValue (market, 'info');
         let orderType = 'limit_order';
@@ -461,9 +379,6 @@ module.exports = class coindcx extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (id === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires an `id` argument');
-        }
         await this.loadMarkets ();
         const request = {
             'id': id,
@@ -473,20 +388,26 @@ module.exports = class coindcx extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a `symbol` argument');
-        }
         await this.loadMarkets ();
-        if (!(symbol in this.markets)) {
-            throw new ExchangeError (this.id + ' has no symbol ' + symbol);
-        }
         const market = this.market (symbol);
-        const marketInfo = this.safeValue (market, 'info');
         const request = {
-            'market': this.safeValue (marketInfo, 'symbol'),
+            'market': this.safeValue (market, 'id'),
             'timestamp': this.milliseconds (),
         };
         return await this.privatePostExchangeV1OrdersCancelAll (this.extend (request, params));
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'init': 'open',
+            'open': 'open',
+            'partially_filled': 'open',
+            'filled': 'closed',
+            'rejected': 'rejected',
+            'canceled': 'canceled',
+            'partially_cancelled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
@@ -499,20 +420,8 @@ module.exports = class coindcx extends Exchange {
         if (this.isString (lastTradeTimestamp)) {
             lastTradeTimestamp = this.parseDate (lastTradeTimestamp);
         }
-        let status = this.safeString (order, 'status');
-        if (status === 'partially_filled') {
-            status = 'open';
-        } else if (status === 'filled') {
-            status = 'closed';
-        } else if (status === 'cancelled') {
-            status = 'canceled';
-        } else if (status === 'rejected') {
-            status = 'canceled';
-        } else if (status === 'partially_cancelled') {
-            status = 'canceled';
-        } else if (status === 'partially_cancelled') {
-            status = 'open';
-        }
+        const orderStatus = this.safeString (order, 'status');
+        const status = this.parseOrderStatus (orderStatus);
         const marketId = this.safeString (market, 'symbol');
         if (market === undefined) {
             market = this.safeValue (this.markets_by_id, marketId);
@@ -557,6 +466,15 @@ module.exports = class coindcx extends Exchange {
         };
     }
 
+    getPairFromInfo (market) {
+        const marketInfo = this.safeValue (market, 'info');
+        const coindcxPair = this.safeString (marketInfo, 'pair');
+        if (coindcxPair === undefined) {
+            throw new ExchangeError (this.id + ' has no pair (look at market\'s info) value for ' + market['symbol']);
+        }
+        return coindcxPair;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const base = this.urls['api'][api];
         const request = '/' + this.implodeParams (path, params);
@@ -590,6 +508,7 @@ module.exports = class coindcx extends Exchange {
             if (message !== undefined) {
                 this.throwExactlyMatchedException (this.exceptions, message, feedback);
             }
+            this.throwExactlyMatchedException (this.httpExceptions, code.toString (), feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }
