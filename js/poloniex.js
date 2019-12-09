@@ -795,12 +795,7 @@ module.exports = class poloniex extends Exchange {
     parseOpenOrders (orders, market, result) {
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
-            const extended = this.extend (order, {
-                'status': 'open',
-                'type': 'limit',
-                'side': order['type'],
-                'price': order['rate'],
-            });
+            const extended = this.extend (order, );
             result.push (this.parseOrder (extended, market));
         }
         return result;
@@ -817,19 +812,26 @@ module.exports = class poloniex extends Exchange {
             'currencyPair': pair,
         };
         const response = await this.privatePostReturnOpenOrders (this.extend (request, params));
-        let openOrders = [];
+        const extension = {
+            'status': 'open',
+            'type': 'limit',
+        };
+        let result = [];
         if (market !== undefined) {
-            openOrders = this.parseOpenOrders (response, market, openOrders);
+            result = this.parseOrders (response, market, since, limit, extension);
         } else {
             const marketIds = Object.keys (response);
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
-                const orders = response[marketId];
                 const m = this.markets_by_id[marketId];
-                openOrders = this.parseOpenOrders (orders, m, openOrders);
+                const orders = this.parseOrders (response[marketId], m, since, limit, {
+                    'status': 'open',
+                    'type': 'limit',
+                });
+                result = this.arrayConcat (result);
             }
         }
-        return openOrders;
+        return result;
     }
 
     filterOrdersByStatus (orders, status) {
