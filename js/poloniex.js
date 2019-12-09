@@ -30,7 +30,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchOpenOrders': true, // true endpoint for open orders
                 'fetchOrder': 'emulated', // no endpoint for a single open-or-closed order (just for an open order only)
                 'fetchOrderBooks': true,
-                'fetchOrders': 'false',
+                'fetchOrders': false,
                 'fetchOrderStatus': 'emulated', // no endpoint for status of a single open-or-closed order (just for open orders only)
                 'fetchOrderTrades': true, // true endpoint for trades of a single open or closed order
                 'fetchTickers': true,
