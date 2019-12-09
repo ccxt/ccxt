@@ -22,6 +22,7 @@ module.exports = class timex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchTickers': true,
+                'fetchTradingFee': true, // maker fee only
             },
             'timeframes': {
                 '1m': 'I1',
@@ -783,6 +784,29 @@ module.exports = class timex extends Exchange {
         //
         const trades = this.safeValue (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'markets': market['id'],
+        };
+        const response = await this.tradingGetFees (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "fee": 0.0075,
+        //             "market": "ETHBTC"
+        //         }
+        //     ]
+        //
+        const result = this.safeValue (response, 0, {});
+        return {
+            'info': response,
+            'maker': this.safeFloat (result, 'fee'),
+            'taker': undefined,
+        };
     }
 
     parseMarket (market) {
