@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const { BadRequest, ExchangeError, ArgumentsRequired, PermissionDenied, OrderNotFound, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -71,7 +71,6 @@ module.exports = class coindcx extends Exchange {
                 'cancelOrder': true,
                 'cancelAllOrders': true,
                 'editOrder': false,
-                'fetchStatus': false,
             },
             'timeframes': {
                 '1m': '1m',
@@ -90,6 +89,13 @@ module.exports = class coindcx extends Exchange {
             },
             'timeout': 10000,
             'rateLimit': 2000,
+            'exceptions': {
+                'Invalid Request.': BadRequest, // Yeah, with a dot at the end.
+                'Invalid credentials': PermissionDenied,
+                'Insufficient funds': InsufficientFunds,
+                'Quantity too low': InvalidOrder,
+                'Order not found': OrderNotFound,
+            },
         });
     }
 
@@ -404,7 +410,7 @@ module.exports = class coindcx extends Exchange {
         }
         await this.loadMarkets ();
         const request = {
-            'id': String (id),
+            'id': id,
         };
         const response = await this.privatePostExchangeV1OrdersStatus (this.extend (request, params));
         return this.parseOrder (response);
@@ -502,7 +508,6 @@ module.exports = class coindcx extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        // console.log (order, market);
         const id = this.safeString (order, 'id');
         let timestamp = this.safeValue (order, 'created_at');
         if (this.isString (timestamp)) {
@@ -571,7 +576,6 @@ module.exports = class coindcx extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        // console.log (path, api, method, params, headers, body);
         const base = this.urls['api'][api];
         const request = '/' + this.implodeParams (path, params);
         let url = base + request;
@@ -591,7 +595,20 @@ module.exports = class coindcx extends Exchange {
                 'X-AUTH-SIGNATURE': signature,
             };
         }
-        console.log (url, method, body, headers);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (!response) {
+            return;
+        }
+        if (code >= 400) {
+            const feedback = this.id + ' ' + body;
+            const message = this.safeString (response, 'message');
+            if (message !== undefined) {
+                this.throwExactlyMatchedException (this.exceptions, message, feedback);
+            }
+            throw new ExchangeError (feedback); // unknown message
+        }
     }
 };
