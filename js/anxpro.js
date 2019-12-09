@@ -448,12 +448,20 @@ module.exports = class anxpro extends Exchange {
         const amount = this.safeFloat (trade, 'tradedCurrencyFillAmount');
         const cost = this.safeFloat (trade, 'settlementCurrencyFillAmount');
         const side = this.safeStringLower (trade, 'side');
+        let symbol = undefined;
+        const marketId = this.safeString (trade, 'ccyPair');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         return {
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': this.findSymbol (this.safeString (trade, 'ccyPair')),
+            'symbol': symbol,
             'type': undefined,
             'side': side,
             'price': price,
@@ -934,11 +942,10 @@ module.exports = class anxpro extends Exchange {
         //         ]
         //     }
         //
-        const tradedCurrency = this.safeString (order, 'tradedCurrency');
-        const orderStatus = this.safeString (order, 'orderStatus');
-        const status = this.parseOrderStatus (orderStatus);
-        const settlementCurrency = this.safeString (order, 'settlementCurrency');
-        const symbol = this.findSymbol (tradedCurrency + '/' + settlementCurrency);
+        const status = this.parseOrderStatus (this.safeString (order, 'orderStatus'));
+        const base = this.safeCurrencyCode (this.safeString (order, 'tradedCurrency'));
+        const quote = this.safeCurrencyCode (this.safeString (order, 'settlementCurrency'));
+        const symbol = base + '/' + quote;
         const buyTradedCurrency = this.safeString (order, 'buyTradedCurrency');
         const side = (buyTradedCurrency === 'true') ? 'buy' : 'sell';
         const timestamp = this.safeInteger (order, 'timestamp');
