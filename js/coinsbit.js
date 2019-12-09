@@ -60,7 +60,7 @@ module.exports = class coinsbit extends Exchange {
                 'fetchTicker': true,
                 'fetchOrderBook': true,
                 'fetchTrades': true,
-                'fetchOHLCV': false,
+                'fetchOHLCV': 'emulated',
                 'fetchBalance': false,
                 'fetchAccounts': false,
                 'createOrder': false,
@@ -200,51 +200,53 @@ module.exports = class coinsbit extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'market': this.marketId (symbol),
+            'market': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (since !== undefined) {
-            request['since'] = since;
+        // 'since' param of the request is required a tid as a value.
+        // The exchange will return the trades, starting with this tid
+        if (params.tid !== undefined) {
+            request['since'] = params.tid;
         } else {
             request['since'] = 0;
         }
         const trades = await this.publicGetHistoryResult (this.extend (request, params));
-        let parsedTrades = [];
-        for (let tradeIndex = 0; tradeIndex < trades.length; tradeIndex++) {
-            const trade = trades[tradeIndex];
-            const id = this.safeString (trade, 'tid');
-            let timestamp = undefined;
-            if ('date' in trade) {
-                timestamp = this.safeTimestamp (trade, 'date');
-            } else {
-                timestamp = this.safeTimestamp (trade, 'time');
-            }
-            const dateTime = this.iso8601 (timestamp);
-            const side = this.safeString (trade, 'type');
-            const price = this.safeFloat (trade, 'price');
-            const amount = this.safeFloat (trade, 'amount');
-            const cost = this.safeFloat (trade, 'total');
-            parsedTrades.push ({
-                'info': trade,
-                'id': id,
-                'timestamp': timestamp,
-                'datetime': dateTime,
-                'symbol': symbol,
-                'order': undefined,
-                'type': undefined,
-                'side': side,
-                'takerOrMaker': undefined,
-                'price': price,
-                'amount': amount,
-                'cost': cost,
-                'fee': undefined,
-            });
+        return this.parseTrades (trades, market, since, limit, params);
+    }
+
+    parseTrade (trade, market) {
+        const symbol = market['symbol'];
+        const id = this.safeString (trade, 'tid');
+        let timestamp = undefined;
+        if ('date' in trade) {
+            timestamp = this.safeTimestamp (trade, 'date');
+        } else {
+            timestamp = this.safeTimestamp (trade, 'time');
         }
-        parsedTrades = this.sortBy (parsedTrades, 'timestamp');
-        return parsedTrades;
+        const dateTime = this.iso8601 (timestamp);
+        const side = this.safeString (trade, 'type');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        const cost = this.safeFloat (trade, 'total');
+        return {
+            'info': trade,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': dateTime,
+            'symbol': symbol,
+            'order': undefined,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -280,10 +282,9 @@ module.exports = class coinsbit extends Exchange {
         if (response === undefined) {
             return;
         }
-        if (code >= 200) {
-            if (body.indexOf ('Server Error') >= 0) {
-                throw new ExchangeError (this.id + ' Server Error');
-            }
+        if (code !== 200) {
+            const feedback = '\nid: ' + this.id + '\nurl: ' + url + '\ncode: ' + code + '\nbody:\n' + body;
+            this.throwExactlyMatchedException (this.httpExceptions, code.toString (), feedback);
         }
         if (body.length > 0) {
             if (body[0] === '{') {
@@ -294,16 +295,22 @@ module.exports = class coinsbit extends Exchange {
                     if (this.isObject (messages)) {
                         const messagesKeys = Object.keys (messages);
                         for (let messageIndex = 0; messageIndex < messagesKeys.length; messageIndex++) {
+                            if (messageIndex > 0) {
+                                errorMessage += ', ';
+                            }
                             errorMessage += messages[messagesKeys[messageIndex]];
                         }
                     } else if (this.isArray (messages)) {
                         for (let messageIndex = 0; messageIndex < messages.length; messageIndex++) {
+                            if (messageIndex > 0) {
+                                errorMessage += ', ';
+                            }
                             errorMessage += messages[messageIndex];
                         }
                     } else {
                         errorMessage = messages;
                     }
-                    const feedback = '\nid: ' + this.id + '\n' + 'Error: ' + errorMessage + '\n' + 'Body: ' + body;
+                    const feedback = '\nid: ' + this.id + '\nurl: ' + url + '\nError: ' + errorMessage + '\nbody:\n' + body;
                     this.throwExactlyMatchedException (this.exceptions, errorMessage, feedback);
                     throw new ExchangeError (feedback);
                 }
