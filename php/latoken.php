@@ -337,7 +337,26 @@ class latoken extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $symbol = $this->find_symbol($this->safe_string($ticker, 'symbol'), $market);
+        //
+        //     {
+        //         "pairId":"63b41092-f3f6-4ea4-9e7c-4525ed250dad",
+        //         "$symbol":"ETHBTC",
+        //         "volume":11317.037494474000000000,
+        //         "$open":0.020033000000000000,
+        //         "low":0.019791000000000000,
+        //         "high":0.020375000000000000,
+        //         "$close":0.019923000000000000,
+        //         "priceChange":-0.1500
+        //     }
+        //
+        $symbol = null;
+        $marketId = $this->safe_string($ticker, 'symbol');
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+        }
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
+        }
         $open = $this->safe_float($ticker, 'open');
         $close = $this->safe_float($ticker, 'close');
         $change = null;
