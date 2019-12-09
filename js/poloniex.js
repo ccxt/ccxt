@@ -792,15 +792,6 @@ module.exports = class poloniex extends Exchange {
         };
     }
 
-    parseOpenOrders (orders, market, result) {
-        for (let i = 0; i < orders.length; i++) {
-            const order = orders[i];
-            const extended = this.extend (order, );
-            result.push (this.parseOrder (extended, market));
-        }
-        return result;
-    }
-
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
