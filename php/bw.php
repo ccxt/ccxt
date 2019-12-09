@@ -68,7 +68,7 @@ class bw extends Exchange {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/69436317-31128c80-0d52-11ea-91d1-eb7bb5818812.jpg',
                 'api' => 'https://www.{hostname}',
-                'www' => 'https://www.{hostname}',
+                'www' => 'https://www.bw.com',
                 'doc' => 'https://github.com/bw-exchange/api_docs_en/wiki',
                 'fees' => 'https://www.bw.com/feesRate',
             ),
