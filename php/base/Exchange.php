@@ -2329,33 +2329,6 @@ class Exchange {
                         $this->currencies[$code] : $code;
     }
 
-    public function find_market($string) {
-        if (!isset($this->markets)) {
-            throw new ExchangeError($this->id . ' markets not loaded');
-        }
-        if (gettype($string) === 'string') {
-            if (isset($this->markets_by_id[$string])) {
-                return $this->markets_by_id[$string];
-            }
-
-            if (isset($this->markets[$string])) {
-                return $this->markets[$string];
-            }
-        }
-
-        return $string;
-    }
-
-    public function find_symbol($string, $market = null) {
-        if (!isset($market)) {
-            $market = $this->find_market($string);
-        }
-        if ((gettype($market) === 'array') && static::is_associative($market)) {
-            return $market['symbol'];
-        }
-        return $string;
-    }
-
     public function market($symbol) {
         if (!isset($this->markets)) {
             throw new ExchangeError($this->id . ' markets not loaded');

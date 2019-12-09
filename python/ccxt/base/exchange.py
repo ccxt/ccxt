@@ -1680,23 +1680,6 @@ class Exchange(object):
             return self.currencies[code]
         raise ExchangeError('Does not have currency code ' + str(code))
 
-    def find_market(self, string):
-        if not self.markets:
-            raise ExchangeError('Markets not loaded')
-        if isinstance(string, basestring):
-            if string in self.markets_by_id:
-                return self.markets_by_id[string]
-            if string in self.markets:
-                return self.markets[string]
-        return string
-
-    def find_symbol(self, string, market=None):
-        if market is None:
-            market = self.find_market(string)
-        if isinstance(market, dict):
-            return market['symbol']
-        return string
-
     def market(self, symbol):
         if not self.markets:
             raise ExchangeError('Markets not loaded')

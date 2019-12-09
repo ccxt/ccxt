@@ -862,34 +862,6 @@ module.exports = class Exchange {
         throw new ExchangeError (this.id + ' does not have currency code ' + code)
     }
 
-    findMarket (string) {
-
-        if (this.markets === undefined)
-            throw new ExchangeError (this.id + ' markets not loaded')
-
-        if (typeof string === 'string') {
-
-            if (string in this.markets_by_id)
-                return this.markets_by_id[string]
-
-            if (string in this.markets)
-                return this.markets[string]
-        }
-
-        return string
-    }
-
-    findSymbol (string, market = undefined) {
-
-        if (market === undefined)
-            market = this.findMarket (string)
-
-        if (typeof market === 'object')
-            return market['symbol']
-
-        return string
-    }
-
     market (symbol) {
 
         if (this.markets === undefined)
