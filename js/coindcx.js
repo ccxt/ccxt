@@ -99,7 +99,7 @@ module.exports = class coindcx extends Exchange {
         const result = [];
         for (let i = 0; i < details.length; i++) {
             const market = details[i];
-            const id = this.safeString (market, 'pair');
+            const id = this.safeString (market, 'symbol');
             const quoteId = this.safeString (market, 'base_currency_short_name');
             const quote = this.safeCurrencyCode (quoteId);
             const baseId = this.safeString (market, 'target_currency_short_name');
@@ -110,8 +110,8 @@ module.exports = class coindcx extends Exchange {
                 active = true;
             }
             const precision = {
-                'amount': this.safeFloat (market, 'base_currency_precision'),
-                'price': this.safeFloat (market, 'target_currency_precision'),
+                'amount': this.safeInteger (market, 'base_currency_precision'),
+                'price': this.safeInteger (market, 'target_currency_precision'),
             };
             const limits = {
                 'amount': {
@@ -152,17 +152,19 @@ module.exports = class coindcx extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const response = await this.generalGetExchangeTicker (params);
-        let result = {};
-        const market = this.findMarket (symbol);
-        const marketInfo = this.safeValue (market, 'info');
-        const marketName = this.safeString (marketInfo, 'symbol');
-        if (marketName === undefined) {
-            return result;
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTicker requires a `symbol` argument');
         }
+        await this.loadMarkets ();
+        if (!(symbol in this.markets)) {
+            throw new ExchangeError (this.id + ' has no symbol ' + symbol);
+        }
+        const response = await this.generalGetExchangeTicker (params);
+        const market = this.findMarket (symbol);
+        const marketId = this.safeValue (market, 'id');
+        let result = {};
         for (let i = 0; i < response.length; i++) {
-            if (response[i]['market'] !== marketName) {
+            if (response[i]['market'] !== marketId) {
                 continue;
             }
             result = this.parseTicker (response[i]);
@@ -174,7 +176,7 @@ module.exports = class coindcx extends Exchange {
     parseTicker (ticker) {
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const symbol = this.findSymbol (this.safeString (ticker, 'market'));
-        const last = this.safeFloat (ticker, 'lastPrice');
+        const last = this.safeFloat (ticker, 'last_price');
         return {
             'symbol': symbol,
             'info': ticker,
@@ -191,7 +193,7 @@ module.exports = class coindcx extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'last_price'),
+            'change': this.safeFloat (ticker, 'change_24_hour'),
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'volume'),
@@ -199,36 +201,93 @@ module.exports = class coindcx extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = 50, params = {}) {
-        // https://coindcx-official.github.io/rest-api/?shell#trades
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 500, params = {}) {
+        // https://coindcx-official.github.io/rest-api/?shell#candles
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a `symbol` argument');
+        }
         await this.loadMarkets ();
-        if (symbol !== undefined) {
-            if (!(symbol in this.markets)) {
-                throw new ExchangeError (this.id + ' has no symbol ' + symbol);
-            }
+        if (!(symbol in this.markets)) {
+            throw new ExchangeError (this.id + ' has no symbol ' + symbol);
+        }
+        if (limit < 0) {
+            limit = 500; // coindcx default
+        }
+        if (limit > 1000) {
+            limit = 1000; // coindcx limitation
         }
         const market = this.market (symbol);
+        const marketInfo = this.safeValue (market, 'info');
+        const coindcxPair = this.safeString (marketInfo, 'pair');
+        if (coindcxPair === undefined) {
+            throw new ExchangeError (this.id + ' has no pair (look at market\'s info) value for ' + symbol);
+        }
+        const coindcxTimeframe = this.timeframes[timeframe];
+        if (coindcxTimeframe === undefined) {
+            throw new ExchangeError (this.id + ' has no "' + timeframe + '" timeframe');
+        }
         const request = {
-            'pair': this.safeString (market, 'id'),
+            'pair': coindcxPair,
+            'interval': coindcxTimeframe,
+            'limit': limit,
+        };
+        const response = await this.publicGetMarketDataCandles (this.extend (request, params));
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            this.safeInteger (ohlcv, 'time'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
+        ];
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = 30, params = {}) {
+        // https://coindcx-official.github.io/rest-api/?shell#trades
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTrades requires a `symbol` argument');
+        }
+        await this.loadMarkets ();
+        if (!(symbol in this.markets)) {
+            throw new ExchangeError (this.id + ' has no symbol ' + symbol);
+        }
+        const market = this.market (symbol);
+        const marketInfo = this.safeValue (market, 'info');
+        const coindcxPair = this.safeString (marketInfo, 'pair');
+        if (coindcxPair === undefined) {
+            throw new ExchangeError (this.id + ' has no pair (look at market\'s info) value for ' + symbol);
+        }
+        if (limit < 0) {
+            limit = 30; // coindcx default
+        }
+        if (limit > 500) {
+            limit = 500; // coindcx limitation
+        }
+        const request = {
+            'pair': coindcxPair,
             'limit': limit,
         };
         const response = await this.publicGetMarketDataTradeHistory (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = 500, params = {}) {
+        // https://coindcx-official.github.io/rest-api/?javascript#account-trade-history
         await this.loadMarkets ();
+        if (limit < 0) {
+            limit = 500;
+        }
+        if (limit > 1000) {
+            limit = 1000;
+        }
         const request = {
             'timestamp': this.milliseconds (),
+            'limit': limit,
         };
-        if (limit !== undefined) {
-            if (this.isNumber (limit)) {
-                if (limit < 0 && limit > 1000) {
-                    limit = 500;
-                }
-                request['limit'] = limit;
-            }
-        }
         const response = await this.privatePostExchangeV1OrdersTradeHistory (this.extend (request, params));
         return this.parseTrades (response, undefined, since, limit);
     }
@@ -268,15 +327,21 @@ module.exports = class coindcx extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         // https://coindcx-official.github.io/rest-api/?shell#order-book
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderBook requires a `symbol` argument');
+        }
         await this.loadMarkets ();
-        if (symbol !== undefined) {
-            if (!(symbol in this.markets)) {
-                throw new ExchangeError (this.id + ' has no symbol ' + symbol);
-            }
+        if (!(symbol in this.markets)) {
+            throw new ExchangeError (this.id + ' has no symbol ' + symbol);
         }
         const market = this.market (symbol);
+        const marketInfo = this.safeValue (market, 'info');
+        const coindcxPair = this.safeString (marketInfo, 'pair');
+        if (coindcxPair === undefined) {
+            throw new ExchangeError (this.id + ' has no pair (look at market\'s info) value for ' + symbol);
+        }
         const request = {
-            'pair': this.safeString (market, 'id'),
+            'pair': coindcxPair,
         };
         const response = await this.publicGetMarketDataOrderbook (this.extend (request, params));
         return this.parseOrderBookData (response);
@@ -304,41 +369,6 @@ module.exports = class coindcx extends Exchange {
             parsedData.push ([price, amount]);
         }
         return parsedData;
-    }
-
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        // https://coindcx-official.github.io/rest-api/?shell#candles
-        await this.loadMarkets ();
-        if (symbol !== undefined) {
-            if (!(symbol in this.markets)) {
-                throw new ExchangeError (this.id + ' has no symbol ' + symbol);
-            }
-        }
-        if (limit === undefined) {
-            limit = 500; // coindcx default
-        }
-        if (limit > 1000) {
-            limit = 1000; // coindcx limitation
-        }
-        const market = this.market (symbol);
-        const request = {
-            'pair': this.safeString (market, 'id'),
-            'interval': this.timeframes[timeframe],
-            'limit': limit,
-        };
-        const response = await this.publicGetMarketDataCandles (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
-    }
-
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        return [
-            this.safeInteger (ohlcv, 'time'),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
-        ];
     }
 
     async fetchBalance (params = {}) {
@@ -369,6 +399,9 @@ module.exports = class coindcx extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         // https://coindcx-official.github.io/rest-api/?javascript#account-trade-history
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires an `id` argument');
+        }
         await this.loadMarkets ();
         const request = {
             'id': String (id),
@@ -378,38 +411,45 @@ module.exports = class coindcx extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a `symbol` argument');
+        }
         await this.loadMarkets ();
-        if (symbol !== undefined) {
-            if (!(symbol in this.markets)) {
-                throw new ExchangeError (this.id + ' has no symbol ' + symbol);
-            }
+        if (!(symbol in this.markets)) {
+            throw new ExchangeError (this.id + ' has no symbol ' + symbol);
         }
         const market = this.market (symbol);
-        const marketInfo = this.safeValue (market, 'info');
         const request = {
-            'market': this.safeValue (marketInfo, 'symbol'),
+            'market': this.safeValue (market, 'id'),
             'timestamp': this.milliseconds (),
         };
         const response = await this.privatePostExchangeV1OrdersActiveOrders (this.extend (request, params));
-        const orders = this.safeValue (response, 'orders');
-        if (orders !== undefined) {
-            const parsedOrders = this.parseOrders (orders, market, since, limit);
-            return parsedOrders;
-        } else {
-            throw new ExchangeError ('No order received');
-        }
-        // if (symbol !== undefined) {
-        //     orders = this.filterBy (orders, 'symbol', symbol);
-        // }
+        const orders = this.safeValue (response, 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         // https://coindcx-official.github.io/rest-api/?javascript#new-order
-        await this.loadMarkets ();
-        if (symbol !== undefined) {
-            if (!(symbol in this.markets)) {
-                throw new ExchangeError (this.id + ' has no symbol ' + symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder requires a `symbol` argument');
+        }
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder requires a `type` argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder requires a `side` argument');
+        }
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder requires an `amount` argument');
+        }
+        if (type === 'limit') {
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder requires a `price` argument for limit order');
             }
+        }
+        await this.loadMarkets ();
+        if (!(symbol in this.markets)) {
+            throw new ExchangeError (this.id + ' has no symbol ' + symbol);
         }
         const market = this.market (symbol);
         const marketInfo = this.safeValue (market, 'info');
@@ -428,15 +468,14 @@ module.exports = class coindcx extends Exchange {
             request['price_per_unit'] = price;
         }
         const response = await this.privatePostExchangeV1OrdersCreate (this.extend (request, params));
-        const orders = this.safeValue (response, 'orders');
-        if (orders[0] !== undefined) {
-            return this.parseOrder (orders[0], market);
-        } else {
-            throw new ExchangeError ('No order received');
-        }
+        const orders = this.safeValue (response, 'orders', []);
+        return this.parseOrder (orders[0], market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires an `id` argument');
+        }
         await this.loadMarkets ();
         const request = {
             'id': id,
@@ -446,11 +485,12 @@ module.exports = class coindcx extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a `symbol` argument');
+        }
         await this.loadMarkets ();
-        if (symbol !== undefined) {
-            if (!(symbol in this.markets)) {
-                throw new ExchangeError (this.id + ' has no symbol ' + symbol);
-            }
+        if (!(symbol in this.markets)) {
+            throw new ExchangeError (this.id + ' has no symbol ' + symbol);
         }
         const market = this.market (symbol);
         const marketInfo = this.safeValue (market, 'info');
