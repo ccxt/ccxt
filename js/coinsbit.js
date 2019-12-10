@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, DDoSProtection, ExchangeError, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { AuthenticationError, DDoSProtection, ExchangeError, InsufficientFunds, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -149,7 +149,7 @@ module.exports = class coinsbit extends Exchange {
         const timestamp = this.milliseconds ();
         const response = await this.publicGetTicker (this.extend ({ 'market': market['id'] }, params));
         const ticker = this.safeValue (response, 'result');
-        const dateTime = this.iso8601 (timestamp);
+        const datetime = this.iso8601 (timestamp);
         const high = this.safeFloat (ticker, 'high');
         const low = this.safeFloat (ticker, 'low');
         const bid = this.safeFloat (ticker, 'bid');
@@ -158,15 +158,15 @@ module.exports = class coinsbit extends Exchange {
         const close = this.safeFloat (ticker, 'last');
         const last = this.safeFloat (ticker, 'last');
         const change = last - open;
-        const percentage = parseFloat (change / open) * parseFloat (100);
-        const average = parseFloat (last + open) / parseFloat (2);
+        const percentage = this.parseFloat (change / open) * this.parseFloat (100);
+        const average = this.parseFloat (last + open) / this.parseFloat (2);
         const baseVolume = this.safeFloat (ticker, 'volume');
         const quoteVolume = this.safeFloat (ticker, 'deal');
         return {
             'symbol': symbol,
             'info': response,
             'timestamp': timestamp,
-            'datetime': dateTime,
+            'datetime': datetime,
             'high': high,
             'low': low,
             'bid': bid,
@@ -227,7 +227,7 @@ module.exports = class coinsbit extends Exchange {
         } else {
             timestamp = this.safeTimestamp (trade, 'time');
         }
-        const dateTime = this.iso8601 (timestamp);
+        const datetime = this.iso8601 (timestamp);
         const side = this.safeString (trade, 'type');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
@@ -236,7 +236,7 @@ module.exports = class coinsbit extends Exchange {
             'info': trade,
             'id': id,
             'timestamp': timestamp,
-            'datetime': dateTime,
+            'datetime': datetime,
             'symbol': symbol,
             'order': undefined,
             'type': undefined,
@@ -249,8 +249,86 @@ module.exports = class coinsbit extends Exchange {
         };
     }
 
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        if (limit !== undefined) {
+            symbol['limit'] = limit;
+        }
+        if (since !== undefined) {
+            symbol['since'] = limit;
+        }
+        const response = await this.privatePostOrders (this.extend (request, params));
+        const orders = this.safeValue (this.safeValue (response, 'result'), 'result');
+        return this.parseOrders (orders, market, since, limit, params);
+    }
+
+    parseOrder (order, market) {
+        let orderMarket = market;
+        if (orderMarket === undefined) {
+            orderMarket = this.findMarket (this.safeString (order, 'marketName'));
+        }
+        const id = this.safeString (order, 'id');
+        let timestamp = undefined;
+        if ('timestamp' in order) {
+            timestamp = this.safeTimestamp (order, 'timestamp');
+        } else if ('ctime' in order) {
+            timestamp = this.safeTimestamp (order, 'ctime');
+        }
+        const datetime = this.iso8601 (timestamp);
+        const lastTradeTimestamp = this.safeTimestamp (order, 'ftime');
+        const symbol = orderMarket['symbol'];
+        const type = this.safeString (order, 'type');
+        const side = this.safeString (order, 'side');
+        const price = this.safeFloat (order, 'price');
+        const amount = this.safeFloat (order, 'amount');
+        const remaining = this.safeFloat (order, 'left');
+        let status = undefined;
+        let filled = undefined;
+        if (remaining === undefined || remaining === 0.0) {
+            status = 'closed';
+            filled = amount;
+        } else {
+            status = 'open';
+            filled = amount - remaining;
+        }
+        const cost = price * filled;
+        const fee = {
+            'currency': orderMarket['quote'],
+            'cost': this.safeFloat (order, 'dealFee'),
+        };
+        return {
+            'id': id,
+            'datetime': datetime,
+            'timestamp': timestamp,
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': cost,
+            'trades': undefined,
+            'fee': fee,
+            'info': order,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + this.version + '/' + api + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'][api] + this.version + '/';
+        if (api === 'public') {
+            url += 'public/';
+        }
+        url += this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {
@@ -259,13 +337,12 @@ module.exports = class coinsbit extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             const request = '/api/' + this.version + '/' + this.implodeParams (path, params);
-            const nonce = this.nonce ();
             query = this.extend ({
-                'nonce': nonce.toString (),
                 'request': request,
+                'nonce': this.nonce ().toString (),
             }, query);
             body = this.json (query);
-            const payload = this.stringToBase64 (this.encode (body));
+            const payload = this.stringToBase64 (body);
             const secret = this.encode (this.secret);
             const signature = this.hmac (payload, secret, 'sha512');
             headers = {
