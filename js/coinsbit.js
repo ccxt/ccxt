@@ -158,8 +158,8 @@ module.exports = class coinsbit extends Exchange {
         const close = this.safeFloat (ticker, 'last');
         const last = this.safeFloat (ticker, 'last');
         const change = last - open;
-        const percentage = this.parseFloat (change / open) * this.parseFloat (100);
-        const average = this.parseFloat (last + open) / this.parseFloat (2);
+        const percentage = parseFloat (change / open) * parseFloat (100);
+        const average = parseFloat (last + open) / parseFloat (2);
         const baseVolume = this.safeFloat (ticker, 'volume');
         const quoteVolume = this.safeFloat (ticker, 'deal');
         return {
@@ -216,6 +216,35 @@ module.exports = class coinsbit extends Exchange {
         }
         const trades = await this.publicGetHistoryResult (this.extend (request, params));
         return this.parseTrades (trades, market, since, limit, params);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostAccountBalances (params);
+        const balances = this.safeValue (response, 'result');
+        const currencies = Object.keys (balances);
+        const parsedBalances = {};
+        const free = {};
+        const used = {};
+        const total = {};
+        for (let currencyIndex = 0; currencyIndex < currencies.length; currencyIndex++) {
+            const currency = currencies[currencyIndex];
+            const balance = balances[currency];
+            const parsedBalance = {
+                'free': this.safeFloat (balance, 'available'),
+                'used': this.safeFloat (balance, 'freeze'),
+                'total': this.safeFloat (balance, 'available') + this.safeFloat (balance, 'freeze'),
+            };
+            parsedBalances[currency] = parsedBalance;
+            free[currency] = parsedBalance['free'];
+            used[currency] = parsedBalance['used'];
+            total[currency] = parsedBalance['total'];
+        }
+        parsedBalances['free'] = free;
+        parsedBalances['used'] = used;
+        parsedBalances['total'] = total;
+        parsedBalances['info'] = balances;
+        return parsedBalances;
     }
 
     parseTrade (trade, market) {
