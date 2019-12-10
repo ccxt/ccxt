@@ -115,7 +115,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         //     'channel': numericId,
         // });
         // return orderbook.limit (limit);
-        return this.sendWsMessage (url, messageHash, subscribe, numericId);
+        return await this.sendWsMessage (url, messageHash, subscribe, numericId);
     }
 
     async fetchWsHeartbeat (params = {}) {

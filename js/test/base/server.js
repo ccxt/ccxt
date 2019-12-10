@@ -1,0 +1,102 @@
+'use strict'
+
+const WebSocket = require ('ws')
+    , http = require ('http')
+    , { extend } = require ('ccxt')
+
+// ----------------------------------------------------------------------------
+// a sandbox ws server for testing and debugging
+
+class WebSocketServer {
+
+    constructor (config = {}) {
+
+        const defaults = {
+            terminateTimeout: 0, // terminate the connection immediately or later
+            closeTimeout: 10000, // close after a while
+            closeCode: 1000, // default closing code 1000 = ok
+            handshakeDelay: 60000, // delay the handshake to simulate connection timeout
+            port: 8080,
+        }
+
+        // merge to this
+        const entries = Object.entries (extend (defaults, config))
+        for (let i = 0; i < entries.length; i++) {
+            const [property, value] = entries[i]
+            this[property] = value
+        }
+
+        this.server = http.createServer ()
+        this.wss = new WebSocket.Server ({ noServer: true })
+        this.wss.on ('connection', this.onConnection.bind (this))
+        this.server.on ('upgrade', this.onUpgrade.bind (this))
+
+        console.log (new Date (), 'listening port', this.port)
+        this.server.listen (this.port)
+    }
+
+    onConnection (ws, request) {
+
+        console.log (new Date (), 'onConnection')
+
+        // terminate any incoming connection
+        // immediately after it has been successfully established
+        if (Number.isInteger (this.terminateTimeout)) {
+            if (this.terminateTimeout) {
+                setTimeout (() => { ws.terminate () }, this.terminateTimeout)
+            } else {
+                ws.terminate ()
+            }
+        }
+
+        // close the connection after a certain amount of time
+        if (Number.isInteger (this.closeTimeout)) {
+            if (this.closeTimeout) {
+                setTimeout (() => { ws.close (this.closeCode) }, this.closeTimeout)
+            } else {
+                ws.close (this.close.code)
+            }
+        }
+
+        // ws.send ('something')
+
+        // other stuff that might be useful
+        ws.on ('message', function incoming (message) {
+            console.log (new Date (), 'onMessage', message)
+        })
+        ws.on ('ping', function incoming (message) {
+            console.log (new Date (), 'onPing', message)
+        })
+        ws.on ('pong', function incoming (message) {
+            console.log (new Date (), 'onPong', message)
+        })
+        ws.on ('close', function incoming (code) {
+            console.log (new Date (), 'onClose', code)
+        })
+        // ws.ping ()
+    }
+
+    onUpgrade (request, socket, head) {
+        console.log (new Date (), 'onUpgrade')
+        if (Number.isInteger (this.handshakeDelay)) {
+            setTimeout (() => {
+                this.wss.handleUpgrade (request, socket, head, function done (ws) {
+                    this.wss.emit ('connection', ws, request)
+                })
+            }, this.handshakeDelay)
+        } else {
+            this.wss.handleUpgrade (request, socket, head, function done (ws) {
+                this.wss.emit ('connection', ws, request)
+            })
+        }
+    }
+}
+
+module.exports = WebSocketServer
+
+// ----------------------------------------------------------------------------
+// if launched in console instead of being required as a module
+
+if (require.main === module) {
+    (async () => { const wss = new WebSocketServer () }) ()
+}

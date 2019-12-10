@@ -109,7 +109,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
         #     'channel': numericId,
         # })
         # return orderbook.limit(limit)
-        return self.sendWsMessage(url, messageHash, subscribe, numericId)
+        return await self.sendWsMessage(url, messageHash, subscribe, numericId)
 
     async def fetch_ws_heartbeat(self, params={}):
         await self.load_markets()

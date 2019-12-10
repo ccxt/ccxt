@@ -143,7 +143,7 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         # involves an identified request/response sequence
         #
         #     {
-        #         "result": None,
+        #         "result": null,
         #         "id": 1574649734450
         #     }
         #
@@ -164,7 +164,7 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         #
         # --------------------------------------------------------------------
         #
-        # print(new Date(), json.dumps(message, None, 4))
+        # print(new Date(), json.dumps(message, null, 4))
         # print('---------------------------------------------------------')
         # if isinstance(message, list):
         #     channelId = str(message[0])
