@@ -163,29 +163,29 @@ class WebSocketClient(object):
     #     if self.connectionTimer:
     #         self.connectionTimer = clearTimeout(self.connectionTimer)
 
-    def set_ping_interval(self):
-        if self.keepAlive:
-            on_ping_interval = self.on_ping_interval.bind(self)
-            self.pingInterval = setInterval(on_ping_interval, self.keepAlive)
+    # def set_ping_interval(self):
+    #     if self.keepAlive:
+    #         on_ping_interval = self.on_ping_interval.bind(self)
+    #         self.pingInterval = setInterval(on_ping_interval, self.keepAlive)
 
-    def clear_ping_interval(self):
-        if self.pingInterval:
-            self.pingInterval = clearInterval(self.pingInterval)
+    # def clear_ping_interval(self):
+    #     if self.pingInterval:
+    #         self.pingInterval = clearInterval(self.pingInterval)
 
-    def on_ping_interval(self):
-        if (self.lastPong + self.keepAlive) < Exchange.milliseconds():
-            self.reset(RequestTimeout('Connection to ' + self.url + ' timed out due to a ping-pong keepalive missing on time'))
-        else:
-            if self.ws.readyState == WebSocket.OPEN:
-                self.ws.ping()
+    # def on_ping_interval(self):
+    #     if (self.lastPong + self.keepAlive) < Exchange.milliseconds():
+    #         self.reset(RequestTimeout('Connection to ' + self.url + ' timed out due to a ping-pong keepalive missing on time'))
+    #     else:
+    #         if self.ws.readyState == WebSocket.OPEN:
+    #             self.ws.ping()
 
     def on_open(self):
         print(Exchange.iso8601(Exchange.milliseconds()), 'on_open')
         self.connectionEstablished = Exchange.milliseconds()
         self.connected.resolve(self.url)
         # self.ws.terminate()  # debugging
-        self.clear_connection_timeout()
-        self.set_ping_interval()
+        # self.clear_connection_timeout()
+        # self.set_ping_interval()
 
     # this method is not used at this time, because in JS the ws client will
     # respond to pings coming from the server with pongs automatically

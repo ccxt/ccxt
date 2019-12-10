@@ -7,7 +7,7 @@ __version__ = '1.0.0'
 # -----------------------------------------------------------------------------
 
 import asyncio
-import sys
+# import sys
 from ccxtpro.base.web_socket_client import WebSocketClient
 from ccxt.async_support.base.exchange import Exchange as BaseExchange
 from ccxt.base.errors import NotSupported
@@ -84,7 +84,6 @@ class Exchange(BaseExchange):
         #     # upon connection failure
         #     pass
 
-
     def send_ws_message(self, url, message_hash, message=None, subscribe_hash=None):
         #
         # Without comments the code of this method is short and easy:
@@ -106,7 +105,7 @@ class Exchange(BaseExchange):
         #
         client = self.websocket(url)
         # todo: calculate the backoff using the clients cache
-        backoff_delay = 0
+        # backoff_delay = 0
         #
         #  fetchWsOrderBook ---- future ----+---------------+----→ user
         #                                   |               |
@@ -187,3 +186,4 @@ class Exchange(BaseExchange):
 
     # def __repr__(self):
     #     return 'ccxtpro.' + self.id + '()'
+    #
