@@ -15,7 +15,7 @@ class bw(Exchange):
     def describe(self):
         return self.deep_extend(super(bw, self).describe(), {
             'id': 'bw',
-            'name': 'bw.com',
+            'name': 'BW',
             'countries': ['CN'],
             'rateLimit': 1500,
             'version': 'v1',

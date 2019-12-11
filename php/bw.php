@@ -12,7 +12,7 @@ class bw extends Exchange {
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bw',
-            'name' => 'bw.com',
+            'name' => 'BW',
             'countries' => array ( 'CN' ),
             'rateLimit' => 1500,
             'version' => 'v1',
