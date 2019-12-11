@@ -240,7 +240,7 @@ module.exports = class p2pb2b extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchOrder (id, _symbol, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const orderIdField = this.getOrderIdField ();
         const request = {};
