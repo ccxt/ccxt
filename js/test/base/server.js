@@ -13,9 +13,9 @@ class WebSocketServer {
 
         const defaults = {
             terminateTimeout: 0, // terminate the connection immediately or later
-            closeTimeout: 10000, // close after a while
+            closeTimeout: undefined, // close after a while
             closeCode: 1000, // default closing code 1000 = ok
-            handshakeDelay: 60000, // delay the handshake to simulate connection timeout
+            handshakeDelay: 1000, // delay the handshake to simulate connection timeout
             port: 8080,
         }
 
@@ -79,15 +79,16 @@ class WebSocketServer {
     onUpgrade (request, socket, head) {
         console.log (new Date (), 'onUpgrade')
         if (Number.isInteger (this.handshakeDelay)) {
+            console.log (new Date (), 'handshake delay', this.handshakeDelay)
             setTimeout (() => {
-                this.wss.handleUpgrade (request, socket, head, function done (ws) {
+                this.wss.handleUpgrade (request, socket, head, (function done (ws) {
                     this.wss.emit ('connection', ws, request)
-                })
+                }).bind (this))
             }, this.handshakeDelay)
         } else {
-            this.wss.handleUpgrade (request, socket, head, function done (ws) {
+            this.wss.handleUpgrade (request, socket, head, (function done (ws) {
                 this.wss.emit ('connection', ws, request)
-            })
+            }).bind (this))
         }
     }
 }
