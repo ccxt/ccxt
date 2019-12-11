@@ -4,8 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, DDoSProtection, ExchangeError, OrderNotFound, InsufficientFunds, InvalidOrder } = require ('./base/errors');
-const functions = require ('./base/functions')
-const { sortBy } = functions
+const { sortBy } = require ('./base/functions');
 
 //  ---------------------------------------------------------------------------
 
@@ -201,7 +200,7 @@ module.exports = class p2pb2b extends Exchange {
         };
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, _type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const method = 'privatePostOrderNew';
@@ -242,7 +241,7 @@ module.exports = class p2pb2b extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, _symbol, params = {}) {
         await this.loadMarkets ();
         const orderIdField = this.getOrderIdField ();
         const request = {};
@@ -261,7 +260,7 @@ module.exports = class p2pb2b extends Exchange {
         await this.loadMarkets ();
         const request = {
             'market': this.marketId (symbol),
-            'side': params['side']
+            'side': params['side'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -333,7 +332,7 @@ module.exports = class p2pb2b extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    parseL2OrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
+    parseL2OrderBook (orderbook, timestamp = undefined, _bidsKey, _asksKey, priceKey = 0) {
         const orders = this.safeValue (orderbook, 'orders');
         let asks = [];
         let bids = [];
@@ -346,11 +345,11 @@ module.exports = class p2pb2b extends Exchange {
                 book[price] = amount + existingOrderAmount;
                 return book;
             }, {});
-            const book = Object.keys (bookMap).map ((key) => [key, bookMap[key]]);
+            const book = Object.keys (bookMap).map (key => [key, bookMap[key]]);
             if (side === 'buy') {
-                bids = sortBy (book, 0, true);
+                bids = sortBy (book, priceKey, true);
             } else {
-                asks = sortBy (book, 0);
+                asks = sortBy (book, priceKey);
             }
         }
         return {
@@ -359,7 +358,7 @@ module.exports = class p2pb2b extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
-        }
+        };
     }
 
     parseNewOrder (order, market = undefined) {
@@ -426,7 +425,7 @@ module.exports = class p2pb2b extends Exchange {
         return 'orderId';
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code, _reason, _url, _method, _headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return;
         }
