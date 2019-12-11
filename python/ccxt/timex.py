@@ -1090,9 +1090,13 @@ class timex(Exchange):
         id = self.safe_string(order, 'id')
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
-        if market is None:
-            market = self.find_market(self.safe_string(order, 'symbol'))
-        symbol = market['symbol']
+        symbol = None
+        marketId = self.safe_string(order, 'symbol')
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+            symbol = market['symbol']
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string(order, 'createdAt'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'quantity')

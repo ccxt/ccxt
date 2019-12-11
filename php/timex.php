@@ -1138,10 +1138,15 @@ class timex extends Exchange {
         $id = $this->safe_string($order, 'id');
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
-        if ($market === null) {
-            $market = $this->find_market($this->safe_string($order, 'symbol'));
+        $symbol = null;
+        $marketId = $this->safe_string($order, 'symbol');
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+            $symbol = $market['symbol'];
         }
-        $symbol = $market['symbol'];
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
+        }
         $timestamp = $this->parse8601 ($this->safe_string($order, 'createdAt'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'quantity');

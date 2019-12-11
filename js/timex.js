@@ -1133,10 +1133,15 @@ module.exports = class timex extends Exchange {
         const id = this.safeString (order, 'id');
         const type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
-        if (market === undefined) {
-            market = this.findMarket (this.safeString (order, 'symbol'));
+        let symbol = undefined;
+        const marketId = this.safeString (order, 'symbol');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
         }
-        const symbol = market['symbol'];
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'quantity');
