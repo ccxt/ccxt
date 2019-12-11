@@ -332,20 +332,24 @@ module.exports = class p2pb2b extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    parseL2OrderBook (orderbook, timestamp = undefined, _bidsKey, _asksKey, priceKey = 0) {
+    parseL2OrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0) {
         const orders = this.safeValue (orderbook, 'orders');
         let asks = [];
         let bids = [];
         if (orders.length > 0) {
             const side = this.safeValue (orders[0], 'side');
-            const bookMap = orders.reduce ((book, order) => {
-                const price = this.safeFloat (order, 'price');
-                const amount = this.safeFloat (order, 'amount');
-                const existingOrderAmount = book[price] || 0.0;
-                book[price] = amount + existingOrderAmount;
-                return book;
-            }, {});
-            const book = Object.keys (bookMap).map (key => [key, bookMap[key]]);
+            const bookMap = {};
+            const book = [];
+            for (let i = 0; i < orders.length; i++) {
+                const price = this.safeFloat (orders[i], 'price');
+                const amount = this.safeFloat (orders[i], 'amount');
+                const existingOrderAmount = bookMap[price] || 0.0;
+                bookMap[price] = amount + existingOrderAmount;
+            }
+            for (let i = 0; i < Object.keys (bookMap).length; i++) {
+                const key = Object.keys (bookMap)[i];
+                book.push ([parseFloat (key), bookMap[key]]);
+            }
             if (side === 'buy') {
                 bids = sortBy (book, priceKey, true);
             } else {
