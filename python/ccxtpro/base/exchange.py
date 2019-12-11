@@ -50,95 +50,23 @@ class Exchange(BaseExchange):
     async def connect_ws_client(self, client, message_hash, message=None, subscribe_hash=None):
         # todo: calculate the backoff using the clients cache
         backoff_delay = 0
-        print('-----------------------')
         try:
-            print('11111')
-            connected = client.connect(self.session, backoff_delay)
-            print('22222')
-            await connected
-            print('33333')
+            await client.connect(self.session, backoff_delay)
             if message and (subscribe_hash not in client.subscriptions):
                 client.subscriptions[subscribe_hash] = True
                 # todo: decouple signing from subscriptions
                 message = self.sign_ws_message(client, message_hash, message)
-                client.send(message)
+                await client.send(message)
         except Exception as e:
             client.reject(e, message_hash)
-            print(e)
-            print('==========================================================')
-        print('))))))))))))))))))))))))))))))')
-        # the following is executed only if the catch-clause does not
-        # catch any connection-level exceptions from the websocket client
-        # (connection established successfully)
-        # if True:  # connected.then (() => {
-        #     if message and (subscribe_hash not in client.subscriptions):
-        #         client.subscriptions[subscribe_hash] = True
-        #         # todo: decouple signing from subscriptions
-        #         message = self.sign_ws_message(client, message_hash, message)
-        #         client.send(message)
-        # else:  # }).catch ((error) => {
-        #     # we do nothing and don't return a resolvable value from here
-        #     # we leave it in a rejected state to avoid triggering the
-        #     # then-clauses that will follow (if any)
-        #     # removing this catch will raise UnhandledPromiseRejection in JS
-        #     # upon connection failure
-        #     pass
+            print(self.iso8601(self.milliseconds()), 'Exception', e)
 
     def send_ws_message(self, url, message_hash, message=None, subscribe_hash=None):
-        #
-        # Without comments the code of this method is short and easy:
-        #
-        #     const client = this.websocket (url)
-        #     const backoffDelay = 0
-        #     const future = client.future (messageHash)
-        #     const connected = client.connect (backoffDelay)
-        #     connected.then (() => {
-        #         if (message && !client.subscriptions[subscribeHash]) {
-        #             client.subscriptions[subscribeHash] = true
-        #             message = this.signWsMessage (client, messageHash, message)
-        #             client.send (message)
-        #         }
-        #     }).catch ((error) => {})
-        #     return future
-        #
-        # The following is a longer version of this method with comments
-        #
         client = self.websocket(url)
-        # todo: calculate the backoff using the clients cache
-        # backoff_delay = 0
-        #
-        #  fetchWsOrderBook ---- future ----+---------------+----→ user
-        #                                   |               |
-        #                                   ↓               ↑
-        #                                   |               |
-        #                                connect ......→ resolve
-        #                                   |               |
-        #                                   ↓               ↑
-        #                                   |               |
-        #                               subscribe -----→ receive
-        #
         future = client.future(message_hash)
         # we intentionally do not use await here to avoid unhandled exceptions
         # the policy is to make sure that 100% of promises are resolved or rejected
-        # either with a call to client.resolve or client.reject with
-        # a proper exception class instance
         asyncio.ensure_future(self.connect_ws_client(client, message_hash, message, subscribe_hash))
-        # the following is executed only if the catch-clause does not
-        # catch any connection-level exceptions from the websocket client
-        # (connection established successfully)
-        # if True:  # connected.then (() => {
-        #     if message and (subscribe_hash not in client.subscriptions):
-        #         client.subscriptions[subscribe_hash] = True
-        #         # todo: decouple signing from subscriptions
-        #         message = self.sign_ws_message(client, message_hash, message)
-        #         client.send(message)
-        # else:  # }).catch ((error) => {
-        #     # we do nothing and don't return a resolvable value from here
-        #     # we leave it in a rejected state to avoid triggering the
-        #     # then-clauses that will follow (if any)
-        #     # removing this catch will raise UnhandledPromiseRejection in JS
-        #     # upon connection failure
-        #     pass
         return future
 
     def on_ws_error(self, client, error):
