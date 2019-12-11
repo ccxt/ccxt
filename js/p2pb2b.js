@@ -4,6 +4,8 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, DDoSProtection, ExchangeError, OrderNotFound, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const functions = require ('./base/functions')
+const { sortBy } = functions
 
 //  ---------------------------------------------------------------------------
 
@@ -252,6 +254,24 @@ module.exports = class p2pb2b extends Exchange {
         return this.parseOrder (response['result']['records']);
     }
 
+    async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
+        if (params['side'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchL2OrderBook requires a side argument');
+        }
+        await this.loadMarkets ();
+        const request = {
+            'market': this.marketId (symbol),
+            'side': params['side']
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetBook (this.extend (request, params));
+        const timestamp = this.safeValue (response, 'cache_time');
+        const orderBook = this.safeValue (response, 'result');
+        return this.parseL2OrderBook (orderBook, timestamp);
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -311,6 +331,35 @@ module.exports = class p2pb2b extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    parseL2OrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
+        const orders = this.safeValue (orderbook, 'orders');
+        let asks = [];
+        let bids = [];
+        if (orders.length > 0) {
+            const side = this.safeValue (orders[0], 'side');
+            const bookMap = orders.reduce ((book, order) => {
+                const price = this.safeFloat (order, 'price');
+                const amount = this.safeFloat (order, 'amount');
+                const existingOrderAmount = book[price] || 0.0;
+                book[price] = amount + existingOrderAmount;
+                return book;
+            }, {});
+            const book = Object.keys (bookMap).map ((key) => [key, bookMap[key]]);
+            if (side === 'buy') {
+                bids = sortBy (book, 0, true);
+            } else {
+                asks = sortBy (book, 0);
+            }
+        }
+        return {
+            'bids': bids,
+            'asks': asks,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
+        }
     }
 
     parseNewOrder (order, market = undefined) {
