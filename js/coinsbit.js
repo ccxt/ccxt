@@ -226,6 +226,24 @@ module.exports = class coinsbit extends Exchange {
         return this.parseOrderBook (response, undefined, 'bids', 'asks');
     }
 
+    async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
+        if (params['side'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchL2OrderBook requires a side argument');
+        }
+        await this.loadMarkets ();
+        const request = {
+            'market': this.marketId (symbol),
+            'side': params['side'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetBook (this.extend (request, params));
+        const timestamp = this.safeValue (response, 'cache_time');
+        const orderBook = this.safeValue (response, 'result');
+        return this.parseL2OrderBook (orderBook, timestamp);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const query = this.omit (params, 'type');
@@ -277,6 +295,39 @@ module.exports = class coinsbit extends Exchange {
 
     getOrderIdField () {
         return 'orderId';
+    }
+
+    parseL2OrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0) {
+        const orders = this.safeValue (orderbook, 'orders');
+        let asks = [];
+        let bids = [];
+        if (orders.length > 0) {
+            const side = this.safeValue (orders[0], 'side');
+            const bookMap = {};
+            const book = [];
+            for (let i = 0; i < orders.length; i++) {
+                const price = this.safeFloat (orders[i], 'price');
+                const amount = this.safeFloat (orders[i], 'amount');
+                const existingOrderAmount = bookMap[price] || 0.0;
+                bookMap[price] = amount + existingOrderAmount;
+            }
+            for (let i = 0; i < Object.keys (bookMap).length; i++) {
+                const key = Object.keys (bookMap)[i];
+                book.push ([parseFloat (key), bookMap[key]]);
+            }
+            if (side === 'buy') {
+                bids = this.sortBy (book, priceKey, true);
+            } else {
+                asks = this.sortBy (book, priceKey);
+            }
+        }
+        return {
+            'bids': bids,
+            'asks': asks,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
+        };
     }
 
     parseNewOrder (order, market = undefined) {
