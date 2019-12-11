@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import asyncio
+from asyncio import get_event_loop, sleep
 import aiohttp
 from pprint import pprint
 
@@ -56,6 +56,7 @@ async def test():
             sys.exit()
         except Exception as e:
             print('Error', type(e), str(e))
+            await sleep(1)
     await exchange.close()
     print('test() is done', x)
     # pprint(orderbook)
@@ -67,7 +68,7 @@ async def test():
 # sys.exit()
 
 if __name__ == '__main__':
-    print(asyncio.get_event_loop().run_until_complete(test()))
+    print(get_event_loop().run_until_complete(test()))
 
 
 

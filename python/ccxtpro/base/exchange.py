@@ -59,7 +59,7 @@ class Exchange(BaseExchange):
                 await client.send(message)
         except Exception as e:
             client.reject(e, message_hash)
-            print(self.iso8601(self.milliseconds()), 'Exception', e)
+            print(self.iso8601(self.milliseconds()), 'connect_ws_client', 'Exception', e)
 
     def send_ws_message(self, url, message_hash, message=None, subscribe_hash=None):
         client = self.websocket(url)
