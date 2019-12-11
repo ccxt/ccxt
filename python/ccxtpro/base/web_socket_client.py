@@ -1,6 +1,6 @@
 # import asyncio
 import json
-from asyncio import sleep, ensure_future, wait_for, TimeoutError
+from asyncio import sleep, ensure_future, wait_for, gather, TimeoutError
 from aiohttp.client_exceptions import ClientConnectorError
 from aiohttp import WSMsgType
 from ccxt.async_support import Exchange
@@ -80,22 +80,26 @@ class WebSocketClient(object):
                 self.reject(result, message_hash)
         return result
 
+    async def ping_loop(self):
+        print(Exchange.iso8601(Exchange.milliseconds()), 'ping loop')
+        while not self.ws.closed:
+            #     if (self.lastPong + self.keepAlive) < Exchange.milliseconds():
+            #         self.reset(RequestTimeout('Connection to ' + self.url + ' timed out due to a ping-pong keepalive missing on time'))
+            #     else:
+            #         if self.ws.readyState == WebSocket.OPEN:
+            #             self.ws.ping()
+            await sleep(self.keepAlive / 1000)
+
     async def receive_loop(self):
         print(Exchange.iso8601(Exchange.milliseconds()), 'receive loop')
         while not self.ws.closed:
             try:
                 message = await self.ws.receive()
-                print(Exchange.iso8601(Exchange.milliseconds()), 'message', message)
                 if message.type == WSMsgType.text:
-                    # ---
-                    if message.data == 'close':
-                        await self.close()
-                        break  # stops the loop
-                    else:
-                        self.send(message.data + '/answer')
-                    # ---
+                    print(Exchange.iso8601(Exchange.milliseconds()), 'message', message)
                 elif message.type == WSMsgType.closed:
                     print(Exchange.iso8601(Exchange.milliseconds()), 'closed', message)
+                    print(self.ws.closed)
                     break  # stops the loop, call on_close
                 elif message.type == WSMsgType.error:
                     print(Exchange.iso8601(Exchange.milliseconds()), 'error', message)
@@ -120,6 +124,7 @@ class WebSocketClient(object):
             error = RequestTimeout('Connection timeout')
             print(Exchange.iso8601(Exchange.milliseconds()), 'RequestTimeout', error)
             self.reset(error)
+            await self.ws.close()
         except ClientConnectorError as e:  # connection failed or rejected
             error = NetworkError(e)
             print(Exchange.iso8601(Exchange.milliseconds()), 'NetworkError', error)
@@ -127,35 +132,21 @@ class WebSocketClient(object):
         except Exception as e:
             print(Exchange.iso8601(Exchange.milliseconds()), 'Exception', error)
             self.reset(error)
-        await self.receive_loop()  # receive forever
+        await gather(self.ping_loop(), self.receive_loop())  # run both loops forever
 
     def connect(self, session, backoff_delay=0):
         if not self.ws:
             self.ws = True
             ensure_future(self.create_websocket(session, backoff_delay))
-            # self.create_websocket(session, backoff_delay)
         return self.connected
 
     def reset(self, error):
-        # self.clear_ping_interval()
         self.connected.reject(error)
         self.reject(error)
 
-    # def on_connection_timeout(self):
-    #     if self.ws.readyState != WebSocket.OPEN:
-    #         error = RequestTimeout('Connection to ' + self.url + ' failed due to a connection timeout')
-    #         self.reset(error)
-    #         self.on_error_callback(self, error)
-    #         self.ws.close(1006)
-
-    # def set_connection_timeout(self):
-    #     if self.connectionTimeout:
-    #         on_connection_timeout = self.on_connection_timeout.bind(self)
-    #         self.connectionTimer = setTimeout(on_connection_timeout, self.connectionTimeout)
-
-    # def clear_connection_timeout(self):
-    #     if self.connectionTimer:
-    #         self.connectionTimer = clearTimeout(self.connectionTimer)
+    def send(self, message):
+        print(Exchange.iso8601(Exchange.milliseconds()), 'sending', json.dumps(message, separators=(',', ':')))
+        return self.ws.send_str(json.dumps(message, separators=(',', ':')))
 
     # def set_ping_interval(self):
     #     if self.keepAlive:
@@ -173,58 +164,50 @@ class WebSocketClient(object):
     #         if self.ws.readyState == WebSocket.OPEN:
     #             self.ws.ping()
 
-    def on_open(self):
-        print(Exchange.iso8601(Exchange.milliseconds()), 'on_open')
-        self.connectionEstablished = Exchange.milliseconds()
-        self.connected.resolve(self.url)
-        # self.ws.terminate()  # debugging
-        # self.clear_connection_timeout()
-        # self.set_ping_interval()
+    # def on_message(self, message):
+    #     try:
+    #         message = json.loads(message) if isJsonEncodedObject(message) else message
+    #     except Exception:  # as e:
+    #         # reset with a json encoding error ?
+    #         pass
+    #     self.on_message_callback(self, message)
 
-    # this method is not used at this time, because in JS the ws client will
-    # respond to pings coming from the server with pongs automatically
-    # however, some devs may want to track connection states in their app
-    def on_ping(self):
-        print(Exchange.iso8601(Exchange.milliseconds()), 'on_ping')
+    # def on_open(self):
+    #     print(Exchange.iso8601(Exchange.milliseconds()), 'on_open')
+    #     self.connectionEstablished = Exchange.milliseconds()
+    #     self.connected.resolve(self.url)
+    #     # self.ws.terminate()  # debugging
+    #     # self.clear_connection_timeout()
+    #     # self.set_ping_interval()
 
-    def on_pong(self):
-        self.lastPong = Exchange.milliseconds()
-        print(Exchange.iso8601(Exchange.milliseconds()), 'on_pong')
+    # # this method is not used at this time, because in JS the ws client will
+    # # respond to pings coming from the server with pongs automatically
+    # # however, some devs may want to track connection states in their app
+    # def on_ping(self):
+    #     print(Exchange.iso8601(Exchange.milliseconds()), 'on_ping')
 
-    def on_error(self, error):
-        print(Exchange.iso8601(Exchange.milliseconds()), 'on_error', error.message)
-        # convert ws errors to ccxt errors if necessary
-        self.error = NetworkError(error.message)
-        self.reset(self.error)
-        self.on_error_callback(self, self.error)
+    # def on_pong(self):
+    #     self.lastPong = Exchange.milliseconds()
+    #     print(Exchange.iso8601(Exchange.milliseconds()), 'on_pong')
 
-    def on_close(self, message):
-        print(Exchange.iso8601(Exchange.milliseconds()), 'on_close', message)
-        if not self.error:
-            # todo: exception types for server-side disconnects
-            self.reset(NetworkError(message))
-        self.on_close_callback(self, message)
+    # def on_error(self, error):
+    #     print(Exchange.iso8601(Exchange.milliseconds()), 'on_error', error.message)
+    #     # convert ws errors to ccxt errors if necessary
+    #     self.error = NetworkError(error.message)
+    #     self.reset(self.error)
+    #     self.on_error_callback(self, self.error)
 
-    # this method is not used at this time
-    # but may be used to read protocol-level data like cookies, headers, etc
-    def on_upgrade(self, message):
-        print(Exchange.iso8601(Exchange.milliseconds()), 'on_upgrade')
+    # def on_close(self, message):
+    #     print(Exchange.iso8601(Exchange.milliseconds()), 'on_close', message)
+    #     if not self.error:
+    #         # todo: exception types for server-side disconnects
+    #         self.reset(NetworkError(message))
+    #     self.on_close_callback(self, message)
 
-    def send(self, message):
-        print(Exchange.iso8601(Exchange.milliseconds()), 'sending', json.dumps(message, separators=(',', ':')))
-        return self.ws.send_str(json.dumps(message, separators=(',', ':')))
-
-    def close(self):
-        self.reconnect = False
-        self.ws.close()
-
-    def on_message(self, message):
-        try:
-            message = json.loads(message) if isJsonEncodedObject(message) else message
-        except Exception:  # as e:
-            # reset with a json encoding error ?
-            pass
-        self.on_message_callback(self, message)
+    # # this method is not used at this time
+    # # but may be used to read protocol-level data like cookies, headers, etc
+    # def on_upgrade(self, message):
+    #     print(Exchange.iso8601(Exchange.milliseconds()), 'on_upgrade')
 
 # -----------------------------------------------------------------------------
 
