@@ -1,7 +1,8 @@
 # import asyncio
 import json
-from asyncio import sleep, ensure_future, TimeoutError
+from asyncio import sleep, ensure_future, wait_for, TimeoutError
 from aiohttp.client_exceptions import ClientConnectorError
+from aiohttp import WSMsgType
 from ccxt.async_support import Exchange
 from ccxt.base.errors import NetworkError, RequestTimeout
 # import ccxt.async_support as ccxt
@@ -79,61 +80,54 @@ class WebSocketClient(object):
                 self.reject(result, message_hash)
         return result
 
+    async def receive_loop(self):
+        print(Exchange.iso8601(Exchange.milliseconds()), 'receive loop')
+        while not self.ws.closed:
+            try:
+                message = await self.ws.receive()
+                print(Exchange.iso8601(Exchange.milliseconds()), 'message', message)
+                if message.type == WSMsgType.text:
+                    # ---
+                    if message.data == 'close':
+                        await self.close()
+                        break  # stops the loop
+                    else:
+                        self.send(message.data + '/answer')
+                    # ---
+                elif message.type == WSMsgType.closed:
+                    print(Exchange.iso8601(Exchange.milliseconds()), 'closed', message)
+                    break  # stops the loop, call on_close
+                elif message.type == WSMsgType.error:
+                    print(Exchange.iso8601(Exchange.milliseconds()), 'error', message)
+                    break  # stops the loop, call on_error
+            except Exception as e:
+                error = NetworkError(e)
+                print(Exchange.iso8601(Exchange.milliseconds()), 'Exception', error)
+                self.reset(error)
+
     async def create_websocket(self, session, backoff_delay=0):
         # exponential backoff for consequent ws connections if necessary
         if backoff_delay:
             await sleep(backoff_delay)
-        print(Exchange.iso8601(Exchange.milliseconds()), 'connecting...')
+        print(Exchange.iso8601(Exchange.milliseconds()), 'connecting with timeout', self.connectionTimeout, 'ms')
         self.connectionStarted = Exchange.milliseconds()
-        # print('we reached here')
-        # exit()
-        # self.set_connection_timeout()  # todo: implement connection timeout
-        # coroutine aiohttp.ws_connect(url, *, protocols=(), timeout=10.0, connector=None, auth=None, ws_response_class=ClientWebSocketResponse, autoclose=True, autoping=True, loop=None)[source]
-        # This function creates a websocket connection, checks the response and returns a ClientWebSocketResponse object. In case of failure it may raise a WSServerHandshakeError exception.
         try:
-            timeout_ms = self.connectionTimeout / 1000
-            self.ws = await session.ws_connect(self.url, timeout=timeout_ms)
+            coroutine = session.ws_connect(self.url)
+            self.ws = await wait_for(coroutine, self.connectionTimeout / 1000)
+            print(Exchange.iso8601(Exchange.milliseconds()), 'connected')
             self.connected.resolve()
-        except TimeoutError as e:
-            error = RequestTimeout(e)
-            print('TimeoutError', error)
-            self.connected.reject(error)
-            print('TimeoutError -----------------------------------------------------------')
-        except ClientConnectorError as e:
+        except TimeoutError as e:  # connection timeout
+            error = RequestTimeout('Connection timeout')
+            print(Exchange.iso8601(Exchange.milliseconds()), 'RequestTimeout', error)
+            self.reset(error)
+        except ClientConnectorError as e:  # connection failed or rejected
             error = NetworkError(e)
-            print('ClientConnectorError', error)
-            self.connected.reject(error)
-            print('ClientConnectorError -----------------------------------------------------------')
+            print(Exchange.iso8601(Exchange.milliseconds()), 'NetworkError', error)
+            self.reset(error)
         except Exception as e:
-            print('EEEEEE', e, type(e))
-        # exit()
-        # self.ws = True
-        # # exponential backoff for consequent ws connections if necessary
-        # if backoff_delay:
-        #     await sleep(backoff_delay)
-        # print(Exchange.iso8601(Exchange.milliseconds()), 'connecting...')
-        # self.connectionStarted = Exchange.milliseconds()
-        # self.set_connection_timeout()  # todo: implement connection timeout
-        # # coroutine aiohttp.ws_connect(url, *, protocols=(), timeout=10.0, connector=None, auth=None, ws_response_class=ClientWebSocketResponse, autoclose=True, autoping=True, loop=None)[source]
-        # # This function creates a websocket connection, checks the response and returns a ClientWebSocketResponse object. In case of failure it may raise a WSServerHandshakeError exception.
-        # print(Exchange.iso8601(Exchange.milliseconds()), 'connecting...')
-        # self.connectionStarted = Exchange.milliseconds()
-        # self.set_connection_timeout()
-        # self.ws = WebSocket(self.url, self.protocols, self.options)
-        # self.ws = await session.ws_connect(self.url)
-        # self.connected.resolve()
-        # ---------------------------------------------------------------------
-        # junk
-        # self.ws.on('open', self.on_open)
-        # self.ws.on('ping', self.on_ping)
-        # self.ws.on('pong', self.on_pong)
-        # self.ws.on('error', self.on_error)
-        # self.ws.on('close', self.on_close)
-        # self.ws.on('upgrade', self.on_upgrade)
-        # self.ws.on('message', self.on_message)
-        # ---------------------------------------------------------------------
-        # self.ws.terminate()  # debugging
-        # self.ws.close()  # debugging
+            print(Exchange.iso8601(Exchange.milliseconds()), 'Exception', error)
+            self.reset(error)
+        await self.receive_loop()  # receive forever
 
     def connect(self, session, backoff_delay=0):
         if not self.ws:
@@ -143,7 +137,7 @@ class WebSocketClient(object):
         return self.connected
 
     def reset(self, error):
-        self.clear_ping_interval()
+        # self.clear_ping_interval()
         self.connected.reject(error)
         self.reject(error)
 
@@ -217,7 +211,8 @@ class WebSocketClient(object):
         print(Exchange.iso8601(Exchange.milliseconds()), 'on_upgrade')
 
     def send(self, message):
-        self.ws.send(json.dumps(message, separators=(',', ':')))
+        print(Exchange.iso8601(Exchange.milliseconds()), 'sending', json.dumps(message, separators=(',', ':')))
+        return self.ws.send_str(json.dumps(message, separators=(',', ':')))
 
     def close(self):
         self.reconnect = False
