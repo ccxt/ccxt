@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadRequest, AuthenticationError, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, AuthenticationError, DDoSProtection, BadResponse } = require ('./base/errors');
 const { TRUNCATE, NO_PADDING, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -306,7 +306,43 @@ module.exports = class bytetrade extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.safeInteger (ticker, 'timestamp');
-        const symbol = this.findSymbol (this.safeString (ticker, 'symbol'), market);
+        //
+        //     [
+        //         {
+        //             "symbol":"68719476706",
+        //             "name":"ETH/BTC",
+        //             "base":"2",
+        //             "quote":"32",
+        //             "timestamp":1575905991933,
+        //             "datetime":"2019-12-09T15:39:51.933Z",
+        //             "high":"0",
+        //             "low":"0",
+        //             "open":"0",
+        //             "close":"0",
+        //             "last":"0",
+        //             "change":"0",
+        //             "percentage":"0",
+        //             "baseVolume":"0",
+        //             "quoteVolume":"0"
+        //         }
+        //     ]
+        //
+        let symbol = undefined;
+        const marketId = this.safeString (ticker, 'symbol');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        } else {
+            const baseId = this.safeString (ticker, 'base');
+            const quoteId = this.safeString (ticker, 'quote');
+            if ((baseId !== undefined) && (quoteId !== undefined)) {
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -338,8 +374,33 @@ module.exports = class bytetrade extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.marketGetTickers (this.extend (request, params));
-        if (response.length > 0) {
-            return this.parseTicker (response[0], market);
+        //
+        //     [
+        //         {
+        //             "symbol":"68719476706",
+        //             "name":"ETH/BTC",
+        //             "base":"2",
+        //             "quote":"32",
+        //             "timestamp":1575905991933,
+        //             "datetime":"2019-12-09T15:39:51.933Z",
+        //             "high":"0",
+        //             "low":"0",
+        //             "open":"0",
+        //             "close":"0",
+        //             "last":"0",
+        //             "change":"0",
+        //             "percentage":"0",
+        //             "baseVolume":"0",
+        //             "quoteVolume":"0"
+        //         }
+        //     ]
+        //
+        if (Array.isArray (response)) {
+            const ticker = this.safeValue (response, 0);
+            if (ticker === undefined) {
+                throw BadResponse (this.id + ' fetchTicker() returned an empty response');
+            }
+            return this.parseTicker (ticker, market);
         }
         return this.parseTicker (response, market);
     }
@@ -447,7 +508,22 @@ module.exports = class bytetrade extends Exchange {
 
     parseOrder (order, market = undefined) {
         const status = this.safeString (order, 'status');
-        const symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
+        let symbol = undefined;
+        const marketId = this.safeString (order, 'symbol');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        } else {
+            const baseId = this.safeString (order, 'base');
+            const quoteId = this.safeString (order, 'quote');
+            if ((baseId !== undefined) && (quoteId !== undefined)) {
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         const timestamp = this.safeInteger (order, 'timestamp');
         const datetime = this.safeString (order, 'datetime');
         const lastTradeTimestamp = this.safeInteger (order, 'lastTradeTimestamp');

@@ -449,12 +449,20 @@ class anxpro extends Exchange {
         $amount = $this->safe_float($trade, 'tradedCurrencyFillAmount');
         $cost = $this->safe_float($trade, 'settlementCurrencyFillAmount');
         $side = $this->safe_string_lower($trade, 'side');
+        $symbol = null;
+        $marketId = $this->safe_string($trade, 'ccyPair');
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+        }
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
+        }
         return array (
             'id' => $id,
             'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $this->find_symbol($this->safe_string($trade, 'ccyPair')),
+            'symbol' => $symbol,
             'type' => null,
             'side' => $side,
             'price' => $price,
@@ -901,15 +909,15 @@ class anxpro extends Exchange {
         //
         //     {
         //         orderType => 'LIMIT',
-        //         $tradedCurrency => 'XRP',
-        //         $settlementCurrency => 'BTC',
+        //         tradedCurrency => 'XRP',
+        //         settlementCurrency => 'BTC',
         //         tradedCurrencyAmount => '400.00000000',
         //         $buyTradedCurrency => true,
         //         limitPriceInSettlementCurrency => '0.00007129',
         //         $timestamp => '1522547850000',
         //         orderId => '62a8be4d-73c6-4469-90cd-28b4726effe0',
         //         tradedCurrencyAmountOutstanding => '0.00000000',
-        //         $orderStatus => 'FULL_FILL',
+        //         orderStatus => 'FULL_FILL',
         //         $executedAverageRate => '0.00007127',
         //         $trades => array (
         //             array (
@@ -935,11 +943,10 @@ class anxpro extends Exchange {
         //         )
         //     }
         //
-        $tradedCurrency = $this->safe_string($order, 'tradedCurrency');
-        $orderStatus = $this->safe_string($order, 'orderStatus');
-        $status = $this->parse_order_status($orderStatus);
-        $settlementCurrency = $this->safe_string($order, 'settlementCurrency');
-        $symbol = $this->find_symbol($tradedCurrency . '/' . $settlementCurrency);
+        $status = $this->parse_order_status($this->safe_string($order, 'orderStatus'));
+        $base = $this->safe_currency_code($this->safe_string($order, 'tradedCurrency'));
+        $quote = $this->safe_currency_code($this->safe_string($order, 'settlementCurrency'));
+        $symbol = $base . '/' . $quote;
         $buyTradedCurrency = $this->safe_string($order, 'buyTradedCurrency');
         $side = ($buyTradedCurrency === 'true') ? 'buy' : 'sell';
         $timestamp = $this->safe_integer($order, 'timestamp');

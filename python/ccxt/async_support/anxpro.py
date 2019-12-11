@@ -444,12 +444,18 @@ class anxpro(Exchange):
         amount = self.safe_float(trade, 'tradedCurrencyFillAmount')
         cost = self.safe_float(trade, 'settlementCurrencyFillAmount')
         side = self.safe_string_lower(trade, 'side')
+        symbol = None
+        marketId = self.safe_string(trade, 'ccyPair')
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
         return {
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': self.find_symbol(self.safe_string(trade, 'ccyPair')),
+            'symbol': symbol,
             'type': None,
             'side': side,
             'price': price,
@@ -914,11 +920,10 @@ class anxpro(Exchange):
         #         ]
         #     }
         #
-        tradedCurrency = self.safe_string(order, 'tradedCurrency')
-        orderStatus = self.safe_string(order, 'orderStatus')
-        status = self.parse_order_status(orderStatus)
-        settlementCurrency = self.safe_string(order, 'settlementCurrency')
-        symbol = self.find_symbol(tradedCurrency + '/' + settlementCurrency)
+        status = self.parse_order_status(self.safe_string(order, 'orderStatus'))
+        base = self.safe_currency_code(self.safe_string(order, 'tradedCurrency'))
+        quote = self.safe_currency_code(self.safe_string(order, 'settlementCurrency'))
+        symbol = base + '/' + quote
         buyTradedCurrency = self.safe_string(order, 'buyTradedCurrency')
         side = 'buy' if (buyTradedCurrency == 'true') else 'sell'
         timestamp = self.safe_integer(order, 'timestamp')

@@ -149,10 +149,11 @@ class luno extends Exchange {
         $timestamp = $this->safe_integer($order, 'creation_timestamp');
         $status = ($order['state'] === 'PENDING') ? 'open' : 'closed';
         $side = ($order['type'] === 'ASK') ? 'sell' : 'buy';
-        if ($market === null) {
-            $market = $this->find_market($order['pair']);
-        }
+        $marketId = $this->safe_string($order, 'pair');
         $symbol = null;
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+        }
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
@@ -170,11 +171,15 @@ class luno extends Exchange {
         }
         $fee = array( 'currency' => null );
         if ($quoteFee) {
-            $fee['side'] = 'quote';
             $fee['cost'] = $quoteFee;
+            if ($market !== null) {
+                $fee['currency'] = $market['quote'];
+            }
         } else {
-            $fee['side'] = 'base';
             $fee['cost'] = $baseFee;
+            if ($market !== null) {
+                $fee['currency'] = $market['base'];
+            }
         }
         $id = $this->safe_string($order, 'order_id');
         return array (

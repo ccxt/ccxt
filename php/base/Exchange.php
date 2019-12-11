@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.20.46';
+$version = '1.20.68';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.20.46';
+    const VERSION = '1.20.68';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -2332,33 +2332,6 @@ class Exchange {
                    isset($this->currencies) &&
                    isset($this->currencies[$code])) ?
                         $this->currencies[$code] : $code;
-    }
-
-    public function find_market($string) {
-        if (!isset($this->markets)) {
-            throw new ExchangeError($this->id . ' markets not loaded');
-        }
-        if (gettype($string) === 'string') {
-            if (isset($this->markets_by_id[$string])) {
-                return $this->markets_by_id[$string];
-            }
-
-            if (isset($this->markets[$string])) {
-                return $this->markets[$string];
-            }
-        }
-
-        return $string;
-    }
-
-    public function find_symbol($string, $market = null) {
-        if (!isset($market)) {
-            $market = $this->find_market($string);
-        }
-        if ((gettype($market) === 'array') && static::is_associative($market)) {
-            return $market['symbol'];
-        }
-        return $string;
     }
 
     public function market($symbol) {

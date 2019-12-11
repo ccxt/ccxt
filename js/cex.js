@@ -1008,17 +1008,20 @@ module.exports = class cex extends Exchange {
             //     "lastTxTime": "2018-05-23T12:42:58.315Z",
             //     "tradingFeeTaker": "0.25",
             //     "tradingFeeUserVolumeAmount": "56294576" }
-            const item = response[i];
-            const status = this.parseOrderStatus (this.safeString (item, 'status'));
-            const baseId = item['symbol1'];
-            const quoteId = item['symbol2'];
-            const side = item['type'];
-            const baseAmount = this.safeFloat (item, 'a:' + baseId + ':cds');
-            const quoteAmount = this.safeFloat (item, 'a:' + quoteId + ':cds');
-            const fee = this.safeFloat (item, 'f:' + quoteId + ':cds');
-            const amount = this.safeFloat (item, 'amount');
-            const price = this.safeFloat (item, 'price');
-            const remaining = this.safeFloat (item, 'remains');
+            const order = response[i];
+            const status = this.parseOrderStatus (this.safeString (order, 'status'));
+            const baseId = this.safeString (order, 'symbol1');
+            const quoteId = this.safeString (order, 'symbol2');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const side = this.safeString (order, 'type');
+            const baseAmount = this.safeFloat (order, 'a:' + baseId + ':cds');
+            const quoteAmount = this.safeFloat (order, 'a:' + quoteId + ':cds');
+            const fee = this.safeFloat (order, 'f:' + quoteId + ':cds');
+            const amount = this.safeFloat (order, 'amount');
+            const price = this.safeFloat (order, 'price');
+            const remaining = this.safeFloat (order, 'remains');
             const filled = amount - remaining;
             let orderAmount = undefined;
             let cost = undefined;
@@ -1030,10 +1033,10 @@ module.exports = class cex extends Exchange {
                 cost = quoteAmount;
                 average = orderAmount / cost;
             } else {
-                const ta = this.safeFloat (item, 'ta:' + quoteId, 0);
-                const tta = this.safeFloat (item, 'tta:' + quoteId, 0);
-                const fa = this.safeFloat (item, 'fa:' + quoteId, 0);
-                const tfa = this.safeFloat (item, 'tfa:' + quoteId, 0);
+                const ta = this.safeFloat (order, 'ta:' + quoteId, 0);
+                const tta = this.safeFloat (order, 'tta:' + quoteId, 0);
+                const fa = this.safeFloat (order, 'fa:' + quoteId, 0);
+                const tfa = this.safeFloat (order, 'tfa:' + quoteId, 0);
                 if (side === 'sell') {
                     cost = this.sum (this.sum (ta, tta), this.sum (fa, tfa));
                 } else {
@@ -1043,16 +1046,16 @@ module.exports = class cex extends Exchange {
                 orderAmount = amount;
                 average = cost / filled;
             }
-            const time = this.safeString (item, 'time');
-            const lastTxTime = this.safeString (item, 'lastTxTime');
+            const time = this.safeString (order, 'time');
+            const lastTxTime = this.safeString (order, 'lastTxTime');
             const timestamp = this.parse8601 (time);
             results.push ({
-                'id': item['id'],
+                'id': this.safeString (order, 'id'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'lastUpdated': this.parse8601 (lastTxTime),
                 'status': status,
-                'symbol': this.findSymbol (baseId + '/' + quoteId),
+                'symbol': symbol,
                 'side': side,
                 'price': price,
                 'amount': orderAmount,
@@ -1063,9 +1066,9 @@ module.exports = class cex extends Exchange {
                 'remaining': remaining,
                 'fee': {
                     'cost': fee,
-                    'currency': this.currencyId (quoteId),
+                    'currency': quote,
                 },
-                'info': item,
+                'info': order,
             });
         }
         return results;
