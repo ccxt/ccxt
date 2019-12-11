@@ -346,8 +346,9 @@ module.exports = class p2pb2b extends Exchange {
                 const existingOrderAmount = this.safeValue (bookMap, price, 0.0);
                 bookMap[price] = amount + existingOrderAmount;
             }
-            for (let i = 0; i < Object.keys (bookMap).length; i++) {
-                const key = Object.keys (bookMap)[i];
+            const bookPrices = Object.keys (bookMap);
+            for (let i = 0; i < bookPrices.length; i++) {
+                const key = bookPrices[i];
                 book.push ([parseFloat (key), bookMap[key]]);
             }
             if (side === 'buy') {
