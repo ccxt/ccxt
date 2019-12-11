@@ -850,6 +850,10 @@ class Exchange(object):
         return _urlencode.urlencode(params)
 
     @staticmethod
+    def urlencode_with_array_repeat(params={}):
+        return re.sub(r'%5B\d*%5D', '', Exchange.urlencode(params))
+
+    @staticmethod
     def rawencode(params={}):
         return _urlencode.unquote(Exchange.urlencode(params))
 
