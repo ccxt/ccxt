@@ -49,12 +49,13 @@ async def test():
         },
     })
     x = None
-    try:
-        x = await exchange.fetch_ws_order_book(symbol)
-        print('-', x)
-        sys.exit()
-    except Exception as e:
-        print('Error', type(e))
+    while True:
+        try:
+            x = await exchange.fetch_ws_order_book(symbol)
+            print('-', x)
+            sys.exit()
+        except Exception as e:
+            print('Error', type(e), str(e))
     await exchange.close()
     print('test() is done', x)
     # pprint(orderbook)
