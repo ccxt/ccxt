@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, DDoSProtection, ExchangeError, InsufficientFunds, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
+const { AuthenticationError, DDoSProtection, ExchangeError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -66,8 +66,8 @@ module.exports = class coinsbit extends Exchange {
                 'createOrder': false,
                 'cancelOrder': false,
                 'editOrder': false,
-                'fetchOrder': false,
-                'fetchOpenOrders': false,
+                'fetchOrder': 'emulated',
+                'fetchOpenOrders': true,
                 'fetchAllOrders': false,
                 'fetchMyTrades': false,
                 'fetchDepositAddress': false,
@@ -90,7 +90,7 @@ module.exports = class coinsbit extends Exchange {
                 'amount is less than': InvalidOrder,
                 'Total is less than': InvalidOrder,
                 'validation.total': InvalidOrder,
-                'Too many requests': DDoSProtection,
+                'Too many requests.': DDoSProtection,
                 'This action is unauthorized.': AuthenticationError,
             },
         });
@@ -278,7 +278,7 @@ module.exports = class coinsbit extends Exchange {
         };
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         }
@@ -298,12 +298,38 @@ module.exports = class coinsbit extends Exchange {
         return this.parseOrders (orders, market, since, limit, params);
     }
 
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const response = await this.privatePostAccountOrderHistory (params);
+        const result = this.safeValue (response, 'result');
+        if (this.isArray (result)) {
+            // User has no closed orders yet.
+            return [];
+        }
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        if (marketId in result) {
+            const orders = this.safeValue (result, market['id']);
+            return this.parseOrders (orders, market, since, limit, params);
+        } else {
+            return [];
+        }
+    }
+
     parseOrder (order, market) {
         let orderMarket = market;
         if (orderMarket === undefined) {
             orderMarket = this.findMarket (this.safeString (order, 'marketName'));
         }
-        const id = this.safeString (order, 'id');
+        let id = undefined;
+        if ('id' in order) {
+            id = this.safeString (order, 'id');
+        } else if ('orderId' in order) {
+            id = this.safeString (order, 'orderId');
+        }
         let timestamp = undefined;
         if ('timestamp' in order) {
             timestamp = this.safeTimestamp (order, 'timestamp');
@@ -350,6 +376,60 @@ module.exports = class coinsbit extends Exchange {
             'fee': fee,
             'info': order,
         };
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type !== 'limit') {
+            throw new ExchangeError (this.id + ' allows limit orders only');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'side': side,
+            'price': this.priceToPrecision (symbol, price),
+            'amount': this.amountToPrecision (symbol, amount),
+        };
+        const response = await this.privatePostOrderNew (this.extend (request, params));
+        const result = this.safeValue (response, 'result');
+        const parsedOrder = this.parseOrder (result, market);
+        parsedOrder['info'] = response;
+        return parsedOrder;
+    }
+
+    async cancelOrder (id, symbol, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'market': this.marketId (symbol),
+            'orderId': parseInt (id),
+        };
+        const response = await this.privatePostOrderCancel (this.extend (request, params));
+        const result = this.safeValue (response, 'result');
+        return this.parseOrder (result);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        let orders = await this.fetchOpenOrders (symbol);
+        let targetOder = this.findOrderById(id, orders);
+        if (targetOder !== undefined) {
+            return targetOder;
+        }
+        orders = await this.fetchClosedOrders ();
+        targetOder = this.findOrderById (id, orders);
+        if (targetOder !== undefined) {
+            return targetOder;
+        } else {
+            throw new OrderNotFound (this.id + ' fetchOrder() ' + this.json (response));
+        }
+    }
+
+    findOrderById (id, orders) {
+        for (let orderIndex = 0; orderIndex < orders.length; orderIndex++) {
+            if (orders[orderIndex]['id'] === id) {
+                return orders[orderIndex];
+            }
+        }
+        return undefined;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
