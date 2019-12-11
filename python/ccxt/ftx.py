@@ -1261,6 +1261,7 @@ class ftx(Exchange):
             headers = {
                 'FTX-KEY': self.apiKey,
                 'FTX-TS': timestamp,
+                'FTX-SUBACCOUNT': <subaccount_name>
             }
             if method == 'POST':
                 body = self.json(query)
