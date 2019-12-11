@@ -21,6 +21,7 @@ module.exports = class p2pb2b extends Exchange {
                 'fetchOrders': false,
                 'fetchOpenOrders': true,
                 'fetchCurrencies': false,
+                'fetchL2OrderBook': false,
                 'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchOHLCV': false,
