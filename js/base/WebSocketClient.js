@@ -222,6 +222,7 @@ module.exports = class WebSocketClient {
         try {
             message = isJsonEncodedObject (message) ? JSON.parse (message) : message
         } catch (e) {
+            console.log (new Date (), 'onMessage JSON.parse', e)
             // reset with a json encoding error ?
         }
         this.onMessageCallback (this, message)
