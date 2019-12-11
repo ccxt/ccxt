@@ -242,7 +242,7 @@ module.exports = class coinsbit extends Exchange {
         const response = await this.publicGetBook (this.extend (request, params));
         const timestamp = this.safeValue (response, 'cache_time');
         const result = this.safeValue (response, 'result');
-        const orderBook = this.safeValue (response, 'result', result);
+        const orderBook = this.safeValue (result, 'result', result);
         return this.parseL2OrderBook (orderBook, timestamp);
     }
 
