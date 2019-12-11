@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, OrderNotFound, InvalidOrder, InvalidNonce, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, RateLimitExceeded, ArgumentsRequired, ExchangeNotAvailable, OrderNotFound, InvalidOrder, InvalidNonce, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -22,15 +22,16 @@ module.exports = class bybit extends Exchange {
                 'fetchTicker': true,
                 'fetchOHLCV': true,
                 'fetchMyTrades': true,
-                'fetchTrades': false,
-                'fetchOrder': true,
+                'fetchTrades': true,
+                'fetchOrder': 'emulated',
                 'fetchOrders': true,
+                'createOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'withdraw': false,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
-                'fetchTransactions': false,
+                'fetchTransactions': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -79,7 +80,14 @@ module.exports = class bybit extends Exchange {
                         'public/kline/list',
                         'public/orderBook/L2',
                         'private/execution/list',
+                        'public/trading-records',
                     ],
+                    'post': [
+                        'private/order/create',
+                        'private/order/cancel',
+                        'private/order/cancelAll',
+                        'private/stop-order/cancelAll',
+                    ]
                 },
                 'wapi': {
                     'get': [
@@ -122,7 +130,22 @@ module.exports = class bybit extends Exchange {
                 '10003': AuthenticationError, // api_key invalid,
                 '10004': AuthenticationError, // invalid sign,
                 '10005': AuthenticationError, // permission denied
+                '10006': RateLimitExceeded,
                 '10010': AuthenticationError, // ip mismatch
+                '20001': OrderNotFound,
+                '20003': ArgumentsRequired,
+                '20005': ArgumentsRequired,
+                '20007': ArgumentsRequired,
+                '20009': ArgumentsRequired,
+                '20013': ArgumentsRequired,
+                '20015': ArgumentsRequired,
+                '20017': ArgumentsRequired,
+                '20019': ArgumentsRequired,
+                '20020': ArgumentsRequired,
+                '20021': ArgumentsRequired,
+                '20084': ArgumentsRequired,
+                '30010': InsufficientFunds,
+                '30067': InsufficientFunds,
             },
         });
     }
@@ -134,8 +157,8 @@ module.exports = class bybit extends Exchange {
     async loadServerTimeDifference () {
         const response = await this.v2GetPublicTime ();
         const after = this.milliseconds ();
-        const serverTime = parseInt (response['time_now']) * 1000;
-        this.options['timeDifference'] = parseInt (after - serverTime);
+        const serverTime = this.safeInteger (response, 'time_now') * 1000;//parseInt (response['time_now']) * 1000;
+        this.options['timeDifference'] = after - serverTime;
         return this.options['timeDifference'];
     }
 
@@ -176,13 +199,33 @@ module.exports = class bybit extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.v2GetPublicTickers (this.extend (request, params));
-        return this.parseTicker (response['result'][0]);
+        const result = this.safeValue (response, 'result', []);
+        return this.parseTicker (result[0]);
     }
 
-    async fetchTickers (symbol = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.v2GetPublicTickers ();
-        return this.parseTickers (response['result']);
+        const result = this.parseTickers (this.safeValue (response, 'result', []));
+        const tickers = this.filterTickers (result, symbols);
+        return tickers;
+    }
+    
+    filterTickers (tickers, symbols) {
+        if (symbols === undefined) {
+            return tickers;
+        }
+        if (!Array.isArray (symbols)) {
+            return tickers;
+        }
+        if (!symbols.length) {
+            return tickers;
+        }
+        const filteredTickers = {};
+        for (let i = 0; i < symbols.length; i++) {
+            filteredTickers[symbols[i]] = tickers[symbols[i]];
+        }
+        return filteredTickers;
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -197,13 +240,64 @@ module.exports = class bybit extends Exchange {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            request['startTime'] = this.safeInteger (since / 1000);
+            request['start_time'] = this.truncate (since / 1000, 0);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         const response = await this.v2GetPrivateExecutionList (this.extend (request, params));
-        return this.parseTrades (this.safeValue (response['result'], 'trade_list', []), market, since, limit);
+        const result = this.safeValue(response, 'result', {});
+        const tradesList = this.safeValue(result, 'trade_list', []);
+        let trades = [];
+        if (market !== undefined) {
+            trades = this.parseTrades (tradesList, market);
+        } else {
+            if (tradesList) {
+                const tradesLength = tradesList.length;
+                for (let i = 0; i < tradesLength; i++) {
+                    const tradeRaw = tradesList[i];
+                    const trade = this.parseTrade (tradeRaw);
+                    trades.push (trade);
+                }
+            }
+        }
+        return this.filterBySinceLimit (trades, since, limit);
+    }
+    
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        // at the moment (11.12.2019) works incorrectly with this additional argument
+        // if (since !== undefined) {
+        //     request['from'] = since;
+        // }
+        const response = await this.v2GetPublicTradingRecords (this.extend (request, params));
+        // {
+        //     "ret_code": 0,                                   // error code 0 means success
+        //     "ret_msg": "OK",                                 // error message
+        //     "ext_code": "",                                  
+        //     "ext_info": "",                                  
+        //     "result": [
+        //         {
+        //             "id":7724919,                                   // ID
+        //             "symbol": "BTCUSD",                             // contract type
+        //             "price": 9499.5,                                // execution price
+        //             "qty": 9500,                                    // execution quantity
+        //             "side": "Buy",                                  // side
+        //             "time": "2019-11-19T08:03:04.077Z",             // UTC time
+        //         }
+        //     ],
+        //     "time_now": "1567109419.049271"
+        // }
+        const result = this.safeValue (response, 'result', []);
+        const trades = this.parseTrades (result, market, since, limit);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -213,25 +307,54 @@ module.exports = class bybit extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.v2GetPublicOrderBookL2 (this.extend (request, params));
+        // {
+        // ...
+        //     "result": [
+        //         {
+        //             "symbol": "BTCUSD",                 // symbol
+        //             "price": "9487",                    // price
+        //             "size": 336241,                     // size (in USD contracts)
+        //             "side": "Buy"                       // side
+        //         },
+        //         {
+        //             "symbol": "BTCUSD",                 // symbol
+        //             "price": "9487.5",                  // price
+        //             "size": 522147,                     // size (in USD contracts)
+        //             "side": "Sell"                      // side
+        //         }
+        //     ],
+        //     "time_now": "1567108756.834357"             // UTC timestamp
+        // }
+        const timestamp = this.safeFloat (response, 'time_now') * 1000;
+        const datetime = this.iso8601 (timestamp);
         const result = {
             'bids': [],
             'asks': [],
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': datetime,
             'nonce': undefined,
         };
+        // parseOrderBook can't be applied here because of specific structure of response
         const data = this.safeValue (response, 'result', []);
-        for (let i = 0; i < data.length; i++) {
-            const order = data[i];
-            const side = (order['side'] === 'Sell') ? 'asks' : 'bids';
-            const amount = this.safeFloat (order, 'size');
-            const price = this.safeFloat (order, 'price');
-            if (price !== undefined) {
-                result[side].push ([ price, amount ]);
+        if (data.length > 0) {
+            for (let i = 0; i < data.length; i++) {
+                const order = data[i];
+                const side = this.safeString (order, 'side');
+                let bidsOrAsks = undefined;
+                if (side === 'Sell') {
+                    bidsOrAsks = 'asks';
+                } else if (side === 'Buy') {
+                    bidsOrAsks = 'bids';
+                }
+                const amount = this.safeFloat (order, 'size');
+                const price = this.safeFloat (order, 'price');
+                if (bidsOrAsks !== undefined) {
+                    result[bidsOrAsks].push ([ price, amount ]);
+                }
             }
+            result['bids'] = this.sortBy (result['bids'], 0, true);
+            result['asks'] = this.sortBy (result['asks'], 0);
         }
-        result['bids'] = this.sortBy (result['bids'], 0, true);
-        result['asks'] = this.sortBy (result['asks'], 0);
         return result;
     }
 
@@ -239,12 +362,13 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const request = {};
         const response = await this.wapiGetPositionList (this.extend (request, params));
-        const retData = response['result'];
+        const retData = this.safeValue (response, 'result'); response['result'];
         const result = { 'info': retData };
         for (let i = 0; i < retData.length; i++) {
             const position = retData[i];
             const symbol = this.safeString (position, 'symbol');
-            const currencyId = this.convertSymbolToCurrency (symbol);
+            const market = this.markets_by_id [symbol];
+            const currencyId = market['base'];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['total'] = position['wallet_balance'];
@@ -270,36 +394,49 @@ module.exports = class bybit extends Exchange {
             request['limit'] = limit; // default == max == 200
         }
         const response = await this.v2GetPublicKlineList (this.extend (request, params));
-        return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
+        return this.parseOHLCVs (this.safeValue (response, 'result', {}), market, timeframe, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        const filter = {
-            'order_id': id,
-        };
-        const response = await this.fetchOrders (symbol, undefined, undefined, this.deepExtend (filter, params));
-        const numResults = response.length;
+        // There are two type of orders, so user must define which order to cancel
+        // so why not ask user to point out in  which order to cancel ?
+        let orders = undefined;
+        if (('stop_order_id' in params) || ('order_id' in params)) {
+            orders = await this.fetchOrders (symbol, undefined, undefined, params);
+        } else {
+            throw new ArgumentsRequired (this.id + " fetchOrder() requires additional argement either 'order_id' to fetch active order or 'stop_order_id' to fetch conditional order. Values of these arguments should be equal to value of 'id' argument.");
+        }
+        const numResults = orders.length;
         if (numResults === 1) {
-            return response[0];
+            return orders[0];
+        } else {
+            for (let i = 0; i < numResults; i++) {
+                if (this.safeString(orders[i], 'id') === id) {
+                    return orders[i];
+                }
+            }
         }
         throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const openStatusesPairs = this.orderStatuses ('open');
-        const openStatusKeys = Object.keys (openStatusesPairs);
-        let request = {
-            'order_status': openStatusKeys.join (','),
-        };
-        if (params !== undefined) {
-            request = this.deepExtend (params, request);
-        }
-        return await this.fetchOrders (symbol, since, limit, request);
+        const orders = await this.fetchOrders (symbol, since, limit, params);
+        return this.filterOrdersByStatus (orders, 'open');
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'closed');
+        return this.filterOrdersByStatus (orders, 'closed');
+    }
+    
+    filterOrdersByStatus (orders, status) {
+        const result = [];
+        for (let i = 0; i < orders.length; i++) {
+            if (orders[i]['status'] === status) {
+                result.push (orders[i]);
+            }
+        }
+        return result;
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -309,10 +446,24 @@ module.exports = class bybit extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
+            console.log(market['id'])
         }
-        request = this.deepExtend (request, params);
-        const response = await this.privateGetOrderList (request);
-        return this.parseOrders (this.safeValue (response['result'], 'data', []), market, since, limit);
+        if (limit !== undefined) {
+            if (limit > 20) {
+                request['limit'] = limit;
+            }
+        }
+        let response = undefined;
+        // if params include 'stop_order_id' then return to user conditional orders
+        if ('stop_order_id' in params) {
+            response = await this.privateGetStopOrderList (this.extend (request, params));
+        } else {
+            // by default get active orders (not conditional)
+            response = await this.privateGetOrderList (this.extend (request, params));
+        }
+        const result = this.safeValue (response, 'result', {});
+        const orders = this.parseOrders (this.safeValue (result, 'data', []), market, since, limit);
+        return this.filterBySinceLimit (orders, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -326,40 +477,61 @@ module.exports = class bybit extends Exchange {
         if (price !== undefined) {
             request['price'] = price;
         }
+        if (this.safeString (params, 'time_in_force') === undefined) {
+            if (type === 'market') {
+                request['time_in_force'] = "";
+            } else {
+                request['time_in_force'] = "GoodTillCancel";
+            }
+        }
         let response = undefined;
         if (('stop_px' in params) && ('base_price' in params)) {
             response = await this.privatePostStopOrderCreate (this.extend (request, params));
         } else {
-            response = await this.privatePostOrderCreate (this.extend (request, params));
+            response = await this.v2PostPrivateOrderCreate (this.extend (request, params));
         }
-        const order = this.parseOrder (response['result']);
-        const id = this.safeString (order, 'order_id');
-        this.orders[id] = order;
+        const order = this.parseOrder (this.safeValue(response, 'result', {}));
+        const id = this.safeString (order, 'id');
+        if (id !== undefined) {
+            this.orders[id] = order;
+        }
         return this.extend ({ 'info': response }, order);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'order_id': id,
-        };
+        // There are two type of orders, so user must define which order to cancel
+        // so why not ask user to point out in  which order to cancel ?
         let response = undefined;
-        if ('stop_px' in params) {
-            response = await this.privatePostStopOrderCancel (this.extend (request, params));
+        if ('stop_order_id' in params) {
+            response = await this.privatePostStopOrderCancel (params);
+        } else if ('order_id' in params) {
+            response = await this.privatePostOrderCancel (params);
         } else {
-            response = await this.privatePostOrderCancel (this.extend (request, params));
+            throw new ArgumentsRequired (this.id + " cancelOrder() requires additional argement either 'order_id' to cancel active order or 'stop_order_id' to cancel conditional order. Values of these arguments should be equal to value of 'id' argument.");
         }
-        return this.parseOrder (response['result']);
+        return this.parseOrder (this.safeValue (response, 'result', {}));
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        let request = {
+        await this.loadMarkets ();
+        const request = {
             'wallet_fund_type': 'Deposit',
         };
-        if (params !== undefined) {
-            request = this.deepExtend (params, request);
+        if (since !== undefined) {
+            request['start_date'] = this.ymd (since);
         }
-        return this.fetchFundRecords (code, since, limit, request);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['code'];
+        }
+        const response = await this.privateGetWalletFundRecords (this.extend (request, params));
+        const result = this.safeValue (response, 'result', {});
+        return this.parseTransactions (this.safeValue (result, 'data', []), currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -368,7 +540,7 @@ module.exports = class bybit extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['coin'] = currency;
+            request['coin'] = currency['code'];
         }
         if (since !== undefined) {
             request['start_date'] = this.ymd (since);
@@ -376,12 +548,12 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const reqParams = this.extend (request, params);
-        const response = await this.privateGetWalletWithdrawList (reqParams);
-        return this.parseTransactions (this.safeValue (response['result'], 'data', []), currency, since, limit);
+        const response = await this.privateGetWalletWithdrawList (this.extend (request, params));
+        const result = this.safeValue (response, 'result', {});
+        return this.parseTransactions (this.safeValue (result, 'data', []), currency, since, limit);
     }
 
-    async fetchFundRecords (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         if (since !== undefined) {
@@ -393,41 +565,121 @@ module.exports = class bybit extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['coin'] = currency;
+            request['coin'] = currency['code'];
         }
-        const reqParams = this.extend (request, params);
-        const response = await this.privateGetWalletFundRecords (reqParams);
-        const transactions = this.filterByArray (this.safeValue (response['result'], 'data', []), 'type', ['Withdraw', 'Deposit'], false);
-        return this.parseTransactions (transactions, currency, since, limit);
+        const response = await this.privateGetWalletFundRecords (this.extend (request, params));
+        const result = this.safeValue (response, 'result', {});
+        const data = this.safeValue (result, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeTimestamp (trade, 'exec_time');
-        const price = this.safeFloat (trade, 'exec_price'); // USD
-        const amount = this.safeFloat (trade, 'exec_value'); // BTC/ETH/XRP/EOS
-        const id = this.safeString (trade, 'cross_seq');
+        // My trades
+        // {
+        //     'result': {
+        //         'order_id': '',   // always empty
+        //         'trade_list': [{
+        //             'closed_size': 0,                                // Closed size
+        //             'cross_seq': 3154097,                            // CrossSeq
+        //             'exec_fee': '-0.00000005',                       // Execution fee
+        //             'exec_id': 'b3551383-19b1-4aa6-8ac2-f996bea6e07c', // Unique exec ID
+        //             'exec_price': '4202',                              // Exec Price
+        //             'exec_qty': 1,                                   // Exec Qty
+        //             'exec_time': '1545203567',                       // Exec time
+        //             'exec_type': 'Trade',                            // Exec type -- Trade: normal  Funding: funding  AdlTrade：ADL  BustTrade:  liquidation trade
+        //             'exec_value': '0.00023798',                      // Exec value
+        //             'fee_rate': '-0.00025',                          // Fee rate
+        //             'last_liquidity_ind': 'AddedLiquidity',          // AddedLiquidity/RemovedLiquidity
+        //             'leaves_qty': 0,                                 // Leave Qty
+        //             'nth_fill': 7,                                   // Nth Fill
+        //             'order_id': 'd854bb13-3fb9-4608-ade4-828f50210778', // Unique order ID
+        //             'order_price': '4202',                           // Order's price
+        //             'order_qty': 1,                                  // Order's qty
+        //             'order_type': 'Limit',                           // Order's type
+        //             'side': 'Sell',                                  // Side
+        //             'symbol': 'BTCUSD',                              // Symbol
+        //             'user_id': 155446                                // UserID
+        //         }]
+        //     },
+        //     'time_now': '1551340186.761136'
+        // }
+        // Public trades
+        // {
+        //     "result": [
+        //         {
+        //             "id":7724919,                                   // ID
+        //             "symbol": "BTCUSD",                             // contract type
+        //             "price": 9499.5,                                // execution price
+        //             "qty": 9500,                                    // execution quantity
+        //             "side": "Buy",                                  // side
+        //             "time": "2019-11-19T08:03:04.077Z",             // UTC time
+        //         }
+        //     ],
+        //     "time_now": "1567109419.049271"
+        // }
+        let timestamp = this.safeTimestamp (trade, 'exec_time'); // defined for public trades
+        let datetime = this.safeString (trade, 'time'); // defined for my trades
+        if (timestamp === undefined)
+        {
+            timestamp = this.parse8601 (datetime);
+        } else {
+            datetime = this.iso8601 (timestamp);
+        }
+        const price = this.safeFloat2 (trade, 'exec_price', 'price');
+        let amount = this.safeFloat2 (trade, 'exec_value'); // BTC/ETH/XRP/EOS
+        const id = this.safeString2 (trade, 'cross_seq', 'id');
         const order = this.safeString (trade, 'order_id');
         const side = this.safeStringLower (trade, 'side');
-        const cost = this.safeFloat (trade, 'exec_qty');
-        const execFee = this.safeFloat (trade, 'exec_fee');
-        const feeRate = this.safeFloat (trade, 'fee_rate');
-        let symbol = undefined;
-        const marketId = this.safeString (trade, 'symbol');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                symbol = marketId;
-            }
+        const cost = this.safeFloat2 (trade, 'exec_qty', 'qty');
+        let execFee = this.safeFloat (trade, 'exec_fee');
+        let feeRate = this.safeFloat (trade, 'fee_rate');
+        let takerOrMaker = undefined;
+        if (execFee !== undefined) {
+            takerOrMaker = execFee < 0 ? 'maker' : 'taker';
         }
-        const fee = {
-            'cost': execFee,
-            'currency': this.convertSymbolToCurrency (symbol),
-            'rate': feeRate,
-        };
-        const takerOrMaker = fee['cost'] < 0 ? 'maker' : 'taker';
-        const type = this.safeStringLower (trade, 'order_type');
+        let type = this.safeStringLower (trade, 'order_type');
+        if (type !== 'limit' && type !== 'market') {
+            type = undefined;
+        }
+        if (amount === undefined) {
+            amount = cost/price;
+        }
+        let symbol = undefined;
+        let base = undefined;
+        let quote = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+            base = market['base'];
+            quote = market['quote'];
+        } else {
+            const marketId = this.safeValue (trade, 'Market');
+            const [ baseId, quoteId] = marketId.split ('_');
+            base = this.safeCurrencyCode (baseId);
+            quote = this.safeCurrencyCode (quoteId);
+            symbol = base + '/' + quote;
+        }
+        let fee = undefined;
+        if (feeRate !== undefined) {
+            const rate = feeRate > 0 ? feeRate : -feeRate;
+            const currency = side === 'buy' ? base : quote;
+            let feeCost = undefined;
+            if (execFee !== undefined) {
+                feeCost = execFee > 0 ? execFee: -execFee;
+            } else {
+                if (side === 'buy') {
+                    feeCost = amount * rate;
+                } else {
+                    if (cost !== undefined) {
+                        feeCost = cost * rate;
+                    }
+                }
+            }
+            fee = {
+                'rate': rate,
+                'cost': feeCost,
+                'currency': currency,
+            };
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -446,15 +698,55 @@ module.exports = class bybit extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
+        // Get wallet fund records
+        // {
+        //   "ret_code": 0,                            //Error code 0 means success
+        //   "ret_msg": "ok",                          //Error message
+        //   "ext_code": "",
+        //   "result": {
+        //     "data": [{
+        //       "id": 128495,                         //id
+        //       "user_id": 103669,                    //user id
+        //       "coin": "XRP",                        //coin type
+        //       "wallet_id": 14760,                   //wallet id
+        //       "type": "Realized P&L",               //funding type
+        //       "amount": "1.18826225",
+        //       "tx_id": "",
+        //       "address": "XRPUSD",                  //address
+        //       "wallet_balance": "999.12908894",     //balance
+        //       "exec_time": "2019-09-25T00:00:15.000Z",
+        //       "cross_seq": 0
+        //     }]
+        //   },
+        //   "time_now": "1569395810.140869"
+        // }
+        // Get withdraw records
+        // {
+        //   "ret_code": 0,                                        //Error code 0 means success
+        //   "ret_msg": "ok",                                      //error message
+        //   "ext_code": "",
+        //   "result": {
+        //     "data": [{
+        //       "id": 137,                                        //id
+        //       "user_id": 160249,                                //user id
+        //       "coin": "XRP",                                    //coin type
+        //       "status": "Pending",                              //status
+        //       "amount": "20.00000000",                          //amount
+        //       "fee": "0.25000000",
+        //       "address": "rH7H595XYEVTEHU2FySYsWnmfACBnZS9zM",
+        //       "tx_id": "",
+        //       "submited_at": "2019-06-11T02:20:24.000Z",
+        //       "updated_at": "2019-06-11T02:20:24.000Z"
+        //     }]
+        //   },
+        //   "ext_info": null,
+        //   "time_now": "1570863984.536136"
+        // }
         const id = this.safeString (transaction, 'id');
         // For deposits, transactTime == timestamp
         // For withdrawals, transactTime is submission, timestamp is processed
-        const timestamp = this.parse8601 (this.safeString (transaction, 'updated_at'));
-        let transactTime = this.parse8601 (this.safeString (transaction, 'submited_at'));
-        const exec_time = this.safeString (transaction, 'exec_time'); // used for fetchFundRecords
-        if (exec_time !== undefined) {
-            transactTime = this.parse8601 (exec_time);
-        }
+        const updated = this.parse8601 (this.safeString (transaction, 'updated_at'));
+        let timestamp = this.parse8601 (this.safeString2 (transaction, 'submited_at', 'exec_time'));
         let type = this.safeStringLower (transaction, 'type');
         if (type === undefined) {
             type = 'withdrawal'; // privateGetWithdrawList has no `type`
@@ -488,8 +780,8 @@ module.exports = class bybit extends Exchange {
             'info': transaction,
             'id': id,
             'txid': txid,
-            'timestamp': transactTime,
-            'datetime': this.iso8601 (transactTime),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'addressFrom': addressFrom,
             'address': address,
             'addressTo': addressTo,
@@ -500,20 +792,10 @@ module.exports = class bybit extends Exchange {
             'amount': amount,
             'currency': currency,
             'status': status,
-            'updated': timestamp,
+            'updated': updated,
             'comment': undefined,
             'fee': fee,
         };
-    }
-
-    convertSymbolToCurrency (symbol) {
-        const symbolToCurrency = {
-            'BTCUSD': 'BTC',
-            'ETHUSD': 'ETH',
-            'XRPUSD': 'XRP',
-            'EOSUSD': 'EOS',
-        };
-        return this.safeString (symbolToCurrency, symbol, symbol);
     }
 
     parseTransactionStatus (status) {
@@ -527,6 +809,7 @@ module.exports = class bybit extends Exchange {
             'Processing': 'pending',
             'Rejected': 'rejected',
             'Fail': 'failed',
+            'Pending': 'pending',
         };
         return this.safeString (statuses, status, status);
     }
@@ -542,27 +825,37 @@ module.exports = class bybit extends Exchange {
 
     parseOrder (order) {
         const status = this.parseOrderStatus (this.safeString2 (order, 'order_status', 'stop_order_status'));
-        const symbol = this.findSymbol (this.safeString (order, 'symbol'));
+        const marketId = this.safeValue (order, 'symbol');
+        let symbol = undefined;
+        if (marketId in this.markets_by_id) {
+            symbol = this.markets_by_id[marketId]['symbol'];
+        }
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        const lastTradeTimestamp = this.truncate (this.safeFloat (order, 'last_exec_time') * 1000, 0);
-        const qty = this.safeFloat (order, 'qty'); // ordered amount in quote currency
-        const leaveQty = this.safeFloat (order, 'leaves_qty'); // leave amount in quote currency
+        let lastTradeTimestamp = this.safeFloat (order, 'last_exec_time');
+        if (lastTradeTimestamp !== undefined) {
+            lastTradeTimestamp = this.truncate (lastTradeTimestamp * 1000, 0); // absent for conditional orders
+        }
+        const remaining = this.safeFloat (order, 'leaves_qty'); // leave amount in quote currency
         const price = this.safeFloat (order, 'price'); // float price in quote currency
-        const amount = undefined; // ordered amount of base currency
-        const filled = this.safeFloat (order, 'cum_exec_value'); // filled amount of base currency, not return while place order
-        const remaining = this.safeFloat (order, 'leaves_value'); // leaves_value
-        const cost = qty - leaveQty; // filled * price
-        let average = undefined;
-        if (cost !== undefined) {
-            if (filled) {
-                average = cost / filled;
-            }
+        const amount = this.safeFloat (order, 'qty'); // ordered amount of base currency
+        let filled = undefined;
+        let cost = undefined; // filled * price
+        if (remaining !== undefined) {
+            filled = amount - remaining;
+            cost = filled*price;
         }
         const id = this.safeString2 (order, 'order_id', 'stop_order_id');
         const type = this.safeStringLower (order, 'order_type');
         const side = this.safeStringLower (order, 'side');
-        const trades = undefined;
-        const fee = undefined; // fy_todo {"currency":"xx", "cost":xx, "rate":xx} `cum_exec_fee` not return now
+        const feeCost = this.safeFloat (order, 'cum_exec_fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const market = this.market (symbol);
+            fee = {
+                'currency': market['quote'],
+                'cost': feeCost,
+            }
+        }
         return {
             'info': order,
             'id': id,
@@ -578,41 +871,24 @@ module.exports = class bybit extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'cost': cost,
-            'average': average,
-            'trades': trades,
+            'trades': undefined,
             'fee': fee,
         };
     }
 
     parseOrderStatus (status) {
-        const statuses = this.orderStatuses ();
-        return this.safeString (statuses, status, status);
-    }
-
-    orderStatuses (filter = undefined) {
         const statuses = {
-            'Created': 'created',
+            'Created': 'open',
             'New': 'open',
             'PartiallyFilled': 'open',
             'Filled': 'closed',
             'Cancelled': 'canceled',
-            'Rejected': 'rejected',
+            'Rejected': 'canceled',
             'Untriggered': 'open',
             'Triggered': 'open',
             'Active': 'open',
         };
-        if (filter === undefined) {
-            return statuses;
-        } else {
-            const ret = {};
-            const statusKeys = Object.keys (statuses);
-            for (let i = 0; i < statusKeys.length; i++) {
-                if (statuses[statusKeys[i]] === filter) {
-                    ret[statusKeys[i]] = statuses[statusKeys[i]];
-                }
-            }
-            return ret;
-        }
+        return this.safeString (statuses, status, status);
     }
 
     parseTickers (rawTickers, symbols = undefined) {
@@ -624,9 +900,22 @@ module.exports = class bybit extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.safeInteger (ticker, 'close_time');
-        const symbol = this.findSymbol (this.safeString (ticker, 'symbol'), market);
+        const timestamp = this.milliseconds ();
+        let symbol = undefined;
+        const marketId = this.safeString (ticker, 'symbol');
+        if (marketId in this.markets_by_id) {
+            symbol = this.markets_by_id[marketId]['symbol'];
+        }
         const last = this.safeFloat (ticker, 'last_price');
+        const percentage = this.safeFloat (ticker, 'price_24h_pcnt');
+        let open = undefined;
+        let change = undefined;
+        let average = undefined;
+        if (percentage !== -1) {
+            open = last / this.sum (1, percentage);
+            change = last - open;
+            average = this.sum (last, open) / 2;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -638,13 +927,13 @@ module.exports = class bybit extends Exchange {
             'ask': this.safeFloat (ticker, 'ask_price'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': this.safeFloat (ticker, 'prev_price_24h'), // previous day close
-            'change': undefined,
-            'percentage': this.safeFloat (ticker, 'price_24h_pcnt'),
-            'average': undefined,
+            'change': change,
+            'percentage': percentage * 100,
+            'average': average,
             'baseVolume': this.safeFloat (ticker, 'turnover_24h'),
             'quoteVolume': this.safeFloat (ticker, 'volume_24h'),
             'info': ticker,
@@ -653,23 +942,13 @@ module.exports = class bybit extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            ohlcv['open_time'],
-            parseFloat (ohlcv['open']),
-            parseFloat (ohlcv['high']),
-            parseFloat (ohlcv['low']),
-            parseFloat (ohlcv['close']),
-            parseFloat (ohlcv['volume']),
+            this.safeFloat (ohlcv, 'open_time'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
         ];
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('ret_code' in response) {
-            if (response['ret_code'] === 0) {
-                return response;
-            }
-        }
-        throw new ExchangeError (this.id + ' ' + this.json (response));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -713,10 +992,12 @@ module.exports = class bybit extends Exchange {
             throw new ExchangeNotAvailable (this.id + ' ' + statusText);
         }
         const ret_code = this.safeValue (response, 'ret_code', -1);
-        const exceptions = this.exceptions;
-        if (ret_code in exceptions) {
-            const ExceptionClass = exceptions[ret_code];
-            throw new ExceptionClass (this.id + ' ' + this.json (response));
+        if (ret_code === 0) {
+            return;
         }
+        const message = this.safeValue (response, 'ret_msg', 'Unknown Error');
+        const feedback = this.id + ' ' + message;
+        this.throwExactlyMatchedException (this.exceptions, ret_code, feedback);
+        throw new ExchangeError (this.id + ' ' + message);
     }
 };
