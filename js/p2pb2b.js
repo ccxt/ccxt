@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, DDoSProtection, ExchangeError, OrderNotFound, InsufficientFunds, InvalidOrder } = require ('./base/errors');
-const { sortBy } = require ('./base/functions');
 
 //  ---------------------------------------------------------------------------
 
@@ -351,9 +350,9 @@ module.exports = class p2pb2b extends Exchange {
                 book.push ([parseFloat (key), bookMap[key]]);
             }
             if (side === 'buy') {
-                bids = sortBy (book, priceKey, true);
+                bids = this.sortBy (book, priceKey, true);
             } else {
-                asks = sortBy (book, priceKey);
+                asks = this.sortBy (book, priceKey);
             }
         }
         return {
