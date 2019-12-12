@@ -115,6 +115,7 @@ class coinbasepro(Exchange):
                         'orders',
                         'position/close',
                         'profiles/margin-transfer',
+                        'fees',
                         'reports',
                         'withdrawals/coinbase',
                         'withdrawals/crypto',
