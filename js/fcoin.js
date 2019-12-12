@@ -546,7 +546,7 @@ module.exports = class fcoin extends Exchange {
         let feeCurrency = undefined;
         let feeCost = undefined;
         const feeRebate = this.safeFloat (order, 'fees_income');
-        if (feeRebate !== 0) {
+        if ((feeRebate !== undefined) && (feeRebate > 0)) {
             if (market !== undefined) {
                 symbol = market['symbol'];
                 feeCurrency = (side === 'buy') ? market['quote'] : market['base'];
