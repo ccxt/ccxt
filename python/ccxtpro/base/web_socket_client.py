@@ -9,11 +9,12 @@ from ccxt.base.errors import NetworkError, RequestTimeout
 # import websockets
 # import websockets.exceptions
 from ccxtpro.base.future import Future
-from ccxtpro.base.web_socket_client_aiohttp import WebSocketClientAiohttp
-from ccxtpro.base.web_socket_client_ws import WebSocketClientWs
+from ccxtpro.base.web_socket_client_aiohttp import StreamingClientAiohttp
+from ccxtpro.base.web_socket_client_ws import StreamingClientWebsockets
+from ccxtpro.base.streaming_client import StreamingClient
 
 
-class WebSocketClient(WebSocketClientWs):
+class WebSocketClient(StreamingClientWebsockets):
     pass
     # url = None
     # ws = None
