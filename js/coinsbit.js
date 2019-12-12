@@ -152,7 +152,8 @@ module.exports = class coinsbit extends Exchange {
             const tickerObject = tickers[tickerId];
             const ticker = this.safeValue (tickerObject, 'ticker');
             ticker['at'] = this.safeValue (tickerObject, 'at');
-            parsedTickers.push (this.parseTicker (ticker, this.findMarket (tickerId)));
+            const market = this.markets_by_id[tickerId];
+            parsedTickers.push (this.parseTicker (ticker, market));
         }
         return this.filterByArray (parsedTickers, 'symbol', symbols);
     }
