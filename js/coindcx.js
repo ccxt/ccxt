@@ -326,10 +326,11 @@ module.exports = class coindcx extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeFloat (balance, 'balance');
                 account['used'] = this.safeFloat (balance, 'locked_balance');
+                account['total'] = this.sum (account['free'], account['used']);
                 result[code] = account;
             }
         }
-        return result;
+        return this.parseBalance (result);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
