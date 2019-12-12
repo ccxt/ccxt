@@ -624,7 +624,7 @@ module.exports = class bybit extends Exchange {
             datetime = this.iso8601 (timestamp);
         }
         const price = this.safeFloat2 (trade, 'exec_price', 'price');
-        let amount = this.safeFloat2 (trade, 'exec_value'); // BTC/ETH/XRP/EOS
+        let amount = this.safeFloat (trade, 'exec_value'); // BTC/ETH/XRP/EOS
         const id = this.safeString2 (trade, 'cross_seq', 'id');
         const order = this.safeString (trade, 'order_id');
         const side = this.safeStringLower (trade, 'side');
