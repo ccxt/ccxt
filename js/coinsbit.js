@@ -168,7 +168,7 @@ module.exports = class coinsbit extends Exchange {
         const open = this.safeFloat (ticker, 'open');
         const close = this.safeFloat (ticker, 'last');
         const last = this.safeFloat (ticker, 'last');
-        const change = this.sum (last, -open);
+        const change = last - open;
         let percentage = undefined;
         if (open !== 0) {
             percentage = parseFloat (change / open) * parseFloat (100);
@@ -229,7 +229,7 @@ module.exports = class coinsbit extends Exchange {
         // 'since' param of the request is required a tid as a value.
         // The exchange will return the trades, starting with this trade id
         if ('tid' in params) {
-            request['since'] = params.tid;
+            request['since'] = params['tid'];
         } else {
             request['since'] = 0;
         }
@@ -350,7 +350,7 @@ module.exports = class coinsbit extends Exchange {
             filled = amount;
         } else {
             status = 'open';
-            filled = this.sum (amount, -remaining);
+            filled = amount - remaining;
         }
         const cost = price * filled;
         const fee = {
