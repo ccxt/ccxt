@@ -79,6 +79,7 @@ module.exports = class gemini extends Exchange {
                         'v1/order/status',
                         'v1/orders',
                         'v1/mytrades',
+                        'v1/notionalvolume',
                         'v1/tradevolume',
                         'v1/transfers',
                         'v1/balances',
