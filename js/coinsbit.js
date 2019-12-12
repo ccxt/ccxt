@@ -60,7 +60,7 @@ module.exports = class coinsbit extends Exchange {
                 'fetchMarkets': true,
                 'fetchOHLCV': 'emulated',
                 'fetchOpenOrders': true,
-                'fetchOrder': 'emulated',
+                'fetchOrder': false,
                 'fetchOrders': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
@@ -167,9 +167,12 @@ module.exports = class coinsbit extends Exchange {
         const open = this.safeFloat (ticker, 'open');
         const close = this.safeFloat (ticker, 'last');
         const last = this.safeFloat (ticker, 'last');
-        const change = last - open;
-        const percentage = parseFloat (change / open) * parseFloat (100);
-        const average = parseFloat (last + open) / parseFloat (2);
+        const change = this.sum (last, -open);
+        let percentage = undefined;
+        if (open !== 0) {
+            percentage = parseFloat (change / open) * parseFloat (100);
+        }
+        const average = parseFloat (this.sum (last, open)) / parseFloat (2);
         let baseVolume = undefined;
         if ('vol' in ticker) {
             baseVolume = this.safeFloat (ticker, 'vol');
@@ -270,27 +273,16 @@ module.exports = class coinsbit extends Exchange {
         const balances = this.safeValue (response, 'result');
         const currencies = Object.keys (balances);
         const parsedBalances = {};
-        const free = {};
-        const used = {};
-        const total = {};
         for (let currencyIndex = 0; currencyIndex < currencies.length; currencyIndex++) {
             const currency = currencies[currencyIndex];
             const balance = balances[currency];
-            const parsedBalance = {
+            parsedBalances[currency] = {
                 'free': this.safeFloat (balance, 'available'),
                 'used': this.safeFloat (balance, 'freeze'),
-                'total': this.safeFloat (balance, 'available') + this.safeFloat (balance, 'freeze'),
             };
-            parsedBalances[currency] = parsedBalance;
-            free[currency] = parsedBalance['free'];
-            used[currency] = parsedBalance['used'];
-            total[currency] = parsedBalance['total'];
         }
-        parsedBalances['free'] = free;
-        parsedBalances['used'] = used;
-        parsedBalances['total'] = total;
         parsedBalances['info'] = balances;
-        return parsedBalances;
+        return this.parseBalance (parsedBalances);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -325,20 +317,11 @@ module.exports = class coinsbit extends Exchange {
             return [];
         }
         const market = this.market (symbol);
-        const marketId = market['id'];
-        if (marketId in result) {
-            const orders = this.safeValue (result, market['id']);
-            return this.parseOrders (orders, market, since, limit, params);
-        } else {
-            return [];
-        }
+        const orders = this.safeValue (result, market['id'], []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     parseOrder (order, market) {
-        let orderMarket = market;
-        if (orderMarket === undefined) {
-            orderMarket = this.findMarket (this.safeString (order, 'marketName'));
-        }
         let id = undefined;
         if ('id' in order) {
             id = this.safeString (order, 'id');
@@ -353,7 +336,7 @@ module.exports = class coinsbit extends Exchange {
         }
         const datetime = this.iso8601 (timestamp);
         const lastTradeTimestamp = this.safeTimestamp (order, 'ftime');
-        const symbol = orderMarket['symbol'];
+        const symbol = market['symbol'];
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
         const price = this.safeFloat (order, 'price');
@@ -366,11 +349,11 @@ module.exports = class coinsbit extends Exchange {
             filled = amount;
         } else {
             status = 'open';
-            filled = amount - remaining;
+            filled = this.sum (amount, -remaining);
         }
         const cost = price * filled;
         const fee = {
-            'currency': orderMarket['quote'],
+            'currency': market['quote'],
             'cost': this.safeFloat (order, 'dealFee'),
         };
         return {
@@ -422,25 +405,6 @@ module.exports = class coinsbit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
-        const orders = await this.fetchOpenOrders (symbol);
-        const targetOder = this.findOrderById (id, orders);
-        if (targetOder !== undefined) {
-            return targetOder;
-        } else {
-            throw new OrderNotFound ('\nid: ' + id);
-        }
-    }
-
-    findOrderById (id, orders) {
-        for (let orderIndex = 0; orderIndex < orders.length; orderIndex++) {
-            if (orders[orderIndex]['id'] === id) {
-                return orders[orderIndex];
-            }
-        }
-        return undefined;
-    }
-
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchOpenOrders (symbol, since, limit, params);
     }
@@ -453,7 +417,9 @@ module.exports = class coinsbit extends Exchange {
         url += this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length) {
+            const queryKeysArray = Object.keys (query);
+            const queryKeysArrayLength = queryKeysArray.length;
+            if (queryKeysArrayLength > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else {
@@ -482,39 +448,35 @@ module.exports = class coinsbit extends Exchange {
             return;
         }
         if (code !== 200) {
-            const feedback = '\nid: ' + this.id + '\nurl: ' + url + '\ncode: ' + code + '\nbody:\n' + body;
+            const feedback = "\n" + 'id: ' + this.id + "\n" + 'url: ' + url + "\n" + 'code: ' + code + "\n" + 'body:' + "\n" + body; // eslint-disable-line quotes
             this.throwExactlyMatchedException (this.httpExceptions, code.toString (), feedback);
         }
-        if (body.length > 0) {
-            if (body[0] === '{') {
-                const isSuccess = this.safeValue (response, 'success', true);
-                if (!isSuccess) {
-                    const messages = this.safeValue (response, 'message');
-                    let errorMessage = '';
-                    if (this.isObject (messages)) {
-                        const messagesKeys = Object.keys (messages);
-                        for (let messageIndex = 0; messageIndex < messagesKeys.length; messageIndex++) {
-                            if (messageIndex > 0) {
-                                errorMessage += ', ';
-                            }
-                            errorMessage += messages[messagesKeys[messageIndex]];
-                        }
-                    } else if (this.isArray (messages)) {
-                        for (let messageIndex = 0; messageIndex < messages.length; messageIndex++) {
-                            if (messageIndex > 0) {
-                                errorMessage += ', ';
-                            }
-                            errorMessage += messages[messageIndex];
-                        }
-                    } else {
-                        errorMessage = messages;
+        const isSuccess = this.safeValue (response, 'success', true);
+        if (!isSuccess) {
+            const messages = this.safeValue (response, 'message');
+            let errorMessage = '';
+            if (this.isObject (messages)) {
+                const messagesKeys = Object.keys (messages);
+                for (let messageIndex = 0; messageIndex < messagesKeys.length; messageIndex++) {
+                    if (messageIndex > 0) {
+                        errorMessage += ', ';
                     }
-                    const feedback = '\nid: ' + this.id + '\nurl: ' + url + '\nError: ' + errorMessage + '\nbody:\n' + body;
-                    this.throwExactlyMatchedException (this.exceptions, errorMessage, feedback);
-                    this.throwBroadlyMatchedException (this.exceptions, errorMessage, feedback);
-                    throw new ExchangeError (feedback);
+                    errorMessage += messages[messagesKeys[messageIndex]];
                 }
+            } else if (this.isArray (messages)) {
+                for (let messageIndex = 0; messageIndex < messages.length; messageIndex++) {
+                    if (messageIndex > 0) {
+                        errorMessage += ', ';
+                    }
+                    errorMessage += messages[messageIndex];
+                }
+            } else {
+                errorMessage = messages;
             }
+            const feedback = "\n" + 'id: ' + this.id + "\n" + 'url: ' + url + "\n" + 'Error: ' + errorMessage + "\n" + 'body:' + "\n" + body; // eslint-disable-line quotes
+            this.throwExactlyMatchedException (this.exceptions, errorMessage, feedback);
+            this.throwBroadlyMatchedException (this.exceptions, errorMessage, feedback);
+            throw new ExchangeError (feedback);
         }
     }
 };
