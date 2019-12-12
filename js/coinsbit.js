@@ -410,7 +410,7 @@ module.exports = class coinsbit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelOrder (id, symbol, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
