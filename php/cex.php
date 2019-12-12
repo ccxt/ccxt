@@ -967,7 +967,7 @@ class cex extends Exchange {
             //     tradingFeeUserVolumeAmount => '1525951128',
             //     orderId => '5342275378' }
             // --
-            // $market order (buy):
+            // $market $order (buy):
             //    { "id" => "6281946200",
             //     "pos" => null,
             //     "$time" => "2018-05-23T11:55:43.467Z",
@@ -989,7 +989,7 @@ class cex extends Exchange {
             //     "tradingFeeTaker" => "0.25",
             //     "tradingFeeUserVolumeAmount" => "55998097" }
             // --
-            // $market order (sell):
+            // $market $order (sell):
             //   { "id" => "6282200948",
             //     "pos" => null,
             //     "$time" => "2018-05-23T12:42:58.315Z",
@@ -1009,17 +1009,20 @@ class cex extends Exchange {
             //     "$lastTxTime" => "2018-05-23T12:42:58.315Z",
             //     "tradingFeeTaker" => "0.25",
             //     "tradingFeeUserVolumeAmount" => "56294576" }
-            $item = $response[$i];
-            $status = $this->parse_order_status($this->safe_string($item, 'status'));
-            $baseId = $item['symbol1'];
-            $quoteId = $item['symbol2'];
-            $side = $item['type'];
-            $baseAmount = $this->safe_float($item, 'a:' . $baseId . ':cds');
-            $quoteAmount = $this->safe_float($item, 'a:' . $quoteId . ':cds');
-            $fee = $this->safe_float($item, 'f:' . $quoteId . ':cds');
-            $amount = $this->safe_float($item, 'amount');
-            $price = $this->safe_float($item, 'price');
-            $remaining = $this->safe_float($item, 'remains');
+            $order = $response[$i];
+            $status = $this->parse_order_status($this->safe_string($order, 'status'));
+            $baseId = $this->safe_string($order, 'symbol1');
+            $quoteId = $this->safe_string($order, 'symbol2');
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
+            $side = $this->safe_string($order, 'type');
+            $baseAmount = $this->safe_float($order, 'a:' . $baseId . ':cds');
+            $quoteAmount = $this->safe_float($order, 'a:' . $quoteId . ':cds');
+            $fee = $this->safe_float($order, 'f:' . $quoteId . ':cds');
+            $amount = $this->safe_float($order, 'amount');
+            $price = $this->safe_float($order, 'price');
+            $remaining = $this->safe_float($order, 'remains');
             $filled = $amount - $remaining;
             $orderAmount = null;
             $cost = null;
@@ -1031,10 +1034,10 @@ class cex extends Exchange {
                 $cost = $quoteAmount;
                 $average = $orderAmount / $cost;
             } else {
-                $ta = $this->safe_float($item, 'ta:' . $quoteId, 0);
-                $tta = $this->safe_float($item, 'tta:' . $quoteId, 0);
-                $fa = $this->safe_float($item, 'fa:' . $quoteId, 0);
-                $tfa = $this->safe_float($item, 'tfa:' . $quoteId, 0);
+                $ta = $this->safe_float($order, 'ta:' . $quoteId, 0);
+                $tta = $this->safe_float($order, 'tta:' . $quoteId, 0);
+                $fa = $this->safe_float($order, 'fa:' . $quoteId, 0);
+                $tfa = $this->safe_float($order, 'tfa:' . $quoteId, 0);
                 if ($side === 'sell') {
                     $cost = $this->sum ($this->sum ($ta, $tta), $this->sum ($fa, $tfa));
                 } else {
@@ -1044,16 +1047,16 @@ class cex extends Exchange {
                 $orderAmount = $amount;
                 $average = $cost / $filled;
             }
-            $time = $this->safe_string($item, 'time');
-            $lastTxTime = $this->safe_string($item, 'lastTxTime');
+            $time = $this->safe_string($order, 'time');
+            $lastTxTime = $this->safe_string($order, 'lastTxTime');
             $timestamp = $this->parse8601 ($time);
             $results[] = array (
-                'id' => $item['id'],
+                'id' => $this->safe_string($order, 'id'),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601 ($timestamp),
                 'lastUpdated' => $this->parse8601 ($lastTxTime),
                 'status' => $status,
-                'symbol' => $this->find_symbol($baseId . '/' . $quoteId),
+                'symbol' => $symbol,
                 'side' => $side,
                 'price' => $price,
                 'amount' => $orderAmount,
@@ -1064,9 +1067,9 @@ class cex extends Exchange {
                 'remaining' => $remaining,
                 'fee' => array (
                     'cost' => $fee,
-                    'currency' => $this->currencyId ($quoteId),
+                    'currency' => $quote,
                 ),
-                'info' => $item,
+                'info' => $order,
             );
         }
         return $results;

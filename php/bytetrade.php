@@ -306,7 +306,43 @@ class bytetrade extends Exchange {
 
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->safe_integer($ticker, 'timestamp');
-        $symbol = $this->find_symbol($this->safe_string($ticker, 'symbol'), $market);
+        //
+        //     array (
+        //         {
+        //             "$symbol":"68719476706",
+        //             "name":"ETH/BTC",
+        //             "$base":"2",
+        //             "$quote":"32",
+        //             "$timestamp":1575905991933,
+        //             "datetime":"2019-12-09T15:39:51.933Z",
+        //             "high":"0",
+        //             "low":"0",
+        //             "open":"0",
+        //             "close":"0",
+        //             "last":"0",
+        //             "change":"0",
+        //             "percentage":"0",
+        //             "baseVolume":"0",
+        //             "quoteVolume":"0"
+        //         }
+        //     )
+        //
+        $symbol = null;
+        $marketId = $this->safe_string($ticker, 'symbol');
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+        } else {
+            $baseId = $this->safe_string($ticker, 'base');
+            $quoteId = $this->safe_string($ticker, 'quote');
+            if (($baseId !== null) && ($quoteId !== null)) {
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -338,8 +374,33 @@ class bytetrade extends Exchange {
             'symbol' => $market['id'],
         );
         $response = $this->marketGetTickers (array_merge ($request, $params));
-        if (strlen ($response) > 0) {
-            return $this->parse_ticker($response[0], $market);
+        //
+        //     array (
+        //         {
+        //             "$symbol":"68719476706",
+        //             "name":"ETH/BTC",
+        //             "base":"2",
+        //             "quote":"32",
+        //             "timestamp":1575905991933,
+        //             "datetime":"2019-12-09T15:39:51.933Z",
+        //             "high":"0",
+        //             "low":"0",
+        //             "open":"0",
+        //             "close":"0",
+        //             "last":"0",
+        //             "change":"0",
+        //             "percentage":"0",
+        //             "baseVolume":"0",
+        //             "quoteVolume":"0"
+        //         }
+        //     )
+        //
+        if (gettype ($response) === 'array' && count (array_filter (array_keys ($response), 'is_string')) == 0) {
+            $ticker = $this->safe_value($response, 0);
+            if ($ticker === null) {
+                throw BadResponse ($this->id . ' fetchTicker() returned an empty response');
+            }
+            return $this->parse_ticker($ticker, $market);
         }
         return $this->parse_ticker($response, $market);
     }
@@ -447,7 +508,22 @@ class bytetrade extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $status = $this->safe_string($order, 'status');
-        $symbol = $this->find_symbol($this->safe_string($order, 'symbol'), $market);
+        $symbol = null;
+        $marketId = $this->safe_string($order, 'symbol');
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+        } else {
+            $baseId = $this->safe_string($order, 'base');
+            $quoteId = $this->safe_string($order, 'quote');
+            if (($baseId !== null) && ($quoteId !== null)) {
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
+        }
         $timestamp = $this->safe_integer($order, 'timestamp');
         $datetime = $this->safe_string($order, 'datetime');
         $lastTradeTimestamp = $this->safe_integer($order, 'lastTradeTimestamp');

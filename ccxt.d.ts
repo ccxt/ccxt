@@ -548,7 +548,6 @@ declare module 'ccxt' {
     export class mandala extends Exchange {}
     export class mercado extends Exchange {}
     export class mixcoins extends Exchange {}
-    export class negociecoins extends Exchange {}
     export class oceanex extends Exchange {}
     export class okcoincny extends okcoinusd {}
     export class okcoinusd extends Exchange {}
@@ -565,6 +564,7 @@ declare module 'ccxt' {
     export class therock extends Exchange {}
     export class tidebit extends Exchange {}
     export class tidex extends Exchange {}
+    export class timex extends Exchange {}
     export class upbit extends Exchange {}
     export class vaultoro extends Exchange {}
     export class vbtc extends foxbit {}

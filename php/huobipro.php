@@ -151,6 +151,7 @@ class huobipro extends Exchange {
                     'base-record-invalid' => '\\ccxt\\OrderNotFound', // https://github.com/ccxt/ccxt/issues/5750
                     // err-msg
                     'invalid symbol' => '\\ccxt\\BadSymbol', // array("ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol")
+                    'base-symbol-trade-disabled' => '\\ccxt\\BadSymbol', // array("status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for this symbol","data":null)
                 ),
             ),
             'options' => array (

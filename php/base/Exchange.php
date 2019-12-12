@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.20.39';
+$version = '1.20.72';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.20.39';
+    const VERSION = '1.20.72';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -182,7 +182,6 @@ class Exchange {
         'mandala',
         'mercado',
         'mixcoins',
-        'negociecoins',
         'oceanex',
         'okcoincny',
         'okcoinusd',
@@ -199,6 +198,7 @@ class Exchange {
         'therock',
         'tidebit',
         'tidex',
+        'timex',
         'upbit',
         'vaultoro',
         'vbtc',
@@ -599,6 +599,10 @@ class Exchange {
             }
         }
         return http_build_query($array, '', $this->urlencode_glue);
+    }
+
+    public function urlencode_with_array_repeat($array) {
+        return preg_replace('/%5B\d*%5D/', '', $this->urlencode($array));
     }
 
     public function rawencode($array) {
@@ -2328,33 +2332,6 @@ class Exchange {
                    isset($this->currencies) &&
                    isset($this->currencies[$code])) ?
                         $this->currencies[$code] : $code;
-    }
-
-    public function find_market($string) {
-        if (!isset($this->markets)) {
-            throw new ExchangeError($this->id . ' markets not loaded');
-        }
-        if (gettype($string) === 'string') {
-            if (isset($this->markets_by_id[$string])) {
-                return $this->markets_by_id[$string];
-            }
-
-            if (isset($this->markets[$string])) {
-                return $this->markets[$string];
-            }
-        }
-
-        return $string;
-    }
-
-    public function find_symbol($string, $market = null) {
-        if (!isset($market)) {
-            $market = $this->find_market($string);
-        }
-        if ((gettype($market) === 'array') && static::is_associative($market)) {
-            return $market['symbol'];
-        }
-        return $string;
     }
 
     public function market($symbol) {

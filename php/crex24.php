@@ -648,7 +648,21 @@ class crex24 extends Exchange {
         //     }
         //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $symbol = $this->find_symbol($this->safe_string($order, 'instrument'), $market);
+        $symbol = null;
+        $marketId = $this->safe_string($order, 'instrument');
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            } else {
+                list($baseId, $quoteId) = explode('-', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
+        }
         $timestamp = $this->parse8601 ($this->safe_string($order, 'timestamp'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'volume');

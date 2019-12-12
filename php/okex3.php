@@ -1224,6 +1224,8 @@ class okex3 extends Exchange {
                 'product_id',
                 'risk_rate',
                 'margin_ratio',
+                'maint_margin_ratio',
+                'tiers',
             ));
             $keys = is_array($omittedBalance) ? array_keys($omittedBalance) : array();
             $accounts = array();

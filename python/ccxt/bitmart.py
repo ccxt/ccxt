@@ -157,6 +157,9 @@ class bitmart(Exchange):
                     'is not present': BadRequest,
                 },
             },
+            'commonCurrencies': {
+                'ONE': 'Menlo One',
+            },
         })
 
     def fetch_time(self, params={}):
@@ -610,7 +613,18 @@ class bitmart(Exchange):
         id = self.safe_string(order, 'entrust_id')
         timestamp = self.milliseconds()
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = self.find_symbol(self.safe_string(order, 'symbol'), market)
+        symbol = None
+        marketId = self.safe_string(order, 'symbol')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'original_amount')
         cost = None

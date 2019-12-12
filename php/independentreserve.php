@@ -174,10 +174,18 @@ class independentreserve extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $symbol = null;
-        if ($market === null) {
+        $baseId = $this->safe_string($order, 'PrimaryCurrencyCode');
+        $quoteId = $this->safe_string($order, 'PrimaryCurrencyCode');
+        $base = null;
+        $quote = null;
+        if (($baseId !== null) && ($quoteId !== null)) {
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
+        } else if ($market !== null) {
             $symbol = $market['symbol'];
-        } else {
-            $market = $this->find_market($order['PrimaryCurrencyCode'] . '/' . $order['SecondaryCurrencyCode']);
+            $base = $market['base'];
+            $quote = $market['quote'];
         }
         $orderType = $this->safe_value($order, 'Type');
         if (mb_strpos($orderType, 'Market') !== false) {
@@ -191,7 +199,7 @@ class independentreserve extends Exchange {
         } else if (mb_strpos($orderType, 'Offer') !== false) {
             $side = 'sell';
         }
-        $timestamp = $this->parse8601 ($order['CreatedTimestampUtc']);
+        $timestamp = $this->parse8601 ($this->safe_string($order, 'CreatedTimestampUtc'));
         $amount = $this->safe_float($order, 'VolumeOrdered');
         if ($amount === null) {
             $amount = $this->safe_float($order, 'Volume');
@@ -208,15 +216,10 @@ class independentreserve extends Exchange {
                 }
             }
         }
-        $feeCurrency = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-            $feeCurrency = $market['base'];
-        }
         $fee = array (
             'rate' => $feeRate,
             'cost' => $feeCost,
-            'currency' => $feeCurrency,
+            'currency' => $base,
         );
         $id = $this->safe_string($order, 'OrderGuid');
         $status = $this->parse_order_status($this->safe_string($order, 'Status'));
