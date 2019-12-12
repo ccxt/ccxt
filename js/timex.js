@@ -1105,7 +1105,7 @@ module.exports = class timex extends Exchange {
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
             this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
+            this.safeFloat (ohlcv, 'volumeQuote'),
         ];
     }
 
