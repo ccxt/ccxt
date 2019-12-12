@@ -104,6 +104,7 @@ class idex(Exchange):
             },
             'commonCurrencies': {
                 'ONE': 'Menlo One',
+                'FT': 'Fabric Token',
             },
         })
 
