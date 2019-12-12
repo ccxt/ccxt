@@ -55,13 +55,13 @@ module.exports = class coinsbit extends Exchange {
                 'cancelOrder': true,
                 'createLimitOrder': true,
                 'createOrder': true,
-                'editOrder': 'emulated',
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': 'emulated',
                 'fetchOpenOrders': true,
                 'fetchOrder': 'emulated',
+                'fetchOrders': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -437,6 +437,10 @@ module.exports = class coinsbit extends Exchange {
             }
         }
         return undefined;
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOpenOrders (symbol, since, limit, params);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
