@@ -52,31 +52,20 @@ module.exports = class coinsbit extends Exchange {
                 },
             },
             'has': {
+                'cancelOrder': true,
+                'createLimitOrder': true,
+                'createOrder': true,
+                'editOrder': 'emulated',
+                'fetchBalance': true,
+                'fetchClosedOrders': true,
                 'fetchMarkets': true,
-                'fetchCurrencies': false,
-                'fetchTradingLimits': false,
-                'fetchTradingFees': false,
-                'fetchFundingLimits': false,
-                'fetchTicker': true,
-                'fetchOrderBook': true,
-                'fetchTrades': true,
                 'fetchOHLCV': 'emulated',
-                'fetchBalance': false,
-                'fetchAccounts': false,
-                'createOrder': false,
-                'cancelOrder': false,
-                'editOrder': false,
-                'fetchOrder': 'emulated',
                 'fetchOpenOrders': true,
-                'fetchAllOrders': false,
-                'fetchMyTrades': false,
-                'fetchDepositAddress': false,
-                'fetchDeposits': false,
-                'fetchWithdrawals': false,
-                'fetchTransactions': false,
-                'fetchLedger': false,
-                'withdraw': false,
-                'transfer': false,
+                'fetchOrder': 'emulated',
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
             },
             'rateLimit': 1000,
             'fees': {
@@ -119,7 +108,7 @@ module.exports = class coinsbit extends Exchange {
                     'max': undefined,
                 },
                 'price': {
-                    'min': Math.pow (10, -precision['price']),
+                    'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
@@ -146,9 +135,29 @@ module.exports = class coinsbit extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const timestamp = this.milliseconds ();
         const response = await this.publicGetTicker (this.extend ({ 'market': market['id'] }, params));
         const ticker = this.safeValue (response, 'result');
+        return this.parseTicker (ticker, market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetTickers (params);
+        const tickers = this.safeValue (response, 'result');
+        const tickersIds = Object.keys (tickers);
+        const parsedTickers = [];
+        for (let tickerIndex = 0; tickerIndex < tickersIds.length; tickerIndex++) {
+            const tickerId = tickersIds[tickerIndex];
+            const tickerObject = tickers[tickerId];
+            const ticker = this.safeValue (tickerObject, 'ticker');
+            ticker['at'] = this.safeValue (tickerObject, 'at');
+            parsedTickers.push (this.parseTicker (ticker, this.findMarket (tickerId)));
+        }
+        return this.filterByArray (parsedTickers, 'symbol', symbols);
+    }
+
+    parseTicker (ticker, marker) {
+        const timestamp = this.safeTimestamp (ticker, 'at');
         const datetime = this.iso8601 (timestamp);
         const high = this.safeFloat (ticker, 'high');
         const low = this.safeFloat (ticker, 'low');
@@ -160,11 +169,16 @@ module.exports = class coinsbit extends Exchange {
         const change = last - open;
         const percentage = parseFloat (change / open) * parseFloat (100);
         const average = parseFloat (last + open) / parseFloat (2);
-        const baseVolume = this.safeFloat (ticker, 'volume');
+        let baseVolume = undefined;
+        if ('vol' in ticker) {
+            baseVolume = this.safeFloat (ticker, 'vol');
+        } else if ('volume' in ticker) {
+            baseVolume = this.safeFloat (ticker, 'volume');
+        }
         const quoteVolume = this.safeFloat (ticker, 'deal');
         return {
-            'symbol': symbol,
-            'info': response,
+            'symbol': marker['symbol'],
+            'info': ticker,
             'timestamp': timestamp,
             'datetime': datetime,
             'high': high,
@@ -208,7 +222,7 @@ module.exports = class coinsbit extends Exchange {
             request['limit'] = limit;
         }
         // 'since' param of the request is required a tid as a value.
-        // The exchange will return the trades, starting with this tid
+        // The exchange will return the trades, starting with this trade id
         if ('tid' in params) {
             request['since'] = params.tid;
         } else {
@@ -216,35 +230,6 @@ module.exports = class coinsbit extends Exchange {
         }
         const trades = await this.publicGetHistoryResult (this.extend (request, params));
         return this.parseTrades (trades, market, since, limit, params);
-    }
-
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privatePostAccountBalances (params);
-        const balances = this.safeValue (response, 'result');
-        const currencies = Object.keys (balances);
-        const parsedBalances = {};
-        const free = {};
-        const used = {};
-        const total = {};
-        for (let currencyIndex = 0; currencyIndex < currencies.length; currencyIndex++) {
-            const currency = currencies[currencyIndex];
-            const balance = balances[currency];
-            const parsedBalance = {
-                'free': this.safeFloat (balance, 'available'),
-                'used': this.safeFloat (balance, 'freeze'),
-                'total': this.safeFloat (balance, 'available') + this.safeFloat (balance, 'freeze'),
-            };
-            parsedBalances[currency] = parsedBalance;
-            free[currency] = parsedBalance['free'];
-            used[currency] = parsedBalance['used'];
-            total[currency] = parsedBalance['total'];
-        }
-        parsedBalances['free'] = free;
-        parsedBalances['used'] = used;
-        parsedBalances['total'] = total;
-        parsedBalances['info'] = balances;
-        return parsedBalances;
     }
 
     parseTrade (trade, market) {
@@ -276,6 +261,35 @@ module.exports = class coinsbit extends Exchange {
             'cost': cost,
             'fee': undefined,
         };
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostAccountBalances (params);
+        const balances = this.safeValue (response, 'result');
+        const currencies = Object.keys (balances);
+        const parsedBalances = {};
+        const free = {};
+        const used = {};
+        const total = {};
+        for (let currencyIndex = 0; currencyIndex < currencies.length; currencyIndex++) {
+            const currency = currencies[currencyIndex];
+            const balance = balances[currency];
+            const parsedBalance = {
+                'free': this.safeFloat (balance, 'available'),
+                'used': this.safeFloat (balance, 'freeze'),
+                'total': this.safeFloat (balance, 'available') + this.safeFloat (balance, 'freeze'),
+            };
+            parsedBalances[currency] = parsedBalance;
+            free[currency] = parsedBalance['free'];
+            used[currency] = parsedBalance['used'];
+            total[currency] = parsedBalance['total'];
+        }
+        parsedBalances['free'] = free;
+        parsedBalances['used'] = used;
+        parsedBalances['total'] = total;
+        parsedBalances['info'] = balances;
+        return parsedBalances;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -392,9 +406,7 @@ module.exports = class coinsbit extends Exchange {
         };
         const response = await this.privatePostOrderNew (this.extend (request, params));
         const result = this.safeValue (response, 'result');
-        const parsedOrder = this.parseOrder (result, market);
-        parsedOrder['info'] = response;
-        return parsedOrder;
+        return this.parseOrder (result, market);
     }
 
     async cancelOrder (id, symbol, params = {}) {
@@ -409,17 +421,12 @@ module.exports = class coinsbit extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        let orders = await this.fetchOpenOrders (symbol);
-        let targetOder = this.findOrderById(id, orders);
-        if (targetOder !== undefined) {
-            return targetOder;
-        }
-        orders = await this.fetchClosedOrders ();
-        targetOder = this.findOrderById (id, orders);
+        const orders = await this.fetchOpenOrders (symbol);
+        const targetOder = this.findOrderById (id, orders);
         if (targetOder !== undefined) {
             return targetOder;
         } else {
-            throw new OrderNotFound (this.id + ' fetchOrder() ' + this.json (response));
+            throw new OrderNotFound ('\nid: ' + id);
         }
     }
 
