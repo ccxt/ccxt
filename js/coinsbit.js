@@ -61,7 +61,7 @@ module.exports = class coinsbit extends Exchange {
                 'fetchOHLCV': 'emulated',
                 'fetchOpenOrders': true,
                 'fetchOrder': false,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -404,10 +404,6 @@ module.exports = class coinsbit extends Exchange {
         const response = await this.privatePostOrderCancel (this.extend (request, params));
         const result = this.safeValue (response, 'result');
         return this.parseOrder (result, market);
-    }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOpenOrders (symbol, since, limit, params);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
