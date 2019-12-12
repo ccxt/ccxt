@@ -1063,7 +1063,7 @@ class timex(Exchange):
             self.safe_float(ohlcv, 'high'),
             self.safe_float(ohlcv, 'low'),
             self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_float(ohlcv, 'volumeQuote'),
         ]
 
     def parse_order(self, order, market=None):
