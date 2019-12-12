@@ -81,6 +81,7 @@ module.exports = class coinsbit extends Exchange {
                 'validation.total': InvalidOrder,
                 'Too many requests.': DDoSProtection,
                 'This action is unauthorized.': AuthenticationError,
+                'order not found': OrderNotFound,
             },
         });
     }
@@ -157,7 +158,7 @@ module.exports = class coinsbit extends Exchange {
     }
 
     parseTicker (ticker, marker) {
-        const timestamp = this.safeTimestamp (ticker, 'at');
+        const timestamp = this.safeTimestamp (ticker, 'at', this.milliseconds ());
         const datetime = this.iso8601 (timestamp);
         const high = this.safeFloat (ticker, 'high');
         const low = this.safeFloat (ticker, 'low');
@@ -411,13 +412,14 @@ module.exports = class coinsbit extends Exchange {
 
     async cancelOrder (id, symbol, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'market': this.marketId (symbol),
+            'market': market['id'],
             'orderId': parseInt (id),
         };
         const response = await this.privatePostOrderCancel (this.extend (request, params));
         const result = this.safeValue (response, 'result');
-        return this.parseOrder (result);
+        return this.parseOrder (result, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -509,6 +511,7 @@ module.exports = class coinsbit extends Exchange {
                     }
                     const feedback = '\nid: ' + this.id + '\nurl: ' + url + '\nError: ' + errorMessage + '\nbody:\n' + body;
                     this.throwExactlyMatchedException (this.exceptions, errorMessage, feedback);
+                    this.throwBroadlyMatchedException (this.exceptions, errorMessage, feedback);
                     throw new ExchangeError (feedback);
                 }
             }
