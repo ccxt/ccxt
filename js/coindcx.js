@@ -421,13 +421,13 @@ module.exports = class coindcx extends Exchange {
 
     parseOrder (order, market = undefined) {
         const id = this.safeString (order, 'id');
-        let timestamp = this.safeValue (order, 'created_at');
-        if (this.isString (timestamp)) {
-            timestamp = this.parseDate (timestamp);
+        let timestamp = this.parseDate (this.safeString (order, 'created_at'));
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (order, 'created_at');
         }
-        let lastTradeTimestamp = this.safeValue (order, 'updated_at');
-        if (this.isString (lastTradeTimestamp)) {
-            lastTradeTimestamp = this.parseDate (lastTradeTimestamp);
+        let lastTradeTimestamp = this.parseDate (this.safeString (order, 'updated_at'));
+        if (lastTradeTimestamp === undefined) {
+            lastTradeTimestamp = this.safeInteger (order, 'updated_at');
         }
         const orderStatus = this.safeString (order, 'status');
         const status = this.parseOrderStatus (orderStatus);
