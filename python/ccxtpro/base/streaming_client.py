@@ -58,7 +58,8 @@ class StreamingClient(object):
                 future.resolve(result)
                 del self.futures[message_hash]
         else:
-            for message_hash in self.futures:
+            message_hashes = list(self.futures.keys())
+            for message_hash in message_hashes:
                 self.resolve(result, message_hash)
         return result
 
@@ -79,7 +80,7 @@ class StreamingClient(object):
         while not self.closed():
             try:
                 message = await self.receive()
-                self.handle_message(message)
+                await self.handle_message(message)
             except Exception as e:
                 error = NetworkError(e)
                 print(Exchange.iso8601(Exchange.milliseconds()), 'receive_loop', 'Exception', error)

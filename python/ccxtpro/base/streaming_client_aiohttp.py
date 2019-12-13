@@ -1,5 +1,5 @@
 import json
-from asyncio import sleep
+from asyncio import sleep, ensure_future
 from aiohttp import WSMsgType
 from ccxt.async_support import Exchange
 from ccxtpro.base.streaming_client import StreamingClient
@@ -13,16 +13,34 @@ class StreamingClientAiohttp(StreamingClient):
     def receive(self):
         return self.connection.receive()
 
-    def handle_message(self, message):
-        if message.type == WSMsgType.text:
+    async def handle_message(self, message):
+        print(Exchange.iso8601(Exchange.milliseconds()), '→', message)
+        if message.type == WSMsgType.TEXT:
             print(Exchange.iso8601(Exchange.milliseconds()), 'message', message)
-        elif message.type == WSMsgType.closed:
+            data = message.data
+            message = json.loads(data) if Exchange.is_json_encoded_object(data) else data
+            print('~~~~~~', self.on_message_callback)
+            self.on_message_callback(self, message)
+            print('~~~~~~=======')
+            # self.resolve(message)
+        # elif message.type == WSMsgType.BINARY:
+        #     print(Exchange.iso8601(Exchange.milliseconds()), 'binary', message)
+        elif message.type == WSMsgType.PING:
+            print(Exchange.iso8601(Exchange.milliseconds()), 'ping', message)
+            self.connection.pong()
+        elif message.type == WSMsgType.PONG:
+            print(Exchange.iso8601(Exchange.milliseconds()), 'pong', message)
+            print('Pong received')
+        elif message.type == WSMsgType.CLOSE:
+            print(Exchange.iso8601(Exchange.milliseconds()), 'close', message)
+            ensure_future(self.close())
+        elif message.type == WSMsgType.CLOSED:
             print(Exchange.iso8601(Exchange.milliseconds()), 'closed', message)
-            print(self.closed())
+            # print(self.closed())
             # break  # stops the loop, call on_close
-        elif message.type == WSMsgType.error:
+        elif message.type == WSMsgType.ERROR:
             print(Exchange.iso8601(Exchange.milliseconds()), 'error', message)
-            print(self.closed())
+            # print(self.closed())
             # break  # stops the loop, call on_error
 
     def create_connection(self, session):
