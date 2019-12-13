@@ -31,7 +31,8 @@ module.exports = class bybit extends Exchange {
                 'withdraw': false,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
-                'fetchTransactions': true,
+                'fetchTransactions': false,
+                'fetchLedger': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -240,7 +241,7 @@ module.exports = class bybit extends Exchange {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            request['start_time'] = this.truncate (since / 1000, 0);
+            request['start_time'] = parseInt (since / 1000);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -248,20 +249,7 @@ module.exports = class bybit extends Exchange {
         const response = await this.v2GetPrivateExecutionList (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         const tradesList = this.safeValue (result, 'trade_list', []);
-        let trades = [];
-        if (market !== undefined) {
-            trades = this.parseTrades (tradesList, market);
-        } else {
-            if (tradesList) {
-                const tradesLength = tradesList.length;
-                for (let i = 0; i < tradesLength; i++) {
-                    const tradeRaw = tradesList[i];
-                    const trade = this.parseTrade (tradeRaw);
-                    trades.push (trade);
-                }
-            }
-        }
-        return this.filterBySinceLimit (trades, since, limit);
+        return this.parseTrades (tradesList, market, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -372,7 +360,7 @@ module.exports = class bybit extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['total'] = position['wallet_balance'];
-            account['used'] = position['position_margin'] + position['occ_closing_fee'] + position['occ_funding_fee'] + position['order_margin'];
+            account['used'] = this.sum (position['position_margin'], position['occ_closing_fee'], position['occ_funding_fee'], position['order_margin']);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -386,71 +374,27 @@ module.exports = class bybit extends Exchange {
             'interval': this.timeframes[timeframe],
         };
         if (since === undefined) {
-            request['from'] = this.seconds () - 86400; // default from 24 hours ago
+            throw new ArgumentsRequired (this.id + " fetchOHLCV requires 'since' argument");
         } else {
-            request['from'] = this.truncate (since / 1000, 0);
+            since = this.truncate (since / 1000, 0);
+            request['from'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default == max == 200
+            request['limit'] = limit;
         }
         const response = await this.v2GetPublicKlineList (this.extend (request, params));
         return this.parseOHLCVs (this.safeValue (response, 'result', {}), market, timeframe, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        // There are two type of orders, so user must define which order to cancel
-        // so why not ask user to point out in  which order to cancel ?
-        let orders = undefined;
-        if (('stop_order_id' in params) || ('order_id' in params)) {
-            orders = await this.fetchOrders (symbol, undefined, undefined, params);
-        } else {
-            throw new ArgumentsRequired (this.id + " fetchOrder() requires additional argement either 'order_id' to fetch active order or 'stop_order_id' to fetch conditional order. Values of these arguments should be equal to value of 'id' argument.");
+        if (!('stop_order_id' in params) && !('order_id' in params)) {
+            throw new ArgumentsRequired (this.id + " fetchOrder() requires additional argument either 'order_id' to fetch active order or 'stop_order_id' to fetch conditional order. Values of these arguments should be equal to value of 'id' argument.");
         }
-        const numResults = orders.length;
-        if (numResults === 1) {
-            return orders[0];
-        } else {
-            for (let i = 0; i < numResults; i++) {
-                if (this.safeString (orders[i], 'id') === id) {
-                    return orders[i];
-                }
-            }
-        }
-        throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterOrdersByStatus (orders, 'open');
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterOrdersByStatus (orders, 'closed');
-    }
-
-    filterOrdersByStatus (orders, status) {
-        const result = [];
-        for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['status'] === status) {
-                result.push (orders[i]);
-            }
-        }
-        return result;
-    }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
         const request = {};
+        let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-        }
-        if (limit !== undefined) {
-            if (limit > 20) {
-                request['limit'] = limit;
-            }
         }
         let response = undefined;
         // if params include 'stop_order_id' then return to user conditional orders
@@ -461,8 +405,11 @@ module.exports = class bybit extends Exchange {
             response = await this.privateGetOrderList (this.extend (request, params));
         }
         const result = this.safeValue (response, 'result', {});
-        const orders = this.parseOrders (this.safeValue (result, 'data', []), market, since, limit);
-        return this.filterBySinceLimit (orders, since, limit);
+        const data = this.safeValue (result, 'data', []);
+        if (data.length < 1) {
+            throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
+        }
+        return this.parseOrder (data[0]);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -552,7 +499,61 @@ module.exports = class bybit extends Exchange {
         return this.parseTransactions (this.safeValue (result, 'data', []), currency, since, limit);
     }
 
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+    parseLedgerEntryType (type) {
+        const types = {
+            'Deposit': 'transaction',
+            'Withdraw': 'transaction',
+            'Prize': 'transfer',
+            'Refund': 'transfer',
+            'Commission': 'fee',
+            'RealisedPNL': 'trade',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        // {
+        //     "id": 128495,                         //id
+        //     "user_id": 103669,                    //user id
+        //     "coin": "XRP",                        //coin type
+        //     "wallet_id": 14760,                   //wallet id
+        //     "type": "Realized P&L",               //funding type
+        //     "amount": "1.18826225",
+        //     "tx_id": "",
+        //     "address": "XRPUSD",                  //address
+        //     "wallet_balance": "999.12908894",     //balance
+        //     "exec_time": "2019-09-25T00:00:15.000Z",
+        //     "cross_seq": 0
+        // }
+        const id = this.safeString (item, 'id');
+        const account = this.safeString (item, 'user_id');;
+        const referenceId = this.safeString (item, 'tx_id');
+        const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
+        const code = this.safeCurrencyCode (this.safeString (item, 'coin'), currency);
+        const amount = this.safeFloat (item, 'amount');
+        const datetime = this.safeString (item, 'exec_time');
+        const after = this.safeFloat (item, 'wallet_balance');
+        const status = 'ok';
+        return {
+            'info': item,
+            'id': id,
+            'direction': undefined,
+            'account': account,
+            'referenceId': referenceId,
+            'referenceAccount': undefined,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'before': undefined,
+            'after': after,
+            'status': status,
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'fee': undefined,
+        };
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         if (since !== undefined) {
@@ -569,7 +570,7 @@ module.exports = class bybit extends Exchange {
         const response = await this.privateGetWalletFundRecords (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         const data = this.safeValue (result, 'data', []);
-        return this.parseTransactions (data, currency, since, limit);
+        return this.parseLedger (data, currency, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -633,7 +634,7 @@ module.exports = class bybit extends Exchange {
         const feeRate = this.safeFloat (trade, 'fee_rate');
         let takerOrMaker = undefined;
         if (execFee !== undefined) {
-            takerOrMaker = execFee < 0 ? 'maker' : 'taker';
+            takerOrMaker = (execFee < 0) ? 'maker' : 'taker';
         }
         let type = this.safeStringLower (trade, 'order_type');
         if (type !== 'limit' && type !== 'market') {
@@ -658,11 +659,11 @@ module.exports = class bybit extends Exchange {
         }
         let fee = undefined;
         if (feeRate !== undefined) {
-            const rate = feeRate > 0 ? feeRate : -feeRate;
-            const currency = side === 'buy' ? base : quote;
+            const rate = (feeRate > 0) ? feeRate : -feeRate;
+            const currency = (side === 'buy') ? base : quote;
             let feeCost = undefined;
             if (execFee !== undefined) {
-                feeCost = execFee > 0 ? execFee : -execFee;
+                feeCost = (execFee > 0) ? execFee : -execFee;
             } else {
                 if (side === 'buy') {
                     feeCost = amount * rate;
