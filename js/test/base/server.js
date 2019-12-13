@@ -13,7 +13,7 @@ class WebSocketServer {
 
         const defaults = {
             terminateTimeout: undefined, // terminate the connection immediately or later
-            closeTimeout: undefined, // close after a while
+            closeTimeout: 5000, // close after a while
             closeCode: 1000, // default closing code 1000 = ok
             handshakeDelay: undefined, // delay the handshake to simulate connection timeout
             port: 8080,
@@ -52,9 +52,13 @@ class WebSocketServer {
         // close the connection after a certain amount of time
         if (Number.isInteger (this.closeTimeout)) {
             if (this.closeTimeout) {
-                setTimeout (() => { ws.close (this.closeCode) }, this.closeTimeout)
+                setTimeout (() => {
+                    console.log (new Date (), 'Closing with code', this.closeCode, typeof this)
+                    // ws.terminate ()
+                    ws.close (this.closeCode)
+                }, this.closeTimeout)
             } else {
-                ws.close (this.close.code)
+                ws.close (this.closeCode)
             }
         }
 
@@ -63,6 +67,7 @@ class WebSocketServer {
         // other stuff that might be useful
         ws.on ('message', function incoming (message) {
             console.log (new Date (), 'onMessage', message)
+            ws.send (message) // echo back
         })
         ws.on ('ping', function incoming (message) {
             console.log (new Date (), 'onPing', message)
