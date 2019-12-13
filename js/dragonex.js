@@ -197,7 +197,6 @@ module.exports = class dragonex extends Exchange {
                 'price': market[5],
             };
             const symbol = base + '/' + quote;
-            const taker = this.fees['trading']['taker'];
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -208,7 +207,6 @@ module.exports = class dragonex extends Exchange {
                 'quoteId': quoteId,
                 'active': true,
                 'precision': precision,
-                'taker': taker,
                 'limits': {
                     'amount': {
                         'min': market[4],
@@ -259,12 +257,33 @@ module.exports = class dragonex extends Exchange {
             const currencyId = balance['coin_id'];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'volume') - this.safeFloat (balance, 'frozen');
             account['used'] = this.safeFloat (balance, 'frozen');
             account['total'] = this.safeFloat (balance, 'volume');
             result[code] = account;
         }
         return this.parseBalance (result);
+    }
+
+    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 'price', amountKey = 'volume') {
+        const result = {};
+        const buysList = [];
+        const sellsList = [];
+        for (let i = 0; i < this.safeValue (orderbook, 'data', {})['buys'].length; i++) {
+            const buys = [];
+            buys.push (this.safeInteger (this.safeValue (orderbook, 'data', {})['buys'][i], priceKey, 0));
+            buys.push (this.safeInteger (this.safeValue (orderbook, 'data', {})['buys'][i], amountKey, 0));
+            buysList.push (buys);
+        }
+        for (let i = 0; i < this.safeValue (orderbook, 'data', {})['sells'].length; i++) {
+            const sells = [];
+            sells.push (this.safeInteger (this.safeValue (orderbook, 'data', {})['sells'][i], priceKey, 0));
+            sells.push (this.safeInteger (this.safeValue (orderbook, 'data', {})['sells'][i], amountKey, 0));
+            sellsList.push (sells);
+        }
+        result[bidsKey] = buysList;
+        result[asksKey] = sellsList;
+        result['timestamp'] = timestamp;
+        return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -277,31 +296,13 @@ module.exports = class dragonex extends Exchange {
             request['limit'] = limit; // default = maximum = 100
         }
         const response = await this.v1GetMarketDepth (this.extend (request, params));
-        const orderBook = this.parseOrderBook (response);
-        const buysList = [];
-        const sellsList = [];
-        for (let i = 0; i < this.safeValue (response, 'data', {})['buys'].length; i++) {
-            const buys = [];
-            buys.push (this.safeInteger (this.safeValue (response, 'data', {})['buys'][i], 'price', 0));
-            buys.push (this.safeInteger (this.safeValue (response, 'data', {})['buys'][i], 'volume', 0));
-            buysList.push (buys);
-        }
-        for (let i = 0; i < this.safeValue (response, 'data', {})['sells'].length; i++) {
-            const sells = [];
-            sells.push (this.safeInteger (this.safeValue (response, 'data', {})['sells'][i], 'price', 0));
-            sells.push (this.safeInteger (this.safeValue (response, 'data', {})['sells'][i], 'volume', 0));
-            sellsList.push (sells);
-        }
-        orderBook['bids'] = buysList;
-        orderBook['asks'] = sellsList;
-        return orderBook;
+        return this.parseOrderBook (response);
     }
 
     parseTicker (ticker, market = undefined) {
         ticker = this.safeValue (this.safeValue (ticker, 'data', {}), 'list', [])[0];
-        const lastNum = ticker.length - 1;
-        const lastFourNum = ticker.length - 4;
-        const timestamp = ticker[lastNum];
+        const lastFourNum = 11;
+        const timestamp = ticker[14];
         const last = parseFloat (ticker[3]);
         return {
             'symbol': market['symbol'],
@@ -320,7 +321,7 @@ module.exports = class dragonex extends Exchange {
             'previousClose': undefined,
             'change': ticker[8],
             'percentage': ticker[9],
-            'average': (last + parseFloat (ticker[2])) / 2,
+            'average': undefined,
             'baseVolume': ticker[lastFourNum],
             'quoteVolume': undefined,
             'info': ticker,
@@ -339,12 +340,12 @@ module.exports = class dragonex extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            ohlcv[0],
-            parseFloat (ohlcv[1]),
+            ohlcv[6],
+            parseFloat (ohlcv[4]),
             parseFloat (ohlcv[2]),
             parseFloat (ohlcv[3]),
-            parseFloat (ohlcv[4]),
-            parseFloat (ohlcv[5]),
+            parseFloat (ohlcv[1]),
+            parseFloat (ohlcv[0]),
         ];
     }
 
@@ -356,7 +357,6 @@ module.exports = class dragonex extends Exchange {
             'kline_type': this.timeframes[timeframe],
         };
         if (since !== undefined) {
-            since = 0;
             request['st'] = since;
         }
         if (limit !== undefined) {
@@ -364,13 +364,7 @@ module.exports = class dragonex extends Exchange {
         }
         const response = await this.v1GetMarketKline (this.extend (request, params));
         const lists = this.safeValue (this.safeValue (response, 'data'), 'lists', []);
-        const ohlcvs = [];
-        for (let i = 0; i < lists.length; i++) {
-            const cur = lists[i];
-            const ohlcv = [parseInt (cur[6]) * 1000, cur[4], cur[2], cur[3], cur[1], cur[0]];  // columns - [ 'amount','close_price','max_price','min_price','open_price','pre_close_price','timestamp','usdt_amount','volume' ]
-            ohlcvs.push (ohlcv);
-        }
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        return this.parseOHLCVs (lists, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -431,7 +425,7 @@ module.exports = class dragonex extends Exchange {
         }
         const response = await this.aicoinGetMarketAllTrade (this.extend (request, params));
         const data = this.safeValue (this.safeValue (response, 'data', {}), 'list', []);
-        let result = [];
+        const result = [];
         for (let i = 0; i < data.length; i++) {
             const dataDict = {
                 'id': data[i][0],
@@ -444,11 +438,13 @@ module.exports = class dragonex extends Exchange {
                 'usdt_amount': data[i][7],
                 'timestamp': data[i][8],
             };
-            const trade = this.parseTrade (dataDict, market);
-            result.push (trade);
+            // const trade = this.parseTrade (dataDict, market);
+            // result.push (trade);
+            result.push (dataDict);
         }
-        result = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (result, market, since, limit);
+        // result = this.sortBy (result, 'timestamp');
+        // return this.filterBySymbolSinceLimit (result, market, since, limit);
+        return this.parseTrades (result, market, since, limit);
     }
 
     parseOrderStatus (status) {
@@ -560,6 +556,24 @@ module.exports = class dragonex extends Exchange {
         };
     }
 
+    async fetchCurrencies (params = {}) {
+        const coinRes = await this.publicGetCoinAll ();
+        const response = this.safeValue (coinRes, 'data', []);
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const id = this.safeInteger (currency, 'coin_id', 0);
+            const code = this.safeString (currency, 'code', '');
+            result[code] = {
+                'id': id,
+            };
+            result[id] = {
+                'code': code,
+            };
+        }
+        return result;
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
@@ -647,18 +661,10 @@ module.exports = class dragonex extends Exchange {
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const currency = undefined;
-        const coinRes = this.publicGetCoinAll ();
-        const coinList = this.safeValue (coinRes, 'data', []);
-        const coinDict = {};
-        const coinIdToCoinCode = {};
-        for (let i = 0; i < coinList.length; i++) {
-            coinDict[this.safeString (coinList[i], 'code', '')] = this.safeInteger (coinList[i], 'coin_id', 0);
-            coinIdToCoinCode[this.safeInteger (coinList[i], 'coin_id', 0)] = this.safeString (coinList[i], 'code', '');
-        }
         const request = {};
         let coinId = undefined;
         if (code !== undefined) {
-            coinId = coinDict[code];
+            coinId = this.currencies[code]['id'];
             request['coin_id'] = coinId;
         }
         const response = await this.privatePostApiV1CoinPrepayHistory (this.extend (request, params));
@@ -668,18 +674,10 @@ module.exports = class dragonex extends Exchange {
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const currency = undefined;
-        const coinRes = this.publicGetCoinAll ();
-        const coinList = this.safeValue (coinRes, 'data', []);
-        const coinDict = {};
-        const coinIdToCoinCode = {};
-        for (let i = 0; i < coinList.length; i++) {
-            coinDict[this.safeString (coinList[i], 'code', '')] = this.safeInteger (coinList[i], 'coin_id', 0);
-            coinIdToCoinCode[this.safeInteger (coinList[i], 'coin_id', 0)] = this.safeString (coinList[i], 'code', '');
-        }
         const request = {};
         let coinId = undefined;
         if (code !== undefined) {
-            coinId = coinDict[code];
+            coinId = this.currencies[code]['id'];
             request['coin_id'] = coinId;
         }
         if (since !== undefined) {
@@ -724,13 +722,7 @@ module.exports = class dragonex extends Exchange {
         }
         const txid = this.safeValue (transaction, 'tx_id');
         const currencyId = this.safeString (transaction, 'coin_id');
-        const coinRes = this.publicGetCoinAll ();
-        const coinList = this.safeValue (coinRes, 'data', []);
-        const coinDict = {};
-        for (let i = 0; i < coinList.length; i++) {
-            coinDict[this.safeString (coinList[i], 'code', '')] = this.safeInteger (coinList[i], 'coin_id', 0);
-        }
-        const code = coinDict[currencyId];
+        const code = this.currencies[currencyId]['code'];
         let timestamp = undefined;
         let insertTime = undefined;
         let applyTime = undefined;
@@ -771,15 +763,9 @@ module.exports = class dragonex extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        const coinRes = this.publicGetCoinAll ();
-        const coinList = this.safeValue (coinRes, 'data', []);
-        const coinDict = {};
-        for (let i = 0; i < coinList.length; i++) {
-            coinDict[this.safeString (coinList[i], 'code', '')] = this.safeInteger (coinList[i], 'coin_id', 0);
-        }
         let request = {};
         if (code !== undefined) {
-            const coinId = this.safeInteger (coinDict, code, 0);
+            const coinId = this.currencies[code]['id'];
             request = {
                 'coin_id': coinId,
             };
@@ -803,14 +789,9 @@ module.exports = class dragonex extends Exchange {
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        const coinRes = this.publicGetCoinAll ();
-        const coinList = this.safeValue (coinRes, 'data', []);
-        const coinDict = {};
-        for (let i = 0; i < coinList.length; i++) {
-            coinDict[this.safeString (coinList[i], 'code', '')] = this.safeInteger (coinList[i], 'coin_id', 0);
-        }
+        const coinId = this.currencies[code]['id'];
         const request = {
-            'coin_id': this.safeInteger (coinDict, code, 0),
+            'coin_id': coinId,
             'addr': address,
             'volume': parseFloat (amount),
         };
@@ -858,7 +839,7 @@ module.exports = class dragonex extends Exchange {
         }
         const url = this.urls['api'][api] + request;
         if (api === 'private') {
-            body = JSON.stringify ({});
+            body = this.json ({});
             this.checkRequiredCredentials ();
             if (method !== 'GET') {
                 if (query !== undefined) {
@@ -904,7 +885,16 @@ module.exports = class dragonex extends Exchange {
         }
         if ('code' in response) {
             if (response['code'] !== 1) {
-                throw new ExchangeError (this.id + ' ' + JSON.parse (response));
+                const error = this.safeString (response, 'code');
+                const message = this.id + ' ' + this.json (response);
+                if (error in this.exceptions) {
+                    const ExceptionClass = this.exceptions[error];
+                    throw new ExceptionClass (message);
+                } else {
+                    throw new ExchangeError (message);
+                }
+            } else {
+                throw new ExchangeError (this.id + ' ' + this.json (response));
             }
         }
     }
