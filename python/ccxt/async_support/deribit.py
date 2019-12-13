@@ -260,8 +260,34 @@ class deribit(Exchange):
         }
 
     def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         "currentFunding":0.0,
+        #         "funding8h":0.0000017213784611422821,
+        #         "instrumentName":"BTC-PERPETUAL",
+        #         "openInterest":7600223,
+        #         "openInterestAmount":76002230,
+        #         "high":7665.5,
+        #         "low":7450.0,
+        #         "volume":12964792.0,
+        #         "volumeUsd":129647920,
+        #         "volumeBtc":17214.63595316,
+        #         "last":7520.5,
+        #         "bidPrice":7520.0,
+        #         "askPrice":7520.5,
+        #         "midPrice":7520.25,
+        #         "estDelPrice":"",
+        #         "markPrice":7521.0,
+        #         "created":"2019-12-09 15:17:00 GMT"
+        #     }
+        #
         timestamp = self.safe_integer(ticker, 'created')
-        symbol = self.find_symbol(self.safe_string(ticker, 'instrumentName'), market)
+        symbol = None
+        marketId = self.safe_string(ticker, 'instrumentName')
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -293,6 +319,35 @@ class deribit(Exchange):
             'instrument': market['id'],
         }
         response = await self.publicGetGetsummary(self.extend(request, params))
+        #
+        #     {
+        #         "usOut":1575904620528163,
+        #         "usIn":1575904620528129,
+        #         "usDiff":34,
+        #         "testnet":false,
+        #         "success":true,
+        #         "result": {
+        #             "currentFunding":0.0,
+        #             "funding8h":0.0000017213784611422821,
+        #             "instrumentName":"BTC-PERPETUAL",
+        #             "openInterest":7600223,
+        #             "openInterestAmount":76002230,
+        #             "high":7665.5,
+        #             "low":7450.0,
+        #             "volume":12964792.0,
+        #             "volumeUsd":129647920,
+        #             "volumeBtc":17214.63595316,
+        #             "last":7520.5,
+        #             "bidPrice":7520.0,
+        #             "askPrice":7520.5,
+        #             "midPrice":7520.25,
+        #             "estDelPrice":"",
+        #             "markPrice":7521.0,
+        #             "created":"2019-12-09 15:17:00 GMT"
+        #         },
+        #         "message":""
+        #     }
+        #
         return self.parse_ticker(response['result'], market)
 
     def parse_trade(self, trade, market=None):

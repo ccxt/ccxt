@@ -518,10 +518,18 @@ class fcoin(Exchange):
             elif (cost > 0) and (filled > 0):
                 price = cost / filled
         feeCurrency = None
-        if market is not None:
-            symbol = market['symbol']
-            feeCurrency = market['base'] if (side == 'buy') else market['quote']
-        feeCost = self.safe_float(order, 'fill_fees')
+        feeCost = None
+        feeRebate = self.safe_float(order, 'fees_income')
+        if (feeRebate is not None) and (feeRebate > 0):
+            if market is not None:
+                symbol = market['symbol']
+                feeCurrency = market['quote'] if (side == 'buy') else market['base']
+            feeCost = -feeRebate
+        else:
+            feeCost = self.safe_float(order, 'fill_fees')
+            if market is not None:
+                symbol = market['symbol']
+                feeCurrency = market['base'] if (side == 'buy') else market['quote']
         return {
             'info': order,
             'id': id,

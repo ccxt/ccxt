@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.20.30'
+__version__ = '1.20.75'
 
 # -----------------------------------------------------------------------------
 
@@ -606,7 +606,8 @@ class Exchange(object):
             pass
 
     def is_text_response(self, headers):
-        return headers.get('Content-Type', '').startswith('text/')
+        content_type = headers.get('Content-Type', '')
+        return content_type.startswith('application/json') or content_type.startswith('text/')
 
     @staticmethod
     def key_exists(dictionary, key):
@@ -847,6 +848,10 @@ class Exchange(object):
             if isinstance(value, bool):
                 params[key] = 'true' if value else 'false'
         return _urlencode.urlencode(params)
+
+    @staticmethod
+    def urlencode_with_array_repeat(params={}):
+        return re.sub(r'%5B\d*%5D', '', Exchange.urlencode(params))
 
     @staticmethod
     def rawencode(params={}):
@@ -1678,23 +1683,6 @@ class Exchange(object):
         if isinstance(code, basestring) and (code in self.currencies):
             return self.currencies[code]
         raise ExchangeError('Does not have currency code ' + str(code))
-
-    def find_market(self, string):
-        if not self.markets:
-            raise ExchangeError('Markets not loaded')
-        if isinstance(string, basestring):
-            if string in self.markets_by_id:
-                return self.markets_by_id[string]
-            if string in self.markets:
-                return self.markets[string]
-        return string
-
-    def find_symbol(self, string, market=None):
-        if market is None:
-            market = self.find_market(string)
-        if isinstance(market, dict):
-            return market['symbol']
-        return string
 
     def market(self, symbol):
         if not self.markets:

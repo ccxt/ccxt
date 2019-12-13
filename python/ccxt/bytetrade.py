@@ -10,6 +10,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadResponse
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
@@ -195,18 +196,9 @@ class bytetrade(Exchange):
                 },
                 'fee': None,
                 'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
+                    'amount': {'min': None, 'max': None},
+                    'price': {'min': None, 'max': None},
+                    'cost': {'min': None, 'max': None},
                     'deposit': {
                         'min': self.safe_float(deposit, 'min'),
                         'max': maxDeposit,
@@ -235,14 +227,10 @@ class bytetrade(Exchange):
             if quoteId in self.commonCurrencies:
                 quote = self.commonCurrencies[quoteId]
             symbol = base + '/' + quote
-            amountMin = self.safe_float(market['limits']['amount'], 'min')
-            amountMax = self.safe_float(market['limits']['amount'], 'max')
-            priceMin = self.safe_float(market['limits']['price'], 'min')
-            priceMax = self.safe_float(market['limits']['price'], 'max')
-            precision = {
-                'amount': self.safe_integer(market['precision'], 'amount'),
-                'price': self.safe_integer(market['precision'], 'price'),
-            }
+            limits = self.safe_value(market, 'limits', {})
+            amount = self.safe_value(limits, 'amount', {})
+            price = self.safe_value(limits, 'price', {})
+            precision = self.safe_value(market, 'precision', {})
             active = self.safe_string(market, 'active')
             normalBase = base.split('@')[0]
             normalQuote = quote.split('@')[0]
@@ -256,16 +244,19 @@ class bytetrade(Exchange):
                 'quoteId': quoteId,
                 'info': market,
                 'active': active,
-                'precision': precision,
+                'precision': {
+                    'amount': self.safe_integer(precision, 'amount'),
+                    'price': self.safe_integer(precision, 'price'),
+                },
                 'normalSymbol': normalSymbol,
                 'limits': {
                     'amount': {
-                        'min': amountMin,
-                        'max': amountMax,
+                        'min': self.safe_float(amount, 'min'),
+                        'max': self.safe_float(amount, 'max'),
                     },
                     'price': {
-                        'min': priceMin,
-                        'max': priceMax,
+                        'min': self.safe_float(price, 'min'),
+                        'max': self.safe_float(price, 'max'),
                     },
                     'cost': {
                         'min': None,
@@ -310,7 +301,40 @@ class bytetrade(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_integer(ticker, 'timestamp')
-        symbol = self.find_symbol(self.safe_string(ticker, 'symbol'), market)
+        #
+        #     [
+        #         {
+        #             "symbol":"68719476706",
+        #             "name":"ETH/BTC",
+        #             "base":"2",
+        #             "quote":"32",
+        #             "timestamp":1575905991933,
+        #             "datetime":"2019-12-09T15:39:51.933Z",
+        #             "high":"0",
+        #             "low":"0",
+        #             "open":"0",
+        #             "close":"0",
+        #             "last":"0",
+        #             "change":"0",
+        #             "percentage":"0",
+        #             "baseVolume":"0",
+        #             "quoteVolume":"0"
+        #         }
+        #     ]
+        #
+        symbol = None
+        marketId = self.safe_string(ticker, 'symbol')
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+        else:
+            baseId = self.safe_string(ticker, 'base')
+            quoteId = self.safe_string(ticker, 'quote')
+            if (baseId is not None) and (quoteId is not None):
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -341,8 +365,32 @@ class bytetrade(Exchange):
             'symbol': market['id'],
         }
         response = self.marketGetTickers(self.extend(request, params))
-        if len(response) > 0:
-            return self.parse_ticker(response[0], market)
+        #
+        #     [
+        #         {
+        #             "symbol":"68719476706",
+        #             "name":"ETH/BTC",
+        #             "base":"2",
+        #             "quote":"32",
+        #             "timestamp":1575905991933,
+        #             "datetime":"2019-12-09T15:39:51.933Z",
+        #             "high":"0",
+        #             "low":"0",
+        #             "open":"0",
+        #             "close":"0",
+        #             "last":"0",
+        #             "change":"0",
+        #             "percentage":"0",
+        #             "baseVolume":"0",
+        #             "quoteVolume":"0"
+        #         }
+        #     ]
+        #
+        if isinstance(response, list):
+            ticker = self.safe_value(response, 0)
+            if ticker is None:
+                raise BadResponse(self.id + ' fetchTicker() returned an empty response')
+            return self.parse_ticker(ticker, market)
         return self.parse_ticker(response, market)
 
     def parse_tickers(self, rawTickers, symbols=None):
@@ -434,7 +482,19 @@ class bytetrade(Exchange):
 
     def parse_order(self, order, market=None):
         status = self.safe_string(order, 'status')
-        symbol = self.find_symbol(self.safe_string(order, 'symbol'), market)
+        symbol = None
+        marketId = self.safe_string(order, 'symbol')
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+        else:
+            baseId = self.safe_string(order, 'base')
+            quoteId = self.safe_string(order, 'quote')
+            if (baseId is not None) and (quoteId is not None):
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
         timestamp = self.safe_integer(order, 'timestamp')
         datetime = self.safe_string(order, 'datetime')
         lastTradeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')

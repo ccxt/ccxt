@@ -79,8 +79,6 @@ class Transpiler {
             [ /\.sortBy\s/g, '.sort_by'],
             [ /\.filterBy\s/g, '.filter_by'],
             [ /\.groupBy\s/g, '.group_by'],
-            [ /\.findMarket\s/g, '.find_market'],
-            [ /\.findSymbol\s/g, '.find_symbol'],
             [ /\.marketIds\s/g, '.market_ids'],
             [ /\.marketId\s/g, '.market_id'],
             [ /\.fetchFundingFees\s/g, '.fetch_funding_fees'],
@@ -142,6 +140,7 @@ class Transpiler {
             [ /errorHierarchy/g, 'error_hierarchy'],
             [ /\.base16ToBinary/g, '.base16_to_binary'],
             [ /\'use strict\';?\s+/g, '' ],
+            [ /\.urlencodeWithArrayRepeat\s/g, '.urlencode_with_array_repeat' ],
         ]
 
         this.pythonRegexes = [
@@ -887,6 +886,7 @@ class Transpiler {
     transpileErrorHierarchy () {
 
         const errorHierarchyFilename = './js/base/errorHierarchy.js'
+        const errorHierarchy = require ('.' + errorHierarchyFilename)
 
         let js = fs.readFileSync (errorHierarchyFilename, 'utf8')
 
@@ -896,12 +896,19 @@ class Transpiler {
 
         const { python3Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js })
 
+       const python3BodyIntellisense = python3Body + '\n\n' + Array.from (function* intellisense (map) {
+            for (const key in map) {
+                yield key + ' = Exception'
+                yield* intellisense (map[key])
+            }
+        } (errorHierarchy['BaseError'])).join ('\n')
+
         const message = 'Transpiling error hierachy →'
 
         const python = {
             filename: './python/ccxt/base/errors.py',
-            regex: /error_hierarchy = .+?\n\}/s,
-            replacement: python3Body,
+            regex: /error_hierarchy = [\S\s]+= Exception/s,
+            replacement: python3BodyIntellisense,
         }
 
         log.bright.cyan (message, python.filename.yellow)
