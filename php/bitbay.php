@@ -102,8 +102,8 @@ class bitbay extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.3 / 100,
-                    'taker' => 0.0043,
+                    'maker' => 0.0,
+                    'taker' => 0.1 / 100,
                 ),
                 'funding' => array (
                     'withdraw' => array (
