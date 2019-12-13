@@ -81,6 +81,7 @@ module.exports = class coinbasepro extends Exchange {
                         'coinbase-accounts/{id}/addresses',
                         'fills',
                         'funding',
+                        'fees',
                         'orders',
                         'orders/{id}',
                         'otc/orders',

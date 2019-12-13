@@ -1206,6 +1206,8 @@ class okex3(Exchange):
                 'product_id',
                 'risk_rate',
                 'margin_ratio',
+                'maint_margin_ratio',
+                'tiers',
             ])
             keys = list(omittedBalance.keys())
             accounts = {}

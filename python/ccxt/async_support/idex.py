@@ -102,6 +102,10 @@ class idex(Exchange):
                 'apiKey': False,
                 'secret': False,
             },
+            'commonCurrencies': {
+                'ONE': 'Menlo One',
+                'FT': 'Fabric Token',
+            },
         })
 
     async def fetch_markets(self, params={}):

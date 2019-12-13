@@ -674,9 +674,12 @@ class poloniex extends Exchange {
                         $symbol = $base . '/' . $quote;
                         $trades = $response[$id];
                         for ($j = 0; $j < count ($trades); $j++) {
-                            $result[] = array_merge ($this->parse_trade($trades[$j]), array (
+                            $market = array (
                                 'symbol' => $symbol,
-                            ));
+                                'base' => $base,
+                                'quote' => $quote,
+                            );
+                            $result[] = $this->parse_trade($trades[$j], $market);
                         }
                     }
                 }

@@ -632,7 +632,18 @@ class crex24(Exchange):
         #     }
         #
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = self.find_symbol(self.safe_string(order, 'instrument'), market)
+        symbol = None
+        marketId = self.safe_string(order, 'instrument')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('-')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'volume')
