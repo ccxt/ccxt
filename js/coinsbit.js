@@ -158,9 +158,16 @@ module.exports = class coinsbit extends Exchange {
         return this.filterByArray (parsedTickers, 'symbol', symbols);
     }
 
-    parseTicker (ticker, marker) {
-        const timestamp = this.safeTimestamp (ticker, 'at', this.milliseconds ());
-        const datetime = this.iso8601 (timestamp);
+    parseTicker (ticker, market = undefined) {
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const timestamp = this.safeTimestamp (ticker, 'at');
+        let datetime = undefined;
+        if (timestamp !== undefined) {
+            datetime = this.iso8601 (timestamp);
+        }
         const high = this.safeFloat (ticker, 'high');
         const low = this.safeFloat (ticker, 'low');
         const bid = this.safeFloat (ticker, 'bid');
@@ -182,7 +189,7 @@ module.exports = class coinsbit extends Exchange {
         }
         const quoteVolume = this.safeFloat (ticker, 'deal');
         return {
-            'symbol': marker['symbol'],
+            'symbol': symbol,
             'info': ticker,
             'timestamp': timestamp,
             'datetime': datetime,
@@ -237,8 +244,11 @@ module.exports = class coinsbit extends Exchange {
         return this.parseTrades (trades, market, since, limit, params);
     }
 
-    parseTrade (trade, market) {
-        const symbol = market['symbol'];
+    parseTrade (trade, market = undefined) {
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         const id = this.safeString (trade, 'tid');
         let timestamp = undefined;
         if ('date' in trade) {
@@ -322,7 +332,7 @@ module.exports = class coinsbit extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    parseOrder (order, market) {
+    parseOrder (order, market = undefined) {
         let id = undefined;
         if ('id' in order) {
             id = this.safeString (order, 'id');
@@ -337,7 +347,15 @@ module.exports = class coinsbit extends Exchange {
         }
         const datetime = this.iso8601 (timestamp);
         const lastTradeTimestamp = this.safeTimestamp (order, 'ftime');
-        const symbol = market['symbol'];
+        const marketId = this.safeString (order, 'market');
+        let orderMarket = undefined;
+        let symbol = undefined;
+        let currency = undefined;
+        if (marketId in this.markets_by_id) {
+            orderMarket = this.markets_by_id[marketId];
+            symbol = orderMarket['symbol'];
+            currency = orderMarket['quote'];
+        }
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
         const price = this.safeFloat (order, 'price');
@@ -354,7 +372,7 @@ module.exports = class coinsbit extends Exchange {
         }
         const cost = price * filled;
         const fee = {
-            'currency': market['quote'],
+            'currency': currency,
             'cost': this.safeFloat (order, 'dealFee'),
         };
         return {
