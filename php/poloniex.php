@@ -292,7 +292,7 @@ class poloniex extends \ccxt\poloniex {
     }
 
     public function handle_ws_message ($client, $message) {
-        $channelId = (string) $message[0];
+        $channelId = $this->safe_string($message, 0);
         $market = $this->safe_value($this->options['marketsByNumericId'], $channelId);
         if ($market === null) {
             $methods = array (

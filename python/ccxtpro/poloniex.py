@@ -266,7 +266,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
         return message
 
     def handle_ws_message(self, client, message):
-        channelId = str(message[0])
+        channelId = self.safe_string(message, 0)
         market = self.safe_value(self.options['marketsByNumericId'], channelId)
         if market is None:
             methods = {
