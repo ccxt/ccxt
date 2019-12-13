@@ -445,6 +445,7 @@ class okex3 extends Exchange {
                 ),
             ),
             'options' => array (
+                'createMarketBuyOrderRequiresPrice' => true,
                 'fetchMarkets' => array ( 'spot', 'futures', 'swap' ),
                 'defaultType' => 'spot', // 'account', 'spot', 'margin', 'futures', 'swap'
                 'auth' => array (
