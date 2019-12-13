@@ -288,7 +288,7 @@ module.exports = class poloniex extends ccxt.poloniex {
     }
 
     handleWsMessage (client, message) {
-        const channelId = message[0].toString ();
+        const channelId = this.safeString (message, 0);
         const market = this.safeValue (this.options['marketsByNumericId'], channelId);
         if (market === undefined) {
             const methods = {
