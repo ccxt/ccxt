@@ -151,6 +151,10 @@ module.exports = class coindcx extends Exchange {
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const ticker = this.parseTicker (response[i]);
+            // I found out that sometimes it returns tickers that aren't in the markets, so we should no add this to results
+            if (ticker === undefined) {
+                continue;
+            }
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -174,10 +178,14 @@ module.exports = class coindcx extends Exchange {
 
     parseTicker (ticker) {
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
-        const symbol = this.findSymbol (this.safeString (ticker, 'market'));
+        const tickersMarket = this.safeString (ticker, 'market');
+        if (!(tickersMarket in this.markets_by_id)) {
+            return undefined;
+        }
+        const market = this.markets_by_id[tickersMarket];
         const last = this.safeFloat (ticker, 'last_price');
         return {
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'info': ticker,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
