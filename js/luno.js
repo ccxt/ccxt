@@ -148,10 +148,11 @@ module.exports = class luno extends Exchange {
         const timestamp = this.safeInteger (order, 'creation_timestamp');
         const status = (order['state'] === 'PENDING') ? 'open' : 'closed';
         const side = (order['type'] === 'ASK') ? 'sell' : 'buy';
-        if (market === undefined) {
-            market = this.findMarket (order['pair']);
-        }
+        const marketId = this.safeString (order, 'pair');
         let symbol = undefined;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
         if (market !== undefined) {
             symbol = market['symbol'];
         }
@@ -169,11 +170,15 @@ module.exports = class luno extends Exchange {
         }
         const fee = { 'currency': undefined };
         if (quoteFee) {
-            fee['side'] = 'quote';
             fee['cost'] = quoteFee;
+            if (market !== undefined) {
+                fee['currency'] = market['quote'];
+            }
         } else {
-            fee['side'] = 'base';
             fee['cost'] = baseFee;
+            if (market !== undefined) {
+                fee['currency'] = market['base'];
+            }
         }
         const id = this.safeString (order, 'order_id');
         return {

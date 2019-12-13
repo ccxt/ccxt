@@ -25,7 +25,7 @@ class mandala(Exchange):
             'countries': ['MT'],
             'version': 'v2',
             'rateLimit': 1500,
-            'certified': True,
+            'certified': False,
             # new metainfo interface
             'has': {
                 'cancelAllOrders': True,

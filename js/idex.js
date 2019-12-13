@@ -96,6 +96,10 @@ module.exports = class idex extends Exchange {
                 'apiKey': false,
                 'secret': false,
             },
+            'commonCurrencies': {
+                'ONE': 'Menlo One',
+                'FT': 'Fabric Token',
+            },
         });
     }
 

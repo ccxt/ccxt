@@ -74,33 +74,40 @@ class coinfloor extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $market = null;
-        if (is_array($params) && array_key_exists('symbol', $params)) {
-            $market = $this->find_market($params['symbol']);
+        $query = $params;
+        $symbol = $this->safe_string($params, 'symbol');
+        if ($symbol !== null) {
+            $market = $this->market ($params['symbol']);
+            $query = $this->omit ($params, 'symbol');
         }
-        if (is_array($params) && array_key_exists('id', $params)) {
-            $market = $this->find_market($params['id']);
+        $marketId = $this->safe_string($params, 'id');
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
         }
-        if (!$market) {
-            throw new NotSupported($this->id . ' fetchBalance requires a symbol param');
+        if ($market === null) {
+            throw new ArgumentsRequired($this->id . ' fetchBalance requires a $symbol param');
         }
         $request = array (
             'id' => $market['id'],
         );
-        $response = $this->privatePostIdBalance (array_merge ($request, $params));
+        $response = $this->privatePostIdBalance (array_merge ($request, $query));
         $result = array (
             'info' => $response,
         );
-        // base/quote used for $keys e.g. "xbt_reserved"
-        $keys = strtolower(explode('/', $market['id']));
-        $result[$market['base']] = array (
-            'free' => $this->safe_float($response, $keys[0] . '_available'),
-            'used' => $this->safe_float($response, $keys[0] . '_reserved'),
-            'total' => $this->safe_float($response, $keys[0] . '_balance'),
+        // base/quote used for keys e.g. "xbt_reserved"
+        $base = $market['base'];
+        $quote = $market['quote'];
+        $baseIdLower = $this->safe_string_lower($market, 'baseId');
+        $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
+        $result[$base] = array (
+            'free' => $this->safe_float($response, $baseIdLower . '_available'),
+            'used' => $this->safe_float($response, $baseIdLower . '_reserved'),
+            'total' => $this->safe_float($response, $baseIdLower . '_balance'),
         );
-        $result[$market['quote']] = array (
-            'free' => $this->safe_float($response, $keys[1] . '_available'),
-            'used' => $this->safe_float($response, $keys[1] . '_reserved'),
-            'total' => $this->safe_float($response, $keys[1] . '_balance'),
+        $result[$quote] = array (
+            'free' => $this->safe_float($response, $quoteIdLower . '_available'),
+            'used' => $this->safe_float($response, $quoteIdLower . '_reserved'),
+            'total' => $this->safe_float($response, $quoteIdLower . '_balance'),
         );
         return $this->parse_balance($result);
     }
@@ -208,10 +215,10 @@ class coinfloor extends Exchange {
         // $code is actually a $market symbol in this situation, not a currency $code
         $this->load_markets();
         $market = null;
-        if ($code) {
-            $market = $this->find_market($code);
-            if (!$market) {
-                throw new NotSupported($this->id . ' fetchTransactions requires a $code argument (a $market symbol)');
+        if ($code !== null) {
+            $market = $this->market ($code);
+            if ($market === null) {
+                throw new ArgumentsRequired($this->id . ' fetchTransactions requires a $code argument (a $market symbol)');
             }
         }
         $request = array (
@@ -399,7 +406,7 @@ class coinfloor extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new NotSupported($this->id . ' cancelOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -458,7 +465,7 @@ class coinfloor extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new NotSupported($this->id . ' fetchOpenOrders requires a $symbol param');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol param');
         }
         $this->load_markets();
         $market = $this->market ($symbol);

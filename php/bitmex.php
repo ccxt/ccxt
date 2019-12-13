@@ -148,6 +148,7 @@ class bitmex extends Exchange {
                     'Signature not valid' => '\\ccxt\\AuthenticationError',
                     'overloaded' => '\\ccxt\\ExchangeNotAvailable',
                     'Account has insufficient Available Balance' => '\\ccxt\\InsufficientFunds',
+                    'Service unavailable' => '\\ccxt\\ExchangeNotAvailable', // array("error":array("message":"Service unavailable","name":"HTTPError"))
                 ),
             ),
             'precisionMode' => TICK_SIZE,

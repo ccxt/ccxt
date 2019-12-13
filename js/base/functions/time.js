@@ -18,7 +18,7 @@ const setTimeout_safe = (done, ms, setTimeout = setTimeout_original /* overridea
     let clearInnerTimeout = () => {}
     let active = true
 
-    let id = setTimeout (() => {
+    const id = setTimeout (() => {
         active = true
         const rest = targetTime - now ()
         if (rest > 0) {
@@ -53,7 +53,7 @@ class TimedOut extends Error {
 /*  ------------------------------------------------------------------------ */
 
 const iso8601 = (timestamp) => {
-    let _timestampNumber;
+    let _timestampNumber = undefined;
     if (typeof timestamp === 'number') {
         _timestampNumber = Math.floor (timestamp);
     } else {
