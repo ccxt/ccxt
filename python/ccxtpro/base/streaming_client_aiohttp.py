@@ -19,10 +19,7 @@ class StreamingClientAiohttp(StreamingClient):
             print(Exchange.iso8601(Exchange.milliseconds()), 'message', message)
             data = message.data
             message = json.loads(data) if Exchange.is_json_encoded_object(data) else data
-            print('~~~~~~', self.on_message_callback)
             self.on_message_callback(self, message)
-            print('~~~~~~=======')
-            # self.resolve(message)
         # elif message.type == WSMsgType.BINARY:
         #     print(Exchange.iso8601(Exchange.milliseconds()), 'binary', message)
         elif message.type == WSMsgType.PING:
@@ -53,14 +50,12 @@ class StreamingClientAiohttp(StreamingClient):
     def close(self):
         return self.connection.close()
 
-    # async def ping_loop(self):
-    #     pass
-    #     # print(Exchange.iso8601(Exchange.milliseconds()), 'ping loop')
-    #     # while not self.closed():
-    #     #     #     if (self.lastPong + self.keepAlive) < Exchange.milliseconds():
-    #     #     #         self.reset(RequestTimeout('Connection to ' + self.url + ' timed out due to a ping-pong keepalive missing on time'))
-    #     #     #     else:
-    #     #     #         if self.connection.readyState == WebSocket.OPEN:
-    #     #     #             self.connection.ping()
-    #     #     await sleep(self.keepAlive / 1000)
-
+    async def ping_loop(self):
+        print(Exchange.iso8601(Exchange.milliseconds()), 'ping loop')
+        while not self.closed():
+            #     if (self.lastPong + self.keepAlive) < Exchange.milliseconds():
+            #         self.reset(RequestTimeout('Connection to ' + self.url + ' timed out due to a ping-pong keepalive missing on time'))
+            #     else:
+            #         if self.connection.readyState == WebSocket.OPEN:
+            #             self.connection.ping()
+            await sleep(self.keepAlive / 1000)

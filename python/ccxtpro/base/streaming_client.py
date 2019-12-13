@@ -1,4 +1,4 @@
-import json
+# import json
 from asyncio import sleep, ensure_future, wait_for, gather, TimeoutError
 from ccxt.async_support import Exchange
 from ccxt.base.errors import NetworkError, RequestTimeout, NotSupported

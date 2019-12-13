@@ -8,6 +8,7 @@ from ccxtpro.base.streaming_client import StreamingClient
 # from websockets.exceptions import ConnectionClosed
 # import websockets.exceptions
 
+
 class StreamingClientWebsockets(StreamingClient):
 
     def closed(self):
