@@ -545,11 +545,21 @@ class fcoin extends Exchange {
             }
         }
         $feeCurrency = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-            $feeCurrency = ($side === 'buy') ? $market['base'] : $market['quote'];
+        $feeCost = null;
+        $feeRebate = $this->safe_float($order, 'fees_income');
+        if (($feeRebate !== null) && ($feeRebate > 0)) {
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+                $feeCurrency = ($side === 'buy') ? $market['quote'] : $market['base'];
+            }
+            $feeCost = -$feeRebate;
+        } else {
+            $feeCost = $this->safe_float($order, 'fill_fees');
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+                $feeCurrency = ($side === 'buy') ? $market['base'] : $market['quote'];
+            }
         }
-        $feeCost = $this->safe_float($order, 'fill_fees');
         return array (
             'info' => $order,
             'id' => $id,
