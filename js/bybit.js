@@ -526,7 +526,7 @@ module.exports = class bybit extends Exchange {
         //     "cross_seq": 0
         // }
         const id = this.safeString (item, 'id');
-        const account = this.safeString (item, 'user_id');;
+        const account = this.safeString (item, 'user_id');
         const referenceId = this.safeString (item, 'tx_id');
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
         const code = this.safeCurrencyCode (this.safeString (item, 'coin'), currency);
@@ -941,12 +941,12 @@ module.exports = class bybit extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            this.safeFloat (ohlcv, 'open_time'),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
+            this.safeFloat (ohlcv, 'open_time') * 1000,
+            this.safeFloat (ohlcv, 'open') * 1000,
+            this.safeFloat (ohlcv, 'high') * 1000,
+            this.safeFloat (ohlcv, 'low') * 1000,
+            this.safeFloat (ohlcv, 'close') * 1000,
+            this.safeFloat (ohlcv, 'volume') * 1000,
         ];
     }
 
