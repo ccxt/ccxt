@@ -475,29 +475,9 @@ module.exports = class coinsbit extends Exchange {
         }
         const isSuccess = this.safeValue (response, 'success', true);
         if (!isSuccess) {
-            const messages = this.safeValue (response, 'message');
-            let errorMessage = '';
-            if (this.isObject (messages)) {
-                const messagesKeys = Object.keys (messages);
-                for (let messageIndex = 0; messageIndex < messagesKeys.length; messageIndex++) {
-                    if (messageIndex > 0) {
-                        errorMessage += ', ';
-                    }
-                    errorMessage += messages[messagesKeys[messageIndex]];
-                }
-            } else if (this.isArray (messages)) {
-                for (let messageIndex = 0; messageIndex < messages.length; messageIndex++) {
-                    if (messageIndex > 0) {
-                        errorMessage += ', ';
-                    }
-                    errorMessage += messages[messageIndex];
-                }
-            } else {
-                errorMessage = messages;
-            }
-            const feedback = "\n" + 'id: ' + this.id + "\n" + 'url: ' + url + "\n" + 'Error: ' + errorMessage + "\n" + 'body:' + "\n" + body; // eslint-disable-line quotes
-            this.throwExactlyMatchedException (this.exceptions, errorMessage, feedback);
-            this.throwBroadlyMatchedException (this.exceptions, errorMessage, feedback);
+            const messages = this.json (this.safeValue (response, 'message'));
+            const feedback = "\n" + 'id: ' + this.id + "\n" + 'url: ' + url + "\n" + 'Error: ' + messages + "\n" + 'body:' + "\n" + body; // eslint-disable-line quotes
+            this.throwBroadlyMatchedException (this.exceptions, messages, feedback);
             throw new ExchangeError (feedback);
         }
     }
