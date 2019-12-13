@@ -20,7 +20,7 @@ class bitstamp extends Exchange {
             'has' => array (
                 'CORS' => true,
                 'fetchDepositAddress' => true,
-                'fetchOrder' => 'emulated',
+                'fetchOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => true,
                 'fetchTransactions' => true,

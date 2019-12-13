@@ -255,8 +255,36 @@ class deribit extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
+        //
+        //     {
+        //         "currentFunding":0.0,
+        //         "funding8h":0.0000017213784611422821,
+        //         "instrumentName":"BTC-PERPETUAL",
+        //         "openInterest":7600223,
+        //         "openInterestAmount":76002230,
+        //         "high":7665.5,
+        //         "low":7450.0,
+        //         "volume":12964792.0,
+        //         "volumeUsd":129647920,
+        //         "volumeBtc":17214.63595316,
+        //         "$last":7520.5,
+        //         "bidPrice":7520.0,
+        //         "askPrice":7520.5,
+        //         "midPrice":7520.25,
+        //         "estDelPrice":"",
+        //         "markPrice":7521.0,
+        //         "created":"2019-12-09 15:17:00 GMT"
+        //     }
+        //
         $timestamp = $this->safe_integer($ticker, 'created');
-        $symbol = $this->find_symbol($this->safe_string($ticker, 'instrumentName'), $market);
+        $symbol = null;
+        $marketId = $this->safe_string($ticker, 'instrumentName');
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+        }
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
+        }
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -289,6 +317,35 @@ class deribit extends Exchange {
             'instrument' => $market['id'],
         );
         $response = $this->publicGetGetsummary (array_merge ($request, $params));
+        //
+        //     {
+        //         "usOut":1575904620528163,
+        //         "usIn":1575904620528129,
+        //         "usDiff":34,
+        //         "testnet":false,
+        //         "success":true,
+        //         "result" => array (
+        //             "currentFunding":0.0,
+        //             "funding8h":0.0000017213784611422821,
+        //             "instrumentName":"BTC-PERPETUAL",
+        //             "openInterest":7600223,
+        //             "openInterestAmount":76002230,
+        //             "high":7665.5,
+        //             "low":7450.0,
+        //             "volume":12964792.0,
+        //             "volumeUsd":129647920,
+        //             "volumeBtc":17214.63595316,
+        //             "last":7520.5,
+        //             "bidPrice":7520.0,
+        //             "askPrice":7520.5,
+        //             "midPrice":7520.25,
+        //             "estDelPrice":"",
+        //             "markPrice":7521.0,
+        //             "created":"2019-12-09 15:17:00 GMT"
+        //         ),
+        //         "message":""
+        //     }
+        //
         return $this->parse_ticker($response['result'], $market);
     }
 

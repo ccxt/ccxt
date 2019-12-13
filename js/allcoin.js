@@ -107,10 +107,7 @@ module.exports = class allcoin extends okcoinusd {
                             'min': this.safeFloat (market, 'MinOrderPrice'),
                             'max': this.safeFloat (market, 'MaxOrderPrice'),
                         },
-                        'cost': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
+                        'cost': { 'min': undefined, 'max': undefined },
                     },
                     'info': market,
                 });

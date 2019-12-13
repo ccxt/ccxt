@@ -479,7 +479,7 @@ class bitmax extends Exchange {
         if ($since !== null) {
             $request['from'] = $since;
             if ($limit !== null) {
-                $request['to'] = $this->sum ($request['from'], $limit * $duration * 1000, 1);
+                $request['to'] = $this->sum ($since, $limit * $duration * 1000, 1);
             }
         } else if ($limit !== null) {
             $request['to'] = $this->milliseconds ();

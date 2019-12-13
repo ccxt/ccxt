@@ -16,7 +16,7 @@ class mandala extends Exchange {
             'countries' => array ( 'MT' ),
             'version' => 'v2',
             'rateLimit' => 1500,
-            'certified' => true,
+            'certified' => false,
             // new metainfo interface
             'has' => array (
                 'cancelAllOrders' => true,

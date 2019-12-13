@@ -107,10 +107,7 @@ class allcoin(okcoinusd):
                             'min': self.safe_float(market, 'MinOrderPrice'),
                             'max': self.safe_float(market, 'MaxOrderPrice'),
                         },
-                        'cost': {
-                            'min': None,
-                            'max': None,
-                        },
+                        'cost': {'min': None, 'max': None},
                     },
                     'info': market,
                 })
