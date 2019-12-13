@@ -41,17 +41,18 @@ class bitz extends Exchange {
                 '1w' => '1week',
                 '1M' => '1mon',
             ),
+            'hostname' => 'apiv2.bitz.com',
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
                 'api' => array (
-                    'market' => 'https://apiv2.bit-z.pro',
-                    'trade' => 'https://apiv2.bit-z.pro',
-                    'assets' => 'https://apiv2.bit-z.pro',
+                    'market' => 'https://{hostname}',
+                    'trade' => 'https://{hostname}',
+                    'assets' => 'https://{hostname}',
                 ),
-                'www' => 'https://www.bit-z.com',
-                'doc' => 'https://apidoc.bit-z.com/en/',
-                'fees' => 'https://www.bit-z.com/fee?type=1',
-                'referral' => 'https://u.bit-z.com/register?invite_code=1429193',
+                'www' => 'https://www.bitz.com',
+                'doc' => 'https://apidoc.bitz.com/en/',
+                'fees' => 'https://www.bitz.com/fee?type=1',
+                'referral' => 'https://u.bitz.com/register?invite_code=1429193',
             ),
             'api' => array (
                 'market' => array (
@@ -1161,7 +1162,8 @@ class bitz extends Exchange {
     }
 
     public function sign ($path, $api = 'market', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$api] . '/' . $this->capitalize ($api) . '/' . $path;
+        $baseUrl = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname ));
+        $url = $baseUrl . '/' . $this->capitalize ($api) . '/' . $path;
         $query = null;
         if ($api === 'market') {
             $query = $this->urlencode ($params);
