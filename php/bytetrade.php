@@ -1140,7 +1140,7 @@ class bytetrade extends Exchange {
         );
         $response = $this->publicGetDepositaddress ($request);
         $address = $this->safe_string($response[0], 'address');
-        $tag = $this->safe_string($response[0], 'addressTag');
+        $tag = $this->safe_string($response[0], 'tag');
         $chainType = $this->safe_string($response[0], 'chainType');
         $this->check_address($address);
         return array (
@@ -1160,21 +1160,17 @@ class bytetrade extends Exchange {
             throw new ArgumentsRequired('withdraw requires $this->apiKey');
         }
         $addressResponse = $this->fetch_deposit_address ($code);
-        $middleAddress = $this->safe_string($addressResponse, 'address');
         $chainTypeString = $this->safe_string($addressResponse, 'chainType');
-        $chainType = 0;
-        $operationId = 18;
-        if ($chainTypeString === 'ethereum') {
-            $chainType = 1;
-        } else if ($chainTypeString === 'bitcoin') {
-            $chainType = 2;
-            $operationId = 26;
-        } else if ($chainTypeString === 'cmt') {
-            $chainType = 3;
-        } else if ($chainTypeString === 'naka') {
-            $chainType = 4;
+        $chainId = $this->safe_string($addressResponse['info'][0], 'chainId');
+        $middleAddress = '';
+        if ($chainTypeString === 'eos') {
+            $middleAddress = $address;
         } else {
-            throw new ExchangeError($this->id . ' ' . $code . ' is not supported.');
+            $middleAddress = $this->safe_string($addressResponse, 'address');
+        }
+        $operationId = 18;
+        if ($chainTypeString !== 'ethereum' && $chainTypeString !== 'etc' && $chainTypeString !== 'eos' && $chainTypeString !== 'cmt' && $chainTypeString !== 'naka') {
+            $operationId = 26;
         }
         $now = $this->milliseconds ();
         $expiration = 0;
@@ -1191,7 +1187,7 @@ class bytetrade extends Exchange {
         $eightBytes = $this->integer_pow ('2', '64');
         $assetFee = 0;
         $byteStringArray = array();
-        if ($chainTypeString === 'bitcoin') {
+        if ($operationId === 26) {
             $assetFee = $currency['info']['fee'];
             $byteStringArray = array (
                 $this->numberToBE (1, 32),
@@ -1258,7 +1254,7 @@ class bytetrade extends Exchange {
         $request = null;
         $operation = null;
         $chainContractAddress = $this->safe_string($currency['info'], 'chainContractAddress');
-        if ($chainTypeString === 'bitcoin') {
+        if ($operationId === 26) {
             $operation = array (
                 'fee' => $feeAmount,
                 'from' => $this->apiKey,
@@ -1283,7 +1279,7 @@ class bytetrade extends Exchange {
                 ),
             );
             $request = array (
-                'chainType' => $chainType,
+                'chainType' => $chainId,
                 'trObj' => $this->json ($fatty),
                 'chainContractAddresss' => $chainContractAddress,
             );
@@ -1319,12 +1315,21 @@ class bytetrade extends Exchange {
                     $mySignature,
                 ),
             );
-            $request = array (
-                'chainType' => $chainType,
-                'toExternalAddress' => $address,
-                'trObj' => $this->json ($fatty),
-                'chainContractAddresss' => $chainContractAddress,
-            );
+            if ($chainTypeString === 'eos') {
+                $request = array (
+                    'chainType' => $chainId,
+                    'toExternalAddress' => 'noneed',
+                    'trObj' => $this->json ($fatty),
+                    'chainContractAddresss' => $chainContractAddress,
+                );
+            } else {
+                $request = array (
+                    'chainType' => $chainId,
+                    'toExternalAddress' => $address,
+                    'trObj' => $this->json ($fatty),
+                    'chainContractAddresss' => $chainContractAddress,
+                );
+            }
         }
         $response = $this->publicPostTransactionWithdraw ($request);
         return array (
