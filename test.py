@@ -52,8 +52,7 @@ async def test():
     while True:
         try:
             x = await exchange.fetch_ws_order_book(symbol)
-            print('-', x)
-            sys.exit()
+            print(x)
         except Exception as e:
             print('Error', type(e), str(e))
             await sleep(1)

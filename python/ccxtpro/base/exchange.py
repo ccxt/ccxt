@@ -7,10 +7,9 @@ __version__ = '1.0.0'
 # -----------------------------------------------------------------------------
 
 import asyncio
-# import sys
 from ccxtpro.base.streaming_client_aiohttp import StreamingClientAiohttp
-from ccxt.async_support.base.exchange import Exchange as BaseExchange
-from ccxt.base.errors import NotSupported
+from ccxt.async_support import Exchange as BaseExchange
+from ccxt import NotSupported
 
 # -----------------------------------------------------------------------------
 
@@ -29,9 +28,9 @@ class Exchange(BaseExchange):
     def websocket(self, url):
         self.clients = self.clients or {}
         if url not in self.clients:
-            on_message = self.handle_ws_message  # .bind(self)
-            on_error = self.on_ws_error  # .bind(self)
-            on_close = self.on_ws_close  # .bind(self)
+            on_message = self.handle_ws_message
+            on_error = self.on_ws_error
+            on_close = self.on_ws_close
             self.clients[url] = StreamingClientAiohttp(url, on_message, on_error, on_close)
         return self.clients[url]
 
