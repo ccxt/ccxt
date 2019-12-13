@@ -4,9 +4,6 @@ from aiohttp import WSMsgType
 from ccxt.async_support import Exchange
 from ccxtpro.base.streaming_client import StreamingClient
 
-# from ccxt.base.errors import NetworkError, RequestTimeout, NotSupported
-# from ccxtpro.base.future import Future
-
 
 class StreamingClientAiohttp(StreamingClient):
 

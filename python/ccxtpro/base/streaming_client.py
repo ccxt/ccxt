@@ -1,7 +1,5 @@
 import json
 from asyncio import sleep, ensure_future, wait_for, gather, TimeoutError
-# from aiohttp.client_exceptions import ClientConnectorError
-# from aiohttp import WSMsgType
 from ccxt.async_support import Exchange
 from ccxt.base.errors import NetworkError, RequestTimeout, NotSupported
 from ccxtpro.base.future import Future
@@ -32,7 +30,7 @@ class StreamingClient(object):
             'error': None,  # stores low-level networking exception, if any
             'connectionStarted': None,  # initiation timestamp in milliseconds
             'connectionEstablished': None,  # success timestamp in milliseconds
-            'connectionTimeout': 10000,  # 10 seconds by default, false to disable
+            'connectionTimeout': 5000,  # 10 seconds by default, false to disable
             'keepAlive': 3000,  # ping-pong keep-alive frequency
             # timeout is not used atm
             # timeout: 30000,  # throw if a request is not satisfied in 30 seconds, false to disable
@@ -95,7 +93,7 @@ class StreamingClient(object):
         self.connectionStarted = Exchange.milliseconds()
         try:
             coroutine = self.create_connection(session)
-            self.connection = await wait_for(coroutine, self.connectionTimeout / 1000)
+            self.connection = await wait_for(coroutine, timeout=int(self.connectionTimeout / 1000))
             print(Exchange.iso8601(Exchange.milliseconds()), 'connected')
             self.connected.resolve()
             # run both loops forever

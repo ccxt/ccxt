@@ -1,9 +1,8 @@
 import json
-from asyncio import sleep, ensure_future, wait_for, gather, TimeoutError
+# from asyncio import sleep, ensure_future, wait_for, gather, TimeoutError
 from ccxt.async_support import Exchange
-from ccxt.base.errors import NetworkError, RequestTimeout, NotSupported
-from ccxtpro.base.future import Future
-from websockets import connect
+from ccxt.base.errors import NotSupported
+from websockets.client import connect
 from ccxtpro.base.streaming_client import StreamingClient
 
 # from websockets.exceptions import ConnectionClosed
