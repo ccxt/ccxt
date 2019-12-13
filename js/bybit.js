@@ -23,11 +23,9 @@ module.exports = class bybit extends Exchange {
                 'fetchOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchTrades': true,
-                'fetchOrder': 'emulated',
-                'fetchOrders': true,
+                'fetchOrder': true,
+                'fetchOrders': false, // at 13.12.2019 can't be defined since bybit has 2 different endpoints with the same params for getting active and conditional orders.
                 'createOrder': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
                 'withdraw': false,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
