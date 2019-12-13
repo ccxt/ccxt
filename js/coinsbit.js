@@ -152,7 +152,7 @@ module.exports = class coinsbit extends Exchange {
             const tickerObject = tickers[tickerId];
             const ticker = this.safeValue (tickerObject, 'ticker');
             ticker['at'] = this.safeValue (tickerObject, 'at');
-            const market = this.markets_by_id[tickerId];
+            const market = this.safeValue (this.markets_by_id, tickerId);
             parsedTickers.push (this.parseTicker (ticker, market));
         }
         return this.filterByArray (parsedTickers, 'symbol', symbols);
@@ -358,7 +358,6 @@ module.exports = class coinsbit extends Exchange {
         }
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
-        const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
         const remaining = this.safeFloat (order, 'left');
         let status = undefined;
@@ -370,7 +369,15 @@ module.exports = class coinsbit extends Exchange {
             status = 'open';
             filled = amount - remaining;
         }
-        const cost = price * filled;
+        let price = this.safeFloat (order, 'price');
+        const cost = this.safeFloat (order, 'dealMoney');
+        if (price === 0.0) {
+            if ((cost !== undefined) && (filled !== undefined)) {
+                if ((cost > 0) && (filled > 0)) {
+                    price = cost / filled;
+                }
+            }
+        }
         const fee = {
             'currency': currency,
             'cost': this.safeFloat (order, 'dealFee'),
