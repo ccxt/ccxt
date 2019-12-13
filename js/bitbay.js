@@ -101,8 +101,8 @@ module.exports = class bitbay extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0,
-                    'taker': 0.1 / 100,
+                    'maker': 0.30 / 100,
+                    'taker': 0.43 / 100,
                 },
                 'funding': {
                     'withdraw': {
