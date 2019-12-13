@@ -21,7 +21,7 @@ class StreamingClientAiohttp(StreamingClient):
             message = json.loads(data) if Exchange.is_json_encoded_object(data) else data
             self.on_message_callback(self, message)
         elif message.type == WSMsgType.BINARY:
-        #     # print(Exchange.iso8601(Exchange.milliseconds()), 'binary', message)
+            # print(Exchange.iso8601(Exchange.milliseconds()), 'binary', message)
             pass
         elif message.type == WSMsgType.PING:
             # print(Exchange.iso8601(Exchange.milliseconds()), 'ping', message)
