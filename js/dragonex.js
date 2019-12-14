@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, OrderNotFound, InvalidAddress } = require ('./base/errors');
+const { ArgumentsRequired, OrderNotFound, InvalidAddress } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -283,6 +283,8 @@ module.exports = class dragonex extends Exchange {
         result[bidsKey] = buysList;
         result[asksKey] = sellsList;
         result['timestamp'] = timestamp;
+        result['nonce'] = undefined;
+        result['datetime'] = undefined;
         return result;
     }
 
@@ -368,7 +370,7 @@ module.exports = class dragonex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeString (trade, 'timestamp');
+        const timestamp = this.safeFloat (trade, 'timestamp');
         const price = this.safeFloat (trade, 'deal_price');
         const amount = this.safeFloat (trade, 'deal_volume');
         const id = this.safeString (trade, 'id');
@@ -436,7 +438,7 @@ module.exports = class dragonex extends Exchange {
                 'charge': data[i][5],
                 'price_base': data[i][6],
                 'usdt_amount': data[i][7],
-                'timestamp': data[i][8],
+                'timestamp': data[i][8] / 1E6,
             };
             // const trade = this.parseTrade (dataDict, market);
             // result.push (trade);
@@ -888,13 +890,13 @@ module.exports = class dragonex extends Exchange {
                 const error = this.safeString (response, 'code');
                 const message = this.id + ' ' + this.json (response);
                 if (error in this.exceptions) {
-                    const ExceptionClass = this.exceptions[error];
-                    throw new ExceptionClass (message);
+                    const msg = this.exceptions[error];
+                    return msg;
                 } else {
-                    throw new ExchangeError (message);
+                    return message;
                 }
             } else {
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+                return this.id + ' ' + this.json (response);
             }
         }
     }
