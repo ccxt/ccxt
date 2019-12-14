@@ -1,7 +1,7 @@
 # import json
 from asyncio import sleep, ensure_future, wait_for, gather, TimeoutError
 from ccxt.async_support import Exchange
-from ccxt.base.errors import NetworkError, RequestTimeout, NotSupported
+from ccxt import NetworkError, RequestTimeout, NotSupported
 from ccxtpro.base.future import Future
 
 
@@ -10,12 +10,14 @@ class StreamingClient(object):
     url = None
     ws = None
     futures = {}
+    subscriptions = {}
     on_message_callback = None
     on_error_callback = None
     on_close_callback = None
     keepAlive = 3000
     connectionTimeout = 10000  # 10 seconds by default, false to disable
     connection = None
+    error = None  # low-level networking exception, if any
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
         defaults = {
@@ -25,9 +27,6 @@ class StreamingClient(object):
             'on_close_callback': on_close_callback,
             'protocols': None,  # ws-specific protocols
             'options': None,  # ws-specific options
-            'futures': {},
-            'subscriptions': {},
-            'error': None,  # stores low-level networking exception, if any
             'connectionStarted': None,  # initiation timestamp in milliseconds
             'connectionEstablished': None,  # success timestamp in milliseconds
             'connectionTimeout': 5000,  # 10 seconds by default, false to disable
@@ -103,18 +102,34 @@ class StreamingClient(object):
             # connection timeout
             error = RequestTimeout('Connection timeout')
             print(Exchange.iso8601(Exchange.milliseconds()), 'RequestTimeout', error)
-            self.reset(error)
+            self.on_error(error)
         except Exception as e:
             # connection failed or rejected (ConnectionRefusedError, ClientConnectorError)
             error = NetworkError(e)
             print(Exchange.iso8601(Exchange.milliseconds()), 'NetworkError', error)
-            self.reset(error)
+            self.on_error(error)
 
     def connect(self, session, backoff_delay=0):
         if not self.connection:
             self.connection = True
             ensure_future(self.open(session, backoff_delay))
         return self.connected
+
+    def on_error(self, error):
+        print(Exchange.iso8601(Exchange.milliseconds()), 'on_error', error)
+        self.error = error
+        self.reset(error)
+        self.on_error_callback(self, error)
+        if not self.closed():
+            ensure_future(self.close(1006))
+
+    def on_close(self, code):
+        print(Exchange.iso8601(Exchange.milliseconds()), 'on_close', code)
+        if not self.error:
+            self.reset(NetworkError(code))
+        self.on_close_callback(self, code)
+        if not self.closed():
+            ensure_future(self.close(code))
 
     def reset(self, error):
         self.connected.reject(error)
@@ -136,7 +151,7 @@ class StreamingClient(object):
     def send(self, message):
         raise NotSupported('send() not implemented')
 
-    def close(self):
+    def close(self, code=1000):
         raise NotSupported('close() not implemented')
 
     def create_connection(self, session):
