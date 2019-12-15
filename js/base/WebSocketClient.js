@@ -86,8 +86,8 @@ module.exports = class WebSocketClient {
         console.log (new Date (), 'connecting...')
         this.connectionStarted = milliseconds ()
         this.setConnectionTimeout ()
-        this.ws = new WebSocket (this.url, this.protocols, this.options)
-        this.ws
+        this.connection = new WebSocket (this.url, this.protocols, this.options)
+        this.connection
             .on ('open', this.onOpen.bind (this))
             .on ('ping', this.onPing.bind (this))
             .on ('pong', this.onPong.bind (this))
@@ -95,14 +95,14 @@ module.exports = class WebSocketClient {
             .on ('close', this.onClose.bind (this))
             .on ('upgrade', this.onUpgrade.bind (this))
             .on ('message', this.onMessage.bind (this))
-        // this.ws.terminate () // debugging
-        // this.ws.close () // debugging
+        // this.connection.terminate () // debugging
+        // this.connection.close () // debugging
     }
 
     connect (backoffDelay = 0) {
-        if ((this.ws.readyState !== WebSocket.OPEN) && (this.ws.readyState !== WebSocket.CONNECTING)) {
+        if ((this.connection.readyState !== WebSocket.OPEN) && (this.connection.readyState !== WebSocket.CONNECTING)) {
             // prevent multiple calls overwriting each other
-            this.ws.readyState = WebSocket.CONNECTING
+            this.connection.readyState = WebSocket.CONNECTING
             // exponential backoff for consequent ws connections if necessary
             if (backoffDelay) {
                 sleep (backoffDelay).then (this.createWebsocket.bind (this))
@@ -121,11 +121,11 @@ module.exports = class WebSocketClient {
     }
 
     onConnectionTimeout () {
-        if (this.ws.readyState !== WebSocket.OPEN) {
+        if (this.connection.readyState !== WebSocket.OPEN) {
             const error = new RequestTimeout ('Connection to ' + this.url + ' failed due to a connection timeout')
             this.reset (error)
             this.onErrorCallback (this, error)
-            this.ws.close (1006)
+            this.connection.close (1006)
         }
     }
 
@@ -159,8 +159,8 @@ module.exports = class WebSocketClient {
         if ((this.lastPong + this.keepAlive) < milliseconds ()) {
             this.reset (new RequestTimeout ('Connection to ' + this.url + ' timed out due to a ping-pong keepalive missing on time'))
         } else {
-            if (this.ws.readyState === WebSocket.OPEN) {
-                this.ws.ping ()
+            if (this.connection.readyState === WebSocket.OPEN) {
+                this.connection.ping ()
             }
         }
     }
@@ -169,7 +169,7 @@ module.exports = class WebSocketClient {
         console.log (new Date (), 'onOpen')
         this.connectionEstablished = milliseconds ()
         this.connected.resolve (this.url)
-        // this.ws.terminate () // debugging
+        // this.connection.terminate () // debugging
         this.clearConnectionTimeout ()
         this.setPingInterval ()
     }
@@ -210,12 +210,12 @@ module.exports = class WebSocketClient {
     }
 
     send (message) {
-        this.ws.send (JSON.stringify (message))
+        this.connection.send (JSON.stringify (message))
     }
 
     close () {
         this.reconnect = false
-        this.ws.close ()
+        this.connection.close ()
     }
 
     onMessage (message) {
