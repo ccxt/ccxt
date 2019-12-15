@@ -104,10 +104,12 @@ class Exchange(BaseExchange):
             if client.url in self.clients:
                 del self.clients[client.url]
 
-    # def async close(self):
-    #     const clients = Object.values(self.clients)
-    #     for (let i = 0; i < clients.length; i++):
-    #         await clients[i].close()
+    async def close(self):
+        keys = list(self.clients.keys())
+        for key in keys:
+            await self.clients[key].close()
+            del self.clients[key]
+        return await super(Exchange, self).close()
 
     # -------------------------------------------------------------------------
 
