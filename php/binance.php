@@ -160,6 +160,9 @@ class binance extends Exchange {
                         'ticker/bookTicker',
                         'income',
                     ),
+                    'put' => array ( 'listenKey' ),
+                    'post' => array ( 'listenKey' ),
+                    'delete' => array ( 'listenKey' ),
                 ),
                 'fapiPrivate' => array (
                     'get' => array (
@@ -1605,7 +1608,7 @@ class binance extends Exchange {
         if ($api === 'wapi') {
             $url .= '.html';
         }
-        $userDataStream = ($path === 'userDataStream');
+        $userDataStream = (($path === 'userDataStream') || ($path === 'listenKey'));
         if ($path === 'historicalTrades') {
             $headers = array (
                 'X-MBX-APIKEY' => $this->apiKey,
