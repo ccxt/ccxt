@@ -219,7 +219,7 @@ class kraken extends \ccxt\kraken {
                 'name' => $name,
             ),
         );
-        $future = $this->sendWsMessage ($url, $messageHash, array_replace_recursive ($subscribe, $params), $messageHash);
+        $future = $this->watch ($url, $messageHash, array_replace_recursive ($subscribe, $params), $messageHash);
         $client = $this->clients[$url];
         $client['futures'][$requestId] = $future;
         return $future;
@@ -275,7 +275,7 @@ class kraken extends \ccxt\kraken {
         $this->load_markets();
         $event = 'heartbeat';
         $url = $this->urls['api']['ws']['public'];
-        return $this->sendWsMessage ($url, $event);
+        return $this->watch ($url, $event);
     }
 
     public function handle_heartbeat ($client, $message) {

@@ -213,7 +213,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
                 'name': name,
             },
         }
-        future = self.sendWsMessage(url, messageHash, self.deep_extend(subscribe, params), messageHash)
+        future = self.watch(url, messageHash, self.deep_extend(subscribe, params), messageHash)
         client = self.clients[url]
         client['futures'][requestId] = future
         return future
@@ -259,7 +259,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         await self.load_markets()
         event = 'heartbeat'
         url = self.urls['api']['ws']['public']
-        return self.sendWsMessage(url, event)
+        return self.watch(url, event)
 
     def handle_heartbeat(self, client, message):
         #

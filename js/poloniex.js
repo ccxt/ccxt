@@ -52,7 +52,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         };
         const messageHash = channelId + ':b:e';
         const url = this.urls['api']['ws'];
-        return this.sendWsMessage (url, messageHash, subscribe, channelId);
+        return this.watch (url, messageHash, subscribe, channelId);
     }
 
     async watchTickers (symbols = undefined, params = {}) {
@@ -94,7 +94,7 @@ module.exports = class poloniex extends ccxt.poloniex {
             'command': 'subscribe',
             'channel': numericId,
         };
-        return this.sendWsMessage (url, messageHash, subscribe, numericId);
+        return this.watch (url, messageHash, subscribe, numericId);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -110,19 +110,19 @@ module.exports = class poloniex extends ccxt.poloniex {
         // the commented lines below won't work in sync php
         // todo: resolve future results via a base proxy-method
         //
-        // const orderbook = await this.sendWsMessage (url, messageHash, {
+        // const orderbook = await this.watch (url, messageHash, {
         //     'command': 'subscribe',
         //     'channel': numericId,
         // });
         // return orderbook.limit (limit);
-        return await this.sendWsMessage (url, messageHash, subscribe, numericId);
+        return await this.watch (url, messageHash, subscribe, numericId);
     }
 
     async watchHeartbeat (params = {}) {
         await this.loadMarkets ();
         const channelId = '1010';
         const url = this.urls['api']['ws'];
-        return this.sendWsMessage (url, channelId);
+        return this.watch (url, channelId);
     }
 
     signWsMessage (client, messageHash, message, params = {}) {

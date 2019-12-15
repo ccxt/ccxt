@@ -211,7 +211,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                 messageHash,
             ],
         }
-        return self.sendWsMessage(url, messageHash, self.deep_extend(request, params), messageHash)
+        return self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         name = 'ohlc'
@@ -241,7 +241,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         await self.load_markets()
         event = 'heartbeat'
         url = self.urls['api']['ws']
-        return self.sendWsMessage(url, event)
+        return self.watch(url, event)
 
     def sign_ws_message(self, client, messageHash, message, params={}):
         # todo: bitmex signWsMessage not implemented yet

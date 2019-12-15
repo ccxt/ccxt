@@ -98,7 +98,7 @@ module.exports = class binance extends ccxt.binance {
             'id': requestId,
         };
         const messageHash = stream;
-        const future = this.sendWsMessage (url, messageHash, this.extend (request, params), messageHash);
+        const future = this.watch (url, messageHash, this.extend (request, params), messageHash);
         const client = this.clients[url];
         client['futures'][requestId] = future;
         return future;

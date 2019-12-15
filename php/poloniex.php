@@ -56,7 +56,7 @@ class poloniex extends \ccxt\poloniex {
         );
         $messageHash = $channelId . ':b:e';
         $url = $this->urls['api']['ws'];
-        return $this->sendWsMessage ($url, $messageHash, $subscribe, $channelId);
+        return $this->watch ($url, $messageHash, $subscribe, $channelId);
     }
 
     public function watch_tickers ($symbols = null, $params = array ()) {
@@ -98,7 +98,7 @@ class poloniex extends \ccxt\poloniex {
             'command' => 'subscribe',
             'channel' => $numericId,
         );
-        return $this->sendWsMessage ($url, $messageHash, $subscribe, $numericId);
+        return $this->watch ($url, $messageHash, $subscribe, $numericId);
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
@@ -114,19 +114,19 @@ class poloniex extends \ccxt\poloniex {
         // the commented lines below won't work in sync php
         // todo => resolve future results via a base proxy-method
         //
-        // $orderbook = $this->sendWsMessage ($url, $messageHash, array (
+        // $orderbook = $this->watch ($url, $messageHash, array (
         //     'command' => 'subscribe',
         //     'channel' => $numericId,
         // ));
         // return $orderbook->limit ($limit);
-        return $this->sendWsMessage ($url, $messageHash, $subscribe, $numericId);
+        return $this->watch ($url, $messageHash, $subscribe, $numericId);
     }
 
     public function watch_heartbeat ($params = array ()) {
         $this->load_markets();
         $channelId = '1010';
         $url = $this->urls['api']['ws'];
-        return $this->sendWsMessage ($url, $channelId);
+        return $this->watch ($url, $channelId);
     }
 
     public function sign_ws_message ($client, $messageHash, $message, $params = array ()) {

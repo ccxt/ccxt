@@ -215,7 +215,7 @@ module.exports = class bitmex extends ccxt.bitmex {
                 messageHash,
             ],
         };
-        return this.sendWsMessage (url, messageHash, this.deepExtend (request, params), messageHash);
+        return this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -251,7 +251,7 @@ module.exports = class bitmex extends ccxt.bitmex {
         await this.loadMarkets ();
         const event = 'heartbeat';
         const url = this.urls['api']['ws'];
-        return this.sendWsMessage (url, event);
+        return this.watch (url, event);
     }
 
     signWsMessage (client, messageHash, message, params = {}) {

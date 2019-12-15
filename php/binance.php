@@ -102,7 +102,7 @@ class binance extends \ccxt\binance {
             'id' => $requestId,
         );
         $messageHash = $stream;
-        $future = $this->sendWsMessage ($url, $messageHash, array_merge ($request, $params), $messageHash);
+        $future = $this->watch ($url, $messageHash, array_merge ($request, $params), $messageHash);
         $client = $this->clients[$url];
         $client['futures'][$requestId] = $future;
         return $future;

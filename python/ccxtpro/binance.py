@@ -91,7 +91,7 @@ class binance(ccxtpro.Exchange, ccxt.binance):
             'id': requestId,
         }
         messageHash = stream
-        future = self.sendWsMessage(url, messageHash, self.extend(request, params), messageHash)
+        future = self.watch(url, messageHash, self.extend(request, params), messageHash)
         client = self.clients[url]
         client['futures'][requestId] = future
         return future

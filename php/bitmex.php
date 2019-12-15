@@ -219,7 +219,7 @@ class bitmex extends \ccxt\bitmex {
                 $messageHash,
             ),
         );
-        return $this->sendWsMessage ($url, $messageHash, array_replace_recursive ($request, $params), $messageHash);
+        return $this->watch ($url, $messageHash, array_replace_recursive ($request, $params), $messageHash);
     }
 
     public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -255,7 +255,7 @@ class bitmex extends \ccxt\bitmex {
         $this->load_markets();
         $event = 'heartbeat';
         $url = $this->urls['api']['ws'];
-        return $this->sendWsMessage ($url, $event);
+        return $this->watch ($url, $event);
     }
 
     public function sign_ws_message ($client, $messageHash, $message, $params = array ()) {

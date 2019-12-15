@@ -49,7 +49,7 @@ module.exports = class Exchange extends ccxt.Exchange {
         return this.clients[url]
     }
 
-    sendWsMessage (url, messageHash, message = undefined, subscribeHash = undefined) {
+    watch (url, messageHash, message = undefined, subscribeHash = undefined) {
         //
         // Without comments the code of this method is short and easy:
         //

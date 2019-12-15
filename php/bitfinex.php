@@ -55,7 +55,7 @@ class bitfinex extends \ccxt\bitfinex {
             $request['limit'] = (string) $limit;
         }
         $messageHash = $channel . ':' . $marketId;
-        return $this->sendWsMessage ($url, $messageHash, array_replace_recursive ($request, $params), $messageHash);
+        return $this->watch ($url, $messageHash, array_replace_recursive ($request, $params), $messageHash);
     }
 
     public function handle_order_book ($client, $message) {

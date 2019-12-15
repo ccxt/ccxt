@@ -81,7 +81,7 @@ class Exchange(BaseExchange):
             client.reject(e, message_hash)
             print(self.iso8601(self.milliseconds()), 'connect_ws_client', 'Exception', e)
 
-    def send_ws_message(self, url, message_hash, message=None, subscribe_hash=None):
+    def watch(self, url, message_hash, message=None, subscribe_hash=None):
         client = self.client(url)
         future = client.future(message_hash)
         # we intentionally do not use await here to avoid unhandled exceptions

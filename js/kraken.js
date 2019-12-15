@@ -215,7 +215,7 @@ module.exports = class kraken extends ccxt.kraken {
                 'name': name,
             },
         };
-        const future = this.sendWsMessage (url, messageHash, this.deepExtend (subscribe, params), messageHash);
+        const future = this.watch (url, messageHash, this.deepExtend (subscribe, params), messageHash);
         const client = this.clients[url];
         client['futures'][requestId] = future;
         return future;
@@ -271,7 +271,7 @@ module.exports = class kraken extends ccxt.kraken {
         await this.loadMarkets ();
         const event = 'heartbeat';
         const url = this.urls['api']['ws']['public'];
-        return this.sendWsMessage (url, event);
+        return this.watch (url, event);
     }
 
     handleHeartbeat (client, message) {
