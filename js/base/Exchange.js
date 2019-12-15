@@ -43,6 +43,7 @@ module.exports = class Exchange extends ccxt.Exchange {
             const onMessage = this.handleMessage.bind (this)
             const onError = this.onWsError.bind (this)
             const onClose = this.onWsClose.bind (this)
+            // decide client type here: ws / signalr
             this.clients[url] = new WebSocketClient (url, onMessage, onError, onClose)
         }
         return this.clients[url]
