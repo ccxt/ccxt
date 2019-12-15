@@ -750,6 +750,7 @@ module.exports = class poloniex extends Exchange {
                 }
             }
         }
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         if (filled === undefined) {
             if (trades !== undefined) {
                 filled = 0;
@@ -761,9 +762,13 @@ module.exports = class poloniex extends Exchange {
                     filled = this.sum (filled, tradeAmount);
                     cost += tradePrice * tradeAmount;
                 }
+                if (amount !== undefined) {
+                    if (filled >= amount) {
+                        status = 'closed';
+                    }
+                }
             }
         }
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side', type);
         if (type === side) {
