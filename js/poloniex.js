@@ -88,7 +88,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const numericId = this.safeString (market, 'numericId');
-        const messageHash = numericId + ':trades';
+        const messageHash = 'trades:' + numericId;
         const url = this.urls['api']['ws'];
         const subscribe = {
             'command': 'subscribe',
@@ -101,7 +101,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const numericId = this.safeString (market, 'numericId');
-        const messageHash = numericId + ':orderbook';
+        const messageHash = 'orderbook:' + numericId;
         const url = this.urls['api']['ws'];
         const subscribe = {
             'command': 'subscribe',
@@ -268,14 +268,14 @@ module.exports = class poloniex extends ccxt.poloniex {
         }
         if (orderbookUpdatesCount) {
             // resolve the orderbook future
-            const messageHash = marketId + ':orderbook';
+            const messageHash = 'orderbook:' + marketId;
             const orderbook = this.orderbooks[symbol];
             // the .limit () operation will be moved to the watchOrderBook
             client.resolve (orderbook.limit (), messageHash);
         }
         if (tradesCount) {
             // resolve the trades future
-            const messageHash = marketId + ':trades';
+            const messageHash = 'trades:' + marketId;
             // todo: incremental trades
             client.resolve (this.trades, messageHash);
         }

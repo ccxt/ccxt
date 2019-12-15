@@ -92,7 +92,7 @@ class poloniex extends \ccxt\poloniex {
         $this->load_markets();
         $market = $this->market ($symbol);
         $numericId = $this->safe_string($market, 'numericId');
-        $messageHash = $numericId . ':trades';
+        $messageHash = 'trades:' . $numericId;
         $url = $this->urls['api']['ws'];
         $subscribe = array (
             'command' => 'subscribe',
@@ -105,7 +105,7 @@ class poloniex extends \ccxt\poloniex {
         $this->load_markets();
         $market = $this->market ($symbol);
         $numericId = $this->safe_string($market, 'numericId');
-        $messageHash = $numericId . ':orderbook';
+        $messageHash = 'orderbook:' . $numericId;
         $url = $this->urls['api']['ws'];
         $subscribe = array (
             'command' => 'subscribe',
@@ -272,14 +272,14 @@ class poloniex extends \ccxt\poloniex {
         }
         if ($orderbookUpdatesCount) {
             // resolve the $orderbook future
-            $messageHash = $marketId . ':orderbook';
+            $messageHash = 'orderbook:' . $marketId;
             $orderbook = $this->orderbooks[$symbol];
             // the .limit () operation will be moved to the watchOrderBook
             $client->resolve ($orderbook->limit (), $messageHash);
         }
         if ($tradesCount) {
             // resolve the trades future
-            $messageHash = $marketId . ':trades';
+            $messageHash = 'trades:' . $marketId;
             // todo => incremental trades
             $client->resolve ($this->trades, $messageHash);
         }

@@ -83,7 +83,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
         await self.load_markets()
         market = self.market(symbol)
         numericId = self.safe_string(market, 'numericId')
-        messageHash = numericId + ':trades'
+        messageHash = 'trades:' + numericId
         url = self.urls['api']['ws']
         subscribe = {
             'command': 'subscribe',
@@ -95,7 +95,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
         await self.load_markets()
         market = self.market(symbol)
         numericId = self.safe_string(market, 'numericId')
-        messageHash = numericId + ':orderbook'
+        messageHash = 'orderbook:' + numericId
         url = self.urls['api']['ws']
         subscribe = {
             'command': 'subscribe',
@@ -250,13 +250,13 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
                 tradesCount += 1
         if orderbookUpdatesCount:
             # resolve the orderbook future
-            messageHash = marketId + ':orderbook'
+            messageHash = 'orderbook:' + marketId
             orderbook = self.orderbooks[symbol]
             # the .limit() operation will be moved to the watchOrderBook
             client.resolve(orderbook.limit(), messageHash)
         if tradesCount:
             # resolve the trades future
-            messageHash = marketId + ':trades'
+            messageHash = 'trades:' + marketId
             # todo: incremental trades
             client.resolve(self.trades, messageHash)
 
