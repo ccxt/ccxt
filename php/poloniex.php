@@ -505,7 +505,19 @@ class poloniex extends Exchange {
         //         category => 'exchange'
         //     }
         //
-        $id = $this->safe_string($trade, 'globalTradeID');
+        // createOrder (taker trades)
+        //
+        //     {
+        //         'amount' => '200.00000000',
+        //         'date' => '2019-12-15 16:04:10',
+        //         'rate' => '0.00000355',
+        //         'total' => '0.00071000',
+        //         'tradeID' => '119871',
+        //         'type' => 'buy',
+        //         'takerAdjustment' => '200.00000000'
+        //     }
+        //
+        $id = $this->safe_string_2($trade, 'globalTradeID', 'tradeID');
         $orderId = $this->safe_string($trade, 'orderNumber');
         $timestamp = $this->parse8601 ($this->safe_string($trade, 'date'));
         $symbol = null;
@@ -552,6 +564,11 @@ class poloniex extends Exchange {
                 'currency' => $currency,
             );
         }
+        $takerOrMaker = null;
+        $takerAdjustment = $this->safe_float($trade, 'takerAdjustment');
+        if ($takerAdjustment !== null) {
+            $takerOrMaker = 'taker';
+        }
         return array (
             'id' => $id,
             'info' => $trade,
@@ -561,7 +578,7 @@ class poloniex extends Exchange {
             'order' => $orderId,
             'type' => 'limit',
             'side' => $side,
-            'takerOrMaker' => null,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -724,6 +741,33 @@ class poloniex extends Exchange {
         //         margin => 0,
         //     }
         //
+        // createOrder
+        //
+        //     {
+        //         'orderNumber' => '9805453960',
+        //         'resultingTrades' => array (
+        //             array (
+        //                 'amount' => '200.00000000',
+        //                 'date' => '2019-12-15 16:04:10',
+        //                 'rate' => '0.00000355',
+        //                 'total' => '0.00071000',
+        //                 'tradeID' => '119871',
+        //                 'type' => 'buy',
+        //                 'takerAdjustment' => '200.00000000',
+        //             ),
+        //         ),
+        //         'fee' => '0.00000000',
+        //         'currencyPair' => 'BTC_MANA',
+        //         // ---------------------------------------------------------
+        //         // the following fields are injected by createOrder
+        //         'timestamp' => $timestamp,
+        //         'status' => 'open',
+        //         'type' => $type,
+        //         'side' => $side,
+        //         'price' => $price,
+        //         'amount' => $amount,
+        //     }
+        //
         $timestamp = $this->safe_integer($order, 'timestamp');
         if (!$timestamp) {
             $timestamp = $this->parse8601 ($order['date']);
@@ -740,7 +784,7 @@ class poloniex extends Exchange {
         }
         $price = $this->safe_float_2($order, 'price', 'rate');
         $remaining = $this->safe_float($order, 'amount');
-        $amount = $this->safe_float($order, 'startingAmount', $remaining);
+        $amount = $this->safe_float($order, 'startingAmount');
         $filled = null;
         $cost = 0;
         if ($amount !== null) {
@@ -750,44 +794,73 @@ class poloniex extends Exchange {
                     $cost = $filled * $price;
                 }
             }
+        } else {
+            $amount = $remaining;
         }
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        $average = null;
+        $lastTradeTimestamp = null;
         if ($filled === null) {
             if ($trades !== null) {
                 $filled = 0;
                 $cost = 0;
-                for ($i = 0; $i < count ($trades); $i++) {
-                    $trade = $trades[$i];
-                    $tradeAmount = $trade['amount'];
-                    $tradePrice = $trade['price'];
-                    $filled = $this->sum ($filled, $tradeAmount);
-                    $cost .= $tradePrice * $tradeAmount;
+                $tradesLength = is_array ($trades) ? count ($trades) : 0;
+                if ($tradesLength > 0) {
+                    $lastTradeTimestamp = $trades[0]['timestamp'];
+                    for ($i = 0; $i < $tradesLength; $i++) {
+                        $trade = $trades[$i];
+                        $tradeAmount = $trade['amount'];
+                        $tradePrice = $trade['price'];
+                        $filled = $this->sum ($filled, $tradeAmount);
+                        $cost = $this->sum ($cost, $tradePrice * $tradeAmount);
+                        $lastTradeTimestamp = max ($lastTradeTimestamp, $trade['timestamp']);
+                    }
+                }
+                $remaining = max ($amount - $filled, 0);
+                if ($filled >= $amount) {
+                    $status = 'closed';
                 }
             }
         }
-        $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        if (($filled !== null) && ($cost !== null) && ($filled > 0)) {
+            $average = $cost / $filled;
+        }
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side', $type);
         if ($type === $side) {
             $type = null;
         }
         $id = $this->safe_string($order, 'orderNumber');
+        $fee = null;
+        $feeCost = $this->safe_float($order, 'fee');
+        if ($feeCost !== null) {
+            $feeCurrencyCode = null;
+            if ($market !== null) {
+                $feeCurrencyCode = ($side === 'buy') ? $market['base'] : $market['quote'];
+            }
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => $feeCurrencyCode,
+            );
+        }
         return array (
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'lastTradeTimestamp' => null,
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
             'price' => $price,
             'cost' => $cost,
+            'average' => $average,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
             'trades' => $trades,
-            'fee' => null,
+            'fee' => $fee,
         );
     }
 
@@ -912,8 +985,27 @@ class poloniex extends Exchange {
             'rate' => $this->price_to_precision($symbol, $price),
             'amount' => $this->amount_to_precision($symbol, $amount),
         );
-        $response = $this->$method (array_merge ($request, $params));
+        // remember the $timestamp before issuing the $request
         $timestamp = $this->milliseconds ();
+        $response = $this->$method (array_merge ($request, $params));
+        //
+        //     {
+        //         'orderNumber' => '9805453960',
+        //         'resultingTrades' => array (
+        //             array (
+        //                 'amount' => '200.00000000',
+        //                 'date' => '2019-12-15 16:04:10',
+        //                 'rate' => '0.00000355',
+        //                 'total' => '0.00071000',
+        //                 'tradeID' => '119871',
+        //                 'type' => 'buy',
+        //                 'takerAdjustment' => '200.00000000',
+        //             ),
+        //         ),
+        //         'fee' => '0.00000000',
+        //         'currencyPair' => 'BTC_MANA',
+        //     }
+        //
         $order = $this->parse_order(array_merge (array (
             'timestamp' => $timestamp,
             'status' => 'open',
