@@ -15,9 +15,9 @@ class binance extends \ccxt\binance {
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
             'has' => array (
-                'fetchWsOrderBook' => true,
-                'fetchWsOHLCV' => true,
-                'fetchWsTrades' => true,
+                'watchOrderBook' => true,
+                'watchOHLCV' => true,
+                'watchTrades' => true,
             ),
             'urls' => array (
                 'api' => array (
@@ -48,31 +48,31 @@ class binance extends \ccxt\binance {
         return $markets;
     }
 
-    public function fetch_ws_trades ($symbol) {
+    public function watch_trades ($symbol) {
         //     $this->load_markets();
         //     $market = $this->market ($symbol);
         //     $url = $this->urls['api']['ws'] . strtolower($market['id']) . '@trade';
         //     return $this->WsTradesMessage ($url, $url);
-        throw new NotImplemented($this->id . ' fetchWsTrades not implemented yet');
+        throw new NotImplemented($this->id . ' watchTrades not implemented yet');
     }
 
-    public function handle_ws_trades ($response) {
+    public function handle_trades ($response) {
         //     $parsed = $this->parse_trade($response);
         //     $parsed['symbol'] = $this->parseSymbol ($response);
         //     return $parsed;
-        throw new NotImplemented($this->id . ' handleWsTrades not implemented yet');
+        throw new NotImplemented($this->id . ' handleTrades not implemented yet');
     }
 
-    public function fetch_ws_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         //     $this->load_markets();
         //     $interval = $this->timeframes[$timeframe];
         //     $market = $this->market ($symbol);
         //     $url = $this->urls['api']['ws'] . strtolower($market['id']) . '@kline_' . $interval;
         //     return $this->WsOHLCVMessage ($url, $url);
-        throw new NotImplemented($this->id . ' fetchWsOHLCV not implemented yet');
+        throw new NotImplemented($this->id . ' watchOHLCV not implemented yet');
     }
 
-    public function handle_ws_ohlcv ($ohlcv) {
+    public function handle_ohlcv ($ohlcv) {
         //     $data = $ohlcv['k'];
         //     $timestamp = $this->safe_integer($data, 'T');
         //     $open = $this->safe_float($data, 'o');
@@ -81,10 +81,10 @@ class binance extends \ccxt\binance {
         //     $low = $this->safe_float($data, 'c');
         //     $volume = $this->safe_float($data, 'v');
         //     return [$timestamp, $open, $high, $close, $low, $volume];
-        throw new NotImplemented($this->id . ' handleWsOHLCV not implemented yet ' . $this->json ($ohlcv));
+        throw new NotImplemented($this->id . ' handleOHLCV not implemented yet ' . $this->json ($ohlcv));
     }
 
-    public function fetch_ws_order_book ($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         // this should be executed much later
@@ -108,7 +108,7 @@ class binance extends \ccxt\binance {
         return $future;
     }
 
-    public function handle_ws_order_book ($client, $message) {
+    public function handle_order_book ($client, $message) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the $deltas
@@ -152,10 +152,10 @@ class binance extends \ccxt\binance {
         return $message;
     }
 
-    public function handle_ws_subscription_status ($client, $message) {
+    public function handle_subscription_status ($client, $message) {
         //
-        // todo => answer the question whether handleWsSubscriptionStatus should be renamed
-        // and unified as handleWsResponse for any usage pattern that
+        // todo => answer the question whether handleSubscriptionStatus should be renamed
+        // and unified as handleResponse for any usage pattern that
         // involves an identified request/response sequence
         //
         //     {
@@ -171,7 +171,7 @@ class binance extends \ccxt\binance {
         }
     }
 
-    public function handle_ws_message ($client, $message) {
+    public function handle_message ($client, $message) {
         var_dump ($message);
         //
         // $keys = is_array($client->futures) ? array_keys($client->futures) : array();
@@ -190,10 +190,10 @@ class binance extends \ccxt\binance {
         //     $subscription = $this->safe_value($subscriptionStatus, 'subscription', array());
         //     $name = $this->safe_string($subscription, 'name');
         //     $methods = array (
-        //         'book' => 'handleWsOrderBook',
-        //         'ohlc' => 'handleWsOHLCV',
-        //         'ticker' => 'handleWsTicker',
-        //         'trade' => 'handleWsTrades',
+        //         'book' => 'handleOrderBook',
+        //         'ohlc' => 'handleOHLCV',
+        //         'ticker' => 'handleTicker',
+        //         'trade' => 'handleTrades',
         //     );
         //     $method = $this->safe_string($methods, $name);
         //     if ($method === null) {
@@ -202,12 +202,12 @@ class binance extends \ccxt\binance {
         //         return $this->$method ($client, $message);
         //     }
         // } else {
-        //     if ($this->handleWsErrors ($client, $message)) {
+        //     if ($this->handle_errors($client, $message)) {
         //         $event = $this->safe_string($message, 'event');
         //         $methods = array (
-        //             'heartbeat' => 'handleWsHeartbeat',
-        //             'systemStatus' => 'handleWsSystemStatus',
-        //             'subscriptionStatus' => 'handleWsSubscriptionStatus',
+        //             'heartbeat' => 'handleHeartbeat',
+        //             'systemStatus' => 'handleSystemStatus',
+        //             'subscriptionStatus' => 'handleSubscriptionStatus',
         //         );
         //         $method = $this->safe_string($methods, $event);
         //         if ($method === null) {

@@ -12,9 +12,9 @@ class binance(ccxtpro.Exchange, ccxt.binance):
     def describe(self):
         return self.deep_extend(super(binance, self).describe(), {
             'has': {
-                'fetchWsOrderBook': True,
-                'fetchWsOHLCV': True,
-                'fetchWsTrades': True,
+                'watchOrderBook': True,
+                'watchOHLCV': True,
+                'watchTrades': True,
             },
             'urls': {
                 'api': {
@@ -41,28 +41,28 @@ class binance(ccxtpro.Exchange, ccxt.binance):
             self.options['marketsByLowercaseId'] = marketsByLowercaseId
         return markets
 
-    async def fetch_ws_trades(self, symbol):
+    async def watch_trades(self, symbol):
         #     await self.load_markets()
         #     market = self.market(symbol)
         #     url = self.urls['api']['ws'] + market['id'].lower() + '@trade'
         #     return await self.WsTradesMessage(url, url)
-        raise NotImplemented(self.id + ' fetchWsTrades not implemented yet')
+        raise NotImplemented(self.id + ' watchTrades not implemented yet')
 
-    def handle_ws_trades(self, response):
+    def handle_trades(self, response):
         #     parsed = self.parse_trade(response)
         #     parsed['symbol'] = self.parseSymbol(response)
         #     return parsed
-        raise NotImplemented(self.id + ' handleWsTrades not implemented yet')
+        raise NotImplemented(self.id + ' handleTrades not implemented yet')
 
-    async def fetch_ws_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         #     await self.load_markets()
         #     interval = self.timeframes[timeframe]
         #     market = self.market(symbol)
         #     url = self.urls['api']['ws'] + market['id'].lower() + '@kline_' + interval
         #     return await self.WsOHLCVMessage(url, url)
-        raise NotImplemented(self.id + ' fetchWsOHLCV not implemented yet')
+        raise NotImplemented(self.id + ' watchOHLCV not implemented yet')
 
-    def handle_ws_ohlcv(self, ohlcv):
+    def handle_ohlcv(self, ohlcv):
         #     data = ohlcv['k']
         #     timestamp = self.safe_integer(data, 'T')
         #     open = self.safe_float(data, 'o')
@@ -71,9 +71,9 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         #     low = self.safe_float(data, 'c')
         #     volume = self.safe_float(data, 'v')
         #     return [timestamp, open, high, close, low, volume]
-        raise NotImplemented(self.id + ' handleWsOHLCV not implemented yet ' + self.json(ohlcv))
+        raise NotImplemented(self.id + ' handleOHLCV not implemented yet ' + self.json(ohlcv))
 
-    async def fetch_ws_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         # self should be executed much later
@@ -96,7 +96,7 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         client['futures'][requestId] = future
         return future
 
-    def handle_ws_order_book(self, client, message):
+    def handle_order_book(self, client, message):
         #
         # initial snapshot is fetched with ccxt's fetchOrderBook
         # the feed does not include a snapshot, just the deltas
@@ -136,10 +136,10 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         # todo: binance signWsMessage not implemented yet
         return message
 
-    def handle_ws_subscription_status(self, client, message):
+    def handle_subscription_status(self, client, message):
         #
-        # todo: answer the question whether handleWsSubscriptionStatus should be renamed
-        # and unified as handleWsResponse for any usage pattern that
+        # todo: answer the question whether handleSubscriptionStatus should be renamed
+        # and unified as handleResponse for any usage pattern that
         # involves an identified request/response sequence
         #
         #     {
@@ -153,7 +153,7 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         if client.futures[requestId]:
             del client.futures[requestId]
 
-    def handle_ws_message(self, client, message):
+    def handle_message(self, client, message):
         print(message)
         #
         # keys = list(client.futures.keys())
@@ -172,10 +172,10 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         #     subscription = self.safe_value(subscriptionStatus, 'subscription', {})
         #     name = self.safe_string(subscription, 'name')
         #     methods = {
-        #         'book': 'handleWsOrderBook',
-        #         'ohlc': 'handleWsOHLCV',
-        #         'ticker': 'handleWsTicker',
-        #         'trade': 'handleWsTrades',
+        #         'book': 'handleOrderBook',
+        #         'ohlc': 'handleOHLCV',
+        #         'ticker': 'handleTicker',
+        #         'trade': 'handleTrades',
         #     }
         #     method = self.safe_string(methods, name)
         #     if method is None:
@@ -184,12 +184,12 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         #         return getattr(self, method)(client, message)
         #     }
         # else:
-        #     if self.handleWsErrors(client, message):
+        #     if self.handle_errors(client, message):
         #         event = self.safe_string(message, 'event')
         #         methods = {
-        #             'heartbeat': 'handleWsHeartbeat',
-        #             'systemStatus': 'handleWsSystemStatus',
-        #             'subscriptionStatus': 'handleWsSubscriptionStatus',
+        #             'heartbeat': 'handleHeartbeat',
+        #             'systemStatus': 'handleSystemStatus',
+        #             'subscriptionStatus': 'handleSubscriptionStatus',
         #         }
         #         method = self.safe_string(methods, event)
         #         if method is None:

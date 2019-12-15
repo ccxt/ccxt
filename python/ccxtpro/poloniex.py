@@ -14,8 +14,8 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
         return self.deep_extend(super(poloniex, self).describe(), {
             'has': {
                 'ws': True,
-                'fetchWsTicker': True,
-                'fetchWsOrderBook': True,
+                'watchTicker': True,
+                'watchOrderBook': True,
             },
             'urls': {
                 'api': {
@@ -24,7 +24,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
             },
         })
 
-    def handle_ws_tickers(self, client, response):
+    def handle_tickers(self, client, response):
         data = response[2]
         market = self.safe_value(self.options['marketsByNumericId'], str(data[0]))
         symbol = self.safe_string(market, 'symbol')
@@ -42,7 +42,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
             'low': float(data[9]),
         }
 
-    async def fetch_ws_balance(self, params={}):
+    async def watch_balance(self, params={}):
         await self.load_markets()
         self.balance = await self.fetchBalance(params)
         channelId = '1000'
@@ -54,10 +54,10 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
         url = self.urls['api']['ws']
         return self.sendWsMessage(url, messageHash, subscribe, channelId)
 
-    async def fetch_ws_tickers(self, symbols=None, params={}):
+    async def watch_tickers(self, symbols=None, params={}):
         await self.load_markets()
         # rewrite
-        raise NotImplemented(self.id + 'fetchWsTickers not implemented yet')
+        raise NotImplemented(self.id + 'watchTickers not implemented yet')
         # market = self.market(symbol)
         # numericId = str(market['info']['id'])
         # url = self.urls['api']['websocket']['public']
@@ -79,7 +79,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
             self.options['marketsByNumericId'] = marketsByNumericId
         return markets
 
-    async def fetch_ws_trades(self, symbol, params={}):
+    async def watch_trades(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
         numericId = self.safe_string(market, 'numericId')
@@ -91,7 +91,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
         }
         return self.sendWsMessage(url, messageHash, subscribe, numericId)
 
-    async def fetch_ws_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         numericId = self.safe_string(market, 'numericId')
@@ -111,7 +111,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
         # return orderbook.limit(limit)
         return await self.sendWsMessage(url, messageHash, subscribe, numericId)
 
-    async def fetch_ws_heartbeat(self, params={}):
+    async def watch_heartbeat(self, params={}):
         await self.load_markets()
         channelId = '1010'
         url = self.urls['api']['ws']
@@ -131,7 +131,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
                 })
         return message
 
-    def handle_ws_heartbeat(self, client, message):
+    def handle_heartbeat(self, client, message):
         #
         # every second(approx) if no other updates are sent
         #
@@ -177,7 +177,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
             'fee': None,
         }
 
-    def handle_ws_order_book_and_trades(self, client, message):
+    def handle_order_book_and_trades(self, client, message):
         #
         # first response
         #
@@ -230,9 +230,9 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
                     orders = snapshot[j]
                     prices = list(orders.keys())
                     for k in range(0, len(prices)):
-                        price = float(prices[k])
-                        amount = float(orders[price])
-                        bookside.store(price, amount)
+                        price = prices[k]
+                        amount = orders[price]
+                        bookside.store(float(price), float(amount))
                 orderbook['nonce'] = nonce
                 orderbookUpdatesCount += 1
             elif delta[0] == 'o':
@@ -252,7 +252,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
             # resolve the orderbook future
             messageHash = marketId + ':orderbook'
             orderbook = self.orderbooks[symbol]
-            # the .limit() operation will be moved to the fetchWSOrderBook
+            # the .limit() operation will be moved to the watchOrderBook
             client.resolve(orderbook.limit(), messageHash)
         if tradesCount:
             # resolve the trades future
@@ -260,21 +260,21 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
             # todo: incremental trades
             client.resolve(self.trades, messageHash)
 
-    def handle_ws_account_notifications(self, client, message):
+    def handle_account_notifications(self, client, message):
         # not implemented yet
-        # raise NotImplemented(self.id + 'fetchWsTickers not implemented yet')
+        # raise NotImplemented(self.id + 'watchTickers not implemented yet')
         return message
 
-    def handle_ws_message(self, client, message):
+    def handle_message(self, client, message):
         channelId = self.safe_string(message, 0)
         market = self.safe_value(self.options['marketsByNumericId'], channelId)
         if market is None:
             methods = {
-                # '<numericId>': 'handleWsOrderBookAndTrades',  # Price Aggregated Book
-                '1000': 'handleWsAccountNotifications',  # Beta
-                '1002': 'handleWsTickers',  # Ticker Data
+                # '<numericId>': 'handleOrderBookAndTrades',  # Price Aggregated Book
+                '1000': 'handleAccountNotifications',  # Beta
+                '1002': 'handleTickers',  # Ticker Data
                 # '1003': None,  # 24 Hour Exchange Volume
-                '1010': 'handleWsHeartbeat',
+                '1010': 'handleHeartbeat',
             }
             method = self.safe_string(methods, channelId)
             if method is None:
@@ -282,4 +282,4 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
             else:
                 return getattr(self, method)(client, message)
         else:
-            return self.handle_ws_order_book_and_trades(client, message)
+            return self.handle_order_book_and_trades(client, message)

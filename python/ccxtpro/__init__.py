@@ -17,42 +17,42 @@ from ccxtpro.base.exchange import BaseExchange               # noqa: F401
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa: F401
-from ccxt.base.decimal_to_precision import TRUNCATE              # noqa: F401
-from ccxt.base.decimal_to_precision import ROUND                 # noqa: F401
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES        # noqa: F401
-from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS    # noqa: F401
-from ccxt.base.decimal_to_precision import NO_PADDING            # noqa: F401
-from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa: F401
+from ccxt import decimal_to_precision  # noqa: F401
+from ccxt import TRUNCATE              # noqa: F401
+from ccxt import ROUND                 # noqa: F401
+from ccxt import DECIMAL_PLACES        # noqa: F401
+from ccxt import SIGNIFICANT_DIGITS    # noqa: F401
+from ccxt import NO_PADDING            # noqa: F401
+from ccxt import PAD_WITH_ZERO         # noqa: F401
 
-from ccxt.base import errors                                    # noqa: F401
-from ccxt.base.errors import BaseError                          # noqa: F401
-from ccxt.base.errors import ExchangeError                      # noqa: F401
-from ccxt.base.errors import NotSupported                       # noqa: F401
-from ccxt.base.errors import AuthenticationError                # noqa: F401
-from ccxt.base.errors import PermissionDenied                   # noqa: F401
-from ccxt.base.errors import AccountSuspended                   # noqa: F401
-from ccxt.base.errors import InvalidNonce                       # noqa: F401
-from ccxt.base.errors import InsufficientFunds                  # noqa: F401
-from ccxt.base.errors import InvalidOrder                       # noqa: F401
-from ccxt.base.errors import OrderNotFound                      # noqa: F401
-from ccxt.base.errors import OrderNotCached                     # noqa: F401
-from ccxt.base.errors import DuplicateOrderId                   # noqa: F401
-from ccxt.base.errors import CancelPending                      # noqa: F401
-from ccxt.base.errors import NetworkError                       # noqa: F401
-from ccxt.base.errors import DDoSProtection                     # noqa: F401
-from ccxt.base.errors import RateLimitExceeded                  # noqa: F401
-from ccxt.base.errors import RequestTimeout                     # noqa: F401
-from ccxt.base.errors import ExchangeNotAvailable               # noqa: F401
-from ccxt.base.errors import OnMaintenance                      # noqa: F401
-from ccxt.base.errors import InvalidAddress                     # noqa: F401
-from ccxt.base.errors import AddressPending                     # noqa: F401
-from ccxt.base.errors import ArgumentsRequired                  # noqa: F401
-from ccxt.base.errors import BadRequest                         # noqa: F401
-from ccxt.base.errors import BadResponse                        # noqa: F401
-from ccxt.base.errors import NullResponse                       # noqa: F401
-from ccxt.base.errors import OrderImmediatelyFillable           # noqa: F401
-from ccxt.base.errors import OrderNotFillable                   # noqa: F401
+from ccxt.base import errors                        # noqa: F401
+from ccxt import BaseError                          # noqa: F401
+from ccxt import ExchangeError                      # noqa: F401
+from ccxt import NotSupported                       # noqa: F401
+from ccxt import AuthenticationError                # noqa: F401
+from ccxt import PermissionDenied                   # noqa: F401
+from ccxt import AccountSuspended                   # noqa: F401
+from ccxt import InvalidNonce                       # noqa: F401
+from ccxt import InsufficientFunds                  # noqa: F401
+from ccxt import InvalidOrder                       # noqa: F401
+from ccxt import OrderNotFound                      # noqa: F401
+from ccxt import OrderNotCached                     # noqa: F401
+from ccxt import DuplicateOrderId                   # noqa: F401
+from ccxt import CancelPending                      # noqa: F401
+from ccxt import NetworkError                       # noqa: F401
+from ccxt import DDoSProtection                     # noqa: F401
+from ccxt import RateLimitExceeded                  # noqa: F401
+from ccxt import RequestTimeout                     # noqa: F401
+from ccxt import ExchangeNotAvailable               # noqa: F401
+from ccxt import OnMaintenance                      # noqa: F401
+from ccxt import InvalidAddress                     # noqa: F401
+from ccxt import AddressPending                     # noqa: F401
+from ccxt import ArgumentsRequired                  # noqa: F401
+from ccxt import BadRequest                         # noqa: F401
+from ccxt import BadResponse                        # noqa: F401
+from ccxt import NullResponse                       # noqa: F401
+from ccxt import OrderImmediatelyFillable           # noqa: F401
+from ccxt import OrderNotFillable                   # noqa: F401
 
 # CCXT exchanges
 

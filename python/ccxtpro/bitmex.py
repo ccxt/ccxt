@@ -15,8 +15,8 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         return self.deep_extend(super(bitmex, self).describe(), {
             'has': {
                 'ws': True,
-                'fetchWsTicker': True,
-                'fetchWsOrderBook': True,
+                'watchTicker': True,
+                'watchOrderBook': True,
             },
             'urls': {
                 'api': {
@@ -28,7 +28,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
             },
             'options': {
                 'subscriptionStatusByChannelId': {},
-                'fetchWsOrderBookLevel': 'orderBookL2',  # 'orderBookL2' = L2 full order book, 'orderBookL2_25' = L2 top 25, 'orderBook10' L3 top 10
+                'watchOrderBookLevel': 'orderBookL2',  # 'orderBookL2' = L2 full order book, 'orderBookL2_25' = L2 top 25, 'orderBook10' L3 top 10
             },
             'exceptions': {
                 'ws': {
@@ -41,7 +41,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
             },
         })
 
-    def handle_ws_ticker(self, client, message):
+    def handle_ticker(self, client, message):
         #
         #     [
         #         0,  # channelID
@@ -97,16 +97,16 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         }
         # todo: add support for multiple tickers(may be tricky)
         # kraken confirms multi-pair subscriptions separately one by one
-        # trigger correct fetchWsTickers calls upon receiving any of symbols
+        # trigger correct watchTickers calls upon receiving any of symbols
         # --------------------------------------------------------------------
-        # if there's a corresponding fetchWsTicker call - trigger it
+        # if there's a corresponding watchTicker call - trigger it
         client.resolve(result, messageHash)
 
-    async def fetch_ws_balance(self, params={}):
+    async def watch_balance(self, params={}):
         await self.load_markets()
-        raise NotImplemented(self.id + ' fetchWsBalance() not implemented yet')
+        raise NotImplemented(self.id + ' watchBalance() not implemented yet')
 
-    def handle_ws_trades(self, client, message):
+    def handle_trades(self, client, message):
         #
         #     [
         #         0,  # channelID
@@ -147,9 +147,9 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
             # 'fee': fee,
         }
         result['id'] = None
-        raise NotImplemented(self.id + ' handleWsTrades() not implemented yet(wip)')
+        raise NotImplemented(self.id + ' handleTrades() not implemented yet(wip)')
 
-    def handle_ws_ohlcv(self, client, message):
+    def handle_ohlcv(self, client, message):
         #
         #     [
         #         216,  # channelID
@@ -191,16 +191,16 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         messageHash = wsName + ':' + name
         client.resolve(result, messageHash)
 
-    async def fetch_ws_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol, limit=None, params={}):
         name = None
         if limit is None:
-            name = self.safe_string(self.options, 'fetchWsOrderBookLevel', 'orderBookL2')
+            name = self.safe_string(self.options, 'watchOrderBookLevel', 'orderBookL2')
         elif limit == 25:
             name = 'orderBookL2_25'
         elif limit == 10:
             name = 'orderBookL10'
         else:
-            raise ExchangeError(self.id + ' fetchWsOrderBook limit argument must be None(L2), 25(L2) or 10(L3)')
+            raise ExchangeError(self.id + ' watchOrderBook limit argument must be None(L2), 25(L2) or 10(L3)')
         await self.load_markets()
         market = self.market(symbol)
         messageHash = name + ':' + market['id']
@@ -213,14 +213,14 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         }
         return self.sendWsMessage(url, messageHash, self.deep_extend(request, params), messageHash)
 
-    async def fetch_ws_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         name = 'ohlc'
         request = {
             'subscription': {
                 'interval': int(self.timeframes[timeframe]),
             },
         }
-        return await self.fetchWsPublicMessage(name, symbol, self.extend(request, params))
+        return await self.watchPublicMessage(name, symbol, self.extend(request, params))
 
     async def load_markets(self, reload=False, params={}):
         markets = await super(bitmex, self).load_markets(reload, params)
@@ -237,7 +237,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
             self.options['marketsByWsName'] = marketsByWsName
         return markets
 
-    async def fetch_ws_heartbeat(self, params={}):
+    async def watch_heartbeat(self, params={}):
         await self.load_markets()
         event = 'heartbeat'
         url = self.urls['api']['ws']
@@ -284,7 +284,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
             'fee': None,
         }
 
-    def handle_ws_order_book(self, client, message):
+    def handle_order_book(self, client, message):
         #
         # first message(snapshot)
         #
@@ -349,7 +349,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                     bookside = orderbook[side]
                     bookside.store(price, size, id)
                 messageHash = table + ':' + marketId
-                # the .limit() operation will be moved to the fetchWSOrderBook
+                # the .limit() operation will be moved to the watchOrderBook
                 client.resolve(orderbook.limit(), messageHash)
         else:
             numUpdatesByMarketId = {}
@@ -379,10 +379,10 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                 market = self.markets_by_id[marketId]
                 symbol = market['symbol']
                 orderbook = self.orderbooks[symbol]
-                # the .limit() operation will be moved to the fetchWSOrderBook
+                # the .limit() operation will be moved to the watchOrderBook
                 client.resolve(orderbook.limit(), messageHash)
 
-    def handle_ws_deltas(self, bookside, deltas, timestamp):
+    def handle_deltas(self, bookside, deltas, timestamp):
         for j in range(0, len(deltas)):
             delta = deltas[j]
             price = float(delta[0])
@@ -391,10 +391,10 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
             bookside.store(price, amount)
         return timestamp
 
-    def handle_ws_system_status(self, client, message):
+    def handle_system_status(self, client, message):
         #
-        # todo: answer the question whether handleWsSystemStatus should be renamed
-        # and unified as handleWsStatus for any usage pattern that
+        # todo: answer the question whether handleSystemStatus should be renamed
+        # and unified as handleStatus for any usage pattern that
         # involves system status and maintenance updates
         #
         #     {
@@ -407,10 +407,10 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         #
         return message
 
-    def handle_ws_subscription_status(self, client, message):
+    def handle_subscription_status(self, client, message):
         #
-        # todo: answer the question whether handleWsSubscriptionStatus should be renamed
-        # and unified as handleWsResponse for any usage pattern that
+        # todo: answer the question whether handleSubscriptionStatus should be renamed
+        # and unified as handleResponse for any usage pattern that
         # involves an identified request/response sequence
         #
         #     {
@@ -430,7 +430,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         #
         return message
 
-    def handle_ws_errors(self, client, message):
+    def handle_errors(self, client, message):
         #
         # generic error format
         #
@@ -466,7 +466,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                 return False
         return True
 
-    def handle_ws_message(self, client, message):
+    def handle_message(self, client, message):
         #
         #     {
         #         info: 'Welcome to the BitMEX Realtime API.',
@@ -501,12 +501,12 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         #         ]
         #     }
         #
-        if self.handle_ws_errors(client, message):
+        if self.handle_errors(client, message):
             table = self.safe_string(message, 'table')
             methods = {
-                'orderBookL2': 'handleWsOrderBook',
-                'orderBookL2_25': 'handleWsOrderBook',
-                'orderBook10': 'handleWsOrderBook',
+                'orderBookL2': 'handleOrderBook',
+                'orderBookL2_25': 'handleOrderBook',
+                'orderBook10': 'handleOrderBook',
             }
             method = self.safe_string(methods, table)
             if method is None:

@@ -16,8 +16,8 @@ class kraken extends \ccxt\kraken {
         return array_replace_recursive (parent::describe (), array (
             'has' => array (
                 'ws' => true,
-                'fetchWsTicker' => true,
-                'fetchWsOrderBook' => true,
+                'watchTicker' => true,
+                'watchOrderBook' => true,
             ),
             'urls' => array (
                 'api' => array (
@@ -47,7 +47,7 @@ class kraken extends \ccxt\kraken {
         ));
     }
 
-    public function handle_ws_ticker ($client, $message) {
+    public function handle_ticker ($client, $message) {
         //
         //     array (
         //         0, // channelID
@@ -104,18 +104,18 @@ class kraken extends \ccxt\kraken {
         );
         // todo => add support for multiple tickers (may be tricky)
         // kraken confirms multi-pair subscriptions separately one by one
-        // trigger correct fetchWsTickers calls upon receiving any of symbols
+        // trigger correct watchTickers calls upon receiving any of symbols
         // --------------------------------------------------------------------
-        // if there's a corresponding fetchWsTicker call - trigger it
+        // if there's a corresponding watchTicker call - trigger it
         $client->resolve ($result, $messageHash);
     }
 
-    public function fetch_ws_balance ($params = array ()) {
+    public function watch_balance ($params = array ()) {
         $this->load_markets();
-        throw new NotImplemented($this->id . ' fetchWsBalance() not implemented yet');
+        throw new NotImplemented($this->id . ' watchBalance() not implemented yet');
     }
 
-    public function handle_ws_trades ($client, $message) {
+    public function handle_trades ($client, $message) {
         //
         //     array (
         //         0, // channelID
@@ -156,10 +156,10 @@ class kraken extends \ccxt\kraken {
             // 'fee' => fee,
         );
         $result['id'] = null;
-        throw NotImplemented ($this->id . ' handleWsTrades() not implemented yet (wip)');
+        throw NotImplemented ($this->id . ' handleTrades() not implemented yet (wip)');
     }
 
-    public function handle_ws_ohlcv ($client, $message) {
+    public function handle_ohlcv ($client, $message) {
         //
         //     array (
         //         216, // channelID
@@ -202,7 +202,7 @@ class kraken extends \ccxt\kraken {
         $client->resolve ($result, $messageHash);
     }
 
-    public function fetch_ws_public_message ($name, $symbol, $params = array ()) {
+    public function watch_public_message ($name, $symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $wsName = $this->safe_value($market['info'], 'wsname');
@@ -225,31 +225,31 @@ class kraken extends \ccxt\kraken {
         return $future;
     }
 
-    public function fetch_ws_ticker ($symbol, $params = array ()) {
-        return $this->fetch_ws_public_message ('ticker', $symbol, $params);
+    public function watch_ticker ($symbol, $params = array ()) {
+        return $this->watch_public_message ('ticker', $symbol, $params);
     }
 
-    public function fetch_ws_trades ($symbol, $params = array ()) {
-        return $this->fetch_ws_public_message ('trade', $symbol, $params);
+    public function watch_trades ($symbol, $params = array ()) {
+        return $this->watch_public_message ('trade', $symbol, $params);
     }
 
-    public function fetch_ws_order_book ($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book ($symbol, $limit = null, $params = array ()) {
         $name = 'book';
         $request = array();
         if ($limit !== null) {
             $request['subscription'] = array( 'depth' => $limit ); // default 10, valid options 10, 25, 100, 500, 1000
         }
-        return $this->fetch_ws_public_message ($name, $symbol, array_merge ($request, $params));
+        return $this->watch_public_message ($name, $symbol, array_merge ($request, $params));
     }
 
-    public function fetch_ws_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $name = 'ohlc';
         $request = array (
             'subscription' => array (
                 'interval' => intval ($this->timeframes[$timeframe]),
             ),
         );
-        return $this->fetch_ws_public_message ($name, $symbol, array_merge ($request, $params));
+        return $this->watch_public_message ($name, $symbol, array_merge ($request, $params));
     }
 
     public function load_markets ($reload = false, $params = array ()) {
@@ -271,14 +271,14 @@ class kraken extends \ccxt\kraken {
         return $markets;
     }
 
-    public function fetch_ws_heartbeat ($params = array ()) {
+    public function watch_heartbeat ($params = array ()) {
         $this->load_markets();
         $event = 'heartbeat';
         $url = $this->urls['api']['ws']['public'];
         return $this->sendWsMessage ($url, $event);
     }
 
-    public function handle_ws_heartbeat ($client, $message) {
+    public function handle_heartbeat ($client, $message) {
         //
         // every second (approx) if no other updates are sent
         //
@@ -327,7 +327,7 @@ class kraken extends \ccxt\kraken {
         );
     }
 
-    public function handle_ws_order_book ($client, $message) {
+    public function handle_order_book ($client, $message) {
         //
         // first $message (snapshot)
         //
@@ -389,10 +389,10 @@ class kraken extends \ccxt\kraken {
                 $side = $sides[$key];
                 $bookside = $orderbook[$side];
                 $deltas = $this->safe_value($message[1], $key, array());
-                $timestamp = $this->handle_ws_deltas ($bookside, $deltas, $timestamp);
+                $timestamp = $this->handle_deltas ($bookside, $deltas, $timestamp);
             }
             $orderbook['timestamp'] = $timestamp;
-            // the .limit () operation will be moved to the fetchWSOrderBook
+            // the .limit () operation will be moved to the watchOrderBook
             $client->resolve ($orderbook->limit (), $messageHash);
         } else {
             $orderbook = $this->orderbooks[$symbol];
@@ -410,18 +410,18 @@ class kraken extends \ccxt\kraken {
                 }
             }
             if ($a !== null) {
-                $timestamp = $this->handle_ws_deltas ($orderbook['asks'], $a, $timestamp);
+                $timestamp = $this->handle_deltas ($orderbook['asks'], $a, $timestamp);
             }
             if ($b !== null) {
-                $timestamp = $this->handle_ws_deltas ($orderbook['bids'], $b, $timestamp);
+                $timestamp = $this->handle_deltas ($orderbook['bids'], $b, $timestamp);
             }
             $orderbook['timestamp'] = $timestamp;
-            // the .limit () operation will be moved to the fetchWSOrderBook
+            // the .limit () operation will be moved to the watchOrderBook
             $client->resolve ($orderbook->limit (), $messageHash);
         }
     }
 
-    public function handle_ws_deltas ($bookside, $deltas, $timestamp) {
+    public function handle_deltas ($bookside, $deltas, $timestamp) {
         for ($j = 0; $j < count ($deltas); $j++) {
             $delta = $deltas[$j];
             $price = floatval ($delta[0]);
@@ -432,10 +432,10 @@ class kraken extends \ccxt\kraken {
         return $timestamp;
     }
 
-    public function handle_ws_system_status ($client, $message) {
+    public function handle_system_status ($client, $message) {
         //
-        // todo => answer the question whether handleWsSystemStatus should be renamed
-        // and unified as handleWsStatus for any usage pattern that
+        // todo => answer the question whether handleSystemStatus should be renamed
+        // and unified as handleStatus for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {
@@ -448,10 +448,10 @@ class kraken extends \ccxt\kraken {
         return $message;
     }
 
-    public function handle_ws_subscription_status ($client, $message) {
+    public function handle_subscription_status ($client, $message) {
         //
-        // todo => answer the question whether handleWsSubscriptionStatus should be renamed
-        // and unified as handleWsResponse for any usage pattern that
+        // todo => answer the question whether handleSubscriptionStatus should be renamed
+        // and unified as handleResponse for any usage pattern that
         // involves an identified request/response sequence
         //
         //     {
@@ -472,7 +472,7 @@ class kraken extends \ccxt\kraken {
         }
     }
 
-    public function handle_ws_errors ($client, $message) {
+    public function handle_errors ($client, $message) {
         //
         //     {
         //         $errorMessage => 'Currency pair not in ISO 4217-A3 format foobar',
@@ -509,17 +509,17 @@ class kraken extends \ccxt\kraken {
         return $message;
     }
 
-    public function handle_ws_message ($client, $message) {
+    public function handle_message ($client, $message) {
         if (gettype ($message) === 'array' && count (array_filter (array_keys ($message), 'is_string')) == 0) {
             $channelId = (string) $message[0];
             $subscriptionStatus = $this->safe_value($this->options['subscriptionStatusByChannelId'], $channelId, array());
             $subscription = $this->safe_value($subscriptionStatus, 'subscription', array());
             $name = $this->safe_string($subscription, 'name');
             $methods = array (
-                'book' => 'handleWsOrderBook',
-                'ohlc' => 'handleWsOHLCV',
-                'ticker' => 'handleWsTicker',
-                'trade' => 'handleWsTrades',
+                'book' => 'handleOrderBook',
+                'ohlc' => 'handleOHLCV',
+                'ticker' => 'handleTicker',
+                'trade' => 'handleTrades',
             );
             $method = $this->safe_string($methods, $name);
             if ($method === null) {
@@ -528,12 +528,12 @@ class kraken extends \ccxt\kraken {
                 return $this->$method ($client, $message);
             }
         } else {
-            if ($this->handle_ws_errors ($client, $message)) {
+            if ($this->handle_errors($client, $message)) {
                 $event = $this->safe_string($message, 'event');
                 $methods = array (
-                    'heartbeat' => 'handleWsHeartbeat',
-                    'systemStatus' => 'handleWsSystemStatus',
-                    'subscriptionStatus' => 'handleWsSubscriptionStatus',
+                    'heartbeat' => 'handleHeartbeat',
+                    'systemStatus' => 'handleSystemStatus',
+                    'subscriptionStatus' => 'handleSubscriptionStatus',
                 );
                 $method = $this->safe_string($methods, $event);
                 if ($method === null) {

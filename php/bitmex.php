@@ -16,8 +16,8 @@ class bitmex extends \ccxt\bitmex {
         return array_replace_recursive (parent::describe (), array (
             'has' => array (
                 'ws' => true,
-                'fetchWsTicker' => true,
-                'fetchWsOrderBook' => true,
+                'watchTicker' => true,
+                'watchOrderBook' => true,
             ),
             'urls' => array (
                 'api' => array (
@@ -29,7 +29,7 @@ class bitmex extends \ccxt\bitmex {
             ),
             'options' => array (
                 'subscriptionStatusByChannelId' => array(),
-                'fetchWsOrderBookLevel' => 'orderBookL2', // 'orderBookL2' = L2 full order book, 'orderBookL2_25' = L2 top 25, 'orderBook10' L3 top 10
+                'watchOrderBookLevel' => 'orderBookL2', // 'orderBookL2' = L2 full order book, 'orderBookL2_25' = L2 top 25, 'orderBook10' L3 top 10
             ),
             'exceptions' => array (
                 'ws' => array (
@@ -43,7 +43,7 @@ class bitmex extends \ccxt\bitmex {
         ));
     }
 
-    public function handle_ws_ticker ($client, $message) {
+    public function handle_ticker ($client, $message) {
         //
         //     array (
         //         0, // channelID
@@ -100,18 +100,18 @@ class bitmex extends \ccxt\bitmex {
         );
         // todo => add support for multiple tickers (may be tricky)
         // kraken confirms multi-pair subscriptions separately one by one
-        // trigger correct fetchWsTickers calls upon receiving any of symbols
+        // trigger correct watchTickers calls upon receiving any of symbols
         // --------------------------------------------------------------------
-        // if there's a corresponding fetchWsTicker call - trigger it
+        // if there's a corresponding watchTicker call - trigger it
         $client->resolve ($result, $messageHash);
     }
 
-    public function fetch_ws_balance ($params = array ()) {
+    public function watch_balance ($params = array ()) {
         $this->load_markets();
-        throw new NotImplemented($this->id . ' fetchWsBalance() not implemented yet');
+        throw new NotImplemented($this->id . ' watchBalance() not implemented yet');
     }
 
-    public function handle_ws_trades ($client, $message) {
+    public function handle_trades ($client, $message) {
         //
         //     array (
         //         0, // channelID
@@ -152,10 +152,10 @@ class bitmex extends \ccxt\bitmex {
             // 'fee' => fee,
         );
         $result['id'] = null;
-        throw NotImplemented ($this->id . ' handleWsTrades() not implemented yet (wip)');
+        throw NotImplemented ($this->id . ' handleTrades() not implemented yet (wip)');
     }
 
-    public function handle_ws_ohlcv ($client, $message) {
+    public function handle_ohlcv ($client, $message) {
         //
         //     array (
         //         216, // channelID
@@ -198,16 +198,16 @@ class bitmex extends \ccxt\bitmex {
         $client->resolve ($result, $messageHash);
     }
 
-    public function fetch_ws_order_book ($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book ($symbol, $limit = null, $params = array ()) {
         $name = null;
         if ($limit === null) {
-            $name = $this->safe_string($this->options, 'fetchWsOrderBookLevel', 'orderBookL2');
+            $name = $this->safe_string($this->options, 'watchOrderBookLevel', 'orderBookL2');
         } else if ($limit === 25) {
             $name = 'orderBookL2_25';
         } else if ($limit === 10) {
             $name = 'orderBookL10';
         } else {
-            throw new ExchangeError($this->id . ' fetchWsOrderBook $limit argument must be null (L2), 25 (L2) or 10 (L3)');
+            throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null (L2), 25 (L2) or 10 (L3)');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -222,14 +222,14 @@ class bitmex extends \ccxt\bitmex {
         return $this->sendWsMessage ($url, $messageHash, array_replace_recursive ($request, $params), $messageHash);
     }
 
-    public function fetch_ws_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $name = 'ohlc';
         $request = array (
             'subscription' => array (
                 'interval' => intval ($this->timeframes[$timeframe]),
             ),
         );
-        return $this->fetchWsPublicMessage ($name, $symbol, array_merge ($request, $params));
+        return $this->watchPublicMessage ($name, $symbol, array_merge ($request, $params));
     }
 
     public function load_markets ($reload = false, $params = array ()) {
@@ -251,7 +251,7 @@ class bitmex extends \ccxt\bitmex {
         return $markets;
     }
 
-    public function fetch_ws_heartbeat ($params = array ()) {
+    public function watch_heartbeat ($params = array ()) {
         $this->load_markets();
         $event = 'heartbeat';
         $url = $this->urls['api']['ws'];
@@ -302,7 +302,7 @@ class bitmex extends \ccxt\bitmex {
         );
     }
 
-    public function handle_ws_order_book ($client, $message) {
+    public function handle_order_book ($client, $message) {
         //
         // first $message (snapshot)
         //
@@ -369,7 +369,7 @@ class bitmex extends \ccxt\bitmex {
                     $bookside->store ($price, $size, $id);
                 }
                 $messageHash = $table . ':' . $marketId;
-                // the .limit () operation will be moved to the fetchWSOrderBook
+                // the .limit () operation will be moved to the watchOrderBook
                 $client->resolve ($orderbook->limit (), $messageHash);
             }
         } else {
@@ -404,13 +404,13 @@ class bitmex extends \ccxt\bitmex {
                 $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
                 $orderbook = $this->orderbooks[$symbol];
-                // the .limit () operation will be moved to the fetchWSOrderBook
+                // the .limit () operation will be moved to the watchOrderBook
                 $client->resolve ($orderbook->limit (), $messageHash);
             }
         }
     }
 
-    public function handle_ws_deltas ($bookside, $deltas, $timestamp) {
+    public function handle_deltas ($bookside, $deltas, $timestamp) {
         for ($j = 0; $j < count ($deltas); $j++) {
             $delta = $deltas[$j];
             $price = floatval ($delta[0]);
@@ -421,10 +421,10 @@ class bitmex extends \ccxt\bitmex {
         return $timestamp;
     }
 
-    public function handle_ws_system_status ($client, $message) {
+    public function handle_system_status ($client, $message) {
         //
-        // todo => answer the question whether handleWsSystemStatus should be renamed
-        // and unified as handleWsStatus for any usage pattern that
+        // todo => answer the question whether handleSystemStatus should be renamed
+        // and unified as handleStatus for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {
@@ -438,10 +438,10 @@ class bitmex extends \ccxt\bitmex {
         return $message;
     }
 
-    public function handle_ws_subscription_status ($client, $message) {
+    public function handle_subscription_status ($client, $message) {
         //
-        // todo => answer the question whether handleWsSubscriptionStatus should be renamed
-        // and unified as handleWsResponse for any usage pattern that
+        // todo => answer the question whether handleSubscriptionStatus should be renamed
+        // and unified as handleResponse for any usage pattern that
         // involves an identified request/response sequence
         //
         //     {
@@ -462,7 +462,7 @@ class bitmex extends \ccxt\bitmex {
         return $message;
     }
 
-    public function handle_ws_errors ($client, $message) {
+    public function handle_errors ($client, $message) {
         //
         // generic $error format
         //
@@ -502,7 +502,7 @@ class bitmex extends \ccxt\bitmex {
         return true;
     }
 
-    public function handle_ws_message ($client, $message) {
+    public function handle_message ($client, $message) {
         //
         //     {
         //         info => 'Welcome to the BitMEX Realtime API.',
@@ -537,12 +537,12 @@ class bitmex extends \ccxt\bitmex {
         //         )
         //     }
         //
-        if ($this->handle_ws_errors ($client, $message)) {
+        if ($this->handle_errors($client, $message)) {
             $table = $this->safe_string($message, 'table');
             $methods = array (
-                'orderBookL2' => 'handleWsOrderBook',
-                'orderBookL2_25' => 'handleWsOrderBook',
-                'orderBook10' => 'handleWsOrderBook',
+                'orderBookL2' => 'handleOrderBook',
+                'orderBookL2_25' => 'handleOrderBook',
+                'orderBook10' => 'handleOrderBook',
             );
             $method = $this->safe_string($methods, $table);
             if ($method === null) {

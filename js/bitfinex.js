@@ -11,8 +11,8 @@ module.exports = class bitfinex extends ccxt.bitfinex {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
-                'fetchWsTicker': true,
-                'fetchWsOrderBook': true,
+                'watchTicker': true,
+                'watchOrderBook': true,
             },
             'urls': {
                 'api': {
@@ -28,10 +28,10 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         });
     }
 
-    async fetchWsOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol, limit = undefined, params = {}) {
         if (limit !== undefined) {
             if ((limit !== 25) && (limit !== 100)) {
-                throw new ExchangeError (this.id + ' fetchWsOrderBook limit argument must be undefined, 25 or 100');
+                throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 25 or 100');
             }
         }
         await this.loadMarkets ();
@@ -54,7 +54,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         return this.sendWsMessage (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    handleWsOrderBook (client, message) {
+    handleOrderBook (client, message) {
         //
         // first message (snapshot)
         //
@@ -105,28 +105,28 @@ module.exports = class bitfinex extends ccxt.bitfinex {
                 const delta = deltas[i];
                 const side = (delta[2] < 0) ? 'asks' : 'bids';
                 const bookside = orderbook[side];
-                this.handleWsDelta (bookside, delta);
+                this.handleDelta (bookside, delta);
             }
-            // the .limit () operation will be moved to the fetchWSOrderBook
+            // the .limit () operation will be moved to the watchOrderBook
             client.resolve (orderbook.limit (), messageHash);
         } else {
             const orderbook = this.orderbooks[symbol];
             const side = (message[1][2] < 0) ? 'asks' : 'bids';
             const bookside = orderbook[side];
-            this.handleWsDelta (bookside, message[1]);
-            // the .limit () operation will be moved to the fetchWSOrderBook
+            this.handleDelta (bookside, message[1]);
+            // the .limit () operation will be moved to the watchOrderBook
             client.resolve (orderbook.limit (), messageHash);
         }
     }
 
-    handleWsDelta (bookside, delta) {
+    handleDelta (bookside, delta) {
         const price = delta[0];
         const count = delta[1];
         const amount = (delta[2] < 0) ? -delta[2] : delta[2];
         bookside.store (price, amount, count);
     }
 
-    handleWsHeartbeat (client, message) {
+    handleHeartbeat (client, message) {
         //
         // every second (approx) if no other updates are sent
         //
@@ -136,10 +136,10 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         client.resolve (message, event);
     }
 
-    handleWsSystemStatus (client, message) {
+    handleSystemStatus (client, message) {
         //
-        // todo: answer the question whether handleWsSystemStatus should be renamed
-        // and unified as handleWsStatus for any usage pattern that
+        // todo: answer the question whether handleSystemStatus should be renamed
+        // and unified as handleStatus for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {
@@ -152,10 +152,10 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         return message;
     }
 
-    handleWsSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client, message) {
         //
-        // todo: answer the question whether handleWsSubscriptionStatus should be renamed
-        // and unified as handleWsResponse for any usage pattern that
+        // todo: answer the question whether handleSubscriptionStatus should be renamed
+        // and unified as handleResponse for any usage pattern that
         // involves an identified request/response sequence
         //
         //     {
@@ -181,17 +181,17 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         return message;
     }
 
-    handleWsMessage (client, message) {
+    handleMessage (client, message) {
         // console.log (new Date (), message);
         if (Array.isArray (message)) {
             const channelId = message[0].toString ();
             const subscription = this.safeValue (this.options['subscriptionsByChannelId'], channelId, {});
             const channel = this.safeString (subscription, 'channel');
             const methods = {
-                'book': 'handleWsOrderBook',
-                // 'ohlc': 'handleWsOHLCV',
-                // 'ticker': 'handleWsTicker',
-                // 'trade': 'handleWsTrades',
+                'book': 'handleOrderBook',
+                // 'ohlc': 'handleOHLCV',
+                // 'ticker': 'handleTicker',
+                // 'trade': 'handleTrades',
             };
             const method = this.safeString (methods, channel);
             if (method === undefined) {
@@ -200,7 +200,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
                 return this[method] (client, message);
             }
         } else {
-            // todo: add bitfinex handleWsErrors
+            // todo: add bitfinex handleErrors
             //
             //     {
             //         event: 'info',
@@ -212,9 +212,9 @@ module.exports = class bitfinex extends ccxt.bitfinex {
             const event = this.safeString (message, 'event');
             if (event !== undefined) {
                 const methods = {
-                    'info': 'handleWsSystemStatus',
-                    // 'book': 'handleWsOrderBook',
-                    'subscribed': 'handleWsSubscriptionStatus',
+                    'info': 'handleSystemStatus',
+                    // 'book': 'handleOrderBook',
+                    'subscribed': 'handleSubscriptionStatus',
                 };
                 const method = this.safeString (methods, event);
                 if (method === undefined) {

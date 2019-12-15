@@ -37,10 +37,10 @@ module.exports = class Exchange extends ccxt.Exchange {
         return new CountedOrderBook (snapshot)
     }
 
-    websocket (url) {
+    client (url) {
         this.clients = this.clients || {}
         if (!this.clients[url]) {
-            const onMessage = this.handleWsMessage.bind (this)
+            const onMessage = this.handleMessage.bind (this)
             const onError = this.onWsError.bind (this)
             const onClose = this.onWsClose.bind (this)
             this.clients[url] = new WebSocketClient (url, onMessage, onError, onClose)
@@ -52,7 +52,7 @@ module.exports = class Exchange extends ccxt.Exchange {
         //
         // Without comments the code of this method is short and easy:
         //
-        //     const client = this.websocket (url)
+        //     const client = this.client (url)
         //     const backoffDelay = 0
         //     const future = client.future (messageHash)
         //     const connected = client.connect (backoffDelay)
@@ -67,19 +67,19 @@ module.exports = class Exchange extends ccxt.Exchange {
         //
         // The following is a longer version of this method with comments
         //
-        const client = this.websocket (url)
+        const client = this.client (url)
         // todo: calculate the backoff using the clients cache
         const backoffDelay = 0
         //
-        //  fetchWsOrderBook ---- future ----+---------------+----→ user
-        //                                   |               |
-        //                                   ↓               ↑
-        //                                   |               |
-        //                                connect ......→ resolve
-        //                                   |               |
-        //                                   ↓               ↑
-        //                                   |               |
-        //                               subscribe -----→ receive
+        //  watchOrderBook ---- future ----+---------------+----→ user
+        //                                 |               |
+        //                                 ↓               ↑
+        //                                 |               |
+        //                              connect ......→ resolve
+        //                                 |               |
+        //                                 ↓               ↑
+        //                                 |               |
+        //                             subscribe -----→ receive
         //
         const future = client.future (messageHash)
         // we intentionally do not use await here to avoid unhandled exceptions

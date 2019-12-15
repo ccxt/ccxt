@@ -12,8 +12,8 @@ module.exports = class kraken extends ccxt.kraken {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'fetchWsTicker': true,
-                'fetchWsOrderBook': true,
+                'watchTicker': true,
+                'watchOrderBook': true,
             },
             'urls': {
                 'api': {
@@ -43,7 +43,7 @@ module.exports = class kraken extends ccxt.kraken {
         });
     }
 
-    handleWsTicker (client, message) {
+    handleTicker (client, message) {
         //
         //     [
         //         0, // channelID
@@ -100,18 +100,18 @@ module.exports = class kraken extends ccxt.kraken {
         };
         // todo: add support for multiple tickers (may be tricky)
         // kraken confirms multi-pair subscriptions separately one by one
-        // trigger correct fetchWsTickers calls upon receiving any of symbols
+        // trigger correct watchTickers calls upon receiving any of symbols
         // --------------------------------------------------------------------
-        // if there's a corresponding fetchWsTicker call - trigger it
+        // if there's a corresponding watchTicker call - trigger it
         client.resolve (result, messageHash);
     }
 
-    async fetchWsBalance (params = {}) {
+    async watchBalance (params = {}) {
         await this.loadMarkets ();
-        throw new NotImplemented (this.id + ' fetchWsBalance() not implemented yet');
+        throw new NotImplemented (this.id + ' watchBalance() not implemented yet');
     }
 
-    handleWsTrades (client, message) {
+    handleTrades (client, message) {
         //
         //     [
         //         0, // channelID
@@ -152,10 +152,10 @@ module.exports = class kraken extends ccxt.kraken {
             // 'fee': fee,
         };
         result['id'] = undefined;
-        throw NotImplemented (this.id + ' handleWsTrades() not implemented yet (wip)');
+        throw NotImplemented (this.id + ' handleTrades() not implemented yet (wip)');
     }
 
-    handleWsOHLCV (client, message) {
+    handleOHLCV (client, message) {
         //
         //     [
         //         216, // channelID
@@ -198,7 +198,7 @@ module.exports = class kraken extends ccxt.kraken {
         client.resolve (result, messageHash);
     }
 
-    async fetchWsPublicMessage (name, symbol, params = {}) {
+    async watchPublicMessage (name, symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const wsName = this.safeValue (market['info'], 'wsname');
@@ -221,31 +221,31 @@ module.exports = class kraken extends ccxt.kraken {
         return future;
     }
 
-    async fetchWsTicker (symbol, params = {}) {
-        return await this.fetchWsPublicMessage ('ticker', symbol, params);
+    async watchTicker (symbol, params = {}) {
+        return await this.watchPublicMessage ('ticker', symbol, params);
     }
 
-    async fetchWsTrades (symbol, params = {}) {
-        return await this.fetchWsPublicMessage ('trade', symbol, params);
+    async watchTrades (symbol, params = {}) {
+        return await this.watchPublicMessage ('trade', symbol, params);
     }
 
-    async fetchWsOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol, limit = undefined, params = {}) {
         const name = 'book';
         const request = {};
         if (limit !== undefined) {
             request['subscription'] = { 'depth': limit }; // default 10, valid options 10, 25, 100, 500, 1000
         }
-        return await this.fetchWsPublicMessage (name, symbol, this.extend (request, params));
+        return await this.watchPublicMessage (name, symbol, this.extend (request, params));
     }
 
-    async fetchWsOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         const name = 'ohlc';
         const request = {
             'subscription': {
                 'interval': parseInt (this.timeframes[timeframe]),
             },
         };
-        return await this.fetchWsPublicMessage (name, symbol, this.extend (request, params));
+        return await this.watchPublicMessage (name, symbol, this.extend (request, params));
     }
 
     async loadMarkets (reload = false, params = {}) {
@@ -267,14 +267,14 @@ module.exports = class kraken extends ccxt.kraken {
         return markets;
     }
 
-    async fetchWsHeartbeat (params = {}) {
+    async watchHeartbeat (params = {}) {
         await this.loadMarkets ();
         const event = 'heartbeat';
         const url = this.urls['api']['ws']['public'];
         return this.sendWsMessage (url, event);
     }
 
-    handleWsHeartbeat (client, message) {
+    handleHeartbeat (client, message) {
         //
         // every second (approx) if no other updates are sent
         //
@@ -323,7 +323,7 @@ module.exports = class kraken extends ccxt.kraken {
         };
     }
 
-    handleWsOrderBook (client, message) {
+    handleOrderBook (client, message) {
         //
         // first message (snapshot)
         //
@@ -385,10 +385,10 @@ module.exports = class kraken extends ccxt.kraken {
                 const side = sides[key];
                 const bookside = orderbook[side];
                 const deltas = this.safeValue (message[1], key, []);
-                timestamp = this.handleWsDeltas (bookside, deltas, timestamp);
+                timestamp = this.handleDeltas (bookside, deltas, timestamp);
             }
             orderbook['timestamp'] = timestamp;
-            // the .limit () operation will be moved to the fetchWSOrderBook
+            // the .limit () operation will be moved to the watchOrderBook
             client.resolve (orderbook.limit (), messageHash);
         } else {
             const orderbook = this.orderbooks[symbol];
@@ -406,18 +406,18 @@ module.exports = class kraken extends ccxt.kraken {
                 }
             }
             if (a !== undefined) {
-                timestamp = this.handleWsDeltas (orderbook['asks'], a, timestamp);
+                timestamp = this.handleDeltas (orderbook['asks'], a, timestamp);
             }
             if (b !== undefined) {
-                timestamp = this.handleWsDeltas (orderbook['bids'], b, timestamp);
+                timestamp = this.handleDeltas (orderbook['bids'], b, timestamp);
             }
             orderbook['timestamp'] = timestamp;
-            // the .limit () operation will be moved to the fetchWSOrderBook
+            // the .limit () operation will be moved to the watchOrderBook
             client.resolve (orderbook.limit (), messageHash);
         }
     }
 
-    handleWsDeltas (bookside, deltas, timestamp) {
+    handleDeltas (bookside, deltas, timestamp) {
         for (let j = 0; j < deltas.length; j++) {
             const delta = deltas[j];
             const price = parseFloat (delta[0]);
@@ -428,10 +428,10 @@ module.exports = class kraken extends ccxt.kraken {
         return timestamp;
     }
 
-    handleWsSystemStatus (client, message) {
+    handleSystemStatus (client, message) {
         //
-        // todo: answer the question whether handleWsSystemStatus should be renamed
-        // and unified as handleWsStatus for any usage pattern that
+        // todo: answer the question whether handleSystemStatus should be renamed
+        // and unified as handleStatus for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {
@@ -444,10 +444,10 @@ module.exports = class kraken extends ccxt.kraken {
         return message;
     }
 
-    handleWsSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client, message) {
         //
-        // todo: answer the question whether handleWsSubscriptionStatus should be renamed
-        // and unified as handleWsResponse for any usage pattern that
+        // todo: answer the question whether handleSubscriptionStatus should be renamed
+        // and unified as handleResponse for any usage pattern that
         // involves an identified request/response sequence
         //
         //     {
@@ -468,7 +468,7 @@ module.exports = class kraken extends ccxt.kraken {
         }
     }
 
-    handleWsErrors (client, message) {
+    handleErrors (client, message) {
         //
         //     {
         //         errorMessage: 'Currency pair not in ISO 4217-A3 format foobar',
@@ -505,17 +505,17 @@ module.exports = class kraken extends ccxt.kraken {
         return message;
     }
 
-    handleWsMessage (client, message) {
+    handleMessage (client, message) {
         if (Array.isArray (message)) {
             const channelId = message[0].toString ();
             const subscriptionStatus = this.safeValue (this.options['subscriptionStatusByChannelId'], channelId, {});
             const subscription = this.safeValue (subscriptionStatus, 'subscription', {});
             const name = this.safeString (subscription, 'name');
             const methods = {
-                'book': 'handleWsOrderBook',
-                'ohlc': 'handleWsOHLCV',
-                'ticker': 'handleWsTicker',
-                'trade': 'handleWsTrades',
+                'book': 'handleOrderBook',
+                'ohlc': 'handleOHLCV',
+                'ticker': 'handleTicker',
+                'trade': 'handleTrades',
             };
             const method = this.safeString (methods, name);
             if (method === undefined) {
@@ -524,12 +524,12 @@ module.exports = class kraken extends ccxt.kraken {
                 return this[method] (client, message);
             }
         } else {
-            if (this.handleWsErrors (client, message)) {
+            if (this.handleErrors (client, message)) {
                 const event = this.safeString (message, 'event');
                 const methods = {
-                    'heartbeat': 'handleWsHeartbeat',
-                    'systemStatus': 'handleWsSystemStatus',
-                    'subscriptionStatus': 'handleWsSubscriptionStatus',
+                    'heartbeat': 'handleHeartbeat',
+                    'systemStatus': 'handleSystemStatus',
+                    'subscriptionStatus': 'handleSubscriptionStatus',
                 };
                 const method = this.safeString (methods, event);
                 if (method === undefined) {

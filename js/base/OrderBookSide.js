@@ -245,7 +245,7 @@ class LimitedCountedOrderBookSide extends CountedOrderBookSide {
             this[i] = array[i];
             const price = array[i][0]
             const size = array[i][1]
-            const id = array[i][2]
+            const count = array[i][2]
             this.index.set (price, array[i])
         }
         this.length = threshold;

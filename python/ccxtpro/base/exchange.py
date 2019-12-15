@@ -10,6 +10,8 @@ import asyncio
 from ccxtpro.base.streaming_client_aiohttp import StreamingClientAiohttp
 from ccxt.async_support import Exchange as BaseExchange
 from ccxt import NotSupported
+from ccxtpro.base.order_book import OrderBook, LimitedOrderBook, IndexedOrderBook, LimitedIndexedOrderBook, CountedOrderBook
+
 
 # -----------------------------------------------------------------------------
 
@@ -25,19 +27,38 @@ class Exchange(BaseExchange):
 
     clients = {}
 
-    def websocket(self, url):
+    def orderbook(self, snapshot={}):
+        return OrderBook(snapshot)
+
+    def limitedOrderBook(self, snapshot={}, depth=None):
+        return LimitedOrderBook(snapshot, depth)
+
+    def indexedOrderBook(self, snapshot={}):
+        return IndexedOrderBook(snapshot)
+
+    def limitedIndexedOrderBook(self, snapshot={}, depth=None):
+        return LimitedIndexedOrderBook(snapshot, depth)
+
+    # def limitedCountedOrderBook(self, snapshot={}, depth=None):
+    #     return LimitedCountedOrderBook(snapshot, depth)
+
+    def countedOrderBook(self, snapshot={}):
+        return CountedOrderBook(snapshot)
+
+    def client(self, url):
         self.clients = self.clients or {}
         if url not in self.clients:
-            on_message = self.handle_ws_message
+            on_message = self.handle_message
             on_error = self.on_ws_error
             on_close = self.on_ws_close
+            # decide client type here: aiohttp ws / websockets / signalr
             self.clients[url] = StreamingClientAiohttp(url, on_message, on_error, on_close)
         return self.clients[url]
 
-    def handle_ws_message(self, client, message):
+    def handle_message(self, client, message):
         always = True
         if always:
-            raise NotSupported(self.id + '.handle_ws_message() not implemented yet')
+            raise NotSupported(self.id + '.handle_message() not implemented yet')
         return {}
 
     def sign_ws_message(self, client, message_hash, message):
@@ -61,7 +82,7 @@ class Exchange(BaseExchange):
             print(self.iso8601(self.milliseconds()), 'connect_ws_client', 'Exception', e)
 
     def send_ws_message(self, url, message_hash, message=None, subscribe_hash=None):
-        client = self.websocket(url)
+        client = self.client(url)
         future = client.future(message_hash)
         # we intentionally do not use await here to avoid unhandled exceptions
         # the policy is to make sure that 100% of promises are resolved or rejected
@@ -73,6 +94,8 @@ class Exchange(BaseExchange):
             del self.clients[client.url]
 
     def on_ws_close(self, client, error):
+        print('someone called us')
+        # sys.exit()
         if client.error:
             # connection closed due to an error, do nothing
             pass
@@ -88,15 +111,15 @@ class Exchange(BaseExchange):
 
     # -------------------------------------------------------------------------
 
-    # def handle_ws_message(self, client, response):
+    # def handle_message(self, client, response):
     #     message_hash = self.get_ws_message_hash(client, response)
     #     if message_hash not in client.futures:
-    #         self.handle_ws_dropped(client, response, message_hash)
+    #         self.handle_dropped(client, response, message_hash)
     #         return
     #     future = client.futures[message_hash]
     #     future.resolve(response)
 
-    # def handle_ws_dropped(self, client, response, message_hash):
+    # def handle_dropped(self, client, response, message_hash):
     #     pass
 
     # @classmethod
@@ -105,7 +128,7 @@ class Exchange(BaseExchange):
 
     #     def key_closure(k):
     #         async def ws_x_message(_self, url, message_hash, subscribe=None):
-    #             result = await WebSocketClient.registerFuture(url, message_hash, _self.handle_ws_message, _self.apiKey, subscribe, _self.asyncio_loop)
+    #             result = await WebSocketClient.registerFuture(url, message_hash, _self.handle_message, _self.apiKey, subscribe, _self.asyncio_loop)
     #             return getattr(_self, 'handle_' + k)(result)
     #         return ws_x_message
     #     for key in methods:

@@ -12,8 +12,8 @@ module.exports = class poloniex extends ccxt.poloniex {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'fetchWsTicker': true,
-                'fetchWsOrderBook': true,
+                'watchTicker': true,
+                'watchOrderBook': true,
             },
             'urls': {
                 'api': {
@@ -23,7 +23,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         });
     }
 
-    handleWsTickers (client, response) {
+    handleTickers (client, response) {
         const data = response[2];
         const market = this.safeValue (this.options['marketsByNumericId'], data[0].toString ());
         const symbol = this.safeString (market, 'symbol');
@@ -42,7 +42,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         };
     }
 
-    async fetchWsBalance (params = {}) {
+    async watchBalance (params = {}) {
         await this.loadMarkets ();
         this.balance = await this.fetchBalance (params);
         const channelId = '1000';
@@ -55,10 +55,10 @@ module.exports = class poloniex extends ccxt.poloniex {
         return this.sendWsMessage (url, messageHash, subscribe, channelId);
     }
 
-    async fetchWsTickers (symbols = undefined, params = {}) {
+    async watchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         // rewrite
-        throw new NotImplemented (this.id + 'fetchWsTickers not implemented yet');
+        throw new NotImplemented (this.id + 'watchTickers not implemented yet');
         // const market = this.market (symbol);
         // const numericId = market['info']['id'].toString ();
         // const url = this.urls['api']['websocket']['public'];
@@ -84,7 +84,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         return markets;
     }
 
-    async fetchWsTrades (symbol, params = {}) {
+    async watchTrades (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const numericId = this.safeString (market, 'numericId');
@@ -97,7 +97,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         return this.sendWsMessage (url, messageHash, subscribe, numericId);
     }
 
-    async fetchWsOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const numericId = this.safeString (market, 'numericId');
@@ -118,7 +118,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         return await this.sendWsMessage (url, messageHash, subscribe, numericId);
     }
 
-    async fetchWsHeartbeat (params = {}) {
+    async watchHeartbeat (params = {}) {
         await this.loadMarkets ();
         const channelId = '1010';
         const url = this.urls['api']['ws'];
@@ -142,7 +142,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         return message;
     }
 
-    handleWsHeartbeat (client, message) {
+    handleHeartbeat (client, message) {
         //
         // every second (approx) if no other updates are sent
         //
@@ -191,7 +191,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         };
     }
 
-    handleWsOrderBookAndTrades (client, message) {
+    handleOrderBookAndTrades (client, message) {
         //
         // first response
         //
@@ -244,9 +244,9 @@ module.exports = class poloniex extends ccxt.poloniex {
                     const orders = snapshot[j];
                     const prices = Object.keys (orders);
                     for (let k = 0; k < prices.length; k++) {
-                        const price = parseFloat (prices[k]);
-                        const amount = parseFloat (orders[price]);
-                        bookside.store (price, amount);
+                        const price = prices[k];
+                        const amount = orders[price];
+                        bookside.store (parseFloat (price), parseFloat (amount));
                     }
                 }
                 orderbook['nonce'] = nonce;
@@ -270,7 +270,7 @@ module.exports = class poloniex extends ccxt.poloniex {
             // resolve the orderbook future
             const messageHash = marketId + ':orderbook';
             const orderbook = this.orderbooks[symbol];
-            // the .limit () operation will be moved to the fetchWSOrderBook
+            // the .limit () operation will be moved to the watchOrderBook
             client.resolve (orderbook.limit (), messageHash);
         }
         if (tradesCount) {
@@ -281,22 +281,22 @@ module.exports = class poloniex extends ccxt.poloniex {
         }
     }
 
-    handleWsAccountNotifications (client, message) {
+    handleAccountNotifications (client, message) {
         // not implemented yet
-        // throw new NotImplemented (this.id + 'fetchWsTickers not implemented yet');
+        // throw new NotImplemented (this.id + 'watchTickers not implemented yet');
         return message;
     }
 
-    handleWsMessage (client, message) {
+    handleMessage (client, message) {
         const channelId = this.safeString (message, 0);
         const market = this.safeValue (this.options['marketsByNumericId'], channelId);
         if (market === undefined) {
             const methods = {
-                // '<numericId>': 'handleWsOrderBookAndTrades', // Price Aggregated Book
-                '1000': 'handleWsAccountNotifications', // Beta
-                '1002': 'handleWsTickers', // Ticker Data
+                // '<numericId>': 'handleOrderBookAndTrades', // Price Aggregated Book
+                '1000': 'handleAccountNotifications', // Beta
+                '1002': 'handleTickers', // Ticker Data
                 // '1003': undefined, // 24 Hour Exchange Volume
-                '1010': 'handleWsHeartbeat',
+                '1010': 'handleHeartbeat',
             };
             const method = this.safeString (methods, channelId);
             if (method === undefined) {
@@ -305,7 +305,7 @@ module.exports = class poloniex extends ccxt.poloniex {
                 return this[method] (client, message);
             }
         } else {
-            return this.handleWsOrderBookAndTrades (client, message);
+            return this.handleOrderBookAndTrades (client, message);
         }
     }
 };

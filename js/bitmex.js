@@ -12,8 +12,8 @@ module.exports = class bitmex extends ccxt.bitmex {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'fetchWsTicker': true,
-                'fetchWsOrderBook': true,
+                'watchTicker': true,
+                'watchOrderBook': true,
             },
             'urls': {
                 'api': {
@@ -25,7 +25,7 @@ module.exports = class bitmex extends ccxt.bitmex {
             },
             'options': {
                 'subscriptionStatusByChannelId': {},
-                'fetchWsOrderBookLevel': 'orderBookL2', // 'orderBookL2' = L2 full order book, 'orderBookL2_25' = L2 top 25, 'orderBook10' L3 top 10
+                'watchOrderBookLevel': 'orderBookL2', // 'orderBookL2' = L2 full order book, 'orderBookL2_25' = L2 top 25, 'orderBook10' L3 top 10
             },
             'exceptions': {
                 'ws': {
@@ -39,7 +39,7 @@ module.exports = class bitmex extends ccxt.bitmex {
         });
     }
 
-    handleWsTicker (client, message) {
+    handleTicker (client, message) {
         //
         //     [
         //         0, // channelID
@@ -96,18 +96,18 @@ module.exports = class bitmex extends ccxt.bitmex {
         };
         // todo: add support for multiple tickers (may be tricky)
         // kraken confirms multi-pair subscriptions separately one by one
-        // trigger correct fetchWsTickers calls upon receiving any of symbols
+        // trigger correct watchTickers calls upon receiving any of symbols
         // --------------------------------------------------------------------
-        // if there's a corresponding fetchWsTicker call - trigger it
+        // if there's a corresponding watchTicker call - trigger it
         client.resolve (result, messageHash);
     }
 
-    async fetchWsBalance (params = {}) {
+    async watchBalance (params = {}) {
         await this.loadMarkets ();
-        throw new NotImplemented (this.id + ' fetchWsBalance() not implemented yet');
+        throw new NotImplemented (this.id + ' watchBalance() not implemented yet');
     }
 
-    handleWsTrades (client, message) {
+    handleTrades (client, message) {
         //
         //     [
         //         0, // channelID
@@ -148,10 +148,10 @@ module.exports = class bitmex extends ccxt.bitmex {
             // 'fee': fee,
         };
         result['id'] = undefined;
-        throw NotImplemented (this.id + ' handleWsTrades() not implemented yet (wip)');
+        throw NotImplemented (this.id + ' handleTrades() not implemented yet (wip)');
     }
 
-    handleWsOHLCV (client, message) {
+    handleOHLCV (client, message) {
         //
         //     [
         //         216, // channelID
@@ -194,16 +194,16 @@ module.exports = class bitmex extends ccxt.bitmex {
         client.resolve (result, messageHash);
     }
 
-    async fetchWsOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol, limit = undefined, params = {}) {
         let name = undefined;
         if (limit === undefined) {
-            name = this.safeString (this.options, 'fetchWsOrderBookLevel', 'orderBookL2');
+            name = this.safeString (this.options, 'watchOrderBookLevel', 'orderBookL2');
         } else if (limit === 25) {
             name = 'orderBookL2_25';
         } else if (limit === 10) {
             name = 'orderBookL10';
         } else {
-            throw new ExchangeError (this.id + ' fetchWsOrderBook limit argument must be undefined (L2), 25 (L2) or 10 (L3)');
+            throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined (L2), 25 (L2) or 10 (L3)');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -218,14 +218,14 @@ module.exports = class bitmex extends ccxt.bitmex {
         return this.sendWsMessage (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    async fetchWsOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         const name = 'ohlc';
         const request = {
             'subscription': {
                 'interval': parseInt (this.timeframes[timeframe]),
             },
         };
-        return await this.fetchWsPublicMessage (name, symbol, this.extend (request, params));
+        return await this.watchPublicMessage (name, symbol, this.extend (request, params));
     }
 
     async loadMarkets (reload = false, params = {}) {
@@ -247,7 +247,7 @@ module.exports = class bitmex extends ccxt.bitmex {
         return markets;
     }
 
-    async fetchWsHeartbeat (params = {}) {
+    async watchHeartbeat (params = {}) {
         await this.loadMarkets ();
         const event = 'heartbeat';
         const url = this.urls['api']['ws'];
@@ -298,7 +298,7 @@ module.exports = class bitmex extends ccxt.bitmex {
         };
     }
 
-    handleWsOrderBook (client, message) {
+    handleOrderBook (client, message) {
         //
         // first message (snapshot)
         //
@@ -365,7 +365,7 @@ module.exports = class bitmex extends ccxt.bitmex {
                     bookside.store (price, size, id);
                 }
                 const messageHash = table + ':' + marketId;
-                // the .limit () operation will be moved to the fetchWSOrderBook
+                // the .limit () operation will be moved to the watchOrderBook
                 client.resolve (orderbook.limit (), messageHash);
             }
         } else {
@@ -400,13 +400,13 @@ module.exports = class bitmex extends ccxt.bitmex {
                 const market = this.markets_by_id[marketId];
                 const symbol = market['symbol'];
                 const orderbook = this.orderbooks[symbol];
-                // the .limit () operation will be moved to the fetchWSOrderBook
+                // the .limit () operation will be moved to the watchOrderBook
                 client.resolve (orderbook.limit (), messageHash);
             }
         }
     }
 
-    handleWsDeltas (bookside, deltas, timestamp) {
+    handleDeltas (bookside, deltas, timestamp) {
         for (let j = 0; j < deltas.length; j++) {
             const delta = deltas[j];
             const price = parseFloat (delta[0]);
@@ -417,10 +417,10 @@ module.exports = class bitmex extends ccxt.bitmex {
         return timestamp;
     }
 
-    handleWsSystemStatus (client, message) {
+    handleSystemStatus (client, message) {
         //
-        // todo: answer the question whether handleWsSystemStatus should be renamed
-        // and unified as handleWsStatus for any usage pattern that
+        // todo: answer the question whether handleSystemStatus should be renamed
+        // and unified as handleStatus for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {
@@ -434,10 +434,10 @@ module.exports = class bitmex extends ccxt.bitmex {
         return message;
     }
 
-    handleWsSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client, message) {
         //
-        // todo: answer the question whether handleWsSubscriptionStatus should be renamed
-        // and unified as handleWsResponse for any usage pattern that
+        // todo: answer the question whether handleSubscriptionStatus should be renamed
+        // and unified as handleResponse for any usage pattern that
         // involves an identified request/response sequence
         //
         //     {
@@ -458,7 +458,7 @@ module.exports = class bitmex extends ccxt.bitmex {
         return message;
     }
 
-    handleWsErrors (client, message) {
+    handleErrors (client, message) {
         //
         // generic error format
         //
@@ -498,7 +498,7 @@ module.exports = class bitmex extends ccxt.bitmex {
         return true;
     }
 
-    handleWsMessage (client, message) {
+    handleMessage (client, message) {
         //
         //     {
         //         info: 'Welcome to the BitMEX Realtime API.',
@@ -533,12 +533,12 @@ module.exports = class bitmex extends ccxt.bitmex {
         //         ]
         //     }
         //
-        if (this.handleWsErrors (client, message)) {
+        if (this.handleErrors (client, message)) {
             const table = this.safeString (message, 'table');
             const methods = {
-                'orderBookL2': 'handleWsOrderBook',
-                'orderBookL2_25': 'handleWsOrderBook',
-                'orderBook10': 'handleWsOrderBook',
+                'orderBookL2': 'handleOrderBook',
+                'orderBookL2_25': 'handleOrderBook',
+                'orderBook10': 'handleOrderBook',
             };
             const method = this.safeString (methods, table);
             if (method === undefined) {

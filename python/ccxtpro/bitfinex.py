@@ -13,8 +13,8 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
     def describe(self):
         return self.deep_extend(super(bitfinex, self).describe(), {
             'has': {
-                'fetchWsTicker': True,
-                'fetchWsOrderBook': True,
+                'watchTicker': True,
+                'watchOrderBook': True,
             },
             'urls': {
                 'api': {
@@ -29,10 +29,10 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
             },
         })
 
-    async def fetch_ws_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol, limit=None, params={}):
         if limit is not None:
             if (limit != 25) and (limit != 100):
-                raise ExchangeError(self.id + ' fetchWsOrderBook limit argument must be None, 25 or 100')
+                raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 25 or 100')
         await self.load_markets()
         market = self.market(symbol)
         marketId = market['id']
@@ -51,7 +51,7 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
         messageHash = channel + ':' + marketId
         return self.sendWsMessage(url, messageHash, self.deep_extend(request, params), messageHash)
 
-    def handle_ws_order_book(self, client, message):
+    def handle_order_book(self, client, message):
         #
         # first message(snapshot)
         #
@@ -102,24 +102,24 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
                 delta = deltas[i]
                 side = 'asks' if (delta[2] < 0) else 'bids'
                 bookside = orderbook[side]
-                self.handle_ws_delta(bookside, delta)
-            # the .limit() operation will be moved to the fetchWSOrderBook
+                self.handle_delta(bookside, delta)
+            # the .limit() operation will be moved to the watchOrderBook
             client.resolve(orderbook.limit(), messageHash)
         else:
             orderbook = self.orderbooks[symbol]
             side = 'asks' if (message[1][2] < 0) else 'bids'
             bookside = orderbook[side]
-            self.handle_ws_delta(bookside, message[1])
-            # the .limit() operation will be moved to the fetchWSOrderBook
+            self.handle_delta(bookside, message[1])
+            # the .limit() operation will be moved to the watchOrderBook
             client.resolve(orderbook.limit(), messageHash)
 
-    def handle_ws_delta(self, bookside, delta):
+    def handle_delta(self, bookside, delta):
         price = delta[0]
         count = delta[1]
         amount = -delta[2] if (delta[2] < 0) else delta[2]
         bookside.store(price, amount, count)
 
-    def handle_ws_heartbeat(self, client, message):
+    def handle_heartbeat(self, client, message):
         #
         # every second(approx) if no other updates are sent
         #
@@ -128,10 +128,10 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
         event = self.safe_string(message, 'event')
         client.resolve(message, event)
 
-    def handle_ws_system_status(self, client, message):
+    def handle_system_status(self, client, message):
         #
-        # todo: answer the question whether handleWsSystemStatus should be renamed
-        # and unified as handleWsStatus for any usage pattern that
+        # todo: answer the question whether handleSystemStatus should be renamed
+        # and unified as handleStatus for any usage pattern that
         # involves system status and maintenance updates
         #
         #     {
@@ -143,10 +143,10 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
         #
         return message
 
-    def handle_ws_subscription_status(self, client, message):
+    def handle_subscription_status(self, client, message):
         #
-        # todo: answer the question whether handleWsSubscriptionStatus should be renamed
-        # and unified as handleWsResponse for any usage pattern that
+        # todo: answer the question whether handleSubscriptionStatus should be renamed
+        # and unified as handleResponse for any usage pattern that
         # involves an identified request/response sequence
         #
         #     {
@@ -170,17 +170,17 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
         # todo: bitfinex signWsMessage not implemented yet
         return message
 
-    def handle_ws_message(self, client, message):
+    def handle_message(self, client, message):
         # print(new Date(), message)
         if isinstance(message, list):
             channelId = str(message[0])
             subscription = self.safe_value(self.options['subscriptionsByChannelId'], channelId, {})
             channel = self.safe_string(subscription, 'channel')
             methods = {
-                'book': 'handleWsOrderBook',
-                # 'ohlc': 'handleWsOHLCV',
-                # 'ticker': 'handleWsTicker',
-                # 'trade': 'handleWsTrades',
+                'book': 'handleOrderBook',
+                # 'ohlc': 'handleOHLCV',
+                # 'ticker': 'handleTicker',
+                # 'trade': 'handleTrades',
             }
             method = self.safe_string(methods, channel)
             if method is None:
@@ -188,7 +188,7 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
             else:
                 return getattr(self, method)(client, message)
         else:
-            # todo: add bitfinex handleWsErrors
+            # todo: add bitfinex handleErrors
             #
             #     {
             #         event: 'info',
@@ -200,9 +200,9 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
             event = self.safe_string(message, 'event')
             if event is not None:
                 methods = {
-                    'info': 'handleWsSystemStatus',
-                    # 'book': 'handleWsOrderBook',
-                    'subscribed': 'handleWsSubscriptionStatus',
+                    'info': 'handleSystemStatus',
+                    # 'book': 'handleOrderBook',
+                    'subscribed': 'handleSubscriptionStatus',
                 }
                 method = self.safe_string(methods, event)
                 if method is None:

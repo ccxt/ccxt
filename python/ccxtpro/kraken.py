@@ -16,8 +16,8 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         return self.deep_extend(super(kraken, self).describe(), {
             'has': {
                 'ws': True,
-                'fetchWsTicker': True,
-                'fetchWsOrderBook': True,
+                'watchTicker': True,
+                'watchOrderBook': True,
             },
             'urls': {
                 'api': {
@@ -46,7 +46,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
             },
         })
 
-    def handle_ws_ticker(self, client, message):
+    def handle_ticker(self, client, message):
         #
         #     [
         #         0,  # channelID
@@ -102,16 +102,16 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         }
         # todo: add support for multiple tickers(may be tricky)
         # kraken confirms multi-pair subscriptions separately one by one
-        # trigger correct fetchWsTickers calls upon receiving any of symbols
+        # trigger correct watchTickers calls upon receiving any of symbols
         # --------------------------------------------------------------------
-        # if there's a corresponding fetchWsTicker call - trigger it
+        # if there's a corresponding watchTicker call - trigger it
         client.resolve(result, messageHash)
 
-    async def fetch_ws_balance(self, params={}):
+    async def watch_balance(self, params={}):
         await self.load_markets()
-        raise NotImplemented(self.id + ' fetchWsBalance() not implemented yet')
+        raise NotImplemented(self.id + ' watchBalance() not implemented yet')
 
-    def handle_ws_trades(self, client, message):
+    def handle_trades(self, client, message):
         #
         #     [
         #         0,  # channelID
@@ -152,9 +152,9 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
             # 'fee': fee,
         }
         result['id'] = None
-        raise NotImplemented(self.id + ' handleWsTrades() not implemented yet(wip)')
+        raise NotImplemented(self.id + ' handleTrades() not implemented yet(wip)')
 
-    def handle_ws_ohlcv(self, client, message):
+    def handle_ohlcv(self, client, message):
         #
         #     [
         #         216,  # channelID
@@ -196,7 +196,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         messageHash = wsName + ':' + name
         client.resolve(result, messageHash)
 
-    async def fetch_ws_public_message(self, name, symbol, params={}):
+    async def watch_public_message(self, name, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
         wsName = self.safe_value(market['info'], 'wsname')
@@ -218,27 +218,27 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         client['futures'][requestId] = future
         return future
 
-    async def fetch_ws_ticker(self, symbol, params={}):
-        return await self.fetch_ws_public_message('ticker', symbol, params)
+    async def watch_ticker(self, symbol, params={}):
+        return await self.watch_public_message('ticker', symbol, params)
 
-    async def fetch_ws_trades(self, symbol, params={}):
-        return await self.fetch_ws_public_message('trade', symbol, params)
+    async def watch_trades(self, symbol, params={}):
+        return await self.watch_public_message('trade', symbol, params)
 
-    async def fetch_ws_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol, limit=None, params={}):
         name = 'book'
         request = {}
         if limit is not None:
             request['subscription'] = {'depth': limit}  # default 10, valid options 10, 25, 100, 500, 1000
-        return await self.fetch_ws_public_message(name, symbol, self.extend(request, params))
+        return await self.watch_public_message(name, symbol, self.extend(request, params))
 
-    async def fetch_ws_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         name = 'ohlc'
         request = {
             'subscription': {
                 'interval': int(self.timeframes[timeframe]),
             },
         }
-        return await self.fetch_ws_public_message(name, symbol, self.extend(request, params))
+        return await self.watch_public_message(name, symbol, self.extend(request, params))
 
     async def load_markets(self, reload=False, params={}):
         markets = await super(kraken, self).load_markets(reload, params)
@@ -255,13 +255,13 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
             self.options['marketsByWsName'] = marketsByWsName
         return markets
 
-    async def fetch_ws_heartbeat(self, params={}):
+    async def watch_heartbeat(self, params={}):
         await self.load_markets()
         event = 'heartbeat'
         url = self.urls['api']['ws']['public']
         return self.sendWsMessage(url, event)
 
-    def handle_ws_heartbeat(self, client, message):
+    def handle_heartbeat(self, client, message):
         #
         # every second(approx) if no other updates are sent
         #
@@ -307,7 +307,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
             'fee': None,
         }
 
-    def handle_ws_order_book(self, client, message):
+    def handle_order_book(self, client, message):
         #
         # first message(snapshot)
         #
@@ -369,9 +369,9 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
                 side = sides[key]
                 bookside = orderbook[side]
                 deltas = self.safe_value(message[1], key, [])
-                timestamp = self.handle_ws_deltas(bookside, deltas, timestamp)
+                timestamp = self.handle_deltas(bookside, deltas, timestamp)
             orderbook['timestamp'] = timestamp
-            # the .limit() operation will be moved to the fetchWSOrderBook
+            # the .limit() operation will be moved to the watchOrderBook
             client.resolve(orderbook.limit(), messageHash)
         else:
             orderbook = self.orderbooks[symbol]
@@ -387,14 +387,14 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
                 else:
                     b = self.safe_value(message[1], 'b', [])
             if a is not None:
-                timestamp = self.handle_ws_deltas(orderbook['asks'], a, timestamp)
+                timestamp = self.handle_deltas(orderbook['asks'], a, timestamp)
             if b is not None:
-                timestamp = self.handle_ws_deltas(orderbook['bids'], b, timestamp)
+                timestamp = self.handle_deltas(orderbook['bids'], b, timestamp)
             orderbook['timestamp'] = timestamp
-            # the .limit() operation will be moved to the fetchWSOrderBook
+            # the .limit() operation will be moved to the watchOrderBook
             client.resolve(orderbook.limit(), messageHash)
 
-    def handle_ws_deltas(self, bookside, deltas, timestamp):
+    def handle_deltas(self, bookside, deltas, timestamp):
         for j in range(0, len(deltas)):
             delta = deltas[j]
             price = float(delta[0])
@@ -403,10 +403,10 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
             bookside.store(price, amount)
         return timestamp
 
-    def handle_ws_system_status(self, client, message):
+    def handle_system_status(self, client, message):
         #
-        # todo: answer the question whether handleWsSystemStatus should be renamed
-        # and unified as handleWsStatus for any usage pattern that
+        # todo: answer the question whether handleSystemStatus should be renamed
+        # and unified as handleStatus for any usage pattern that
         # involves system status and maintenance updates
         #
         #     {
@@ -418,10 +418,10 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         #
         return message
 
-    def handle_ws_subscription_status(self, client, message):
+    def handle_subscription_status(self, client, message):
         #
-        # todo: answer the question whether handleWsSubscriptionStatus should be renamed
-        # and unified as handleWsResponse for any usage pattern that
+        # todo: answer the question whether handleSubscriptionStatus should be renamed
+        # and unified as handleResponse for any usage pattern that
         # involves an identified request/response sequence
         #
         #     {
@@ -440,7 +440,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         if client.futures[requestId]:
             del client.futures[requestId]
 
-    def handle_ws_errors(self, client, message):
+    def handle_errors(self, client, message):
         #
         #     {
         #         errorMessage: 'Currency pair not in ISO 4217-A3 format foobar',
@@ -472,17 +472,17 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         # todo: kraken signWsMessage not implemented yet
         return message
 
-    def handle_ws_message(self, client, message):
+    def handle_message(self, client, message):
         if isinstance(message, list):
             channelId = str(message[0])
             subscriptionStatus = self.safe_value(self.options['subscriptionStatusByChannelId'], channelId, {})
             subscription = self.safe_value(subscriptionStatus, 'subscription', {})
             name = self.safe_string(subscription, 'name')
             methods = {
-                'book': 'handleWsOrderBook',
-                'ohlc': 'handleWsOHLCV',
-                'ticker': 'handleWsTicker',
-                'trade': 'handleWsTrades',
+                'book': 'handleOrderBook',
+                'ohlc': 'handleOHLCV',
+                'ticker': 'handleTicker',
+                'trade': 'handleTrades',
             }
             method = self.safe_string(methods, name)
             if method is None:
@@ -490,12 +490,12 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
             else:
                 return getattr(self, method)(client, message)
         else:
-            if self.handle_ws_errors(client, message):
+            if self.handle_errors(client, message):
                 event = self.safe_string(message, 'event')
                 methods = {
-                    'heartbeat': 'handleWsHeartbeat',
-                    'systemStatus': 'handleWsSystemStatus',
-                    'subscriptionStatus': 'handleWsSubscriptionStatus',
+                    'heartbeat': 'handleHeartbeat',
+                    'systemStatus': 'handleSystemStatus',
+                    'subscriptionStatus': 'handleSubscriptionStatus',
                 }
                 method = self.safe_string(methods, event)
                 if method is None:

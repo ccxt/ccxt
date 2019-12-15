@@ -15,8 +15,8 @@ class bitfinex extends \ccxt\bitfinex {
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
             'has' => array (
-                'fetchWsTicker' => true,
-                'fetchWsOrderBook' => true,
+                'watchTicker' => true,
+                'watchOrderBook' => true,
             ),
             'urls' => array (
                 'api' => array (
@@ -32,10 +32,10 @@ class bitfinex extends \ccxt\bitfinex {
         ));
     }
 
-    public function fetch_ws_order_book ($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book ($symbol, $limit = null, $params = array ()) {
         if ($limit !== null) {
             if (($limit !== 25) && ($limit !== 100)) {
-                throw new ExchangeError($this->id . ' fetchWsOrderBook $limit argument must be null, 25 or 100');
+                throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 25 or 100');
             }
         }
         $this->load_markets();
@@ -58,7 +58,7 @@ class bitfinex extends \ccxt\bitfinex {
         return $this->sendWsMessage ($url, $messageHash, array_replace_recursive ($request, $params), $messageHash);
     }
 
-    public function handle_ws_order_book ($client, $message) {
+    public function handle_order_book ($client, $message) {
         //
         // first $message (snapshot)
         //
@@ -109,28 +109,28 @@ class bitfinex extends \ccxt\bitfinex {
                 $delta = $deltas[$i];
                 $side = ($delta[2] < 0) ? 'asks' : 'bids';
                 $bookside = $orderbook[$side];
-                $this->handle_ws_delta ($bookside, $delta);
+                $this->handle_delta ($bookside, $delta);
             }
-            // the .limit () operation will be moved to the fetchWSOrderBook
+            // the .limit () operation will be moved to the watchOrderBook
             $client->resolve ($orderbook->limit (), $messageHash);
         } else {
             $orderbook = $this->orderbooks[$symbol];
             $side = ($message[1][2] < 0) ? 'asks' : 'bids';
             $bookside = $orderbook[$side];
-            $this->handle_ws_delta ($bookside, $message[1]);
-            // the .limit () operation will be moved to the fetchWSOrderBook
+            $this->handle_delta ($bookside, $message[1]);
+            // the .limit () operation will be moved to the watchOrderBook
             $client->resolve ($orderbook->limit (), $messageHash);
         }
     }
 
-    public function handle_ws_delta ($bookside, $delta) {
+    public function handle_delta ($bookside, $delta) {
         $price = $delta[0];
         $count = $delta[1];
         $amount = ($delta[2] < 0) ? -$delta[2] : $delta[2];
         $bookside->store ($price, $amount, $count);
     }
 
-    public function handle_ws_heartbeat ($client, $message) {
+    public function handle_heartbeat ($client, $message) {
         //
         // every second (approx) if no other updates are sent
         //
@@ -140,10 +140,10 @@ class bitfinex extends \ccxt\bitfinex {
         $client->resolve ($message, $event);
     }
 
-    public function handle_ws_system_status ($client, $message) {
+    public function handle_system_status ($client, $message) {
         //
-        // todo => answer the question whether handleWsSystemStatus should be renamed
-        // and unified as handleWsStatus for any usage pattern that
+        // todo => answer the question whether handleSystemStatus should be renamed
+        // and unified as handleStatus for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {
@@ -156,10 +156,10 @@ class bitfinex extends \ccxt\bitfinex {
         return $message;
     }
 
-    public function handle_ws_subscription_status ($client, $message) {
+    public function handle_subscription_status ($client, $message) {
         //
-        // todo => answer the question whether handleWsSubscriptionStatus should be renamed
-        // and unified as handleWsResponse for any usage pattern that
+        // todo => answer the question whether handleSubscriptionStatus should be renamed
+        // and unified as handleResponse for any usage pattern that
         // involves an identified request/response sequence
         //
         //     {
@@ -185,17 +185,17 @@ class bitfinex extends \ccxt\bitfinex {
         return $message;
     }
 
-    public function handle_ws_message ($client, $message) {
+    public function handle_message ($client, $message) {
         // var_dump (new Date (), $message);
         if (gettype ($message) === 'array' && count (array_filter (array_keys ($message), 'is_string')) == 0) {
             $channelId = (string) $message[0];
             $subscription = $this->safe_value($this->options['subscriptionsByChannelId'], $channelId, array());
             $channel = $this->safe_string($subscription, 'channel');
             $methods = array (
-                'book' => 'handleWsOrderBook',
-                // 'ohlc' => 'handleWsOHLCV',
-                // 'ticker' => 'handleWsTicker',
-                // 'trade' => 'handleWsTrades',
+                'book' => 'handleOrderBook',
+                // 'ohlc' => 'handleOHLCV',
+                // 'ticker' => 'handleTicker',
+                // 'trade' => 'handleTrades',
             );
             $method = $this->safe_string($methods, $channel);
             if ($method === null) {
@@ -204,7 +204,7 @@ class bitfinex extends \ccxt\bitfinex {
                 return $this->$method ($client, $message);
             }
         } else {
-            // todo => add bitfinex handleWsErrors
+            // todo => add bitfinex handleErrors
             //
             //     {
             //         $event => 'info',
@@ -216,9 +216,9 @@ class bitfinex extends \ccxt\bitfinex {
             $event = $this->safe_string($message, 'event');
             if ($event !== null) {
                 $methods = array (
-                    'info' => 'handleWsSystemStatus',
-                    // 'book' => 'handleWsOrderBook',
-                    'subscribed' => 'handleWsSubscriptionStatus',
+                    'info' => 'handleSystemStatus',
+                    // 'book' => 'handleOrderBook',
+                    'subscribed' => 'handleSubscriptionStatus',
                 );
                 $method = $this->safe_string($methods, $event);
                 if ($method === null) {

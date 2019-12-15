@@ -9,8 +9,8 @@ class StreamingClient(object):
 
     url = None
     ws = None
-    futures = {}
-    subscriptions = {}
+    futures = None
+    subscriptions = None
     on_message_callback = None
     on_error_callback = None
     on_close_callback = None
@@ -22,6 +22,8 @@ class StreamingClient(object):
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
         defaults = {
             'url': url,
+            'futures': {},
+            'subscriptions': {},
             'on_message_callback': on_message_callback,
             'on_error_callback': on_error_callback,
             'on_close_callback': on_close_callback,

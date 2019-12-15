@@ -16,8 +16,8 @@ class poloniex extends \ccxt\poloniex {
         return array_replace_recursive (parent::describe (), array (
             'has' => array (
                 'ws' => true,
-                'fetchWsTicker' => true,
-                'fetchWsOrderBook' => true,
+                'watchTicker' => true,
+                'watchOrderBook' => true,
             ),
             'urls' => array (
                 'api' => array (
@@ -27,7 +27,7 @@ class poloniex extends \ccxt\poloniex {
         ));
     }
 
-    public function handle_ws_tickers ($client, $response) {
+    public function handle_tickers ($client, $response) {
         $data = $response[2];
         $market = $this->safe_value($this->options['marketsByNumericId'], (string) $data[0]);
         $symbol = $this->safe_string($market, 'symbol');
@@ -46,7 +46,7 @@ class poloniex extends \ccxt\poloniex {
         );
     }
 
-    public function fetch_ws_balance ($params = array ()) {
+    public function watch_balance ($params = array ()) {
         $this->load_markets();
         $this->balance = $this->fetchBalance ($params);
         $channelId = '1000';
@@ -59,10 +59,10 @@ class poloniex extends \ccxt\poloniex {
         return $this->sendWsMessage ($url, $messageHash, $subscribe, $channelId);
     }
 
-    public function fetch_ws_tickers ($symbols = null, $params = array ()) {
+    public function watch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         // rewrite
-        throw new NotImplemented($this->id . 'fetchWsTickers not implemented yet');
+        throw new NotImplemented($this->id . 'watchTickers not implemented yet');
         // $market = $this->market (symbol);
         // $numericId = (string) $market['info']['id'];
         // $url = $this->urls['api']['websocket']['public'];
@@ -88,7 +88,7 @@ class poloniex extends \ccxt\poloniex {
         return $markets;
     }
 
-    public function fetch_ws_trades ($symbol, $params = array ()) {
+    public function watch_trades ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $numericId = $this->safe_string($market, 'numericId');
@@ -101,7 +101,7 @@ class poloniex extends \ccxt\poloniex {
         return $this->sendWsMessage ($url, $messageHash, $subscribe, $numericId);
     }
 
-    public function fetch_ws_order_book ($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $numericId = $this->safe_string($market, 'numericId');
@@ -122,7 +122,7 @@ class poloniex extends \ccxt\poloniex {
         return $this->sendWsMessage ($url, $messageHash, $subscribe, $numericId);
     }
 
-    public function fetch_ws_heartbeat ($params = array ()) {
+    public function watch_heartbeat ($params = array ()) {
         $this->load_markets();
         $channelId = '1010';
         $url = $this->urls['api']['ws'];
@@ -146,7 +146,7 @@ class poloniex extends \ccxt\poloniex {
         return $message;
     }
 
-    public function handle_ws_heartbeat ($client, $message) {
+    public function handle_heartbeat ($client, $message) {
         //
         // every second (approx) if no other updates are sent
         //
@@ -195,7 +195,7 @@ class poloniex extends \ccxt\poloniex {
         );
     }
 
-    public function handle_ws_order_book_and_trades ($client, $message) {
+    public function handle_order_book_and_trades ($client, $message) {
         //
         // first response
         //
@@ -248,9 +248,9 @@ class poloniex extends \ccxt\poloniex {
                     $orders = $snapshot[$j];
                     $prices = is_array($orders) ? array_keys($orders) : array();
                     for ($k = 0; $k < count ($prices); $k++) {
-                        $price = floatval ($prices[$k]);
-                        $amount = floatval ($orders[$price]);
-                        $bookside->store ($price, $amount);
+                        $price = $prices[$k];
+                        $amount = $orders[$price];
+                        $bookside->store (floatval ($price), floatval ($amount));
                     }
                 }
                 $orderbook['nonce'] = $nonce;
@@ -274,7 +274,7 @@ class poloniex extends \ccxt\poloniex {
             // resolve the $orderbook future
             $messageHash = $marketId . ':orderbook';
             $orderbook = $this->orderbooks[$symbol];
-            // the .limit () operation will be moved to the fetchWSOrderBook
+            // the .limit () operation will be moved to the watchOrderBook
             $client->resolve ($orderbook->limit (), $messageHash);
         }
         if ($tradesCount) {
@@ -285,22 +285,22 @@ class poloniex extends \ccxt\poloniex {
         }
     }
 
-    public function handle_ws_account_notifications ($client, $message) {
+    public function handle_account_notifications ($client, $message) {
         // not implemented yet
-        // throw new NotImplemented($this->id . 'fetchWsTickers not implemented yet');
+        // throw new NotImplemented($this->id . 'watchTickers not implemented yet');
         return $message;
     }
 
-    public function handle_ws_message ($client, $message) {
+    public function handle_message ($client, $message) {
         $channelId = $this->safe_string($message, 0);
         $market = $this->safe_value($this->options['marketsByNumericId'], $channelId);
         if ($market === null) {
             $methods = array (
-                // '<numericId>' => 'handleWsOrderBookAndTrades', // Price Aggregated Book
-                '1000' => 'handleWsAccountNotifications', // Beta
-                '1002' => 'handleWsTickers', // Ticker Data
+                // '<numericId>' => 'handleOrderBookAndTrades', // Price Aggregated Book
+                '1000' => 'handleAccountNotifications', // Beta
+                '1002' => 'handleTickers', // Ticker Data
                 // '1003' => null, // 24 Hour Exchange Volume
-                '1010' => 'handleWsHeartbeat',
+                '1010' => 'handleHeartbeat',
             );
             $method = $this->safe_string($methods, $channelId);
             if ($method === null) {
@@ -309,7 +309,7 @@ class poloniex extends \ccxt\poloniex {
                 return $this->$method ($client, $message);
             }
         } else {
-            return $this->handle_ws_order_book_and_trades ($client, $message);
+            return $this->handle_order_book_and_trades ($client, $message);
         }
     }
 }

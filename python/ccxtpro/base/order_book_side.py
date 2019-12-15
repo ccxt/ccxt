@@ -40,11 +40,11 @@ class OrderBookSide(list):
         self.extend(array)
         return self
 
+
 # -----------------------------------------------------------------------------
 # some exchanges limit the number of bids/asks in the aggregated orderbook
 # orders beyond the limit threshold are not updated with new ws deltas
 # those orders should not be returned to the user, they are outdated quickly
-
 
 class LimitedOrderBookSide(OrderBookSide):
     def __init__(self, deltas=[], depth=None):
@@ -67,7 +67,6 @@ class LimitedOrderBookSide(OrderBookSide):
 # -----------------------------------------------------------------------------
 # overwrites absolute volumes at price levels
 # or deletes price levels based on order counts (3rd value in a bidask delta)
-
 
 class CountedOrderBookSide(OrderBookSide):
     def store(self, price, size, count):
@@ -126,16 +125,16 @@ class IndexedOrderBookSide(OrderBookSide):
         self.extend(array)
         return self
 
+
 # -----------------------------------------------------------------------------
 # limited and order-id-based
-
 
 class LimitedIndexedOrderBookSide(IndexedOrderBookSide, LimitedOrderBookSide):
     pass
 
+
 # -----------------------------------------------------------------------------
 # adjusts the volumes by positive or negative relative changes or differences
-
 
 class IncrementalOrderBookSide(OrderBookSide):
     def store(self, price, size):
@@ -155,9 +154,9 @@ class IncrementalOrderBookSide(OrderBookSide):
         if price in self._index:
             del self._index[price]
 
+
 # -----------------------------------------------------------------------------
 # incremental and indexed (2 in 1)
-
 
 class IncrementalIndexedOrderBookSide(OrderBookSide):
     def store(self, price, size, order_id):
@@ -179,9 +178,9 @@ class IncrementalIndexedOrderBookSide(OrderBookSide):
         if order_id in self._index:
             del self._index[order_id]
 
+
 # -----------------------------------------------------------------------------
 # a more elegant syntax is possible here, but native inheritance is portable
-
 
 class Asks(OrderBookSide): side = False                                     # noqa
 class Bids(OrderBookSide): side = True                                      # noqa

@@ -27,8 +27,8 @@ class StreamingClientWebsockets(StreamingClient):
         print(Exchange.iso8601(Exchange.milliseconds()), 'sending', message)
         return self.connection.send(json.dumps(message, separators=(',', ':')))
 
-    def close(self):
-        return self.connection.close()
+    def close(self, code):
+        return self.connection.close(code)
 
 
 # # -----------------------------------------------------------------------------

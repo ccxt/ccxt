@@ -56,7 +56,7 @@ trait WebSocketTrait {
             $entryName = $name . 'Message';
             $handlerName = 'handle_' . static::underscore ($name);
             $this->$entryName = function ($url, $messageHash, $subcribe = null) use ($handlerName) {
-                return WebSocketClient::registerFuture ($url, $messageHash, \Closure::fromCallable (array ($this, 'handle_ws_message')), $this->apiKey, $subcribe)->then (function ($result) use ($handlerName) {
+                return WebSocketClient::registerFuture ($url, $messageHash, \Closure::fromCallable (array ($this, 'handle_message')), $this->apiKey, $subcribe)->then (function ($result) use ($handlerName) {
                     return $this->$handlerName ($result);
                 });
             };
@@ -74,17 +74,17 @@ trait WebSocketTrait {
         }
     }
 
-    public function handle_ws_message ($client, $response) {
+    public function handle_message ($client, $response) {
         $messageHash = $this->get_ws_message_hash ($client, $response);
         if (!(is_array ($client->futures) && array_key_exists ($messageHash, $client->futures))) {
-            $this->handle_ws_dropped ($client, $response, $messageHash);
+            $this->handle_dropped ($client, $response, $messageHash);
             return;
         }
         $future = $client->futures[$messageHash];
         $future->resolve ($response);
     }
 
-    public function handle_ws_dropped ($client, $response, $messageHash) {}
+    public function handle_dropped ($client, $response, $messageHash) {}
 }
 
 class Exchange extends \ccxt\Exchange {
