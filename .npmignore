@@ -9,6 +9,7 @@ php/
 tmp/
 doc/
 wiki/
+vendor/
 .tox/
 .github/
 .DS_Store
