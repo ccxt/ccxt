@@ -126,10 +126,11 @@ module.exports = class Exchange extends ccxt.Exchange {
     }
 
     async close () {
-        const clients = Object.values (this.clients)
+        const clients = Object.values (this.clients || {})
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i]
             await client.close ()
+            delete this.clients[client.url]
         }
     }
 }
