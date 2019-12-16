@@ -1185,7 +1185,7 @@ module.exports = class adara extends Exchange {
         if (id in ordersById) {
             return ordersById[id];
         }
-        throw OrderNotFound (this.id + ' fetchOrder could not find order id ' + id.toString ());
+        throw new OrderNotFound (this.id + ' fetchOrder could not find order id ' + id.toString ());
     }
 
     nonce () {
