@@ -34,7 +34,7 @@ module.exports = class WebSocketClient {
             keepAlive: 3000, // ping-pong keep-alive frequency
             // timeout is not used atm
             // timeout: 30000, // throw if a request is not satisfied in 30 seconds, false to disable
-            ws: {
+            connection: {
                 readyState: undefined,
             },
         }
