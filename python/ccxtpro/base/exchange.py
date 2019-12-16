@@ -39,6 +39,7 @@ class Exchange(BaseExchange):
     def limitedIndexedOrderBook(self, snapshot={}, depth=None):
         return LimitedIndexedOrderBook(snapshot, depth)
 
+    # todo: implement in python
     # def limitedCountedOrderBook(self, snapshot={}, depth=None):
     #     return LimitedCountedOrderBook(snapshot, depth)
 
@@ -51,7 +52,7 @@ class Exchange(BaseExchange):
             on_message = self.handle_message
             on_error = self.on_ws_error
             on_close = self.on_ws_close
-            # decide client type here: aiohttp ws / websockets / signalr
+            # decide client type here: aiohttp ws / websockets / signalr / socketio
             self.clients[url] = StreamingClientAiohttp(url, on_message, on_error, on_close)
         return self.clients[url]
 
