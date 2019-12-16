@@ -461,7 +461,7 @@ module.exports = class coinsbit extends Exchange {
             headers = {
                 'Content-type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
-                'X-TXC-PAYLOAD': payload,
+                'X-TXC-PAYLOAD': this.decode (payload),
                 'X-TXC-SIGNATURE': signature,
             };
         }
