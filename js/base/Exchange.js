@@ -49,6 +49,11 @@ module.exports = class Exchange extends ccxt.Exchange {
         return this.clients[url]
     }
 
+    async executeAfter (future, method, ... args) {
+        const result = await future
+        return method.apply (this, [ result, ... args ])
+    }
+
     watch (url, messageHash, message = undefined, subscribeHash = undefined) {
         //
         // Without comments the code of this method is short and easy:
