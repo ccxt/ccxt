@@ -46,6 +46,7 @@ module.exports = class binance extends Exchange {
                 'fetchTickers': true,
                 'fetchTicker': true,
                 'fetchCurrencies': true,
+                'fetchBalance': true,
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -223,9 +224,21 @@ module.exports = class binance extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetBalances (params);
+        const result = {
+            'info': response,
+        };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
+            const currency = this.findCurrencyById (this.currencies, balance.id);
+            const available = this.safeFloat (balance, 'available');
+            const reserved = this.safeFloat (balance, 'reserved');
+            result[currency] = {
+                'free': available,
+                'used': reserved,
+                'total': this.sum (available, reserved),
+            };
         }
+        return this.parseBalance (result);
     }
 
     findCurrencyById (currencies, id) {
