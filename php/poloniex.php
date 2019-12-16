@@ -13,14 +13,14 @@ class poloniex extends \ccxt\poloniex {
     use WebSocketTrait;
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
-            'has' => array (
+        return array_replace_recursive(parent::describe (), array(
+            'has' => array(
                 'ws' => true,
                 'watchTicker' => true,
                 'watchOrderBook' => true,
             ),
-            'urls' => array (
-                'api' => array (
+            'urls' => array(
+                'api' => array(
                     'ws' => 'wss://api2.poloniex.com',
                 ),
             ),
@@ -31,7 +31,7 @@ class poloniex extends \ccxt\poloniex {
         $data = $response[2];
         $market = $this->safe_value($this->options['marketsByNumericId'], (string) $data[0]);
         $symbol = $this->safe_string($market, 'symbol');
-        return array (
+        return array(
             'info' => $response,
             'symbol' => $symbol,
             'last' => floatval ($data[1]),
@@ -50,7 +50,7 @@ class poloniex extends \ccxt\poloniex {
         $this->load_markets();
         $this->balance = $this->fetchBalance ($params);
         $channelId = '1000';
-        $subscribe = array (
+        $subscribe = array(
             'command' => 'subscribe',
             'channel' => $channelId,
         );
@@ -66,7 +66,7 @@ class poloniex extends \ccxt\poloniex {
         // $market = $this->market (symbol);
         // $numericId = (string) $market['info']['id'];
         // $url = $this->urls['api']['websocket']['public'];
-        // return $this->WsTickerMessage ($url, '1002' . $numericId, array (
+        // return $this->WsTickerMessage ($url, '1002' . $numericId, array(
         //     'command' => 'subscribe',
         //     'channel' => 1002,
         // ));
@@ -77,7 +77,7 @@ class poloniex extends \ccxt\poloniex {
         $marketsByNumericId = $this->safe_value($this->options, 'marketsByNumericId');
         if (($marketsByNumericId === null) || $reload) {
             $marketsByNumericId = array();
-            for ($i = 0; $i < count ($this->symbols); $i++) {
+            for ($i = 0; $i < count($this->symbols); $i++) {
                 $symbol = $this->symbols[$i];
                 $market = $this->markets[$symbol];
                 $numericId = $this->safe_string($market, 'numericId');
@@ -94,7 +94,7 @@ class poloniex extends \ccxt\poloniex {
         $numericId = $this->safe_string($market, 'numericId');
         $messageHash = 'trades:' . $numericId;
         $url = $this->urls['api']['ws'];
-        $subscribe = array (
+        $subscribe = array(
             'command' => 'subscribe',
             'channel' => $numericId,
         );
@@ -107,19 +107,16 @@ class poloniex extends \ccxt\poloniex {
         $numericId = $this->safe_string($market, 'numericId');
         $messageHash = 'orderbook:' . $numericId;
         $url = $this->urls['api']['ws'];
-        $subscribe = array (
+        $subscribe = array(
             'command' => 'subscribe',
             'channel' => $numericId,
         );
-        // the commented lines below won't work in sync php
-        // todo => resolve future results via a base proxy-method
-        //
-        // $orderbook = $this->watch ($url, $messageHash, array (
-        //     'command' => 'subscribe',
-        //     'channel' => $numericId,
-        // ));
-        // return $orderbook->limit ($limit);
-        return $this->watch ($url, $messageHash, $subscribe, $numericId);
+        $future = $this->watch ($url, $messageHash, $subscribe, $numericId);
+        return $this->after ($future, $this->limit_order_book, $symbol, $limit, $params);
+    }
+
+    public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
+        return $orderbook->limit ($limit);
     }
 
     public function watch_heartbeat ($params = array ()) {
@@ -136,7 +133,7 @@ class poloniex extends \ccxt\poloniex {
                 $nonce = $this->nonce ();
                 $payload = $this->urlencode (array( 'nonce' => $nonce ));
                 $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha512');
-                $message = array_merge ($message, array (
+                $message = array_merge($message, array(
                     'key' => $this->apiKey,
                     'payload' => $payload,
                     'sign' => $signature,
@@ -150,7 +147,7 @@ class poloniex extends \ccxt\poloniex {
         //
         // every second (approx) if no other updates are sent
         //
-        //     array ( 1010 )
+        //     array( 1010 )
         //
         $channelId = '1010';
         $client->resolve ($message, $channelId);
@@ -160,7 +157,7 @@ class poloniex extends \ccxt\poloniex {
         //
         // public trades
         //
-        //     array (
+        //     array(
         //         "t", // $trade
         //         "42706057", // $id
         //         1, // 1 = buy, 0 = sell
@@ -178,7 +175,7 @@ class poloniex extends \ccxt\poloniex {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        return array (
+        return array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -202,12 +199,12 @@ class poloniex extends \ccxt\poloniex {
         //     [
         //         14, // channelId === $market['numericId']
         //         8767, // $nonce
-        //         array (
-        //             array (
+        //         array(
+        //             array(
         //                 "$i", // initial $snapshot
         //                 {
         //                     "currencyPair" => "BTC_BTS",
-        //                     "orderBook" => array (
+        //                     "orderBook" => array(
         //                         array( "0.00001853" => "2537.5637", "0.00001854" => "1567238.172367" ), // asks, $price, size
         //                         array( "0.00001841" => "3645.3647", "0.00001840" => "1637.3647" ) // bids
         //                     )
@@ -218,13 +215,13 @@ class poloniex extends \ccxt\poloniex {
         //
         // subsequent updates
         //
-        //     array (
+        //     array(
         //         14,
         //         8768,
-        //         array (
-        //             array ( "o", 1, "0.00001823", "5534.6474" ), // $orderbook $delta, bids, $price, size
-        //             array ( "o", 0, "0.00001824", "6575.464" ), // $orderbook $delta, asks, $price, size
-        //             array ( "t", "42706057", 1, "0.05567134", "0.00181421", 1522877119 ) // $trade, id, $side (1 for buy, 0 for sell), $price, size, timestamp
+        //         array(
+        //             array( "o", 1, "0.00001823", "5534.6474" ), // $orderbook $delta, bids, $price, size
+        //             array( "o", 0, "0.00001824", "6575.464" ), // $orderbook $delta, asks, $price, size
+        //             array( "t", "42706057", 1, "0.05567134", "0.00181421", 1522877119 ) // $trade, id, $side (1 for buy, 0 for sell), $price, size, timestamp
         //         )
         //     )
         //
@@ -235,19 +232,19 @@ class poloniex extends \ccxt\poloniex {
         $symbol = $this->safe_string($market, 'symbol');
         $orderbookUpdatesCount = 0;
         $tradesCount = 0;
-        for ($i = 0; $i < count ($data); $i++) {
+        for ($i = 0; $i < count($data); $i++) {
             $delta = $data[$i];
             if ($delta[0] === 'i') {
                 $snapshot = $this->safe_value($delta[1], 'orderBook', array());
-                $sides = array ( 'asks', 'bids' );
+                $sides = array( 'asks', 'bids' );
                 $this->orderbooks[$symbol] = $this->orderbook ();
                 $orderbook = $this->orderbooks[$symbol];
-                for ($j = 0; $j < count ($snapshot); $j++) {
+                for ($j = 0; $j < count($snapshot); $j++) {
                     $side = $sides[$j];
                     $bookside = $orderbook[$side];
                     $orders = $snapshot[$j];
                     $prices = is_array($orders) ? array_keys($orders) : array();
-                    for ($k = 0; $k < count ($prices); $k++) {
+                    for ($k = 0; $k < count($prices); $k++) {
                         $price = $prices[$k];
                         $amount = $orders[$price];
                         $bookside->store (floatval ($price), floatval ($amount));
@@ -295,7 +292,7 @@ class poloniex extends \ccxt\poloniex {
         $channelId = $this->safe_string($message, 0);
         $market = $this->safe_value($this->options['marketsByNumericId'], $channelId);
         if ($market === null) {
-            $methods = array (
+            $methods = array(
                 // '<numericId>' => 'handleOrderBookAndTrades', // Price Aggregated Book
                 '1000' => 'handleAccountNotifications', // Beta
                 '1002' => 'handleTickers', // Ticker Data

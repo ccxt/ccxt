@@ -13,33 +13,33 @@ class kraken extends \ccxt\kraken {
     use WebSocketTrait;
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
-            'has' => array (
+        return array_replace_recursive(parent::describe (), array(
+            'has' => array(
                 'ws' => true,
                 'watchTicker' => true,
                 'watchOrderBook' => true,
             ),
-            'urls' => array (
-                'api' => array (
-                    'ws' => array (
+            'urls' => array(
+                'api' => array(
+                    'ws' => array(
                         'public' => 'wss://ws.kraken.com',
                         'private' => 'wss://ws-auth.kraken.com',
                         'beta' => 'wss://beta-ws.kraken.com',
                     ),
                 ),
             ),
-            'versions' => array (
+            'versions' => array(
                 'ws' => '0.2.0',
             ),
-            'options' => array (
+            'options' => array(
                 'subscriptionStatusByChannelId' => array(),
             ),
-            'exceptions' => array (
-                'ws' => array (
-                    'exact' => array (
+            'exceptions' => array(
+                'ws' => array(
+                    'exact' => array(
                         'Event(s) not found' => '\\ccxt\\BadRequest',
                     ),
-                    'broad' => array (
+                    'broad' => array(
                         'Currency pair not in ISO 4217-A3 format' => '\\ccxt\\BadSymbol',
                     ),
                 ),
@@ -49,18 +49,18 @@ class kraken extends \ccxt\kraken {
 
     public function handle_ticker ($client, $message) {
         //
-        //     array (
+        //     array(
         //         0, // channelID
-        //         array (
-        //             "a" => array ( "5525.40000", 1, "1.000" ), // ask, wholeAskVolume, askVolume
-        //             "b" => array ( "5525.10000", 1, "1.000" ), // bid, wholeBidVolume, bidVolume
-        //             "c" => array ( "5525.10000", "0.00398963" ), // closing price, volume
-        //             "h" => array ( "5783.00000", "5783.00000" ), // high price today, high price 24h ago
-        //             "l" => array ( "5505.00000", "5505.00000" ), // low price today, low price 24h ago
-        //             "o" => array ( "5760.70000", "5763.40000" ), // open price today, open price 24h ago
-        //             "p" => array ( "5631.44067", "5653.78939" ), // $vwap today, $vwap 24h ago
-        //             "t" => array ( 11493, 16267 ), // number of trades today, 24 hours ago
-        //             "v" => array ( "2634.11501494", "3591.17907851" ), // volume today, volume 24 hours ago
+        //         array(
+        //             "a" => array( "5525.40000", 1, "1.000" ), // ask, wholeAskVolume, askVolume
+        //             "b" => array( "5525.10000", 1, "1.000" ), // bid, wholeBidVolume, bidVolume
+        //             "c" => array( "5525.10000", "0.00398963" ), // closing price, volume
+        //             "h" => array( "5783.00000", "5783.00000" ), // high price today, high price 24h ago
+        //             "l" => array( "5505.00000", "5505.00000" ), // low price today, low price 24h ago
+        //             "o" => array( "5760.70000", "5763.40000" ), // open price today, open price 24h ago
+        //             "p" => array( "5631.44067", "5653.78939" ), // $vwap today, $vwap 24h ago
+        //             "t" => array( 11493, 16267 ), // number of trades today, 24 hours ago
+        //             "v" => array( "2634.11501494", "3591.17907851" ), // volume today, volume 24 hours ago
         //         ),
         //         "$ticker",
         //         "XBT/USD"
@@ -80,7 +80,7 @@ class kraken extends \ccxt\kraken {
         }
         $last = floatval ($ticker['c'][0]);
         $timestamp = $this->milliseconds ();
-        $result = array (
+        $result = array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -117,11 +117,11 @@ class kraken extends \ccxt\kraken {
 
     public function handle_trades ($client, $message) {
         //
-        //     array (
+        //     array(
         //         0, // channelID
-        //         array ( //     price        volume         time             side type misc
-        //             array ( "5541.20000", "0.15850568", "1534614057.321597", "s", "l", "" ),
-        //             array ( "6060.00000", "0.02455000", "1534614057.324998", "b", "l", "" ),
+        //         array( //     price        volume         time             side type misc
+        //             array( "5541.20000", "0.15850568", "1534614057.321597", "s", "l", "" ),
+        //             array( "6060.00000", "0.02455000", "1534614057.324998", "b", "l", "" ),
         //         ),
         //         "$trade",
         //         "XBT/USD"
@@ -138,9 +138,9 @@ class kraken extends \ccxt\kraken {
         // $messageHash = $wsName . ':' . $name;
         $market = $this->safe_value($this->options['marketsByWsName'], $wsName);
         $symbol = $market['symbol'];
-        // for ($i = 0; $i < is_array ($message[1]) ? count ($message[1]) : 0; $i++)
+        // for ($i = 0; $i < is_array($message[1]) ? count($message[1]) : 0; $i++)
         $timestamp = intval ($message[2]);
-        $result = array (
+        $result = array(
             'id' => null,
             'order' => null,
             'info' => $message,
@@ -161,9 +161,9 @@ class kraken extends \ccxt\kraken {
 
     public function handle_ohlcv ($client, $message) {
         //
-        //     array (
+        //     array(
         //         216, // channelID
-        //         array (
+        //         array(
         //             '1574454214.962096', // Time, seconds since epoch
         //             '1574454240.000000', // End timestamp of the interval
         //             '0.020970', // Open price at midnight UTC
@@ -209,17 +209,17 @@ class kraken extends \ccxt\kraken {
         $messageHash = $wsName . ':' . $name;
         $url = $this->urls['api']['ws']['public'];
         $requestId = $this->nonce ();
-        $subscribe = array (
+        $subscribe = array(
             'event' => 'subscribe',
             'reqid' => $requestId,
-            'pair' => array (
+            'pair' => array(
                 $wsName,
             ),
-            'subscription' => array (
+            'subscription' => array(
                 'name' => $name,
             ),
         );
-        $future = $this->watch ($url, $messageHash, array_replace_recursive ($subscribe, $params), $messageHash);
+        $future = $this->watch ($url, $messageHash, array_replace_recursive($subscribe, $params), $messageHash);
         $client = $this->clients[$url];
         $client['futures'][$requestId] = $future;
         return $future;
@@ -239,17 +239,17 @@ class kraken extends \ccxt\kraken {
         if ($limit !== null) {
             $request['subscription'] = array( 'depth' => $limit ); // default 10, valid options 10, 25, 100, 500, 1000
         }
-        return $this->watch_public_message ($name, $symbol, array_merge ($request, $params));
+        return $this->watch_public_message ($name, $symbol, array_merge($request, $params));
     }
 
     public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $name = 'ohlc';
-        $request = array (
-            'subscription' => array (
+        $request = array(
+            'subscription' => array(
                 'interval' => intval ($this->timeframes[$timeframe]),
             ),
         );
-        return $this->watch_public_message ($name, $symbol, array_merge ($request, $params));
+        return $this->watch_public_message ($name, $symbol, array_merge($request, $params));
     }
 
     public function load_markets ($reload = false, $params = array ()) {
@@ -257,7 +257,7 @@ class kraken extends \ccxt\kraken {
         $marketsByWsName = $this->safe_value($this->options, 'marketsByWsName');
         if (($marketsByWsName === null) || $reload) {
             $marketsByWsName = array();
-            for ($i = 0; $i < count ($this->symbols); $i++) {
+            for ($i = 0; $i < count($this->symbols); $i++) {
                 $symbol = $this->symbols[$i];
                 $market = $this->markets[$symbol];
                 if (!$market['darkpool']) {
@@ -292,7 +292,7 @@ class kraken extends \ccxt\kraken {
         //
         // public trades
         //
-        //     array (
+        //     array(
         //         "t", // $trade
         //         "42706057", // $id
         //         1, // 1 = buy, 0 = sell
@@ -310,7 +310,7 @@ class kraken extends \ccxt\kraken {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        return array (
+        return array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -331,18 +331,18 @@ class kraken extends \ccxt\kraken {
         //
         // first $message (snapshot)
         //
-        //     array (
+        //     array(
         //         1234, // channelID
-        //         array (
-        //             "as" => array (
-        //                 array ( "5541.30000", "2.50700000", "1534614248.123678" ),
-        //                 array ( "5541.80000", "0.33000000", "1534614098.345543" ),
-        //                 array ( "5542.70000", "0.64700000", "1534614244.654432" )
+        //         array(
+        //             "as" => array(
+        //                 array( "5541.30000", "2.50700000", "1534614248.123678" ),
+        //                 array( "5541.80000", "0.33000000", "1534614098.345543" ),
+        //                 array( "5542.70000", "0.64700000", "1534614244.654432" )
         //             ),
-        //             "bs" => array (
-        //                 array ( "5541.20000", "1.52900000", "1534614248.765567" ),
-        //                 array ( "5539.90000", "0.30000000", "1534614241.769870" ),
-        //                 array ( "5539.50000", "5.00000000", "1534613831.243486" )
+        //             "bs" => array(
+        //                 array( "5541.20000", "1.52900000", "1534614248.765567" ),
+        //                 array( "5539.90000", "0.30000000", "1534614241.769870" ),
+        //                 array( "5539.50000", "5.00000000", "1534613831.243486" )
         //             )
         //         ),
         //         "book-10",
@@ -351,24 +351,24 @@ class kraken extends \ccxt\kraken {
         //
         // subsequent updates
         //
-        //     array (
+        //     array(
         //         1234,
-        //         array ( // optional
-        //             "$a" => array (
-        //                 array ( "5541.30000", "2.50700000", "1534614248.456738" ),
-        //                 array ( "5542.50000", "0.40100000", "1534614248.456738" )
+        //         array( // optional
+        //             "$a" => array(
+        //                 array( "5541.30000", "2.50700000", "1534614248.456738" ),
+        //                 array( "5542.50000", "0.40100000", "1534614248.456738" )
         //             )
         //         ),
-        //         array ( // optional
-        //             "$b" => array (
-        //                 array ( "5541.30000", "0.00000000", "1534614335.345903" )
+        //         array( // optional
+        //             "$b" => array(
+        //                 array( "5541.30000", "0.00000000", "1534614335.345903" )
         //             )
         //         ),
         //         "book-10",
         //         "XBT/USD"
         //     )
         //
-        $messageLength = is_array ($message) ? count ($message) : 0;
+        $messageLength = is_array($message) ? count($message) : 0;
         $wsName = $message[$messageLength - 1];
         $market = $this->safe_value($this->options['marketsByWsName'], $wsName);
         $symbol = $market['symbol'];
@@ -379,12 +379,12 @@ class kraken extends \ccxt\kraken {
             // todo get depth from marketsByWsName
             $this->orderbooks[$symbol] = $this->limitedOrderBook (array(), 10);
             $orderbook = $this->orderbooks[$symbol];
-            $sides = array (
+            $sides = array(
                 'as' => 'asks',
                 'bs' => 'bids',
             );
             $keys = is_array($sides) ? array_keys($sides) : array();
-            for ($i = 0; $i < count ($keys); $i++) {
+            for ($i = 0; $i < count($keys); $i++) {
                 $key = $keys[$i];
                 $side = $sides[$key];
                 $bookside = $orderbook[$side];
@@ -422,7 +422,7 @@ class kraken extends \ccxt\kraken {
     }
 
     public function handle_deltas ($bookside, $deltas, $timestamp) {
-        for ($j = 0; $j < count ($deltas); $j++) {
+        for ($j = 0; $j < count($deltas); $j++) {
             $delta = $deltas[$j];
             $price = floatval ($delta[0]);
             $amount = floatval ($delta[1]);
@@ -510,12 +510,12 @@ class kraken extends \ccxt\kraken {
     }
 
     public function handle_message ($client, $message) {
-        if (gettype ($message) === 'array' && count (array_filter (array_keys ($message), 'is_string')) == 0) {
+        if (gettype($message) === 'array' && count(array_filter(array_keys($message), 'is_string')) == 0) {
             $channelId = (string) $message[0];
             $subscriptionStatus = $this->safe_value($this->options['subscriptionStatusByChannelId'], $channelId, array());
             $subscription = $this->safe_value($subscriptionStatus, 'subscription', array());
             $name = $this->safe_string($subscription, 'name');
-            $methods = array (
+            $methods = array(
                 'book' => 'handleOrderBook',
                 'ohlc' => 'handleOHLCV',
                 'ticker' => 'handleTicker',
@@ -530,7 +530,7 @@ class kraken extends \ccxt\kraken {
         } else {
             if ($this->handle_errors($client, $message)) {
                 $event = $this->safe_string($message, 'event');
-                $methods = array (
+                $methods = array(
                     'heartbeat' => 'handleHeartbeat',
                     'systemStatus' => 'handleSystemStatus',
                     'subscriptionStatus' => 'handleSubscriptionStatus',

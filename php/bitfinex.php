@@ -13,20 +13,20 @@ class bitfinex extends \ccxt\bitfinex {
     use WebSocketTrait;
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
-            'has' => array (
+        return array_replace_recursive(parent::describe (), array(
+            'has' => array(
                 'watchTicker' => true,
                 'watchOrderBook' => true,
             ),
-            'urls' => array (
-                'api' => array (
-                    'ws' => array (
+            'urls' => array(
+                'api' => array(
+                    'ws' => array(
                         'public' => 'wss://api-pub.bitfinex.com/ws/2',
                         'private' => 'wss://api.bitfinex.com',
                     ),
                 ),
             ),
-            'options' => array (
+            'options' => array(
                 'subscriptionsByChannelId' => array(),
             ),
         ));
@@ -43,7 +43,7 @@ class bitfinex extends \ccxt\bitfinex {
         $marketId = $market['id'];
         $url = $this->urls['api']['ws']['public'];
         $channel = 'book';
-        $request = array (
+        $request = array(
             'event' => 'subscribe',
             'channel' => $channel,
             'symbol' => $marketId,
@@ -55,30 +55,30 @@ class bitfinex extends \ccxt\bitfinex {
             $request['limit'] = (string) $limit;
         }
         $messageHash = $channel . ':' . $marketId;
-        return $this->watch ($url, $messageHash, array_replace_recursive ($request, $params), $messageHash);
+        return $this->watch ($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
     }
 
     public function handle_order_book ($client, $message) {
         //
         // first $message (snapshot)
         //
-        //     array (
+        //     array(
         //         18691, // channel id
-        //         array (
-        //             array ( 7364.8, 10, 4.354802 ), // price, count, size > 0 = bid
-        //             array ( 7364.7, 1, 0.00288831 ),
-        //             array ( 7364.3, 12, 0.048 ),
-        //             array ( 7364.9, 3, -0.42028976 ), // price, count, size < 0 = ask
-        //             array ( 7365, 1, -0.25 ),
-        //             array ( 7365.5, 1, -0.00371937 ),
+        //         array(
+        //             array( 7364.8, 10, 4.354802 ), // price, count, size > 0 = bid
+        //             array( 7364.7, 1, 0.00288831 ),
+        //             array( 7364.3, 12, 0.048 ),
+        //             array( 7364.9, 3, -0.42028976 ), // price, count, size < 0 = ask
+        //             array( 7365, 1, -0.25 ),
+        //             array( 7365.5, 1, -0.00371937 ),
         //         )
         //     )
         //
         // subsequent updates
         //
-        //     array (
+        //     array(
         //         39393, // channel id
-        //         array ( 7138.9, 0, -1 ), // price, count, size, size > 0 = bid, size < 0 = ask
+        //         array( 7138.9, 0, -1 ), // price, count, size, size > 0 = bid, size < 0 = ask
         //     )
         //
         $channelId = (string) $message[0];
@@ -100,12 +100,12 @@ class bitfinex extends \ccxt\bitfinex {
         $symbol = $market['symbol'];
         $messageHash = 'book:' . $marketId;
         // if it is an initial snapshot
-        if (gettype ($message[1][0]) === 'array' && count (array_filter (array_keys ($message[1][0]), 'is_string')) == 0) {
+        if (gettype($message[1][0]) === 'array' && count(array_filter(array_keys($message[1][0]), 'is_string')) == 0) {
             $limit = $this->safe_integer($subscription, 'len');
             $this->orderbooks[$symbol] = $this->limitedCountedOrderBook (array(), $limit);
             $orderbook = $this->orderbooks[$symbol];
             $deltas = $message[1];
-            for ($i = 0; $i < count ($deltas); $i++) {
+            for ($i = 0; $i < count($deltas); $i++) {
                 $delta = $deltas[$i];
                 $side = ($delta[2] < 0) ? 'asks' : 'bids';
                 $bookside = $orderbook[$side];
@@ -187,11 +187,11 @@ class bitfinex extends \ccxt\bitfinex {
 
     public function handle_message ($client, $message) {
         // var_dump (new Date (), $message);
-        if (gettype ($message) === 'array' && count (array_filter (array_keys ($message), 'is_string')) == 0) {
+        if (gettype($message) === 'array' && count(array_filter(array_keys($message), 'is_string')) == 0) {
             $channelId = (string) $message[0];
             $subscription = $this->safe_value($this->options['subscriptionsByChannelId'], $channelId, array());
             $channel = $this->safe_string($subscription, 'channel');
-            $methods = array (
+            $methods = array(
                 'book' => 'handleOrderBook',
                 // 'ohlc' => 'handleOHLCV',
                 // 'ticker' => 'handleTicker',
@@ -215,7 +215,7 @@ class bitfinex extends \ccxt\bitfinex {
             //
             $event = $this->safe_string($message, 'event');
             if ($event !== null) {
-                $methods = array (
+                $methods = array(
                     'info' => 'handleSystemStatus',
                     // 'book' => 'handleOrderBook',
                     'subscribed' => 'handleSubscriptionStatus',

@@ -13,29 +13,29 @@ class bitmex extends \ccxt\bitmex {
     use WebSocketTrait;
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
-            'has' => array (
+        return array_replace_recursive(parent::describe (), array(
+            'has' => array(
                 'ws' => true,
                 'watchTicker' => true,
                 'watchOrderBook' => true,
             ),
-            'urls' => array (
-                'api' => array (
+            'urls' => array(
+                'api' => array(
                     'ws' => 'wss://www.bitmex.com/realtime',
                 ),
             ),
-            'versions' => array (
+            'versions' => array(
                 'ws' => '0.2.0',
             ),
-            'options' => array (
+            'options' => array(
                 'subscriptionStatusByChannelId' => array(),
                 'watchOrderBookLevel' => 'orderBookL2', // 'orderBookL2' = L2 full order book, 'orderBookL2_25' = L2 top 25, 'orderBook10' L3 top 10
             ),
-            'exceptions' => array (
-                'ws' => array (
-                    'exact' => array (
+            'exceptions' => array(
+                'ws' => array(
+                    'exact' => array(
                     ),
-                    'broad' => array (
+                    'broad' => array(
                         'Rate limit exceeded' => '\\ccxt\\RateLimitExceeded',
                     ),
                 ),
@@ -45,18 +45,18 @@ class bitmex extends \ccxt\bitmex {
 
     public function handle_ticker ($client, $message) {
         //
-        //     array (
+        //     array(
         //         0, // channelID
-        //         array (
-        //             "a" => array ( "5525.40000", 1, "1.000" ), // ask, wholeAskVolume, askVolume
-        //             "b" => array ( "5525.10000", 1, "1.000" ), // bid, wholeBidVolume, bidVolume
-        //             "c" => array ( "5525.10000", "0.00398963" ), // closing price, volume
-        //             "h" => array ( "5783.00000", "5783.00000" ), // high price today, high price 24h ago
-        //             "l" => array ( "5505.00000", "5505.00000" ), // low price today, low price 24h ago
-        //             "o" => array ( "5760.70000", "5763.40000" ), // open price today, open price 24h ago
-        //             "p" => array ( "5631.44067", "5653.78939" ), // $vwap today, $vwap 24h ago
-        //             "t" => array ( 11493, 16267 ), // number of trades today, 24 hours ago
-        //             "v" => array ( "2634.11501494", "3591.17907851" ), // volume today, volume 24 hours ago
+        //         array(
+        //             "a" => array( "5525.40000", 1, "1.000" ), // ask, wholeAskVolume, askVolume
+        //             "b" => array( "5525.10000", 1, "1.000" ), // bid, wholeBidVolume, bidVolume
+        //             "c" => array( "5525.10000", "0.00398963" ), // closing price, volume
+        //             "h" => array( "5783.00000", "5783.00000" ), // high price today, high price 24h ago
+        //             "l" => array( "5505.00000", "5505.00000" ), // low price today, low price 24h ago
+        //             "o" => array( "5760.70000", "5763.40000" ), // open price today, open price 24h ago
+        //             "p" => array( "5631.44067", "5653.78939" ), // $vwap today, $vwap 24h ago
+        //             "t" => array( 11493, 16267 ), // number of trades today, 24 hours ago
+        //             "v" => array( "2634.11501494", "3591.17907851" ), // volume today, volume 24 hours ago
         //         ),
         //         "$ticker",
         //         "XBT/USD"
@@ -76,7 +76,7 @@ class bitmex extends \ccxt\bitmex {
         }
         $last = floatval ($ticker['c'][0]);
         $timestamp = $this->milliseconds ();
-        $result = array (
+        $result = array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -113,11 +113,11 @@ class bitmex extends \ccxt\bitmex {
 
     public function handle_trades ($client, $message) {
         //
-        //     array (
+        //     array(
         //         0, // channelID
-        //         array ( //     price        volume         time             side type misc
-        //             array ( "5541.20000", "0.15850568", "1534614057.321597", "s", "l", "" ),
-        //             array ( "6060.00000", "0.02455000", "1534614057.324998", "b", "l", "" ),
+        //         array( //     price        volume         time             side type misc
+        //             array( "5541.20000", "0.15850568", "1534614057.321597", "s", "l", "" ),
+        //             array( "6060.00000", "0.02455000", "1534614057.324998", "b", "l", "" ),
         //         ),
         //         "$trade",
         //         "XBT/USD"
@@ -134,9 +134,9 @@ class bitmex extends \ccxt\bitmex {
         // $messageHash = $wsName . ':' . $name;
         $market = $this->safe_value($this->options['marketsByWsName'], $wsName);
         $symbol = $market['symbol'];
-        // for ($i = 0; $i < is_array ($message[1]) ? count ($message[1]) : 0; $i++)
+        // for ($i = 0; $i < is_array($message[1]) ? count($message[1]) : 0; $i++)
         $timestamp = intval ($message[2]);
-        $result = array (
+        $result = array(
             'id' => null,
             'order' => null,
             'info' => $message,
@@ -157,9 +157,9 @@ class bitmex extends \ccxt\bitmex {
 
     public function handle_ohlcv ($client, $message) {
         //
-        //     array (
+        //     array(
         //         216, // channelID
-        //         array (
+        //         array(
         //             '1574454214.962096', // Time, seconds since epoch
         //             '1574454240.000000', // End timestamp of the interval
         //             '0.020970', // Open price at midnight UTC
@@ -213,23 +213,23 @@ class bitmex extends \ccxt\bitmex {
         $market = $this->market ($symbol);
         $messageHash = $name . ':' . $market['id'];
         $url = $this->urls['api']['ws'];
-        $request = array (
+        $request = array(
             'op' => 'subscribe',
-            'args' => array (
+            'args' => array(
                 $messageHash,
             ),
         );
-        return $this->watch ($url, $messageHash, array_replace_recursive ($request, $params), $messageHash);
+        return $this->watch ($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
     }
 
     public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $name = 'ohlc';
-        $request = array (
-            'subscription' => array (
+        $request = array(
+            'subscription' => array(
                 'interval' => intval ($this->timeframes[$timeframe]),
             ),
         );
-        return $this->watchPublicMessage ($name, $symbol, array_merge ($request, $params));
+        return $this->watchPublicMessage ($name, $symbol, array_merge($request, $params));
     }
 
     public function load_markets ($reload = false, $params = array ()) {
@@ -237,7 +237,7 @@ class bitmex extends \ccxt\bitmex {
         $marketsByWsName = $this->safe_value($this->options, 'marketsByWsName');
         if (($marketsByWsName === null) || $reload) {
             $marketsByWsName = array();
-            for ($i = 0; $i < count ($this->symbols); $i++) {
+            for ($i = 0; $i < count($this->symbols); $i++) {
                 $symbol = $this->symbols[$i];
                 $market = $this->markets[$symbol];
                 if (!$market['darkpool']) {
@@ -267,7 +267,7 @@ class bitmex extends \ccxt\bitmex {
         //
         // public trades
         //
-        //     array (
+        //     array(
         //         "t", // $trade
         //         "42706057", // $id
         //         1, // 1 = buy, 0 = sell
@@ -285,7 +285,7 @@ class bitmex extends \ccxt\bitmex {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        return array (
+        return array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -309,8 +309,8 @@ class bitmex extends \ccxt\bitmex {
         //     {
         //         $table => 'orderBookL2',
         //         $action => 'partial',
-        //         keys => array ( 'symbol', 'id', 'side' ),
-        //         types => array (
+        //         keys => array( 'symbol', 'id', 'side' ),
+        //         types => array(
         //             $symbol => 'symbol',
         //             $id => 'long',
         //             $side => 'symbol',
@@ -320,7 +320,7 @@ class bitmex extends \ccxt\bitmex {
         //         foreignKeys => array( $symbol => 'instrument', $side => 'side' ),
         //         attributes => array( $symbol => 'parted', $id => 'sorted' ),
         //         $filter => array( $symbol => 'XBTUSD' ),
-        //         $data => array (
+        //         $data => array(
         //             array( $symbol => 'XBTUSD', $id => 8700000100, $side => 'Sell', $size => 1, $price => 999999 ),
         //             array( $symbol => 'XBTUSD', $id => 8700000200, $side => 'Sell', $size => 3, $price => 999998 ),
         //             array( $symbol => 'XBTUSD', $id => 8716991250, $side => 'Sell', $size => 26, $price => 830087.5 ),
@@ -333,7 +333,7 @@ class bitmex extends \ccxt\bitmex {
         //     {
         //         $table => 'orderBookL2',
         //         $action => 'update',
-        //         $data => array (
+        //         $data => array(
         //             array( $symbol => 'XBTUSD', $id => 8799285100, $side => 'Sell', $size => 70590 ),
         //             array( $symbol => 'XBTUSD', $id => 8799285550, $side => 'Sell', $size => 217652 ),
         //             array( $symbol => 'XBTUSD', $id => 8799288950, $side => 'Buy', $size => 47552 ),
@@ -359,7 +359,7 @@ class bitmex extends \ccxt\bitmex {
                     $this->orderbooks[$symbol] = $this->limitedIndexedOrderBook (array(), 10);
                 }
                 $orderbook = $this->orderbooks[$symbol];
-                for ($i = 0; $i < count ($data); $i++) {
+                for ($i = 0; $i < count($data); $i++) {
                     $price = $this->safe_float($data[$i], 'price');
                     $size = $this->safe_float($data[$i], 'size');
                     $id = $this->safe_string($data[$i], 'id');
@@ -374,7 +374,7 @@ class bitmex extends \ccxt\bitmex {
             }
         } else {
             $numUpdatesByMarketId = array();
-            for ($i = 0; $i < count ($data); $i++) {
+            for ($i = 0; $i < count($data); $i++) {
                 $marketId = $this->safe_value($data[$i], 'symbol');
                 if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                     if (!(is_array($numUpdatesByMarketId) && array_key_exists($marketId, $numUpdatesByMarketId))) {
@@ -398,7 +398,7 @@ class bitmex extends \ccxt\bitmex {
                 }
             }
             $marketIds = is_array($numUpdatesByMarketId) ? array_keys($numUpdatesByMarketId) : array();
-            for ($i = 0; $i < count ($marketIds); $i++) {
+            for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
                 $messageHash = $table . ':' . $marketId;
                 $market = $this->markets_by_id[$marketId];
@@ -411,7 +411,7 @@ class bitmex extends \ccxt\bitmex {
     }
 
     public function handle_deltas ($bookside, $deltas, $timestamp) {
-        for ($j = 0; $j < count ($deltas); $j++) {
+        for ($j = 0; $j < count($deltas); $j++) {
             $delta = $deltas[$j];
             $price = floatval ($delta[0]);
             $amount = floatval ($delta[1]);
@@ -447,7 +447,7 @@ class bitmex extends \ccxt\bitmex {
         //     {
         //         success => true,
         //         subscribe => 'orderBookL2:XBTUSD',
-        //         request => array( op => 'subscribe', args => array ( 'orderBookL2:XBTUSD' ) )
+        //         request => array( op => 'subscribe', args => array( 'orderBookL2:XBTUSD' ) )
         //     }
         //
         // --------------------------------------------------------------------
@@ -483,7 +483,7 @@ class bitmex extends \ccxt\bitmex {
         if ($error !== null) {
             $request = $this->safe_value($message, 'request', array());
             $args = $this->safe_string($request, 'args', array());
-            $numArgs = is_array ($args) ? count ($args) : 0;
+            $numArgs = is_array($args) ? count($args) : 0;
             if ($numArgs > 0) {
                 $messageHash = $args[0];
                 $broad = $this->exceptions['ws']['broad'];
@@ -515,13 +515,13 @@ class bitmex extends \ccxt\bitmex {
         //     {
         //         success => true,
         //         subscribe => 'orderBookL2:XBTUSD',
-        //         request => array( op => 'subscribe', args => array ( 'orderBookL2:XBTUSD' ) )
+        //         request => array( op => 'subscribe', args => array( 'orderBookL2:XBTUSD' ) )
         //     }
         //
         //     {
         //         $table => 'orderBookL2',
         //         action => 'update',
-        //         data => array (
+        //         data => array(
         //             array( symbol => 'XBTUSD', id => 8799284800, side => 'Sell', size => 721000 ),
         //             array( symbol => 'XBTUSD', id => 8799285100, side => 'Sell', size => 70590 ),
         //             array( symbol => 'XBTUSD', id => 8799285550, side => 'Sell', size => 217652 ),
@@ -539,7 +539,7 @@ class bitmex extends \ccxt\bitmex {
         //
         if ($this->handle_errors($client, $message)) {
             $table = $this->safe_string($message, 'table');
-            $methods = array (
+            $methods = array(
                 'orderBookL2' => 'handleOrderBook',
                 'orderBookL2_25' => 'handleOrderBook',
                 'orderBook10' => 'handleOrderBook',

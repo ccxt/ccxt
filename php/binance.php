@@ -13,20 +13,20 @@ class binance extends \ccxt\binance {
     use WebSocketTrait;
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
-            'has' => array (
+        return array_replace_recursive(parent::describe (), array(
+            'has' => array(
                 'watchOrderBook' => true,
                 'watchOHLCV' => true,
                 'watchTrades' => true,
             ),
-            'urls' => array (
-                'api' => array (
+            'urls' => array(
+                'api' => array(
                     // 'ws' => 'wss://stream.binance.com:9443/ws',
                     // 'ws' => 'wss://echo.websocket.org/',
                     'ws' => 'ws://127.0.0.1:8080',
                 ),
             ),
-            'options' => array (
+            'options' => array(
                 'marketsByLowerCaseId' => array(),
             ),
         ));
@@ -37,7 +37,7 @@ class binance extends \ccxt\binance {
         $marketsByLowercaseId = $this->safe_value($this->options, 'marketsByLowercaseId');
         if (($marketsByLowercaseId === null) || $reload) {
             $marketsByLowercaseId = array();
-            for ($i = 0; $i < count ($this->symbols); $i++) {
+            for ($i = 0; $i < count($this->symbols); $i++) {
                 $symbol = $this->symbols[$i];
                 $lowercaseId = strtolower($this->markets[$symbol]['id']);
                 $this->markets[$symbol]['lowercaseId'] = $lowercaseId;
@@ -94,15 +94,15 @@ class binance extends \ccxt\binance {
         $stream = $market['lowercaseId'] . '@' . $name;
         $url = $this->urls['api']['ws']; // . '/' . $stream;
         $requestId = $this->nonce ();
-        $request = array (
+        $request = array(
             'method' => 'SUBSCRIBE',
-            'params' => array (
+            'params' => array(
                 $stream,
             ),
             'id' => $requestId,
         );
         $messageHash = $stream;
-        $future = $this->watch ($url, $messageHash, array_merge ($request, $params), $messageHash);
+        $future = $this->watch ($url, $messageHash, array_merge($request, $params), $messageHash);
         $client = $this->clients[$url];
         $client['futures'][$requestId] = $future;
         return $future;
@@ -119,21 +119,21 @@ class binance extends \ccxt\binance {
         //         "s" => "BNBBTC", // Symbol
         //         "U" => 157, // First update ID in event
         //         "u" => 160, // Final update ID in event
-        //         "b" => array ( // bids
-        //             array ( "0.0024", "10" ), // price, size
+        //         "b" => array( // bids
+        //             array( "0.0024", "10" ), // price, size
         //         ),
-        //         "a" => array ( // $asks
-        //             array ( "0.0026", "100" ), // price, size
+        //         "a" => array( // $asks
+        //             array( "0.0026", "100" ), // price, size
         //         )
         //     }
         //
         $deltas = array();
         $nonce = $message['u'];
-        for ($i = 0; $i < count ($message['b']); $i++) {
+        for ($i = 0; $i < count($message['b']); $i++) {
             $bid = $message['b'][$i];
             $deltas[] = [$nonce, 'absolute', 'bids', floatval ($bid[0]), floatval ($bid[1])];
         }
-        for ($i = 0; $i < count ($message['a']); $i++) {
+        for ($i = 0; $i < count($message['a']); $i++) {
             $asks = $message['a'][$i];
             $deltas[] = [$nonce, 'absolute', 'asks', floatval ($asks[0]), floatval ($asks[1])];
         }
@@ -175,7 +175,7 @@ class binance extends \ccxt\binance {
         var_dump ($message);
         //
         // $keys = is_array($client->futures) ? array_keys($client->futures) : array();
-        // for ($i = 0; $i < count ($keys); $i++) {
+        // for ($i = 0; $i < count($keys); $i++) {
         //     $key = $keys[$i];
         //     $this->rejectWsFuture ()
         // }
@@ -184,12 +184,12 @@ class binance extends \ccxt\binance {
         //
         // var_dump (new Date (), json_encode ($message, null, 4));
         // var_dump ('---------------------------------------------------------');
-        // if (gettype ($message) === 'array' && count (array_filter (array_keys ($message), 'is_string')) == 0) {
+        // if (gettype($message) === 'array' && count(array_filter(array_keys($message), 'is_string')) == 0) {
         //     $channelId = (string) $message[0];
         //     $subscriptionStatus = $this->safe_value($this->options['subscriptionStatusByChannelId'], $channelId, array());
         //     $subscription = $this->safe_value($subscriptionStatus, 'subscription', array());
         //     $name = $this->safe_string($subscription, 'name');
-        //     $methods = array (
+        //     $methods = array(
         //         'book' => 'handleOrderBook',
         //         'ohlc' => 'handleOHLCV',
         //         'ticker' => 'handleTicker',
@@ -204,7 +204,7 @@ class binance extends \ccxt\binance {
         // } else {
         //     if ($this->handle_errors($client, $message)) {
         //         $event = $this->safe_string($message, 'event');
-        //         $methods = array (
+        //         $methods = array(
         //             'heartbeat' => 'handleHeartbeat',
         //             'systemStatus' => 'handleSystemStatus',
         //             'subscriptionStatus' => 'handleSubscriptionStatus',
