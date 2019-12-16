@@ -431,7 +431,7 @@ module.exports = class adara extends Exchange {
             } else if (id.indexOf ('OSID') >= 0) {
                 asks.push (this.parseBidAsk (bidask['attributes'], priceKey, amountKey));
             } else {
-                throw ExchangeError (this.id + ' parseOrderBook encountered an unrecognized bidask format: ' + this.json (bidask));
+                throw new ExchangeError (this.id + ' parseOrderBook encountered an unrecognized bidask format: ' + this.json (bidask));
             }
         }
         return {
