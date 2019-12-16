@@ -422,6 +422,10 @@ class Transpiler {
     // ========================================================================
     // one-time helpers
 
+    createPythonClassHeader (className, baseClass) {
+        return 'class ' + className + '(' + baseClass + '):'
+    }
+
     createPythonClass (className, baseClass, body, methods, async = false) {
 
         const pythonStandardLibraries = {
@@ -492,7 +496,7 @@ class Transpiler {
                 (match, p1) => ('self.' + unCamelCase (p1) + '('))
         }
 
-        header.push ("\n\nclass " + className + '(' + baseClass + '):')
+        header.push ("\n\n" + this.createPythonClassHeader (className, baseClass))
 
         const footer = [
             '', // footer (last empty line)
@@ -504,9 +508,8 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
-    createPHPClass (className, baseClass, body, methods) {
-
-        const header = [
+    createPHPClassHeader (className, baseClass) {
+        return [
             "<?php",
             "",
             "namespace ccxt;",
@@ -518,6 +521,11 @@ class Transpiler {
             "",
             'class ' + className + ' extends ' + baseClass + ' {',
         ]
+    }
+
+    createPHPClass (className, baseClass, body, methods) {
+
+        const header = this.createPHPClassHeader (className, baseClass)
 
         let bodyAsString = body.join ("\n")
 
