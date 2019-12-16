@@ -18,9 +18,8 @@ const fs = require ('fs')
 
 class Transpiler {
 
-    constructor (userConfig = {}) {
-
-        this.commonRegexes = [
+    getCommonRegexes () {
+        return [
 
             [ /\.deepExtend\s/g, '.deep_extend'],
             [ /\.safeFloat2\s/g, '.safe_float_2'],
@@ -142,8 +141,11 @@ class Transpiler {
             [ /\'use strict\';?\s+/g, '' ],
             [ /\.urlencodeWithArrayRepeat\s/g, '.urlencode_with_array_repeat' ],
         ]
+    }
 
-        this.pythonRegexes = [
+    getPythonRegexes () {
+
+        return [
 
             [ /Array\.isArray\s*\(([^\)]+)\)/g, 'isinstance($1, list)' ],
             [ /([^\(\s]+)\s+instanceof\s+([^\)\s]+)/g, 'isinstance($1, $2)' ],
@@ -176,7 +178,7 @@ class Transpiler {
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
 
         // insert common regexes in the middle (critical)
-        ].concat (this.commonRegexes).concat ([
+        ].concat (this.getCommonRegexes ()).concat ([
 
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
             [ /this\./g, 'self.' ],
@@ -256,12 +258,16 @@ class Transpiler {
             [ /\sdelete\s/g, ' del ' ],
             [ /(?<!#.+)null/, 'None' ],
         ])
+    }
 
-        this.python2Regexes = [
+    getPython2Regexes () {
+        return [
             [ /(\s)await(\s)/g, '$1' ]
         ]
+    }
 
-        this.phpRegexes = [
+    getPHPRegexes () {
+        return [
             [ /\{([a-zA-Z0-9_]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
             [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype ($1) === 'array' && count (array_filter (array_keys ($1), 'is_string')) == 0" ],
 
@@ -295,7 +301,7 @@ class Transpiler {
             [ /(\w+)\.pop\s*\(\)/g, 'array_pop($1)' ],
 
         // insert common regexes in the middle (critical)
-        ].concat (this.commonRegexes).concat ([
+        ].concat (this.getCommonRegexes ()).concat ([
 
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],
@@ -370,6 +376,9 @@ class Transpiler {
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
             [ /\~([a-zA-Z0-9_]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
         ])
+    }
+
+    constructor (userConfig = {}) {
 
         //---------------------------------------------------------------------
         // the following common headers are used for transpiled tests
@@ -552,7 +561,7 @@ class Transpiler {
     transpileJavaScriptToPython3 ({ js, className, removeEmptyLines }) {
 
         // transpile JS → Python 3
-        let python3Body = this.regexAll (js, this.pythonRegexes)
+        let python3Body = this.regexAll (js, this.getPythonRegexes ())
 
         if (removeEmptyLines)
             python3Body = python3Body.replace (/$\s*$/gm, '')
@@ -580,7 +589,7 @@ class Transpiler {
     transpilePython3ToPython2 (py) {
 
         // remove await from Python 2 body (transpile Python 3 → Python 2)
-        let python2Body = this.regexAll (py, this.python2Regexes)
+        let python2Body = this.regexAll (py, this.getPython2Regexes ())
 
         return python2Body
     }
@@ -614,7 +623,7 @@ class Transpiler {
             allVariables.push (catchClauseMatches[1])
         }
 
-        allVariables = allVariables.map (error => this.regexAll (error, this.commonRegexes))
+        allVariables = allVariables.map (error => this.regexAll (error, this.getCommonRegexes ()))
 
         // append $ to all variables in the method (PHP syntax demands $ at the beginning of a variable name)
         let phpVariablesRegexes = allVariables.map (x => [ "(^|[^$$a-zA-Z0-9\\.\\>'_/])" + x + "([^a-zA-Z0-9'_/])", '$1$$' + x + '$2' ])
@@ -624,7 +633,8 @@ class Transpiler {
         let variablePropertiesRegexes = allVariables.map (x => [ "(^|[^a-zA-Z0-9\\.\\>'_])" + x + '\\.', '$1' + x + '->' ])
 
         // transpile JS → PHP
-        let phpBody = this.regexAll (js, this.phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes))
+        const phpRegexes = this.getPHPRegexes ()
+        let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes))
 
         return phpBody
     }
