@@ -10,11 +10,11 @@ use Exception; // a common import
 class rightbtc extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'rightbtc',
             'name' => 'RightBTC',
-            'countries' => array ( 'AE' ),
-            'has' => array (
+            'countries' => array( 'AE' ),
+            'has' => array(
                 'privateAPI' => false,
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
@@ -24,7 +24,7 @@ class rightbtc extends Exchange {
                 'fetchOrder' => 'emulated',
                 'fetchMyTrades' => true,
             ),
-            'timeframes' => array (
+            'timeframes' => array(
                 '1m' => 'min1',
                 '5m' => 'min5',
                 '15m' => 'min15',
@@ -33,19 +33,19 @@ class rightbtc extends Exchange {
                 '1d' => 'day1',
                 '1w' => 'week',
             ),
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/42633917-7d20757e-85ea-11e8-9f53-fffe9fbb7695.jpg',
                 'api' => 'https://www.rightbtc.com/api',
                 'www' => 'https://www.rightbtc.com',
-                'doc' => array (
+                'doc' => array(
                     'https://docs.rightbtc.com/api/',
                 ),
                 // eslint-disable-next-line no-useless-escape
                 // 'fees' => 'https://www.rightbtc.com/\#\!/support/fee',
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
+            'api' => array(
+                'public' => array(
+                    'get' => array(
                         // 'getAssetsTradingPairs/zh', // 404
                         'trading_pairs',
                         'ticker/{trading_pair}',
@@ -59,8 +59,8 @@ class rightbtc extends Exchange {
                         'candlestick/{timeSymbol}/{trading_pair}/{count}',
                     ),
                 ),
-                'trader' => array (
-                    'get' => array (
+                'trader' => array(
+                    'get' => array(
                         'balance/{symbol}',
                         'balances',
                         'deposits/{asset}/{page}',
@@ -71,17 +71,17 @@ class rightbtc extends Exchange {
                         'historys/{trading_pair}/{page}',
                         'trading_pairs',
                     ),
-                    'post' => array (
+                    'post' => array(
                         'order',
                     ),
-                    'delete' => array (
+                    'delete' => array(
                         'order/{trading_pair}/{ids}',
                     ),
                 ),
             ),
             // HARDCODING IS DEPRECATED, THE FEES BELOW SHOULD BE REWRITTEN
-            'fees' => array (
-                'trading' => array (
+            'fees' => array(
+                'trading' => array(
                     // min trading fees
                     // 0.0001 BTC
                     // 0.01 ETP
@@ -90,8 +90,8 @@ class rightbtc extends Exchange {
                     'maker' => 0.1 / 100,
                     'taker' => 0.2 / 100,
                 ),
-                'funding' => array (
-                    'withdraw' => array (
+                'funding' => array(
+                    'withdraw' => array(
                         // 'BTM' => n => 3 . n * (1 / 100),
                         // 'ZDC' => n => 1 . n * (0.5 / 100),
                         // 'ZGC' => n => 0.5 . n * (0.5 / 100),
@@ -122,10 +122,10 @@ class rightbtc extends Exchange {
                     ),
                 ),
             ),
-            'commonCurrencies' => array (
+            'commonCurrencies' => array(
                 'XRB' => 'NANO',
             ),
-            'exceptions' => array (
+            'exceptions' => array(
                 'ERR_USERTOKEN_NOT_FOUND' => '\\ccxt\\AuthenticationError',
                 'ERR_ASSET_NOT_EXISTS' => '\\ccxt\\ExchangeError',
                 'ERR_ASSET_NOT_AVAILABLE' => '\\ccxt\\ExchangeError',
@@ -141,7 +141,7 @@ class rightbtc extends Exchange {
         $markets = $this->publicGetTradingPairs ($params);
         $marketIds = is_array($markets) ? array_keys($markets) : array();
         $result = array();
-        for ($i = 0; $i < count ($marketIds); $i++) {
+        for ($i = 0; $i < count($marketIds); $i++) {
             $id = $marketIds[$i];
             $market = $markets[$id];
             $baseId = $this->safe_string($market, 'bid_asset_symbol');
@@ -149,11 +149,11 @@ class rightbtc extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $precision = array (
+            $precision = array(
                 'amount' => $this->safe_integer($market, 'bid_asset_decimals'),
                 'price' => $this->safe_integer($market, 'ask_asset_decimals'),
             );
-            $result[] = array (
+            $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -162,16 +162,16 @@ class rightbtc extends Exchange {
                 'quoteId' => $quoteId,
                 'active' => true,
                 'precision' => $precision,
-                'limits' => array (
-                    'amount' => array (
+                'limits' => array(
+                    'amount' => array(
                         'min' => pow(10, -$precision['amount']),
                         'max' => pow(10, $precision['price']),
                     ),
-                    'price' => array (
+                    'price' => array(
                         'min' => pow(10, -$precision['price']),
                         'max' => pow(10, $precision['price']),
                     ),
-                    'cost' => array (
+                    'cost' => array(
                         'min' => null,
                         'max' => null,
                     ),
@@ -199,7 +199,7 @@ class rightbtc extends Exchange {
         $bid = $this->divide_safe_float ($ticker, 'buy', 1e8);
         $ask = $this->divide_safe_float ($ticker, 'sell', 1e8);
         $baseVolume = $this->divide_safe_float ($ticker, 'vol24h', 1e8);
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -226,10 +226,10 @@ class rightbtc extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'trading_pair' => $market['id'],
         );
-        $response = $this->publicGetTickerTradingPair (array_merge ($request, $params));
+        $response = $this->publicGetTickerTradingPair (array_merge($request, $params));
         $result = $this->safe_value($response, 'result');
         if ($result === null) {
             throw new ExchangeError($this->id . ' fetchTicker returned an empty $response for $symbol ' . $symbol);
@@ -242,7 +242,7 @@ class rightbtc extends Exchange {
         $response = $this->publicGetTickers ($params);
         $tickers = $response['result'];
         $result = array();
-        for ($i = 0; $i < count ($tickers); $i++) {
+        for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $tickers[$i];
             $id = $ticker['market'];
             if (!(is_array($this->marketsById) && array_key_exists($id, $this->marketsById))) {
@@ -257,7 +257,7 @@ class rightbtc extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'trading_pair' => $this->market_id($symbol),
         );
         $method = 'publicGetDepthTradingPair';
@@ -265,15 +265,15 @@ class rightbtc extends Exchange {
             $method .= 'Count';
             $request['count'] = $limit;
         }
-        $response = $this->$method (array_merge ($request, $params));
+        $response = $this->$method (array_merge($request, $params));
         $bidsasks = array();
         $types = ['bid', 'ask'];
-        for ($ti = 0; $ti < count ($types); $ti++) {
+        for ($ti = 0; $ti < count($types); $ti++) {
             $type = $types[$ti];
             $bidsasks[$type] = array();
-            for ($i = 0; $i < count ($response['result'][$type]); $i++) {
+            for ($i = 0; $i < count($response['result'][$type]); $i++) {
                 list($price, $amount, $total) = $response['result'][$type][$i];
-                $bidsasks[$type][] = array (
+                $bidsasks[$type][] = array(
                     $price / 1e8,
                     $amount / 1e8,
                     $total / 1e8,
@@ -326,7 +326,7 @@ class rightbtc extends Exchange {
         } else if ($side === 's') {
             $side = 'sell';
         }
-        return array (
+        return array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -346,10 +346,10 @@ class rightbtc extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'trading_pair' => $market['id'],
         );
-        $response = $this->publicGetTradesTradingPair (array_merge ($request, $params));
+        $response = $this->publicGetTradesTradingPair (array_merge($request, $params));
         return $this->parse_trades($response['result'], $market, $since, $limit);
     }
 
@@ -367,11 +367,11 @@ class rightbtc extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'trading_pair' => $market['id'],
             'timeSymbol' => $this->timeframes[$timeframe],
         );
-        $response = $this->publicGetCandlestickTimeSymbolTradingPair (array_merge ($request, $params));
+        $response = $this->publicGetCandlestickTimeSymbolTradingPair (array_merge($request, $params));
         return $this->parse_ohlcvs($response['result'], $market, $timeframe, $since, $limit);
     }
 
@@ -380,12 +380,12 @@ class rightbtc extends Exchange {
         $response = $this->traderGetBalances ($params);
         //
         //     {
-        //         "status" => array (
+        //         "status" => array(
         //             "success" => 1,
         //             "message" => "GET_BALANCES"
         //         ),
-        //         "$result" => array (
-        //             array (
+        //         "$result" => array(
+        //             array(
         //                 "asset" => "ETP",
         //                 "$balance" => "5000000000000",
         //                 "frozen" => "0",
@@ -402,7 +402,7 @@ class rightbtc extends Exchange {
         //
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response, 'result', array());
-        for ($i = 0; $i < count ($balances); $i++) {
+        for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'asset');
             $code = $this->safe_currency_code($currencyId);
@@ -418,7 +418,7 @@ class rightbtc extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $order = array (
+        $order = array(
             'trading_pair' => $market['id'],
             // We need to use decimalToPrecision here, since
             //   0.036*1e8 === 3599999.9999999995
@@ -428,7 +428,7 @@ class rightbtc extends Exchange {
             'type' => strtoupper($type),
             'side' => strtoupper($side),
         );
-        $response = $this->traderPostOrder (array_merge ($order, $params));
+        $response = $this->traderPostOrder (array_merge($order, $params));
         return $this->parse_order($response);
     }
 
@@ -438,16 +438,16 @@ class rightbtc extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'trading_pair' => $market['id'],
             'ids' => $id,
         );
-        $response = $this->traderDeleteOrderTradingPairIds (array_merge ($request, $params));
+        $response = $this->traderDeleteOrderTradingPairIds (array_merge($request, $params));
         return $response;
     }
 
     public function parse_order_status ($status) {
-        $statuses = array (
+        $statuses = array(
             'NEW' => 'open',
             'TRADE' => 'closed', // TRADE means filled or partially filled orders
             'CANCEL' => 'canceled',
@@ -535,14 +535,14 @@ class rightbtc extends Exchange {
             if ($market !== null) {
                 $feeCurrency = $market['quote'];
             }
-            $fee = array (
+            $fee = array(
                 'rate' => $this->safe_float($order, 'fee'),
                 'cost' => $feeCost,
                 'currency' => $feeCurrency,
             );
         }
         $trades = null;
-        return array (
+        return array(
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -568,18 +568,18 @@ class rightbtc extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'trading_pair' => $market['id'],
             'ids' => $id,
         );
-        $response = $this->traderGetOrdersTradingPairIds (array_merge ($request, $params));
+        $response = $this->traderGetOrdersTradingPairIds (array_merge($request, $params));
         //
         // $response = {
-        //         "status" => array (
+        //         "status" => array(
         //             "success" => 1,
         //             "message" => "SUC_LIST_AVTICE_ORDERS"
         //         ),
-        //         "result" => array (
+        //         "result" => array(
         //             {
         //                 "$id" => 4180528,
         //                 "quantity" => 20000000,
@@ -606,20 +606,20 @@ class rightbtc extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'trading_pair' => $market['id'],
             'cursor' => 0,
         );
-        $response = $this->traderGetOrderpageTradingPairCursor (array_merge ($request, $params));
+        $response = $this->traderGetOrderpageTradingPairCursor (array_merge($request, $params));
         //
         // $response = {
-        //         "status" => array (
+        //         "status" => array(
         //             "success" => 1,
         //             "message" => "SUC_LIST_AVTICE_ORDERS_PAGE"
         //         ),
         //         "result" => {
         //             "cursor" => "0",
-        //             "orders" => array (
+        //             "orders" => array(
         //                 {
         //                     "id" => 4180528,
         //                     "quantity" => 20000000,
@@ -641,23 +641,23 @@ class rightbtc extends Exchange {
         if (($symbol === null) || ($ids === null)) {
             throw new ArgumentsRequired($this->id . " fetchOrders requires a 'symbol' argument and an extra 'ids' parameter. The 'ids' should be an array or a string of one or more order $ids separated with slashes."); // eslint-disable-line quotes
         }
-        if (gettype ($ids) === 'array' && count (array_filter (array_keys ($ids), 'is_string')) == 0) {
+        if (gettype($ids) === 'array' && count(array_filter(array_keys($ids), 'is_string')) == 0) {
             $ids = implode('/', $ids);
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'trading_pair' => $market['id'],
             'ids' => $ids,
         );
-        $response = $this->traderGetHistoryTradingPairIds (array_merge ($request, $params));
+        $response = $this->traderGetHistoryTradingPairIds (array_merge($request, $params));
         //
         // $response = {
-        //         "status" => array (
+        //         "status" => array(
         //             "success" => 1,
         //             "message" => null
         //         ),
-        //         "result" => array (
+        //         "result" => array(
         //             {
         //                 "trading_pair" => "ETPCNY",
         //                 "status" => "TRADE",
@@ -682,19 +682,19 @@ class rightbtc extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'trading_pair' => $market['id'],
             'page' => 0,
         );
-        $response = $this->traderGetHistorysTradingPairPage (array_merge ($request, $params));
+        $response = $this->traderGetHistorysTradingPairPage (array_merge($request, $params));
         //
         // $response = {
-        //         "status" => array (
+        //         "status" => array(
         //             "success" => 1,
         //             "message" => null
         //         ),
-        //         "result" => array (
-        //             array (
+        //         "result" => array(
+        //             array(
         //                 "order_id" => 118735,
         //                 "trade_id" => 7,
         //                 "trading_pair" => "BTCCNY",
@@ -727,7 +727,7 @@ class rightbtc extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $headers = array (
+            $headers = array(
                 'apikey' => $this->apiKey,
                 'signature' => $this->secret,
             );

@@ -11,21 +11,21 @@ class theocean extends Exchange {
 
     public function describe () {
         $this->check_required_dependencies();
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'theocean',
             'name' => 'The Ocean',
-            'countries' => array ( 'US' ),
+            'countries' => array( 'US' ),
             'rateLimit' => 3000,
             'version' => 'v1',
             'requiresWeb3' => true,
-            'timeframes' => array (
+            'timeframes' => array(
                 '5m' => '300',
                 '15m' => '900',
                 '1h' => '3600',
                 '6h' => '21600',
                 '1d' => '86400',
             ),
-            'has' => array (
+            'has' => array(
                 'cancelAllOrders' => true,
                 'CORS' => false, // ?
                 'fetchClosedOrders' => true,
@@ -35,16 +35,16 @@ class theocean extends Exchange {
                 'fetchOrders' => true,
                 'fetchTickers' => true,
             ),
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/43103756-d56613ce-8ed7-11e8-924e-68f9d4bcacab.jpg',
                 'api' => 'https://api.theocean.trade',
                 'www' => 'https://theocean.trade',
                 'doc' => 'https://docs.theocean.trade',
                 'fees' => 'https://theocean.trade/fees',
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
+            'api' => array(
+                'public' => array(
+                    'get' => array(
                         'fee_components',
                         'token_pairs',
                         'ticker',
@@ -57,28 +57,28 @@ class theocean extends Exchange {
                         'version',
                     ),
                 ),
-                'private' => array (
-                    'get' => array (
+                'private' => array(
+                    'get' => array(
                         'balance',
                         'available_balance',
                         'order_history',
                         'order/unsigned',
                         'order/unsigned/market',
                     ),
-                    'post' => array (
+                    'post' => array(
                         'order',
                     ),
-                    'delete' => array (
+                    'delete' => array(
                         'order/{orderHash}',
                         'order',
                     ),
                 ),
             ),
-            'exceptions' => array (
-                'exact' => array (
+            'exceptions' => array(
+                'exact' => array(
                     'Order not found' => '\\ccxt\\OrderNotFound', // array("message":"Order not found","errors":...)
                 ),
-                'broad' => array (
+                'broad' => array(
                     "Price can't exceed 8 digits in precision." => '\\ccxt\\InvalidOrder', // array("message":"Price can't exceed 8 digits in precision.","type":"paramPrice")
                     'Order cannot be canceled' => '\\ccxt\\InvalidOrder', // array("message":"Order cannot be canceled","type":"General error")
                     'Greater than available wallet balance.' => '\\ccxt\\InsufficientFunds',
@@ -88,7 +88,7 @@ class theocean extends Exchange {
                     'Service Temporarily Unavailable' => '\\ccxt\\ExchangeNotAvailable',
                 ),
             ),
-            'options' => array (
+            'options' => array(
                 'decimals' => array(),
                 'fetchOrderMethod' => 'fetch_order_from_history',
             ),
@@ -98,8 +98,8 @@ class theocean extends Exchange {
     public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetTokenPairs ($params);
         //
-        //     array (
-        //       "$baseToken" => array (
+        //     array(
+        //       "$baseToken" => array(
         //         "$symbol" => "ZRX",
         //         "address" => "0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570",
         //         "name" => "0x Protocol Token",
@@ -120,7 +120,7 @@ class theocean extends Exchange {
         //     )
         //
         $result = array();
-        for ($i = 0; $i < count ($markets); $i++) {
+        for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $baseToken = $this->safe_value($market, 'baseToken', array());
             $quoteToken = $this->safe_value($market, 'quoteToken', array());
@@ -134,29 +134,29 @@ class theocean extends Exchange {
             $quoteDecimals = $this->safe_integer($quoteToken, 'decimals');
             $this->options['decimals'][$base] = $baseDecimals;
             $this->options['decimals'][$quote] = $quoteDecimals;
-            $precision = array (
+            $precision = array(
                 'amount' => -intval ($baseToken['precision']),
                 'price' => -intval ($quoteToken['precision']),
             );
-            $amountLimits = array (
+            $amountLimits = array(
                 'min' => $this->fromWei ($this->safe_string($baseToken, 'minAmount'), 'ether', $baseDecimals),
                 'max' => $this->fromWei ($this->safe_string($baseToken, 'maxAmount'), 'ether', $baseDecimals),
             );
-            $priceLimits = array (
+            $priceLimits = array(
                 'min' => null,
                 'max' => null,
             );
-            $costLimits = array (
+            $costLimits = array(
                 'min' => $this->fromWei ($this->safe_string($quoteToken, 'minAmount'), 'ether', $quoteDecimals),
                 'max' => $this->fromWei ($this->safe_string($quoteToken, 'maxAmount'), 'ether', $quoteDecimals),
             );
-            $limits = array (
+            $limits = array(
                 'amount' => $amountLimits,
                 'price' => $priceLimits,
                 'cost' => $costLimits,
             );
             $active = true;
-            $result[] = array (
+            $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -174,7 +174,7 @@ class theocean extends Exchange {
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
         $baseDecimals = $this->safe_integer($this->options['decimals'], $market['base'], 18);
-        return array (
+        return array(
             $this->safe_timestamp($ohlcv, 'startTime'),
             $this->safe_float($ohlcv, 'open'),
             $this->safe_float($ohlcv, 'high'),
@@ -187,7 +187,7 @@ class theocean extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'baseTokenAddress' => $market['baseId'],
             'quoteTokenAddress' => $market['quoteId'],
             'interval' => $this->timeframes[$timeframe],
@@ -197,10 +197,10 @@ class theocean extends Exchange {
         }
         $since = intval ($since);
         $request['startTime'] = $since;
-        $response = $this->publicGetCandlesticks (array_merge ($request, $params));
+        $response = $this->publicGetCandlesticks (array_merge($request, $params));
         //
-        //   array (
-        //     array (
+        //   array(
+        //     array(
         //         "high" => "100.52",
         //         "low" => "97.23",
         //         "open" => "98.45",
@@ -228,11 +228,11 @@ class theocean extends Exchange {
         }
         $this->load_markets();
         $currency = $this->currency ($code);
-        $request = array (
+        $request = array(
             'walletAddress' => strtolower($this->walletAddress),
             'tokenAddress' => $currency['id'],
         );
-        $response = $this->privateGetBalance (array_merge ($request, $params));
+        $response = $this->privateGetBalance (array_merge($request, $params));
         //
         //     array("available":"0","committed":"0","$total":"0")
         //
@@ -240,7 +240,7 @@ class theocean extends Exchange {
         $free = $this->fromWei ($this->safe_string($response, 'available'), 'ether', $decimals);
         $used = $this->fromWei ($this->safe_string($response, 'committed'), 'ether', $decimals);
         $total = $this->fromWei ($this->safe_string($response, 'total'), 'ether', $decimals);
-        return array (
+        return array(
             'free' => $free,
             'used' => $used,
             'total' => $total,
@@ -255,12 +255,12 @@ class theocean extends Exchange {
         if ($codes === null) {
             $codes = $this->safe_value($params, 'codes');
         }
-        if (($codes === null) || (!gettype ($codes) === 'array' && count (array_filter (array_keys ($codes), 'is_string')) == 0)) {
+        if (($codes === null) || (!gettype($codes) === 'array' && count(array_filter(array_keys($codes), 'is_string')) == 0)) {
             throw new ExchangeError($this->id . ' fetchBalance() requires a `$codes` parameter (an array of currency $codes)');
         }
         $this->load_markets();
         $result = array();
-        for ($i = 0; $i < count ($codes); $i++) {
+        for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
             $result[$code] = $this->fetch_balance_by_code ($code);
         }
@@ -274,21 +274,21 @@ class theocean extends Exchange {
         $price = floatval ($bidask[$priceKey]);
         $amountDecimals = $this->safe_integer($this->options['decimals'], $market['base'], 18);
         $amount = $this->fromWei ($bidask[$amountKey], 'ether', $amountDecimals);
-        return array ( $price, $amount );
+        return array( $price, $amount );
     }
 
     public function parse_order_book ($orderbook, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, $market = null) {
-        $result = array (
+        $result = array(
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'nonce' => null,
         );
-        $sides = array ( $bidsKey, $asksKey );
-        for ($i = 0; $i < count ($sides); $i++) {
+        $sides = array( $bidsKey, $asksKey );
+        for ($i = 0; $i < count($sides); $i++) {
             $side = $sides[$i];
             $orders = array();
             $bidasks = $this->safe_value($orderbook, $side);
-            for ($k = 0; $k < count ($bidasks); $k++) {
+            for ($k = 0; $k < count($bidasks); $k++) {
                 $orders[] = $this->parse_bid_ask($bidasks[$k], $priceKey, $amountKey, $market);
             }
             $result[$side] = $orders;
@@ -301,17 +301,17 @@ class theocean extends Exchange {
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'baseTokenAddress' => $market['baseId'],
             'quoteTokenAddress' => $market['quoteId'],
         );
         if ($limit !== null) {
             $request['depth'] = $limit;
         }
-        $response = $this->publicGetOrderBook (array_merge ($request, $params));
+        $response = $this->publicGetOrderBook (array_merge($request, $params));
         //
         //     {
-        //       "bids" => array (
+        //       "bids" => array(
         //         { orderHash => '0xe2b7f80198edb561cc66cd85cb8e5f420073cf1e5143193d8add8774bd8236c4',
         //           price => '30',
         //           availableAmount => '500000000000000000',
@@ -319,7 +319,7 @@ class theocean extends Exchange {
         //           expirationTimestampInSec => '1549789124'
         //         }
         //       ),
-        //       "asks" => array (
+        //       "asks" => array(
         //         { orderHash => '0xe2b7f80198edb561cc66cd85cb8e5f420073cf1e5143193d8add8774bd8236c4',
         //           price => '30',
         //           availableAmount => '500000000000000000',
@@ -352,7 +352,7 @@ class theocean extends Exchange {
         $baseDecimals = $this->safe_integer($this->options['decimals'], $base, 18);
         $baseVolume = $this->fromWei ($this->safe_string($ticker, 'volume'), 'ether', $baseDecimals);
         $last = $this->safe_float($ticker, 'last');
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -383,7 +383,7 @@ class theocean extends Exchange {
         //     [{
         //     "baseTokenAddress" => "0xa8e9fa8f91e5ae138c74648c9c304f1c75003a8d",
         //     "quoteTokenAddress" => "0xc00fd9820cd2898cc4c054b7bf142de637ad129a",
-        //     "$ticker" => array (
+        //     "$ticker" => array(
         //         "bid" => "0.00050915",
         //         "ask" => "0.00054134",
         //         "last" => "0.00052718",
@@ -393,7 +393,7 @@ class theocean extends Exchange {
         //     )]
         //
         $result = array();
-        for ($i = 0; $i < count ($tickers); $i++) {
+        for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $tickers[$i];
             $baseId = $this->safe_string($ticker, 'baseTokenAddress');
             $quoteId = $this->safe_string($ticker, 'quoteTokenAddress');
@@ -412,11 +412,11 @@ class theocean extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'baseTokenAddress' => $market['baseId'],
             'quoteTokenAddress' => $market['quoteId'],
         );
-        $response = $this->publicGetTicker (array_merge ($request, $params));
+        $response = $this->publicGetTicker (array_merge($request, $params));
         return $this->parse_ticker($response, $market);
     }
 
@@ -463,7 +463,7 @@ class theocean extends Exchange {
             $cost = $amount * $price;
         }
         $takerOrMaker = 'taker';
-        return array (
+        return array(
             'id' => $id,
             'order' => $id,
             'timestamp' => $timestamp,
@@ -483,13 +483,13 @@ class theocean extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'baseTokenAddress' => $market['baseId'],
             'quoteTokenAddress' => $market['quoteId'],
         );
-        $response = $this->publicGetTradeHistory (array_merge ($request, $params));
+        $response = $this->publicGetTradeHistory (array_merge($request, $params));
         //
-        //     array (
+        //     array(
         //       {
         //         "id" => "37212",
         //         "transactionHash" => "0x5e6e75e1aa681b51b034296f62ac19be7460411a2ad94042dd8ba637e13eac0c",
@@ -537,7 +537,7 @@ class theocean extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $baseDecimals = $this->safe_integer($this->options['decimals'], $market['base'], 18);
-        $request = array (
+        $request = array(
             'walletAddress' => strtolower($this->walletAddress), // Your Wallet Address
             'baseTokenAddress' => $market['baseId'], // Base token address
             'quoteTokenAddress' => $market['quoteId'], // Quote token address
@@ -553,7 +553,7 @@ class theocean extends Exchange {
         } else {
             throw new ExchangeError('Unsupported order $type => ' . $type);
         }
-        $response = $this->$method (array_merge ($request, $params));
+        $response = $this->$method (array_merge($request, $params));
         return $response;
     }
 
@@ -561,16 +561,16 @@ class theocean extends Exchange {
         $request = $requestParams;
         $request['signedZeroExOrder'] = $signedOrder;
         $request = $this->omit ($request, 'unsignedZeroExOrder');
-        $response = $this->privatePostOrder (array_merge ($request, $params));
+        $response = $this->privatePostOrder (array_merge($request, $params));
         return $response;
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'orderHash' => $id,
         );
-        $response = $this->privateDeleteOrderOrderHash (array_merge ($request, $params));
+        $response = $this->privateDeleteOrderOrderHash (array_merge($request, $params));
         //
         //     {
         //       "canceledOrder" => {
@@ -583,7 +583,7 @@ class theocean extends Exchange {
         if ($symbol !== null) {
             $market = $this->market ($symbol);
         }
-        return array_merge ($this->parse_order($response['canceledOrder'], $market), array (
+        return array_merge($this->parse_order($response['canceledOrder'], $market), array(
             'status' => 'canceled',
         ));
     }
@@ -592,7 +592,7 @@ class theocean extends Exchange {
         $response = $this->privateDeleteOrder ($params);
         //
         //     [{
-        //       "canceledOrder" => array (
+        //       "canceledOrder" => array(
         //         "orderHash" => "0x3d6b287c1dc79262d2391ae2ca9d050fdbbab2c8b3180e4a46f9f321a7f1d7a9",
         //         "amount" => "100000000000"
         //       }
@@ -642,7 +642,7 @@ class theocean extends Exchange {
         $trades = null;
         $status = null;
         if ($timeline !== null) {
-            $numEvents = is_array ($timeline) ? count ($timeline) : 0;
+            $numEvents = is_array($timeline) ? count($timeline) : 0;
             if ($numEvents > 0) {
                 $timelineEventsGroupedByAction = $this->group_by($timeline, 'action');
                 if (is_array($timelineEventsGroupedByAction) && array_key_exists('error', $timelineEventsGroupedByAction)) {
@@ -650,15 +650,15 @@ class theocean extends Exchange {
                 }
                 if (is_array($timelineEventsGroupedByAction) && array_key_exists('filled', $timelineEventsGroupedByAction)) {
                     $fillEvents = $this->safe_value($timelineEventsGroupedByAction, 'filled');
-                    $numFillEvents = is_array ($fillEvents) ? count ($fillEvents) : 0;
+                    $numFillEvents = is_array($fillEvents) ? count($fillEvents) : 0;
                     $lastTradeTimestamp = $this->safe_integer($fillEvents[$numFillEvents - 1], 'timestamp');
                     $lastTradeTimestamp = ($lastTradeTimestamp !== null) ? $lastTradeTimestamp : $lastTradeTimestamp;
                     $trades = array();
                     for ($i = 0; $i < $numFillEvents; $i++) {
-                        $trade = $this->parse_trade(array_merge ($fillEvents[$i], array (
+                        $trade = $this->parse_trade(array_merge($fillEvents[$i], array(
                             'price' => $price,
                         )), $market);
-                        $trades[] = array_merge ($trade, array (
+                        $trades[] = array_merge($trade, array(
                             'order' => $id,
                             'type' => $type,
                             'side' => $side,
@@ -693,7 +693,7 @@ class theocean extends Exchange {
                 throw new NotSupported($this->id . ' encountered an unsupported $order $fee option => ' . $feeOption);
             }
             $feeDecimals = $this->safe_integer($this->options['decimals'], $feeCurrency, 18);
-            $fee = array (
+            $fee = array(
                 'cost' => $this->fromWei ($feeCost, 'ether', $feeDecimals),
                 'currency' => $feeCurrency,
             );
@@ -708,7 +708,7 @@ class theocean extends Exchange {
                 }
             }
         }
-        $result = array (
+        $result = array(
             'info' => $order,
             'id' => $id,
             'symbol' => $symbol,
@@ -731,21 +731,21 @@ class theocean extends Exchange {
 
     public function fetch_open_order ($id, $symbol = null, $params = array ()) {
         $method = $this->options['fetchOrderMethod'];
-        return $this->$method ($id, $symbol, array_merge (array (
+        return $this->$method ($id, $symbol, array_merge(array(
             'openAmount' => 1,
         ), $params));
     }
 
     public function fetch_closed_order ($id, $symbol = null, $params = array ()) {
         $method = $this->options['fetchOrderMethod'];
-        return $this->$method ($id, $symbol, array_merge ($params));
+        return $this->$method ($id, $symbol, array_merge($params));
     }
 
     public function fetch_order_from_history ($id, $symbol = null, $params = array ()) {
-        $request = array (
+        $request = array(
             'orderHash' => $id,
         );
-        $orders = $this->fetch_orders($symbol, null, null, array_merge ($request, $params));
+        $orders = $this->fetch_orders($symbol, null, null, array_merge($request, $params));
         $ordersById = $this->index_by($orders, 'id');
         if (is_array($ordersById) && array_key_exists($id, $ordersById)) {
             return $ordersById[$id];
@@ -755,10 +755,10 @@ class theocean extends Exchange {
 
     public function fetch_order_by_id ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'orderHash' => $id,
         );
-        $response = $this->publicGetOrderOrderHash (array_merge ($request, $params));
+        $response = $this->publicGetOrderOrderHash (array_merge($request, $params));
         //  {
         //   baseTokenAddress => '0xb18845c260f680d5b9d84649638813e342e4f8c9',
         //   quoteTokenAddress => '0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570',
@@ -768,7 +768,7 @@ class theocean extends Exchange {
         //   amount => '500000000000000000',
         //   created => '1547194003',
         //   expires => '1549786003',
-        //   zeroExOrder => array (
+        //   zeroExOrder => array(
         //     salt => '71810414258284992779348693906799008280152689028521273772736250669496045815907',
         //     maker => '0xfa1a3371bcbfcf3deaa8a6f67784bfbe5b886d7f',
         //     taker => '0x77b18613579d49f252bd237ef113884eb37a7090',
@@ -791,11 +791,11 @@ class theocean extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
-        $request = array (
+        $request = array(
             'orderHash' => $id,
         );
-        $orders = $this->fetch_orders($symbol, null, null, array_merge ($request, $params));
-        $numOrders = is_array ($orders) ? count ($orders) : 0;
+        $orders = $this->fetch_orders($symbol, null, null, array_merge($request, $params));
+        $numOrders = is_array($orders) ? count($orders) : 0;
         if ($numOrders !== 1) {
             throw new OrderNotFound($this->id . ' order ' . $id . ' not found');
         }
@@ -814,9 +814,9 @@ class theocean extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOrderHistory (array_merge ($request, $params));
+        $response = $this->privateGetOrderHistory (array_merge($request, $params));
         //
-        //     array (
+        //     array(
         //       {
         //         "orderHash" => "0x94629386298dee69ae63cd3e414336ae153b3f02cffb9ffc53ad71e166615618",
         //         "baseTokenAddress" => "0x323b5d4c32345ced77393b3530b1eed0f346429d",
@@ -829,7 +829,7 @@ class theocean extends Exchange {
         //         "confirmedAmount" => "0",
         //         "deadAmount" => "0",
         //         "price" => "0.00050915",
-        //         "timeline" => array (
+        //         "timeline" => array(
         //           {
         //             "action" => "placed",
         //             "amount" => "10000000000000000000",
@@ -843,17 +843,17 @@ class theocean extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $request = array (
+        $request = array(
             'openAmount' => 1, // returns open orders with remaining openAmount >= 1
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $request = array (
+        $request = array(
             'openAmount' => 0, // returns closed orders with remaining openAmount === 0
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -873,7 +873,7 @@ class theocean extends Exchange {
                 $prehash .= $this->json (array());
             }
             $signature = $this->hmac ($this->encode ($prehash), $this->encode ($this->secret), 'sha256', 'base64');
-            $headers = array (
+            $headers = array(
                 'TOX-ACCESS-KEY' => $this->apiKey,
                 'TOX-ACCESS-SIGN' => $signature,
                 'TOX-ACCESS-TIMESTAMP' => $timestamp,

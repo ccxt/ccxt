@@ -10,35 +10,35 @@ use Exception; // a common import
 class lakebtc extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'lakebtc',
             'name' => 'LakeBTC',
-            'countries' => array ( 'US' ),
+            'countries' => array( 'US' ),
             'version' => 'api_v2',
-            'has' => array (
+            'has' => array(
                 'CORS' => true,
                 'createMarketOrder' => false,
                 'fetchTickers' => true,
             ),
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',
                 'api' => 'https://api.lakebtc.com',
                 'www' => 'https://www.lakebtc.com',
-                'doc' => array (
+                'doc' => array(
                     'https://www.lakebtc.com/s/api_v2',
                     'https://www.lakebtc.com/s/api',
                 ),
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
+            'api' => array(
+                'public' => array(
+                    'get' => array(
                         'bcorderbook',
                         'bctrades',
                         'ticker',
                     ),
                 ),
-                'private' => array (
-                    'post' => array (
+                'private' => array(
+                    'post' => array(
                         'buyOrder',
                         'cancelOrders',
                         'getAccountInfo',
@@ -50,8 +50,8 @@ class lakebtc extends Exchange {
                     ),
                 ),
             ),
-            'fees' => array (
-                'trading' => array (
+            'fees' => array(
+                'trading' => array(
                     'maker' => 0.15 / 100,
                     'taker' => 0.2 / 100,
                 ),
@@ -63,7 +63,7 @@ class lakebtc extends Exchange {
         $response = $this->publicGetTicker ($params);
         $result = array();
         $keys = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count ($keys); $i++) {
+        for ($i = 0; $i < count($keys); $i++) {
             $id = $keys[$i];
             $market = $response[$id];
             $baseId = mb_substr($id, 0, 3 - 0);
@@ -71,7 +71,7 @@ class lakebtc extends Exchange {
             $base = strtoupper($baseId);
             $quote = strtoupper($quoteId);
             $symbol = $base . '/' . $quote;
-            $result[] = array (
+            $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -90,7 +90,7 @@ class lakebtc extends Exchange {
         $balances = $this->safe_value($response, 'balance', array());
         $result = array( 'info' => $response );
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
-        for ($i = 0; $i < count ($currencyIds); $i++) {
+        for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
@@ -102,10 +102,10 @@ class lakebtc extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'symbol' => $this->market_id($symbol),
         );
-        $response = $this->publicGetBcorderbook (array_merge ($request, $params));
+        $response = $this->publicGetBcorderbook (array_merge($request, $params));
         return $this->parse_order_book($response);
     }
 
@@ -116,7 +116,7 @@ class lakebtc extends Exchange {
             $symbol = $market['symbol'];
         }
         $last = $this->safe_float($ticker, 'last');
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -145,7 +145,7 @@ class lakebtc extends Exchange {
         $response = $this->publicGetTicker ($params);
         $ids = is_array($response) ? array_keys($response) : array();
         $result = array();
-        for ($i = 0; $i < count ($ids); $i++) {
+        for ($i = 0; $i < count($ids); $i++) {
             $symbol = $ids[$i];
             $ticker = $response[$symbol];
             $market = null;
@@ -180,7 +180,7 @@ class lakebtc extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        return array (
+        return array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -200,10 +200,10 @@ class lakebtc extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetBctrades (array_merge ($request, $params));
+        $response = $this->publicGetBctrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -214,11 +214,11 @@ class lakebtc extends Exchange {
         }
         $method = 'privatePost' . $this->capitalize ($side) . 'Order';
         $market = $this->market ($symbol);
-        $order = array (
+        $order = array(
             'params' => [ $price, $amount, $market['id'] ],
         );
-        $response = $this->$method (array_merge ($order, $params));
-        return array (
+        $response = $this->$method (array_merge($order, $params));
+        return array(
             'info' => $response,
             'id' => $this->safe_string($response, 'id'),
         );
@@ -226,10 +226,10 @@ class lakebtc extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
-            'params' => array ( $id ),
+        $request = array(
+            'params' => array( $id ),
         );
-        return $this->privatePostCancelOrder (array_merge ($request, $params));
+        return $this->privatePostCancelOrder (array_merge($request, $params));
     }
 
     public function nonce () {
@@ -251,7 +251,7 @@ class lakebtc extends Exchange {
                 $paramsList = $params['params'];
                 $queryParams = implode(',', $paramsList);
             }
-            $query = $this->urlencode (array (
+            $query = $this->urlencode (array(
                 'tonce' => $nonce,
                 'accesskey' => $this->apiKey,
                 'requestmethod' => strtolower($method),
@@ -259,16 +259,16 @@ class lakebtc extends Exchange {
                 'method' => $path,
                 'params' => $queryParams,
             ));
-            $body = $this->json (array (
+            $body = $this->json (array(
                 'method' => $path,
                 'params' => $queryParams,
                 'id' => $nonce,
             ));
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha1');
             $auth = $this->encode ($this->apiKey . ':' . $signature);
-            $headers = array (
+            $headers = array(
                 'Json-Rpc-Tonce' => (string) $nonce,
-                'Authorization' => 'Basic ' . $this->decode (base64_encode ($auth)),
+                'Authorization' => 'Basic ' . $this->decode (base64_encode($auth)),
                 'Content-Type' => 'application/json',
             );
         }

@@ -10,34 +10,34 @@ use Exception; // a common import
 class btctradeua extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'btctradeua',
             'name' => 'BTC Trade UA',
-            'countries' => array ( 'UA' ), // Ukraine,
+            'countries' => array( 'UA' ), // Ukraine,
             'rateLimit' => 3000,
-            'has' => array (
+            'has' => array(
                 'CORS' => true,
                 'createMarketOrder' => false,
                 'fetchOpenOrders' => true,
             ),
-            'urls' => array (
+            'urls' => array(
                 'referral' => 'https://btc-trade.com.ua/registration/22689',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
                 'api' => 'https://btc-trade.com.ua/api',
                 'www' => 'https://btc-trade.com.ua',
                 'doc' => 'https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit',
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
+            'api' => array(
+                'public' => array(
+                    'get' => array(
                         'deals/{symbol}',
                         'trades/sell/{symbol}',
                         'trades/buy/{symbol}',
                         'japan_stat/high/{symbol}',
                     ),
                 ),
-                'private' => array (
-                    'post' => array (
+                'private' => array(
+                    'post' => array(
                         'auth',
                         'ask/{symbol}',
                         'balance',
@@ -50,7 +50,7 @@ class btctradeua extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
+            'markets' => array(
                 'BCH/UAH' => array( 'id' => 'bch_uah', 'symbol' => 'BCH/UAH', 'base' => 'BCH', 'quote' => 'UAH', 'baseId' => 'bch', 'quoteId' => 'uah' ),
                 'BTC/UAH' => array( 'id' => 'btc_uah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'baseId' => 'btc', 'quoteId' => 'uah', 'precision' => array( 'price' => 1 ), 'limits' => array( 'amount' => array( 'min' => 0.0000000001 ))),
                 'DASH/BTC' => array( 'id' => 'dash_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC', 'baseId' => 'dash', 'quoteId' => 'btc' ),
@@ -69,13 +69,13 @@ class btctradeua extends Exchange {
                 'XMR/UAH' => array( 'id' => 'xmr_uah', 'symbol' => 'XMR/UAH', 'base' => 'XMR', 'quote' => 'UAH', 'baseId' => 'xmr', 'quoteId' => 'uah' ),
                 'ZEC/UAH' => array( 'id' => 'zec_uah', 'symbol' => 'ZEC/UAH', 'base' => 'ZEC', 'quote' => 'UAH', 'baseId' => 'zec', 'quoteId' => 'uah' ),
             ),
-            'fees' => array (
-                'trading' => array (
+            'fees' => array(
+                'trading' => array(
                     'maker' => 0.1 / 100,
                     'taker' => 0.1 / 100,
                 ),
-                'funding' => array (
-                    'withdraw' => array (
+                'funding' => array(
+                    'withdraw' => array(
                         'BTC' => 0.0006,
                         'LTC' => 0.01,
                         'NVC' => 0.01,
@@ -95,7 +95,7 @@ class btctradeua extends Exchange {
         $response = $this->privatePostBalance ($params);
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response, 'accounts');
-        for ($i = 0; $i < count ($balances); $i++) {
+        for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
@@ -109,12 +109,12 @@ class btctradeua extends Exchange {
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'symbol' => $market['id'],
         );
-        $bids = $this->publicGetTradesBuySymbol (array_merge ($request, $params));
-        $asks = $this->publicGetTradesSellSymbol (array_merge ($request, $params));
-        $orderbook = array (
+        $bids = $this->publicGetTradesBuySymbol (array_merge($request, $params));
+        $asks = $this->publicGetTradesSellSymbol (array_merge($request, $params));
+        $orderbook = array(
             'bids' => array(),
             'asks' => array(),
         );
@@ -133,13 +133,13 @@ class btctradeua extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'symbol' => $this->market_id($symbol),
         );
-        $response = $this->publicGetJapanStatHighSymbol (array_merge ($request, $params));
+        $response = $this->publicGetJapanStatHighSymbol (array_merge($request, $params));
         $ticker = $this->safe_value($response, 'trades');
         $timestamp = $this->milliseconds ();
-        $result = array (
+        $result = array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -161,10 +161,10 @@ class btctradeua extends Exchange {
             'quoteVolume' => null,
             'info' => $ticker,
         );
-        $tickerLength = is_array ($ticker) ? count ($ticker) : 0;
+        $tickerLength = is_array($ticker) ? count($ticker) : 0;
         if ($tickerLength > 0) {
             $start = max ($tickerLength - 48, 0);
-            for ($i = $start; $i < count ($ticker); $i++) {
+            for ($i = $start; $i < count($ticker); $i++) {
                 $candle = $ticker[$i];
                 if ($result['open'] === null) {
                     $result['open'] = $candle[1];
@@ -190,7 +190,7 @@ class btctradeua extends Exchange {
     }
 
     public function convert_cyrillic_month_name_to_string ($cyrillic) {
-        $months = array (
+        $months = array(
             'января' => '01',
             'февраля' => '02',
             'марта' => '03',
@@ -216,11 +216,11 @@ class btctradeua extends Exchange {
         }
         $year = $parts[2];
         $hms = $parts[4];
-        $hmsLength = is_array ($hms) ? count ($hms) : 0;
+        $hmsLength = is_array($hms) ? count($hms) : 0;
         if ($hmsLength === 7) {
             $hms = '0' . $hms;
         }
-        if (strlen ($day) === 1) {
+        if (strlen($day) === 1) {
             $day = '0' . $day;
         }
         $ymd = implode('-', array($year, $month, $day));
@@ -255,7 +255,7 @@ class btctradeua extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        return array (
+        return array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -275,14 +275,14 @@ class btctradeua extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetDealsSymbol (array_merge ($request, $params));
+        $response = $this->publicGetDealsSymbol (array_merge($request, $params));
         // they report each trade twice (once for both of the two sides of the fill)
         // deduplicate $trades for that reason
         $trades = array();
-        for ($i = 0; $i < count ($response); $i++) {
+        for ($i = 0; $i < count($response); $i++) {
             if (fmod($response[$i]['id'], 2)) {
                 $trades[] = $response[$i];
             }
@@ -297,20 +297,20 @@ class btctradeua extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $method = 'privatePost' . $this->capitalize ($side) . 'Id';
-        $request = array (
+        $request = array(
             'count' => $amount,
             'currency1' => $market['quoteId'],
             'currency' => $market['baseId'],
             'price' => $price,
         );
-        return $this->$method (array_merge ($request, $params));
+        return $this->$method (array_merge($request, $params));
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        $request = array (
+        $request = array(
             'id' => $id,
         );
-        return $this->privatePostRemoveOrderId (array_merge ($request, $params));
+        return $this->privatePostRemoveOrderId (array_merge($request, $params));
     }
 
     public function parse_order ($order, $market = null) {
@@ -319,7 +319,7 @@ class btctradeua extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        return array (
+        return array(
             'id' => $this->safe_string($order, 'id'),
             'timestamp' => $timestamp, // until they fix their $timestamp
             'datetime' => $this->iso8601 ($timestamp),
@@ -343,10 +343,10 @@ class btctradeua extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->privatePostMyOrdersSymbol (array_merge ($request, $params));
+        $response = $this->privatePostMyOrdersSymbol (array_merge($request, $params));
         $orders = $this->safe_value($response, 'your_open_orders');
         return $this->parse_orders($orders, $market, $since, $limit);
     }
@@ -365,12 +365,12 @@ class btctradeua extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
-            $body = $this->urlencode (array_merge (array (
+            $body = $this->urlencode (array_merge(array(
                 'out_order_id' => $nonce,
                 'nonce' => $nonce,
             ), $query));
             $auth = $body . $this->secret;
-            $headers = array (
+            $headers = array(
                 'public-key' => $this->apiKey,
                 'api-sign' => $this->hash ($this->encode ($auth), 'sha256'),
                 'Content-Type' => 'application/x-www-form-urlencoded',

@@ -10,40 +10,40 @@ use Exception; // a common import
 class coinfloor extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'coinfloor',
             'name' => 'coinfloor',
             'rateLimit' => 1000,
-            'countries' => array ( 'UK' ),
-            'has' => array (
+            'countries' => array( 'UK' ),
+            'has' => array(
                 'CORS' => false,
                 'fetchOpenOrders' => true,
             ),
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg',
                 'api' => 'https://webapi.coinfloor.co.uk/bist',
                 'www' => 'https://www.coinfloor.co.uk',
-                'doc' => array (
+                'doc' => array(
                     'https://github.com/coinfloor/api',
                     'https://www.coinfloor.co.uk/api',
                 ),
             ),
-            'requiredCredentials' => array (
+            'requiredCredentials' => array(
                 'apiKey' => true,
                 'secret' => false,
                 'password' => true,
                 'uid' => true,
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
+            'api' => array(
+                'public' => array(
+                    'get' => array(
                         '{id}/ticker/',
                         '{id}/order_book/',
                         '{id}/transactions/',
                     ),
                 ),
-                'private' => array (
-                    'post' => array (
+                'private' => array(
+                    'post' => array(
                         '{id}/balance/',
                         '{id}/user_transactions/',
                         '{id}/open_orders/',
@@ -57,13 +57,13 @@ class coinfloor extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
+            'markets' => array(
                 'BTC/GBP' => array( 'id' => 'XBT/GBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP', 'baseId' => 'XBT', 'quoteId' => 'GBP', 'precision' => array( 'price' => 0, 'amount' => 4 )),
                 'BTC/EUR' => array( 'id' => 'XBT/EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'XBT', 'quoteId' => 'EUR', 'precision' => array( 'price' => 0, 'amount' => 4 )),
                 'ETH/GBP' => array( 'id' => 'ETH/GBP', 'symbol' => 'ETH/GBP', 'base' => 'ETH', 'quote' => 'GBP', 'baseId' => 'ETH', 'quoteId' => 'GBP', 'precision' => array( 'price' => 0, 'amount' => 4 )),
             ),
-            'exceptions' => array (
-                'exact' => array (
+            'exceptions' => array(
+                'exact' => array(
                     'You have insufficient funds.' => '\\ccxt\\InsufficientFunds',
                     'Tonce is out of sequence.' => '\\ccxt\\InvalidNonce',
                 ),
@@ -87,11 +87,11 @@ class coinfloor extends Exchange {
         if ($market === null) {
             throw new ArgumentsRequired($this->id . ' fetchBalance requires a $symbol param');
         }
-        $request = array (
+        $request = array(
             'id' => $market['id'],
         );
-        $response = $this->privatePostIdBalance (array_merge ($request, $query));
-        $result = array (
+        $response = $this->privatePostIdBalance (array_merge($request, $query));
+        $result = array(
             'info' => $response,
         );
         // base/quote used for keys e.g. "xbt_reserved"
@@ -99,12 +99,12 @@ class coinfloor extends Exchange {
         $quote = $market['quote'];
         $baseIdLower = $this->safe_string_lower($market, 'baseId');
         $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
-        $result[$base] = array (
+        $result[$base] = array(
             'free' => $this->safe_float($response, $baseIdLower . '_available'),
             'used' => $this->safe_float($response, $baseIdLower . '_reserved'),
             'total' => $this->safe_float($response, $baseIdLower . '_balance'),
         );
-        $result[$quote] = array (
+        $result[$quote] = array(
             'free' => $this->safe_float($response, $quoteIdLower . '_available'),
             'used' => $this->safe_float($response, $quoteIdLower . '_reserved'),
             'total' => $this->safe_float($response, $quoteIdLower . '_balance'),
@@ -114,10 +114,10 @@ class coinfloor extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'id' => $this->market_id($symbol),
         );
-        $response = $this->publicGetIdOrderBook (array_merge ($request, $params));
+        $response = $this->publicGetIdOrderBook (array_merge($request, $params));
         return $this->parse_order_book($response);
     }
 
@@ -135,7 +135,7 @@ class coinfloor extends Exchange {
             $quoteVolume = $baseVolume * $vwap;
         }
         $last = $this->safe_float($ticker, 'last');
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -162,10 +162,10 @@ class coinfloor extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'id' => $market['id'],
         );
-        $response = $this->publicGetIdTicker (array_merge ($request, $params));
+        $response = $this->publicGetIdTicker (array_merge($request, $params));
         return $this->parse_ticker($response, $market);
     }
 
@@ -184,7 +184,7 @@ class coinfloor extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        return array (
+        return array(
             'info' => $trade,
             'id' => $id,
             'order' => null,
@@ -204,10 +204,10 @@ class coinfloor extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'id' => $market['id'],
         );
-        $response = $this->publicGetIdTransactions (array_merge ($request, $params));
+        $response = $this->publicGetIdTransactions (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -221,23 +221,23 @@ class coinfloor extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchTransactions requires a $code argument (a $market symbol)');
             }
         }
-        $request = array (
+        $request = array(
             'id' => $market['id'],
             'limit' => $limit,
         );
-        $response = $this->privatePostIdUserTransactions (array_merge ($request, $params));
+        $response = $this->privatePostIdUserTransactions (array_merge($request, $params));
         return $this->parse_ledger($response, null, $since, null);
     }
 
     public function parse_ledger_entry_status ($status) {
-        $types = array (
+        $types = array(
             'completed' => 'ok',
         );
         return $this->safe_string($types, $status, $status);
     }
 
     public function parse_ledger_entry_type ($type) {
-        $types = array (
+        $types = array(
             '0' => 'transaction', // deposit
             '1' => 'transaction', // withdrawal
             '2' => 'trade',
@@ -291,11 +291,11 @@ class coinfloor extends Exchange {
         $quoteId = null;
         $baseAmount = null;
         $quoteAmount = null;
-        for ($i = 0; $i < count ($keys); $i++) {
+        for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             if (mb_strpos($key, '_') > 0) {
                 $parts = explode('_', $key);
-                $numParts = is_array ($parts) ? count ($parts) : 0;
+                $numParts = is_array($parts) ? count($parts) : 0;
                 if ($numParts === 2) {
                     $tmpBaseAmount = $this->safe_float($item, $parts[0]);
                     $tmpQuoteAmount = $this->safe_float($item, $parts[1]);
@@ -315,7 +315,7 @@ class coinfloor extends Exchange {
         $timestamp = $this->parse8601 ($this->safe_string($item, 'datetime'));
         $fee = null;
         $feeCost = $this->safe_float($item, 'fee');
-        $result = array (
+        $result = array(
             'id' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -339,31 +339,31 @@ class coinfloor extends Exchange {
             // https://github.com/coinfloor/API/blob/master/IMPL-GUIDE.md#how-fees-affect-trade-quantities
             //
             if ($feeCost !== null) {
-                $fee = array (
+                $fee = array(
                     'cost' => $feeCost,
                     'currency' => $quote,
                 );
             }
-            return array (
-                array_merge ($result, array( 'currency' => $base, 'amount' => abs ($baseAmount), 'direction' => ($baseAmount > 0) ? 'in' : 'out' )),
-                array_merge ($result, array( 'currency' => $quote, 'amount' => abs ($quoteAmount), 'direction' => ($quoteAmount > 0) ? 'in' : 'out', 'fee' => $fee )),
+            return array(
+                array_merge($result, array( 'currency' => $base, 'amount' => abs($baseAmount), 'direction' => ($baseAmount > 0) ? 'in' : 'out' )),
+                array_merge($result, array( 'currency' => $quote, 'amount' => abs($quoteAmount), 'direction' => ($quoteAmount > 0) ? 'in' : 'out', 'fee' => $fee )),
             );
             //
             // if $fee is $base or $quote depending on buy/sell side
             //
             //     $baseFee = ($baseAmount > 0) ? array( 'currency' => $base, 'cost' => $feeCost ) : null;
             //     $quoteFee = ($quoteAmount > 0) ? array( 'currency' => $quote, 'cost' => $feeCost ) : null;
-            //     return array (
-            //         array_merge ($result, array( 'currency' => $base, 'amount' => $baseAmount, 'direction' => ($baseAmount > 0) ? 'in' : 'out', 'fee' => $baseFee )),
-            //         array_merge ($result, array( 'currency' => $quote, 'amount' => $quoteAmount, 'direction' => ($quoteAmount > 0) ? 'in' : 'out', 'fee' => $quoteFee )),
+            //     return array(
+            //         array_merge($result, array( 'currency' => $base, 'amount' => $baseAmount, 'direction' => ($baseAmount > 0) ? 'in' : 'out', 'fee' => $baseFee )),
+            //         array_merge($result, array( 'currency' => $quote, 'amount' => $quoteAmount, 'direction' => ($quoteAmount > 0) ? 'in' : 'out', 'fee' => $quoteFee )),
             //     );
             //
             // $fee as the 3rd $item
             //
-            //     return array (
-            //         array_merge ($result, array( 'currency' => $base, 'amount' => $baseAmount, 'direction' => ($baseAmount > 0) ? 'in' : 'out' )),
-            //         array_merge ($result, array( 'currency' => $quote, 'amount' => $quoteAmount, 'direction' => ($quoteAmount > 0) ? 'in' : 'out' )),
-            //         array_merge ($result, array( 'currency' => feeCurrency, 'amount' => $feeCost, 'direction' => 'out', 'type' => 'fee' )),
+            //     return array(
+            //         array_merge($result, array( 'currency' => $base, 'amount' => $baseAmount, 'direction' => ($baseAmount > 0) ? 'in' : 'out' )),
+            //         array_merge($result, array( 'currency' => $quote, 'amount' => $quoteAmount, 'direction' => ($quoteAmount > 0) ? 'in' : 'out' )),
+            //         array_merge($result, array( 'currency' => feeCurrency, 'amount' => $feeCost, 'direction' => 'out', 'type' => 'fee' )),
             //     );
             //
         } else {
@@ -374,14 +374,14 @@ class coinfloor extends Exchange {
             $code = ($baseAmount === 0) ? $quote : $base;
             $direction = ($amount > 0) ? 'in' : 'out';
             if ($feeCost !== null) {
-                $fee = array (
+                $fee = array(
                     'cost' => $feeCost,
                     'currency' => $code,
                 );
             }
-            return array_merge ($result, array (
+            return array_merge($result, array(
                 'currency' => $code,
-                'amount' => abs ($amount),
+                'amount' => abs($amount),
                 'direction' => $direction,
                 'fee' => $fee,
             ));
@@ -390,7 +390,7 @@ class coinfloor extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'id' => $this->market_id($symbol),
         );
         $method = 'privatePostId' . $this->capitalize ($side);
@@ -401,7 +401,7 @@ class coinfloor extends Exchange {
             $request['price'] = $price;
             $request['amount'] = $amount;
         }
-        return $this->$method (array_merge ($request, $params));
+        return $this->$method (array_merge($request, $params));
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -410,7 +410,7 @@ class coinfloor extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'symbol' => $market['id'],
             'id' => $id,
         );
@@ -444,7 +444,7 @@ class coinfloor extends Exchange {
             $symbol = $market['symbol'];
         }
         $id = $this->safe_string($order, 'id');
-        return array (
+        return array(
             'info' => $order,
             'id' => $id,
             'datetime' => $this->iso8601 ($timestamp),
@@ -469,10 +469,10 @@ class coinfloor extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'id' => $market['id'],
         );
-        $response = $this->privatePostIdOpenOrders (array_merge ($request, $params));
+        $response = $this->privatePostIdOpenOrders (array_merge($request, $params));
         //   {
         //     "amount" => "1.0000",
         //     "datetime" => "2019-07-12 13:28:16",
@@ -507,10 +507,10 @@ class coinfloor extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
-            $body = $this->urlencode (array_merge (array( 'nonce' => $nonce ), $query));
+            $body = $this->urlencode (array_merge(array( 'nonce' => $nonce ), $query));
             $auth = $this->uid . '/' . $this->apiKey . ':' . $this->password;
-            $signature = $this->decode (base64_encode ($this->encode ($auth)));
-            $headers = array (
+            $signature = $this->decode (base64_encode($this->encode ($auth)));
+            $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Authorization' => 'Basic ' . $signature,
             );
