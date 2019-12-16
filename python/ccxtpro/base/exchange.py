@@ -56,6 +56,10 @@ class Exchange(BaseExchange):
             self.clients[url] = StreamingClientAiohttp(url, on_message, on_error, on_close)
         return self.clients[url]
 
+    async def after(self, future, method, *args):
+        result = await future
+        method(result, *args)
+
     def handle_message(self, client, message):
         always = True
         if always:
