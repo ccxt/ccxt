@@ -269,7 +269,7 @@ class Transpiler {
     getPHPRegexes () {
         return [
             [ /\{([a-zA-Z0-9_]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
-            [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype ($1) === 'array' && count (array_filter (array_keys ($1), 'is_string')) == 0" ],
+            [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && count(array_filter(array_keys($1), 'is_string')) == 0" ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] !== null' ],
@@ -285,18 +285,18 @@ class Transpiler {
             [ /(.+?)\s+\=\=\=?\s+undefined/g, '$1 === null' ],
             [ /(.+?)\s+\!\=\=?\s+undefined/g, '$1 !== null' ],
 
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'string\'/g, "gettype ($1[$2]) === 'string'" ],
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'string\'/g, "gettype ($1[$2]) !== 'string'" ],
-            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'string\'/g, "gettype ($1) === 'string'" ],
-            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'string\'/g, "gettype ($1) !== 'string'" ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'string\'/g, "gettype($1[$2]) === 'string'" ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'string\'/g, "gettype($1[$2]) !== 'string'" ],
+            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'string\'/g, "gettype($1) === 'string'" ],
+            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'string\'/g, "gettype($1) !== 'string'" ],
 
             [ /undefined/g, 'null' ],
             [ /this\.extend/g, 'array_merge' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
-            [ /this\.stringToBase64/g, 'base64_encode' ],
+            [ /this\.stringToBase64\s/g, 'base64_encode' ],
             [ /this\.binaryToBase16\s/g, 'bin2hex' ],
-            [ /this\.base64ToBinary/g, 'base64_decode' ],
-            [ /this\.deepExtend/g, 'array_replace_recursive'],
+            [ /this\.base64ToBinary\s/g, 'base64_decode' ],
+            [ /this\.deepExtend\s/g, 'array_replace_recursive'],
             [ /(\w+)\.shift\s*\(\)/g, 'array_shift($1)' ],
             [ /(\w+)\.pop\s*\(\)/g, 'array_pop($1)' ],
 
@@ -323,21 +323,21 @@ class Transpiler {
             [ /throw ([\S]+)\;/g, 'throw $$$1;' ],
             [ '([^a-z]+) (' + Object.keys (errors).join ('|') + ')([^\\s])', "$1 '\\\\ccxt\\\\$2'$3" ],
             [ /\}\s+catch \(([\S]+)\) {/g, '} catch (Exception $$$1) {' ],
-            [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\.length\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 count ($4);$5) {' ],
+            [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\.length\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 count($4);$5) {' ],
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 $4;$5) {' ],
-            [ /([^\s]+)\.length\;/g, 'is_array ($1) ? count ($1) : 0;' ],
-            [ /([^\s\(]+)\.length/g, 'strlen ($1)' ],
+            [ /([^\s]+)\.length\;/g, 'is_array($1) ? count($1) : 0;' ],
+            [ /([^\s\(]+)\.length/g, 'strlen($1)' ],
             [ /\.push\s*\(([\s\S]+?)\)\;/g, '[] = $1;' ],
             [ /(\s)await(\s)/g, '$1' ],
             [ /([\S])\: /g, '$1 => ' ],
 
         // add {}-array syntax conversions up to 20 levels deep
-        ]).concat ([ ... Array (20) ].map (x => [ /\{([^\;\{]+?)\}([^\s])/g, 'array ($1)$2' ])).concat ([
+        ]).concat ([ ... Array (20) ].map (x => [ /\{([^\;\{]+?)\}([^\s])/g, 'array($1)$2' ])).concat ([
 
             [ /\[\s*([^\]]+?)\s*\]\.join\s*\(\s*([^\)]+?)\s*\)/g, "implode($2, array($1))" ],
 
         // add []-array syntax conversions up to 20 levels deep
-        ]).concat ([ ... Array (20) ].map (x => [ /\[(\s[^\]]+?\s)\]/g, 'array ($1)' ])).concat ([
+        ]).concat ([ ... Array (20) ].map (x => [ /\[(\s[^\]]+?\s)\]/g, 'array($1)' ])).concat ([
 
             [ /JSON\.stringify/g, 'json_encode' ],
             [ /JSON\.parse\s+\(([^\)]+)\)/g, 'json_decode($1, $$as_associative_array = true)' ],
@@ -357,7 +357,7 @@ class Transpiler {
             [ /([^\s\(]+).slice \(([^\,\)]+)\,\s*([^\)]+)\)/g, 'mb_substr($1, $2, $3 - $2)' ],
             [ /([^\s\(]+).split \(('[^']*'|[^\,]+?)\)/g, 'explode($2, $1)' ],
             [ /Math\.floor\s*\(([^\)]+)\)/g, '(int) floor($1)' ],
-            [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs ($1)' ],
+            [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs($1)' ],
             [ /Math\.round\s*\(([^\)]+)\)/g, '(int) round($1)' ],
             [ /Math\.ceil\s*\(([^\)]+)\)/g, '(int) ceil($1)' ],
             [ /Math\.pow\s*\(([^\)]+)\)/g, 'pow($1)' ],
@@ -573,7 +573,7 @@ class Transpiler {
         let orderedDictMatches = undefined
         while (orderedDictMatches = orderedDictRegex.exec (python3Body)) {
             let replaced = orderedDictMatches[1].replace (/^(\s+)([^\:]+)\:\s*([^\,]+)\,$/gm, '$1($2, $3),')
-            python3Body = python3Body.replace (orderedDictRegex, '\.ordered ([' + replaced + '])')
+            python3Body = python3Body.replace (orderedDictRegex, '\.ordered([' + replaced + '])')
         }
 
         // special case for Python super
