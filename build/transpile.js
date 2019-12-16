@@ -495,9 +495,9 @@ class Transpiler {
         header = header.concat (libraries, errorImports, precisionImports)
 
         for (let method of methods) {
-            const regex = new RegExp ('self\\.(' + method + ')\\s*\\(', 'g')
+            const regex = new RegExp ('self\\.(' + method + ')([^a-zA-Z0-9])', 'g')
             bodyAsString = bodyAsString.replace (regex,
-                (match, p1) => ('self.' + unCamelCase (p1) + '('))
+                (match, p1, p2) => ('self.' + unCamelCase (p1) + p2))
         }
 
         header.push ("\n\n" + this.createPythonClassDeclaration (className, baseClass))
