@@ -64,6 +64,7 @@ module.exports = (exchange, orderbook, method, symbol) => {
         'xbtce',
         'coinsecure',
         'upbit', // an orderbook might have a 0-price ask occasionally
+        'coinsbit', // The exchange has an overlaps for some symbols
 
     ].includes (exchange.id)) {
 
