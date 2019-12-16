@@ -407,7 +407,7 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
     // a helper to apply an array of regexes and substitutions to text
-    // accepts and array like [ [ regex, substitution ], ... ]
+    // accepts an array like [ [ regex, substitution ], ... ]
 
     regexAll (text, array) {
         for (const i in array) {
