@@ -432,7 +432,7 @@ class adara extends Exchange {
             } else if (mb_strpos($id, 'OSID') !== false) {
                 $asks[] = $this->parse_bid_ask($bidask['attributes'], $priceKey, $amountKey);
             } else {
-                throw ExchangeError ($this->id . ' parseOrderBook encountered an unrecognized $bidask format => ' . $this->json ($bidask));
+                throw new ExchangeError($this->id . ' parseOrderBook encountered an unrecognized $bidask format => ' . $this->json ($bidask));
             }
         }
         return array (
@@ -1186,7 +1186,7 @@ class adara extends Exchange {
         if (is_array($ordersById) && array_key_exists($id, $ordersById)) {
             return $ordersById[$id];
         }
-        throw OrderNotFound ($this->id . ' fetchOrder could not find order $id ' . (string) $id);
+        throw new OrderNotFound($this->id . ' fetchOrder could not find order $id ' . (string) $id);
     }
 
     public function nonce () {
