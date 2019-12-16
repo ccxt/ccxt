@@ -33,7 +33,7 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
         }
     }
 
-    public function store($price, $size) {
+    public function store($price, $size, $id) {
         if ($size) {
             $this->index[$price] = $size;
         } else {
@@ -187,7 +187,7 @@ class IndexedOrderBookSide extends OrderBookSide {
 // adjusts the volumes by positive or negative relative changes or differences
 
 class IncrementalOrderBookSide extends OrderBookSide {
-    public function store($price, $size) {
+    public function store($price, $size, $id) {
         $this->index[$price] = $this->index->get($price, 0) + $size;
         if ($this->index[$price] <= 0) {
             unset($this->index[$price]);
