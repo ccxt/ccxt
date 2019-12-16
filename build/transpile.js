@@ -378,12 +378,11 @@ class Transpiler {
         ])
     }
 
-    constructor (userConfig = {}) {
+    //-------------------------------------------------------------------------
+    // the following common headers are used for transpiled tests
 
-        //---------------------------------------------------------------------
-        // the following common headers are used for transpiled tests
-
-        this.pyPreamble = [
+    getPythonPreamble () {
+        return [
             "import os",
             "import sys",
             "",
@@ -398,8 +397,10 @@ class Transpiler {
             "# ----------------------------------------------------------------------------",
             "",
         ].join ("\n")
+    }
 
-        this.phpPreamble = [
+    getPHPPreamble () {
+        return [
             "<?php",
             "namespace ccxt;",
             "include_once (__DIR__.'/../../ccxt.php');",
@@ -411,7 +412,6 @@ class Transpiler {
             "// -----------------------------------------------------------------------------",
             "",
         ].join ("\n")
-
     }
 
     // ------------------------------------------------------------------------
@@ -976,8 +976,8 @@ class Transpiler {
             "",
         ].join ("\n")
 
-        const python = this.pyPreamble + pythonHeader + python2Body
-        const php = this.phpPreamble + phpBody
+        const python = this.getPythonPreamble () + pythonHeader + python2Body
+        const php = this.getPHPPreamble () + phpBody
 
         log.magenta ('→', pyFile.yellow)
         log.magenta ('→', phpFile.yellow)
@@ -1046,8 +1046,8 @@ class Transpiler {
             "",
         ].join ("\n")
 
-        const python = this.pyPreamble + pythonHeader + python2Body
-        const php = this.phpPreamble + phpHeader + phpBody
+        const python = this.getPythonPreamble () + pythonHeader + python2Body
+        const php = this.getPHPPreamble () + phpHeader + phpBody
 
         log.magenta ('→', pyFile.yellow)
         log.magenta ('→', phpFile.yellow)
@@ -1113,8 +1113,8 @@ class Transpiler {
             "}",
         ].join ("\n")
 
-        const python = this.pyPreamble + pythonHeader + python2Body
-        const php = this.phpPreamble + phpHeader + phpBody
+        const python = this.getPythonPreamble () + pythonHeader + python2Body
+        const php = this.getPHPPreamble () + phpHeader + phpBody
 
         log.magenta ('→', pyFile.yellow)
         log.magenta ('→', phpFile.yellow)
