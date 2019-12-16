@@ -398,7 +398,7 @@ module.exports = class bytetrade extends Exchange {
         if (Array.isArray (response)) {
             const ticker = this.safeValue (response, 0);
             if (ticker === undefined) {
-                throw BadResponse (this.id + ' fetchTicker() returned an empty response');
+                throw new BadResponse (this.id + ' fetchTicker() returned an empty response');
             }
             return this.parseTicker (ticker, market);
         }
