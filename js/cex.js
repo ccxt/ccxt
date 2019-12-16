@@ -703,9 +703,9 @@ module.exports = class cex extends Exchange {
                 }
                 // --
                 // if (side !== tradeSide)
-                //     throw Error (JSON.stringify (order, null, 2));
+                //     throw new Error (JSON.stringify (order, null, 2));
                 // if (orderId !== item['order'])
-                //     throw Error (JSON.stringify (order, null, 2));
+                //     throw new Error (JSON.stringify (order, null, 2));
                 // --
                 // partial buy trade
                 //   {
