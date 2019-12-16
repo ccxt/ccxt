@@ -41,15 +41,15 @@ module.exports = class Exchange extends ccxt.Exchange {
         this.clients = this.clients || {}
         if (!this.clients[url]) {
             const onMessage = this.handleMessage.bind (this)
-            const onError = this.onWsError.bind (this)
-            const onClose = this.onWsClose.bind (this)
-            // decide client type here: ws / signalr
+            const onError = this.onError.bind (this)
+            const onClose = this.onClose.bind (this)
+            // decide client type here: ws / signalr / socketio
             this.clients[url] = new WebSocketClient (url, onMessage, onError, onClose)
         }
         return this.clients[url]
     }
 
-    async executeAfter (future, method, ... args) {
+    async runAfter (future, method, ... args) {
         const result = await future
         return method.apply (this, [ result, ... args ])
     }
@@ -113,13 +113,13 @@ module.exports = class Exchange extends ccxt.Exchange {
         return future
     }
 
-    onWsError (client, error) {
+    onError (client, error) {
         if (this.clients[client.url].error) {
             delete this.clients[client.url]
         }
     }
 
-    onWsClose (client, error) {
+    onClose (client, error) {
         if (client.error) {
             // connection closed due to an error, do nothing
         } else {
