@@ -101,15 +101,11 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
             'command': 'subscribe',
             'channel': numericId,
         }
-        # the commented lines below won't work in sync php
-        # todo: resolve future results via a base proxy-method
-        #
-        # orderbook = await self.watch(url, messageHash, {
-        #     'command': 'subscribe',
-        #     'channel': numericId,
-        # })
-        # return orderbook.limit(limit)
-        return await self.watch(url, messageHash, subscribe, numericId)
+        future = self.watch(url, messageHash, subscribe, numericId)
+        return await self.after(future, self.limit_order_book, symbol, limit, params)
+
+    def limit_order_book(self, orderbook, symbol, limit=None, params={}):
+        return orderbook.limit(limit)
 
     async def watch_heartbeat(self, params={}):
         await self.load_markets()
