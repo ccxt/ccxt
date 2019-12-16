@@ -107,15 +107,12 @@ module.exports = class poloniex extends ccxt.poloniex {
             'command': 'subscribe',
             'channel': numericId,
         };
-        // the commented lines below won't work in sync php
-        // todo: resolve future results via a base proxy-method
-        //
-        // const orderbook = await this.watch (url, messageHash, {
-        //     'command': 'subscribe',
-        //     'channel': numericId,
-        // });
-        // return orderbook.limit (limit);
-        return await this.watch (url, messageHash, subscribe, numericId);
+        const future = this.watch (url, messageHash, subscribe, numericId);
+        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+    }
+
+    limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
+        return orderbook.limit (limit);
     }
 
     async watchHeartbeat (params = {}) {
