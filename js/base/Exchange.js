@@ -49,7 +49,7 @@ module.exports = class Exchange extends ccxt.Exchange {
         return this.clients[url]
     }
 
-    async runAfter (future, method, ... args) {
+    async after (future, method, ... args) {
         const result = await future
         return method.apply (this, [ result, ... args ])
     }
