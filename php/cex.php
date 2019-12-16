@@ -704,9 +704,9 @@ class cex extends Exchange {
                 }
                 // --
                 // if ($side !== $tradeSide)
-                //     throw Error (json_encode ($order, null, 2));
+                //     throw new \Exception(json_encode($order, null, 2));
                 // if ($orderId !== $item['order'])
-                //     throw Error (json_encode ($order, null, 2));
+                //     throw new \Exception(json_encode($order, null, 2));
                 // --
                 // partial buy trade
                 //   {

@@ -398,7 +398,7 @@ class bytetrade extends Exchange {
         if (gettype ($response) === 'array' && count (array_filter (array_keys ($response), 'is_string')) == 0) {
             $ticker = $this->safe_value($response, 0);
             if ($ticker === null) {
-                throw BadResponse ($this->id . ' fetchTicker() returned an empty response');
+                throw new BadResponse($this->id . ' fetchTicker() returned an empty response');
             }
             return $this->parse_ticker($ticker, $market);
         }
