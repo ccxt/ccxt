@@ -53,6 +53,7 @@ module.exports = class coinsbit extends Exchange {
             },
             'has': {
                 'cancelOrder': true,
+                'CORS': false,
                 'createLimitOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -447,12 +448,14 @@ module.exports = class coinsbit extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             const request = '/api/' + this.version + '/' + this.implodeParams (path, params);
+            const nonce = this.nonce ().toString ();
             query = this.extend ({
+                'nonce': nonce,
                 'request': request,
-                'nonce': this.nonce ().toString (),
             }, query);
-            body = this.json (query);
-            const payload = this.stringToBase64 (body);
+            body = this.json (query, { 'jsonUnescapedSlashes': true });
+            query = this.encode (body);
+            const payload = this.stringToBase64 (query);
             const secret = this.encode (this.secret);
             const signature = this.hmac (payload, secret, 'sha512');
             headers = {
@@ -470,13 +473,13 @@ module.exports = class coinsbit extends Exchange {
             return;
         }
         if (code !== 200) {
-            const feedback = "\n" + 'id: ' + this.id + "\n" + 'url: ' + url + "\n" + 'code: ' + code + "\n" + 'body:' + "\n" + body; // eslint-disable-line quotes
+            const feedback = "\n" + 'id: ' + this.id + "\n" + 'url: ' + url + "\n" + 'request body: ' + requestBody + "\n" + 'code: ' + code + "\n" + 'body:' + "\n" + body; // eslint-disable-line quotes
             this.throwExactlyMatchedException (this.httpExceptions, code.toString (), feedback);
         }
         const isSuccess = this.safeValue (response, 'success', true);
         if (!isSuccess) {
             const messages = this.json (this.safeValue (response, 'message'));
-            const feedback = "\n" + 'id: ' + this.id + "\n" + 'url: ' + url + "\n" + 'Error: ' + messages + "\n" + 'body:' + "\n" + body; // eslint-disable-line quotes
+            const feedback = "\n" + 'id: ' + this.id + "\n" + 'url: ' + url + "\n" + 'request body: ' + requestBody + "\n" + 'Error: ' + messages + "\n" + 'body:' + "\n" + body; // eslint-disable-line quotes
             this.throwBroadlyMatchedException (this.exceptions, messages, feedback);
             throw new ExchangeError (feedback);
         }
