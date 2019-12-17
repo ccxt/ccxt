@@ -30,16 +30,8 @@ SOFTWARE.
 
 namespace ccxtpro;
 
-use Closure;
-
-// echo "--------------------------------------------------------------\n";
-// debug_print_backtrace();
-// echo "--------------------------------------------------------------\n";
-
 define('PATH_TO_CCXTPRO', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR);
 define('PATH_TO_CCXTPRO_BASE', PATH_TO_CCXTPRO . 'base' . DIRECTORY_SEPARATOR);
-
-require_once 'vendor/autoload.php';
 
 // require_once PATH_TO_CCXTPRO_BASE . 'errors.php';
 require_once PATH_TO_CCXTPRO_BASE . 'Exchange.php';
@@ -49,6 +41,7 @@ require_once PATH_TO_CCXTPRO_BASE . 'OrderBookSide.php';
 spl_autoload_register (function ($class_name) {
     $class_name = str_replace ("ccxtpro\\", "", $class_name);
     $file = PATH_TO_CCXTPRO . $class_name . '.php';
-    if (file_exists ($file))
+    if (file_exists ($file)) {
         require_once $file;
+    }
 });
