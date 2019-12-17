@@ -10,14 +10,14 @@ use Exception; // a common import
 class tidex extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'tidex',
             'name' => 'Tidex',
-            'countries' => array ( 'UK' ),
+            'countries' => array( 'UK' ),
             'rateLimit' => 2000,
             'version' => '3',
             'userAgent' => $this->userAgents['chrome'],
-            'has' => array (
+            'has' => array(
                 'CORS' => false,
                 'createMarketOrder' => false,
                 'fetchOrderBooks' => true,
@@ -30,9 +30,9 @@ class tidex extends Exchange {
                 'withdraw' => true,
                 'fetchCurrencies' => true,
             ),
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg',
-                'api' => array (
+                'api' => array(
                     'web' => 'https://gate.tidex.com/api',
                     'public' => 'https://api.tidex.com/api/3',
                     'private' => 'https://api.tidex.com/tapi',
@@ -40,14 +40,14 @@ class tidex extends Exchange {
                 'www' => 'https://tidex.com',
                 'doc' => 'https://tidex.com/exchange/public-api',
                 'referral' => 'https://tidex.com/exchange/?ref=57f5638d9cd7',
-                'fees' => array (
+                'fees' => array(
                     'https://tidex.com/exchange/assets-spec',
                     'https://tidex.com/exchange/pairs-spec',
                 ),
             ),
-            'api' => array (
-                'web' => array (
-                    'get' => array (
+            'api' => array(
+                'web' => array(
+                    'get' => array(
                         'currency',
                         'pairs',
                         'tickers',
@@ -57,16 +57,16 @@ class tidex extends Exchange {
                         'trade-data/{id}',
                     ),
                 ),
-                'public' => array (
-                    'get' => array (
+                'public' => array(
+                    'get' => array(
                         'info',
                         'ticker/{pair}',
                         'depth/{pair}',
                         'trades/{pair}',
                     ),
                 ),
-                'private' => array (
-                    'post' => array (
+                'private' => array(
+                    'post' => array(
                         'getInfoExt',
                         'getInfo',
                         'Trade',
@@ -81,21 +81,21 @@ class tidex extends Exchange {
                     ),
                 ),
             ),
-            'fees' => array (
-                'trading' => array (
+            'fees' => array(
+                'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
                     'taker' => 0.1 / 100,
                     'maker' => 0.1 / 100,
                 ),
             ),
-            'commonCurrencies' => array (
+            'commonCurrencies' => array(
                 'DSH' => 'DASH',
                 'EMGO' => 'MGO',
                 'MGO' => 'WMGO',
             ),
-            'exceptions' => array (
-                'exact' => array (
+            'exceptions' => array(
+                'exact' => array(
                     '803' => '\\ccxt\\InvalidOrder', // "Count could not be less than 0.001." (selling below minAmount)
                     '804' => '\\ccxt\\InvalidOrder', // "Count could not be more than 10000." (buying above maxAmount)
                     '805' => '\\ccxt\\InvalidOrder', // "price could not be less than X." (minPrice violation on buy & sell)
@@ -105,7 +105,7 @@ class tidex extends Exchange {
                     '832' => '\\ccxt\\InsufficientFunds', // "Not enougth X to create sell order." (selling with balance.base < order.amount)
                     '833' => '\\ccxt\\OrderNotFound', // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
                 ),
-                'broad' => array (
+                'broad' => array(
                     'Invalid pair name' => '\\ccxt\\ExchangeError', // array("success":0,"error":"Invalid pair name => btc_eth")
                     'invalid api key' => '\\ccxt\\AuthenticationError',
                     'invalid sign' => '\\ccxt\\AuthenticationError',
@@ -118,7 +118,7 @@ class tidex extends Exchange {
                     'external service unavailable' => '\\ccxt\\ExchangeNotAvailable',
                 ),
             ),
-            'options' => array (
+            'options' => array(
                 'fetchTickersMaxLength' => 2048,
             ),
         ));
@@ -127,7 +127,7 @@ class tidex extends Exchange {
     public function fetch_currencies ($params = array ()) {
         $response = $this->webGetCurrency ($params);
         $result = array();
-        for ($i = 0; $i < count ($response); $i++) {
+        for ($i = 0; $i < count($response); $i++) {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'symbol');
             $precision = $currency['amountPoint'];
@@ -139,40 +139,40 @@ class tidex extends Exchange {
                 $active = false;
             }
             $name = $this->safe_string($currency, 'name');
-            $result[$code] = array (
+            $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
                 'name' => $name,
                 'active' => $active,
                 'precision' => $precision,
-                'funding' => array (
-                    'withdraw' => array (
+                'funding' => array(
+                    'withdraw' => array(
                         'active' => $canWithdraw,
                         'fee' => $currency['withdrawFee'],
                     ),
-                    'deposit' => array (
+                    'deposit' => array(
                         'active' => $canDeposit,
                         'fee' => 0.0,
                     ),
                 ),
-                'limits' => array (
-                    'amount' => array (
+                'limits' => array(
+                    'amount' => array(
                         'min' => null,
                         'max' => pow(10, $precision),
                     ),
-                    'price' => array (
+                    'price' => array(
                         'min' => pow(10, -$precision),
                         'max' => pow(10, $precision),
                     ),
-                    'cost' => array (
+                    'cost' => array(
                         'min' => null,
                         'max' => null,
                     ),
-                    'withdraw' => array (
+                    'withdraw' => array(
                         'min' => $currency['withdrawMinAmout'],
                         'max' => null,
                     ),
-                    'deposit' => array (
+                    'deposit' => array(
                         'min' => $currency['depositMinAmount'],
                         'max' => null,
                     ),
@@ -193,7 +193,7 @@ class tidex extends Exchange {
         } else {
             $key = 'base';
         }
-        return array (
+        return array(
             'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
@@ -206,33 +206,33 @@ class tidex extends Exchange {
         $markets = $response['pairs'];
         $keys = is_array($markets) ? array_keys($markets) : array();
         $result = array();
-        for ($i = 0; $i < count ($keys); $i++) {
+        for ($i = 0; $i < count($keys); $i++) {
             $id = $keys[$i];
             $market = $markets[$id];
             list($baseId, $quoteId) = explode('_', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $precision = array (
+            $precision = array(
                 'amount' => $this->safe_integer($market, 'decimal_places'),
                 'price' => $this->safe_integer($market, 'decimal_places'),
             );
-            $limits = array (
-                'amount' => array (
+            $limits = array(
+                'amount' => array(
                     'min' => $this->safe_float($market, 'min_amount'),
                     'max' => $this->safe_float($market, 'max_amount'),
                 ),
-                'price' => array (
+                'price' => array(
                     'min' => $this->safe_float($market, 'min_price'),
                     'max' => $this->safe_float($market, 'max_price'),
                 ),
-                'cost' => array (
+                'cost' => array(
                     'min' => $this->safe_float($market, 'min_total'),
                 ),
             );
             $hidden = $this->safe_integer($market, 'hidden');
             $active = ($hidden === 0);
-            $result[] = array (
+            $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -256,7 +256,7 @@ class tidex extends Exchange {
         $result = array( 'info' => $balances );
         $funds = $this->safe_value($balances, 'funds', array());
         $currencyIds = is_array($funds) ? array_keys($funds) : array();
-        for ($i = 0; $i < count ($currencyIds); $i++) {
+        for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $balance = $this->safe_value($funds, $currencyId, array());
@@ -271,13 +271,13 @@ class tidex extends Exchange {
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'pair' => $market['id'],
         );
         if ($limit !== null) {
             $request['limit'] = $limit; // default = 150, max = 2000
         }
-        $response = $this->publicGetDepthPair (array_merge ($request, $params));
+        $response = $this->publicGetDepthPair (array_merge($request, $params));
         $market_id_in_reponse = (is_array($response) && array_key_exists($market['id'], $response));
         if (!$market_id_in_reponse) {
             throw new ExchangeError($this->id . ' ' . $market['symbol'] . ' order book is empty or not available');
@@ -292,21 +292,21 @@ class tidex extends Exchange {
         if ($symbols === null) {
             $ids = implode('-', $this->ids);
             // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
-            if (strlen ($ids) > 2048) {
-                $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
+            if (strlen($ids) > 2048) {
+                $numIds = is_array($this->ids) ? count($this->ids) : 0;
                 throw new ExchangeError($this->id . ' has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
             }
         } else {
             $ids = $this->market_ids($symbols);
             $ids = implode('-', $ids);
         }
-        $request = array (
+        $request = array(
             'pair' => $ids,
         );
-        $response = $this->publicGetDepthPair (array_merge ($request, $params));
+        $response = $this->publicGetDepthPair (array_merge($request, $params));
         $result = array();
         $ids = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count ($ids); $i++) {
+        for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $symbol = $id;
             if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
@@ -335,7 +335,7 @@ class tidex extends Exchange {
             $symbol = $market['symbol'];
         }
         $last = $this->safe_float($ticker, 'last');
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -363,10 +363,10 @@ class tidex extends Exchange {
         $this->load_markets();
         $ids = $this->ids;
         if ($symbols === null) {
-            $numIds = is_array ($ids) ? count ($ids) : 0;
+            $numIds = is_array($ids) ? count($ids) : 0;
             $ids = implode('-', $ids);
             // max URL length is 2048 $symbols, including http schema, hostname, tld, etc...
-            if (strlen ($ids) > $this->options['fetchTickersMaxLength']) {
+            if (strlen($ids) > $this->options['fetchTickersMaxLength']) {
                 $maxLength = $this->safe_integer($this->options, 'fetchTickersMaxLength', 2048);
                 throw new ArgumentsRequired($this->id . ' has ' . (string) $numIds . ' markets exceeding max URL length for this endpoint (' . (string) $maxLength . ' characters), please, specify a list of $symbols of interest in the first argument to fetchTickers');
             }
@@ -374,13 +374,13 @@ class tidex extends Exchange {
             $ids = $this->market_ids($symbols);
             $ids = implode('-', $ids);
         }
-        $request = array (
+        $request = array(
             'pair' => $ids,
         );
-        $response = $this->publicGetTickerPair (array_merge ($request, $params));
+        $response = $this->publicGetTickerPair (array_merge($request, $params));
         $result = array();
         $keys = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count ($keys); $i++) {
+        for ($i = 0; $i < count($keys); $i++) {
             $id = $keys[$i];
             $symbol = $id;
             $market = null;
@@ -394,7 +394,7 @@ class tidex extends Exchange {
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
-        $tickers = $this->fetch_tickers(array ( $symbol ), $params);
+        $tickers = $this->fetch_tickers(array( $symbol ), $params);
         return $tickers[$symbol];
     }
 
@@ -425,7 +425,7 @@ class tidex extends Exchange {
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'commissionCurrency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
-            $fee = array (
+            $fee = array(
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
             );
@@ -446,7 +446,7 @@ class tidex extends Exchange {
                 $cost = $amount * $price;
             }
         }
-        return array (
+        return array(
             'id' => $id,
             'order' => $orderId,
             'timestamp' => $timestamp,
@@ -466,15 +466,15 @@ class tidex extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'pair' => $market['id'],
         );
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetTradesPair (array_merge ($request, $params));
-        if (gettype ($response) === 'array' && count (array_filter (array_keys ($response), 'is_string')) == 0) {
-            $numElements = is_array ($response) ? count ($response) : 0;
+        $response = $this->publicGetTradesPair (array_merge($request, $params));
+        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+            $numElements = is_array($response) ? count($response) : 0;
             if ($numElements === 0) {
                 return array();
             }
@@ -488,7 +488,7 @@ class tidex extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'pair' => $market['id'],
             'type' => $side,
             'amount' => $this->amount_to_precision($symbol, $amount),
@@ -496,7 +496,7 @@ class tidex extends Exchange {
         );
         $price = floatval ($price);
         $amount = floatval ($amount);
-        $response = $this->privatePostTrade (array_merge ($request, $params));
+        $response = $this->privatePostTrade (array_merge($request, $params));
         $id = null;
         $status = 'open';
         $filled = 0.0;
@@ -511,7 +511,7 @@ class tidex extends Exchange {
             $remaining = $this->safe_float($response['return'], 'remains', $amount);
         }
         $timestamp = $this->milliseconds ();
-        $order = array (
+        $order = array(
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -529,15 +529,15 @@ class tidex extends Exchange {
             // 'trades' => $this->parse_trades($order['trades'], $market),
         );
         $this->orders[$id] = $order;
-        return array_merge (array( 'info' => $response ), $order);
+        return array_merge(array( 'info' => $response ), $order);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'order_id' => intval ($id),
         );
-        $response = $this->privatePostCancelOrder (array_merge ($request, $params));
+        $response = $this->privatePostCancelOrder (array_merge($request, $params));
         if (is_array($this->orders) && array_key_exists($id, $this->orders)) {
             $this->orders[$id]['status'] = 'canceled';
         }
@@ -545,7 +545,7 @@ class tidex extends Exchange {
     }
 
     public function parse_order_status ($status) {
-        $statuses = array (
+        $statuses = array(
             '0' => 'open',
             '1' => 'closed',
             '2' => 'canceled',
@@ -589,7 +589,7 @@ class tidex extends Exchange {
             }
         }
         $fee = null;
-        return array (
+        return array(
             'info' => $order,
             'id' => $id,
             'symbol' => $symbol,
@@ -615,37 +615,37 @@ class tidex extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        for ($i = 0; $i < count ($ids); $i++) {
+        for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
-            $order = array_merge (array( 'id' => $id ), $orders[$id]);
-            $result[] = array_merge ($this->parse_order($order, $market), $params);
+            $order = array_merge(array( 'id' => $id ), $orders[$id]);
+            $result[] = array_merge($this->parse_order($order, $market), $params);
         }
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'order_id' => intval ($id),
         );
-        $response = $this->privatePostOrderInfo (array_merge ($request, $params));
+        $response = $this->privatePostOrderInfo (array_merge($request, $params));
         $id = (string) $id;
-        $newOrder = $this->parse_order(array_merge (array( 'id' => $id ), $response['return'][$id]));
+        $newOrder = $this->parse_order(array_merge(array( 'id' => $id ), $response['return'][$id]));
         $oldOrder = (is_array($this->orders) && array_key_exists($id, $this->orders)) ? $this->orders[$id] : array();
-        $this->orders[$id] = array_merge ($oldOrder, $newOrder);
+        $this->orders[$id] = array_merge($oldOrder, $newOrder);
         return $this->orders[$id];
     }
 
     public function update_cached_orders ($openOrders, $symbol) {
         // update local cache with open orders
         // this will add unseen orders and overwrite existing ones
-        for ($j = 0; $j < count ($openOrders); $j++) {
+        for ($j = 0; $j < count($openOrders); $j++) {
             $id = $openOrders[$j]['id'];
             $this->orders[$id] = $openOrders[$j];
         }
         $openOrdersIndexedById = $this->index_by($openOrders, 'id');
         $cachedOrderIds = is_array($this->orders) ? array_keys($this->orders) : array();
-        for ($k = 0; $k < count ($cachedOrderIds); $k++) {
+        for ($k = 0; $k < count($cachedOrderIds); $k++) {
             // match each cached order to an order in the open orders array
             // possible reasons why a cached order may be missing in the open orders array:
             // - order was closed or canceled -> update cache
@@ -660,7 +660,7 @@ class tidex extends Exchange {
                 }
                 // cached order is absent from the list of open orders -> mark the cached order as closed
                 if ($cachedOrder['status'] === 'open') {
-                    $cachedOrder = array_merge ($cachedOrder, array (
+                    $cachedOrder = array_merge($cachedOrder, array(
                         'status' => 'closed', // likewise it might have been canceled externally (unnoticed by "us")
                         'cost' => null,
                         'filled' => $cachedOrder['amount'],
@@ -693,7 +693,7 @@ class tidex extends Exchange {
             $market = $this->market ($symbol);
             $request['pair'] = $market['id'];
         }
-        $response = $this->privatePostActiveOrders (array_merge ($request, $params));
+        $response = $this->privatePostActiveOrders (array_merge($request, $params));
         // it can only return 'open' $orders (i.e. no way to fetch 'closed' $orders)
         $orders = $this->safe_value($response, 'return', array());
         $openOrders = $this->parse_orders($orders, $market);
@@ -716,7 +716,7 @@ class tidex extends Exchange {
         $this->load_markets();
         $market = null;
         // some derived classes use camelcase notation for $request fields
-        $request = array (
+        $request = array(
             // 'from' => 123456789, // trade ID, from which the display starts numerical 0 (test result => liqui ignores this field)
             // 'count' => 1000, // the number of $trades for display numerical, default = 1000
             // 'from_id' => trade ID, from which the display starts numerical 0
@@ -736,7 +736,7 @@ class tidex extends Exchange {
         if ($since !== null) {
             $request['since'] = intval ($since / 1000);
         }
-        $response = $this->privatePostTradeHistory (array_merge ($request, $params));
+        $response = $this->privatePostTradeHistory (array_merge($request, $params));
         $trades = $this->safe_value($response, 'return', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -745,7 +745,7 @@ class tidex extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
-        $request = array (
+        $request = array(
             'coinName' => $currency['id'],
             'amount' => floatval ($amount),
             'address' => $address,
@@ -754,8 +754,8 @@ class tidex extends Exchange {
         if ($tag !== null) {
             throw new ExchangeError($this->id . ' withdraw() does not support the $tag argument yet due to a lack of docs on withdrawing with tag/memo on behalf of the exchange.');
         }
-        $response = $this->privatePostWithdrawCoin (array_merge ($request, $params));
-        return array (
+        $response = $this->privatePostWithdrawCoin (array_merge($request, $params));
+        return array(
             'info' => $response,
             'id' => $response['return']['tId'],
         );
@@ -767,12 +767,12 @@ class tidex extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
-            $body = $this->urlencode (array_merge (array (
+            $body = $this->urlencode (array_merge(array(
                 'nonce' => $nonce,
                 'method' => $path,
             ), $query));
             $signature = $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512');
-            $headers = array (
+            $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
                 'Sign' => $signature,
@@ -791,7 +791,7 @@ class tidex extends Exchange {
             } else {
                 if ($query) {
                     $body = $this->json ($query);
-                    $headers = array (
+                    $headers = array(
                         'Content-Type' => 'application/json',
                     );
                 }
@@ -832,7 +832,7 @@ class tidex extends Exchange {
             // To cover points 1, 2, 3 and 4 combined this handler should work like this:
             //
             $success = $this->safe_value($response, 'success', false);
-            if (gettype ($success) === 'string') {
+            if (gettype($success) === 'string') {
                 if (($success === 'true') || ($success === '1')) {
                     $success = true;
                 } else {

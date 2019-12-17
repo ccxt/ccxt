@@ -10,13 +10,13 @@ use Exception; // a common import
 class coinmarketcap extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'coinmarketcap',
             'name' => 'CoinMarketCap',
             'rateLimit' => 10000,
             'version' => 'v1',
-            'countries' => array ( 'US' ),
-            'has' => array (
+            'countries' => array( 'US' ),
+            'has' => array(
                 'CORS' => true,
                 'privateAPI' => false,
                 'createOrder' => false,
@@ -32,9 +32,9 @@ class coinmarketcap extends Exchange {
                 'fetchTickers' => true,
                 'fetchCurrencies' => true,
             ),
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
-                'api' => array (
+                'api' => array(
                     'public' => 'https://api.coinmarketcap.com',
                     'files' => 'https://files.coinmarketcap.com',
                     'charts' => 'https://graph.coinmarketcap.com',
@@ -42,30 +42,30 @@ class coinmarketcap extends Exchange {
                 'www' => 'https://coinmarketcap.com',
                 'doc' => 'https://coinmarketcap.com/api',
             ),
-            'requiredCredentials' => array (
+            'requiredCredentials' => array(
                 'apiKey' => false,
                 'secret' => false,
             ),
-            'api' => array (
-                'files' => array (
-                    'get' => array (
+            'api' => array(
+                'files' => array(
+                    'get' => array(
                         'generated/stats/global.json',
                     ),
                 ),
-                'graphs' => array (
-                    'get' => array (
+                'graphs' => array(
+                    'get' => array(
                         'currencies/{name}/',
                     ),
                 ),
-                'public' => array (
-                    'get' => array (
+                'public' => array(
+                    'get' => array(
                         'ticker/',
                         'ticker/{id}/',
                         'global/',
                     ),
                 ),
             ),
-            'currencyCodes' => array (
+            'currencyCodes' => array(
                 'AUD',
                 'BRL',
                 'CAD',
@@ -93,7 +93,7 @@ class coinmarketcap extends Exchange {
     }
 
     public function currency_code ($base, $name) {
-        $currencies = array (
+        $currencies = array(
             'ACChain' => 'ACChain',
             'AdCoin' => 'AdCoin',
             'BatCoin' => 'BatCoin',
@@ -145,22 +145,22 @@ class coinmarketcap extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $request = array (
+        $request = array(
             'limit' => 0,
         );
-        $response = $this->publicGetTicker (array_merge ($request, $params));
+        $response = $this->publicGetTicker (array_merge($request, $params));
         $result = array();
-        for ($i = 0; $i < count ($response); $i++) {
+        for ($i = 0; $i < count($response); $i++) {
             $market = $response[$i];
             $currencies = $this->currencyCodes;
-            for ($j = 0; $j < count ($currencies); $j++) {
+            for ($j = 0; $j < count($currencies); $j++) {
                 $quote = $currencies[$j];
                 $quoteId = strtolower($quote);
                 $baseId = $market['id'];
                 $base = $this->currency_code ($market['symbol'], $market['name']);
                 $symbol = $base . '/' . $quote;
                 $id = $baseId . '/' . $quoteId;
-                $result[] = array (
+                $result[] = array(
                     'id' => $id,
                     'symbol' => $symbol,
                     'base' => $base,
@@ -199,7 +199,7 @@ class coinmarketcap extends Exchange {
             $volumeKey = '24h_volume_' . $market['quoteId'];
             $volume = $this->safe_float($ticker, $volumeKey);
         }
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -225,15 +225,15 @@ class coinmarketcap extends Exchange {
 
     public function fetch_tickers ($currency = 'USD', $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'limit' => 10000,
         );
         if ($currency) {
             $request['convert'] = $currency;
         }
-        $response = $this->publicGetTicker (array_merge ($request, $params));
+        $response = $this->publicGetTicker (array_merge($request, $params));
         $result = array();
-        for ($t = 0; $t < count ($response); $t++) {
+        for ($t = 0; $t < count($response); $t++) {
             $ticker = $response[$t];
             $currencyId = strtolower($currency);
             $id = $ticker['id'] . '/' . $currencyId;
@@ -251,22 +251,22 @@ class coinmarketcap extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'convert' => $market['quote'],
             'id' => $market['baseId'],
         );
-        $response = $this->publicGetTickerId (array_merge ($request, $params));
+        $response = $this->publicGetTickerId (array_merge($request, $params));
         $ticker = $response[0];
         return $this->parse_ticker($ticker, $market);
     }
 
     public function fetch_currencies ($params = array ()) {
-        $request = array (
+        $request = array(
             'limit' => 0,
         );
-        $response = $this->publicGetTicker (array_merge ($request, $params));
+        $response = $this->publicGetTicker (array_merge($request, $params));
         $result = array();
-        for ($i = 0; $i < count ($response); $i++) {
+        for ($i = 0; $i < count($response); $i++) {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'symbol');
             $name = $this->safe_string($currency, 'name');
@@ -275,7 +275,7 @@ class coinmarketcap extends Exchange {
             // differentiated fees for each particular method
             $precision = 8; // default $precision, todo => fix "magic constants"
             $code = $this->currency_code ($id, $name);
-            $result[$code] = array (
+            $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency,
@@ -283,20 +283,20 @@ class coinmarketcap extends Exchange {
                 'active' => true,
                 'fee' => null, // todo => redesign
                 'precision' => $precision,
-                'limits' => array (
-                    'amount' => array (
+                'limits' => array(
+                    'amount' => array(
                         'min' => pow(10, -$precision),
                         'max' => pow(10, $precision),
                     ),
-                    'price' => array (
+                    'price' => array(
                         'min' => pow(10, -$precision),
                         'max' => pow(10, $precision),
                     ),
-                    'cost' => array (
+                    'cost' => array(
                         'min' => null,
                         'max' => null,
                     ),
-                    'withdraw' => array (
+                    'withdraw' => array(
                         'min' => null,
                         'max' => null,
                     ),

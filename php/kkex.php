@@ -10,12 +10,12 @@ use Exception; // a common import
 class kkex extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'kkex',
             'name' => 'KKEX',
-            'countries' => array ( 'CN', 'US', 'JP' ),
+            'countries' => array( 'CN', 'US', 'JP' ),
             'version' => 'v2',
-            'has' => array (
+            'has' => array(
                 'CORS' => false,
                 'fetchBalance' => true,
                 'fetchTickers' => true,
@@ -27,7 +27,7 @@ class kkex extends Exchange {
                 'createMarketOrder' => true,
                 'fetchOrder' => true,
             ),
-            'timeframes' => array (
+            'timeframes' => array(
                 '1m' => '1min',
                 '5m' => '5min',
                 '15m' => '15min',
@@ -39,9 +39,9 @@ class kkex extends Exchange {
                 '1w' => '1week',
                 '1M' => '1month',
             ),
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/47401462-2e59f800-d74a-11e8-814f-e4ae17b4968a.jpg',
-                'api' => array (
+                'api' => array(
                     'public' => 'https://kkex.com/api/v1',
                     'private' => 'https://kkex.com/api/v2',
                     'v1' => 'https://kkex.com/api/v1',
@@ -50,9 +50,9 @@ class kkex extends Exchange {
                 'doc' => 'https://kkex.com/api_wiki/cn/',
                 'fees' => 'https://intercom.help/kkex/fee',
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
+            'api' => array(
+                'public' => array(
+                    'get' => array(
                         'exchange_rate',
                         'products',
                         'assets',
@@ -63,8 +63,8 @@ class kkex extends Exchange {
                         'kline',
                     ),
                 ),
-                'private' => array (
-                    'post' => array (
+                'private' => array(
+                    'post' => array(
                         'profile',
                         'trade',
                         'batch_trade',
@@ -76,27 +76,27 @@ class kkex extends Exchange {
                         'orders_info',
                     ),
                 ),
-                'v1' => array (
-                    'post' => array (
+                'v1' => array(
+                    'post' => array(
                         'process_strategy',
                     ),
                 ),
             ),
-            'fees' => array (
-                'trading' => array (
+            'fees' => array(
+                'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
                     'taker' => 0.002,
                     'maker' => 0.002,
                 ),
-                'funding' => array (
+                'funding' => array(
                     'tierBased' => false,
                     'percentage' => false,
                     'withdraw' => array(),
                     'deposit' => array(),
                 ),
             ),
-            'options' => array (
+            'options' => array(
                 'lastNonceTimestamp' => 0,
             ),
         ));
@@ -108,40 +108,40 @@ class kkex extends Exchange {
         $products = $this->publicGetProducts ($params);
         $products = $products['products'];
         $markets = array();
-        for ($k = 0; $k < count ($tickers); $k++) {
+        for ($k = 0; $k < count($tickers); $k++) {
             $keys = is_array($tickers[$k]) ? array_keys($tickers[$k]) : array();
             $markets[] = $keys[0];
         }
         $result = array();
-        for ($i = 0; $i < count ($markets); $i++) {
+        for ($i = 0; $i < count($markets); $i++) {
             $id = $markets[$i];
             $market = $markets[$i];
             $baseId = '';
             $quoteId = '';
             $precision = array();
             $limits = array();
-            for ($j = 0; $j < count ($products); $j++) {
+            for ($j = 0; $j < count($products); $j++) {
                 $p = $products[$j];
                 if ($p['mark_asset'] . $p['base_asset'] === $market) {
                     $quoteId = $p['base_asset'];
                     $baseId = $p['mark_asset'];
                     $price_scale_str = (string) $p['price_scale'];
-                    $scale = strlen ($price_scale_str) - 1;
-                    $precision = array (
+                    $scale = strlen($price_scale_str) - 1;
+                    $precision = array(
                         'price' => $scale,
                         'amount' => $scale,
                     );
-                    $limits = array (
-                        'amount' => array (
+                    $limits = array(
+                        'amount' => array(
                             'min' => max ($this->safe_float($p, 'min_bid_size'), $this->safe_float($p, 'min_ask_size')),
                             'max' => min ($this->safe_float($p, 'max_bid_size'), $this->safe_float($p, 'max_ask_size')),
                         ),
-                        'price' => array (
+                        'price' => array(
                             'min' => $this->safe_float($p, 'min_price'),
                             'max' => $this->safe_float($p, 'max_price'),
                         ),
                     );
-                    $limits['cost'] = array (
+                    $limits['cost'] = array(
                         'min' => $this->safe_float($p, 'min_bid_amount'),
                         'max' => $this->safe_float($p, 'max_bid_amount'),
                     );
@@ -150,7 +150,7 @@ class kkex extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $result[] = array (
+            $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -173,7 +173,7 @@ class kkex extends Exchange {
             $symbol = $market['symbol'];
         }
         $last = $this->safe_float($ticker, 'last');
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -200,11 +200,11 @@ class kkex extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->markets[$symbol];
-        $request = array (
+        $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetTicker (array_merge ($request, $params));
-        $ticker = array_merge ($response['ticker'], $this->omit ($response, 'ticker'));
+        $response = $this->publicGetTicker (array_merge($request, $params));
+        $ticker = array_merge($response['ticker'], $this->omit ($response, 'ticker'));
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -213,7 +213,7 @@ class kkex extends Exchange {
         $response = $this->publicGetTickers ($params);
         //
         //     {    date =>    1540350657,
-        //       $tickers => array ( { ENUBTC => array ( sell => "0.00000256",
+        //       $tickers => array( { ENUBTC => array( sell => "0.00000256",
         //                               buy => "0.00000253",
         //                              last => "0.00000253",
         //                               vol => "138686.828804",
@@ -231,13 +231,13 @@ class kkex extends Exchange {
         //
         $tickers = $this->safe_value($response, 'tickers');
         $result = array();
-        for ($i = 0; $i < count ($tickers); $i++) {
+        for ($i = 0; $i < count($tickers); $i++) {
             $ids = is_array($tickers[$i]) ? array_keys($tickers[$i]) : array();
             $id = $ids[0];
             $market = $this->safe_value($this->markets_by_id, $id);
             if ($market !== null) {
                 $symbol = $market['symbol'];
-                $ticker = array_merge ($tickers[$i][$id], $this->omit ($response, 'tickers'));
+                $ticker = array_merge($tickers[$i][$id], $this->omit ($response, 'tickers'));
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
             }
         }
@@ -246,13 +246,13 @@ class kkex extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'symbol' => $this->market_id($symbol),
         );
         if ($limit !== null) {
             $request['size'] = $limit;
         }
-        $response = $this->publicGetDepth (array_merge ($request, $params));
+        $response = $this->publicGetDepth (array_merge($request, $params));
         return $this->parse_order_book($response);
     }
 
@@ -274,7 +274,7 @@ class kkex extends Exchange {
         $id = $this->safe_string($trade, 'tid');
         $type = null;
         $side = $this->safe_string($trade, 'type');
-        return array (
+        return array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -294,10 +294,10 @@ class kkex extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetTrades (array_merge ($request, $params));
+        $response = $this->publicGetTrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -310,7 +310,7 @@ class kkex extends Exchange {
         $free = $this->safe_value($funds, 'free', array());
         $freezed = $this->safe_value($funds, 'freezed', array());
         $currencyIds = is_array($free) ? array_keys($free) : array();
-        for ($i = 0; $i < count ($currencyIds); $i++) {
+        for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
@@ -327,11 +327,11 @@ class kkex extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'order_id' => $id,
             'symbol' => $market['id'],
         );
-        $response = $this->privatePostOrderInfo (array_merge ($request, $params));
+        $response = $this->privatePostOrderInfo (array_merge($request, $params));
         if ($response['result']) {
             return $this->parse_order($response['order'], $market);
         }
@@ -352,7 +352,7 @@ class kkex extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'symbol' => $market['id'],
             'type' => $this->timeframes[$timeframe],
         );
@@ -363,10 +363,10 @@ class kkex extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit;
         }
-        $response = $this->publicGetKline (array_merge ($request, $params));
+        $response = $this->publicGetKline (array_merge($request, $params));
         //
-        //     array (
-        //         array (
+        //     array(
+        //         array(
         //             "1521072000000",
         //             "0.000002",
         //             "0.00003",
@@ -374,7 +374,7 @@ class kkex extends Exchange {
         //             "0.00003",
         //             "3.106889"
         //         ),
-        //         array (
+        //         array(
         //             "1517356800000",
         //             "0.1",
         //             "0.1",
@@ -388,7 +388,7 @@ class kkex extends Exchange {
     }
 
     public function parse_order_status ($status) {
-        $statuses = array (
+        $statuses = array(
             '-1' => 'canceled',
             '0' => 'open',
             '1' => 'open',
@@ -426,7 +426,7 @@ class kkex extends Exchange {
                 $cost = $average * $filled;
             }
         }
-        return array (
+        return array(
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -449,7 +449,7 @@ class kkex extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'symbol' => $market['id'],
             'type' => $side,
         );
@@ -472,9 +472,9 @@ class kkex extends Exchange {
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $response = $this->privatePostTrade (array_merge ($request, $params));
+        $response = $this->privatePostTrade (array_merge($request, $params));
         $id = $this->safe_string($response, 'order_id');
-        return array (
+        return array(
             'info' => $response,
             'id' => $id,
             'datetime' => null,
@@ -500,38 +500,38 @@ class kkex extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'order_id' => $id,
             'symbol' => $market['id'],
         );
-        return $this->privatePostCancelOrder (array_merge ($request, $params));
+        return $this->privatePostCancelOrder (array_merge($request, $params));
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
             $request['page_length'] = $limit; // 20 by default
         }
-        $response = $this->privatePostOrderHistory (array_merge ($request, $params));
+        $response = $this->privatePostOrderHistory (array_merge($request, $params));
         return $this->parse_orders($response['orders'], $market, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $request = array (
+        $request = array(
             'status' => 0,
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $request = array (
+        $request = array(
             'status' => 1,
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function nonce () {
@@ -546,7 +546,7 @@ class kkex extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
-            $signature = array_merge (array (
+            $signature = array_merge(array(
                 'nonce' => $nonce,
                 'api_key' => $this->apiKey,
             ), $params);
@@ -554,7 +554,7 @@ class kkex extends Exchange {
             $signature .= '&secret_key=' . $this->secret;
             $signature = $this->hash ($this->encode ($signature), 'md5');
             $signature = strtoupper($signature);
-            $body = array_merge (array (
+            $body = array_merge(array(
                 'api_key' => $this->apiKey,
                 'sign' => $signature,
                 'nonce' => $nonce,

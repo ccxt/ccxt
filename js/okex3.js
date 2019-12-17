@@ -444,6 +444,7 @@ module.exports = class okex3 extends Exchange {
                 },
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarkets': [ 'spot', 'futures', 'swap' ],
                 'defaultType': 'spot', // 'account', 'spot', 'margin', 'futures', 'swap'
                 'auth': {

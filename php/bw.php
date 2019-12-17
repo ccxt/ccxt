@@ -10,13 +10,13 @@ use Exception; // a common import
 class bw extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'bw',
             'name' => 'BW',
-            'countries' => array ( 'CN' ),
+            'countries' => array( 'CN' ),
             'rateLimit' => 1500,
             'version' => 'v1',
-            'has' => array (
+            'has' => array(
                 'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
@@ -56,7 +56,7 @@ class bw extends Exchange {
                 'publicAPI' => false,
                 'withdraw' => false,
             ),
-            'timeframes' => array (
+            'timeframes' => array(
                 '1m' => '1M',
                 '5m' => '5M',
                 '15m' => '15M',
@@ -65,44 +65,44 @@ class bw extends Exchange {
                 '1w' => '1W',
             ),
             'hostname' => 'bw.com', // set to 'bw.io' for China mainland
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/69436317-31128c80-0d52-11ea-91d1-eb7bb5818812.jpg',
                 'api' => 'https://www.{hostname}',
                 'www' => 'https://www.bw.com',
                 'doc' => 'https://github.com/bw-exchange/api_docs_en/wiki',
                 'fees' => 'https://www.bw.com/feesRate',
             ),
-            'requiredCredentials' => array (
+            'requiredCredentials' => array(
                 'apiKey' => true,
                 'secret' => true,
             ),
-            'fees' => array (
-                'trading' => array (
+            'fees' => array(
+                'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
                     'taker' => 0.2 / 100,
                     'maker' => 0.2 / 100,
-                    'tiers' => array (
-                        'taker' => array (
-                            array ( 0, 0.2 / 100 ),
+                    'tiers' => array(
+                        'taker' => array(
+                            array( 0, 0.2 / 100 ),
                         ),
-                        'maker' => array (
-                            array ( 0, 0.2 / 100 ),
+                        'maker' => array(
+                            array( 0, 0.2 / 100 ),
                         ),
                     ),
                 ),
-                'funding' => array (
+                'funding' => array(
                 ),
             ),
-            'exceptions' => array (
-                'exact' => array (
+            'exceptions' => array(
+                'exact' => array(
                     '999' => '\\ccxt\\AuthenticationError',
                     '1000' => '\\ccxt\\ExchangeNotAvailable', // array("datas":null,"resMsg":array("message":"getKlines error:data not exitsts\uff0cplease wait ,dataType=4002_KLINE_1M","method":null,"code":"1000"))
                 ),
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
+            'api' => array(
+                'public' => array(
+                    'get' => array(
                         'api/data/v1/klines',
                         'api/data/v1/ticker',
                         'api/data/v1/tickers',
@@ -112,8 +112,8 @@ class bw extends Exchange {
                         'exchange/config/controller/website/currencycontroller/getCurrencyList',
                     ),
                 ),
-                'private' => array (
-                    'get' => array (
+                'private' => array(
+                    'get' => array(
                         'exchange/entrust/controller/website/EntrustController/getEntrustById',
                         'exchange/entrust/controller/website/EntrustController/getUserEntrustRecordFromCacheWithPage',
                         'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
@@ -126,7 +126,7 @@ class bw extends Exchange {
                         // 'exchange/fund/controller/website/fundcontroller/getPayinAddress',
                         // 'exchange/fund/controller/website/fundcontroller/getPayinCoinRecord',
                     ),
-                    'post' => array (
+                    'post' => array(
                         'exchange/fund/controller/website/fundcontroller/getPayinAddress', // see the comment above
                         'exchange/fund/controller/website/fundcontroller/getPayinCoinRecord', // see the comment above
                         'exchange/fund/controller/website/fundcontroller/findbypage',
@@ -142,7 +142,7 @@ class bw extends Exchange {
         $response = $this->publicGetExchangeConfigControllerWebsiteMarketcontrollerGetByWebId ($params);
         //
         //     {
-        //         "datas" => array (
+        //         "datas" => array(
         //             {
         //                 "orderNum":null,
         //                 "leverEnable":true,
@@ -174,7 +174,7 @@ class bw extends Exchange {
         //
         $markets = $this->safe_value($response, 'datas', array());
         $result = array();
-        for ($i = 0; $i < count ($markets); $i++) {
+        for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'marketId');
             $numericId = intval ($id);
@@ -190,7 +190,7 @@ class bw extends Exchange {
             $state = $this->safe_integer($market, 'state');
             $active = ($state === 1);
             $fee = $this->safe_float($market, 'defaultFee');
-            $result[] = array (
+            $result[] = array(
                 'id' => $id,
                 'active' => $active,
                 'numericId' => $numericId,
@@ -204,20 +204,20 @@ class bw extends Exchange {
                 'maker' => $fee,
                 'taker' => $fee,
                 'info' => $market,
-                'precision' => array (
+                'precision' => array(
                     'amount' => $this->safe_integer($market, 'amountDecimal'),
                     'price' => $this->safe_integer($market, 'priceDecimal'),
                 ),
-                'limits' => array (
-                    'amount' => array (
+                'limits' => array(
+                    'amount' => array(
                         'min' => $this->safe_float($market, 'minAmount'),
                         'max' => null,
                     ),
-                    'price' => array (
+                    'price' => array(
                         'min' => 0,
                         'max' => null,
                     ),
-                    'cost' => array (
+                    'cost' => array(
                         'min' => 0,
                         'max' => null,
                     ),
@@ -231,8 +231,8 @@ class bw extends Exchange {
         $response = $this->publicGetExchangeConfigControllerWebsiteCurrencycontrollerGetCurrencyList ($params);
         //
         //     {
-        //         "datas":array (
-        //             array (
+        //         "datas":array(
+        //             array(
         //                 "currencyId":"456",
         //                 "name":"pan",
         //                 "alias":"pan",
@@ -284,13 +284,13 @@ class bw extends Exchange {
         //
         $currencies = $this->safe_value($response, 'datas', array());
         $result = array();
-        for ($i = 0; $i < count ($currencies); $i++) {
+        for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $this->safe_string($currency, 'currencyId');
             $code = $this->safe_currency_code($this->safe_string_upper($currency, 'name'));
             $state = $this->safe_integer($currency, 'state');
             $active = $state === 1;
-            $result[$code] = array (
+            $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency,
@@ -298,20 +298,20 @@ class bw extends Exchange {
                 'active' => $active,
                 'fee' => $this->safe_float($currency, 'drawFee'),
                 'precision' => null,
-                'limits' => array (
-                    'amount' => array (
+                'limits' => array(
+                    'amount' => array(
                         'min' => $this->safe_float($currency, 'limitAmount', 0),
                         'max' => null,
                     ),
-                    'price' => array (
+                    'price' => array(
                         'min' => null,
                         'max' => null,
                     ),
-                    'cost' => array (
+                    'cost' => array(
                         'min' => null,
                         'max' => null,
                     ),
-                    'withdraw' => array (
+                    'withdraw' => array(
                         'min' => null,
                         'max' => floatval ($this->safe_integer($currency, 'onceDrawLimit')),
                     ),
@@ -349,7 +349,7 @@ class bw extends Exchange {
         $close = floatval ($this->safe_value($ticker, 1));
         $bid = $this->safe_value($ticker, 'bid', array());
         $ask = $this->safe_value($ticker, 'ask', array());
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -376,10 +376,10 @@ class bw extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'marketId' => $market['id'],
         );
-        $response = $this->publicGetApiDataV1Ticker (array_merge ($request, $params));
+        $response = $this->publicGetApiDataV1Ticker (array_merge($request, $params));
         //
         //     {
         //         "datas" => [
@@ -425,7 +425,7 @@ class bw extends Exchange {
         //
         $datas = $this->safe_value($response, 'datas', array());
         $result = array();
-        for ($i = 0; $i < count ($datas); $i++) {
+        for ($i = 0; $i < count($datas); $i++) {
             $ticker = $this->parse_ticker($datas[$i]);
             $symbol = $ticker['symbol'];
             if (($symbols === null) || $this->in_array($symbol, $symbols)) {
@@ -438,25 +438,25 @@ class bw extends Exchange {
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'marketId' => $market['id'],
         );
         if ($limit !== null) {
             $request['dataSize'] = $limit;
         }
-        $response = $this->publicGetApiDataV1Entrusts (array_merge ($request, $params));
+        $response = $this->publicGetApiDataV1Entrusts (array_merge($request, $params));
         //
         //     {
-        //         "datas" => array (
-        //             "asks" => array (
-        //                 array ( "9740.43", "0.0083" ),
+        //         "datas" => array(
+        //             "asks" => array(
+        //                 array( "9740.43", "0.0083" ),
         //             ),
-        //             "bids" => array (
-        //                 array ( "9734.33", "0.0133" ),
+        //             "bids" => array(
+        //                 array( "9734.33", "0.0133" ),
         //             ),
         //             "$timestamp" => "1569303520",
         //         ),
-        //         "resMsg" => array (
+        //         "resMsg" => array(
         //             "message" => "success !",
         //             "method" => null,
         //             "code" => "1",
@@ -472,7 +472,7 @@ class bw extends Exchange {
         //
         // fetchTrades (public)
         //
-        //     array (
+        //     array(
         //         "T",          // $trade
         //         "281",        // $market id
         //         "1569303302", // $timestamp
@@ -513,7 +513,7 @@ class bw extends Exchange {
         }
         $sideString = $this->safe_string($trade, 4);
         $side = ($sideString === 'ask') ? 'sell' : 'buy';
-        return array (
+        return array(
             'id' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -533,17 +533,17 @@ class bw extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'marketId' => $market['id'],
         );
         if ($limit !== null) {
             $request['dataSize'] = $limit; // max 20
         }
-        $response = $this->publicGetApiDataV1Trades (array_merge ($request, $params));
+        $response = $this->publicGetApiDataV1Trades (array_merge($request, $params));
         //
         //     {
-        //         "datas" => array (
-        //             array (
+        //         "datas" => array(
+        //             array(
         //                 "T",          // trade
         //                 "281",        // $market id
         //                 "1569303302", // timestamp
@@ -561,7 +561,7 @@ class bw extends Exchange {
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return array (
+        return array(
             $this->safe_timestamp($ohlcv, 3),
             $this->safe_float($ohlcv, 4),
             $this->safe_float($ohlcv, 5),
@@ -574,7 +574,7 @@ class bw extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'marketId' => $market['id'],
             'type' => $this->timeframes[$timeframe],
             'dataSize' => 500,
@@ -582,7 +582,7 @@ class bw extends Exchange {
         if ($limit !== null) {
             $request['dataSize'] = $limit;
         }
-        $response = $this->publicGetApiDataV1Klines (array_merge ($request, $params));
+        $response = $this->publicGetApiDataV1Klines (array_merge($request, $params));
         $data = $this->safe_value($response, 'datas', array());
         $ohlcvs = $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
         return $this->sort_by($ohlcvs, 0);
@@ -593,11 +593,11 @@ class bw extends Exchange {
         $response = $this->privatePostExchangeFundControllerWebsiteFundcontrollerFindbypage ($params);
         //
         //     {
-        //         "datas" => array (
+        //         "datas" => array(
         //             "totalRow" => 6,
         //             "pageSize" => 99,
-        //             "list" => array (
-        //                 array (
+        //             "list" => array(
+        //                 array(
         //                     "amount" => "0.000090000000000000", // The current number of tokens available
         //                     "currencyTypeId" => 2,              // Token ID
         //                     "freeze" => "0.009900000000000000", // Current token freezing quantity
@@ -611,7 +611,7 @@ class bw extends Exchange {
         $data = $this->safe_value($response, 'datas', array());
         $balances = $this->safe_value($data, 'list', array());
         $result = array( 'info' => $response );
-        for ($i = 0; $i < count ($balances); $i++) {
+        for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_integer($balance, 'currencyTypeId');
             $code = $this->safe_currency_code($currencyId);
@@ -629,17 +629,17 @@ class bw extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'amount' => $this->amount_to_precision($symbol, $amount),
             'price' => $this->price_to_precision($symbol, $price),
             'type' => ($side === 'buy') ? 1 : 0,
             'rangeType' => 0, // limit order
             'marketId' => $market['id'],
         );
-        $response = $this->privatePostExchangeEntrustControllerWebsiteEntrustControllerAddEntrust (array_merge ($request, $params));
+        $response = $this->privatePostExchangeEntrustControllerWebsiteEntrustControllerAddEntrust (array_merge($request, $params));
         //
         //     {
-        //         "datas" => array (
+        //         "datas" => array(
         //             "entrustId" => "E6581105708337483776",
         //         ),
         //         "resMsg" => {
@@ -651,7 +651,7 @@ class bw extends Exchange {
         //
         $data = $this->safe_value($response, 'datas');
         $id = $this->safe_string($data, 'entrustId');
-        return array (
+        return array(
             'id' => $id,
             'info' => $response,
             'timestamp' => null,
@@ -673,7 +673,7 @@ class bw extends Exchange {
     }
 
     public function parse_order_status ($status) {
-        $statuses = array (
+        $statuses = array(
             '-3' => 'canceled',
             '-2' => 'canceled',
             '-1' => 'canceled',
@@ -735,7 +735,7 @@ class bw extends Exchange {
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        return array (
+        return array(
             'info' => $order,
             'id' => $this->safe_string($order, 'entrustId'),
             'timestamp' => $timestamp,
@@ -762,14 +762,14 @@ class bw extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'marketId' => $market['id'],
             'entrustId' => $id,
         );
-        $response = $this->privateGetExchangeEntrustControllerWebsiteEntrustControllerGetEntrustById (array_merge ($request, $params));
+        $response = $this->privateGetExchangeEntrustControllerWebsiteEntrustControllerGetEntrustById (array_merge($request, $params));
         //
         //     {
-        //         "datas" => array (
+        //         "datas" => array(
         //             "entrustId" => "E6581108027628212224", // Order $id
         //             "price" => "1450",                     // price
         //             "rangeType" => 0,                      // Commission type 0 => limit price commission 1 => interval commission
@@ -797,18 +797,18 @@ class bw extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'marketId' => $market['id'],
             'entrustId' => $id,
         );
-        $response = $this->privatePostExchangeEntrustControllerWebsiteEntrustControllerCancelEntrust (array_merge ($request, $params));
+        $response = $this->privatePostExchangeEntrustControllerWebsiteEntrustControllerCancelEntrust (array_merge($request, $params));
         //
         //     {
         //         "datas" => null,
         //         "resMsg" => array( "message" => "success !", "method" => null, "code" => "1" )
         //     }
         //
-        return array (
+        return array(
             'info' => $response,
             'id' => $id,
         );
@@ -820,7 +820,7 @@ class bw extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'marketId' => $market['id'],
             // 'pageSize' => $limit, // documented as required, but it works without it
             // 'pageIndex' => 0, // also works without it, most likely a typo in the docs
@@ -828,16 +828,16 @@ class bw extends Exchange {
         if ($limit !== null) {
             $request['pageSize'] = $limit; // default $limit is 20
         }
-        $response = $this->privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustRecordFromCacheWithPage (array_merge ($request, $params));
+        $response = $this->privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustRecordFromCacheWithPage (array_merge($request, $params));
         //
         //     {
-        //         "datas" => array (
+        //         "datas" => array(
         //             "pageNum" => 1,
         //             "pageSize" => 2,
         //             "totalPage" => 20,
         //             "totalRow" => 40,
-        //             "entrustList" => array (
-        //                 array (
+        //             "entrustList" => array(
+        //                 array(
         //                     "amount" => "14.050000000000000000",        // Order quantity
         //                     "rangeType" => 0,                           // Commission type 0 => $limit price commission 1 => interval commission
         //                     "totalMoney" => "20372.500000000000000000", // Total order amount
@@ -867,7 +867,7 @@ class bw extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'marketId' => $market['id'],
             // 'pageSize' => $limit, // documented as required, but it works without it
             // 'pageIndex' => 0, // also works without it, most likely a typo in the docs
@@ -882,16 +882,16 @@ class bw extends Exchange {
         if ($limit !== null) {
             $request['pageSize'] = $limit; // default $limit is 20
         }
-        $response = $this->privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustList (array_merge ($request, $params));
+        $response = $this->privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustList (array_merge($request, $params));
         //
         //     {
-        //         "datas" => array (
+        //         "datas" => array(
         //             "pageNum" => 1,
         //             "pageSize" => 2,
         //             "totalPage" => 20,
         //             "totalRow" => 40,
-        //             "entrustList" => array (
-        //                 array (
+        //             "entrustList" => array(
+        //                 array(
         //                     "amount" => "14.050000000000000000",        // Order quantity
         //                     "rangeType" => 0,                           // Commission type 0 => $limit price commission 1 => interval commission
         //                     "totalMoney" => "20372.500000000000000000", // Total order amount
@@ -930,7 +930,7 @@ class bw extends Exchange {
             if ($method === 'GET') {
                 $sortedParams = $this->keysort ($params);
                 $keys = is_array($sortedParams) ? array_keys($sortedParams) : array();
-                for ($i = 0; $i < count ($keys); $i++) {
+                for ($i = 0; $i < count($keys); $i++) {
                     $key = $keys[$i];
                     $content .= $key . $sortedParams[$key];
                 }
@@ -952,13 +952,13 @@ class bw extends Exchange {
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $request = array (
+        $request = array(
             'currencyTypeName' => $currency['name'],
         );
-        $response = $this->privatePostExchangeFundControllerWebsiteFundcontrollerGetPayinAddress (array_merge ($request, $params));
+        $response = $this->privatePostExchangeFundControllerWebsiteFundcontrollerGetPayinAddress (array_merge($request, $params));
         //
         //     {
-        //         "datas" => array (
+        //         "datas" => array(
         //             "isMemo" => true,                                // 是否为memo 格式，false：否，true ：是
         //             "$address" => "bweosdeposit_787928102918558272",  // 充币地址
         //             "memo" => "787928102918558272",                  // 币种memo
@@ -971,7 +971,7 @@ class bw extends Exchange {
         $address = $this->safe_string($data, 'address');
         $tag = $this->safe_string($data, 'memo');
         $this->check_address($address);
-        return array (
+        return array(
             'currency' => $code,
             'address' => $this->check_address($address),
             'tag' => $tag,
@@ -980,7 +980,7 @@ class bw extends Exchange {
     }
 
     public function parse_transaction_status ($status) {
-        $statuses = array (
+        $statuses = array(
             '-1' => 'canceled', // or auditing failed
             '0' => 'pending',
             '1' => 'ok',
@@ -1035,12 +1035,12 @@ class bw extends Exchange {
         $fee = null;
         $feeCost = $this->safe_float($transaction, 'fees');
         if ($feeCost !== null) {
-            $fee = array (
+            $fee = array(
                 'cost' => $feeCost,
                 'currency' => $code,
             );
         }
-        return array (
+        return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
@@ -1067,7 +1067,7 @@ class bw extends Exchange {
         }
         $this->load_markets();
         $currency = $this->currency ($code);
-        $request = array (
+        $request = array(
             'currencyTypeName' => $currency['name'],
             // 'pageSize' => $limit, // documented as required, but it works without it
             // 'pageNum' => 0, // also works without it, most likely a typo in the docs
@@ -1076,16 +1076,16 @@ class bw extends Exchange {
         if ($limit !== null) {
             $request['pageSize'] = $limit; // default 50
         }
-        $response = $this->privatePostExchangeFundControllerWebsiteFundcontrollerGetPayinCoinRecord (array_merge ($request, $params));
+        $response = $this->privatePostExchangeFundControllerWebsiteFundcontrollerGetPayinCoinRecord (array_merge($request, $params));
         //
         //     {
-        //         "datas" => array (
+        //         "datas" => array(
         //             "totalRow":2,
         //             "totalPage" => 1,
         //             "pageSize" => 2,
         //             "pageNum" => 1,
-        //             "list" => array (
-        //                 array (
+        //             "list" => array(
+        //                 array(
         //                     "depositId" => "D6574268549744189441",                  // Deposit ID
         //                     "amount" => "54.753589700000000000",                    // Deposit amount
         //                     "txId" => "INNER_SYSTEM_TRANSFER_1198941",              // Trading ID
@@ -1111,7 +1111,7 @@ class bw extends Exchange {
         }
         $this->load_markets();
         $currency = $this->currency ($code);
-        $request = array (
+        $request = array(
             'currencyId' => $currency['id'],
             // 'pageSize' => $limit, // documented as required, but it works without it
             // 'pageIndex' => 0, // also works without it, most likely a typo in the docs
@@ -1120,16 +1120,16 @@ class bw extends Exchange {
         if ($limit !== null) {
             $request['pageSize'] = $limit; // default 50
         }
-        $response = $this->privateGetExchangeFundControllerWebsiteFundwebsitecontrollerGetpayoutcoinrecord (array_merge ($request, $params));
+        $response = $this->privateGetExchangeFundControllerWebsiteFundwebsitecontrollerGetpayoutcoinrecord (array_merge($request, $params));
         //
         //     {
-        //         "datas" => array (
+        //         "datas" => array(
         //             "totalRow" => 1,
         //             "totalPage" => 1,
         //             "pageSize" => 2,
         //             "pageNum" => 1,
-        //             "list" => array (
-        //                 array (
+        //             "list" => array(
+        //                 array(
         //                     "withdrawalId" => "W6527498439872634880",      // Withdrawal ID
         //                     "fees" => "0.500000000000000000",              // Withdrawal fee
         //                     "withdrawalAddress" => "okbtothemoon_941657",  // Withdrawal address

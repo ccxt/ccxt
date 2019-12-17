@@ -10,43 +10,43 @@ use Exception; // a common import
 class bitlish extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'bitlish',
             'name' => 'Bitlish',
-            'countries' => array ( 'GB', 'EU', 'RU' ),
+            'countries' => array( 'GB', 'EU', 'RU' ),
             'rateLimit' => 1500,
             'version' => 'v1',
-            'has' => array (
+            'has' => array(
                 'CORS' => false,
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
                 'withdraw' => true,
             ),
-            'timeframes' => array (
+            'timeframes' => array(
                 '1h' => 3600,
             ),
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
                 'api' => 'https://bitlish.com/api',
                 'www' => 'https://bitlish.com',
                 'doc' => 'https://bitlish.com/api',
                 'fees' => 'https://bitlish.com/fees',
             ),
-            'requiredCredentials' => array (
+            'requiredCredentials' => array(
                 'apiKey' => true,
                 'secret' => false,
             ),
-            'fees' => array (
-                'trading' => array (
+            'fees' => array(
+                'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
                     'taker' => 0.3 / 100, // anonymous 0.3%, verified 0.2%
                     'maker' => 0.2 / 100, // anonymous 0.2%, verified 0.1%
                 ),
-                'funding' => array (
+                'funding' => array(
                     'tierBased' => false,
                     'percentage' => false,
-                    'withdraw' => array (
+                    'withdraw' => array(
                         'BTC' => 0.001,
                         'LTC' => 0.001,
                         'DOGE' => 0.001,
@@ -56,7 +56,7 @@ class bitlish extends Exchange {
                         'DASH' => 0.0001,
                         'EUR' => 50,
                     ),
-                    'deposit' => array (
+                    'deposit' => array(
                         'BTC' => 0,
                         'LTC' => 0,
                         'DOGE' => 0,
@@ -68,9 +68,9 @@ class bitlish extends Exchange {
                     ),
                 ),
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
+            'api' => array(
+                'public' => array(
+                    'get' => array(
                         'instruments',
                         'ohlcv',
                         'pairs',
@@ -78,7 +78,7 @@ class bitlish extends Exchange {
                         'trades_depth',
                         'trades_history',
                     ),
-                    'post' => array (
+                    'post' => array(
                         'instruments',
                         'ohlcv',
                         'pairs',
@@ -87,8 +87,8 @@ class bitlish extends Exchange {
                         'trades_history',
                     ),
                 ),
-                'private' => array (
-                    'post' => array (
+                'private' => array(
+                    'post' => array(
                         'accounts_operations',
                         'balance',
                         'cancel_trade',
@@ -117,7 +117,7 @@ class bitlish extends Exchange {
                     ),
                 ),
             ),
-            'commonCurrencies' => array (
+            'commonCurrencies' => array(
                 'DSH' => 'DASH',
                 'XDG' => 'DOGE',
             ),
@@ -128,7 +128,7 @@ class bitlish extends Exchange {
         $response = $this->publicGetPairs ($params);
         $result = array();
         $keys = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count ($keys); $i++) {
+        for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             $market = $response[$key];
             $id = $this->safe_string($market, 'id');
@@ -137,7 +137,7 @@ class bitlish extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $result[] = array (
+            $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -157,7 +157,7 @@ class bitlish extends Exchange {
             $symbol = $market['symbol'];
         }
         $last = $this->safe_float($ticker, 'last');
-        return array (
+        return array(
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
@@ -186,7 +186,7 @@ class bitlish extends Exchange {
         $tickers = $this->publicGetTickers ($params);
         $ids = is_array($tickers) ? array_keys($tickers) : array();
         $result = array();
-        for ($i = 0; $i < count ($ids); $i++) {
+        for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $market = $this->safe_value($this->markets_by_id, $id);
             $symbol = null;
@@ -221,19 +221,19 @@ class bitlish extends Exchange {
         if ($since !== null) {
             $start = intval ($since / 1000);
         }
-        $interval = array ( (string) $start, null );
-        $request = array (
+        $interval = array( (string) $start, null );
+        $request = array(
             'time_range' => $interval,
         );
-        return $this->publicPostOhlcv (array_merge ($request, $params));
+        return $this->publicPostOhlcv (array_merge($request, $params));
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'pair_id' => $this->market_id($symbol),
         );
-        $response = $this->publicGetTradesDepth (array_merge ($request, $params));
+        $response = $this->publicGetTradesDepth (array_merge($request, $params));
         $timestamp = null;
         $last = $this->safe_integer($response, 'last');
         if ($last !== null) {
@@ -260,7 +260,7 @@ class bitlish extends Exchange {
                 $cost = $price * $amount;
             }
         }
-        return array (
+        return array(
             'id' => null,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -280,7 +280,7 @@ class bitlish extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTradesHistory (array_merge (array (
+        $response = $this->publicGetTradesHistory (array_merge(array(
             'pair_id' => $market['id'],
         ), $params));
         return $this->parse_trades($response['list'], $market, $since, $limit);
@@ -291,7 +291,7 @@ class bitlish extends Exchange {
         $response = $this->privatePostBalance ($params);
         $result = array( 'info' => $response );
         $currencyIds = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count ($currencyIds); $i++) {
+        for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
@@ -304,16 +304,16 @@ class bitlish extends Exchange {
     }
 
     public function sign_in ($params = array ()) {
-        $request = array (
+        $request = array(
             'login' => $this->login,
             'passwd' => $this->password,
         );
-        return $this->privatePostSignin (array_merge ($request, $params));
+        return $this->privatePostSignin (array_merge($request, $params));
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'pair_id' => $this->market_id($symbol),
             'dir' => ($side === 'buy') ? 'bid' : 'ask',
             'amount' => $amount,
@@ -321,9 +321,9 @@ class bitlish extends Exchange {
         if ($type === 'limit') {
             $request['price'] = $price;
         }
-        $response = $this->privatePostCreateTrade (array_merge ($request, $params));
+        $response = $this->privatePostCreateTrade (array_merge($request, $params));
         $id = $this->safe_string($response, 'id');
-        return array (
+        return array(
             'info' => $response,
             'id' => $id,
         );
@@ -331,10 +331,10 @@ class bitlish extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'id' => $id,
         );
-        return $this->privatePostCancelTrade (array_merge ($request, $params));
+        return $this->privatePostCancelTrade (array_merge($request, $params));
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
@@ -345,14 +345,14 @@ class bitlish extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
-        $request = array (
+        $request = array(
             'currency' => $currency['id'],
             'amount' => floatval ($amount),
             'account' => $address,
             'payment_method' => 'bitcoin', // they did not document other types...
         );
-        $response = $this->privatePostWithdraw (array_merge ($request, $params));
-        return array (
+        $response = $this->privatePostWithdraw (array_merge($request, $params));
+        return array(
             'info' => $response,
             'id' => $response['message_id'],
         );
@@ -371,7 +371,7 @@ class bitlish extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $body = $this->json (array_merge (array( 'token' => $this->apiKey ), $params));
+            $body = $this->json (array_merge(array( 'token' => $this->apiKey ), $params));
             $headers = array( 'Content-Type' => 'application/json' );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

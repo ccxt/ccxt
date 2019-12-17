@@ -10,19 +10,19 @@ use Exception; // a common import
 class bithumb extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'bithumb',
             'name' => 'Bithumb',
-            'countries' => array ( 'KR' ), // South Korea
+            'countries' => array( 'KR' ), // South Korea
             'rateLimit' => 500,
-            'has' => array (
+            'has' => array(
                 'CORS' => true,
                 'fetchTickers' => true,
                 'withdraw' => true,
             ),
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg',
-                'api' => array (
+                'api' => array(
                     'public' => 'https://api.bithumb.com/public',
                     'private' => 'https://api.bithumb.com',
                 ),
@@ -30,9 +30,9 @@ class bithumb extends Exchange {
                 'doc' => 'https://apidocs.bithumb.com',
                 'fees' => 'https://en.bithumb.com/customer_support/info_fee',
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
+            'api' => array(
+                'public' => array(
+                    'get' => array(
                         'ticker/{currency}',
                         'ticker/all',
                         'orderbook/{currency}',
@@ -41,8 +41,8 @@ class bithumb extends Exchange {
                         'transaction_history/all',
                     ),
                 ),
-                'private' => array (
-                    'post' => array (
+                'private' => array(
+                    'post' => array(
                         'info/account',
                         'info/balance',
                         'info/wallet_address',
@@ -60,13 +60,13 @@ class bithumb extends Exchange {
                     ),
                 ),
             ),
-            'fees' => array (
-                'trading' => array (
+            'fees' => array(
+                'trading' => array(
                     'maker' => 0.25 / 100,
                     'taker' => 0.25 / 100,
                 ),
             ),
-            'exceptions' => array (
+            'exceptions' => array(
                 'Bad Request(SSL)' => '\\ccxt\\BadRequest',
                 'Bad Request(Bad Method)' => '\\ccxt\\BadRequest',
                 'Bad Request.(Auth Data)' => '\\ccxt\\AuthenticationError', // array( "status" => "5100", "message" => "Bad Request.(Auth Data)" )
@@ -89,7 +89,7 @@ class bithumb extends Exchange {
         $data = $this->safe_value($response, 'data');
         $currencyIds = is_array($data) ? array_keys($data) : array();
         $result = array();
-        for ($i = 0; $i < count ($currencyIds); $i++) {
+        for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             if ($currencyId === 'date') {
                 continue;
@@ -99,33 +99,33 @@ class bithumb extends Exchange {
             $quote = 'KRW';
             $symbol = $currencyId . '/' . $quote;
             $active = true;
-            if (gettype ($market) === 'array' && count (array_filter (array_keys ($market), 'is_string')) == 0) {
-                $numElements = is_array ($market) ? count ($market) : 0;
+            if (gettype($market) === 'array' && count(array_filter(array_keys($market), 'is_string')) == 0) {
+                $numElements = is_array($market) ? count($market) : 0;
                 if ($numElements === 0) {
                     $active = false;
                 }
             }
-            $result[] = array (
+            $result[] = array(
                 'id' => $currencyId,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
                 'active' => $active,
-                'precision' => array (
+                'precision' => array(
                     'amount' => null,
                     'price' => null,
                 ),
-                'limits' => array (
-                    'amount' => array (
+                'limits' => array(
+                    'amount' => array(
                         'min' => null,
                         'max' => null,
                     ),
-                    'price' => array (
+                    'price' => array(
                         'min' => null,
                         'max' => null,
                     ),
-                    'cost' => array (
+                    'cost' => array(
                         'min' => null,
                         'max' => null,
                     ),
@@ -137,14 +137,14 @@ class bithumb extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'currency' => 'ALL',
         );
-        $response = $this->privatePostInfoBalance (array_merge ($request, $params));
+        $response = $this->privatePostInfoBalance (array_merge($request, $params));
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response, 'data');
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        for ($i = 0; $i < count ($codes); $i++) {
+        for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
             $account = $this->account ();
             $currency = $this->currency ($code);
@@ -161,13 +161,13 @@ class bithumb extends Exchange {
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'currency' => $market['base'],
         );
         if ($limit !== null) {
             $request['count'] = $limit; // max = 50
         }
-        $response = $this->publicGetOrderbookCurrency (array_merge ($request, $params));
+        $response = $this->publicGetOrderbookCurrency (array_merge($request, $params));
         $orderbook = $this->safe_value($response, 'data');
         $timestamp = $this->safe_integer($orderbook, 'timestamp');
         return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'quantity');
@@ -197,7 +197,7 @@ class bithumb extends Exchange {
         if ($quoteVolume !== null && $baseVolume !== null) {
             $vwap = $quoteVolume / $baseVolume;
         }
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -228,7 +228,7 @@ class bithumb extends Exchange {
         $timestamp = $this->safe_integer($response['data'], 'date');
         $tickers = $this->omit ($response['data'], 'date');
         $ids = is_array($tickers) ? array_keys($tickers) : array();
-        for ($i = 0; $i < count ($ids); $i++) {
+        for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $symbol = $id;
             $market = null;
@@ -237,7 +237,7 @@ class bithumb extends Exchange {
                 $symbol = $market['symbol'];
             }
             $ticker = $tickers[$id];
-            $isArray = gettype ($ticker) === 'array' && count (array_filter (array_keys ($ticker), 'is_string')) == 0;
+            $isArray = gettype($ticker) === 'array' && count(array_filter(array_keys($ticker), 'is_string')) == 0;
             if (!$isArray) {
                 $ticker['date'] = $timestamp;
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
@@ -249,10 +249,10 @@ class bithumb extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'currency' => $market['base'],
         );
-        $response = $this->publicGetTickerCurrency (array_merge ($request, $params));
+        $response = $this->publicGetTickerCurrency (array_merge($request, $params));
         return $this->parse_ticker($response['data'], $market);
     }
 
@@ -261,7 +261,7 @@ class bithumb extends Exchange {
         $parts = explode(' ', $trade['transaction_date']);
         $transaction_date = $parts[0];
         $transaction_time = $parts[1];
-        if (strlen ($transaction_time) < 8) {
+        if (strlen($transaction_time) < 8) {
             $transaction_time = '0' . $transaction_time;
         }
         $timestamp = $this->parse8601 ($transaction_date . ' ' . $transaction_time);
@@ -282,7 +282,7 @@ class bithumb extends Exchange {
                 $cost = $price * $amount;
             }
         }
-        return array (
+        return array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -302,13 +302,13 @@ class bithumb extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'currency' => $market['base'],
         );
         if ($limit === null) {
             $request['count'] = $limit; // default 20, max 100
         }
-        $response = $this->publicGetTransactionHistoryCurrency (array_merge ($request, $params));
+        $response = $this->publicGetTransactionHistoryCurrency (array_merge($request, $params));
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
@@ -318,7 +318,7 @@ class bithumb extends Exchange {
         $request = null;
         $method = 'privatePostTrade';
         if ($type === 'limit') {
-            $request = array (
+            $request = array(
                 'order_currency' => $market['id'],
                 'Payment_currency' => $market['quote'],
                 'units' => $amount,
@@ -327,15 +327,15 @@ class bithumb extends Exchange {
             );
             $method .= 'Place';
         } else if ($type === 'market') {
-            $request = array (
+            $request = array(
                 'currency' => $market['id'],
                 'units' => $amount,
             );
             $method .= 'Market' . $this->capitalize ($side);
         }
-        $response = $this->$method (array_merge ($request, $params));
+        $response = $this->$method (array_merge($request, $params));
         $id = $this->safe_string($response, 'order_id');
-        return array (
+        return array(
             'info' => $response,
             'id' => $id,
         );
@@ -351,20 +351,20 @@ class bithumb extends Exchange {
             throw new ExchangeError($this->id . ' cancelOrder requires a `$currency` parameter (a $currency $id)');
         }
         $side = ($params['side'] === 'buy') ? 'bid' : 'ask';
-        $params = $this->omit ($params, array ( 'side', 'currency' ));
-        $request = array (
+        $params = $this->omit ($params, array( 'side', 'currency' ));
+        $request = array(
             'order_id' => $id,
             'type' => $side,
             'currency' => $currency,
         );
-        return $this->privatePostTradeCancel (array_merge ($request, $params));
+        return $this->privatePostTradeCancel (array_merge($request, $params));
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
-        $request = array (
+        $request = array(
             'units' => $amount,
             'address' => $address,
             'currency' => $currency['id'],
@@ -377,8 +377,8 @@ class bithumb extends Exchange {
                 $request['destination'] = $tag;
             }
         }
-        $response = $this->privatePostTradeBtcWithdrawal (array_merge ($request, $params));
-        return array (
+        $response = $this->privatePostTradeBtcWithdrawal (array_merge($request, $params));
+        return array(
             'info' => $response,
             'id' => null,
         );
@@ -398,14 +398,14 @@ class bithumb extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $body = $this->urlencode (array_merge (array (
+            $body = $this->urlencode (array_merge(array(
                 'endpoint' => $endpoint,
             ), $query));
             $nonce = (string) $this->nonce ();
             $auth = $endpoint . "\0" . $body . "\0" . $nonce; // eslint-disable-line quotes
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512');
-            $signature64 = $this->decode (base64_encode ($this->encode ($signature)));
-            $headers = array (
+            $signature64 = $this->decode (base64_encode($this->encode ($signature)));
+            $headers = array(
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Api-Key' => $this->apiKey,

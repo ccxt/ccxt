@@ -108,8 +108,8 @@ class bitbay(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.3 / 100,
-                    'taker': 0.0043,
+                    'maker': 0.30 / 100,
+                    'taker': 0.43 / 100,
                 },
                 'funding': {
                     'withdraw': {
