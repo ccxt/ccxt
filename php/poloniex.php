@@ -610,7 +610,7 @@ class poloniex extends Exchange {
         $request = array( 'currencyPair' => $pair );
         if ($since !== null) {
             $request['start'] = intval ($since / 1000);
-            $request['end'] = $this->seconds () . 1; // adding 1 is a fix for #3411
+            $request['end'] = $this->sum ($this->seconds (), 1); // adding 1 is a fix for #3411
         }
         // $limit is disabled (does not really work as expected)
         if ($limit !== null) {
