@@ -42,20 +42,22 @@ async def test():
     symbol = 'ETH/BTC'
     exchange = ccxtpro.poloniex({
         'enableRateLimit': True,
-        'urls': {
-            'api': {
-                'ws': 'ws://127.0.0.1:8080',
-            },
-        },
+        # 'urls': {
+        #     'api': {
+        #         'ws': 'ws://127.0.0.1:8080',
+        #     },
+        # },
     })
     x = None
     while True:
         try:
-            x = await exchange.fetch_ws_order_book(symbol)
-            print(x)
+            response = await exchange.watch_order_book(symbol)
+            print(len(response['asks']), 'asks', response['asks'][0], len(response['bids']), 'bids', response['bids'][0])
         except Exception as e:
             print('Error', type(e), str(e))
             await sleep(1)
+            # await exchange.close()
+        # sys.exit()
     await exchange.close()
     print('test() is done', x)
     # pprint(orderbook)

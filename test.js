@@ -9,7 +9,7 @@ const ccxtpro = require ('./ccxt.pro.js')
 
     // ========================================================================
     // a sandbox ws server for testing
-
+    /*
     const http = require('http')
 
     const server = http.createServer ()
@@ -41,7 +41,7 @@ const ccxtpro = require ('./ccxt.pro.js')
     })
 
     server.listen (8080)
-
+    //*/
     // ========================================================================
     // a sandbox ws client for testing
 
@@ -60,7 +60,7 @@ const ccxtpro = require ('./ccxt.pro.js')
         try {
             let response = undefined
             for (let i = 0; i < 10; i++) {
-                response = await exchange.fetchWsOrderBook (symbol)
+                response = await exchange.watchOrderBook (symbol)
             }
             console.log (new Date (), response.asks.length, 'asks', response.asks[0], response.bids.length, 'bids', response.bids[0])
         } catch (e) {
@@ -101,9 +101,9 @@ const ccxtpro = require ('./ccxt.pro.js')
     // ========================================================================
     // all sorts of testing and debugging snippets and junk
 
-    // const ob = exchange.fetchWsOrderBook (symbol)
-    // const td = exchange.fetchWsTrades (symbol)
-    // const hb = exchange.fetchWsHeartbeat (symbol)
+    // const ob = exchange.watchOrderBook (symbol)
+    // const td = exchange.watchTrades (symbol)
+    // const hb = exchange.watchHeartbeat (symbol)
 
     // await Promise.all ([
     //     (async () => {
@@ -173,7 +173,7 @@ const ccxtpro = require ('./ccxt.pro.js')
         for (let i = 0; i < 10; i++) {
             try {
                 console.log (i)
-                response = await exchange.fetchWsOrderBook (symbol)
+                response = await exchange.watchOrderBook (symbol)
                 // ; console.log ('---------------------------------------')
                 // process.exit ();
             } catch (e) {
@@ -201,7 +201,7 @@ const ccxtpro = require ('./ccxt.pro.js')
 
     while (true) {
         try {
-            const response = await kraken.fetchWsOHLCV (symbol)
+            const response = await kraken.watchOHLCV (symbol)
             console.log (new Date (), response)
         } catch (e) {
             console.log ('ERROR', e)
@@ -211,7 +211,7 @@ const ccxtpro = require ('./ccxt.pro.js')
     process.exit ();
 
     try {
-        let response = await kraken.fetchWsOrderBook (symbol)
+        let response = await kraken.watchOrderBook (symbol)
         console.log (new Date (), response.asks.length, 'asks', response.asks[0], response.bids.length, 'bids', response.bids[0])
     } catch (e) {
         console.log ('ERROR', e)
@@ -223,7 +223,7 @@ const ccxtpro = require ('./ccxt.pro.js')
     while (true) {
 
         try {
-            let response = await kraken.fetchWsOrderBook (symbol)
+            let response = await kraken.watchOrderBook (symbol)
             console.log (new Date (), response.asks.length, 'asks', response.asks[0], response.bids.length, 'bids', response.bids[0])
         } catch (e) {
             console.log ('ERROR', e)
@@ -234,7 +234,7 @@ const ccxtpro = require ('./ccxt.pro.js')
         while (true) {
 
             try {
-                let response = await kraken.fetchWsTicker (symbol)
+                let response = await kraken.watchTicker (symbol)
                 console.log (new Date (), response)
             } catch (e) {
                 console.log ('ERROR', e)
@@ -244,7 +244,7 @@ const ccxtpro = require ('./ccxt.pro.js')
     process.exit ();
 
     while (true) {
-        let response = await kraken.fetchWsOrderBook (symbol)
+        let response = await kraken.watchOrderBook (symbol)
         console.log (new Date (), response.asks.length, 'asks', response.asks[0], response.bids.length, 'bids', response.bids[0])
     }
 
@@ -258,31 +258,31 @@ const ccxtpro = require ('./ccxt.pro.js')
     })
 
     // while (true) {
-    //     const response = await exchange.fetchWsHeartbeat ()
+    //     const response = await exchange.watchHeartbeat ()
     //     console.log (new Date (), response);
     // }
 
-    console.log (await exchange.fetchWsBalance ());
+    console.log (await exchange.watchBalance ());
 
     Promise.all ([
         (async () => {
             while (true) {
                 let response = undefined
                 for (let i = 0; i < 10; i++) {
-                    response = await exchange.fetchWsOrderBook (symbol)
+                    response = await exchange.watchOrderBook (symbol)
                 }
                 console.log (new Date (), response.asks.length, 'asks', response.asks[0], response.bids.length, 'bids', response.bids[0])
             }
         }) (),
         (async () => {
             while (true) {
-                let response = await exchange.fetchWsTrades (symbol)
+                let response = await exchange.watchTrades (symbol)
                 console.log (new Date (), response)
             }
         }) (),
         (async () => {
             while (true) {
-                const response = await exchange.fetchWsHeartbeat ()
+                const response = await exchange.watchHeartbeat ()
                 console.log (new Date (), response);
             }
         }) (),
@@ -290,10 +290,10 @@ const ccxtpro = require ('./ccxt.pro.js')
 
     // process.exit ();
     // for (let i = 0; i < 2; i++) {
-    //     const response = await exchange.fetchWsTrades ('ETH/BTC');
+    //     const response = await exchange.watchTrades ('ETH/BTC');
     //     console.log (new Date (), response);
     //     process.exit ();
-    //     // const orderbook = await exchange.fetchWsOrderBook ('ETH/BTC')
+    //     // const orderbook = await exchange.watchOrderBook ('ETH/BTC')
     //     // console.log (new Date (), orderbook.limit (5))
     //     // await exchange.sleep (5000)
     //     // process.exit ()
@@ -304,7 +304,7 @@ const ccxtpro = require ('./ccxt.pro.js')
     //     const x = await exchange.ws.connected.value
 
     //     const ws = new WebSocketClient ('wss://api2.poloniex.com/')
-    //     // const ws = await exchange.fetchWsOrderBook ('ETH/BTC')
+    //     // const ws = await exchange.watchOrderBook ('ETH/BTC')
     //     // const ws = new ReconnectingWebSocket ('wss://api3.poloniex.com/')
     //     // const ws = new ReconnectingWebSocket ('wss://kroitor.com/')
     //     // const x = await ws.connectPromise.value
