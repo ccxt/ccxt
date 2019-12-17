@@ -499,10 +499,13 @@ module.exports = class bitmart extends Exchange {
         const request = {
             'symbol': market['id'],
             'offset': 0, // current page, starts from 0
-            'limit': 500,
+            'limit': 50, // required
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default 500, max 1000
+            if (limit > 50) {
+                limit = 50; // limit must be in the range (0, 50)
+            }
+            request['limit'] = limit;
         }
         const response = await this.privateGetTrades (this.extend (request, params));
         //
