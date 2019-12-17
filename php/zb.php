@@ -62,7 +62,7 @@ class zb extends Exchange {
                 '3002' => '\\ccxt\\InvalidOrder', // 'Invalid price',
                 '3003' => '\\ccxt\\InvalidOrder', // 'Invalid amount',
                 '3004' => '\\ccxt\\AuthenticationError', // 'User does not exist',
-                '3005' => '\\ccxt\\ExchangeError', // 'Invalid parameter',
+                '3005' => '\\ccxt\\BadRequest', // 'Invalid parameter',
                 '3006' => '\\ccxt\\AuthenticationError', // 'Invalid IP or inconsistent with the bound IP',
                 '3007' => '\\ccxt\\AuthenticationError', // 'The request time has expired',
                 '3008' => '\\ccxt\\OrderNotFound', // 'Transaction records not found',
