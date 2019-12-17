@@ -221,7 +221,8 @@
     "autoload": {
         "psr-4": {
             "ccxtpro\\" : "php/"
-        }
+        },
+        "files": [ "ccxtpro.php" ]
     },
     "require": {
         "php": ">=5.4.0",
