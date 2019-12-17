@@ -30,16 +30,9 @@ SOFTWARE.
 
 namespace ccxtpro;
 
-use kornrunner\Eth;
-use kornrunner\Secp256k1;
-use kornrunner\Solidity;
-
 $version = 'undefined';
 
 trait WebSocketTrait {
-
-    public $same = true;
-    public $different = false;
 
     public static $VERSION = 'undefined';
 
