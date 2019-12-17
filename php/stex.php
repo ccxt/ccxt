@@ -1513,9 +1513,9 @@ class stex extends Exchange {
             $code = $currency['code'];
         }
         $type = (is_array($transaction) && array_key_exists('depositId', $transaction)) ? 'deposit' : 'withdrawal';
-        $amount = $this->safe_float_2($transaction, 'amount');
+        $amount = $this->safe_float($transaction, 'amount');
         $status = $this->parse_transaction_status ($this->safe_string_lower($transaction, 'status'));
-        $timestamp = $this->safe_timestamp($transaction, 'timestamp', 'created_ts');
+        $timestamp = $this->safe_timestamp_2($transaction, 'timestamp', 'created_ts');
         $updated = $this->safe_timestamp($transaction, 'updated_ts');
         $txid = $this->safe_string($transaction, 'txid');
         $fee = null;
