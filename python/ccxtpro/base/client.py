@@ -5,7 +5,7 @@ from ccxt import NetworkError, RequestTimeout, NotSupported
 from ccxtpro.base.future import Future
 
 
-class StreamingClient(object):
+class Client(object):
 
     url = None
     ws = None

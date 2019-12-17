@@ -7,7 +7,7 @@ __version__ = '1.0.0'
 # -----------------------------------------------------------------------------
 
 import asyncio
-from ccxtpro.base.streaming_client_aiohttp import StreamingClientAiohttp
+from ccxtpro.base.aiohttp_client import AiohttpClient
 from ccxt.async_support import Exchange as BaseExchange
 from ccxt import NotSupported
 from ccxtpro.base.order_book import OrderBook, LimitedOrderBook, IndexedOrderBook, LimitedIndexedOrderBook, CountedOrderBook

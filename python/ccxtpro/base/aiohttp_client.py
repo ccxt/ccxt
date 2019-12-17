@@ -2,11 +2,11 @@ import json
 from asyncio import sleep
 from aiohttp import WSMsgType
 from ccxt.async_support import Exchange
-from ccxtpro.base.streaming_client import StreamingClient
+from ccxtpro.base.client import Client
 from ccxt import NetworkError
 
 
-class StreamingClientAiohttp(StreamingClient):
+class AiohttpClient(Client):
 
     def closed(self):
         return self.connection.closed
