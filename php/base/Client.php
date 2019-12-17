@@ -19,7 +19,7 @@ register_shutdown_function(function () {
 });
 
 
-class WebSocketClient {
+class StreamingClient {
     public $url;
     public $futures;
     public static $clients = array ();
@@ -102,11 +102,11 @@ class WebSocketClient {
 
     public static function registerFuture ($url, $message_hash, $entry, $apikey, $subscribe = null) {
         $index = $url . $apikey != null ? ('#' . $apikey) : '';
-        if (array_key_exists ($index, WebSocketClient::$clients)) {
-            $client = WebSocketClient::$clients[$index];
+        if (array_key_exists ($index, StreamingClient::$clients)) {
+            $client = StreamingClient::$clients[$index];
         } else {
-            $client = new WebSocketClient ($url, $entry);
-            WebSocketClient::$clients[$index] = $client;
+            $client = new StreamingClient ($url, $entry);
+            StreamingClient::$clients[$index] = $client;
         }
         if (array_key_exists ($message_hash, $client->futures)) {
             $future = $client->futures[$message_hash];

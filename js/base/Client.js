@@ -13,7 +13,7 @@ const ccxt = require ('ccxt')
     , Future = require ('./Future')
     , WebSocket = isNode ? require ('ws') : window.WebSocket
 
-module.exports = class WebSocketClient {
+module.exports = class StreamingClient {
 
     constructor (url, onMessageCallback, onErrorCallback, onCloseCallback, config = {}) {
         const defaults = {
