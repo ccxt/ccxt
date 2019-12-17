@@ -137,6 +137,7 @@ module.exports = class bitmart extends Exchange {
                     'Unknown symbol': BadSymbol, // {"message":"Unknown symbol"}
                 },
                 'broad': {
+                    'Invalid limit. limit must be in the range': InvalidOrder,
                     'Maximum price is': InvalidOrder, // {"message":"Maximum price is 0.112695"}
                     // {"message":"Required Integer parameter 'status' is not present"}
                     // {"message":"Required String parameter 'symbol' is not present"}
