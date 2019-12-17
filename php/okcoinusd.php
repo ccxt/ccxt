@@ -169,6 +169,7 @@ class okcoinusd extends Exchange {
                 '10009' => '\\ccxt\\OrderNotFound', // for spot markets, "Order does not exist"
                 '20015' => '\\ccxt\\OrderNotFound', // for future markets
                 '10008' => '\\ccxt\\BadRequest', // Illegal URL parameter
+                '1007' => '\\ccxt\\BadSymbol', // No trading market information
                 // todo => sort out below
                 // 10000 Required parameter is empty
                 // 10001 Request frequency too high to exceed the limit allowed
@@ -222,7 +223,6 @@ class okcoinusd extends Exchange {
                 // 10051 order completed transaction
                 // 10052 not allowed to withdraw
                 // 10064 after a USD deposit, that portion of assets will not be withdrawable for the next 48 hours
-                // 1007 No trading market information
                 // 1008 No latest market information
                 // 1009 No order
                 // 1010 Different user of the cancelled order and the original order

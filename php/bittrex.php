@@ -217,6 +217,7 @@ class bittrex extends Exchange {
                 'INVALID_ORDER' => '\\ccxt\\InvalidOrder',
                 'UUID_INVALID' => '\\ccxt\\OrderNotFound',
                 'RATE_NOT_PROVIDED' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder ('ETH/BTC', 1, 0)
+                'INVALID_MARKET' => '\\ccxt\\BadSymbol', // array("success":false,"message":"INVALID_MARKET","result":null,"explanation":null)
                 'WHITELIST_VIOLATION_IP' => '\\ccxt\\PermissionDenied',
                 'DUST_TRADE_DISALLOWED_MIN_VALUE' => '\\ccxt\\InvalidOrder',
                 'RESTRICTED_MARKET' => '\\ccxt\\BadSymbol',

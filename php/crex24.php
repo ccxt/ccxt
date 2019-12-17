@@ -143,6 +143,7 @@ class crex24 extends Exchange {
                     'Failed to verify request signature.' => '\\ccxt\\AuthenticationError', // eslint-disable-quotes
                     "Nonce error. Make sure that the value passed in the 'X-CREX24-API-NONCE' header is greater in each consecutive request than in the previous one for the corresponding API-Key provided in 'X-CREX24-API-KEY' header." => '\\ccxt\\InvalidNonce',
                     'Market orders are not supported by the instrument currently.' => '\\ccxt\\InvalidOrder',
+                    "Parameter 'instrument' contains invalid value." => '\\ccxt\\BadSymbol',
                 ),
                 'broad' => array(
                     'API Key' => '\\ccxt\\AuthenticationError', // "API Key '9edc48de-d5b0-4248-8e7e-f59ffcd1c7f1' doesn't exist."
