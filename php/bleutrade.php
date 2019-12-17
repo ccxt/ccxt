@@ -10,7 +10,7 @@ use Exception; // a common import
 class bleutrade extends bittrex {
 
     public function describe () {
-        $timeframes = array (
+        $timeframes = array(
             '15m' => '15m',
             '20m' => '20m',
             '30m' => '30m',
@@ -23,14 +23,14 @@ class bleutrade extends bittrex {
             '12h' => '12h',
             '1d' => '1d',
         );
-        $result = array_replace_recursive (parent::describe (), array (
+        $result = array_replace_recursive(parent::describe (), array(
             'id' => 'bleutrade',
             'name' => 'Bleutrade',
-            'countries' => array ( 'BR' ), // Brazil
+            'countries' => array( 'BR' ), // Brazil
             'rateLimit' => 1000,
             'version' => 'v2',
             'certified' => false,
-            'has' => array (
+            'has' => array(
                 'CORS' => true,
                 'fetchTickers' => true,
                 'fetchOrders' => true,
@@ -40,9 +40,9 @@ class bleutrade extends bittrex {
             ),
             'timeframes' => $timeframes,
             'hostname' => 'bleutrade.com',
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
-                'api' => array (
+                'api' => array(
                     'public' => 'https://{hostname}/api/v2',
                     'account' => 'https://{hostname}/api/v2',
                     'market' => 'https://{hostname}/api/v2',
@@ -50,14 +50,14 @@ class bleutrade extends bittrex {
                     'v3Public' => 'https://{hostname}/api/v3/public',
                 ),
                 'www' => 'https://bleutrade.com',
-                'doc' => array (
+                'doc' => array(
                     'https://app.swaggerhub.com/apis-docs/bleu/white-label/3.0.0',
                 ),
                 'fees' => 'https://bleutrade.com/help/fees_and_deadlines',
             ),
-            'api' => array (
-                'account' => array (
-                    'get' => array (
+            'api' => array(
+                'account' => array(
+                    'get' => array(
                         'balance',
                         'balances',
                         'depositaddress',
@@ -69,8 +69,8 @@ class bleutrade extends bittrex {
                         'withdraw',
                     ),
                 ),
-                'public' => array (
-                    'get' => array (
+                'public' => array(
+                    'get' => array(
                         'candles',
                         'currencies',
                         'markethistory',
@@ -81,8 +81,8 @@ class bleutrade extends bittrex {
                         'ticker',
                     ),
                 ),
-                'v3Public' => array (
-                    'get' => array (
+                'v3Public' => array(
+                    'get' => array(
                         'assets',
                         'markets',
                         'ticker',
@@ -93,8 +93,8 @@ class bleutrade extends bittrex {
                         'candles',
                     ),
                 ),
-                'v3Private' => array (
-                    'get' => array (
+                'v3Private' => array(
+                    'get' => array(
                         'getbalance',
                         'getbalances',
                         'buylimit',
@@ -115,9 +115,9 @@ class bleutrade extends bittrex {
                     ),
                 ),
             ),
-            'fees' => array (
-                'funding' => array (
-                    'withdraw' => array (
+            'fees' => array(
+                'funding' => array(
+                    'withdraw' => array(
                         'ADC' => 0.1,
                         'BTA' => 0.1,
                         'BITB' => 0.1,
@@ -167,17 +167,17 @@ class bleutrade extends bittrex {
                     ),
                 ),
             ),
-            'commonCurrencies' => array (
+            'commonCurrencies' => array(
                 'EPC' => 'Epacoin',
             ),
-            'exceptions' => array (
+            'exceptions' => array(
                 'Insufficient funds!' => '\\ccxt\\InsufficientFunds',
                 'Invalid Order ID' => '\\ccxt\\InvalidOrder',
                 'Invalid apikey or apisecret' => '\\ccxt\\AuthenticationError',
             ),
-            'options' => array (
+            'options' => array(
                 // price precision by quote currency code
-                'pricePrecisionByCode' => array (
+                'pricePrecisionByCode' => array(
                     'USD' => 3,
                 ),
                 'parseOrderStatus' => true,
@@ -195,7 +195,7 @@ class bleutrade extends bittrex {
         $response = $this->publicGetMarkets ($params);
         $result = array();
         $markets = $this->safe_value($response, 'result');
-        for ($i = 0; $i < count ($markets); $i++) {
+        for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'MarketName');
             $baseId = $this->safe_string($market, 'MarketCurrency');
@@ -207,7 +207,7 @@ class bleutrade extends bittrex {
             if (is_array($this->options['pricePrecisionByCode']) && array_key_exists($quote, $this->options['pricePrecisionByCode'])) {
                 $pricePrecision = $this->options['pricePrecisionByCode'][$quote];
             }
-            $precision = array (
+            $precision = array(
                 'amount' => 8,
                 'price' => $pricePrecision,
             );
@@ -218,7 +218,7 @@ class bleutrade extends bittrex {
             } else {
                 $active = false;
             }
-            $result[] = array (
+            $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -228,12 +228,12 @@ class bleutrade extends bittrex {
                 'active' => $active,
                 'info' => $market,
                 'precision' => $precision,
-                'limits' => array (
-                    'amount' => array (
+                'limits' => array(
+                    'amount' => array(
                         'min' => $this->safe_float($market, 'MinTradeSize'),
                         'max' => null,
                     ),
-                    'price' => array (
+                    'price' => array(
                         'min' => pow(10, -$precision['price']),
                         'max' => null,
                     ),
@@ -244,7 +244,7 @@ class bleutrade extends bittrex {
     }
 
     public function parse_order_status ($status) {
-        $statuses = array (
+        $statuses = array(
             'OK' => 'closed',
             'OPEN' => 'open',
             'CANCELED' => 'canceled',
@@ -264,11 +264,11 @@ class bleutrade extends bittrex {
             $market = $this->market ($symbol);
             $marketId = $market['id'];
         }
-        $request = array (
+        $request = array(
             'market' => $marketId,
             'orderstatus' => 'ALL',
         );
-        $response = $this->accountGetOrders (array_merge ($request, $params));
+        $response = $this->accountGetOrders (array_merge($request, $params));
         return $this->parse_orders($response['result'], $market, $since, $limit);
     }
 
@@ -290,14 +290,14 @@ class bleutrade extends bittrex {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'market' => $this->market_id($symbol),
             'type' => 'ALL',
         );
         if ($limit !== null) {
             $request['depth'] = $limit; // 50
         }
-        $response = $this->publicGetOrderbook (array_merge ($request, $params));
+        $response = $this->publicGetOrderbook (array_merge($request, $params));
         $orderbook = $this->safe_value($response, 'result');
         if (!$orderbook) {
             throw new ExchangeError($this->id . ' publicGetOrderbook() returneded no result ' . $this->json ($response));
@@ -311,11 +311,11 @@ class bleutrade extends bittrex {
         // Similarly, the correct 'side' for the trade is that of the order.
         // The trade fee can be set by the user, it is always 0.25% and is taken in the quote currency.
         $this->load_markets();
-        $request = array (
+        $request = array(
             'orderid' => $id,
         );
-        $response = $this->accountGetOrderhistory (array_merge ($request, $params));
-        return $this->parse_trades($response['result'], null, $since, $limit, array (
+        $response = $this->accountGetOrderhistory (array_merge($request, $params));
+        return $this->parse_trades($response['result'], null, $since, $limit, array(
             'order' => $id,
         ));
     }
@@ -338,7 +338,7 @@ class bleutrade extends bittrex {
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
         $timestamp = $this->parse8601 ($ohlcv['TimeStamp'] . '+00:00');
-        return array (
+        return array(
             $timestamp,
             $this->safe_float($ohlcv, 'Open'),
             $this->safe_float($ohlcv, 'High'),
@@ -351,12 +351,12 @@ class bleutrade extends bittrex {
     public function fetch_ohlcv ($symbol, $timeframe = '15m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'period' => $this->timeframes[$timeframe],
             'market' => $market['id'],
             'count' => $limit,
         );
-        $response = $this->publicGetCandles (array_merge ($request, $params));
+        $response = $this->publicGetCandles (array_merge($request, $params));
         if (is_array($response) && array_key_exists('result', $response)) {
             if ($response['result']) {
                 return $this->parse_ohlcvs($response['result'], $market, $timeframe, $since, $limit);
@@ -385,7 +385,7 @@ class bleutrade extends bittrex {
                 $cost = $price * $amount;
             }
         }
-        return array (
+        return array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -404,7 +404,7 @@ class bleutrade extends bittrex {
 
     public function parse_ledger_entry_type ($type) {
         // deposits don't seem to appear in here
-        $types = array (
+        $types = array(
             'TRADE' => 'trade',
             'WITHDRAW' => 'transaction',
         );
@@ -463,7 +463,7 @@ class bleutrade extends bittrex {
         $fee = null;
         $delimiter = ($type === 'trade') ? ', ' : '; ';
         $parts = explode($delimiter, $description);
-        for ($i = 0; $i < count ($parts); $i++) {
+        for ($i = 0; $i < count($parts); $i++) {
             $part = $parts[$i];
             if (mb_strpos($part, 'fee') === 0) {
                 $part = str_replace('fee ', '', $part);
@@ -471,7 +471,7 @@ class bleutrade extends bittrex {
                 if ($feeCost < 0) {
                     $feeCost = -$feeCost;
                 }
-                $fee = array (
+                $fee = array(
                     'cost' => $feeCost,
                     'currency' => $code,
                 );
@@ -483,7 +483,7 @@ class bleutrade extends bittrex {
             //
             //     if (mb_strpos($part, 'Withdraw') === 0) {
             //         $details = explode(' to address ', $part);
-            //         if (strlen ($details) > 1) {
+            //         if (strlen($details) > 1) {
             //             address = $details[1];
             //     }
             //
@@ -499,7 +499,7 @@ class bleutrade extends bittrex {
             }
         }
         $id = $this->safe_string($item, 'ID');
-        return array (
+        return array(
             'id' => $id,
             'info' => $item,
             'timestamp' => $timestamp,
@@ -532,7 +532,7 @@ class bleutrade extends bittrex {
         //         $request['asset'] = $currency['id'];
         //     }
         //
-        $response = $this->v3PrivateGetGetmytransactions (array_merge ($request, $params));
+        $response = $this->v3PrivateGetGetmytransactions (array_merge($request, $params));
         return $this->parse_ledger($response['result'], $code, $since, $limit);
     }
 
@@ -616,7 +616,7 @@ class bleutrade extends bittrex {
             $commission = 'CommissionPaid';
         }
         if ($commission) {
-            $fee = array (
+            $fee = array(
                 'cost' => $this->safe_float($order, $commission),
             );
             if ($market !== null) {
@@ -647,7 +647,7 @@ class bleutrade extends bittrex {
         }
         $average = $this->safe_float($order, 'PricePerUnit');
         $id = $this->safe_string_2($order, 'OrderUuid', 'OrderId');
-        return array (
+        return array(
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -703,7 +703,7 @@ class bleutrade extends bittrex {
         $amount = $this->safe_float($transaction, 'Amount');
         $type = 'deposit';
         if ($amount < 0) {
-            $amount = abs ($amount);
+            $amount = abs($amount);
             $type = 'withdrawal';
         }
         $currencyId = $this->safe_string($transaction, 'Coin');
@@ -714,7 +714,7 @@ class bleutrade extends bittrex {
         $address = null;
         $feeCost = null;
         $labelParts = explode(';', $label);
-        if (strlen ($labelParts) === 3) {
+        if (strlen($labelParts) === 3) {
             $amount = floatval ($labelParts[0]);
             $address = $labelParts[1];
             $feeCost = floatval ($labelParts[2]);
@@ -723,7 +723,7 @@ class bleutrade extends bittrex {
         }
         $fee = null;
         if ($feeCost !== null) {
-            $fee = array (
+            $fee = array(
                 'currency' => $code,
                 'cost' => $feeCost,
             );
@@ -733,7 +733,7 @@ class bleutrade extends bittrex {
             $txid = null;
             $status = 'canceled';
         }
-        return array (
+        return array(
             'info' => $transaction,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -751,7 +751,7 @@ class bleutrade extends bittrex {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->implode_params($this->urls['api'][$api], array (
+        $url = $this->implode_params($this->urls['api'][$api], array(
             'hostname' => $this->hostname,
         )) . '/';
         if ($api === 'v3Private' || $api === 'account') {
@@ -762,11 +762,11 @@ class bleutrade extends bittrex {
             if ((($api === 'account') && ($path !== 'withdraw')) || ($path === 'openorders')) {
                 $url .= strtolower($method);
             }
-            $request = array (
+            $request = array(
                 'apikey' => $this->apiKey,
             );
             $request['nonce'] = $this->nonce ();
-            $url .= $path . '?' . $this->urlencode (array_merge ($request, $params));
+            $url .= $path . '?' . $this->urlencode (array_merge($request, $params));
             $signature = $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512');
             $headers = array( 'apisign' => $signature );
         } else {

@@ -10,14 +10,14 @@ use Exception; // a common import
 class bitfinex2 extends bitfinex {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'bitfinex2',
             'name' => 'Bitfinex',
-            'countries' => array ( 'VG' ),
+            'countries' => array( 'VG' ),
             'version' => 'v2',
             'certified' => false,
             // new metainfo interface
-            'has' => array (
+            'has' => array(
                 'CORS' => true,
                 'createLimitOrder' => false,
                 'createMarketOrder' => false,
@@ -36,7 +36,7 @@ class bitfinex2 extends bitfinex {
                 'fetchTradingFees' => false,
                 'withdraw' => true,
             ),
-            'timeframes' => array (
+            'timeframes' => array(
                 '1m' => '1m',
                 '5m' => '5m',
                 '15m' => '15m',
@@ -51,29 +51,29 @@ class bitfinex2 extends bitfinex {
                 '1M' => '1M',
             ),
             'rateLimit' => 1500,
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
-                'api' => array (
+                'api' => array(
                     'v1' => 'https://api.bitfinex.com',
                     'public' => 'https://api-pub.bitfinex.com',
                     'private' => 'https://api.bitfinex.com',
                 ),
                 'www' => 'https://www.bitfinex.com',
-                'doc' => array (
+                'doc' => array(
                     'https://docs.bitfinex.com/v2/docs/',
                     'https://github.com/bitfinexcom/bitfinex-api-node',
                 ),
                 'fees' => 'https://www.bitfinex.com/fees',
             ),
-            'api' => array (
-                'v1' => array (
-                    'get' => array (
+            'api' => array(
+                'v1' => array(
+                    'get' => array(
                         'symbols',
                         'symbols_details',
                     ),
                 ),
-                'public' => array (
-                    'get' => array (
+                'public' => array(
+                    'get' => array(
                         'conf/pub:map:currency:label',
                         'platform/status',
                         'tickers',
@@ -95,13 +95,13 @@ class bitfinex2 extends bitfinex {
                         'candles/trade:{timeframe}:{symbol}/last',
                         'candles/trade:{timeframe}:{symbol}/hist',
                     ),
-                    'post' => array (
+                    'post' => array(
                         'calc/trade/avg',
                         'calc/fx',
                     ),
                 ),
-                'private' => array (
-                    'post' => array (
+                'private' => array(
+                    'post' => array(
                         'auth/r/wallets',
                         'auth/r/orders/{symbol}',
                         'auth/r/orders/{symbol}/new',
@@ -138,13 +138,13 @@ class bitfinex2 extends bitfinex {
                     ),
                 ),
             ),
-            'fees' => array (
-                'trading' => array (
+            'fees' => array(
+                'trading' => array(
                     'maker' => 0.1 / 100,
                     'taker' => 0.2 / 100,
                 ),
-                'funding' => array (
-                    'withdraw' => array (
+                'funding' => array(
+                    'withdraw' => array(
                         'BTC' => 0.0004,
                         'BCH' => 0.0001,
                         'ETH' => 0.00135,
@@ -175,9 +175,9 @@ class bitfinex2 extends bitfinex {
                     ),
                 ),
             ),
-            'options' => array (
+            'options' => array(
                 'precision' => 'R0', // P0, P1, P2, P3, P4, R0
-                'orderTypes' => array (
+                'orderTypes' => array(
                     'MARKET' => null,
                     'EXCHANGE MARKET' => 'market',
                     'LIMIT' => null,
@@ -193,7 +193,7 @@ class bitfinex2 extends bitfinex {
                     'IOC' => null,
                     'EXCHANGE IOC' => 'limit ioc',
                 ),
-                'fiat' => array (
+                'fiat' => array(
                     'USD' => 'USD',
                     'EUR' => 'EUR',
                     'JPY' => 'JPY',
@@ -214,7 +214,7 @@ class bitfinex2 extends bitfinex {
     public function fetch_markets ($params = array ()) {
         $response = $this->v1GetSymbolsDetails ($params);
         $result = array();
-        for ($i = 0; $i < count ($response); $i++) {
+        for ($i = 0; $i < count($response); $i++) {
             $market = $response[$i];
             $id = $this->safe_string($market, 'pair');
             $id = strtoupper($id);
@@ -234,25 +234,25 @@ class bitfinex2 extends bitfinex {
             $id = 't' . $id;
             $baseId = $this->get_currency_id ($baseId);
             $quoteId = $this->get_currency_id ($quoteId);
-            $precision = array (
+            $precision = array(
                 'price' => $this->safe_integer($market, 'price_precision'),
                 'amount' => $this->safe_integer($market, 'price_precision'),
             );
-            $limits = array (
-                'amount' => array (
+            $limits = array(
+                'amount' => array(
                     'min' => $this->safe_float($market, 'minimum_order_size'),
                     'max' => $this->safe_float($market, 'maximum_order_size'),
                 ),
-                'price' => array (
+                'price' => array(
                     'min' => pow(10, -$precision['price']),
                     'max' => pow(10, $precision['price']),
                 ),
             );
-            $limits['cost'] = array (
+            $limits['cost'] = array(
                 'min' => $limits['amount']['min'] * $limits['price']['min'],
                 'max' => null,
             );
-            $result[] = array (
+            $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -277,7 +277,7 @@ class bitfinex2 extends bitfinex {
         $response = $this->privatePostAuthRWallets ($params);
         $balanceType = $this->safe_string($params, 'type', 'exchange');
         $result = array( 'info' => $response );
-        for ($b = 0; $b < count ($response); $b++) {
+        for ($b = 0; $b < count($response); $b++) {
             $balance = $response[$b];
             $accountType = $balance[0];
             $currency = $balance[1];
@@ -312,17 +312,17 @@ class bitfinex2 extends bitfinex {
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $precision = $this->safe_value($this->options, 'precision', 'R0');
-        $request = array (
+        $request = array(
             'symbol' => $this->market_id($symbol),
             'precision' => $precision,
         );
         if ($limit !== null) {
             $request['len'] = $limit; // 25 or 100
         }
-        $fullRequest = array_merge ($request, $params);
+        $fullRequest = array_merge($request, $params);
         $orderbook = $this->publicGetBookSymbolPrecision ($fullRequest);
         $timestamp = $this->milliseconds ();
-        $result = array (
+        $result = array(
             'bids' => array(),
             'asks' => array(),
             'timestamp' => $timestamp,
@@ -330,12 +330,12 @@ class bitfinex2 extends bitfinex {
             'nonce' => null,
         );
         $priceIndex = ($fullRequest['precision'] === 'R0') ? 1 : 0;
-        for ($i = 0; $i < count ($orderbook); $i++) {
+        for ($i = 0; $i < count($orderbook); $i++) {
             $order = $orderbook[$i];
             $price = $order[$priceIndex];
-            $amount = abs ($order[2]);
+            $amount = abs($order[2]);
             $side = ($order[2] > 0) ? 'bids' : 'asks';
-            $result[$side][] = array ( $price, $amount );
+            $result[$side][] = array( $price, $amount );
         }
         $result['bids'] = $this->sort_by($result['bids'], 0, true);
         $result['asks'] = $this->sort_by($result['asks'], 0);
@@ -348,9 +348,9 @@ class bitfinex2 extends bitfinex {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $length = is_array ($ticker) ? count ($ticker) : 0;
+        $length = is_array($ticker) ? count($ticker) : 0;
         $last = $ticker[$length - 4];
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -383,9 +383,9 @@ class bitfinex2 extends bitfinex {
         } else {
             $request['symbols'] = 'ALL';
         }
-        $tickers = $this->publicGetTickers (array_merge ($request, $params));
+        $tickers = $this->publicGetTickers (array_merge($request, $params));
         $result = array();
-        for ($i = 0; $i < count ($tickers); $i++) {
+        for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $tickers[$i];
             $id = $ticker[0];
             if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
@@ -400,10 +400,10 @@ class bitfinex2 extends bitfinex {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'symbol' => $market['id'],
         );
-        $ticker = $this->publicGetTickerSymbol (array_merge ($request, $params));
+        $ticker = $this->publicGetTickerSymbol (array_merge($request, $params));
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -411,7 +411,7 @@ class bitfinex2 extends bitfinex {
         //
         // fetchTrades (public)
         //
-        //     array (
+        //     array(
         //         ID,
         //         MTS, // $timestamp
         //         AMOUNT,
@@ -420,7 +420,7 @@ class bitfinex2 extends bitfinex {
         //
         // fetchMyTrades (private)
         //
-        //     array (
+        //     array(
         //         ID,
         //         PAIR,
         //         MTS_CREATE,
@@ -435,7 +435,7 @@ class bitfinex2 extends bitfinex {
         //         ...
         //     )
         //
-        $tradeLength = is_array ($trade) ? count ($trade) : 0;
+        $tradeLength = is_array($trade) ? count($trade) : 0;
         $isPrivate = ($tradeLength > 5);
         $id = (string) $trade[0];
         $amountIndex = $isPrivate ? 4 : 2;
@@ -466,8 +466,8 @@ class bitfinex2 extends bitfinex {
             $feeCost = $trade[9];
             $feeCurrency = $this->safe_currency_code($trade[10]);
             if ($feeCost !== null) {
-                $fee = array (
-                    'cost' => abs ($feeCost),
+                $fee = array(
+                    'cost' => abs($feeCost),
                     'currency' => $feeCurrency,
                 );
             }
@@ -481,14 +481,14 @@ class bitfinex2 extends bitfinex {
         }
         if ($amount !== null) {
             $side = ($amount < 0) ? 'sell' : 'buy';
-            $amount = abs ($amount);
+            $amount = abs($amount);
             if ($cost === null) {
                 if ($price !== null) {
                     $cost = $amount * $price;
                 }
             }
         }
-        return array (
+        return array(
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -509,7 +509,7 @@ class bitfinex2 extends bitfinex {
         $this->load_markets();
         $market = $this->market ($symbol);
         $sort = '-1';
-        $request = array (
+        $request = array(
             'symbol' => $market['id'],
         );
         if ($since !== null) {
@@ -520,10 +520,10 @@ class bitfinex2 extends bitfinex {
             $request['limit'] = $limit; // default 120, max 5000
         }
         $request['sort'] = $sort;
-        $response = $this->publicGetTradesSymbolHist (array_merge ($request, $params));
+        $response = $this->publicGetTradesSymbolHist (array_merge($request, $params));
         //
-        //     array (
-        //         array (
+        //     array(
+        //         array(
         //             ID,
         //             MTS, // timestamp
         //             AMOUNT,
@@ -544,14 +544,14 @@ class bitfinex2 extends bitfinex {
         if ($since === null) {
             $since = $this->milliseconds () - $this->parse_timeframe($timeframe) * $limit * 1000;
         }
-        $request = array (
+        $request = array(
             'symbol' => $market['id'],
             'timeframe' => $this->timeframes[$timeframe],
             'sort' => 1,
             'start' => $since,
             'limit' => $limit,
         );
-        $response = $this->publicGetCandlesTradeTimeframeSymbolHist (array_merge ($request, $params));
+        $response = $this->publicGetCandlesTradeTimeframeSymbolHist (array_merge($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
@@ -578,7 +578,7 @@ class bitfinex2 extends bitfinex {
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
-        $request = array (
+        $request = array(
             'end' => $this->milliseconds (),
         );
         if ($since !== null) {
@@ -593,7 +593,7 @@ class bitfinex2 extends bitfinex {
             $request['symbol'] = $market['id'];
             $method = 'privatePostAuthRTradesSymbolHist';
         }
-        $response = $this->$method (array_merge ($request, $params));
+        $response = $this->$method (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -621,7 +621,7 @@ class bitfinex2 extends bitfinex {
             $body = $this->json ($query);
             $auth = '/api/' . $request . $nonce . $body;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha384');
-            $headers = array (
+            $headers = array(
                 'bfx-nonce' => $nonce,
                 'bfx-apikey' => $this->apiKey,
                 'bfx-signature' => $signature,

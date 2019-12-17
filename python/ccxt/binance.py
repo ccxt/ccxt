@@ -172,6 +172,9 @@ class binance(Exchange):
                         'ticker/bookTicker',
                         'income',
                     ],
+                    'put': ['listenKey'],
+                    'post': ['listenKey'],
+                    'delete': ['listenKey'],
                 },
                 'fapiPrivate': {
                     'get': [
@@ -1495,7 +1498,7 @@ class binance(Exchange):
         url += '/' + path
         if api == 'wapi':
             url += '.html'
-        userDataStream = (path == 'userDataStream')
+        userDataStream = ((path == 'userDataStream') or (path == 'listenKey'))
         if path == 'historicalTrades':
             headers = {
                 'X-MBX-APIKEY': self.apiKey,

@@ -10,15 +10,15 @@ use Exception; // a common import
 class adara extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'adara',
             'name' => 'Adara',
-            'countries' => array ( 'MT' ),
+            'countries' => array( 'MT' ),
             'version' => 'v1',
             'rateLimit' => 1000,
             'certified' => false,
             // new metainfo interface
-            'has' => array (
+            'has' => array(
                 'CORS' => true,
                 'fetchCurrencies' => true,
                 'fetchOrderBooks' => false,
@@ -35,21 +35,21 @@ class adara extends Exchange {
                 'fetchWithdrawals' => false,
                 'fetchTransactions' => false,
             ),
-            'requiredCredentials' => array (
+            'requiredCredentials' => array(
                 'apiKey' => true,
                 'secret' => true,
                 'token' => false,
             ),
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/49189583-0466a780-f380-11e8-9248-57a631aad2d6.jpg',
                 'api' => 'https://api.adara.io',
                 'www' => 'https://adara.io',
                 'doc' => 'https://api.adara.io/v1',
                 'fees' => 'https://adara.io/fees',
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
+            'api' => array(
+                'public' => array(
+                    'get' => array(
                         'currencies',
                         'limits',
                         'market',
@@ -61,14 +61,14 @@ class adara extends Exchange {
                         'symbols',
                         'trade',
                     ),
-                    'post' => array (
+                    'post' => array(
                         'confirmContactEmail',
                         'restorePassword',
                         'user', // sign up
                     ),
                 ),
-                'private' => array (
-                    'get' => array (
+                'private' => array(
+                    'get' => array(
                         'balance',
                         'order',
                         'order/{id}',
@@ -76,39 +76,39 @@ class adara extends Exchange {
                         'apiKey', // the list of apiKeys
                         'user/{id}',
                     ),
-                    'post' => array (
+                    'post' => array(
                         'order',
                         'recovery',
                         'user',
                         'apiKey',  // sign in and optionally create an apiKey
                         'contact',
                     ),
-                    'patch' => array (
+                    'patch' => array(
                         'order/{id}',
                         'user/{id}', // change password
                         'customer', // update user info
                     ),
-                    'delete' => array (
+                    'delete' => array(
                         'apiKey',
                     ),
                 ),
             ),
-            'fees' => array (
-                'trading' => array (
+            'fees' => array(
+                'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
                     'maker' => 0.001,
                     'taker' => 0.001,
                 ),
-                'funding' => array (
+                'funding' => array(
                     'tierBased' => false,
                     'percentage' => false,
                     'withdraw' => array(),
                     'deposit' => array(),
                 ),
             ),
-            'exceptions' => array (
-                'exact' => array (
+            'exceptions' => array(
+                'exact' => array(
                     'Insufficient funds' => '\\ccxt\\InsufficientFunds',
                     'Amount is too small' => '\\ccxt\\InvalidOrder',
                     'operation has invalid value' => '\\ccxt\\InvalidOrder',
@@ -125,19 +125,19 @@ class adara extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $request = array (
+        $request = array(
             'include' => 'from,to',
         );
-        $response = $this->publicGetSymbols (array_merge ($request, $params));
+        $response = $this->publicGetSymbols (array_merge($request, $params));
         $included = $this->safe_value($response, 'included', array());
         $includedByType = $this->group_by($included, 'type');
         $currencies = $this->safe_value($includedByType, 'currency', array());
         $currenciesById = $this->index_by($currencies, 'id');
         //
         //     array(     meta => { total => 61 ),
-        //           data => array ( {            $id =>   "XRPUSD",
+        //           data => array( {            $id =>   "XRPUSD",
         //                              type =>   "$symbol",
-        //                        $attributes => array ( allowTrade =>  false,
+        //                        $attributes => array( allowTrade =>  false,
         //                                       createdAt => "2018-10-23T09:31:06.830Z",
         //                                          digits =>  5,
         //                                        fullName => "XRPUSD",
@@ -145,11 +145,11 @@ class adara extends Exchange {
         //                                            name => "XRPUSD",
         //                                        takerFee => "0.0250",
         //                                       updatedAt => "2018-10-23T09:31:06.830Z"  ),
-        //                     $relationships => array( from => array( data => array ( $id => "XRP", type => "currency" ) ),
+        //                     $relationships => array( from => array( data => array( $id => "XRP", type => "currency" ) ),
         //                                        to => array( data => array( $id => "USD", type => "currency" ) )  } ),
         //                   {            $id =>   "XRPETH",
         //                              type =>   "$symbol",
-        //                        $attributes => array ( allowTrade =>  true,
+        //                        $attributes => array( allowTrade =>  true,
         //                                       createdAt => "2018-10-09T22:34:28.268Z",
         //                                          digits =>  8,
         //                                        fullName => "XRPETH",
@@ -159,9 +159,9 @@ class adara extends Exchange {
         //                                       updatedAt => "2018-10-09T22:34:28.268Z"  ),
         //                     $relationships => array( from => array( data => { $id => "XRP", type => "currency" ) ),
         //                                        to => array( data => array( $id => "ETH", type => "currency" ) )  } }  ),
-        //       $included => array ( array (            $id =>   "XRP",
+        //       $included => array( array(            $id =>   "XRP",
         //                              type =>   "currency",
-        //                        $attributes => array (               accuracy =>  4,
+        //                        $attributes => array(               accuracy =>  4,
         //                                                      $active =>  true,
         //                                                allowDeposit =>  true,
         //                                                  allowTrade =>  false,
@@ -174,9 +174,9 @@ class adara extends Exchange {
         //                                                 withdrawFee => "0.20000000",
         //                                           withdrawMinAmount => "22.00000000"                                    ),
         //                     $relationships => array(  )                                                                          ),
-        //                   array (            $id =>   "ETH",
+        //                   array(            $id =>   "ETH",
         //                              type =>   "currency",
-        //                        $attributes => array (               accuracy =>  8,
+        //                        $attributes => array(               accuracy =>  8,
         //                                                      $active =>  true,
         //                                                allowDeposit =>  true,
         //                                                  allowTrade =>  true,
@@ -191,7 +191,7 @@ class adara extends Exchange {
         //                     $relationships => array(  )                                                                  ),
         //                   {            $id =>   "USD",
         //                              type =>   "currency",
-        //                        $attributes => array (               accuracy =>  6,
+        //                        $attributes => array(               accuracy =>  6,
         //                                                      $active =>  true,
         //                                                allowDeposit =>  false,
         //                                                  allowTrade =>  true,
@@ -207,7 +207,7 @@ class adara extends Exchange {
         //
         $result = array();
         $markets = $response['data'];
-        for ($i = 0; $i < count ($markets); $i++) {
+        for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'id');
             $attributes = $this->safe_value($market, 'attributes', array());
@@ -225,14 +225,14 @@ class adara extends Exchange {
             $symbol = $base . '/' . $quote;
             $amountPrecision = $this->safe_integer($baseCurrencyAttributes, 'accuracy', 8);
             $pricePrecision = $this->safe_integer($attributes, 'digits', 8);
-            $precision = array (
+            $precision = array(
                 'amount' => $amountPrecision,
                 'price' => $pricePrecision,
             );
             $active = $this->safe_value($attributes, 'allowTrade');
             $maker = $this->safe_float($attributes, 'makerFee');
             $taker = $this->safe_float($attributes, 'takerFee');
-            $result[] = array (
+            $result[] = array(
                 'info' => $market,
                 'id' => $id,
                 'symbol' => $symbol,
@@ -244,16 +244,16 @@ class adara extends Exchange {
                 'maker' => $maker,
                 'taker' => $taker,
                 'precision' => $precision,
-                'limits' => array (
-                    'amount' => array (
+                'limits' => array(
+                    'amount' => array(
                         'min' => pow(10, -$precision['amount']),
                         'max' => null,
                     ),
-                    'price' => array (
+                    'price' => array(
                         'min' => pow(10, -$precision['price']),
                         'max' => null,
                     ),
-                    'cost' => array (
+                    'cost' => array(
                         'min' => null,
                         'max' => null,
                     ),
@@ -267,9 +267,9 @@ class adara extends Exchange {
         $response = $this->publicGetCurrencies ($params);
         //
         //     array(     meta => { total => 22 ),
-        //           data => array ( array (            $id =>   "USD",
+        //           data => array( array(            $id =>   "USD",
         //                              type =>   "$currency",
-        //                        $attributes => array (               accuracy =>  6,
+        //                        $attributes => array(               accuracy =>  6,
         //                                                      $active =>  true,
         //                                                $allowDeposit =>  false,
         //                                                  allowTrade =>  true,
@@ -284,7 +284,7 @@ class adara extends Exchange {
         //                     relationships => array(  )                                       ),
         //                   {            $id =>   "BTC",
         //                              type =>   "$currency",
-        //                        $attributes => array (               accuracy =>  8,
+        //                        $attributes => array(               accuracy =>  8,
         //                                                      $active =>  true,
         //                                                $allowDeposit =>  true,
         //                                                  allowTrade =>  true,
@@ -301,7 +301,7 @@ class adara extends Exchange {
         //
         $currencies = $response['data'];
         $result = array();
-        for ($i = 0; $i < count ($currencies); $i++) {
+        for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $this->safe_string($currency, 'id');
             $attributes = $this->safe_value($currency, 'attributes', array());
@@ -311,7 +311,7 @@ class adara extends Exchange {
             $active = $this->safe_value($attributes, 'active');
             $allowDeposit = $this->safe_value($attributes, 'allowDeposit');
             $allowWithdraw = $this->safe_value($attributes, 'allowWithdraw');
-            $result[$code] = array (
+            $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency,
@@ -319,20 +319,20 @@ class adara extends Exchange {
                 'active' => ($active && $allowDeposit && $allowWithdraw),
                 'fee' => $fee,
                 'precision' => $precision,
-                'limits' => array (
-                    'amount' => array (
+                'limits' => array(
+                    'amount' => array(
                         'min' => pow(10, -$precision),
                         'max' => pow(10, $precision),
                     ),
-                    'price' => array (
+                    'price' => array(
                         'min' => pow(10, -$precision),
                         'max' => pow(10, $precision),
                     ),
-                    'cost' => array (
+                    'cost' => array(
                         'min' => null,
                         'max' => null,
                     ),
-                    'withdraw' => array (
+                    'withdraw' => array(
                         'min' => $this->safe_float($attributes, 'withdrawMinAmount'),
                         'max' => pow(10, $precision),
                     ),
@@ -346,9 +346,9 @@ class adara extends Exchange {
         $this->load_markets();
         $response = $this->privateGetBalance ($params);
         //
-        //     {     $data => array ( {          type =>   "$balance",
+        //     {     $data => array( {          type =>   "$balance",
         //                                id =>   "U4f0f0940-39bf-45a8-90bc-12d2899db4f1_BALANCE_FOR_ETH",
-        //                        $attributes => array (           totalBalance => 10000,
+        //                        $attributes => array(           totalBalance => 10000,
         //                                                    onOrders => 0,
         //                                      normalizedTotalBalance => 310,
         //                                          normalizedOnOrders => 0,
@@ -356,9 +356,9 @@ class adara extends Exchange {
         //                                                serializedAt => 1543324487949      ),
         //                     $relationships => array(           currency => array( $data => { type => "currency", id => "ETH" ) ),
         //                                      normalizedCurrency => array( $data => array( type => "currency", id => "BTC" ) )  } }  ),
-        //       included => array ( array (          type =>   "currency",
+        //       included => array( array(          type =>   "currency",
         //                                id =>   "BTC",
-        //                        $attributes => array (          name => "Bitcoin",
+        //                        $attributes => array(          name => "Bitcoin",
         //                                          shortName => "BTC",
         //                                             active =>  true,
         //                                           accuracy =>  8,
@@ -383,7 +383,7 @@ class adara extends Exchange {
         $result = array( 'info' => $response );
         $data = $this->safe_value($response, 'data');
         if ($data !== null) {
-            for ($i = 0; $i < count ($data); $i++) {
+            for ($i = 0; $i < count($data); $i++) {
                 $balance = $data[$i];
                 $attributes = $this->safe_value($balance, 'attributes', array());
                 $relationships = $this->safe_value($balance, 'relationships', array());
@@ -417,11 +417,11 @@ class adara extends Exchange {
     public function parse_order_book ($orderbook, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 'price', $amountKey = 'amount') {
         $bids = array();
         $asks = array();
-        $numBidAsks = is_array ($orderbook) ? count ($orderbook) : 0;
+        $numBidAsks = is_array($orderbook) ? count($orderbook) : 0;
         if ($numBidAsks > 0) {
             $timestamp = $this->safe_integer($orderbook[0]['attributes'], 'serializedAt');
         }
-        for ($i = 0; $i < count ($orderbook); $i++) {
+        for ($i = 0; $i < count($orderbook); $i++) {
             $bidask = $orderbook[$i];
             $attributes = $this->safe_value($bidask, 'attributes', array());
             $currenTimestamp = $this->safe_integer($attributes, 'serializedAt');
@@ -432,10 +432,10 @@ class adara extends Exchange {
             } else if (mb_strpos($id, 'OSID') !== false) {
                 $asks[] = $this->parse_bid_ask($bidask['attributes'], $priceKey, $amountKey);
             } else {
-                throw ExchangeError ($this->id . ' parseOrderBook encountered an unrecognized $bidask format => ' . $this->json ($bidask));
+                throw new ExchangeError($this->id . ' parseOrderBook encountered an unrecognized $bidask format => ' . $this->json ($bidask));
             }
         }
-        return array (
+        return array(
             'bids' => $this->sort_by($bids, 0, true),
             'asks' => $this->sort_by($asks, 0),
             'timestamp' => $timestamp,
@@ -450,11 +450,11 @@ class adara extends Exchange {
         $filters = 'filters[$symbol]';
         $request = array();
         $request[$filters] = $market['id'];
-        $response = $this->publicGetOrderBook (array_merge ($request, $params));
+        $response = $this->publicGetOrderBook (array_merge($request, $params));
         //
-        //     { data => array ( {       type =>   "orderBook",
+        //     { data => array( {       type =>   "orderBook",
         //                         id =>   "OBID0SLTCETHS0",
-        //                 attributes => array (        price => 1,
+        //                 attributes => array(        price => 1,
         //                                     amount => 4,
         //                               serializedAt => 1543116143473 } ),
         //               {       type =>   "orderBook",
@@ -470,7 +470,7 @@ class adara extends Exchange {
         //
         //     {          type =>   "quote",
         //                  id =>   "XRPETH",
-        //          $attributes => array (  currentPrice => 1,
+        //          $attributes => array(  currentPrice => 1,
         //                                  low => 1,
         //                                 high => 1,
         //                           baseVolume => 0,
@@ -492,7 +492,7 @@ class adara extends Exchange {
             }
         }
         $percentage = $this->safe_float($attributes, 'percentChange');
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -521,9 +521,9 @@ class adara extends Exchange {
         $response = $this->publicGetQuote ($params);
         $data = $this->safe_value($response, 'data', array());
         //
-        //     {     $data => array ( {          type =>   "quote",
+        //     {     $data => array( {          type =>   "quote",
         //                                id =>   "XRPETH",
-        //                        attributes => array (  currentPrice => 1,
+        //                        attributes => array(  currentPrice => 1,
         //                                                low => 1,
         //                                               high => 1,
         //                                         baseVolume => 0,
@@ -532,9 +532,9 @@ class adara extends Exchange {
         //                                      percentChange => 0,
         //                                       serializedAt => 1543109275996 ),
         //                     relationships => array( $symbol => array( $data => array( type => "$symbol", id => "ETHBTC" ) ) ) }  ),
-        //       included => array ( array (          type =>   "currency",
+        //       included => array( array(          type =>   "currency",
         //                                id =>   "XRP",
-        //                        attributes => array (          name => "Ripple",
+        //                        attributes => array(          name => "Ripple",
         //                                          shortName => "XRP",
         //                                             active =>  true,
         //                                           accuracy =>  4,
@@ -546,7 +546,7 @@ class adara extends Exchange {
         //                     relationships => array(  )                               ),
         //                   {          type =>   "$symbol",
         //                                id =>   "XRPETH",
-        //                        attributes => array (     fullName => "XRPETH",
+        //                        attributes => array(     fullName => "XRPETH",
         //                                            digits =>  8,
         //                                        allowTrade =>  true,
         //                                      serializedAt =>  1543109275996 ),
@@ -554,7 +554,7 @@ class adara extends Exchange {
         //                                        to => array( $data => array( type => "currency", id => "ETH" ) )  } }  )    }
         //
         $result = array();
-        for ($t = 0; $t < count ($data); $t++) {
+        for ($t = 0; $t < count($data); $t++) {
             $ticker = $this->parse_ticker($data[$t]);
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
@@ -565,14 +565,14 @@ class adara extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'id' => $market['id'],
         );
-        $response = $this->publicGetQuoteId (array_merge ($request, $params));
+        $response = $this->publicGetQuoteId (array_merge($request, $params));
         //
-        //     { included => array ( {       type =>   "currency",
+        //     { included => array( {       type =>   "currency",
         //                             id =>   "ETH",
-        //                     attributes => array (          name => "Ethereum",
+        //                     attributes => array(          name => "Ethereum",
         //                                       shortName => "ETH",
         //                                          active =>  true,
         //                                        accuracy =>  8,
@@ -583,7 +583,7 @@ class adara extends Exchange {
         //                                    serializedAt =>  1543111444033 } ),
         //                   {       type =>   "currency",
         //                             id =>   "BTC",
-        //                     attributes => array (          name => "Bitcoin",
+        //                     attributes => array(          name => "Bitcoin",
         //                                       shortName => "BTC",
         //                                          active =>  true,
         //                                        accuracy =>  8,
@@ -594,7 +594,7 @@ class adara extends Exchange {
         //                                    serializedAt =>  1543111444033 } ),
         //                   {          type =>   "$symbol",
         //                                id =>   "ETHBTC",
-        //                        attributes => array (     fullName => "ETHBTC",
+        //                        attributes => array(     fullName => "ETHBTC",
         //                                            digits =>  6,
         //                                        allowTrade =>  true,
         //                                      serializedAt =>  1543111444033 ),
@@ -602,7 +602,7 @@ class adara extends Exchange {
         //                                        to => array( data => array( type => "currency", id => "BTC" ) )  } } ),
         //           data => {          type =>   "quote",
         //                              id =>   "ETHBTC",
-        //                      attributes => array (  currentPrice => 34,
+        //                      attributes => array(  currentPrice => 34,
         //                                              low => 34,
         //                                             high => 34,
         //                                       baseVolume => 0,
@@ -622,7 +622,7 @@ class adara extends Exchange {
         //
         //       {          type =>   "$trade",
         //                    $id =>   "1542988964359136846136847",
-        //            $attributes => array (        $price =>  34,
+        //            $attributes => array(        $price =>  34,
         //                                $amount =>  4,
         //                                 total =>  136,
         //                             operation => "buy",
@@ -643,7 +643,7 @@ class adara extends Exchange {
             $symbol = $market['symbol'];
             $feeCurrency = $market['quote'];
         } else if ($marketId !== null) {
-            $baseIdLength = strlen ($marketId) - 3;
+            $baseIdLength = strlen($marketId) - 3;
             $baseId = mb_substr($marketId, 0, $baseIdLength - 0);
             $quoteId = mb_substr($marketId, $baseIdLength);
             $base = $this->common_currency_code($baseId);
@@ -667,12 +667,12 @@ class adara extends Exchange {
         $feeCost = $this->safe_float($attributes, 'fee');
         $fee = null;
         if ($feeCost !== null) {
-            $fee = array (
+            $fee = array(
                 'cost' => $feeCost,
                 'currency' => $feeCurrency,
             );
         }
-        return array (
+        return array(
             'id' => $id,
             'info' => $trade,
             'order' => $orderId,
@@ -695,23 +695,23 @@ class adara extends Exchange {
         if ($symbol !== null) {
             $market = $this->market ($symbol);
         }
-        $request = array (
+        $request = array(
             // 'id' => $market['id'],
         );
-        $response = $this->publicGetTrade (array_merge ($request, $params));
+        $response = $this->publicGetTrade (array_merge($request, $params));
         //
-        //     {     data => array ( {          type =>   "trade",
+        //     {     data => array( {          type =>   "trade",
         //                                id =>   "1542988964359136846136847",
-        //                        attributes => array (        price =>  34,
+        //                        attributes => array(        price =>  34,
         //                                            amount =>  4,
         //                                             total =>  136,
         //                                         operation => "buy",
         //                                         createdAt => "2018-11-23T16:02:44.359Z",
         //                                      serializedAt =>  1543112364995              ),
         //                     relationships => array( $symbol => array( data => array( type => "$symbol", id => "ETHBTC" ) ) ) } ),
-        //       included => [ array (          type =>   "currency",
+        //       included => [ array(          type =>   "currency",
         //                                id =>   "ETH",
-        //                        attributes => array (          name => "Ethereum",
+        //                        attributes => array(          name => "Ethereum",
         //                                          shortName => "ETH",
         //                                             active =>  true,
         //                                           accuracy =>  8,
@@ -721,15 +721,15 @@ class adara extends Exchange {
         //                                         allowTrade =>  true,
         //                                       serializedAt =>  1543112364995 ),
         //                     relationships => array(  )                               ),
-        //                   array (          type =>   "currency",
+        //                   array(          type =>   "currency",
         //                                id =>   "BTC",
-        //                        attributes => array (          name => "Bitcoin",
+        //                        attributes => array(          name => "Bitcoin",
         //                                                   ...
         //                                       serializedAt =>  1543112364995 ),
         //                     relationships => array(  )                               ),
         //                   {          type =>   "$symbol",
         //                                id =>   "ETHBTC",
-        //                        attributes => array (     fullName => "ETHBTC",
+        //                        attributes => array(     fullName => "ETHBTC",
         //                                            digits =>  6,
         //                                        allowTrade =>  true,
         //                                      serializedAt =>  1543112364995 ),
@@ -742,18 +742,18 @@ class adara extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
-            'data' => array (
+        $request = array(
+            'data' => array(
                 'type' => 'order',
-                'attributes' => array (
+                'attributes' => array(
                     'amount' => floatval ($this->amount_to_precision($symbol, $amount)),
                     'operation' => $side,
                     'orderType' => $type,
                     'price' => floatval ($this->price_to_precision($symbol, $price)),
                 ),
-                'relationships' => array (
-                    'symbol' => array (
-                        'data' => array (
+                'relationships' => array(
+                    'symbol' => array(
+                        'data' => array(
                             'id' => $market['id'],
                             'type' => 'symbol',
                         ),
@@ -761,17 +761,17 @@ class adara extends Exchange {
                 ),
             ),
             'included' => [
-                array (
+                array(
                     'id' => $market['id'],
                     'type' => 'symbol',
                 ),
             ],
         );
-        $response = $this->privatePostOrder (array_merge ($request, $params));
+        $response = $this->privatePostOrder (array_merge($request, $params));
         //
-        //     { included => array ( {       $type =>   "currency",
+        //     { included => array( {       $type =>   "currency",
         //                             id =>   "XLM",
-        //                     attributes => array (          name => "Stellar",
+        //                     attributes => array(          name => "Stellar",
         //                                       shortName => "XLM",
         //                                          active =>  true,
         //                                        accuracy =>  8,
@@ -782,7 +782,7 @@ class adara extends Exchange {
         //                                    serializedAt =>  1543434477449 } ),
         //                   {       $type =>   "currency",
         //                             id =>   "BTC",
-        //                     attributes => array (          name => "Bitcoin",
+        //                     attributes => array(          name => "Bitcoin",
         //                                       shortName => "BTC",
         //                                          active =>  true,
         //                                        accuracy =>  8,
@@ -793,7 +793,7 @@ class adara extends Exchange {
         //                                    serializedAt =>  1543434477449 } ),
         //                   {          $type =>   "$symbol",
         //                                id =>   "XLMBTC",
-        //                        attributes => array (     fullName => "XLMBTC",
+        //                        attributes => array(     fullName => "XLMBTC",
         //                                            digits =>  6,
         //                                        allowTrade =>  true,
         //                                      serializedAt =>  1543434477449 ),
@@ -801,7 +801,7 @@ class adara extends Exchange {
         //                                        to => array( data => array( $type => "currency", id => "BTC" ) )  } } ),
         //           data => {          $type =>   "order",
         //                              id =>   "34793",
-        //                      attributes => array ( serializedAt =>    1543434477449,
+        //                      attributes => array( serializedAt =>    1543434477449,
         //                                       operation =>   "buy",
         //                                       orderType =>   "limit",
         //                                        clientId =>   "4733ea40-7d5c-4ddc-aec5-eb41baf90555",
@@ -821,19 +821,19 @@ class adara extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'id' => $id,
-            'data' => array (
-                'attributes' => array (
+            'data' => array(
+                'attributes' => array(
                     'status' => 'canceled',
                 ),
             ),
         );
-        $response = $this->privatePatchOrderId (array_merge ($request, $params));
+        $response = $this->privatePatchOrderId (array_merge($request, $params));
         //
-        //     { included => array ( {       type =>   "currency",
+        //     { included => array( {       type =>   "currency",
         //                             $id =>   "XLM",
-        //                     attributes => array (          name => "Stellar",
+        //                     attributes => array(          name => "Stellar",
         //                                       shortName => "XLM",
         //                                          active =>  true,
         //                                        accuracy =>  8,
@@ -844,7 +844,7 @@ class adara extends Exchange {
         //                                    serializedAt =>  1543437874742 } ),
         //                   {       type =>   "currency",
         //                             $id =>   "BTC",
-        //                     attributes => array (          name => "Bitcoin",
+        //                     attributes => array(          name => "Bitcoin",
         //                                       shortName => "BTC",
         //                                          active =>  true,
         //                                        accuracy =>  8,
@@ -855,7 +855,7 @@ class adara extends Exchange {
         //                                    serializedAt =>  1543437874742 } ),
         //                   {          type =>   "$symbol",
         //                                $id =>   "XLMBTC",
-        //                        attributes => array (     fullName => "XLMBTC",
+        //                        attributes => array(     fullName => "XLMBTC",
         //                                            digits =>  6,
         //                                        allowTrade =>  true,
         //                                      serializedAt =>  1543437874742 ),
@@ -863,7 +863,7 @@ class adara extends Exchange {
         //                                        to => array( data => array( type => "currency", $id => "BTC" ) )  } } ),
         //           data => {          type =>   "order",
         //                              $id =>   "34794",
-        //                      attributes => array ( serializedAt =>    1543437874742,
+        //                      attributes => array( serializedAt =>    1543437874742,
         //                                       operation =>   "buy",
         //                                       orderType =>   "limit",
         //                                        clientId =>   "4733ea40-7d5c-4ddc-aec5-eb41baf90555",
@@ -882,7 +882,7 @@ class adara extends Exchange {
     }
 
     public function parse_order_status ($status) {
-        $statuses = array (
+        $statuses = array(
             'open' => 'open',
             'closed' => 'closed',
             'canceled' => 'canceled',
@@ -894,7 +894,7 @@ class adara extends Exchange {
         //
         //         {          $type =>   "$order",
         //                      $id =>   "34793",
-        //              $attributes => array ( serializedAt =>  1543435013349,
+        //              $attributes => array( serializedAt =>  1543435013349,
         //                               operation => "buy",
         //                               orderType => "limit",
         //                                clientId => "4733ea40-7d5c-4ddc-aec5-eb41baf90555",
@@ -924,7 +924,7 @@ class adara extends Exchange {
             $symbol = $market['symbol'];
             $feeCurrency = $market['quote'];
         } else if ($marketId !== null) {
-            $baseIdLength = strlen ($marketId) - 3;
+            $baseIdLength = strlen($marketId) - 3;
             $baseId = mb_substr($marketId, 0, $baseIdLength - 0);
             $quoteId = mb_substr($marketId, $baseIdLength);
             $base = $this->common_currency_code($baseId);
@@ -956,19 +956,19 @@ class adara extends Exchange {
         $fee = null;
         $feeCost = $this->safe_float($attributes, 'fee');
         if ($feeCost !== null) {
-            $fee = array (
+            $fee = array(
                 'currency' => $feeCurrency,
                 'cost' => $feeCost,
             );
         }
         $trades = null;
         if ($tradesRelationshipData !== null) {
-            $numTrades = is_array ($tradesRelationshipData) ? count ($tradesRelationshipData) : 0;
+            $numTrades = is_array($tradesRelationshipData) ? count($tradesRelationshipData) : 0;
             if ($numTrades > 0) {
                 $trades = $this->parse_trades($tradesRelationshipData, $market);
             }
         }
-        $result = array (
+        $result = array(
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -992,7 +992,7 @@ class adara extends Exchange {
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'include' => 'trades',
         );
         $market = null;
@@ -1001,11 +1001,11 @@ class adara extends Exchange {
             $filters = 'filters[$symbol]';
             $request[$filters] = $market['id'];
         }
-        $response = $this->privateGetOrder (array_merge ($request, $params));
+        $response = $this->privateGetOrder (array_merge($request, $params));
         //
         //     {     data => [ {          type =>   "order",
         //                                id =>   "34793",
-        //                        attributes => array ( serializedAt =>  1543436770259,
+        //                        attributes => array( serializedAt =>  1543436770259,
         //                                         operation => "buy",
         //                                         orderType => "$limit",
         //                                            amount =>  220,
@@ -1019,9 +1019,9 @@ class adara extends Exchange {
         //                                             flags =>  null                       ),
         //                     relationships => array( $symbol => array( data => { type => "$symbol", id => "XLMBTC" ) ),
         //                                      trades => array( data => [array( type => "trade", id => "34789_34793" )] ) } } ],
-        //       included => array ( {       type =>   "currency",
+        //       included => array( {       type =>   "currency",
         //                             id =>   "XLM",
-        //                     attributes => array (          name => "Stellar",
+        //                     attributes => array(          name => "Stellar",
         //                                       shortName => "XLM",
         //                                          active =>  true,
         //                                        accuracy =>  8,
@@ -1032,7 +1032,7 @@ class adara extends Exchange {
         //                                    serializedAt =>  1543436770259 } ),
         //                   {       type =>   "currency",
         //                             id =>   "BTC",
-        //                     attributes => array (          name => "Bitcoin",
+        //                     attributes => array(          name => "Bitcoin",
         //                                       shortName => "BTC",
         //                                          active =>  true,
         //                                        accuracy =>  8,
@@ -1043,11 +1043,11 @@ class adara extends Exchange {
         //                                    serializedAt =>  1543436770259 } ),
         //                   {          type =>   "$symbol",
         //                                id =>   "XLMBTC",
-        //                        attributes => array (     fullName => "XLMBTC",
+        //                        attributes => array(     fullName => "XLMBTC",
         //                                            digits =>  6,
         //                                        allowTrade =>  true,
         //                                      serializedAt =>  1543436770259 ),
-        //                     relationships => array( from => array( data => array ( type => "currency", id => "XLM" ) ),
+        //                     relationships => array( from => array( data => array( type => "currency", id => "XLM" ) ),
         //                                        to => array( data => array( type => "currency", id => "BTC" ) )  } ),
         //                   {       type =>   "trade",
         //                             id =>   "34789_34793",
@@ -1066,14 +1066,14 @@ class adara extends Exchange {
         $filters = 'filters[status]array()';
         $request = array();
         $request[$filters] = 'open';
-        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $filters = 'filters[status]array()';
         $request = array();
         $request[$filters] = 'closed';
-        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function parse_orders_response ($response, $market = null, $since = null, $limit = null) {
@@ -1084,28 +1084,28 @@ class adara extends Exchange {
         $tradesById = $this->index_by($trades, 'id');
         $orders = $this->parse_orders($this->safe_value($response, 'data', array()), $market, $since, $limit);
         $result = array();
-        for ($i = 0; $i < count ($orders); $i++) {
+        for ($i = 0; $i < count($orders); $i++) {
             $order = $orders[$i];
             $orderTrades = array();
             $orderFee = $this->safe_value($order, 'fee', array());
             $orderFeeCurrency = $this->safe_string($orderFee, 'currency');
             if ($order['trades'] !== null) {
-                for ($j = 0; $j < count ($order['trades']); $j++) {
+                for ($j = 0; $j < count($order['trades']); $j++) {
                     $orderTrade = $order['trades'][$j];
                     $orderTradeId = $orderTrade['id'];
                     if (is_array($tradesById) && array_key_exists($orderTradeId, $tradesById)) {
-                        $orderTrades[] = array_replace_recursive ($tradesById[$orderTradeId], array (
+                        $orderTrades[] = array_replace_recursive($tradesById[$orderTradeId], array(
                             'order' => $order['id'],
                             'type' => $order['type'],
                             'symbol' => $order['symbol'],
-                            'fee' => array (
+                            'fee' => array(
                                 'currency' => $orderFeeCurrency,
                             ),
                         ));
                     }
                 }
             }
-            $numOrderTrades = is_array ($orderTrades) ? count ($orderTrades) : 0;
+            $numOrderTrades = is_array($orderTrades) ? count($orderTrades) : 0;
             if ($numOrderTrades > 0) {
                 $order['trades'] = $orderTrades;
             }
@@ -1116,15 +1116,15 @@ class adara extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'id' => $id,
             'include' => 'trades',
         );
-        $response = $this->privateGetOrderId (array_merge ($request, $params));
+        $response = $this->privateGetOrderId (array_merge($request, $params));
         //
-        //     { included => array ( {       type =>   "currency",
+        //     { included => array( {       type =>   "currency",
         //                             $id =>   "XLM",
-        //                     attributes => array (          name => "Stellar",
+        //                     attributes => array(          name => "Stellar",
         //                                       shortName => "XLM",
         //                                          active =>  true,
         //                                        accuracy =>  8,
@@ -1135,7 +1135,7 @@ class adara extends Exchange {
         //                                    serializedAt =>  1543436451996 } ),
         //                   {       type =>   "currency",
         //                             $id =>   "BTC",
-        //                     attributes => array (          name => "Bitcoin",
+        //                     attributes => array(          name => "Bitcoin",
         //                                       shortName => "BTC",
         //                                          active =>  true,
         //                                        accuracy =>  8,
@@ -1146,11 +1146,11 @@ class adara extends Exchange {
         //                                    serializedAt =>  1543436451996 } ),
         //                   {          type =>   "$symbol",
         //                                $id =>   "XLMBTC",
-        //                        attributes => array (     fullName => "XLMBTC",
+        //                        attributes => array(     fullName => "XLMBTC",
         //                                            digits =>  6,
         //                                        allowTrade =>  true,
         //                                      serializedAt =>  1543436451996 ),
-        //                     relationships => array( from => array( $data => array ( type => "currency", $id => "XLM" ) ),
+        //                     relationships => array( from => array( $data => array( type => "currency", $id => "XLM" ) ),
         //                                        to => array( $data => array( type => "currency", $id => "BTC" ) )  } ),
         //                   {       type =>   "trade",
         //                             $id =>   "34789_34793",
@@ -1162,7 +1162,7 @@ class adara extends Exchange {
         //                                   createdAt => "2018-11-28T19:47:57.451Z" } }                ),
         //           $data => {          type =>   "order",
         //                              $id =>   "34793",
-        //                      attributes => array ( serializedAt =>  1543436451996,
+        //                      attributes => array( serializedAt =>  1543436451996,
         //                                       operation => "buy",
         //                                       orderType => "limit",
         //                                        clientId => "4733ea40-7d5c-4ddc-aec5-eb41baf90555",
@@ -1186,7 +1186,7 @@ class adara extends Exchange {
         if (is_array($ordersById) && array_key_exists($id, $ordersById)) {
             return $ordersById[$id];
         }
-        throw OrderNotFound ($this->id . ' fetchOrder could not find order $id ' . (string) $id);
+        throw new OrderNotFound($this->id . ' fetchOrder could not find order $id ' . (string) $id);
     }
 
     public function nonce () {
@@ -1211,14 +1211,14 @@ class adara extends Exchange {
                 $payload = $body;
             }
             if ($this->token) {
-                $headers = array (
+                $headers = array(
                     'Cookie' => 'token=' . $this->token,
                 );
             } else {
                 $this->check_required_credentials();
                 $auth = $method . $payload . 'expiredAt=' . $expiredAt;
                 $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512', 'base64');
-                $headers = array (
+                $headers = array(
                     'X-ADX-EXPIRE' => $expiredAt,
                     'X-ADX-APIKEY' => $this->apiKey,
                     'X-ADX-SIGNATURE' => $signature,
@@ -1236,7 +1236,7 @@ class adara extends Exchange {
             return; // fallback to default $error handler
         }
         $errors = $this->safe_value($response, 'errors', array());
-        $numErrors = is_array ($errors) ? count ($errors) : 0;
+        $numErrors = is_array($errors) ? count($errors) : 0;
         if ($numErrors > 0) {
             $error = $errors[0];
             $code = $this->safe_string($error, 'code');

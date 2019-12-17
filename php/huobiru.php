@@ -10,14 +10,14 @@ use Exception; // a common import
 class huobiru extends huobipro {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'huobiru',
             'name' => 'Huobi Russia',
-            'countries' => array ( 'RU' ),
+            'countries' => array( 'RU' ),
             'hostname' => 'www.huobi.com.ru',
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/52978816-e8552e00-33e3-11e9-98ed-845acfece834.jpg',
-                'api' => array (
+                'api' => array(
                     'market' => 'https://www.huobi.com.ru/api',
                     'public' => 'https://www.huobi.com.ru/api',
                     'private' => 'https://www.huobi.com.ru/api',

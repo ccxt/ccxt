@@ -10,37 +10,37 @@ use Exception; // a common import
 class bit2c extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'bit2c',
             'name' => 'Bit2C',
-            'countries' => array ( 'IL' ), // Israel
+            'countries' => array( 'IL' ), // Israel
             'rateLimit' => 3000,
-            'has' => array (
+            'has' => array(
                 'CORS' => false,
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => true,
             ),
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
                 'api' => 'https://bit2c.co.il',
                 'www' => 'https://www.bit2c.co.il',
                 'referral' => 'https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf',
-                'doc' => array (
+                'doc' => array(
                     'https://www.bit2c.co.il/home/api',
                     'https://github.com/OferE/bit2c',
                 ),
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
+            'api' => array(
+                'public' => array(
+                    'get' => array(
                         'Exchanges/{pair}/Ticker',
                         'Exchanges/{pair}/orderbook',
                         'Exchanges/{pair}/trades',
                         'Exchanges/{pair}/lasttrades',
                     ),
                 ),
-                'private' => array (
-                    'post' => array (
+                'private' => array(
+                    'post' => array(
                         'Merchant/CreateCheckout',
                         'Order/AddCoinFundsRequest',
                         'Order/AddFund',
@@ -54,7 +54,7 @@ class bit2c extends Exchange {
                         'Payment/Send',
                         'Payment/Pay',
                     ),
-                    'get' => array (
+                    'get' => array(
                         'Account/Balance',
                         'Account/Balance/v2',
                         'Order/MyOrders',
@@ -64,7 +64,7 @@ class bit2c extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
+            'markets' => array(
                 'BTC/NIS' => array( 'id' => 'BtcNis', 'symbol' => 'BTC/NIS', 'base' => 'BTC', 'quote' => 'NIS', 'baseId' => 'Btc', 'quoteId' => 'Nis' ),
                 'ETH/NIS' => array( 'id' => 'EthNis', 'symbol' => 'ETH/NIS', 'base' => 'ETH', 'quote' => 'NIS', 'baseId' => 'Eth', 'quoteId' => 'Nis' ),
                 'BCH/NIS' => array( 'id' => 'BchabcNis', 'symbol' => 'BCH/NIS', 'base' => 'BCH', 'quote' => 'NIS', 'baseId' => 'Bchabc', 'quoteId' => 'Nis' ),
@@ -74,16 +74,16 @@ class bit2c extends Exchange {
                 'BSV/NIS' => array( 'id' => 'BchsvNis', 'symbol' => 'BSV/NIS', 'base' => 'BSV', 'quote' => 'NIS', 'baseId' => 'Bchsv', 'quoteId' => 'Nis' ),
                 'GRIN/NIS' => array( 'id' => 'GrinNis', 'symbol' => 'GRIN/NIS', 'base' => 'GRIN', 'quote' => 'NIS', 'baseId' => 'Grin', 'quoteId' => 'Nis' ),
             ),
-            'fees' => array (
-                'trading' => array (
+            'fees' => array(
+                'trading' => array(
                     'maker' => 0.5 / 100,
                     'taker' => 0.5 / 100,
                 ),
             ),
-            'options' => array (
+            'options' => array(
                 'fetchTradesMethod' => 'public_get_exchanges_pair_lasttrades',
             ),
-            'exceptions' => array (
+            'exceptions' => array(
                 // array( "error" : "Please provide valid APIkey" )
                 // array( "error" : "Please provide valid nonce in Request UInt64.TryParse failed for nonce :" )
             ),
@@ -137,7 +137,7 @@ class bit2c extends Exchange {
         //
         $result = array( 'info' => $balance );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        for ($i = 0; $i < count ($codes); $i++) {
+        for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
             $account = $this->account ();
             $currencyId = $this->currencyId ($code);
@@ -153,19 +153,19 @@ class bit2c extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'pair' => $this->market_id($symbol),
         );
-        $orderbook = $this->publicGetExchangesPairOrderbook (array_merge ($request, $params));
+        $orderbook = $this->publicGetExchangesPairOrderbook (array_merge($request, $params));
         return $this->parse_order_book($orderbook);
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'pair' => $this->market_id($symbol),
         );
-        $ticker = $this->publicGetExchangesPairTicker (array_merge ($request, $params));
+        $ticker = $this->publicGetExchangesPairTicker (array_merge($request, $params));
         $timestamp = $this->milliseconds ();
         $averagePrice = $this->safe_float($ticker, 'av');
         $baseVolume = $this->safe_float($ticker, 'a');
@@ -174,7 +174,7 @@ class bit2c extends Exchange {
             $quoteVolume = $baseVolume * $averagePrice;
         }
         $last = $this->safe_float($ticker, 'll');
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -202,11 +202,11 @@ class bit2c extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $method = $this->options['fetchTradesMethod'];
-        $request = array (
+        $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->$method (array_merge ($request, $params));
-        if (gettype ($response) === 'string') {
+        $response = $this->$method (array_merge($request, $params));
+        if (gettype($response) === 'string') {
             throw new ExchangeError($response);
         }
         return $this->parse_trades($response, $market, $since, $limit);
@@ -215,7 +215,7 @@ class bit2c extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $method = 'privatePostOrderAddOrder';
-        $request = array (
+        $request = array(
             'Amount' => $amount,
             'Pair' => $this->market_id($symbol),
         );
@@ -226,18 +226,18 @@ class bit2c extends Exchange {
             $request['Total'] = $amount * $price;
             $request['IsBid'] = ($side === 'buy');
         }
-        $response = $this->$method (array_merge ($request, $params));
-        return array (
+        $response = $this->$method (array_merge($request, $params));
+        return array(
             'info' => $response,
             'id' => $response['NewOrder']['id'],
         );
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        $request = array (
+        $request = array(
             'id' => $id,
         );
-        return $this->privatePostOrderCancelOrder (array_merge ($request, $params));
+        return $this->privatePostOrderCancelOrder (array_merge($request, $params));
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -246,10 +246,10 @@ class bit2c extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->privateGetOrderMyOrders (array_merge ($request, $params));
+        $response = $this->privateGetOrderMyOrders (array_merge($request, $params));
         $orders = $this->safe_value($response, $market['id'], array());
         $asks = $this->safe_value($orders, 'ask', array());
         $bids = $this->safe_value($orders, 'bid', array());
@@ -278,7 +278,7 @@ class bit2c extends Exchange {
         }
         $id = $this->safe_string($order, 'id');
         $status = $this->safe_string($order, 'status');
-        return array (
+        return array(
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -314,7 +314,7 @@ class bit2c extends Exchange {
             $market = $this->market ($symbol);
             $request['pair'] = $market['id'];
         }
-        $response = $this->privateGetOrderOrderHistory (array_merge ($request, $params));
+        $response = $this->privateGetOrderOrderHistory (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -367,7 +367,7 @@ class bit2c extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        return array (
+        return array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -380,7 +380,7 @@ class bit2c extends Exchange {
             'price' => $price,
             'amount' => $amount,
             'cost' => $price * $amount,
-            'fee' => array (
+            'fee' => array(
                 'cost' => $feeCost,
                 'currency' => 'NIS',
                 'rate' => null,
@@ -395,7 +395,7 @@ class bit2c extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
-            $query = array_merge (array (
+            $query = array_merge(array(
                 'nonce' => $nonce,
             ), $params);
             $auth = $this->urlencode ($query);
@@ -407,7 +407,7 @@ class bit2c extends Exchange {
                 $body = $auth;
             }
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512', 'base64');
-            $headers = array (
+            $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'key' => $this->apiKey,
                 'sign' => $this->decode ($signature),
