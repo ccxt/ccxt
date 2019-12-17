@@ -36,54 +36,64 @@ trait WebSocketTrait {
 
     public static $VERSION = 'undefined';
 
-    public function define_ws_api ($has) {
-        $methods = is_array ($has) ? array_keys ($has) : array ();
-        for ($i = 0; $i < count ($methods); $i++) {
-            $method = $methods[$i];
-            $pos = strpos ($method, 'Ws');
-            if ($pos === false) {
-                continue;
-            }
-            $underscoreMethod = static::underscore($method);
-            $name = substr ($method, $pos);
-            $entryName = $name . 'Message';
-            $handlerName = 'handle_' . static::underscore ($name);
-            $this->$entryName = function ($url, $messageHash, $subcribe = null) use ($handlerName) {
-                return WebSocketClient::registerFuture ($url, $messageHash, \Closure::fromCallable (array ($this, 'handle_message')), $this->apiKey, $subcribe)->then (function ($result) use ($handlerName) {
-                    return $this->$handlerName ($result);
-                });
-            };
-            $subscribeName = 'subscribe' . $name;
-            $underscoreSubscribeName = static::underscore ($subscribeName);
-            $subscribeX = function ($onResolved, $onRejected, ...$args) use ($underscoreMethod, $underscoreSubscribeName) {
-                $p = $this->$underscoreMethod(...$args);
-                $p->then(function ($result) use ($onResolved, $onRejected, $args, $underscoreSubscribeName) {
-                    $onResolved($result);
-                    $this->$underscoreSubscribeName($onResolved, $onRejected, ...$args);
-                }, $onRejected);
-            };
-            $this->$subscribeName = $subscribeX;
-            $this->$underscoreSubscribeName = $subscribeX;
-        }
+    public function hello_world () {
+        echo "Hello, world!\n";
     }
 
-    public function handle_message ($client, $response) {
-        $messageHash = $this->get_ws_message_hash ($client, $response);
-        if (!(is_array ($client->futures) && array_key_exists ($messageHash, $client->futures))) {
-            $this->handle_dropped ($client, $response, $messageHash);
-            return;
-        }
-        $future = $client->futures[$messageHash];
-        $future->resolve ($response);
-    }
+    // the code below is obsolete
 
-    public function handle_dropped ($client, $response, $messageHash) {}
+    // public function define_ws_api ($has) {
+    //     $methods = is_array ($has) ? array_keys ($has) : array ();
+    //     for ($i = 0; $i < count ($methods); $i++) {
+    //         $method = $methods[$i];
+    //         $pos = strpos ($method, 'Ws');
+    //         if ($pos === false) {
+    //             continue;
+    //         }
+    //         $underscoreMethod = static::underscore($method);
+    //         $name = substr ($method, $pos);
+    //         $entryName = $name . 'Message';
+    //         $handlerName = 'handle_' . static::underscore ($name);
+    //         $this->$entryName = function ($url, $messageHash, $subcribe = null) use ($handlerName) {
+    //             return WebSocketClient::registerFuture ($url, $messageHash, \Closure::fromCallable (array ($this, 'handle_message')), $this->apiKey, $subcribe)->then (function ($result) use ($handlerName) {
+    //                 return $this->$handlerName ($result);
+    //             });
+    //         };
+    //         $subscribeName = 'subscribe' . $name;
+    //         $underscoreSubscribeName = static::underscore ($subscribeName);
+    //         $subscribeX = function ($onResolved, $onRejected, ...$args) use ($underscoreMethod, $underscoreSubscribeName) {
+    //             $p = $this->$underscoreMethod(...$args);
+    //             $p->then(function ($result) use ($onResolved, $onRejected, $args, $underscoreSubscribeName) {
+    //                 $onResolved($result);
+    //                 $this->$underscoreSubscribeName($onResolved, $onRejected, ...$args);
+    //             }, $onRejected);
+    //         };
+    //         $this->$subscribeName = $subscribeX;
+    //         $this->$underscoreSubscribeName = $subscribeX;
+    //     }
+    // }
+
+    // public function handle_message ($client, $response) {
+    //     $messageHash = $this->get_ws_message_hash ($client, $response);
+    //     if (!(is_array ($client->futures) && array_key_exists ($messageHash, $client->futures))) {
+    //         $this->handle_dropped ($client, $response, $messageHash);
+    //         return;
+    //     }
+    //     $future = $client->futures[$messageHash];
+    //     $future->resolve ($response);
+    // }
+
+    // public function handle_dropped ($client, $response, $messageHash) {}
+
 }
 
 class Exchange extends \ccxt\Exchange {
 
     use WebSocketTrait;
 }
+
+// the override below is technically an error
+// todo: fix the conflict of ccxt.exchanges vs ccxtpro.exchanges
 
 Exchange::$exchanges = array(
     'binance',

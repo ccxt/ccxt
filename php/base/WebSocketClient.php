@@ -3,7 +3,6 @@
 // @author frosty00
 // @email carlo.revelli@berkeley.edu
 
-
 namespace ccxtpro;
 
 require_once __DIR__ . '/../vendor/autoload.php';
