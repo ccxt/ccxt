@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, OrderNotFound, ExchangeNotAvailable, DDoSProtection, InvalidOrder } = require ('./base/errors');
+const { BadRequest, ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, OrderNotFound, ExchangeNotAvailable, DDoSProtection, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -61,7 +61,7 @@ module.exports = class zb extends Exchange {
                 '3002': InvalidOrder, // 'Invalid price',
                 '3003': InvalidOrder, // 'Invalid amount',
                 '3004': AuthenticationError, // 'User does not exist',
-                '3005': ExchangeError, // 'Invalid parameter',
+                '3005': BadRequest, // 'Invalid parameter',
                 '3006': AuthenticationError, // 'Invalid IP or inconsistent with the bound IP',
                 '3007': AuthenticationError, // 'The request time has expired',
                 '3008': OrderNotFound, // 'Transaction records not found',
