@@ -139,6 +139,7 @@ class bitmart extends Exchange {
                     'Unknown symbol' => '\\ccxt\\BadSymbol', // array("message":"Unknown symbol")
                 ),
                 'broad' => array(
+                    'Invalid limit. limit must be in the range' => '\\ccxt\\InvalidOrder',
                     'Maximum price is' => '\\ccxt\\InvalidOrder', // array("message":"Maximum price is 0.112695")
                     // array("message":"Required Integer parameter 'status' is not present")
                     // array("message":"Required String parameter 'symbol' is not present")
@@ -498,14 +499,14 @@ class bitmart extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
+        // $limit is required, must be in the range (0, 50)
+        $maxLimit = 50;
+        $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
         $request = array(
             'symbol' => $market['id'],
             'offset' => 0, // current page, starts from 0
-            'limit' => 500,
+            'limit' => $limit, // required
         );
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default 500, max 1000
-        }
         $response = $this->privateGetTrades (array_merge($request, $params));
         //
         //     {
