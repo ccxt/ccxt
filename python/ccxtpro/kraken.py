@@ -440,7 +440,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         if client.futures[requestId]:
             del client.futures[requestId]
 
-    def handle_errors(self, client, message):
+    def handle_error_message(self, client, message):
         #
         #     {
         #         errorMessage: 'Currency pair not in ISO 4217-A3 format foobar',
@@ -490,7 +490,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
             else:
                 return getattr(self, method)(client, message)
         else:
-            if self.handle_errors(client, message):
+            if self.handle_error_message(client, message):
                 event = self.safe_string(message, 'event')
                 methods = {
                     'heartbeat': 'handleHeartbeat',

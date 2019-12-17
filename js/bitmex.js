@@ -458,7 +458,7 @@ module.exports = class bitmex extends ccxt.bitmex {
         return message;
     }
 
-    handleErrors (client, message) {
+    handleErrorMessage (client, message) {
         //
         // generic error format
         //
@@ -533,7 +533,7 @@ module.exports = class bitmex extends ccxt.bitmex {
         //         ]
         //     }
         //
-        if (this.handleErrors (client, message)) {
+        if (this.handleErrorMessage (client, message)) {
             const table = this.safeString (message, 'table');
             const methods = {
                 'orderBookL2': 'handleOrderBook',

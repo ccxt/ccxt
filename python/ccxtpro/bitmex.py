@@ -430,7 +430,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         #
         return message
 
-    def handle_errors(self, client, message):
+    def handle_error_message(self, client, message):
         #
         # generic error format
         #
@@ -501,7 +501,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         #         ]
         #     }
         #
-        if self.handle_errors(client, message):
+        if self.handle_error_message(client, message):
             table = self.safe_string(message, 'table')
             methods = {
                 'orderBookL2': 'handleOrderBook',

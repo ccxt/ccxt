@@ -184,7 +184,7 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         #         return getattr(self, method)(client, message)
         #     }
         # else:
-        #     if self.handle_errors(client, message):
+        #     if self.handleErrorMessage(client, message):
         #         event = self.safe_string(message, 'event')
         #         methods = {
         #             'heartbeat': 'handleHeartbeat',

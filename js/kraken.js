@@ -468,7 +468,7 @@ module.exports = class kraken extends ccxt.kraken {
         }
     }
 
-    handleErrors (client, message) {
+    handleErrorMessage (client, message) {
         //
         //     {
         //         errorMessage: 'Currency pair not in ISO 4217-A3 format foobar',
@@ -524,7 +524,7 @@ module.exports = class kraken extends ccxt.kraken {
                 return this[method] (client, message);
             }
         } else {
-            if (this.handleErrors (client, message)) {
+            if (this.handleErrorMessage (client, message)) {
                 const event = this.safeString (message, 'event');
                 const methods = {
                     'heartbeat': 'handleHeartbeat',

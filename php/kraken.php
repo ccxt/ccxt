@@ -6,7 +6,7 @@ namespace ccxtpro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\WebSocketTrait; // websocket functionality
+use \ccxtpro\WebSocketTrait; // websocket functionality
 
 class kraken extends \ccxt\kraken {
 
@@ -472,7 +472,7 @@ class kraken extends \ccxt\kraken {
         }
     }
 
-    public function handle_errors ($client, $message) {
+    public function handle_error_message ($client, $message) {
         //
         //     {
         //         $errorMessage => 'Currency pair not in ISO 4217-A3 format foobar',
@@ -528,7 +528,7 @@ class kraken extends \ccxt\kraken {
                 return $this->$method ($client, $message);
             }
         } else {
-            if ($this->handle_errors($client, $message)) {
+            if ($this->handle_error_message ($client, $message)) {
                 $event = $this->safe_string($message, 'event');
                 $methods = array(
                     'heartbeat' => 'handleHeartbeat',

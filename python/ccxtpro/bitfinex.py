@@ -188,7 +188,7 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
             else:
                 return getattr(self, method)(client, message)
         else:
-            # todo: add bitfinex handleErrors
+            # todo: add bitfinex handleErrorMessage
             #
             #     {
             #         event: 'info',

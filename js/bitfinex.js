@@ -200,7 +200,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
                 return this[method] (client, message);
             }
         } else {
-            // todo: add bitfinex handleErrors
+            // todo: add bitfinex handleErrorMessage
             //
             //     {
             //         event: 'info',

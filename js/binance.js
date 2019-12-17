@@ -198,7 +198,7 @@ module.exports = class binance extends ccxt.binance {
         //         return this[method] (client, message);
         //     }
         // } else {
-        //     if (this.handleErrors (client, message)) {
+        //     if (this.handleErrorMessage (client, message)) {
         //         const event = this.safeString (message, 'event');
         //         const methods = {
         //             'heartbeat': 'handleHeartbeat',

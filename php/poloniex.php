@@ -6,7 +6,7 @@ namespace ccxtpro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\WebSocketTrait; // websocket functionality
+use \ccxtpro\WebSocketTrait; // websocket functionality
 
 class poloniex extends \ccxt\poloniex {
 
