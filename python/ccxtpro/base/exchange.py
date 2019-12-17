@@ -50,8 +50,8 @@ class Exchange(BaseExchange):
         self.clients = self.clients or {}
         if url not in self.clients:
             on_message = self.handle_message
-            on_error = self.on_ws_error
-            on_close = self.on_ws_close
+            on_error = self.on_error
+            on_close = self.on_close
             # decide client type here: aiohttp ws / websockets / signalr / socketio
             self.clients[url] = StreamingClientAiohttp(url, on_message, on_error, on_close)
         return self.clients[url]
@@ -94,11 +94,11 @@ class Exchange(BaseExchange):
         asyncio.ensure_future(self.connect_ws_client(client, message_hash, message, subscribe_hash))
         return future
 
-    def on_ws_error(self, client, error):
+    def on_error(self, client, error):
         if self.clients[client.url].error:
             del self.clients[client.url]
 
-    def on_ws_close(self, client, error):
+    def on_close(self, client, error):
         print('someone called us')
         # sys.exit()
         if client.error:
