@@ -1,6 +1,6 @@
 <?php
 
-namespace ccxt;
+namespace ccxtpro;
 
 class IncrementalOrderBook {
     public $orderBook;
