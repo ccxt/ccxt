@@ -2,18 +2,17 @@
 
 const ccxt = require ('ccxt')
     , {
-        sleep,
         isNode,
         isJsonEncodedObject,
         RequestTimeout,
         NetworkError,
+        NotSupported,
         deepExtend,
         milliseconds,
     } = ccxt
     , Future = require ('./Future')
-    , WebSocket = isNode ? require ('ws') : window.WebSocket
 
-module.exports = class StreamingClient {
+module.exports = class Client {
 
     constructor (url, onMessageCallback, onErrorCallback, onCloseCallback, config = {}) {
         const defaults = {
@@ -82,35 +81,12 @@ module.exports = class StreamingClient {
         return result
     }
 
-    createWebsocket () {
-        console.log (new Date (), 'connecting...')
-        this.connectionStarted = milliseconds ()
-        this.setConnectionTimeout ()
-        this.connection = new WebSocket (this.url, this.protocols, this.options)
-        this.connection
-            .on ('open', this.onOpen.bind (this))
-            .on ('ping', this.onPing.bind (this))
-            .on ('pong', this.onPong.bind (this))
-            .on ('error', this.onError.bind (this))
-            .on ('close', this.onClose.bind (this))
-            .on ('upgrade', this.onUpgrade.bind (this))
-            .on ('message', this.onMessage.bind (this))
-        // this.connection.terminate () // debugging
-        // this.connection.close () // debugging
+    connect (backoffDelay = 0) {
+        throw new NotSupported ('connect() not implemented yet');
     }
 
-    connect (backoffDelay = 0) {
-        if ((this.connection.readyState !== WebSocket.OPEN) && (this.connection.readyState !== WebSocket.CONNECTING)) {
-            // prevent multiple calls overwriting each other
-            this.connection.readyState = WebSocket.CONNECTING
-            // exponential backoff for consequent ws connections if necessary
-            if (backoffDelay) {
-                sleep (backoffDelay).then (this.createWebsocket.bind (this))
-            } else {
-                this.createWebsocket ()
-            }
-        }
-        return this.connected
+    isOpen () {
+        throw new NotSupported ('isOpen() not implemented yet');
     }
 
     reset (error) {
@@ -121,7 +97,7 @@ module.exports = class StreamingClient {
     }
 
     onConnectionTimeout () {
-        if (this.connection.readyState !== WebSocket.OPEN) {
+        if (!this.isOpen ()) {
             const error = new RequestTimeout ('Connection to ' + this.url + ' failed due to a connection timeout')
             this.error = error
             this.reset (error)
@@ -160,7 +136,7 @@ module.exports = class StreamingClient {
         if ((this.lastPong + this.keepAlive) < milliseconds ()) {
             this.reset (new RequestTimeout ('Connection to ' + this.url + ' timed out due to a ping-pong keepalive missing on time'))
         } else {
-            if (this.connection.readyState === WebSocket.OPEN) {
+            if (this.isOpen ()) {
                 this.connection.ping ()
             }
         }
