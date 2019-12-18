@@ -24,10 +24,8 @@ class Client {
     public $connectionTimeout;
     public $pingInterval;
     public $keepAlive;
-    public $connection;
-
-    // connection-related Future
-    public $connected;
+    public $connection = null;
+    public $connected; // connection-related Future
 
     // ratchet/pawl/reactphp stuff
     public $loop;
@@ -52,7 +50,7 @@ class Client {
         } else {
             $message_hashes = Object.keys($this->futures);
             for ($i = 0; $i < $message_hashes.length; $i++) {
-                $this->resolve($result, $message_hashes[$i])
+                $this->resolve($result, $message_hashes[$i]);
             }
         }
         return $result;
@@ -74,10 +72,15 @@ class Client {
         return $result;
     }
 
-    public function __construct($url, callable $handler, $config = array ()) {
+    public function __construct(
+            $url,
+            callable $on_message_callback,
+            callable $on_error_callback,
+            callable $on_close_callback,
+            $config = array()
+        ) {
 
         $this->url = $url;
-
 
         // $this->loop = \React\EventLoop\Factory::create ();
         $connector = new \React\Socket\Connector($this->loop);
@@ -89,29 +92,27 @@ class Client {
         $this->pingNonce = 0;
         $this->lastPong = PHP_INT_MAX;
         $timeoutTimer = null;
-        $this->connectedFuture = null;
+        $this->connected = null;
         $this->futures = array();
         $this->subscriptions = array();
+
+        $this->on_message_callback = $on_message_callback;
+        $this->on_error_callback = $on_error_callback;
+        $this->on_close_callback = $on_close_callback;
     }
 
     public function connect() {
         if (!$this->connection) {
-            $this->connected = true;
-            $this->connectedFuture = $this->connector ($this->url)->then(function($connection) {
+            $this->connection = true;
+            $this->connected = $this->connector($this->url)->then(function($connection) {
                 $this->connection = $connection;
-                $this->connection->on('message', function($message) {
-                    $this->on_message($message);
-                });
-                $this->connection->on('close', function() {
-                    $this->connected = false;
-                });
-                $this->connection->on('pong', function() {
-                    $this->lastPong = Exchange::milliseconds();
-                });
-                $this->check_timeout();
+                $this->connection->on('message', array($this, 'on_message'));
+                $this->connection->on('close', array($this, 'on_close'));
+                $this->connection->on('pong', array($this, 'on_pong'));
+                // $this->check_timeout();
             });
         }
-        return $this->connectedFuture;
+        return $this->connected;
     }
 
     public function send($data) {
@@ -131,6 +132,10 @@ class Client {
     public function on_message(Message $message) {
         $x = $this->handler;
         $x($this, Exchange::parse_json((string) $message));
+    }
+
+    public function on_pong() {
+        $this->lastPong = Exchange::milliseconds();
     }
 
     // public static $clients = array ();
