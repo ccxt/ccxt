@@ -147,6 +147,7 @@ class bitmart(Exchange):
                     'Unknown symbol': BadSymbol,  # {"message":"Unknown symbol"}
                 },
                 'broad': {
+                    'Invalid limit. limit must be in the range': InvalidOrder,
                     'Maximum price is': InvalidOrder,  # {"message":"Maximum price is 0.112695"}
                     # {"message":"Required Integer parameter 'status' is not present"}
                     # {"message":"Required String parameter 'symbol' is not present"}
@@ -156,6 +157,9 @@ class bitmart(Exchange):
                     # {"message":"Required Long parameter 'to' is not present"}
                     'is not present': BadRequest,
                 },
+            },
+            'commonCurrencies': {
+                'ONE': 'Menlo One',
             },
         })
 
@@ -476,13 +480,14 @@ class bitmart(Exchange):
             raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
+        # limit is required, must be in the range(0, 50)
+        maxLimit = 50
+        limit = maxLimit if (limit is None) else min(limit, maxLimit)
         request = {
             'symbol': market['id'],
             'offset': 0,  # current page, starts from 0
-            'limit': 500,
+            'limit': limit,  # required
         }
-        if limit is not None:
-            request['limit'] = limit  # default 500, max 1000
         response = self.privateGetTrades(self.extend(request, params))
         #
         #     {
@@ -610,7 +615,18 @@ class bitmart(Exchange):
         id = self.safe_string(order, 'entrust_id')
         timestamp = self.milliseconds()
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = self.find_symbol(self.safe_string(order, 'symbol'), market)
+        symbol = None
+        marketId = self.safe_string(order, 'symbol')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'original_amount')
         cost = None

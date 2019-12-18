@@ -45,27 +45,27 @@ assert (hash (encode ('nutella'), 'sha1', 'hex') === 'b3d60a34b744159793c483b067
 
 $privateKey = '1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a';
 
-assert (equals (ecdsa ('1a', $privateKey, 'p256', 'sha256'), array (
+assert (equals (ecdsa ('1a', $privateKey, 'p256', 'sha256'), array(
     'r' => '3f4537ef9e72240cdefaea19d68fd483b5e10227e89747c58a3b543bfaf9cc46',
     's' => '278d65adebd8d52dac34820c02cee0a0e3348f9aee91a21b8e9bfa0a23b40001',
     'v' => 1
 )));
 
 
-assert (equals (ecdsa ($privateKey, $privateKey, 'p256', null), array (
+assert (equals (ecdsa ($privateKey, $privateKey, 'p256', null), array(
     'r' => '9aadbfe7feca28a8b665731abd8fdd19f8b1be5fcdd1264d111b291a01c8dea2',
     's' => '5084765e08e169fbba470ed1f573c9fed8d68a9d883049054b601f66a6648912',
     'v' => 0,
 )));
 
-assert (equals (ecdsa ('1a', $privateKey, 'secp256k1', 'sha256'), array (
+assert (equals (ecdsa ('1a', $privateKey, 'secp256k1', 'sha256'), array(
     'r' => '23dcb2a2a3728a35eb1a35cc01743c4609550d9cceaf2083550f13a9eb135f9f',
     's' => '317963fcac18e4ec9f7921b97d7ea0c82a873dd6299cbfb6af016e08ef5ed667',
     'v' => 0,
 )));
 
 
-assert (equals (ecdsa ($privateKey, $privateKey, 'secp256k1', null), array (
+assert (equals (ecdsa ($privateKey, $privateKey, 'secp256k1', null), array(
     'r' => 'b84a36a6fbabd5277ede578448b93d48e70b38efb5b15b1d4e2a298accf938b1',
     's' => '66ebfb8221cda925526e699a59cd221bb4cc84bdc563024b1802c4d9e1d8bbe9',
     'v' => 1,
@@ -75,13 +75,13 @@ assert (equals (ecdsa ($privateKey, $privateKey, 'secp256k1', null), array (
 
 assert ($exchange->hashMessage ($privateKey) === '0x59ea5d98c3500c3729f95cf98aa91663f498518cc401360df2912742c232207f');
 
-assert (equals ($exchange->signHash ('0x59ea5d98c3500c3729f95cf98aa91663f498518cc401360df2912742c232207f', $privateKey), array (
+assert (equals ($exchange->signHash ('0x59ea5d98c3500c3729f95cf98aa91663f498518cc401360df2912742c232207f', $privateKey), array(
     'r' => '0x6f684aa41c02da83dac3039d8805ddbe79a03b1297e247c7742cab8dfc19d341',
     's' => '0x62473881674550563cb028ff40a7846fd53620ddf40a20cc1003b8484a109a4a',
     'v' => 27
 )));
 
-assert (equals ($exchange->signMessage ($privateKey, $privateKey), array (
+assert (equals ($exchange->signMessage ($privateKey, $privateKey), array(
     'r' => '0x6f684aa41c02da83dac3039d8805ddbe79a03b1297e247c7742cab8dfc19d341',
     's' => '0x62473881674550563cb028ff40a7846fd53620ddf40a20cc1003b8484a109a4a',
     'v' => 27
@@ -89,7 +89,7 @@ assert (equals ($exchange->signMessage ($privateKey, $privateKey), array (
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-$pemKeyArray = array (
+$pemKeyArray = array(
     '-----BEGIN RSA PRIVATE KEY-----',
     'MIIEpAIBAAKCAQEAqUtXQXv2uSm9zPvdJTRpu5/65rBjAoHmIiowAs+u7fY0QP9O',
     '+T8CZRQjvZrfPomBiccjCxDo8mm7GkmL67rs9s7VOMQFvpTTtMBeglNSEbXJ3wTt',

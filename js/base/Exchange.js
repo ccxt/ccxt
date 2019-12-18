@@ -199,18 +199,9 @@ module.exports = class Exchange {
             },
             'precisionMode': DECIMAL_PLACES,
             'limits': {
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
+                'amount': { 'min': undefined, 'max': undefined },
+                'price': { 'min': undefined, 'max': undefined },
+                'cost': { 'min': undefined, 'max': undefined },
             },
         } // return
     } // describe ()
@@ -871,34 +862,6 @@ module.exports = class Exchange {
         throw new ExchangeError (this.id + ' does not have currency code ' + code)
     }
 
-    findMarket (string) {
-
-        if (this.markets === undefined)
-            throw new ExchangeError (this.id + ' markets not loaded')
-
-        if (typeof string === 'string') {
-
-            if (string in this.markets_by_id)
-                return this.markets_by_id[string]
-
-            if (string in this.markets)
-                return this.markets[string]
-        }
-
-        return string
-    }
-
-    findSymbol (string, market = undefined) {
-
-        if (market === undefined)
-            market = this.findMarket (string)
-
-        if (typeof market === 'object')
-            return market['symbol']
-
-        return string
-    }
-
     market (symbol) {
 
         if (this.markets === undefined)
@@ -957,21 +920,6 @@ module.exports = class Exchange {
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
         }
-    }
-
-    getCurrencyUsedOnOpenOrders (currency) {
-        return Object.values (this.orders).filter (order => (order['status'] === 'open')).reduce ((total, order) => {
-            const symbol = order['symbol']
-            const market = this.markets[symbol]
-            const remaining = order['remaining']
-            if (currency === market['base'] && order['side'] === 'sell') {
-                return total + remaining
-            } else if (currency === market['quote'] && order['side'] === 'buy') {
-                return total + (order['price'] * remaining)
-            } else {
-                return total
-            }
-        }, 0)
     }
 
     parseBalance (balance) {

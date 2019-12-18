@@ -156,6 +156,7 @@ class crex24(Exchange):
                     'Failed to verify request signature.': AuthenticationError,  # eslint-disable-quotes
                     "Nonce error. Make sure that the value passed in the 'X-CREX24-API-NONCE' header is greater in each consecutive request than in the previous one for the corresponding API-Key provided in 'X-CREX24-API-KEY' header.": InvalidNonce,
                     'Market orders are not supported by the instrument currently.': InvalidOrder,
+                    "Parameter 'instrument' contains invalid value.": BadSymbol,
                 },
                 'broad': {
                     'API Key': AuthenticationError,  # "API Key '9edc48de-d5b0-4248-8e7e-f59ffcd1c7f1' doesn't exist."
@@ -632,7 +633,18 @@ class crex24(Exchange):
         #     }
         #
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = self.find_symbol(self.safe_string(order, 'instrument'), market)
+        symbol = None
+        marketId = self.safe_string(order, 'instrument')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('-')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'volume')

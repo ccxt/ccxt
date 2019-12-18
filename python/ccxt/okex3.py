@@ -470,6 +470,7 @@ class okex3(Exchange):
                 },
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': True,
                 'fetchMarkets': ['spot', 'futures', 'swap'],
                 'defaultType': 'spot',  # 'account', 'spot', 'margin', 'futures', 'swap'
                 'auth': {
@@ -1206,6 +1207,8 @@ class okex3(Exchange):
                 'product_id',
                 'risk_rate',
                 'margin_ratio',
+                'maint_margin_ratio',
+                'tiers',
             ])
             keys = list(omittedBalance.keys())
             accounts = {}
@@ -1222,7 +1225,7 @@ class okex3(Exchange):
                     account['free'] = self.safe_float(marketBalance, 'available')
                     accounts[code] = account
                 else:
-                    raise NotSupported(self.id + ' margin balance response format has changednot ')
+                    raise NotSupported(self.id + ' margin balance response format has changed!')
             result[symbol] = self.parse_balance(accounts)
         return result
 
@@ -2129,6 +2132,7 @@ class okex3(Exchange):
             id = withdrawalId
             address = addressTo
         else:
+            # the payment_id will appear on new deposits but appears to be removed from the response after 2 months
             id = self.safe_string(transaction, 'payment_id')
             type = 'deposit'
             address = addressTo

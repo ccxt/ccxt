@@ -10,13 +10,13 @@ use Exception; // a common import
 class zb extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'zb',
             'name' => 'ZB',
-            'countries' => array ( 'CN' ),
+            'countries' => array( 'CN' ),
             'rateLimit' => 1000,
             'version' => 'v1',
-            'has' => array (
+            'has' => array(
                 'CORS' => false,
                 'createMarketOrder' => false,
                 'fetchDepositAddress' => true,
@@ -27,7 +27,7 @@ class zb extends Exchange {
                 'fetchTickers' => true,
                 'withdraw' => true,
             ),
-            'timeframes' => array (
+            'timeframes' => array(
                 '1m' => '1min',
                 '3m' => '3min',
                 '5m' => '5min',
@@ -42,7 +42,7 @@ class zb extends Exchange {
                 '3d' => '3day',
                 '1w' => '1week',
             ),
-            'exceptions' => array (
+            'exceptions' => array(
                 // '1000' => 'Successful operation',
                 '1001' => '\\ccxt\\ExchangeError', // 'General error message',
                 '1002' => '\\ccxt\\ExchangeError', // 'Internal error',
@@ -62,16 +62,16 @@ class zb extends Exchange {
                 '3002' => '\\ccxt\\InvalidOrder', // 'Invalid price',
                 '3003' => '\\ccxt\\InvalidOrder', // 'Invalid amount',
                 '3004' => '\\ccxt\\AuthenticationError', // 'User does not exist',
-                '3005' => '\\ccxt\\ExchangeError', // 'Invalid parameter',
+                '3005' => '\\ccxt\\BadRequest', // 'Invalid parameter',
                 '3006' => '\\ccxt\\AuthenticationError', // 'Invalid IP or inconsistent with the bound IP',
                 '3007' => '\\ccxt\\AuthenticationError', // 'The request time has expired',
                 '3008' => '\\ccxt\\OrderNotFound', // 'Transaction records not found',
                 '4001' => '\\ccxt\\ExchangeNotAvailable', // 'API interface is locked or not enabled',
                 '4002' => '\\ccxt\\DDoSProtection', // 'Request too often',
             ),
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
-                'api' => array (
+                'api' => array(
                     'public' => 'http://api.zb.cn/data', // no https for public API
                     'private' => 'https://trade.zb.cn/api',
                 ),
@@ -79,9 +79,9 @@ class zb extends Exchange {
                 'doc' => 'https://www.zb.com/i/developer',
                 'fees' => 'https://www.zb.com/i/rate',
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
+            'api' => array(
+                'public' => array(
+                    'get' => array(
                         'markets',
                         'ticker',
                         'allTicker',
@@ -90,8 +90,8 @@ class zb extends Exchange {
                         'kline',
                     ),
                 ),
-                'private' => array (
-                    'get' => array (
+                'private' => array(
+                    'get' => array(
                         // spot API
                         'order',
                         'cancelOrder',
@@ -123,9 +123,9 @@ class zb extends Exchange {
                     ),
                 ),
             ),
-            'fees' => array (
-                'funding' => array (
-                    'withdraw' => array (
+            'fees' => array(
+                'funding' => array(
+                    'withdraw' => array(
                         'BTC' => 0.0001,
                         'BCH' => 0.0006,
                         'LTC' => 0.005,
@@ -154,12 +154,12 @@ class zb extends Exchange {
                         'BCW' => 0,
                     ),
                 ),
-                'trading' => array (
+                'trading' => array(
                     'maker' => 0.2 / 100,
                     'taker' => 0.2 / 100,
                 ),
             ),
-            'commonCurrencies' => array (
+            'commonCurrencies' => array(
                 'ENT' => 'ENTCash',
             ),
         ));
@@ -169,18 +169,18 @@ class zb extends Exchange {
         $markets = $this->publicGetMarkets ($params);
         $keys = is_array($markets) ? array_keys($markets) : array();
         $result = array();
-        for ($i = 0; $i < count ($keys); $i++) {
+        for ($i = 0; $i < count($keys); $i++) {
             $id = $keys[$i];
             $market = $markets[$id];
             list($baseId, $quoteId) = explode('_', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $precision = array (
+            $precision = array(
                 'amount' => $this->safe_integer($market, 'amountScale'),
                 'price' => $this->safe_integer($market, 'priceScale'),
             );
-            $result[] = array (
+            $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'baseId' => $baseId,
@@ -189,16 +189,16 @@ class zb extends Exchange {
                 'quote' => $quote,
                 'active' => true,
                 'precision' => $precision,
-                'limits' => array (
-                    'amount' => array (
+                'limits' => array(
+                    'amount' => array(
                         'min' => pow(10, -$precision['amount']),
                         'max' => null,
                     ),
-                    'price' => array (
+                    'price' => array(
                         'min' => pow(10, -$precision['price']),
                         'max' => null,
                     ),
-                    'cost' => array (
+                    'cost' => array(
                         'min' => 0,
                         'max' => null,
                     ),
@@ -216,7 +216,7 @@ class zb extends Exchange {
         // $permissions = $response['result']['base'];
         $balances = $this->safe_value($response['result'], 'coins');
         $result = array( 'info' => $response );
-        for ($i = 0; $i < count ($balances); $i++) {
+        for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             //     {        enName => "BTC",
             //               freez => "0.00000000",
@@ -244,10 +244,10 @@ class zb extends Exchange {
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $request = array (
+        $request = array(
             'currency' => $currency['id'],
         );
-        $response = $this->privateGetGetUserAddress (array_merge ($request, $params));
+        $response = $this->privateGetGetUserAddress (array_merge($request, $params));
         $address = $response['message']['datas']['key'];
         $tag = null;
         if (mb_strpos($address, '_') !== false) {
@@ -255,7 +255,7 @@ class zb extends Exchange {
             $address = $parts[0];  // WARNING => MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIES!!
             $tag = $parts[1];
         }
-        return array (
+        return array(
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
@@ -272,7 +272,7 @@ class zb extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit;
         }
-        $response = $this->publicGetDepth (array_merge ($request, $params));
+        $response = $this->publicGetDepth (array_merge($request, $params));
         return $this->parse_order_book($response);
     }
 
@@ -282,12 +282,12 @@ class zb extends Exchange {
         $result = array();
         $anotherMarketsById = array();
         $marketIds = is_array($this->marketsById) ? array_keys($this->marketsById) : array();
-        for ($i = 0; $i < count ($marketIds); $i++) {
+        for ($i = 0; $i < count($marketIds); $i++) {
             $tickerId = str_replace('_', '', $marketIds[$i]);
             $anotherMarketsById[$tickerId] = $this->marketsById[$marketIds[$i]];
         }
         $ids = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count ($ids); $i++) {
+        for ($i = 0; $i < count($ids); $i++) {
             $market = $anotherMarketsById[$ids[$i]];
             $result[$market['symbol']] = $this->parse_ticker($response[$ids[$i]], $market);
         }
@@ -300,7 +300,7 @@ class zb extends Exchange {
         $marketFieldName = $this->get_market_field_name ();
         $request = array();
         $request[$marketFieldName] = $market['id'];
-        $response = $this->publicGetTicker (array_merge ($request, $params));
+        $response = $this->publicGetTicker (array_merge($request, $params));
         $ticker = $response['ticker'];
         return $this->parse_ticker($ticker, $market);
     }
@@ -312,7 +312,7 @@ class zb extends Exchange {
             $symbol = $market['symbol'];
         }
         $last = $this->safe_float($ticker, 'last');
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -342,7 +342,7 @@ class zb extends Exchange {
         if ($limit === null) {
             $limit = 1000;
         }
-        $request = array (
+        $request = array(
             'market' => $market['id'],
             'type' => $this->timeframes[$timeframe],
             'limit' => $limit,
@@ -350,7 +350,7 @@ class zb extends Exchange {
         if ($since !== null) {
             $request['since'] = $since;
         }
-        $response = $this->publicGetKline (array_merge ($request, $params));
+        $response = $this->publicGetKline (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
@@ -372,7 +372,7 @@ class zb extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        return array (
+        return array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -395,7 +395,7 @@ class zb extends Exchange {
         $marketFieldName = $this->get_market_field_name ();
         $request = array();
         $request[$marketFieldName] = $market['id'];
-        $response = $this->publicGetTrades (array_merge ($request, $params));
+        $response = $this->publicGetTrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -404,14 +404,14 @@ class zb extends Exchange {
             throw new InvalidOrder($this->id . ' allows limit orders only');
         }
         $this->load_markets();
-        $request = array (
+        $request = array(
             'price' => $this->price_to_precision($symbol, $price),
             'amount' => $this->amount_to_precision($symbol, $amount),
             'tradeType' => ($side === 'buy') ? '1' : '0',
             'currency' => $this->market_id($symbol),
         );
-        $response = $this->privateGetOrder (array_merge ($request, $params));
-        return array (
+        $response = $this->privateGetOrder (array_merge($request, $params));
+        return array(
             'info' => $response,
             'id' => $response['id'],
         );
@@ -419,11 +419,11 @@ class zb extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'id' => (string) $id,
             'currency' => $this->market_id($symbol),
         );
-        return $this->privateGetCancelOrder (array_merge ($request, $params));
+        return $this->privateGetCancelOrder (array_merge($request, $params));
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -431,11 +431,11 @@ class zb extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
         $this->load_markets();
-        $request = array (
+        $request = array(
             'id' => (string) $id,
             'currency' => $this->market_id($symbol),
         );
-        $response = $this->privateGetGetOrder (array_merge ($request, $params));
+        $response = $this->privateGetGetOrder (array_merge($request, $params));
         //
         //     {
         //         'total_amount' => 0.01,
@@ -458,7 +458,7 @@ class zb extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'currency' => $market['id'],
             'pageIndex' => 1, // default pageIndex is 1
             'pageSize' => $limit, // default pageSize is 50
@@ -470,7 +470,7 @@ class zb extends Exchange {
         }
         $response = null;
         try {
-            $response = $this->$method (array_merge ($request, $params));
+            $response = $this->$method (array_merge($request, $params));
         } catch (Exception $e) {
             if ($e instanceof OrderNotFound) {
                 return array();
@@ -486,7 +486,7 @@ class zb extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'currency' => $market['id'],
             'pageIndex' => 1, // default pageIndex is 1
             'pageSize' => $limit, // default pageSize is 10
@@ -498,7 +498,7 @@ class zb extends Exchange {
         }
         $response = null;
         try {
-            $response = $this->$method (array_merge ($request, $params));
+            $response = $this->$method (array_merge($request, $params));
         } catch (Exception $e) {
             if ($e instanceof OrderNotFound) {
                 return array();
@@ -557,7 +557,7 @@ class zb extends Exchange {
             $average = $cost / $filled;
         }
         $id = $this->safe_string($order, 'id');
-        return array (
+        return array(
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -578,7 +578,7 @@ class zb extends Exchange {
     }
 
     public function parse_order_status ($status) {
-        $statuses = array (
+        $statuses = array(
             '0' => 'open',
             '1' => 'canceled',
             '2' => 'closed',
@@ -603,7 +603,7 @@ class zb extends Exchange {
                 $url .= '?' . $this->urlencode ($params);
             }
         } else {
-            $query = $this->keysort (array_merge (array (
+            $query = $this->keysort (array_merge(array(
                 'method' => $path,
                 'accesskey' => $this->apiKey,
             ), $params));

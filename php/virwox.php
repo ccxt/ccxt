@@ -10,32 +10,32 @@ use Exception; // a common import
 class virwox extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'virwox',
             'name' => 'VirWoX',
-            'countries' => array ( 'AT', 'EU' ),
+            'countries' => array( 'AT', 'EU' ),
             'rateLimit' => 1000,
-            'has' => array (
+            'has' => array(
                 'CORS' => true,
             ),
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg',
-                'api' => array (
+                'api' => array(
                     'public' => 'https://api.virwox.com/api/json.php',
                     'private' => 'https://www.virwox.com/api/trading.php',
                 ),
                 'www' => 'https://www.virwox.com',
                 'doc' => 'https://www.virwox.com/developers.php',
             ),
-            'requiredCredentials' => array (
+            'requiredCredentials' => array(
                 'apiKey' => true,
                 'secret' => false,
                 'login' => true,
                 'password' => true,
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
+            'api' => array(
+                'public' => array(
+                    'get' => array(
                         'getInstruments',
                         'getBestPrices',
                         'getMarketDepth',
@@ -47,7 +47,7 @@ class virwox extends Exchange {
                         'getGridList',
                         'getGridStatistics',
                     ),
-                    'post' => array (
+                    'post' => array(
                         'getInstruments',
                         'getBestPrices',
                         'getMarketDepth',
@@ -60,8 +60,8 @@ class virwox extends Exchange {
                         'getGridStatistics',
                     ),
                 ),
-                'private' => array (
-                    'get' => array (
+                'private' => array(
+                    'get' => array(
                         'cancelOrder',
                         'getBalances',
                         'getCommissionDiscount',
@@ -69,7 +69,7 @@ class virwox extends Exchange {
                         'getTransactions',
                         'placeOrder',
                     ),
-                    'post' => array (
+                    'post' => array(
                         'cancelOrder',
                         'getBalances',
                         'getCommissionDiscount',
@@ -87,7 +87,7 @@ class virwox extends Exchange {
         $markets = $this->safe_value($response, 'result');
         $keys = is_array($markets) ? array_keys($markets) : array();
         $result = array();
-        for ($i = 0; $i < count ($keys); $i++) {
+        for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             $market = $this->safe_value($markets, $key, array());
             $id = $this->safe_string($market, 'instrumentID');
@@ -96,7 +96,7 @@ class virwox extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $result[] = array (
+            $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -114,7 +114,7 @@ class virwox extends Exchange {
         $response = $this->privatePostGetBalances ($params);
         $balances = $this->safe_value($response['result'], 'accountList');
         $result = array( 'info' => $response );
-        for ($i = 0; $i < count ($balances); $i++) {
+        for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
@@ -127,12 +127,12 @@ class virwox extends Exchange {
 
     public function fetch_market_price ($symbol, $params = array ()) {
         $this->load_markets();
-        $request = array (
-            'symbols' => array ( $symbol ),
+        $request = array(
+            'symbols' => array( $symbol ),
         );
-        $response = $this->publicPostGetBestPrices (array_merge ($request, $params));
+        $response = $this->publicPostGetBestPrices (array_merge($request, $params));
         $result = $this->safe_value($response, 'result');
-        return array (
+        return array(
             'bid' => $this->safe_float($result[0], 'bestBuyPrice'),
             'ask' => $this->safe_float($result[0], 'bestSellPrice'),
         );
@@ -140,14 +140,14 @@ class virwox extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
-            'symbols' => array ( $symbol ),
+        $request = array(
+            'symbols' => array( $symbol ),
         );
         if ($limit !== null) {
             $request['buyDepth'] = $limit; // 100
             $request['sellDepth'] = $limit; // 100
         }
-        $response = $this->publicPostGetMarketDepth (array_merge ($request, $params));
+        $response = $this->publicPostGetMarketDepth (array_merge($request, $params));
         $orderbook = $response['result'][0];
         return $this->parse_order_book($orderbook, null, 'buy', 'sell', 'price', 'volume');
     }
@@ -156,21 +156,21 @@ class virwox extends Exchange {
         $this->load_markets();
         $end = $this->milliseconds ();
         $start = $end - 86400000;
-        $request = array (
+        $request = array(
             'instrument' => $symbol,
             'endDate' => $this->ymdhms ($end),
             'startDate' => $this->ymdhms ($start),
             'HLOC' => 1,
         );
-        $response = $this->publicGetGetTradedPriceVolume (array_merge ($request, $params));
+        $response = $this->publicGetGetTradedPriceVolume (array_merge($request, $params));
         $tickers = $this->safe_value($response['result'], 'priceVolumeList');
         $keys = is_array($tickers) ? array_keys($tickers) : array();
-        $length = is_array ($keys) ? count ($keys) : 0;
+        $length = is_array($keys) ? count($keys) : 0;
         $lastKey = $keys[$length - 1];
         $ticker = $this->safe_value($tickers, $lastKey);
         $timestamp = $this->milliseconds ();
         $close = $this->safe_float($ticker, 'close');
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -209,7 +209,7 @@ class virwox extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        return array (
+        return array(
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -229,11 +229,11 @@ class virwox extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'instrument' => $symbol,
             'timespan' => 3600,
         );
-        $response = $this->publicGetGetRawTradeData (array_merge ($request, $params));
+        $response = $this->publicGetGetRawTradeData (array_merge($request, $params));
         $result = $this->safe_value($response, 'result', array());
         $trades = $this->safe_value($result, 'data', array());
         return $this->parse_trades($trades, $market, $since, $limit);
@@ -242,7 +242,7 @@ class virwox extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'instrument' => $market['symbol'],
             'orderType' => strtoupper($side),
             'amount' => $amount,
@@ -250,18 +250,18 @@ class virwox extends Exchange {
         if ($type === 'limit') {
             $request['price'] = $price;
         }
-        $response = $this->privatePostPlaceOrder (array_merge ($request, $params));
-        return array (
+        $response = $this->privatePostPlaceOrder (array_merge($request, $params));
+        return array(
             'info' => $response,
             'id' => $this->safe_string($response['result'], 'orderID'),
         );
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        $request = array (
+        $request = array(
             'orderID' => $id,
         );
-        return $this->privatePostCancelOrder (array_merge ($request, $params));
+        return $this->privatePostCancelOrder (array_merge($request, $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -275,15 +275,15 @@ class virwox extends Exchange {
         }
         $nonce = $this->nonce ();
         if ($method === 'GET') {
-            $url .= '?' . $this->urlencode (array_merge (array (
+            $url .= '?' . $this->urlencode (array_merge(array(
                 'method' => $path,
                 'id' => $nonce,
             ), $auth, $params));
         } else {
             $headers = array( 'Content-Type' => 'application/json' );
-            $body = $this->json (array (
+            $body = $this->json (array(
                 'method' => $path,
-                'params' => array_merge ($auth, $params),
+                'params' => array_merge($auth, $params),
                 'id' => $nonce,
             ));
         }

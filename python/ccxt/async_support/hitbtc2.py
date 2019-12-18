@@ -8,6 +8,7 @@ import base64
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -555,6 +556,7 @@ class hitbtc2(hitbtc):
             'exceptions': {
                 '1003': PermissionDenied,  # "Action is forbidden for self API key"
                 '2010': InvalidOrder,  # "Quantity not a valid number"
+                '2001': BadSymbol,  # "Symbol not found"
                 '2011': InvalidOrder,  # "Quantity too low"
                 '2020': InvalidOrder,  # "Price not a valid number"
                 '20002': OrderNotFound,  # canceling non-existent order

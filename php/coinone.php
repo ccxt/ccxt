@@ -10,38 +10,38 @@ use Exception; // a common import
 class coinone extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'coinone',
             'name' => 'CoinOne',
-            'countries' => array ( 'KR' ), // Korea
+            'countries' => array( 'KR' ), // Korea
             'rateLimit' => 667,
             'version' => 'v2',
-            'has' => array (
+            'has' => array(
                 'CORS' => false,
                 'createMarketOrder' => false,
                 'fetchTickers' => true,
                 'fetchOrder' => true,
             ),
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
                 'api' => 'https://api.coinone.co.kr',
                 'www' => 'https://coinone.co.kr',
                 'doc' => 'https://doc.coinone.co.kr',
             ),
-            'requiredCredentials' => array (
+            'requiredCredentials' => array(
                 'apiKey' => true,
                 'secret' => true,
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
+            'api' => array(
+                'public' => array(
+                    'get' => array(
                         'orderbook/',
                         'trades/',
                         'ticker/',
                     ),
                 ),
-                'private' => array (
-                    'post' => array (
+                'private' => array(
+                    'post' => array(
                         'account/btc_deposit_address/',
                         'account/balance/',
                         'account/daily_balance/',
@@ -62,7 +62,7 @@ class coinone extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
+            'markets' => array(
                 'BCH/KRW' => array( 'id' => 'bch', 'symbol' => 'BCH/KRW', 'base' => 'BCH', 'quote' => 'KRW', 'baseId' => 'bch', 'quoteId' => 'krw' ),
                 'BTC/KRW' => array( 'id' => 'btc', 'symbol' => 'BTC/KRW', 'base' => 'BTC', 'quote' => 'KRW', 'baseId' => 'btc', 'quoteId' => 'krw' ),
                 'BTG/KRW' => array( 'id' => 'btg', 'symbol' => 'BTG/KRW', 'base' => 'BTG', 'quote' => 'KRW', 'baseId' => 'btg', 'quoteId' => 'krw' ),
@@ -82,13 +82,13 @@ class coinone extends Exchange {
                 'ATOM/KRW' => array( 'id' => 'atom', 'symbol' => 'ATOM/KRW', 'base' => 'ATOM', 'quote' => 'KRW', 'baseId' => 'atom', 'quoteId' => 'krw' ),
                 'VNT/KRW' => array( 'id' => 'vnt', 'symbol' => 'VNT/KRW', 'base' => 'VNT', 'quote' => 'KRW', 'baseId' => 'vnt', 'quoteId' => 'krw' ),
             ),
-            'fees' => array (
-                'trading' => array (
+            'fees' => array(
+                'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
                     'taker' => 0.001,
                     'maker' => 0.001,
-                    'tiers' => array (
+                    'tiers' => array(
                         'taker' => [
                             [0, 0.001],
                             [100000000, 0.0009],
@@ -114,10 +114,11 @@ class coinone extends Exchange {
                     ),
                 ),
             ),
-            'exceptions' => array (
+            'exceptions' => array(
                 '405' => '\\ccxt\\OnMaintenance', // array("errorCode":"405","status":"maintenance","result":"error")
                 '104' => '\\ccxt\\OrderNotFound',
                 '108' => '\\ccxt\\BadSymbol', // array("errorCode":"108","errorMsg":"Unknown CryptoCurrency","result":"error")
+                '107' => '\\ccxt\\BadRequest', // array("errorCode":"107","errorMsg":"Parameter error","result":"error")
             ),
         ));
     }
@@ -126,13 +127,13 @@ class coinone extends Exchange {
         $this->load_markets();
         $response = $this->privatePostAccountBalance ($params);
         $result = array( 'info' => $response );
-        $balances = $this->omit ($response, array (
+        $balances = $this->omit ($response, array(
             'errorCode',
             'result',
             'normalWallets',
         ));
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
-        for ($i = 0; $i < count ($currencyIds); $i++) {
+        for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $balance = $balances[$currencyId];
             $code = $this->safe_currency_code($currencyId);
@@ -147,24 +148,24 @@ class coinone extends Exchange {
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'currency' => $market['id'],
             'format' => 'json',
         );
-        $response = $this->publicGetOrderbook (array_merge ($request, $params));
+        $response = $this->publicGetOrderbook (array_merge($request, $params));
         return $this->parse_order_book($response, null, 'bid', 'ask', 'price', 'qty');
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'currency' => 'all',
             'format' => 'json',
         );
-        $response = $this->publicGetTicker (array_merge ($request, $params));
+        $response = $this->publicGetTicker (array_merge($request, $params));
         $result = array();
         $ids = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count ($ids); $i++) {
+        for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $symbol = $id;
             $market = null;
@@ -181,11 +182,11 @@ class coinone extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'currency' => $market['id'],
             'format' => 'json',
         );
-        $response = $this->publicGetTicker (array_merge ($request, $params));
+        $response = $this->publicGetTicker (array_merge($request, $params));
         return $this->parse_ticker($response, $market);
     }
 
@@ -198,7 +199,7 @@ class coinone extends Exchange {
             $change = $previousClose - $last;
         }
         $symbol = ($market !== null) ? $market['symbol'] : null;
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -240,7 +241,7 @@ class coinone extends Exchange {
                 $cost = $price * $amount;
             }
         }
-        return array (
+        return array(
             'id' => null,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -260,12 +261,12 @@ class coinone extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'currency' => $market['id'],
             'period' => 'hour',
             'format' => 'json',
         );
-        $response = $this->publicGetTrades (array_merge ($request, $params));
+        $response = $this->publicGetTrades (array_merge($request, $params));
         return $this->parse_trades($response['completeOrders'], $market, $since, $limit);
     }
 
@@ -275,20 +276,20 @@ class coinone extends Exchange {
             throw new ExchangeError($this->id . ' allows limit orders only');
         }
         $this->load_markets();
-        $request = array (
+        $request = array(
             'price' => $price,
             'currency' => $this->market_id($symbol),
             'qty' => $amount,
         );
         $method = 'privatePostOrder' . $this->capitalize ($type) . $this->capitalize ($side);
-        $response = $this->$method (array_merge ($request, $params));
+        $response = $this->$method (array_merge($request, $params));
         $id = $this->safe_string($response, 'orderId');
         if ($id !== null) {
             $id = strtoupper($id);
         }
         $timestamp = $this->milliseconds ();
         $cost = $price * $amount;
-        $order = array (
+        $order = array(
             'info' => $response,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -324,11 +325,11 @@ class coinone extends Exchange {
             $market = $this->market ($symbol);
         }
         try {
-            $request = array (
+            $request = array(
                 'order_id' => $id,
                 'currency' => $market['id'],
             );
-            $response = $this->privatePostOrderOrderInfo (array_merge ($request, $params));
+            $response = $this->privatePostOrderOrderInfo (array_merge($request, $params));
             $result = $this->parse_order($response);
             $this->orders[$id] = $result;
         } catch (Exception $e) {
@@ -347,7 +348,7 @@ class coinone extends Exchange {
     }
 
     public function parse_order_status ($status) {
-        $statuses = array (
+        $statuses = array(
             'live' => 'open',
             'partially_filled' => 'open',
             'filled' => 'closed',
@@ -380,7 +381,7 @@ class coinone extends Exchange {
             }
         }
         $currency = $this->safe_string($info, 'currency');
-        $fee = array (
+        $fee = array(
             'currency' => $currency,
             'cost' => $this->safe_float($info, 'fee'),
             'rate' => $this->safe_float($info, 'feeRate'),
@@ -395,7 +396,7 @@ class coinone extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        return array (
+        return array(
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -446,7 +447,7 @@ class coinone extends Exchange {
             $side = ($order['side'] === 'buy') ? 0 : 1;
             $symbol = $order['symbol'];
         }
-        $request = array (
+        $request = array(
             'order_id' => $id,
             'price' => $price,
             'qty' => $amount,
@@ -454,7 +455,7 @@ class coinone extends Exchange {
             'currency' => $this->market_id($symbol),
         );
         $this->orders[$id]['status'] = 'canceled';
-        return $this->privatePostOrderCancel (array_merge ($request, $params));
+        return $this->privatePostOrderCancel (array_merge($request, $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -470,15 +471,15 @@ class coinone extends Exchange {
             $this->check_required_credentials();
             $url .= $this->version . '/' . $request;
             $nonce = (string) $this->nonce ();
-            $json = $this->json (array_merge (array (
+            $json = $this->json (array_merge(array(
                 'access_token' => $this->apiKey,
                 'nonce' => $nonce,
             ), $params));
-            $payload = base64_encode ($this->encode ($json));
+            $payload = base64_encode($this->encode ($json));
             $body = $this->decode ($payload);
             $secret = strtoupper($this->secret);
             $signature = $this->hmac ($payload, $this->encode ($secret), 'sha512');
-            $headers = array (
+            $headers = array(
                 'content-type' => 'application/json',
                 'X-COINONE-PAYLOAD' => $payload,
                 'X-COINONE-SIGNATURE' => $signature,

@@ -10,28 +10,28 @@ use Exception; // a common import
 class paymium extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'paymium',
             'name' => 'Paymium',
-            'countries' => array ( 'FR', 'EU' ),
+            'countries' => array( 'FR', 'EU' ),
             'rateLimit' => 2000,
             'version' => 'v1',
-            'has' => array (
+            'has' => array(
                 'CORS' => true,
             ),
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg',
                 'api' => 'https://paymium.com/api',
                 'www' => 'https://www.paymium.com',
                 'fees' => 'https://www.paymium.com/page/help/fees',
-                'doc' => array (
+                'doc' => array(
                     'https://github.com/Paymium/api-documentation',
                     'https://www.paymium.com/page/developers',
                 ),
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
+            'api' => array(
+                'public' => array(
+                    'get' => array(
                         'countries',
                         'data/{id}/ticker',
                         'data/{id}/trades',
@@ -40,8 +40,8 @@ class paymium extends Exchange {
                         'bitcoin_charts/{id}/depth',
                     ),
                 ),
-                'private' => array (
-                    'get' => array (
+                'private' => array(
+                    'get' => array(
                         'merchant/get_payment/{UUID}',
                         'user',
                         'user/addresses',
@@ -50,24 +50,24 @@ class paymium extends Exchange {
                         'user/orders/{UUID}',
                         'user/price_alerts',
                     ),
-                    'post' => array (
+                    'post' => array(
                         'user/orders',
                         'user/addresses',
                         'user/payment_requests',
                         'user/price_alerts',
                         'merchant/create_payment',
                     ),
-                    'delete' => array (
+                    'delete' => array(
                         'user/orders/{UUID}/cancel',
                         'user/price_alerts/{id}',
                     ),
                 ),
             ),
-            'markets' => array (
+            'markets' => array(
                 'BTC/EUR' => array( 'id' => 'eur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'btc', 'quoteId' => 'eur' ),
             ),
-            'fees' => array (
-                'trading' => array (
+            'fees' => array(
+                'trading' => array(
                     'maker' => 0.002,
                     'taker' => 0.002,
                 ),
@@ -80,7 +80,7 @@ class paymium extends Exchange {
         $response = $this->privateGetUser ($params);
         $result = array( 'info' => $response );
         $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        for ($i = 0; $i < count ($currencies); $i++) {
+        for ($i = 0; $i < count($currencies); $i++) {
             $code = $currencies[$i];
             $currencyId = $this->currencyId ($code);
             $free = 'balance_' . $currencyId;
@@ -97,18 +97,18 @@ class paymium extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'id' => $this->market_id($symbol),
         );
-        $response = $this->publicGetDataIdDepth (array_merge ($request, $params));
+        $response = $this->publicGetDataIdDepth (array_merge($request, $params));
         return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
-        $request = array (
+        $request = array(
             'id' => $this->market_id($symbol),
         );
-        $ticker = $this->publicGetDataIdTicker (array_merge ($request, $params));
+        $ticker = $this->publicGetDataIdTicker (array_merge($request, $params));
         $timestamp = $this->safe_timestamp($ticker, 'at');
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = $this->safe_float($ticker, 'volume');
@@ -117,7 +117,7 @@ class paymium extends Exchange {
             $quoteVolume = $baseVolume * $vwap;
         }
         $last = $this->safe_float($ticker, 'price');
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -158,7 +158,7 @@ class paymium extends Exchange {
                 $cost = $amount * $price;
             }
         }
-        return array (
+        return array(
             'info' => $trade,
             'id' => $id,
             'order' => null,
@@ -178,16 +178,16 @@ class paymium extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'id' => $market['id'],
         );
-        $response = $this->publicGetDataIdTrades (array_merge ($request, $params));
+        $response = $this->publicGetDataIdTrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'type' => $this->capitalize ($type) . 'Order',
             'currency' => $this->market_id($symbol),
             'direction' => $side,
@@ -196,18 +196,18 @@ class paymium extends Exchange {
         if ($type !== 'market') {
             $request['price'] = $price;
         }
-        $response = $this->privatePostUserOrders (array_merge ($request, $params));
-        return array (
+        $response = $this->privatePostUserOrders (array_merge($request, $params));
+        return array(
             'info' => $response,
             'id' => $response['uuid'],
         );
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        $request = array (
+        $request = array(
             'UUID' => $id,
         );
-        return $this->privateDeleteUserOrdersUUIDCancel (array_merge ($request, $params));
+        return $this->privateDeleteUserOrdersUUIDCancel (array_merge($request, $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -227,7 +227,7 @@ class paymium extends Exchange {
                     $auth .= $body;
                 }
             }
-            $headers = array (
+            $headers = array(
                 'Api-Key' => $this->apiKey,
                 'Api-Signature' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret)),
                 'Api-Nonce' => $nonce,

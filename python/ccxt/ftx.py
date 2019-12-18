@@ -90,6 +90,7 @@ class ftx(Exchange):
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'conditional_orders',  # ?market={market}
+                        'conditional_orders/history',  # ?market={market}
                         'fills',  # ?market={market}
                         'funding_payments',
                         'lt/balances',
@@ -190,22 +191,10 @@ class ftx(Exchange):
                 'fee': None,
                 'precision': None,
                 'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
+                    'withdraw': {'min': None, 'max': None},
+                    'amount': {'min': None, 'max': None},
+                    'price': {'min': None, 'max': None},
+                    'cost': {'min': None, 'max': None},
                 },
             }
         return result

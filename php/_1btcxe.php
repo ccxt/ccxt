@@ -10,35 +10,35 @@ use Exception; // a common import
 class _1btcxe extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => '_1btcxe',
             'name' => '1BTCXE',
-            'countries' => array ( 'PA' ), // Panama
+            'countries' => array( 'PA' ), // Panama
             'comment' => 'Crypto Capital API',
-            'has' => array (
+            'has' => array(
                 'CORS' => true,
                 'withdraw' => true,
             ),
-            'timeframes' => array (
+            'timeframes' => array(
                 '1d' => '1year',
             ),
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg',
                 'api' => 'https://1btcxe.com/api',
                 'www' => 'https://1btcxe.com',
                 'doc' => 'https://1btcxe.com/api-docs.php',
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
+            'api' => array(
+                'public' => array(
+                    'get' => array(
                         'stats',
                         'historical-prices',
                         'order-book',
                         'transactions',
                     ),
                 ),
-                'private' => array (
-                    'post' => array (
+                'private' => array(
+                    'post' => array(
                         'balances-and-info',
                         'open-orders',
                         'user-transactions',
@@ -58,7 +58,7 @@ class _1btcxe extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        return array (
+        return array(
             array( 'id' => 'USD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'baseId' => 'BTC', 'quoteId' => 'USD' ),
             array( 'id' => 'EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'BTC', 'quoteId' => 'EUR' ),
             array( 'id' => 'CNY', 'symbol' => 'BTC/CNY', 'base' => 'BTC', 'quote' => 'CNY', 'baseId' => 'BTC', 'quoteId' => 'CNY' ),
@@ -96,7 +96,7 @@ class _1btcxe extends Exchange {
         $balance = $response['balances-and-info'];
         $result = array( 'info' => $balance );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        for ($i = 0; $i < count ($codes); $i++) {
+        for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
             $currency = $this->currency ($code);
             $currencyId = $currency['id'];
@@ -109,21 +109,21 @@ class _1btcxe extends Exchange {
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
-        $request = array (
+        $request = array(
             'currency' => $this->market_id($symbol),
         );
-        $response = $this->publicGetOrderBook (array_merge ($request, $params));
+        $response = $this->publicGetOrderBook (array_merge($request, $params));
         return $this->parse_order_book($response['order-book'], null, 'bid', 'ask', 'price', 'order_amount');
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
-        $request = array (
+        $request = array(
             'currency' => $this->market_id($symbol),
         );
-        $response = $this->publicGetStats (array_merge ($request, $params));
+        $response = $this->publicGetStats (array_merge($request, $params));
         $ticker = $this->safe_value($response, 'stats', array());
         $last = $this->safe_float($ticker, 'last_price');
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
@@ -160,7 +160,7 @@ class _1btcxe extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1d', $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
-        $response = $this->publicGetHistoricalPrices (array_merge (array (
+        $response = $this->publicGetHistoricalPrices (array_merge(array(
             'currency' => $market['id'],
             'timeframe' => $this->timeframes[$timeframe],
         ), $params));
@@ -185,7 +185,7 @@ class _1btcxe extends Exchange {
                 $cost = $amount * $price;
             }
         }
-        return array (
+        return array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -204,19 +204,19 @@ class _1btcxe extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'currency' => $market['id'],
         );
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetTransactions (array_merge ($request, $params));
+        $response = $this->publicGetTransactions (array_merge($request, $params));
         $trades = $this->to_array($this->omit ($response['transactions'], 'request_currency'));
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $request = array (
+        $request = array(
             'side' => $side,
             'type' => $type,
             'currency' => $this->market_id($symbol),
@@ -225,31 +225,31 @@ class _1btcxe extends Exchange {
         if ($type === 'limit') {
             $request['limit_price'] = $price;
         }
-        $result = $this->privatePostOrdersNew (array_merge ($request, $params));
-        return array (
+        $result = $this->privatePostOrdersNew (array_merge($request, $params));
+        return array(
             'info' => $result,
             'id' => $result,
         );
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        $request = array (
+        $request = array(
             'id' => $id,
         );
-        return $this->privatePostOrdersCancel (array_merge ($request, $params));
+        return $this->privatePostOrdersCancel (array_merge($request, $params));
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
-        $request = array (
+        $request = array(
             'currency' => $currency['id'],
             'amount' => floatval ($amount),
             'address' => $address,
         );
-        $response = $this->privatePostWithdrawalsNew (array_merge ($request, $params));
-        return array (
+        $response = $this->privatePostWithdrawalsNew (array_merge($request, $params));
+        return array(
             'info' => $response,
             'id' => $response['result']['uuid'],
         );
@@ -266,7 +266,7 @@ class _1btcxe extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $query = array_merge (array (
+            $query = array_merge(array(
                 'api_key' => $this->apiKey,
                 'nonce' => $this->nonce (),
             ), $params);
@@ -280,14 +280,14 @@ class _1btcxe extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (gettype ($response) === 'string') {
+        if (gettype($response) === 'string') {
             if (mb_strpos($response, 'Maintenance') !== false) {
                 throw new ExchangeNotAvailable($this->id . ' on maintenance');
             }
         }
         if (is_array($response) && array_key_exists('errors', $response)) {
             $errors = array();
-            for ($e = 0; $e < count ($response['errors']); $e++) {
+            for ($e = 0; $e < count($response['errors']); $e++) {
                 $error = $response['errors'][$e];
                 $errors[] = $error['code'] . ' => ' . $error['message'];
             }

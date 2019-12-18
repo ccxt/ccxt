@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class bw(Exchange):
@@ -14,7 +15,7 @@ class bw(Exchange):
     def describe(self):
         return self.deep_extend(super(bw, self).describe(), {
             'id': 'bw',
-            'name': 'bw.com',
+            'name': 'BW',
             'countries': ['CN'],
             'rateLimit': 1500,
             'version': 'v1',
@@ -70,7 +71,7 @@ class bw(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/69436317-31128c80-0d52-11ea-91d1-eb7bb5818812.jpg',
                 'api': 'https://www.{hostname}',
-                'www': 'https://www.{hostname}',
+                'www': 'https://www.bw.com',
                 'doc': 'https://github.com/bw-exchange/api_docs_en/wiki',
                 'fees': 'https://www.bw.com/feesRate',
             },
@@ -99,6 +100,7 @@ class bw(Exchange):
             'exceptions': {
                 'exact': {
                     '999': AuthenticationError,
+                    '1000': ExchangeNotAvailable,  # {"datas":null,"resMsg":{"message":"getKlines error:data not exitsts\uff0cplease wait ,dataType=4002_KLINE_1M","method":null,"code":"1000"}}
                 },
             },
             'api': {
@@ -169,7 +171,7 @@ class bw(Exchange):
         #                 "isMining":0
         #             }
         #         ],
-        #         "resMsg": {"message":"success not ", "method":null, "code":"1"}
+        #         "resMsg": {"message":"success !", "method":null, "code":"1"}
         #     }
         #
         markets = self.safe_value(response, 'datas', [])
@@ -277,7 +279,7 @@ class bw(Exchange):
         #                 "zone":1
         #             },
         #         ],
-        #         "resMsg": {"message":"success not ", "method":null, "code":"1"}
+        #         "resMsg": {"message":"success !", "method":null, "code":"1"}
         #     }
         #
         currencies = self.safe_value(response, 'datas', [])
@@ -334,35 +336,35 @@ class bw(Exchange):
         #     ]
         #
         symbol = None
-        marketId = ticker[0]
+        marketId = self.safe_string(ticker, 0)
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         timestamp = self.milliseconds()
-        close = float(ticker[1])
+        close = float(self.safe_value(ticker, 1))
         bid = self.safe_value(ticker, 'bid', {})
         ask = self.safe_value(ticker, 'ask', {})
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker[2]),
-            'low': float(ticker[3]),
-            'bid': float(ticker[7]),
+            'high': float(self.safe_value(ticker, 2)),
+            'low': float(self.safe_value(ticker, 3)),
+            'bid': float(self.safe_value(ticker, 7)),
             'bidVolume': self.safe_float(bid, 'quantity'),
-            'ask': float(ticker[8]),
+            'ask': float(self.safe_value(ticker, 8)),
             'askVolume': self.safe_float(ask, 'quantity'),
             'vwap': None,
-            'open': self.safe_float(ticker, 'open'),
+            'open': None,
             'close': close,
             'last': close,
             'previousClose': None,
-            'change': float(ticker[5]),
+            'change': float(self.safe_value(ticker, 5)),
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker[4]),
-            'quoteVolume': float(ticker[9]),
+            'baseVolume': float(self.safe_value(ticker, 4)),
+            'quoteVolume': float(self.safe_value(ticker, 9)),
             'info': ticker,
         }
 
@@ -387,7 +389,7 @@ class bw(Exchange):
         #             "7603.69",
         #             "371968300.0119",
         #         ],
-        #         "resMsg": {"message": "success not ", "method": null, "code": "1"}
+        #         "resMsg": {"message": "success !", "method": null, "code": "1"}
         #     }
         #
         ticker = self.safe_value(response, 'datas', [])
@@ -412,7 +414,7 @@ class bw(Exchange):
         #                 "4466.8104",
         #             ],
         #         ],
-        #         "resMsg": {"message": "success not ", "method": null, "code": "1"},
+        #         "resMsg": {"message": "success !", "method": null, "code": "1"},
         #     }
         #
         datas = self.safe_value(response, 'datas', [])
@@ -445,7 +447,7 @@ class bw(Exchange):
         #             "timestamp": "1569303520",
         #         },
         #         "resMsg": {
-        #             "message": "success not ",
+        #             "message": "success !",
         #             "method": null,
         #             "code": "1",
         #         },
@@ -533,7 +535,7 @@ class bw(Exchange):
         #                 "0.0026"      # amount
         #             ],
         #         ],
-        #         "resMsg": {"code": "1", "method": null, "message": "success not "},
+        #         "resMsg": {"code": "1", "method": null, "message": "success !"},
         #     }
         #
         trades = self.safe_value(response, 'datas', [])
@@ -581,7 +583,7 @@ class bw(Exchange):
         #             ],
         #             "pageNum": 1,
         #         },
-        #         "resMsg": {"code": "1", "message": "success not "}
+        #         "resMsg": {"code": "1", "message": "success !"}
         #     }
         #
         data = self.safe_value(response, 'datas', {})
@@ -616,7 +618,7 @@ class bw(Exchange):
         #             "entrustId": "E6581105708337483776",
         #         },
         #         "resMsg": {
-        #             "message": "success not ",
+        #             "message": "success !",
         #             "method": null,
         #             "code": "1"
         #         }
@@ -746,7 +748,7 @@ class bw(Exchange):
         #             "createTime": 1569058424861,         # Create time
         #             "availabelAmount": "14.05"           # Outstanding quantity
         #         },
-        #         "resMsg": {"message": "success not ", "method": null, "code": "1"}
+        #         "resMsg": {"message": "success !", "method": null, "code": "1"}
         #     }
         #
         order = self.safe_value(response, 'datas', {})
@@ -765,7 +767,7 @@ class bw(Exchange):
         #
         #     {
         #         "datas": null,
-        #         "resMsg": {"message": "success not ", "method": null, "code": "1"}
+        #         "resMsg": {"message": "success !", "method": null, "code": "1"}
         #     }
         #
         return {
@@ -810,7 +812,7 @@ class bw(Exchange):
         #                 },
         #             ],
         #         },
-        #         "resMsg": {"message": "success not ", "method": null, "code": "1"},
+        #         "resMsg": {"message": "success !", "method": null, "code": "1"},
         #     }
         #
         data = self.safe_value(response, 'datas', {})
@@ -860,7 +862,7 @@ class bw(Exchange):
         #                 },
         #             ],
         #         },
-        #         "resMsg": {"message": "success not ", "method": null, "code": "1"},
+        #         "resMsg": {"message": "success !", "method": null, "code": "1"},
         #     }
         #
         data = self.safe_value(response, 'datas', {})
@@ -909,7 +911,7 @@ class bw(Exchange):
         #             "memo": "787928102918558272",                  # 币种memo
         #             "account": "bweosdeposit"                      # 币种账户
         #         },
-        #         "resMsg": {"message": "success not ", "method": null, "code": "1"}
+        #         "resMsg": {"message": "success !", "method": null, "code": "1"}
         #     }
         #
         data = self.safe_value(response, 'datas', {})
@@ -1033,7 +1035,7 @@ class bw(Exchange):
         #                 },
         #             ]
         #         },
-        #         "resMsg": {"message": "success not ", "method": null, "code": "1"},
+        #         "resMsg": {"message": "success !", "method": null, "code": "1"},
         #     }
         #
         data = self.safe_value(response, 'datas', {})
@@ -1074,7 +1076,7 @@ class bw(Exchange):
         #                 },
         #             ],
         #         },
-        #         "resMsg": {"message": "success not ", "method": null, "code": "1"},
+        #         "resMsg": {"message": "success !", "method": null, "code": "1"},
         #     }
         #
         data = self.safe_value(response, 'datas', {})

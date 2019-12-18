@@ -10,18 +10,18 @@ use Exception; // a common import
 class coinfalcon extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'coinfalcon',
             'name' => 'CoinFalcon',
-            'countries' => array ( 'GB' ),
+            'countries' => array( 'GB' ),
             'rateLimit' => 1000,
             'version' => 'v1',
-            'has' => array (
+            'has' => array(
                 'fetchTickers' => true,
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => true,
             ),
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg',
                 'api' => 'https://coinfalcon.com',
                 'www' => 'https://coinfalcon.com',
@@ -29,37 +29,37 @@ class coinfalcon extends Exchange {
                 'fees' => 'https://coinfalcon.com/fees',
                 'referral' => 'https://coinfalcon.com/?ref=CFJSVGTUPASB',
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
+            'api' => array(
+                'public' => array(
+                    'get' => array(
                         'markets',
                         'markets/{market}/orders',
                         'markets/{market}/trades',
                     ),
                 ),
-                'private' => array (
-                    'get' => array (
+                'private' => array(
+                    'get' => array(
                         'user/accounts',
                         'user/orders',
                         'user/orders/{id}',
                         'user/trades',
                     ),
-                    'post' => array (
+                    'post' => array(
                         'user/orders',
                     ),
-                    'delete' => array (
+                    'delete' => array(
                         'user/orders/{id}',
                     ),
                 ),
             ),
-            'fees' => array (
-                'trading' => array (
+            'fees' => array(
+                'trading' => array(
                     'tierBased' => true,
                     'maker' => 0.0,
                     'taker' => 0.002, // tiered fee starts at 0.2%
                 ),
             ),
-            'precision' => array (
+            'precision' => array(
                 'amount' => 8,
                 'price' => 8,
             ),
@@ -70,17 +70,17 @@ class coinfalcon extends Exchange {
         $response = $this->publicGetMarkets ($params);
         $markets = $this->safe_value($response, 'data');
         $result = array();
-        for ($i = 0; $i < count ($markets); $i++) {
+        for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             list($baseId, $quoteId) = explode('-', $market['name']);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $precision = array (
+            $precision = array(
                 'amount' => $this->safe_integer($market, 'size_precision'),
                 'price' => $this->safe_integer($market, 'price_precision'),
             );
-            $result[] = array (
+            $result[] = array(
                 'id' => $market['name'],
                 'symbol' => $symbol,
                 'base' => $base,
@@ -89,16 +89,16 @@ class coinfalcon extends Exchange {
                 'quoteId' => $quoteId,
                 'active' => true,
                 'precision' => $precision,
-                'limits' => array (
-                    'amount' => array (
+                'limits' => array(
+                    'amount' => array(
                         'min' => pow(10, -$precision['amount']),
                         'max' => null,
                     ),
-                    'price' => array (
+                    'price' => array(
                         'min' => pow(10, -$precision['price']),
                         'max' => null,
                     ),
-                    'cost' => array (
+                    'cost' => array(
                         'min' => null,
                         'max' => null,
                     ),
@@ -120,7 +120,7 @@ class coinfalcon extends Exchange {
         }
         $timestamp = $this->milliseconds ();
         $last = floatval ($ticker['last_price']);
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -155,7 +155,7 @@ class coinfalcon extends Exchange {
         $response = $this->publicGetMarkets ($params);
         $tickers = $this->safe_value($response, 'data');
         $result = array();
-        for ($i = 0; $i < count ($tickers); $i++) {
+        for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $this->parse_ticker($tickers[$i]);
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
@@ -165,11 +165,11 @@ class coinfalcon extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'market' => $this->market_id($symbol),
             'level' => '3',
         );
-        $response = $this->publicGetMarketsMarketOrders (array_merge ($request, $params));
+        $response = $this->publicGetMarketsMarketOrders (array_merge($request, $params));
         return $this->parse_order_book($response['data'], null, 'bids', 'asks', 'price', 'size');
     }
 
@@ -191,12 +191,12 @@ class coinfalcon extends Exchange {
         $feeCost = $this->safe_float($trade, 'fee');
         if ($feeCost !== null) {
             $feeCurrencyCode = $this->safe_string($trade, 'fee_currency_code');
-            $fee = array (
+            $fee = array(
                 'cost' => $feeCost,
                 'currency' => $this->safe_currency_code($feeCurrencyCode),
             );
         }
-        return array (
+        return array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -219,7 +219,7 @@ class coinfalcon extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'market' => $market['id'],
         );
         if ($since !== null) {
@@ -228,20 +228,20 @@ class coinfalcon extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetUserTrades (array_merge ($request, $params));
+        $response = $this->privateGetUserTrades (array_merge($request, $params));
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'market' => $market['id'],
         );
         if ($since !== null) {
             $request['since'] = $this->iso8601 ($since);
         }
-        $response = $this->publicGetMarketsMarketTrades (array_merge ($request, $params));
+        $response = $this->publicGetMarketsMarketTrades (array_merge($request, $params));
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
@@ -250,11 +250,11 @@ class coinfalcon extends Exchange {
         $response = $this->privateGetUserAccounts ($params);
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response, 'data');
-        for ($i = 0; $i < count ($balances); $i++) {
+        for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency_code');
             $code = $this->safe_currency_code($currencyId);
-            $account = array (
+            $account = array(
                 'free' => $this->safe_float($balance, 'available_balance'),
                 'used' => $this->safe_float($balance, 'hold_balance'),
                 'total' => $this->safe_float($balance, 'balance'),
@@ -265,7 +265,7 @@ class coinfalcon extends Exchange {
     }
 
     public function parse_order_status ($status) {
-        $statuses = array (
+        $statuses = array(
             'fulfilled' => 'closed',
             'canceled' => 'canceled',
             'pending' => 'open',
@@ -307,7 +307,7 @@ class coinfalcon extends Exchange {
             $type = $type[0];
         }
         $side = $this->safe_string($order, 'order_type');
-        return array (
+        return array(
             'id' => $this->safe_string($order, 'id'),
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
@@ -330,7 +330,7 @@ class coinfalcon extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         // price/size must be string
-        $request = array (
+        $request = array(
             'market' => $market['id'],
             'size' => $this->amount_to_precision($symbol, $amount),
             'order_type' => $side,
@@ -340,7 +340,7 @@ class coinfalcon extends Exchange {
             $request['price'] = (string) $price;
         }
         $request['operation_type'] = $type . '_order';
-        $response = $this->privatePostUserOrders (array_merge ($request, $params));
+        $response = $this->privatePostUserOrders (array_merge($request, $params));
         $order = $this->parse_order($response['data'], $market);
         $id = $order['id'];
         $this->orders[$id] = $order;
@@ -349,20 +349,20 @@ class coinfalcon extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'id' => $id,
         );
-        $response = $this->privateDeleteUserOrdersId (array_merge ($request, $params));
+        $response = $this->privateDeleteUserOrdersId (array_merge($request, $params));
         $market = $this->market ($symbol);
         return $this->parse_order($response['data'], $market);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'id' => $id,
         );
-        $response = $this->privateGetUserOrdersId (array_merge ($request, $params));
+        $response = $this->privateGetUserOrdersId (array_merge($request, $params));
         return $this->parse_order($response['data']);
     }
 
@@ -376,7 +376,7 @@ class coinfalcon extends Exchange {
             $request['since_time'] = $this->iso8601 ($this->milliseconds ());
         }
         // TODO => test status=all if it works for closed orders too
-        $response = $this->privateGetUserOrders (array_merge ($request, $params));
+        $response = $this->privateGetUserOrders (array_merge($request, $params));
         return $this->parse_orders($response['data']);
     }
 
@@ -406,7 +406,7 @@ class coinfalcon extends Exchange {
                 $payload .= '|' . $body;
             }
             $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret));
-            $headers = array (
+            $headers = array(
                 'CF-API-KEY' => $this->apiKey,
                 'CF-API-TIMESTAMP' => $seconds,
                 'CF-API-SIGNATURE' => $signature,
@@ -421,7 +421,7 @@ class coinfalcon extends Exchange {
         if ($code < 400) {
             return;
         }
-        $ErrorClass = $this->safe_value(array (
+        $ErrorClass = $this->safe_value(array(
             '401' => '\\ccxt\\AuthenticationError',
             '429' => '\\ccxt\\DDoSProtection',
         ), $code, '\\ccxt\\ExchangeError');

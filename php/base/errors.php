@@ -4,25 +4,25 @@ namespace ccxt;
 
 use Exception;
 
-$error_hierarchy = array (
-    'BaseError' => array (
-        'ExchangeError' => array (
-            'AuthenticationError' => array (
+$error_hierarchy = array(
+    'BaseError' => array(
+        'ExchangeError' => array(
+            'AuthenticationError' => array(
                 'PermissionDenied' => array(),
                 'AccountSuspended' => array(),
             ),
             'ArgumentsRequired' => array(),
-            'BadRequest' => array (
+            'BadRequest' => array(
                 'BadSymbol' => array(),
             ),
-            'BadResponse' => array (
+            'BadResponse' => array(
                 'NullResponse' => array(),
             ),
             'InsufficientFunds' => array(),
-            'InvalidAddress' => array (
+            'InvalidAddress' => array(
                 'AddressPending' => array(),
             ),
-            'InvalidOrder' => array (
+            'InvalidOrder' => array(
                 'OrderNotFound' => array(),
                 'OrderNotCached' => array(),
                 'CancelPending' => array(),
@@ -32,11 +32,11 @@ $error_hierarchy = array (
             ),
             'NotSupported' => array(),
         ),
-        'NetworkError' => array (
-            'DDoSProtection' => array (
+        'NetworkError' => array(
+            'DDoSProtection' => array(
                 'RateLimitExceeded' => array(),
             ),
-            'ExchangeNotAvailable' => array (
+            'ExchangeNotAvailable' => array(
                 'OnMaintenance' => array(),
             ),
             'InvalidNonce' => array(),

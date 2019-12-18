@@ -127,7 +127,7 @@ class upbit(Exchange):
             'exceptions': {
                 'exact': {
                     'This key has expired.': AuthenticationError,
-                    'Missing request parameter error. Check the required parametersnot ': BadRequest,
+                    'Missing request parameter error. Check the required parameters!': BadRequest,
                     'side is missing, side does not have a valid value': InvalidOrder,
                 },
                 'broad': {
@@ -813,7 +813,7 @@ class upbit(Exchange):
         elif side == 'sell':
             orderSide = 'ask'
         else:
-            raise InvalidOrder(self.id + ' createOrder allows buy or sell side onlynot ')
+            raise InvalidOrder(self.id + ' createOrder allows buy or sell side only!')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1418,7 +1418,7 @@ class upbit(Exchange):
         if response is None:
             return  # fallback to default error handler
         #
-        #   {'error': {'message': "Missing request parameter error. Check the required parametersnot ", 'name':  400}},
+        #   {'error': {'message': "Missing request parameter error. Check the required parameters!", 'name':  400}},
         #   {'error': {'message': "side is missing, side does not have a valid value", 'name': "validation_error"}},
         #   {'error': {'message': "개인정보 제 3자 제공 동의가 필요합니다.", 'name': "thirdparty_agreement_required"}},
         #   {'error': {'message': "권한이 부족합니다.", 'name': "out_of_scope"}},

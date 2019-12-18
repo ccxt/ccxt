@@ -603,7 +603,7 @@ class buda(Exchange):
         statuses = {
             'rejected': 'failed',
             'confirmed': 'ok',
-            'anulled': 'canceled',
+            'aNoneed': 'canceled',
             'retained': 'canceled',
             'pending_confirmation': 'pending',
         }

@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.20.20",
+  "version": "1.20.99",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -484,7 +484,11 @@
     "{hostname}",
     "bw.com",
     "stex.com",
-    "STEX"
+    "STEX",
+    "BW",
+    "timex.io",
+    "TimeX",
+    "bitz.com"
   ],
   "collective": {
     "type": "opencollective",

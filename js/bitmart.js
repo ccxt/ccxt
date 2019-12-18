@@ -137,6 +137,7 @@ module.exports = class bitmart extends Exchange {
                     'Unknown symbol': BadSymbol, // {"message":"Unknown symbol"}
                 },
                 'broad': {
+                    'Invalid limit. limit must be in the range': InvalidOrder,
                     'Maximum price is': InvalidOrder, // {"message":"Maximum price is 0.112695"}
                     // {"message":"Required Integer parameter 'status' is not present"}
                     // {"message":"Required String parameter 'symbol' is not present"}
@@ -146,6 +147,9 @@ module.exports = class bitmart extends Exchange {
                     // {"message":"Required Long parameter 'to' is not present"}
                     'is not present': BadRequest,
                 },
+            },
+            'commonCurrencies': {
+                'ONE': 'Menlo One',
             },
         });
     }
@@ -493,14 +497,14 @@ module.exports = class bitmart extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        // limit is required, must be in the range (0, 50)
+        const maxLimit = 50;
+        limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
         const request = {
             'symbol': market['id'],
             'offset': 0, // current page, starts from 0
-            'limit': 500,
+            'limit': limit, // required
         };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 500, max 1000
-        }
         const response = await this.privateGetTrades (this.extend (request, params));
         //
         //     {
@@ -636,7 +640,21 @@ module.exports = class bitmart extends Exchange {
         const id = this.safeString (order, 'entrust_id');
         const timestamp = this.milliseconds ();
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
+        let symbol = undefined;
+        const marketId = this.safeString (order, 'symbol');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'original_amount');
         let cost = undefined;

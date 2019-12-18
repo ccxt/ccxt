@@ -84,6 +84,7 @@ module.exports = class ftx extends Exchange {
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'conditional_orders', // ?market={market}
+                        'conditional_orders/history', // ?market={market}
                         'fills', // ?market={market}
                         'funding_payments',
                         'lt/balances',
@@ -185,22 +186,10 @@ module.exports = class ftx extends Exchange {
                 'fee': undefined,
                 'precision': undefined,
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                    'withdraw': { 'min': undefined, 'max': undefined },
+                    'amount': { 'min': undefined, 'max': undefined },
+                    'price': { 'min': undefined, 'max': undefined },
+                    'cost': { 'min': undefined, 'max': undefined },
                 },
             };
         }
@@ -868,7 +857,7 @@ module.exports = class ftx extends Exchange {
             request['price'] = priceToPrecision;
         } else if (type === 'market') {
             method = 'privatePostOrders';
-            request['price'] = undefined;
+            request['price'] = null;
         } else if ((type === 'stop') || (type === 'takeProfit')) {
             request['triggerPrice'] = priceToPrecision;
             // request['orderPrice'] = number; // optional, order type is limit if this is specified, otherwise market

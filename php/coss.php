@@ -10,16 +10,16 @@ use Exception; // a common import
 class coss extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'coss',
             'name' => 'COSS',
-            'countries' => array ( 'SG', 'NL' ),
+            'countries' => array( 'SG', 'NL' ),
             'rateLimit' => 1000,
             'version' => 'v1',
             'certified' => true,
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/50328158-22e53c00-0503-11e9-825c-c5cfd79bfa74.jpg',
-                'api' => array (
+                'api' => array(
                     'trade' => 'https://trade.coss.io/c/api/v1',
                     'engine' => 'https://engine.coss.io/api/v1',
                     'public' => 'https://trade.coss.io/c/api/v1',
@@ -30,7 +30,7 @@ class coss extends Exchange {
                 'doc' => 'https://api.coss.io/v1/spec',
                 'referral' => 'https://www.coss.io/c/reg?r=OWCMHQVW2Q',
             ),
-            'has' => array (
+            'has' => array(
                 'fetchTrades' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -47,7 +47,7 @@ class coss extends Exchange {
                 'createOrder' => true,
                 'cancelOrder' => true,
             ),
-            'timeframes' => array (
+            'timeframes' => array(
                 '1m' => '1m',
                 '5m' => '5m',
                 '15m' => '15m',
@@ -60,40 +60,40 @@ class coss extends Exchange {
                 '1d' => '1d',
                 '1w' => '1w',
             ),
-            'api' => array (
-                'exchange' => array (
-                    'get' => array (
+            'api' => array(
+                'exchange' => array(
+                    'get' => array(
                         'getmarketsummaries',
                     ),
                 ),
-                'public' => array (
-                    'get' => array (
+                'public' => array(
+                    'get' => array(
                         'market-price',
                         'exchange-info',
                     ),
                 ),
-                'web' => array (
-                    'get' => array (
+                'web' => array(
+                    'get' => array(
                         'coins/getinfo/all', // undocumented
                         'order/symbols', // undocumented
                         'coins/get_base_list', // undocumented
                     ),
                 ),
-                'engine' => array (
-                    'get' => array (
+                'engine' => array(
+                    'get' => array(
                         'dp',
                         'ht',
                         'cs',
                     ),
                 ),
-                'trade' => array (
-                    'get' => array (
+                'trade' => array(
+                    'get' => array(
                         'ping',
                         'time',
                         'account/balances',
                         'account/details',
                     ),
-                    'post' => array (
+                    'post' => array(
                         'order/add',
                         'order/details',
                         'order/list/open',
@@ -101,26 +101,26 @@ class coss extends Exchange {
                         'order/list/all',
                         'order/trade-detail',
                     ),
-                    'delete' => array (
+                    'delete' => array(
                         'order/cancel',
                     ),
                 ),
             ),
-            'fees' => array (
-                'trading' => array (
+            'fees' => array(
+                'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
                     'taker' => 0.0025,
                     'maker' => 0.0,
                 ),
-                'funding' => array (
+                'funding' => array(
                     'tierBased' => false,
                     'percentage' => false,
                     'withdraw' => array(),
                     'deposit' => array(),
                 ),
             ),
-            'commonCurrencies' => array (
+            'commonCurrencies' => array(
                 'COS' => 'COSS',
                 'COSS' => 'COSS.io',
             ),
@@ -132,20 +132,20 @@ class coss extends Exchange {
         //
         //     {        timezone =>   "UTC",
         //           server_time =>    1545171487108,
-        //           rate_limits => array ( {     type => "REQUESTS",
+        //           rate_limits => array( {     type => "REQUESTS",
         //                            interval => "MINUTE",
         //                               limit =>  1000       } ),
-        //       base_currencies => array ( array( currency_code => "BTC", minimum_total_order => "0.0001" ),
+        //       base_currencies => array( array( currency_code => "BTC", minimum_total_order => "0.0001" ),
         //                          array( currency_code => "USDT", minimum_total_order => "1" ),
         //                          array( currency_code => "EUR", minimum_total_order => "1" ) ),
-        //                 coins => array ( array (        currency_code => "ADI",
+        //                 coins => array( array(        currency_code => "ADI",
         //                                            name => "Aditus",
         //                            minimum_order_amount => "0.00000001" ),
         //                          ...
         //                          {        currency_code => "NPXSXEM",
         //                                            name => "PundiX-XEM",
         //                            minimum_order_amount => "0.00000001"  }                ),
-        //               symbols => array ( array (               $symbol => "ADI_BTC",
+        //               symbols => array( array(               $symbol => "ADI_BTC",
         //                            amount_limit_decimal =>  0,
         //                             price_limit_decimal =>  8,
         //                                   allow_trading =>  true      ),
@@ -161,14 +161,14 @@ class coss extends Exchange {
         $baseCurrenciesByIds = $this->index_by($baseCurrencies, 'currency_code');
         $currencies = $this->safe_value($response, 'coins', array());
         $currenciesByIds = $this->index_by($currencies, 'currency_code');
-        for ($i = 0; $i < count ($markets); $i++) {
+        for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $marketId = $market['symbol'];
             list($baseId, $quoteId) = explode('_', $marketId);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $precision = array (
+            $precision = array(
                 'amount' => $this->safe_integer($market, 'amount_limit_decimal'),
                 'price' => $this->safe_integer($market, 'price_limit_decimal'),
             );
@@ -178,7 +178,7 @@ class coss extends Exchange {
             $currency = $this->safe_value($currenciesByIds, $baseId, array());
             $defaultMinAmount = pow(10, -$precision['amount']);
             $minAmount = $this->safe_float($currency, 'minimum_order_amount', $defaultMinAmount);
-            $result[] = array (
+            $result[] = array(
                 'symbol' => $symbol,
                 'id' => $marketId,
                 'baseId' => $baseId,
@@ -187,16 +187,16 @@ class coss extends Exchange {
                 'quote' => $quote,
                 'active' => $active,
                 'precision' => $precision,
-                'limits' => array (
-                    'amount' => array (
+                'limits' => array(
+                    'amount' => array(
                         'min' => $minAmount,
                         'max' => null,
                     ),
-                    'price' => array (
+                    'price' => array(
                         'min' => null,
                         'max' => null,
                     ),
-                    'cost' => array (
+                    'cost' => array(
                         'min' => $minCost,
                         'max' => null,
                     ),
@@ -210,7 +210,7 @@ class coss extends Exchange {
     public function fetch_currencies ($params = array ()) {
         $response = $this->webGetCoinsGetinfoAll ($params);
         //
-        //     [ array (                 currency_code => "VET",
+        //     [ array(                 currency_code => "VET",
         //                                  $name => "VeChain",
         //                             buy_limit =>  0,
         //                            sell_limit =>  0,
@@ -239,7 +239,7 @@ class coss extends Exchange {
         //                             allow_buy =>  true                                                           )]
         //
         $result = array();
-        for ($i = 0; $i < count ($response); $i++) {
+        for ($i = 0; $i < count($response); $i++) {
             $currency = $response[$i];
             $currencyId = $this->safe_string($currency, 'currency_code');
             $code = $this->safe_currency_code($currencyId);
@@ -267,14 +267,14 @@ class coss extends Exchange {
             $precision = 8;
             if ($decimalFormat !== null) {
                 $parts = explode('.', $decimalFormat);
-                $numParts = is_array ($parts) ? count ($parts) : 0; // transpiler workaround for array lengths
+                $numParts = is_array($parts) ? count($parts) : 0; // transpiler workaround for array lengths
                 if ($numParts > 1) {
-                    if (strlen ($parts[1]) > 1) {
-                        $precision = is_array ($parts[1]) ? count ($parts[1]) : 0;
+                    if (strlen($parts[1]) > 1) {
+                        $precision = is_array($parts[1]) ? count($parts[1]) : 0;
                     }
                 }
             }
-            $result[$code] = array (
+            $result[$code] = array(
                 'id' => $currencyId,
                 'code' => $code,
                 'info' => $currency,
@@ -283,12 +283,12 @@ class coss extends Exchange {
                 'fee' => $fee,
                 'precision' => $precision,
                 'type' => $type,
-                'limits' => array (
-                    'amount' => array (
+                'limits' => array(
+                    'amount' => array(
                         'min' => $this->safe_float($currency, 'minimum_order_amount'),
                         'max' => null,
                     ),
-                    'withdraw' => array (
+                    'withdraw' => array(
                         'min' => $this->safe_float($currency, 'minimum_withdrawn_amount'),
                         'max' => null,
                     ),
@@ -302,7 +302,7 @@ class coss extends Exchange {
         $this->load_markets();
         $response = $this->tradeGetAccountBalances ($params);
         //
-        //     array ( array ( currency_code => "ETH",
+        //     array( array( currency_code => "ETH",
         //               address => "0x6820511d43111a941d3e187b9e36ec64af763bde", // deposit address
         //                 $total => "0.20399125",
         //             available => "0.20399125",
@@ -316,14 +316,14 @@ class coss extends Exchange {
         //                  memo =>  null  }                                         )
         //
         $result = array();
-        for ($i = 0; $i < count ($response); $i++) {
+        for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency_code');
             $code = $this->safe_currency_code($currencyId);
             $total = $this->safe_float($balance, 'total');
             $used = $this->safe_float($balance, 'in_order');
             $free = $this->safe_float($balance, 'available');
-            $result[$code] = array (
+            $result[$code] = array(
                 'total' => $total,
                 'used' => $used,
                 'free' => $free,
@@ -346,23 +346,23 @@ class coss extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'symbol' => $market['id'],
             'tt' => $this->timeframes[$timeframe],
         );
-        $response = $this->engineGetCs (array_merge ($request, $params));
+        $response = $this->engineGetCs (array_merge($request, $params));
         //
         //     {       tt =>   "1m",
         //         $symbol =>   "ETH_BTC",
         //       nextTime =>    1545138960000,
-        //         series => array ( array (  1545138960000,
+        //         series => array( array(  1545138960000,
         //                     "0.02705000",
         //                     "0.02705000",
         //                     "0.02705000",
         //                     "0.02705000",
         //                     "0.00000000"    ),
         //                   ...
-        //                   array (  1545168900000,
+        //                   array(  1545168900000,
         //                     "0.02684000",
         //                     "0.02684000",
         //                     "0.02684000",
@@ -378,7 +378,7 @@ class coss extends Exchange {
         $marketId = $this->market_id($symbol);
         $request = array( 'symbol' => $marketId );
         // $limit argument is not supported on COSS's end
-        $response = $this->engineGetDp (array_merge ($request, $params));
+        $response = $this->engineGetDp (array_merge($request, $params));
         //
         //     { $symbol =>   "COSS_ETH",
         //         asks => [ ["0.00065200", "214.15000000"],
@@ -441,7 +441,7 @@ class coss extends Exchange {
                 }
             }
         }
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -471,7 +471,7 @@ class coss extends Exchange {
         //
         //     { success =>    true,
         //       message =>   "",
-        //        $result => array ( array ( MarketName => "COSS-ETH",
+        //        $result => array( array( MarketName => "COSS-ETH",
         //                          High =>  0.00066,
         //                           Low =>  0.000628,
         //                    BaseVolume =>  131.09652674,
@@ -492,7 +492,7 @@ class coss extends Exchange {
         //                           Ask => "0.00003300",
         //                           Bid => "0.00003090",
         //                       PrevDay =>  0.0000309                  }  ),
-        //       volumes => array ( array( CoinName => "ETH", Volume => 668.1928095999999 ), // these are overall exchange volumes
+        //       volumes => array( array( CoinName => "ETH", Volume => 668.1928095999999 ), // these are overall exchange volumes
         //                  array( CoinName => "USD", Volume => 9942.58480324 ),
         //                  array( CoinName => "BTC", Volume => 43.749184570000004 ),
         //                  array( CoinName => "COSS", Volume => 909909.26644574 ),
@@ -507,7 +507,7 @@ class coss extends Exchange {
         //
         $tickers = $this->safe_value($response, 'result', array());
         $result = array();
-        for ($i = 0; $i < count ($tickers); $i++) {
+        for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $this->parse_ticker($tickers[$i]);
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
@@ -516,26 +516,26 @@ class coss extends Exchange {
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
-        $tickers = $this->fetch_tickers(array ( $symbol ), $params);
+        $tickers = $this->fetch_tickers(array( $symbol ), $params);
         return $tickers[$symbol];
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->engineGetHt (array_merge ($request, $params));
+        $response = $this->engineGetHt (array_merge($request, $params));
         //
         //     {  $symbol =>   "COSS_ETH",
         //         $limit =>    100,
-        //       history => array ( array (           id =>  481321,
+        //       history => array( array(           id =>  481321,
         //                           price => "0.00065100",
         //                             qty => "272.92000000",
         //                    isBuyerMaker =>  false,
         //                            time =>  1545180845019  ),
-        //                  array (           id =>  481322,
+        //                  array(           id =>  481322,
         //                           price => "0.00065200",
         //                             qty => "1.90000000",
         //                    isBuyerMaker =>  true,
@@ -556,13 +556,13 @@ class coss extends Exchange {
             return $fee;
         }
         $parts = explode(' ', $fee);
-        $numParts = is_array ($parts) ? count ($parts) : 0;
+        $numParts = is_array($parts) ? count($parts) : 0;
         $cost = $parts[0];
         $code = null;
         if ($numParts > 1) {
             $code = $this->safe_currency_code($parts[1]);
         }
-        return array (
+        return array(
             'cost' => $cost,
             'currency' => $code,
         );
@@ -580,7 +580,7 @@ class coss extends Exchange {
         //
         // fetchOrderTrades (private)
         //
-        //     array ( {         hex_id =>  null,
+        //     array( {         hex_id =>  null,
         //                 $symbol => "COSS_ETH",
         //               order_id => "ad6f6b47-3def-4add-a5d5-2549a9df1593",
         //             order_side => "BUY",
@@ -616,7 +616,7 @@ class coss extends Exchange {
                 $cost = $price * $amount;
             }
         }
-        $result = array (
+        $result = array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -637,7 +637,7 @@ class coss extends Exchange {
             if ($additionalFee === null) {
                 $result['fee'] = $fee;
             } else {
-                $result['fees'] = array (
+                $result['fees'] = array(
                     $fee,
                     $additionalFee,
                 );
@@ -652,7 +652,7 @@ class coss extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             // 'from_id' => 'b2a2d379-f9b6-418b-9414-cbf8330b20d1', // string (uuid), fetchOrders (all $orders) only
             // 'page' => 0, // different pagination in fetchOpenOrders and fetchClosedOrders
             // 'limit' => 50, // optional, max = default = 50
@@ -662,11 +662,11 @@ class coss extends Exchange {
             $request['limit'] = $limit; // max = default = 50
         }
         $method = 'tradePostOrderList' . $type;
-        $response = $this->$method (array_merge ($request, $params));
+        $response = $this->$method (array_merge($request, $params));
         //
         // fetchOrders, fetchClosedOrders
         //
-        //     array ( {       hex_id => "5c192784330fe51149f556bb",
+        //     array( {       hex_id => "5c192784330fe51149f556bb",
         //             order_id => "5e46e1b1-93d5-4656-9b43-a5635b08eae9",
         //           account_id => "a0c20128-b9e0-484e-9bc8-b8bb86340e5b",
         //         order_symbol => "COSS_ETH",
@@ -686,7 +686,7 @@ class coss extends Exchange {
         //
         //     {
         //         "total" => 2,
-        //         "list" => array (
+        //         "list" => array(
         //             {
         //                 "order_id" => "9e5ae4dd-3369-401d-81f5-dff985e1c4ty",
         //                 "account_id" => "9e5ae4dd-3369-401d-81f5-dff985e1c4a6",
@@ -707,7 +707,7 @@ class coss extends Exchange {
         //
         // the following code is to handle the above difference in $response formats
         $orders = null;
-        if (gettype ($response) === 'array' && count (array_filter (array_keys ($response), 'is_string')) == 0) {
+        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
             $orders = $response;
         } else {
             $orders = $this->safe_value($response, 'list', array());
@@ -729,10 +729,10 @@ class coss extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'order_id' => $id,
         );
-        $response = $this->tradePostOrderDetails (array_merge ($request, $params));
+        $response = $this->tradePostOrderDetails (array_merge($request, $params));
         return $this->parse_order($response);
     }
 
@@ -742,12 +742,12 @@ class coss extends Exchange {
         if ($symbol !== null) {
             $market = $this->market ($symbol);
         }
-        $request = array (
+        $request = array(
             'order_id' => $id,
         );
-        $response = $this->tradePostOrderTradeDetail (array_merge ($request, $params));
+        $response = $this->tradePostOrderTradeDetail (array_merge($request, $params));
         //
-        //     array ( {         hex_id =>  null,
+        //     array( {         hex_id =>  null,
         //                 $symbol => "COSS_ETH",
         //               order_id => "ad6f6b47-3def-4add-a5d5-2549a9df1593",
         //             order_side => "BUY",
@@ -765,7 +765,7 @@ class coss extends Exchange {
         if ($status === null) {
             return $status;
         }
-        $statuses = array (
+        $statuses = array(
             'OPEN' => 'open',
             'CANCELLED' => 'canceled',
             'FILLED' => 'closed',
@@ -831,7 +831,7 @@ class coss extends Exchange {
         $cost = $this->safe_float($order, 'total');
         $fee = null;
         $trades = null;
-        return array (
+        return array(
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -855,7 +855,7 @@ class coss extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'order_symbol' => $market['id'],
             'order_size' => $this->amount_to_precision($symbol, $amount),
             'order_side' => strtoupper($side),
@@ -864,7 +864,7 @@ class coss extends Exchange {
         if ($price !== null) {
             $request['order_price'] = $this->price_to_precision($symbol, $price);
         }
-        $response = $this->tradePostOrderAdd (array_merge ($request, $params));
+        $response = $this->tradePostOrderAdd (array_merge($request, $params));
         //
         //     {
         //         "order_id" => "9e5ae4dd-3369-401d-81f5-dff985e1c4ty",
@@ -891,11 +891,11 @@ class coss extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'order_id' => $id,
             'order_symbol' => $market['id'],
         );
-        $response = $this->tradeDeleteOrderCancel (array_merge ($request, $params));
+        $response = $this->tradeDeleteOrderCancel (array_merge($request, $params));
         //
         //     { order_symbol => "COSS_ETH",
         //           order_id => "30f2d698-39a0-4b9f-a3a6-a179542373bd",
@@ -916,7 +916,7 @@ class coss extends Exchange {
         if ($api === 'trade') {
             $this->check_required_credentials();
             $timestamp = $this->nonce ();
-            $query = array_merge (array (
+            $query = array_merge(array(
                 'timestamp' => $timestamp, // required (int64)
                 // 'recvWindow' => 10000, // optional (int32)
             ), $params);
@@ -928,9 +928,10 @@ class coss extends Exchange {
                 $request = $this->json ($query);
                 $body = $request;
             }
-            $headers = array (
+            $headers = array(
                 'Signature' => $this->hmac ($this->encode ($request), $this->encode ($this->secret)),
                 'Authorization' => $this->apiKey,
+                'X-Requested-With' => 'XMLHttpRequest',
             );
         } else {
             if ($params) {

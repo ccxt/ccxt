@@ -188,7 +188,7 @@ class stex(Exchange):
             },
             'exceptions': {
                 'exact': {
-                    # {"success":false,"message":"Wrong parameters","errors":{"candleType":["Invalid Candle Typenot "]}}
+                    # {"success":false,"message":"Wrong parameters","errors":{"candleType":["Invalid Candle Type!"]}}
                     # {"success":false,"message":"Wrong parameters","errors":{"time":["timeStart or timeEnd is less then 1"]}}
                     'Wrong parameters': BadRequest,
                     'Unauthenticated.': AuthenticationError,  # {"message":"Unauthenticated."}
@@ -1444,9 +1444,9 @@ class stex(Exchange):
         if (code is None) and (currency is not None):
             code = currency['code']
         type = 'deposit' if ('depositId' in transaction) else 'withdrawal'
-        amount = self.safe_float_2(transaction, 'amount')
+        amount = self.safe_float(transaction, 'amount')
         status = self.parse_transaction_status(self.safe_string_lower(transaction, 'status'))
-        timestamp = self.safe_timestamp(transaction, 'timestamp', 'created_ts')
+        timestamp = self.safe_timestamp_2(transaction, 'timestamp', 'created_ts')
         updated = self.safe_timestamp(transaction, 'updated_ts')
         txid = self.safe_string(transaction, 'txid')
         fee = None
@@ -1625,7 +1625,7 @@ class stex(Exchange):
         if response is None:
             return  # fallback to default error handler
         #
-        #     {"success":false,"message":"Wrong parameters","errors":{"candleType":["Invalid Candle Typenot "]}}
+        #     {"success":false,"message":"Wrong parameters","errors":{"candleType":["Invalid Candle Type!"]}}
         #     {"success":false,"message":"Wrong parameters","errors":{"time":["timeStart or timeEnd is less then 1"]}}
         #     {"success":false,"message":"Not enough  ETH"}
         #

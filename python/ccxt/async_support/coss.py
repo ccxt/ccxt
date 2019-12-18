@@ -873,6 +873,7 @@ class coss(Exchange):
             headers = {
                 'Signature': self.hmac(self.encode(request), self.encode(self.secret)),
                 'Authorization': self.apiKey,
+                'X-Requested-With': 'XMLHttpRequest',
             }
         else:
             if params:

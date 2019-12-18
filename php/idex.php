@@ -10,14 +10,14 @@ use Exception; // a common import
 class idex extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'idex',
             'name' => 'IDEX',
-            'countries' => array ( 'US' ),
+            'countries' => array( 'US' ),
             'rateLimit' => 1500,
             'certified' => true,
             'requiresWeb3' => true,
-            'has' => array (
+            'has' => array(
                 'fetchOrderBook' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -32,7 +32,7 @@ class idex extends Exchange {
                 'withdraw' => true,
                 'fetchOHLCV' => false,
             ),
-            'timeframes' => array (
+            'timeframes' => array(
                 '1m' => 'M1',
                 '3m' => 'M3',
                 '5m' => 'M5',
@@ -44,18 +44,18 @@ class idex extends Exchange {
                 '1w' => 'D7',
                 '1M' => '1M',
             ),
-            'urls' => array (
+            'urls' => array(
                 'test' => 'https://api.idex.market',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/63693236-3415e380-c81c-11e9-8600-ba1634f1407d.jpg',
                 'api' => 'https://api.idex.market',
                 'www' => 'https://idex.market',
-                'doc' => array (
+                'doc' => array(
                     'https://docs.idex.market/',
                 ),
             ),
-            'api' => array (
-                'public' => array (
-                    'post' => array (
+            'api' => array(
+                'public' => array(
+                    'post' => array(
                         'returnTicker',
                         'returnCurrenciesWithPairs', // undocumented
                         'returnCurrencies',
@@ -73,8 +73,8 @@ class idex extends Exchange {
                         'returnNextNonce',
                     ),
                 ),
-                'private' => array (
-                    'post' => array (
+                'private' => array(
+                    'post' => array(
                         'order',
                         'cancel',
                         'trade',
@@ -82,20 +82,24 @@ class idex extends Exchange {
                     ),
                 ),
             ),
-            'options' => array (
+            'options' => array(
                 'contractAddress' => null,  // 0x2a0c0DBEcC7E4D658f48E01e3fA353F44050c208
                 'orderNonce' => null,
             ),
-            'exceptions' => array (
+            'exceptions' => array(
                 'Invalid order signature. Please try again.' => '\\ccxt\\AuthenticationError',
                 'You have insufficient funds to match this order. If you believe this is a mistake please refresh and try again.' => '\\ccxt\\InsufficientFunds',
                 'Order no longer available.' => '\\ccxt\\InvalidOrder',
             ),
-            'requiredCredentials' => array (
+            'requiredCredentials' => array(
                 'walletAddress' => true,
                 'privateKey' => true,
                 'apiKey' => false,
                 'secret' => false,
+            ),
+            'commonCurrencies' => array(
+                'ONE' => 'Menlo One',
+                'FT' => 'Fabric Token',
             ),
         ));
     }
@@ -103,39 +107,39 @@ class idex extends Exchange {
     public function fetch_markets ($params = array ()) {
         // idex does not have an endpoint for $markets
         // instead we generate the $markets from the endpoint for $currencies
-        $request = array (
+        $request = array(
             'includeDelisted' => true,
         );
-        $markets = $this->publicPostReturnCurrenciesWithPairs (array_merge ($request, $params));
+        $markets = $this->publicPostReturnCurrenciesWithPairs (array_merge($request, $params));
         $currenciesById = array();
         $currencies = $markets['tokens'];
-        for ($i = 0; $i < count ($currencies); $i++) {
+        for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
             $currenciesById[$currency['symbol']] = $currency;
         }
         $result = array();
-        $limits = array (
-            'amount' => array (
+        $limits = array(
+            'amount' => array(
                 'min' => null,
                 'max' => null,
             ),
-            'price' => array (
+            'price' => array(
                 'min' => null,
                 'max' => null,
             ),
-            'cost' => array (
+            'cost' => array(
                 'min' => null,
                 'max' => null,
             ),
         );
         $quotes = $markets['pairs'];
         $keys = is_array($quotes) ? array_keys($quotes) : array();
-        for ($i = 0; $i < count ($keys); $i++) {
+        for ($i = 0; $i < count($keys); $i++) {
             $quoteId = $keys[$i];
             $bases = $quotes[$quoteId];
             $quote = $this->safe_currency_code($quoteId);
             $quoteCurrency = $currenciesById[$quoteId];
-            for ($j = 0; $j < count ($bases); $j++) {
+            for ($j = 0; $j < count($bases); $j++) {
                 $baseId = $bases[$j];
                 $id = $quoteId . '_' . $baseId;
                 $base = $this->safe_currency_code($baseId);
@@ -143,11 +147,11 @@ class idex extends Exchange {
                 $baseCurrency = $currenciesById[$baseId];
                 $baseAddress = $baseCurrency['address'];
                 $quoteAddress = $quoteCurrency['address'];
-                $precision = array (
+                $precision = array(
                     'price' => $this->safe_integer($quoteCurrency, 'decimals'),
                     'amount' => $this->safe_integer($baseCurrency, 'decimals'),
                 );
-                $result[] = array (
+                $result[] = array(
                     'symbol' => $symbol,
                     'precision' => $precision,
                     'base' => $base,
@@ -185,7 +189,7 @@ class idex extends Exchange {
         $quoteVolume = $this->safe_float($ticker, 'quoteVolume');
         $last = $this->safe_float($ticker, 'last');
         $percentage = $this->safe_float($ticker, 'percentChange');
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
@@ -213,7 +217,7 @@ class idex extends Exchange {
         $this->load_markets();
         $response = $this->publicPostReturnTicker ($params);
         //  { ETH_BOUNCY:
-        //    array ( last => '0.000000004000088005',
+        //    array( last => '0.000000004000088005',
         //      high => 'N/A',
         //      low => 'N/A',
         //      lowestAsk => '0.00000000599885995',
@@ -222,7 +226,7 @@ class idex extends Exchange {
         //      baseVolume => '0',
         //      quoteVolume => '0' ),
         //   ETH_NBAI:
-        //    array ( last => '0.0000032',
+        //    array( last => '0.0000032',
         //      high => 'N/A',
         //      low => 'N/A',
         //      lowestAsk => '0.000004000199999502',
@@ -232,7 +236,7 @@ class idex extends Exchange {
         //      quoteVolume => '0' ), }
         $ids = is_array($response) ? array_keys($response) : array();
         $result = array();
-        for ($i = 0; $i < count ($ids); $i++) {
+        for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $symbol = null;
             $market = null;
@@ -255,10 +259,10 @@ class idex extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'market' => $market['id'],
         );
-        $response = $this->publicPostReturnTicker (array_merge ($request, $params));
+        $response = $this->publicPostReturnTicker (array_merge($request, $params));
         // { last => '0.0016550916',
         //   high => 'N/A',
         //   low => 'N/A',
@@ -274,17 +278,17 @@ class idex extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $id = $market['quote'] . '_' . $market['base'];
-        $request = array (
+        $request = array(
             'market' => $id,
             'count' => 100, // the default will only return one trade
         );
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $response = $this->publicPostReturnOrderBook (array_merge ($request, $params));
+        $response = $this->publicPostReturnOrderBook (array_merge($request, $params));
         //
         //     {
-        //         "asks" => array (
+        //         "asks" => array(
         //             {
         //                 "price" => "0.001675282799999",
         //                 "amount" => "206.163978911921061732",
@@ -305,7 +309,7 @@ class idex extends Exchange {
         //                 }
         //             }
         //         ),
-        //         "bids" => array (
+        //         "bids" => array(
         //             {
         //                 "price" => "0.001161865193232242",
         //                 "amount" => "854.393661648355",
@@ -339,24 +343,24 @@ class idex extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
-        $request = array (
+        $request = array(
             'address' => $this->walletAddress,
         );
-        $response = $this->publicPostReturnCompleteBalances (array_merge ($request, $params));
+        $response = $this->publicPostReturnCompleteBalances (array_merge($request, $params));
         //
         //     {
         //         ETH => array( available => '0.0167', onOrders => '0.1533' )
         //     }
         //
-        $result = array (
+        $result = array(
             'info' => $response,
         );
         $keys = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count ($keys); $i++) {
+        for ($i = 0; $i < count($keys); $i++) {
             $currency = $keys[$i];
             $balance = $response[$currency];
             $code = $this->safe_currency_code($currency);
-            $result[$code] = array (
+            $result[$code] = array(
                 'free' => $this->safe_float($balance, 'available'),
                 'used' => $this->safe_float($balance, 'onOrders'),
             );
@@ -388,7 +392,7 @@ class idex extends Exchange {
                 $amountSell = $this->toWei ($amount, 'ether', $market['precision']['amount']);
             }
             $nonce = $this->get_nonce ();
-            $orderToHash = array (
+            $orderToHash = array(
                 'contractAddress' => $contractAddress,
                 'tokenBuy' => $tokenBuy,
                 'amountBuy' => $amountBuy,
@@ -400,7 +404,7 @@ class idex extends Exchange {
             );
             $orderHash = $this->get_idex_create_order_hash ($orderToHash);
             $signature = $this->signMessage ($orderHash, $this->privateKey);
-            $request = array (
+            $request = array(
                 'tokenBuy' => $tokenBuy,
                 'amountBuy' => $amountBuy,
                 'tokenSell' => $tokenSell,
@@ -409,7 +413,7 @@ class idex extends Exchange {
                 'nonce' => $nonce,
                 'expires' => $expires,
             );
-            $response = $this->privatePostOrder (array_merge ($request, $signature)); // array_merge ($request, $params) will cause invalid $signature
+            $response = $this->privatePostOrder (array_merge($request, $signature)); // array_merge($request, $params) will cause invalid $signature
             // { orderNumber => 1562323021,
             //   $orderHash:
             //    '0x31c42154a8421425a18d076df400d9ec1ef64d5251285384a71ba3c0ab31beb4',
@@ -450,7 +454,7 @@ class idex extends Exchange {
             //      $expires => 10000,
             //      $nonce => 1564656561510,
             //      user => '0xc3f8304270e49b8e8197bfcfd8567b83d9e4479b' } }
-            $orderToSign = array (
+            $orderToSign = array(
                 'orderHash' => $params['orderHash'],
                 'amount' => $params['params']['amountBuy'],
                 'address' => $params['params']['user'],
@@ -458,10 +462,10 @@ class idex extends Exchange {
             );
             $orderHash = $this->get_idex_market_order_hash ($orderToSign);
             $signature = $this->signMessage ($orderHash, $this->privateKey);
-            $signedOrder = array_merge ($orderToSign, $signature);
+            $signedOrder = array_merge($orderToSign, $signature);
             $signedOrder['address'] = $this->walletAddress;
             $signedOrder['nonce'] = $this->get_nonce ();
-            //   array ( {
+            //   array( {
             //     "$amount" => "0.07",
             //     "date" => "2017-10-13 16:25:36",
             //     "total" => "0.49",
@@ -478,7 +482,7 @@ class idex extends Exchange {
 
     public function get_nonce () {
         if ($this->options['orderNonce'] === null) {
-            $response = $this->publicPostReturnNextNonce (array (
+            $response = $this->publicPostReturnNextNonce (array(
                 'address' => $this->walletAddress,
             ));
             return $this->safe_integer($response, 'nonce');
@@ -500,21 +504,21 @@ class idex extends Exchange {
 
     public function cancel_order ($orderId, $symbol = null, $params = array ()) {
         $nonce = $this->get_nonce ();
-        $orderToHash = array (
+        $orderToHash = array(
             'orderHash' => $orderId,
             'nonce' => $nonce,
         );
         $orderHash = $this->get_idex_cancel_order_hash ($orderToHash);
         $signature = $this->signMessage ($orderHash, $this->privateKey);
-        $request = array (
+        $request = array(
             'orderHash' => $orderId,
             'address' => $this->walletAddress,
             'nonce' => $nonce,
         );
-        $response = $this->privatePostCancel (array_merge ($request, $signature));
+        $response = $this->privatePostCancel (array_merge($request, $signature));
         // array( success => 1 )
         if (is_array($response) && array_key_exists('success', $response)) {
-            return array (
+            return array(
                 'info' => $response,
             );
         } else {
@@ -525,15 +529,15 @@ class idex extends Exchange {
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $request = array (
+        $request = array(
             'address' => $this->walletAddress,
         );
         if ($since !== null) {
             $request['start'] = intval ((int) floor($since / 1000));
         }
-        $response = $this->publicPostReturnDepositsWithdrawals (array_merge ($request, $params));
+        $response = $this->publicPostReturnDepositsWithdrawals (array_merge($request, $params));
         // { $deposits:
-        //    array ( array ( $currency => 'ETH',
+        //    array( array( $currency => 'ETH',
         //        amount => '0.05',
         //        timestamp => 1563953513,
         //        transactionHash:
@@ -546,7 +550,7 @@ class idex extends Exchange {
         //         '0x2ecbb3ab72b6f79fc7a9058c39dce28f913152748c1507d13ab1759e965da3ca',
         //        depositNumber => 1587341 } ),
         //   $withdrawals:
-        //    array ( { $currency => 'ETH',
+        //    array( { $currency => 'ETH',
         //        amount => '0.149',
         //        timestamp => 1564060001,
         //        transactionHash:
@@ -586,7 +590,7 @@ class idex extends Exchange {
             $addressTo = $this->walletAddress;
         }
         $code = $this->safe_currency_code($this->safe_string($item, 'currency'));
-        return array (
+        return array(
             'info' => $item,
             'id' => $id,
             'txid' => $txhash,
@@ -602,7 +606,7 @@ class idex extends Exchange {
             'tagFrom' => null,
             'addressTo' => $addressTo,
             'tagTo' => null,
-            'fee' => array (
+            'fee' => array(
                 'currency' => $code,
                 'cost' => null,
                 'rate' => null,
@@ -611,7 +615,7 @@ class idex extends Exchange {
     }
 
     public function parse_transaction_status ($status) {
-        $statuses = array (
+        $statuses = array(
             'COMPLETE' => 'ok',
         );
         return $this->safe_string($statuses, $status);
@@ -622,7 +626,7 @@ class idex extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a walletAddress');
         }
         $this->load_markets();
-        $request = array (
+        $request = array(
             'address' => $this->walletAddress,
         );
         $market = null;
@@ -630,15 +634,15 @@ class idex extends Exchange {
             $market = $this->market ($symbol);
             $request['market'] = $market['id'];
         }
-        $response = $this->publicPostReturnOpenOrders (array_merge ($request, $params));
-        // array ( { timestamp => 1564041428,
+        $response = $this->publicPostReturnOpenOrders (array_merge($request, $params));
+        // array( { timestamp => 1564041428,
         //     orderHash:
         //      '0x31c42154a8421425a18d076df400d9ec1ef64d5251285384a71ba3c0ab31beb4',
         //     orderNumber => 1562323021,
         //     $market => 'ETH_LIT',
         //     type => 'buy',
         //     $params:
-        //      array ( tokenBuy => '0x763fa6806e1acf68130d2d0f0df754c93cc546b2',
+        //      array( tokenBuy => '0x763fa6806e1acf68130d2d0f0df754c93cc546b2',
         //        buySymbol => 'LIT',
         //        buyPrecision => 18,
         //        amountBuy => '210000000000000000000',
@@ -662,10 +666,10 @@ class idex extends Exchange {
         if ($symbol !== null) {
             $market = $this->market ($symbol);
         }
-        $request = array (
+        $request = array(
             'orderHash' => $id,
         );
-        $response = $this->publicPostReturnOrderStatus (array_merge ($request, $params));
+        $response = $this->publicPostReturnOrderStatus (array_merge($request, $params));
         // { filled => '0',
         //   initialAmount => '210',
         //   timestamp => 1564041428,
@@ -675,7 +679,7 @@ class idex extends Exchange {
         //   $market => 'ETH_LIT',
         //   type => 'buy',
         //   $params:
-        //    array ( tokenBuy => '0x763fa6806e1acf68130d2d0f0df754c93cc546b2',
+        //    array( tokenBuy => '0x763fa6806e1acf68130d2d0f0df754c93cc546b2',
         //      buySymbol => 'LIT',
         //      buyPrecision => 18,
         //      amountBuy => '210000000000000000000',
@@ -703,7 +707,7 @@ class idex extends Exchange {
         //   $market => 'ETH_LIT',
         //   type => 'buy',
         //   $params:
-        //    array ( tokenBuy => '0x763fa6806e1acf68130d2d0f0df754c93cc546b2',
+        //    array( tokenBuy => '0x763fa6806e1acf68130d2d0f0df754c93cc546b2',
         //      buySymbol => 'LIT',
         //      buyPrecision => 18,
         //      amountBuy => '210000000000000000000',
@@ -748,7 +752,7 @@ class idex extends Exchange {
         }
         $id = $this->safe_string($order, 'orderHash');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        return array (
+        return array(
             'info' => $order,
             'id' => $id,
             'symbol' => $symbol,
@@ -766,7 +770,7 @@ class idex extends Exchange {
     }
 
     public function parse_order_status ($status) {
-        $statuses = array (
+        $statuses = array(
             'open' => 'open',
         );
         return $this->safe_string($statuses, $status, $status);
@@ -777,7 +781,7 @@ class idex extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a walletAddress');
         }
         $this->load_markets();
-        $request = array (
+        $request = array(
             'address' => $this->walletAddress,
         );
         $market = null;
@@ -788,9 +792,9 @@ class idex extends Exchange {
         if ($limit !== null) {
             $request['start'] = intval ((int) floor($limit));
         }
-        $response = $this->publicPostReturnTradeHistory (array_merge ($request, $params));
+        $response = $this->publicPostReturnTradeHistory (array_merge($request, $params));
         // { ETH_IDEX:
-        //    array ( { type => 'buy',
+        //    array( { type => 'buy',
         //        date => '2019-07-25 11:24:41',
         //        amount => '347.833140025692348611',
         //        total => '0.050998794333719943',
@@ -813,7 +817,7 @@ class idex extends Exchange {
         //
         // if a $symbol is specified in the $request:
         //
-        //    array ( { type => 'buy',
+        //    array( { type => 'buy',
         //        date => '2019-07-25 11:24:41',
         //        amount => '347.833140025692348611',
         //        total => '0.050998794333719943',
@@ -833,12 +837,12 @@ class idex extends Exchange {
         //        sellerFee => '0.00005099879433372',
         //        tokenSell => '0xb705268213d593b8fd88d3fdeff93aff5cbdcfae',
         //        usdValue => '11.336926687304238214' } )
-        if (gettype ($response) === 'array' && count (array_filter (array_keys ($response), 'is_string')) == 0) {
+        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
             return $this->parse_trades($response, $market, $since, $limit);
         } else {
             $result = array();
             $marketIds = is_array($response) ? array_keys($response) : array();
-            for ($i = 0; $i < count ($marketIds); $i++) {
+            for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
                 $trades = $response[$marketId];
                 $parsed = $this->parse_trades($trades, $market, $since, $limit);
@@ -851,14 +855,14 @@ class idex extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'market' => $market['id'],
         );
         if ($limit !== null) {
             $request['start'] = intval ((int) floor($limit));
         }
-        $response = $this->publicPostReturnTradeHistory (array_merge ($request, $params));
-        //    array ( { type => 'buy',
+        $response = $this->publicPostReturnTradeHistory (array_merge($request, $params));
+        //    array( { type => 'buy',
         //        date => '2019-07-25 11:24:41',
         //        amount => '347.833140025692348611',
         //        total => '0.050998794333719943',
@@ -952,7 +956,7 @@ class idex extends Exchange {
             $gasFee = $this->safe_float($trade, 'gasFee');
             $feeCost = $this->sum ($gasFee, $feeCost);
         }
-        $fee = array (
+        $fee = array(
             'currency' => $feeCurrency,
             'cost' => $feeCost,
         );
@@ -961,7 +965,7 @@ class idex extends Exchange {
             $fee['rate'] = $feeCost / $feeCurrencyAmount;
         }
         $orderId = $this->safe_string($trade, 'orderHash');
-        return array (
+        return array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -986,7 +990,7 @@ class idex extends Exchange {
         $tokenAddress = $currency['id'];
         $nonce = $this->get_nonce ();
         $amount = $this->toWei ($amount, 'ether', $currency['precision']);
-        $requestToHash = array (
+        $requestToHash = array(
             'contractAddress' => $this->get_contract_address (),
             'token' => $tokenAddress,
             'amount' => $amount,
@@ -995,15 +999,15 @@ class idex extends Exchange {
         );
         $hash = $this->get_idex_withdraw_hash ($requestToHash);
         $signature = $this->signMessage ($hash, $this->privateKey);
-        $request = array (
+        $request = array(
             'address' => $address,
             'amount' => $amount,
             'token' => $tokenAddress,
             'nonce' => $nonce,
         );
-        $response = $this->privatePostWithdraw (array_merge ($request, $signature));
+        $response = $this->privatePostWithdraw (array_merge($request, $signature));
         // array( $amount => '0' )
-        return array (
+        return array(
             'info' => $response,
             'id' => null,
         );
@@ -1012,7 +1016,7 @@ class idex extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $body = $this->json ($params);  // all methods are POST
         $url = $this->urls['api'] . '/' . $path;
-        $headers = array (
+        $headers = array(
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
         );

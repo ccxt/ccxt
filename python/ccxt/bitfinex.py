@@ -15,7 +15,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
@@ -334,8 +334,8 @@ class bitfinex(Exchange):
                     'Could not find a key matching the given X-BFX-APIKEY.': AuthenticationError,
                     'Key price should be a decimal number, e.g. "123.456"': InvalidOrder,  # on isNaN(price)
                     'Key amount should be a decimal number, e.g. "123.456"': InvalidOrder,  # on isNaN(amount)
-                    'ERR_RATE_LIMIT': DDoSProtection,
-                    'Ratelimit': DDoSProtection,
+                    'ERR_RATE_LIMIT': RateLimitExceeded,
+                    'Ratelimit': RateLimitExceeded,
                     'Nonce is too small.': InvalidNonce,
                     'No summary found.': ExchangeError,  # fetchTradingFees(summary) endpoint can give self vague error message
                     'Cannot evaluate your available balance, please try again': ExchangeNotAvailable,

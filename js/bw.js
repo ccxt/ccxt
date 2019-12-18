@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, ArgumentsRequired, ExchangeNotAvailable } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -11,7 +11,7 @@ module.exports = class bw extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bw',
-            'name': 'bw.com',
+            'name': 'BW',
             'countries': [ 'CN' ],
             'rateLimit': 1500,
             'version': 'v1',
@@ -67,7 +67,7 @@ module.exports = class bw extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/69436317-31128c80-0d52-11ea-91d1-eb7bb5818812.jpg',
                 'api': 'https://www.{hostname}',
-                'www': 'https://www.{hostname}',
+                'www': 'https://www.bw.com',
                 'doc': 'https://github.com/bw-exchange/api_docs_en/wiki',
                 'fees': 'https://www.bw.com/feesRate',
             },
@@ -96,6 +96,7 @@ module.exports = class bw extends Exchange {
             'exceptions': {
                 'exact': {
                     '999': AuthenticationError,
+                    '1000': ExchangeNotAvailable, // {"datas":null,"resMsg":{"message":"getKlines error:data not exitsts\uff0cplease wait ,dataType=4002_KLINE_1M","method":null,"code":"1000"}}
                 },
             },
             'api': {
@@ -336,7 +337,7 @@ module.exports = class bw extends Exchange {
         //     ]
         //
         let symbol = undefined;
-        const marketId = ticker[0];
+        const marketId = this.safeString (ticker, 0);
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
         }
@@ -344,29 +345,29 @@ module.exports = class bw extends Exchange {
             symbol = market['symbol'];
         }
         const timestamp = this.milliseconds ();
-        const close = parseFloat (ticker[1]);
+        const close = parseFloat (this.safeValue (ticker, 1));
         const bid = this.safeValue (ticker, 'bid', {});
         const ask = this.safeValue (ticker, 'ask', {});
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker[2]),
-            'low': parseFloat (ticker[3]),
-            'bid': parseFloat (ticker[7]),
+            'high': parseFloat (this.safeValue (ticker, 2)),
+            'low': parseFloat (this.safeValue (ticker, 3)),
+            'bid': parseFloat (this.safeValue (ticker, 7)),
             'bidVolume': this.safeFloat (bid, 'quantity'),
-            'ask': parseFloat (ticker[8]),
+            'ask': parseFloat (this.safeValue (ticker, 8)),
             'askVolume': this.safeFloat (ask, 'quantity'),
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open'),
+            'open': undefined,
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': parseFloat (ticker[5]),
+            'change': parseFloat (this.safeValue (ticker, 5)),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker[4]),
-            'quoteVolume': parseFloat (ticker[9]),
+            'baseVolume': parseFloat (this.safeValue (ticker, 4)),
+            'quoteVolume': parseFloat (this.safeValue (ticker, 9)),
             'info': ticker,
         };
     }
