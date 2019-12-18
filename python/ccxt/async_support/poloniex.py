@@ -907,10 +907,11 @@ class poloniex(Exchange):
         await self.load_markets()
         method = 'privatePost' + self.capitalize(side)
         market = self.market(symbol)
+        amount = self.amount_to_precision(symbol, amount)
         request = {
             'currencyPair': market['id'],
             'rate': self.price_to_precision(symbol, price),
-            'amount': self.amount_to_precision(symbol, amount),
+            'amount': amount,
         }
         # remember the timestamp before issuing the request
         timestamp = self.milliseconds()
