@@ -59,7 +59,7 @@ const ccxtpro = require ('./ccxt.pro.js')
     while (true) {
         try {
             let response = undefined
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 1; i++) {
                 response = await exchange.watchOrderBook (symbol)
             }
             console.log (new Date (), response.asks.length, 'asks', response.asks[0], response.bids.length, 'bids', response.bids[0])
