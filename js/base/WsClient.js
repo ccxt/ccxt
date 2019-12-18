@@ -11,7 +11,7 @@ const ccxt = require ('ccxt')
 
 module.exports = class WsClient extends Client {
 
-    createWebsocket () {
+    createConnection () {
         console.log (new Date (), 'connecting...')
         this.connectionStarted = milliseconds ()
         this.setConnectionTimeout ()
@@ -34,9 +34,9 @@ module.exports = class WsClient extends Client {
             this.connection.readyState = WebSocket.CONNECTING
             // exponential backoff for consequent ws connections if necessary
             if (backoffDelay) {
-                sleep (backoffDelay).then (this.createWebsocket.bind (this))
+                sleep (backoffDelay).then (this.createConnection.bind (this))
             } else {
-                this.createWebsocket ()
+                this.createConnection ()
             }
         }
         return this.connected
