@@ -7,19 +7,6 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use Ratchet\RFC6455\Messaging\Frame;
 use Ratchet\RFC6455\Messaging\Message;
 
-// globals are obsolete
-
-// $GLOBALS['loop'] = \React\EventLoop\Factory::create ();
-// $reactConnector = new \React\Socket\Connector ($GLOBALS['loop']);
-// $GLOBALS['connector'] = new \Ratchet\Client\Connector ($GLOBALS['loop'], $reactConnector);
-
-// globals are obsolete
-
-// register_shutdown_function(function () {
-//     $GLOBALS['loop']->run ();
-// });
-
-
 class Client {
 
     public $url;
@@ -42,11 +29,14 @@ class Client {
     // connection-related Future
     public $connected;
 
-    // below is a one-to-one manual translation from JS,
-    // todo: rewrite for native PHP
+    // ratchet/pawl/reactphp stuff
+    public $loop;
+    public $connector;
+
+    // ------------------------------------------------------------------------
 
     public function future($message_hash) {
-        if (!$this->futures[$message_hash]) {
+        if (!isset($this->futures[$message_hash])) {
             $this->futures[$message_hash] = new Future();
         }
         return $this->futures[$message_hash];
@@ -84,26 +74,64 @@ class Client {
         return $result;
     }
 
-    // url,
-    // onMessageCallback,
-    // onErrorCallback,
-    // onCloseCallback,
-    // protocols: undefined, // ws-specific protocols
-    // options: undefined, // ws-specific options
-    // futures: {},
-    // subscriptions: {},
-    // error: undefined, // stores low-level networking exception, if any
-    // connectionStarted: undefined, // initiation timestamp in milliseconds
-    // connectionEstablished: undefined, // success timestamp in milliseconds
-    // connectionTimer: undefined, // connection-related setTimeout
-    // connectionTimeout: 10000, // 10 seconds by default, false to disable
-    // pingInterval: undefined, // stores the ping-related interval
-    // keepAlive: 3000, // ping-pong keep-alive frequency
-    // // timeout is not used atm
-    // // timeout: 30000, // throw if a request is not satisfied in 30 seconds, false to disable
-    // connection: {
-    //     readyState: undefined,
-    // },
+    public function __construct($url, callable $handler, $config = array ()) {
+
+        $this->url = $url;
+
+
+        // $this->loop = \React\EventLoop\Factory::create ();
+        $connector = new \React\Socket\Connector($this->loop);
+        $this->connector = new \Ratchet\Client\Connector($this->loop, $connector);
+
+        $this->handler = $handler;
+        $this->timeout = 5000;
+        $this->connected = false;
+        $this->pingNonce = 0;
+        $this->lastPong = PHP_INT_MAX;
+        $timeoutTimer = null;
+        $this->connectedFuture = null;
+        $this->futures = array();
+        $this->subscriptions = array();
+    }
+
+    public function connect() {
+        if (!$this->connection) {
+            $this->connected = true;
+            $this->connectedFuture = $this->connector ($this->url)->then(function($connection) {
+                $this->connection = $connection;
+                $this->connection->on('message', function($message) {
+                    $this->on_message($message);
+                });
+                $this->connection->on('close', function() {
+                    $this->connected = false;
+                });
+                $this->connection->on('pong', function() {
+                    $this->lastPong = Exchange::milliseconds();
+                });
+                $this->check_timeout();
+            });
+        }
+        return $this->connectedFuture;
+    }
+
+    public function send($data) {
+        $this->connect()->then(function() use ($data) {
+            $this->connection->send(Exchange::json($data));
+        });
+    }
+
+    public function close() {
+        $this->connection->close();
+    }
+
+    public function isConnected() {
+        return $this->connected;
+    }
+
+    public function on_message(Message $message) {
+        $x = $this->handler;
+        $x($this, Exchange::parse_json((string) $message));
+    }
 
     // public static $clients = array ();
     // private $timeout;
@@ -115,61 +143,17 @@ class Client {
     // protected $timeoutTimer;
     // protected $connectedFuture;
 
-    // public function __construct($url, callable $handler, $timeout = 5000) {
-    //     $this->url = $url;
-    //     $this->handler = $handler;
-    //     $this->timeout = $timeout;
-    //     $this->connected = false;
-    //     $this->pingNonce = 0;
-    //     $this->lastPong = PHP_INT_MAX;
-    //     $timeoutTimer = null;
-    //     $this->connectedFuture = null;
-    //     $this->futures = array ();
-    //     $this->subscriptions = array ();
+    // globals are obsolete
 
-    // }
 
-    // public function connect() {
-    //     if (!$this->isConnected()) {
-    //         $this->connected = true;
-    //         $this->connectedFuture = $GLOBALS['connector'] ($this->url)->then (function ($conn) {
-    //             $this->connection = $conn;
-    //             $this->connection->on ('message', function ($msg) {
-    //                 $this->onMessage($msg);
-    //             });
-    //             $this->connection->on ('close', function () {
-    //                 $this->connected = false;
-    //             });
-    //             $this->connection->on ('pong', function () {
-    //                 $this->lastPong = Exchange::milliseconds();
-    //             });
-    //             $this->check_timeout ();
-    //         });
-    //     }
-    //     return $this->connectedFuture;
-    // }
+    // globals are obsolete
 
-    // public function send ($data) {
-    //     $this->connect()->then(function () use ($data) {
-    //         $this->connection->send (Exchange::json($data));
-    //     });
-    // }
-
-    // public function close () {
-    //     $this->connection->close ();
-    // }
-
-    // public function isConnected () {
-    //     return $this->connected;
-    // }
-
-    // public function onMessage(Message $message) {
-    //     $x = $this->handler;
-    //     $x ($this, Exchange::parse_json ($message . ''));
-    // }
+    // register_shutdown_function(function () {
+    //     $this->loop->run ();
+    // });
 
     // private function check_timeout () {
-    //     $this->timeoutTimer = $GLOBALS['loop']->addPeriodicTimer(1, function () {
+    //     $this->timeoutTimer = $this->loop->addPeriodicTimer(1, function () {
     //         $this->pingNonce = ($this->pingNonce + 1) % (PHP_INT_MAX - 1);
     //         $this->connection->send (new Frame($this->pingNonce, true, Frame::OP_PING));
     //         if (Exchange::milliseconds ()  - $this->lastPong > $this->timeout) {
@@ -178,7 +162,7 @@ class Client {
     //                 $deferred->reject (new RequestTimeout ('Websocket did not receive a pong in reply to a ping within ' . $this->timeout . ' seconds'));
     //             }
     //             $this->futures = array ();
-    //             $GLOBALS['loop']->cancelTimer ($this->timeoutTimer);
+    //             $this->loop->cancelTimer ($this->timeoutTimer);
     //         }
     //     });
     // }
