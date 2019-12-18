@@ -979,10 +979,11 @@ module.exports = class poloniex extends Exchange {
         await this.loadMarkets ();
         const method = 'privatePost' + this.capitalize (side);
         const market = this.market (symbol);
+        amount = this.amountToPrecision (symbol, amount);
         const request = {
             'currencyPair': market['id'],
             'rate': this.priceToPrecision (symbol, price),
-            'amount': this.amountToPrecision (symbol, amount),
+            'amount': amount,
         };
         // remember the timestamp before issuing the request
         const timestamp = this.milliseconds ();
@@ -1011,7 +1012,7 @@ module.exports = class poloniex extends Exchange {
             'type': type,
             'side': side,
             'price': price,
-            'amount': amount,
+            'amount': parseFloat (amount),
         }, response), market);
         const id = order['id'];
         this.orders[id] = order;
