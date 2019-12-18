@@ -19,7 +19,7 @@ register_shutdown_function(function () {
 });
 
 
-class StreamingClient {
+class Client {
     public $url;
     public $futures;
     public static $clients = array ();
@@ -102,11 +102,11 @@ class StreamingClient {
 
     public static function registerFuture ($url, $message_hash, $entry, $apikey, $subscribe = null) {
         $index = $url . $apikey != null ? ('#' . $apikey) : '';
-        if (array_key_exists ($index, StreamingClient::$clients)) {
-            $client = StreamingClient::$clients[$index];
+        if (array_key_exists ($index, Client::$clients)) {
+            $client = Client::$clients[$index];
         } else {
-            $client = new StreamingClient ($url, $entry);
-            StreamingClient::$clients[$index] = $client;
+            $client = new Client ($url, $entry);
+            Client::$clients[$index] = $client;
         }
         if (array_key_exists ($message_hash, $client->futures)) {
             $future = $client->futures[$message_hash];

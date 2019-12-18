@@ -47,7 +47,7 @@ trait WebSocketTrait {
             $onError = $this->onError; // .bind (this)
             $onClose = $this->onClose; // .bind (this)
             // decide client type here: ws / signalr / socketio
-            $this->clients[$url] = new StreamingClient($url, $onMessage, $onError, $onClose);
+            $this->clients[$url] = new Client($url, $onMessage, $onError, $onClose);
         }
         return $this->clients[$url];
     }
