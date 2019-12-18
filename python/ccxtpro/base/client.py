@@ -18,6 +18,7 @@ class Client(object):
     connectionTimeout = 10000  # 10 seconds by default, false to disable
     connection = None
     error = None  # low-level networking exception, if any
+    connected = None  # connection-related Future
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
         defaults = {
@@ -27,8 +28,6 @@ class Client(object):
             'on_message_callback': on_message_callback,
             'on_error_callback': on_error_callback,
             'on_close_callback': on_close_callback,
-            'protocols': None,  # ws-specific protocols
-            'options': None,  # ws-specific options
             'connectionStarted': None,  # initiation timestamp in milliseconds
             'connectionEstablished': None,  # success timestamp in milliseconds
             'connectionTimeout': 5000,  # 10 seconds by default, false to disable
