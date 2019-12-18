@@ -123,6 +123,7 @@ module.exports = class StreamingClient {
     onConnectionTimeout () {
         if (this.connection.readyState !== WebSocket.OPEN) {
             const error = new RequestTimeout ('Connection to ' + this.url + ' failed due to a connection timeout')
+            this.error = error
             this.reset (error)
             this.onErrorCallback (this, error)
             this.connection.close (1006)

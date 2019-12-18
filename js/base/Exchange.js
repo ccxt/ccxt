@@ -1,7 +1,7 @@
 "use strict";
 
 const ccxt = require ('ccxt')
-    , StreamingClient = require ('./StreamingClient')
+    , Client = require ('./Client')
     , {
         OrderBook,
         LimitedOrderBook,
@@ -44,7 +44,7 @@ module.exports = class Exchange extends ccxt.Exchange {
             const onError = this.onError.bind (this)
             const onClose = this.onClose.bind (this)
             // decide client type here: ws / signalr / socketio
-            this.clients[url] = new StreamingClient (url, onMessage, onError, onClose)
+            this.clients[url] = new Client (url, onMessage, onError, onClose)
         }
         return this.clients[url]
     }
