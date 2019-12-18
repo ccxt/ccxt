@@ -9,8 +9,8 @@ class Client(object):
 
     url = None
     ws = None
-    futures = None
-    subscriptions = None
+    futures = {}
+    subscriptions = {}
     on_message_callback = None
     on_error_callback = None
     on_close_callback = None
