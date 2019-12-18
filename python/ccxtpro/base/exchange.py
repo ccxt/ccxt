@@ -53,7 +53,7 @@ class Exchange(BaseExchange):
             on_error = self.on_error
             on_close = self.on_close
             # decide client type here: aiohttp ws / websockets / signalr / socketio
-            self.clients[url] = StreamingClientAiohttp(url, on_message, on_error, on_close)
+            self.clients[url] = AiohttpClient(url, on_message, on_error, on_close)
         return self.clients[url]
 
     async def after(self, future, method, *args):
