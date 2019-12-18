@@ -24,6 +24,7 @@ module.exports = class Client {
             options: undefined, // ws-specific options
             futures: {},
             subscriptions: {},
+            connected: undefined, // connection-related Future
             error: undefined, // stores low-level networking exception, if any
             connectionStarted: undefined, // initiation timestamp in milliseconds
             connectionEstablished: undefined, // success timestamp in milliseconds
