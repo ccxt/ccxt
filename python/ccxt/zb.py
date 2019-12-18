@@ -9,6 +9,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -71,7 +72,7 @@ class zb(Exchange):
                 '3002': InvalidOrder,  # 'Invalid price',
                 '3003': InvalidOrder,  # 'Invalid amount',
                 '3004': AuthenticationError,  # 'User does not exist',
-                '3005': ExchangeError,  # 'Invalid parameter',
+                '3005': BadRequest,  # 'Invalid parameter',
                 '3006': AuthenticationError,  # 'Invalid IP or inconsistent with the bound IP',
                 '3007': AuthenticationError,  # 'The request time has expired',
                 '3008': OrderNotFound,  # 'Transaction records not found',

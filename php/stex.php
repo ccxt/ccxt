@@ -10,14 +10,14 @@ use Exception; // a common import
 class stex extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'stex',
             'name' => 'STEX', // formerly known as stocks.exchange
-            'countries' => array ( 'EE' ), // Estonia
+            'countries' => array( 'EE' ), // Estonia
             'rateLimit' => 500, // https://help.stex.com/en/articles/2815043-api-3-rate-limits
             'certified' => false,
             // new metainfo interface
-            'has' => array (
+            'has' => array(
                 'CORS' => false,
                 'createMarketOrder' => false, // limit orders only
                 'fetchCurrencies' => true,
@@ -38,22 +38,22 @@ class stex extends Exchange {
                 'withdraw' => true,
             ),
             'version' => 'v3',
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/69680782-03fd0b80-10bd-11ea-909e-7f603500e9cc.jpg',
                 'api' => 'https://api3.stex.com',
                 'www' => 'https://www.stex.com',
-                'doc' => array (
+                'doc' => array(
                     'https://help.stex.com/en/collections/1593608-api-v3-documentation',
                 ),
                 'fees' => 'https://app.stex.com/en/pairs-specification',
                 'referral' => 'https://app.stex.com?ref=36416021',
             ),
-            'requiredCredentials' => array (
+            'requiredCredentials' => array(
                 'apiKey' => false,
                 'secret' => false,
                 'token' => true,
             ),
-            'timeframes' => array (
+            'timeframes' => array(
                 '1m' => '1',
                 '5m' => '5',
                 '30m' => '30',
@@ -62,9 +62,9 @@ class stex extends Exchange {
                 '12h' => '720',
                 '1d' => '1D', // default
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
+            'api' => array(
+                'public' => array(
+                    'get' => array(
                         'currencies', // Available Currencies
                         'currencies/{currencyId}', // Get currency info
                         'markets', // Available markets
@@ -85,24 +85,24 @@ class stex extends Exchange {
                         'mobile-versions', // Shows the official mobile applications data
                     ),
                 ),
-                'trading' => array (
-                    'get' => array (
+                'trading' => array(
+                    'get' => array(
                         'fees/{currencyPairId}', // Returns the user's fees for a given currency pair
                         'orders', // List your currently open orders
                         'orders/{currencyPairId}', // List your currently open orders for given currency pair
                         'order/{orderId}', // Get a single order
                     ),
-                    'post' => array (
+                    'post' => array(
                         'orders/{currencyPairId}', // Create new order and put it to the orders processing queue
                     ),
-                    'delete' => array (
+                    'delete' => array(
                         'orders', // Delete all active orders
                         'orders/{currencyPairId}', // Delete active orders for given currency pair
                         'order/{orderId}', // Cancel order
                     ),
                 ),
-                'reports' => array (
-                    'get' => array (
+                'reports' => array(
+                    'get' => array(
                         'orders', // Get past orders
                         'orders/{orderId}', // Get specified order details
                         'trades/{currencyPairId}', // Get a list of user trades according to request parameters
@@ -110,15 +110,15 @@ class stex extends Exchange {
                         'background/{id}', // Get some report info
                         'background/download/{id}', // Get file by id
                     ),
-                    'post' => array (
+                    'post' => array(
                         'background/create', // Create new report
                     ),
-                    'delete' => array (
+                    'delete' => array(
                         'background/{id}', // Remove report by id
                     ),
                 ),
-                'profile' => array (
-                    'get' => array (
+                'profile' => array(
+                    'get' => array(
                         'info', // Account information
                         'wallets', // Get a list of user wallets
                         'wallets/{walletId}', // Single wallet information
@@ -131,7 +131,7 @@ class stex extends Exchange {
                         'favorite/currency_pairs', // Get favorite currency pairs
                         'token-scopes', // Get current token scopes
                     ),
-                    'post' => array (
+                    'post' => array(
                         'wallets/burn/{walletId}', // Burns the given wallet
                         'wallets/{currencyId}', // Create a wallet for given currency
                         'wallets/address/{walletId}', // Create new deposit address
@@ -140,46 +140,46 @@ class stex extends Exchange {
                         'referral/insert/{code}', // Insert referral code
                         'referral/bonus_transfer/{currencyId}', // Transfer referral bonuses balance to main balance for given currency
                     ),
-                    'put' => array (
+                    'put' => array(
                         'profile/favorite/currency_pairs/set', // Set favorite currency pairs
                     ),
-                    'delete' => array (
+                    'delete' => array(
                         'profile/withdraw/{withdrawalId}', // Cancel unconfirmed withdrawal
                     ),
                 ),
-                'verification' => array (
-                    'get' => array (
+                'verification' => array(
+                    'get' => array(
                         'verification/countries', // Countries list, beta
                         'verification/stex', // Get information about your KYC, beta
                     ),
-                    'post' => array (
+                    'post' => array(
                         'verification/stex', // Update information regarding of your KYC verification, beta
                     ),
                 ),
-                'settings' => array (
-                    'get' => array (
+                'settings' => array(
+                    'get' => array(
                         'notifications/{event}', // User event notification settings
                         'notifications', // User events notification settings
                     ),
-                    'put' => array (
+                    'put' => array(
                         'notifications', // Set notification settings
                         'notifications/set',
                     ),
                 ),
             ),
-            'fees' => array (
-                'trading' => array (
+            'fees' => array(
+                'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
                     'taker' => 0.002,
                     'maker' => 0.002,
                 ),
             ),
-            'options' => array (
+            'options' => array(
                 'parseOrderToPrecision' => false,
             ),
-            'exceptions' => array (
-                'exact' => array (
+            'exceptions' => array(
+                'exact' => array(
                     // array("success":false,"message":"Wrong parameters","errors":array("candleType":["Invalid Candle Type!"]))
                     // array("success":false,"message":"Wrong parameters","errors":array("time":["timeStart or timeEnd is less then 1"]))
                     'Wrong parameters' => '\\ccxt\\BadRequest',
@@ -188,7 +188,7 @@ class stex extends Exchange {
                     'This feature is only enabled for users verifies by Cryptonomica' => '\\ccxt\\PermissionDenied', // array("success":false,"message":"This feature is only enabled for users verifies by Cryptonomica")
                     'Too Many Attempts.' => '\\ccxt\\DDoSProtection', // array( "message" => "Too Many Attempts." )
                 ),
-                'broad' => array (
+                'broad' => array(
                     'Not enough' => '\\ccxt\\InsufficientFunds', // array("success":false,"message":"Not enough  ETH")
                 ),
             ),
@@ -200,8 +200,8 @@ class stex extends Exchange {
         //
         //     {
         //         "success":true,
-        //         "data":array (
-        //             array (
+        //         "data":array(
+        //             array(
         //                 "$id":1,
         //                 "$code":"BTC",
         //                 "name":"Bitcoin",
@@ -227,7 +227,7 @@ class stex extends Exchange {
         //
         $result = array();
         $currencies = $this->safe_value($response, 'data', array());
-        for ($i = 0; $i < count ($currencies); $i++) {
+        for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $this->safe_string($currency, 'id');
             $numericId = $this->safe_integer($currency, 'id');
@@ -238,7 +238,7 @@ class stex extends Exchange {
             $precision = $this->safe_integer($currency, 'precision');
             $fee = $this->safe_float($currency, 'withdrawal_fee_const'); // todo => redesign
             $active = $this->safe_value($currency, 'active', true);
-            $result[$code] = array (
+            $result[$code] = array(
                 'id' => $id,
                 'numericId' => $numericId,
                 'code' => $code,
@@ -248,15 +248,15 @@ class stex extends Exchange {
                 'active' => $active,
                 'fee' => $fee,
                 'precision' => $precision,
-                'limits' => array (
+                'limits' => array(
                     'amount' => array( 'min' => pow(10, -$precision), 'max' => null ),
                     'price' => array( 'min' => pow(10, -$precision), 'max' => null ),
                     'cost' => array( 'min' => null, 'max' => null ),
-                    'deposit' => array (
+                    'deposit' => array(
                         'min' => $this->safe_float($currency, 'minimum_deposit_amount'),
                         'max' => null,
                     ),
-                    'withdraw' => array (
+                    'withdraw' => array(
                         'min' => $this->safe_float($currency, 'minimum_withdrawal_amount'),
                         'max' => null,
                     ),
@@ -267,14 +267,14 @@ class stex extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $request = array (
+        $request = array(
             'code' => 'ALL',
         );
-        $response = $this->publicGetCurrencyPairsListCode (array_merge ($request, $params));
+        $response = $this->publicGetCurrencyPairsListCode (array_merge($request, $params));
         //
         //     {
         //         "success":true,
-        //         "data":array (
+        //         "data":array(
         //             {
         //                 "$id":935,
         //                 "currency_id":662,
@@ -302,7 +302,7 @@ class stex extends Exchange {
         //
         $result = array();
         $markets = $this->safe_value($response, 'data', array());
-        for ($i = 0; $i < count ($markets); $i++) {
+        for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'id');
             $numericId = $this->safe_integer($market, 'id');
@@ -313,7 +313,7 @@ class stex extends Exchange {
             $base = $this->safe_currency_code($this->safe_string($market, 'currency_code'));
             $quote = $this->safe_currency_code($this->safe_string($market, 'market_code'));
             $symbol = $base . '/' . $quote;
-            $precision = array (
+            $precision = array(
                 'amount' => $this->safe_integer($market, 'currency_precision'),
                 'price' => $this->safe_integer($market, 'market_precision'),
             );
@@ -324,7 +324,7 @@ class stex extends Exchange {
             $buyFee = $this->safe_float($market, 'buy_fee_percent') / 100;
             $sellFee = $this->safe_float($market, 'sell_fee_percent') / 100;
             $fee = max ($buyFee, $sellFee);
-            $result[] = array (
+            $result[] = array(
                 'id' => $id,
                 'numericId' => $numericId,
                 'symbol' => $symbol,
@@ -339,13 +339,13 @@ class stex extends Exchange {
                 'maker' => $fee,
                 'taker' => $fee,
                 'precision' => $precision,
-                'limits' => array (
-                    'amount' => array (
+                'limits' => array(
+                    'amount' => array(
                         'min' => $this->safe_float($market, 'min_order_amount'),
                         'max' => null,
                     ),
                     'price' => array( 'min' => $minPrice, 'max' => null ),
-                    'cost' => array (
+                    'cost' => array(
                         'min' => null,
                         'max' => null,
                     ),
@@ -358,10 +358,10 @@ class stex extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'currencyPairId' => $market['id'],
         );
-        $response = $this->publicGetTickerCurrencyPairId (array_merge ($request, $params));
+        $response = $this->publicGetTickerCurrencyPairId (array_merge($request, $params));
         //
         //     {
         //         "success" => true,
@@ -384,7 +384,7 @@ class stex extends Exchange {
         //             "volume" => "480.43248971",
         //             "volumeQuote" => "23491.29826130",
         //             "count" => "7384",
-        //             "fiatsRate" => array (
+        //             "fiatsRate" => array(
         //                 "USD" => 7230.86,
         //                 "EUR" => 6590.79,
         //                 "UAH" => 173402,
@@ -411,24 +411,24 @@ class stex extends Exchange {
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'currencyPairId' => $market['id'],
         );
         if ($limit !== null) {
             $request['limit_bids'] = $limit; // returns all if set to 0, default 100
             $request['limit_asks'] = $limit; // returns all if set to 0, default 100
         }
-        $response = $this->publicGetOrderbookCurrencyPairId (array_merge ($request, $params));
+        $response = $this->publicGetOrderbookCurrencyPairId (array_merge($request, $params));
         //
         //     {
         //         "success" => true,
         //         "data" => {
-        //             "ask" => array (
+        //             "ask" => array(
         //                 array( "currency_pair_id" => 2, "amount" => "2.17865373", "price" => "0.02062917", "amount2" => "0.04494382", "count" => 1, "cumulative_amount" => 2.17865373 ),
         //                 array( "currency_pair_id" => 2, "amount" => "2.27521743", "price" => "0.02062918", "amount2" => "0.04693587", "count" => 1, "cumulative_amount" => 4.45387116 ),
         //                 array( "currency_pair_id" => 2, "amount" => "1.26980049", "price" => "0.02063170", "amount2" => "0.02619814", "count" => 1, "cumulative_amount" => 5.72367165 ),
         //             ),
-        //             "bid" => array (
+        //             "bid" => array(
         //                 array( "currency_pair_id" => 2, "amount" => "0.00978005", "price" => "0.02057000", "amount2" => "0.00020118", "count" => 1, "cumulative_amount" => 0.00978005 ),
         //                 array( "currency_pair_id" => 2, "amount" => "0.00500000", "price" => "0.02056000", "amount2" => "0.00010280", "count" => 1, "cumulative_amount" => 0.01478005 ),
         //                 array( "currency_pair_id" => 2, "amount" => "0.77679882", "price" => "0.02054001", "amount2" => "0.01595546", "count" => 1, "cumulative_amount" => 0.79157887 ),
@@ -463,7 +463,7 @@ class stex extends Exchange {
         //         "volume" => "480.43248971",
         //         "volumeQuote" => "23491.29826130",
         //         "count" => "7384",
-        //         "fiatsRate" => array (
+        //         "fiatsRate" => array(
         //             "USD" => 7230.86,
         //             "EUR" => 6590.79,
         //             "UAH" => 173402,
@@ -500,7 +500,7 @@ class stex extends Exchange {
             $symbol = $market['symbol'];
         }
         $last = $this->safe_float($ticker, 'last');
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -526,7 +526,7 @@ class stex extends Exchange {
 
     public function parse_tickers ($tickers, $symbols = null) {
         $result = array();
-        for ($i = 0; $i < count ($tickers); $i++) {
+        for ($i = 0; $i < count($tickers); $i++) {
             $result[] = $this->parse_ticker($tickers[$i]);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
@@ -538,8 +538,8 @@ class stex extends Exchange {
         //
         //     {
         //         "success":true,
-        //         "data":array (
-        //             array (
+        //         "data":array(
+        //             array(
         //                 "id":262,
         //                 "amount_multiplier":1,
         //                 "currency_code":"ARDR",
@@ -558,7 +558,7 @@ class stex extends Exchange {
         //                 "volume":"30.37795305",
         //                 "volumeQuote":"4911487.01996544",
         //                 "count":"710",
-        //                 "fiatsRate":array (
+        //                 "fiatsRate":array(
         //                     "USD":7230.86,
         //                     "EUR":6590.79,
         //                     "UAH":173402,
@@ -595,7 +595,7 @@ class stex extends Exchange {
         //         "volume" => 2588.597813750006
         //     }
         //
-        return array (
+        return array(
             $this->safe_integer($ohlcv, 'time'),
             $this->safe_float($ohlcv, 'open'),
             $this->safe_float($ohlcv, 'high'),
@@ -608,7 +608,7 @@ class stex extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '1d', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'currencyPairId' => $market['id'],
             'candlesType' => $this->timeframes[$timeframe], // default 1d
             // 'timeStart' => 1574709092, // unix timestamp in seconds, required
@@ -630,12 +630,12 @@ class stex extends Exchange {
             $request['timeStart'] = intval ($since / 1000);
             $request['timeEnd'] = $this->sum ($request['timeStart'], $timerange);
         }
-        $response = $this->publicGetChartCurrencyPairIdCandlesType (array_merge ($request, $params));
+        $response = $this->publicGetChartCurrencyPairIdCandlesType (array_merge($request, $params));
         //
         //     {
         //         "success" => true,
-        //         "data" => array (
-        //             array (
+        //         "data" => array(
+        //             array(
         //                 "time" => 1566086400000,
         //                 "close" => 0.01895,
         //                 "open" => 0.01812427,
@@ -687,7 +687,7 @@ class stex extends Exchange {
             $symbol = $market['symbol'];
         }
         $side = $this->safe_string_lower_2($trade, 'type', 'trade_type');
-        return array (
+        return array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -707,7 +707,7 @@ class stex extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'currencyPairId' => $market['id'],
             // 'sort' => 'ASC', // ASC or DESC, default DESC
             // 'from' => 1574709092, // unix timestamp, optional
@@ -722,12 +722,12 @@ class stex extends Exchange {
             $request['sort'] = 'ASC'; // needed to make the from param work
             $request['from'] = intval ($since / 1000);
         }
-        $response = $this->publicGetTradesCurrencyPairId (array_merge ($request, $params));
+        $response = $this->publicGetTradesCurrencyPairId (array_merge($request, $params));
         //
         //     {
         //         "success" => true,
-        //         "data" => array (
-        //             array (
+        //         "data" => array(
+        //             array(
         //                 "id" => 35989317,
         //                 "price" => "0.02033813",
         //                 "amount" => "3.60000000",
@@ -748,8 +748,8 @@ class stex extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "data" => array (
-        //             array (
+        //         "data" => array(
+        //             array(
         //                 "id" => null,
         //                 "currency_id" => 665,
         //                 "delisted" => false,
@@ -765,7 +765,7 @@ class stex extends Exchange {
         //                 "protocol_specific_settings" => null,
         //                 "rates" => array( "BTC" => "0.00000000020", "USD" => "0.00000147" ),
         //             ),
-        //             array (
+        //             array(
         //                 "id" => null,
         //                 "currency_id" => 272,
         //                 "delisted" => false,
@@ -778,7 +778,7 @@ class stex extends Exchange {
         //                 "frozen_balance" => "0",
         //                 "bonus_balance" => "0",
         //                 "total_balance" => "0",
-        //                 "protocol_specific_settings" => array (
+        //                 "protocol_specific_settings" => array(
         //                     array( "protocol_name" => "OMNI", "protocol_id" => 10, "active" => true, "withdrawal_fee_currency_id" => 272, "withdrawal_fee_const" => 10, "withdrawal_fee_percent" => 0, "block_explorer_url" => "https://omniexplorer.info/search/" ),
         //                     array( "protocol_name" => "ERC20", "protocol_id" => 5, "active" => true, "withdrawal_fee_const" => 1.2, "withdrawal_fee_percent" => 0, "block_explorer_url" => "https://etherscan.io/tx/" ),
         //                     array( "protocol_name" => "TRON", "protocol_id" => 24, "active" => true, "withdrawal_fee_currency_id" => 272, "withdrawal_fee_const" => 0.2, "withdrawal_fee_percent" => 0, "block_explorer_url" => "https://tronscan.org/#/transaction/" )
@@ -790,7 +790,7 @@ class stex extends Exchange {
         //
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response, 'data', array());
-        for ($i = 0; $i < count ($balances); $i++) {
+        for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $code = $this->safe_currency_code($this->safe_string($balance, 'currency_id'));
             $account = $this->account ();
@@ -802,7 +802,7 @@ class stex extends Exchange {
     }
 
     public function parse_order_status ($status) {
-        $statuses = array (
+        $statuses = array(
             'PROCESSING' => 'open',
             'PENDING' => 'open',
             'PARTIAL' => 'open',
@@ -830,7 +830,7 @@ class stex extends Exchange {
         //         "$timestamp" => "1547720088",
         //         "$status" => "PARTIAL"
         //         // fetchClosedOrder only
-        //         "$trades" => array (
+        //         "$trades" => array(
         //             {
         //                 "$id" => 658745,
         //                 "buy_order_id" => 658745,
@@ -842,7 +842,7 @@ class stex extends Exchange {
         //             }
         //         ),
         //         // fetchClosedOrder only
-        //         "$fees" => array (
+        //         "$fees" => array(
         //             {
         //                 "$id" => 1234567,
         //                 "currency_id" => 1,
@@ -898,12 +898,12 @@ class stex extends Exchange {
         $rawTrades = $this->safe_value($order, 'trades');
         $trades = null;
         if ($rawTrades !== null) {
-            $trades = $this->parse_trades($rawTrades, $market, null, null, array (
+            $trades = $this->parse_trades($rawTrades, $market, null, null, array(
                 'symbol' => $symbol,
                 'order' => $id,
             ));
         }
-        $result = array (
+        $result = array(
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -925,15 +925,15 @@ class stex extends Exchange {
         if ($fees === null) {
             $result['fee'] = null;
         } else {
-            $numFees = is_array ($fees) ? count ($fees) : 0;
+            $numFees = is_array($fees) ? count($fees) : 0;
             if ($numFees > 0) {
                 $result['fees'] = array();
-                for ($i = 0; $i < count ($fees); $i++) {
+                for ($i = 0; $i < count($fees); $i++) {
                     $feeCost = $this->safe_float($fees[$i], 'amount');
                     if ($feeCost !== null) {
                         $feeCurrencyId = $this->safe_string($fees[$i], 'currency_id');
                         $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
-                        $result['fees'][] = array (
+                        $result['fees'][] = array(
                             'cost' => $feeCost,
                             'currency' => $feeCurrencyCode,
                         );
@@ -955,14 +955,14 @@ class stex extends Exchange {
         if ($type === 'limit') {
             $type = $side;
         }
-        $request = array (
+        $request = array(
             'currencyPairId' => $market['id'],
             'type' => strtoupper($type), // 'BUY', 'SELL', 'STOP_LIMIT_BUY', 'STOP_LIMIT_SELL'
             'amount' => floatval ($this->amount_to_precision($symbol, $amount)), // required
             'price' => floatval ($this->price_to_precision($symbol, $price)), // required
             // 'trigger_price' => 123.45 // required for STOP_LIMIT_BUY or STOP_LIMIT_SELL
         );
-        $response = $this->tradingPostOrdersCurrencyPairId (array_merge ($request, $params));
+        $response = $this->tradingPostOrdersCurrencyPairId (array_merge($request, $params));
         //
         //     {
         //         "success" => true,
@@ -988,10 +988,10 @@ class stex extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'orderId' => $id,
         );
-        $response = $this->tradingGetOrderOrderId (array_merge ($request, $params));
+        $response = $this->tradingGetOrderOrderId (array_merge($request, $params));
         //
         //     {
         //         "success" => true,
@@ -1021,10 +1021,10 @@ class stex extends Exchange {
 
     public function fetch_closed_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'orderId' => $id,
         );
-        $response = $this->reportsGetOrdersOrderId (array_merge ($request, $params));
+        $response = $this->reportsGetOrdersOrderId (array_merge($request, $params));
         //
         //     {
         //         "success" => true,
@@ -1038,7 +1038,7 @@ class stex extends Exchange {
         //             "created" => "2019-01-22 09:27:17",
         //             "timestamp" => 1548149237,
         //             "status" => "FINISHED",
-        //             "trades" => array (
+        //             "trades" => array(
         //                 {
         //                     "$id" => 658745,
         //                     "buy_order_id" => 6587453,
@@ -1049,7 +1049,7 @@ class stex extends Exchange {
         //                     "timestamp" => "1538737692"
         //                 }
         //             ),
-        //             "fees" => array (
+        //             "fees" => array(
         //                 {
         //                     "$id" => 1234567,
         //                     "currency_id" => 1,
@@ -1077,7 +1077,7 @@ class stex extends Exchange {
         $this->load_markets();
         $market = null;
         $method = 'tradingGetOrders';
-        $request = array (
+        $request = array(
             // 'limit' => 100, // default 100
             // 'offset' => 100,
         );
@@ -1089,11 +1089,11 @@ class stex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->$method (array_merge ($request, $params));
+        $response = $this->$method (array_merge($request, $params));
         //
         //     {
         //         "success" => true,
-        //         "$data" => array (
+        //         "$data" => array(
         //             {
         //                 "id" => 828680665,
         //                 "currency_pair_id" => 1,
@@ -1117,15 +1117,15 @@ class stex extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'orderId' => $id,
         );
-        $response = $this->tradingDeleteOrderOrderId (array_merge ($request, $params));
+        $response = $this->tradingDeleteOrderOrderId (array_merge($request, $params));
         //
         //     {
         //         "success" => true,
         //         "$data" => {
-        //             "put_into_processing_queue" => array (
+        //             "put_into_processing_queue" => array(
         //                 {
         //                     "$id" => 828680665,
         //                     "currency_pair_id" => 1,
@@ -1141,7 +1141,7 @@ class stex extends Exchange {
         //                     "status" => "PARTIAL"
         //                 }
         //             ),
-        //             "not_put_into_processing_queue" => array (
+        //             "not_put_into_processing_queue" => array(
         //                 {
         //                     "$id" => 828680665,
         //                     "currency_pair_id" => 1,
@@ -1164,8 +1164,8 @@ class stex extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $acceptedOrders = $this->safe_value($data, 'put_into_processing_queue', array());
         $rejectedOrders = $this->safe_value($data, 'not_put_into_processing_queue', array());
-        $numAcceptedOrders = is_array ($acceptedOrders) ? count ($acceptedOrders) : 0;
-        $numRejectedOrders = is_array ($rejectedOrders) ? count ($rejectedOrders) : 0;
+        $numAcceptedOrders = is_array($acceptedOrders) ? count($acceptedOrders) : 0;
+        $numRejectedOrders = is_array($rejectedOrders) ? count($rejectedOrders) : 0;
         if ($numAcceptedOrders < 1) {
             if ($numRejectedOrders < 1) {
                 throw new OrderNotFound($this->id . ' cancelOrder received an empty $response => ' . $this->json ($response));
@@ -1190,7 +1190,7 @@ class stex extends Exchange {
             $request['currencyPairId'] = $market['id'];
             $method = 'tradingDeleteOrdersCurrencyPairId';
         }
-        $response = $this->$method (array_merge ($request, $params));
+        $response = $this->$method (array_merge($request, $params));
         //
         //     {
         //         "success":true,
@@ -1210,7 +1210,7 @@ class stex extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'currencyPairId' => $market['id'],
             // 'timeStart' => '2019-11-26T19:54:55.901Z', // datetime in iso format
             // 'timeEnd' => '2019-11-26T19:54:55.901Z', // datetime in iso format
@@ -1223,11 +1223,11 @@ class stex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->reportsGetTradesCurrencyPairId (array_merge ($request, $params));
+        $response = $this->reportsGetTradesCurrencyPairId (array_merge($request, $params));
         //
         //     {
         //         "success" => true,
-        //         "data" => array (
+        //         "data" => array(
         //             {
         //                 "id" => 658745,
         //                 "buy_order_id" => 6587453,
@@ -1247,14 +1247,14 @@ class stex extends Exchange {
     public function create_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $request = array (
+        $request = array(
             'currencyId' => $currency['id'],
             // Default value is the value that represents legacy protocol.
             // In case of USDT it is 10 as Tether OMNI was the default previously.
             // The list of protocols can be obtained from the /public/currencies/{currencyId}
             // 'protocol_id' => 10,
         );
-        $response = $this->profilePostWalletsCurrencyId (array_merge ($request, $params));
+        $response = $this->profilePostWalletsCurrencyId (array_merge($request, $params));
         //
         //     {
         //         "success" => true,
@@ -1268,7 +1268,7 @@ class stex extends Exchange {
         //             "balance" => "0.198752",
         //             "frozen_balance" => "1.5784",
         //             "bonus_balance" => "0.000",
-        //             "deposit_address" => array (
+        //             "deposit_address" => array(
         //                 "$address" => "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
         //                 "address_name" => "Address",
         //                 "additional_address_parameter" => "qwertyuiopasdfghjkl",
@@ -1278,7 +1278,7 @@ class stex extends Exchange {
         //                 "protocol_name" => "Tether OMNI",
         //                 "supports_new_address_creation" => false
         //                 ),
-        //             "multi_deposit_addresses" => array (
+        //             "multi_deposit_addresses" => array(
         //                 {
         //                     "$address" => "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
         //                     "address_name" => "Address",
@@ -1292,7 +1292,7 @@ class stex extends Exchange {
         //             ),
         //             "withdrawal_additional_field_name" => "Payment ID (optional)",
         //             "rates" => array( "BTC" => 0.000001 ),
-        //             "protocol_specific_settings" => array (
+        //             "protocol_specific_settings" => array(
         //                 {
         //                     "protocol_name" => "Tether OMNI",
         //                     "protocol_id" => 10,
@@ -1311,7 +1311,7 @@ class stex extends Exchange {
         $address = $this->safe_string($depositAddress, 'address');
         $tag = $this->safe_string($depositAddress, 'additional_address_parameter');
         $this->check_address($address);
-        return array (
+        return array(
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
@@ -1333,10 +1333,10 @@ class stex extends Exchange {
         if ($walletId === null) {
             throw new ExchangeError($this->id . ' fetchDepositAddress() could not find the $wallet id for $currency $code ' . $code . ', try to call createDepositAddress() first');
         }
-        $request = array (
+        $request = array(
             'walletId' => $walletId,
         );
-        $response = $this->profileGetWalletsWalletId (array_merge ($request, $params));
+        $response = $this->profileGetWalletsWalletId (array_merge($request, $params));
         //
         //     {
         //         "success" => true,
@@ -1350,7 +1350,7 @@ class stex extends Exchange {
         //             "$balance" => "0.198752",
         //             "frozen_balance" => "1.5784",
         //             "bonus_balance" => "0.000",
-        //             "deposit_address" => array (
+        //             "deposit_address" => array(
         //                 "$address" => "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
         //                 "address_name" => "Address",
         //                 "additional_address_parameter" => "qwertyuiopasdfghjkl",
@@ -1360,7 +1360,7 @@ class stex extends Exchange {
         //                 "protocol_name" => "Tether OMNI",
         //                 "supports_new_address_creation" => false
         //             ),
-        //             "multi_deposit_addresses" => array (
+        //             "multi_deposit_addresses" => array(
         //                 {
         //                     "$address" => "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
         //                     "address_name" => "Address",
@@ -1374,7 +1374,7 @@ class stex extends Exchange {
         //             ),
         //             "withdrawal_additional_field_name" => "Payment ID (optional)",
         //             "rates" => array( "BTC" => 0.000001 ),
-        //             "protocol_specific_settings" => array (
+        //             "protocol_specific_settings" => array(
         //                 {
         //                     "protocol_name" => "Tether OMNI",
         //                     "protocol_id" => 10,
@@ -1393,7 +1393,7 @@ class stex extends Exchange {
         $address = $this->safe_string($depositAddress, 'address');
         $tag = $this->safe_string($depositAddress, 'additional_address_parameter');
         $this->check_address($address);
-        return array (
+        return array(
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
@@ -1410,7 +1410,7 @@ class stex extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $headers = array (
+            $headers = array(
                 'Authorization' => 'Bearer ' . $this->token,
             );
             if ($method === 'GET' || $method === 'DELETE') {
@@ -1428,7 +1428,7 @@ class stex extends Exchange {
     }
 
     public function parse_transaction_status ($status) {
-        $statuses = array (
+        $statuses = array(
             'processing' => 'pending',
             'checking by system' => 'pending',
             'hodl' => 'pending',
@@ -1513,9 +1513,9 @@ class stex extends Exchange {
             $code = $currency['code'];
         }
         $type = (is_array($transaction) && array_key_exists('depositId', $transaction)) ? 'deposit' : 'withdrawal';
-        $amount = $this->safe_float_2($transaction, 'amount');
+        $amount = $this->safe_float($transaction, 'amount');
         $status = $this->parse_transaction_status ($this->safe_string_lower($transaction, 'status'));
-        $timestamp = $this->safe_timestamp($transaction, 'timestamp', 'created_ts');
+        $timestamp = $this->safe_timestamp_2($transaction, 'timestamp', 'created_ts');
         $updated = $this->safe_timestamp($transaction, 'updated_ts');
         $txid = $this->safe_string($transaction, 'txid');
         $fee = null;
@@ -1523,12 +1523,12 @@ class stex extends Exchange {
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($transaction, 'fee_currency_id', 'deposit_fee_currency_id');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
-            $fee = array (
+            $fee = array(
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array (
+        return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
@@ -1555,7 +1555,7 @@ class stex extends Exchange {
         }
         $this->load_markets();
         $currency = $this->currency ($code);
-        $request = array (
+        $request = array(
             'currencyTypeName' => $currency['name'],
             // 'pageSize' => $limit, // documented as required, but it works without it
             // 'pageNum' => 0, // also works without it, most likely a typo in the docs
@@ -1564,11 +1564,11 @@ class stex extends Exchange {
         if ($limit !== null) {
             $request['pageSize'] = $limit; // default 50
         }
-        $response = $this->privatePostExchangeFundControllerWebsiteFundcontrollerGetPayinCoinRecord (array_merge ($request, $params));
+        $response = $this->privatePostExchangeFundControllerWebsiteFundcontrollerGetPayinCoinRecord (array_merge($request, $params));
         //
         //     {
         //         "success" => true,
-        //         "data" => array (
+        //         "data" => array(
         //             {
         //                 "id" => 123654789,
         //                 "currency_id" => 1,
@@ -1599,7 +1599,7 @@ class stex extends Exchange {
         }
         $this->load_markets();
         $currency = $this->currency ($code);
-        $request = array (
+        $request = array(
             'currencyId' => $currency['id'],
             // 'pageSize' => $limit, // documented as required, but it works without it
             // 'pageIndex' => 0, // also works without it, most likely a typo in the docs
@@ -1608,11 +1608,11 @@ class stex extends Exchange {
         if ($limit !== null) {
             $request['pageSize'] = $limit; // default 50
         }
-        $response = $this->privateGetExchangeFundControllerWebsiteFundwebsitecontrollerGetpayoutcoinrecord (array_merge ($request, $params));
+        $response = $this->privateGetExchangeFundControllerWebsiteFundwebsitecontrollerGetpayoutcoinrecord (array_merge($request, $params));
         //
         //     {
         //         "success" => true,
-        //         "data" => array (
+        //         "data" => array(
         //             {
         //                 "id" => 65899,
         //                 "amount" => "0.00600000",
@@ -1652,7 +1652,7 @@ class stex extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
-        $request = array (
+        $request = array(
             'currency_id' => $currency['id'],
             'amount' => floatval ($this->currency_to_precision($code, $amount)),
             'address' => $address,
@@ -1662,7 +1662,7 @@ class stex extends Exchange {
         if ($tag !== null) {
             $request['additional_address_parameter'] = $tag;
         }
-        $response = $this->profilePostWithdraw (array_merge ($request, $params));
+        $response = $this->profilePostWithdraw (array_merge($request, $params));
         //
         //     {
         //         "success" => true,

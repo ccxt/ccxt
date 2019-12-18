@@ -238,6 +238,7 @@ class bittrex(Exchange):
                 'INVALID_ORDER': InvalidOrder,
                 'UUID_INVALID': OrderNotFound,
                 'RATE_NOT_PROVIDED': InvalidOrder,  # createLimitBuyOrder('ETH/BTC', 1, 0)
+                'INVALID_MARKET': BadSymbol,  # {"success":false,"message":"INVALID_MARKET","result":null,"explanation":null}
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
                 'DUST_TRADE_DISALLOWED_MIN_VALUE': InvalidOrder,
                 'RESTRICTED_MARKET': BadSymbol,

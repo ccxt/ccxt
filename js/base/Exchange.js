@@ -922,21 +922,6 @@ module.exports = class Exchange {
         }
     }
 
-    getCurrencyUsedOnOpenOrders (currency) {
-        return Object.values (this.orders).filter (order => (order['status'] === 'open')).reduce ((total, order) => {
-            const symbol = order['symbol']
-            const market = this.markets[symbol]
-            const remaining = order['remaining']
-            if (currency === market['base'] && order['side'] === 'sell') {
-                return total + remaining
-            } else if (currency === market['quote'] && order['side'] === 'buy') {
-                return total + (order['price'] * remaining)
-            } else {
-                return total
-            }
-        }, 0)
-    }
-
     parseBalance (balance) {
 
         const currencies = Object.keys (this.omit (balance, 'info'));

@@ -470,6 +470,7 @@ class okex3(Exchange):
                 },
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': True,
                 'fetchMarkets': ['spot', 'futures', 'swap'],
                 'defaultType': 'spot',  # 'account', 'spot', 'margin', 'futures', 'swap'
                 'auth': {

@@ -10,18 +10,18 @@ use Exception; // a common import
 class btcchina extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'btcchina',
             'name' => 'BTCChina',
-            'countries' => array ( 'CN' ),
+            'countries' => array( 'CN' ),
             'rateLimit' => 1500,
             'version' => 'v1',
-            'has' => array (
+            'has' => array(
                 'CORS' => true,
             ),
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766368-465b3286-5ed6-11e7-9a11-0f6467e1d82b.jpg',
-                'api' => array (
+                'api' => array(
                     'plus' => 'https://plus-api.btcchina.com/market',
                     'public' => 'https://data.btcchina.com/data',
                     'private' => 'https://api.btcchina.com/api_trade_v1.php',
@@ -29,24 +29,24 @@ class btcchina extends Exchange {
                 'www' => 'https://www.btcchina.com',
                 'doc' => 'https://www.btcchina.com/apidocs',
             ),
-            'api' => array (
-                'plus' => array (
-                    'get' => array (
+            'api' => array(
+                'plus' => array(
+                    'get' => array(
                         'orderbook',
                         'ticker',
                         'trade',
                     ),
                 ),
-                'public' => array (
-                    'get' => array (
+                'public' => array(
+                    'get' => array(
                         'historydata',
                         'orderbook',
                         'ticker',
                         'trades',
                     ),
                 ),
-                'private' => array (
-                    'post' => array (
+                'private' => array(
+                    'post' => array(
                         'BuyIcebergOrder',
                         'BuyOrder',
                         'BuyOrder2',
@@ -77,7 +77,7 @@ class btcchina extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
+            'markets' => array(
                 'BTC/CNY' => array( 'id' => 'btccny', 'symbol' => 'BTC/CNY', 'base' => 'BTC', 'quote' => 'CNY', 'api' => 'public', 'plus' => false ),
                 'LTC/CNY' => array( 'id' => 'ltccny', 'symbol' => 'LTC/CNY', 'base' => 'LTC', 'quote' => 'CNY', 'api' => 'public', 'plus' => false ),
                 'LTC/BTC' => array( 'id' => 'ltcbtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'api' => 'public', 'plus' => false ),
@@ -88,13 +88,13 @@ class btcchina extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $request = array (
+        $request = array(
             'market' => 'all',
         );
-        $markets = $this->publicGetTicker (array_merge ($request, $params));
+        $markets = $this->publicGetTicker (array_merge($request, $params));
         $result = array();
         $keys = is_array($markets) ? array_keys($markets) : array();
-        for ($i = 0; $i < count ($keys); $i++) {
+        for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             $market = $markets[$key];
             $parts = explode('_', $key);
@@ -106,7 +106,7 @@ class btcchina extends Exchange {
             $base = $this->safe_currency_code($base);
             $quote = $this->safe_currency_code($quote);
             $symbol = $base . '/' . $quote;
-            $result[] = array (
+            $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -125,7 +125,7 @@ class btcchina extends Exchange {
         $balances = $this->safe_value($response, 'result');
         $result = array( 'info' => $balances );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        for ($i = 0; $i < count ($codes); $i++) {
+        for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
             $currency = $this->currency ($code);
             $account = $this->account ();
@@ -153,7 +153,7 @@ class btcchina extends Exchange {
         $market = $this->market ($symbol);
         $method = $market['api'] . 'GetOrderbook';
         $request = $this->create_market_request ($market);
-        $response = $this->$method (array_merge ($request, $params));
+        $response = $this->$method (array_merge($request, $params));
         $timestamp = $this->safe_timestamp($response, 'date');
         return $this->parse_order_book($response, $timestamp);
     }
@@ -161,7 +161,7 @@ class btcchina extends Exchange {
     public function parse_ticker ($ticker, $market) {
         $timestamp = $this->safe_timestamp($ticker, 'date');
         $last = $this->safe_float($ticker, 'last');
-        return array (
+        return array(
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
@@ -188,7 +188,7 @@ class btcchina extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -213,7 +213,7 @@ class btcchina extends Exchange {
         $market = $this->market ($symbol);
         $method = $market['api'] . 'GetTicker';
         $request = $this->create_market_request ($market);
-        $response = $this->$method (array_merge ($request, $params));
+        $response = $this->$method (array_merge($request, $params));
         $ticker = $this->safe_value($response, 'ticker');
         if ($market['plus']) {
             return $this->parse_ticker_plus ($ticker, $market);
@@ -232,7 +232,7 @@ class btcchina extends Exchange {
             }
         }
         $id = $this->safe_string($trade, 'tid');
-        return array (
+        return array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -257,7 +257,7 @@ class btcchina extends Exchange {
             }
         }
         $side = $this->safe_string_lower($trade, 'side');
-        return array (
+        return array(
             'id' => null,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -273,7 +273,7 @@ class btcchina extends Exchange {
 
     public function parse_trades_plus ($trades, $market = null) {
         $result = array();
-        for ($i = 0; $i < count ($trades); $i++) {
+        for ($i = 0; $i < count($trades); $i++) {
             $result[] = $this->parse_trade_plus ($trades[$i], $market);
         }
         return $result;
@@ -291,7 +291,7 @@ class btcchina extends Exchange {
         } else {
             $method .= 's'; // trades vs trade
         }
-        $response = $this->$method (array_merge ($request, $params));
+        $response = $this->$method (array_merge($request, $params));
         if ($market['plus']) {
             return $this->parse_trades_plus ($response['trades'], $market);
         }
@@ -305,13 +305,13 @@ class btcchina extends Exchange {
         $request = array();
         $id = strtoupper($market['id']);
         if ($type === 'market') {
-            $request['params'] = array ( null, $amount, $id );
+            $request['params'] = array( null, $amount, $id );
         } else {
-            $request['params'] = array ( $price, $amount, $id );
+            $request['params'] = array( $price, $amount, $id );
         }
-        $response = $this->$method (array_merge ($request, $params));
+        $response = $this->$method (array_merge($request, $params));
         $orderId = $this->safe_string($response, 'id');
-        return array (
+        return array(
             'info' => $response,
             'id' => $orderId,
         );
@@ -320,10 +320,10 @@ class btcchina extends Exchange {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $market = $params['market']; // TODO fixme
-        $request = array (
-            'params' => array ( $id, $market ),
+        $request = array(
+            'params' => array( $id, $market ),
         );
-        return $this->privatePostCancelOrder (array_merge ($request, $params));
+        return $this->privatePostCancelOrder (array_merge($request, $params));
     }
 
     public function nonce () {
@@ -339,7 +339,7 @@ class btcchina extends Exchange {
                 $p = $params['params'];
             }
             $nonce = $this->nonce ();
-            $request = array (
+            $request = array(
                 'method' => $path,
                 'id' => $nonce,
                 'params' => $p,
@@ -354,8 +354,8 @@ class btcchina extends Exchange {
                 'params=' . $p,));
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha1');
             $auth = $this->encode ($this->apiKey . ':' . $signature);
-            $headers = array (
-                'Authorization' => 'Basic ' . base64_encode ($auth),
+            $headers = array(
+                'Authorization' => 'Basic ' . base64_encode($auth),
                 'Json-Rpc-Tonce' => $nonce,
             );
         } else {
