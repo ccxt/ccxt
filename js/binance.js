@@ -158,7 +158,6 @@ module.exports = class binance extends Exchange {
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
-                        'income',
                     ],
                     'put': [ 'listenKey' ],
                     'post': [ 'listenKey' ],
@@ -173,6 +172,7 @@ module.exports = class binance extends Exchange {
                         'balance',
                         'positionRisk',
                         'userTrades',
+                        'income',
                     ],
                     'post': [
                         'order',
