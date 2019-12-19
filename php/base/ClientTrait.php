@@ -5,6 +5,7 @@ namespace ccxtpro;
 trait ClientTrait {
 
     public $clients = array();
+    public $loop = null;
 
     public function client($url) {
         if (!in_array($url, $this->clients)) {
@@ -12,7 +13,8 @@ trait ClientTrait {
             $on_error = array ($this, 'on_error');
             $on_close = array ($this, 'on_close');
             // decide client type here: ws / signalr / socketio
-            $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close);
+            $config = array('loop' => $this->loop);
+            $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $config);
         }
         return $this->clients[$url];
     }
@@ -28,6 +30,8 @@ trait ClientTrait {
         $client = $this->client($url);
         $backoff_delay = 0;
         $future = $client->future($message_hash);
+        echo "EVERYTHING ALRIGHT SO FAR (WIP)\n";
+        exit();
         $client->connect($backoff_delay)->then(function ($result) {
             echo "OK --------------------------------------------------------\n";
             var_dump($result);

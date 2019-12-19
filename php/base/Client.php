@@ -75,7 +75,7 @@ class Client {
             callable $on_message_callback,
             callable $on_error_callback,
             callable $on_close_callback,
-            $config = array()
+            $config
         ) {
 
         $this->url = $url;
@@ -123,9 +123,7 @@ class Client {
     }
 
     public function send($data) {
-        $this->connect()->then(function() use ($data) {
-            $this->connection->send(Exchange::json($data));
-        });
+        $this->connection->send(Exchange::json($data));
     }
 
     public function close() {
