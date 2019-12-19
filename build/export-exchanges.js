@@ -45,7 +45,7 @@ function getIncludedExchangeIds () {
     const isIncluded = (id) => ((includedIds.length === 0) || includedIds.includes (id))
 
     const ids = fs.readdirSync ('./js/')
-        .filter (file => file.includes ('.js'))
+        .filter (file => file.match (/[a-zA-Z0-9_-]+.js$/))
         .map (file => file.slice (0, -3))
         .filter (isIncluded);
 
