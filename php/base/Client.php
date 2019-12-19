@@ -2,8 +2,6 @@
 
 namespace ccxtpro;
 
-require_once __DIR__ . '/../vendor/autoload.php';
-
 use Ratchet\RFC6455\Messaging\Frame;
 use Ratchet\RFC6455\Messaging\Message;
 
@@ -28,7 +26,7 @@ class Client {
     public $connected; // connection-related Future
 
     // ratchet/pawl/reactphp stuff
-    public $loop;
+    public $loop = null;
     public $connector;
 
     // ------------------------------------------------------------------------
@@ -81,12 +79,6 @@ class Client {
         ) {
 
         $this->url = $url;
-
-        // $this->loop = \React\EventLoop\Factory::create ();
-        $connector = new \React\Socket\Connector($this->loop);
-        $this->connector = new \Ratchet\Client\Connector($this->loop, $connector);
-
-        $this->handler = $handler;
         $this->timeout = 5000;
         $this->connected = false;
         $this->pingNonce = 0;
@@ -99,6 +91,21 @@ class Client {
         $this->on_message_callback = $on_message_callback;
         $this->on_error_callback = $on_error_callback;
         $this->on_close_callback = $on_close_callback;
+
+        foreach ($config as $key => $value) {
+            $this->{$key} =
+                (property_exists($this, $key) && is_array($this->{$key}) && is_array($value)) ?
+                    array_replace_recursive($this->{$key}, $value) :
+                    $value;
+        }
+
+        if (!$this->loop) {
+            throw new \ccxt\NotSupported('Client requires a reactphp event loop');
+        }
+
+        // $this->loop = \React\EventLoop\Factory::create ();
+        $connector = new \React\Socket\Connector($this->loop);
+        $this->connector = new \Ratchet\Client\Connector($this->loop, $connector);
     }
 
     public function connect() {
@@ -130,7 +137,7 @@ class Client {
     }
 
     public function on_message(Message $message) {
-        $x = $this->handler;
+        $x = $this->on_message_callback;
         $x($this, Exchange::parse_json((string) $message));
     }
 
@@ -164,7 +171,7 @@ class Client {
     //         if (Exchange::milliseconds ()  - $this->lastPong > $this->timeout) {
     //             $this->connected = false;
     //             foreach ($this->futures as $deferred) {
-    //                 $deferred->reject (new RequestTimeout ('Websocket did not receive a pong in reply to a ping within ' . $this->timeout . ' seconds'));
+    //                 $deferred->reject (new RequestTimeout ('Client did not receive a pong in reply to a ping within ' . $this->timeout . ' seconds'));
     //             }
     //             $this->futures = array ();
     //             $this->loop->cancelTimer ($this->timeoutTimer);
