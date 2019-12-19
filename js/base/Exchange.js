@@ -94,7 +94,7 @@ module.exports = class Exchange extends ccxt.Exchange {
         //  a proper exception class instance
         const connected = client.connect (backoffDelay)
         // the following is executed only if the catch-clause does not
-        // catch any connection-level exceptions from the websocket client
+        // catch any connection-level exceptions from the client
         // (connection established successfully)
         connected.then (() => {
             if (message && !client.subscriptions[subscribeHash]) {
