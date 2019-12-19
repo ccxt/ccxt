@@ -656,7 +656,11 @@ class exmo extends Exchange {
         $marketIds = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $symbol = (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) ? $this->markets_by_id[$marketId] : $marketId;
+            $symbol = $marketId;
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $symbol = $market['symbol'];
+            }
             $result[$symbol] = $this->parse_order_book($response[$marketId], null, 'bid', 'ask');
         }
         return $result;
