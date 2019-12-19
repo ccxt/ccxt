@@ -6,11 +6,11 @@ namespace ccxtpro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxtpro\WebSocketTrait; // websocket functionality
+use \ccxtpro\ClientTrait; // websocket functionality
 
 class binance extends \ccxt\binance {
 
-    use WebSocketTrait;
+    use ClientTrait;
 
     public function describe () {
         return array_replace_recursive(parent::describe (), array(
