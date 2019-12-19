@@ -158,7 +158,6 @@ class binance extends Exchange {
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
-                        'income',
                     ),
                     'put' => array( 'listenKey' ),
                     'post' => array( 'listenKey' ),
@@ -173,6 +172,7 @@ class binance extends Exchange {
                         'balance',
                         'positionRisk',
                         'userTrades',
+                        'income',
                     ),
                     'post' => array(
                         'order',

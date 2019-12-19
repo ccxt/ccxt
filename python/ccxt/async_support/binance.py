@@ -170,7 +170,6 @@ class binance(Exchange):
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
-                        'income',
                     ],
                     'put': ['listenKey'],
                     'post': ['listenKey'],
@@ -185,6 +184,7 @@ class binance(Exchange):
                         'balance',
                         'positionRisk',
                         'userTrades',
+                        'income',
                     ],
                     'post': [
                         'order',
