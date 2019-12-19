@@ -16,7 +16,7 @@ class coss extends Exchange {
             'countries' => array( 'SG', 'NL' ),
             'rateLimit' => 1000,
             'version' => 'v1',
-            'certified' => true,
+            'certified' => false,
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/50328158-22e53c00-0503-11e9-825c-c5cfd79bfa74.jpg',
                 'api' => array(
