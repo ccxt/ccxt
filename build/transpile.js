@@ -66,11 +66,11 @@ class CCXTProTranspiler extends Transpiler {
             "// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code",
             "",
             "use Exception; // a common import",
-            'use \\ccxtpro\\WebSocketTrait; // websocket functionality',
+            'use \\ccxtpro\\ClientTrait; // websocket functionality',
             "",
             'class ' + className + ' extends ' + baseClass.replace ('ccxt.', '\\ccxt\\') + ' {',
             "",
-            "    use WebSocketTrait;",
+            "    use ClientTrait;",
         ]
     }
 
