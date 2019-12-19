@@ -22,8 +22,6 @@ $exchange = new $exchange_class(array(
 
 $handler = function () use ($loop, $exchange, $symbol) {
 
-    $exchange->hello_world();
-
     $promise = $exchange->watch_order_book($symbol);
     $promise->then(function ($orderbook) use ($loop, $handler) {
         $loop->futureTick($handler);
