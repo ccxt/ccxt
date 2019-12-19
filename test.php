@@ -13,11 +13,12 @@ $id = 'poloniex';
 $exchange_class = '\\ccxtpro\\' . $id;
 $exchange = new $exchange_class(array(
     'enableRateLimit' => true,
-    // 'urls' => array(
-    //     'api' => array(
-    //         'ws' => 'ws://127.0.0.1:8080',
-    //     ),
-    // ),
+    'loop' => $loop,
+    'urls' => array(
+        'api' => array(
+            'ws' => 'ws://127.0.0.1:8080',
+        ),
+    ),
 ));
 
 $handler = function () use ($loop, $exchange, $symbol) {
