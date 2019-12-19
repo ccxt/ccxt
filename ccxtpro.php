@@ -34,9 +34,12 @@ define('PATH_TO_CCXTPRO', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPA
 define('PATH_TO_CCXTPRO_BASE', PATH_TO_CCXTPRO . 'base' . DIRECTORY_SEPARATOR);
 
 // require_once PATH_TO_CCXTPRO_BASE . 'errors.php';
-require_once PATH_TO_CCXTPRO_BASE . 'Exchange.php';
+require_once PATH_TO_CCXTPRO_BASE . 'Future.php';
+require_once PATH_TO_CCXTPRO_BASE . 'Client.php';
+require_once PATH_TO_CCXTPRO_BASE . 'ClientTrait.php';
 require_once PATH_TO_CCXTPRO_BASE . 'OrderBook.php';
 require_once PATH_TO_CCXTPRO_BASE . 'OrderBookSide.php';
+require_once PATH_TO_CCXTPRO_BASE . 'Exchange.php';
 
 spl_autoload_register (function ($class_name) {
     $class_name = str_replace ("ccxtpro\\", "", $class_name);
