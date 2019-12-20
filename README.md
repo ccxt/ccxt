@@ -1,4 +1,4 @@
-# CCXT Pro
+![CCXT Pro](https://user-images.githubusercontent.com/1294454/71230147-79917b80-22f9-11ea-9c7e-dcd40123a1d0.png)
 
 info@ccxt.pro
 
