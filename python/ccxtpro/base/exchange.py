@@ -73,7 +73,7 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + '.sign_ws_message() not implemented yet')
         return {}
 
-    async def connect_ws_client(self, client, message_hash, message=None, subscribe_hash=None):
+    async def connect_client(self, client, message_hash, message=None, subscribe_hash=None):
         # todo: calculate the backoff using the clients cache
         backoff_delay = 0
         try:
@@ -85,14 +85,14 @@ class Exchange(BaseExchange):
                 await client.send(message)
         except Exception as e:
             client.reject(e, message_hash)
-            print(self.iso8601(self.milliseconds()), 'connect_ws_client', 'Exception', e)
+            print(self.iso8601(self.milliseconds()), 'connect_client', 'Exception', e)
 
     def watch(self, url, message_hash, message=None, subscribe_hash=None):
         client = self.client(url)
         future = client.future(message_hash)
         # we intentionally do not use await here to avoid unhandled exceptions
         # the policy is to make sure that 100% of promises are resolved or rejected
-        asyncio.ensure_future(self.connect_ws_client(client, message_hash, message, subscribe_hash))
+        asyncio.ensure_future(self.connect_client(client, message_hash, message, subscribe_hash))
         return future
 
     def on_error(self, client, error):
