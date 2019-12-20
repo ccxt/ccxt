@@ -496,7 +496,7 @@ class kraken extends \ccxt\kraken {
                     $exception = new $broad[$broadKey] ($errorMessage);
                 }
                 // var_dump ($requestId, $exception);
-                $this->rejectWsFuture ($client, $requestId, $exception);
+                $client->reject ($exception, $requestId);
                 // throw $exception;
                 return false;
             }

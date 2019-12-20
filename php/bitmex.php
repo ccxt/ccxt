@@ -495,7 +495,7 @@ class bitmex extends \ccxt\bitmex {
                     $exception = new $broad[$broadKey] ($error);
                 }
                 // var_dump (requestId, $exception);
-                $this->rejectWsFuture ($client, $messageHash, $exception);
+                $client->reject ($exception, $messageHash);
                 return false;
             }
         }

@@ -463,7 +463,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
                 else:
                     exception = broad[broadKey](errorMessage)
                 # print(requestId, exception)
-                self.rejectWsFuture(client, requestId, exception)
+                client.reject(exception, requestId)
                 # raise exception
                 return False
         return True

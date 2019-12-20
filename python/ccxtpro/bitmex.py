@@ -462,7 +462,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                 else:
                     exception = broad[broadKey](error)
                 # print(requestId, exception)
-                self.rejectWsFuture(client, messageHash, exception)
+                client.reject(exception, messageHash)
                 return False
         return True
 

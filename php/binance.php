@@ -177,7 +177,7 @@ class binance extends \ccxt\binance {
         // $keys = is_array($client->futures) ? array_keys($client->futures) : array();
         // for ($i = 0; $i < count($keys); $i++) {
         //     $key = $keys[$i];
-        //     $this->rejectWsFuture ()
+        //     $client->reject ()
         // }
         //
         // --------------------------------------------------------------------

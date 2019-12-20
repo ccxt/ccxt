@@ -249,7 +249,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
             messageHash = 'orderbook:' + marketId
             orderbook = self.orderbooks[symbol]
             # the .limit() operation will be moved to the watchOrderBook
-            client.resolve(orderbook.limit(), messageHash)
+            client.resolve(orderbook, messageHash)
         if tradesCount:
             # resolve the trades future
             messageHash = 'trades:' + marketId

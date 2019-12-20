@@ -159,7 +159,7 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         # keys = list(client.futures.keys())
         # for i in range(0, len(keys)):
         #     key = keys[i]
-        #     self.rejectWsFuture()
+        #     client.reject()
         # }
         #
         # --------------------------------------------------------------------
