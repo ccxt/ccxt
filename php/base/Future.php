@@ -4,7 +4,7 @@ namespace ccxtpro;
 
 class Future extends \React\Promise\Deferred {
 
-    public function then(callable $onFulfilled = null, callable $onRejected = null): PromiseInterface {
+    public function then(callable $onFulfilled = null, callable $onRejected = null): \React\Promise\Promise {
         return $this->promise()->then($onFulfilled, $onRejected);
     }
 
