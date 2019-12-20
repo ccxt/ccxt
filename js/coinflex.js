@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound, BadRequest, InvalidOrder, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, OrderNotFound, BadRequest, InvalidOrder, InsufficientFunds, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -62,6 +62,8 @@ module.exports = class coinflex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'cancelAllOrders': true,
+                'cancelOrder': true,
+                'fetchMyTrades': true,
                 'fetchTrades': false,
                 'fetchOHLCV': false,
             },
@@ -279,10 +281,11 @@ module.exports = class coinflex extends Exchange {
         };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
-            const currency = this.findCurrencyById (this.currencies, balance.id);
+            const id = this.safeInteger (balance, 'id');
+            const currency = this.findCurrencyById (this.currencies, id);
             let available = this.safeFloat (balance, 'available');
             let reserved = this.safeFloat (balance, 'reserved');
-            const asset = this.currencies[currency];
+            const asset = this.safeValue (this.currencies, currency);
             const scale = this.safeInteger (asset['info'], 'scale');
             if (scale > 0) {
                 available /= scale;
@@ -447,11 +450,15 @@ module.exports = class coinflex extends Exchange {
     }
 
     findCurrencyById (currencies, id) {
+        if (id === undefined) {
+            throw new ArgumentsRequired ('Should specify id');
+        }
         const keys = Object.keys (currencies);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const currency = currencies[key];
-            if (currency['id'] === id) {
+            const currencyId = this.safeInteger (currency, 'id');
+            if (currencyId === id) {
                 return currency['code'];
             }
         }
@@ -474,9 +481,11 @@ module.exports = class coinflex extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            const sid = this.uid + '/' + this.apiKey + ':' + this.privateKey;
+            const sid = this.uid.toString () + '/' + this.apiKey + ':' + this.privateKey;
+            const encodedSid = this.encode (sid);
+            const base64Sid = this.stringToBase64 (encodedSid);
             headers = {
-                'Authorization': 'Basic ' + this.stringToBase64 (sid),
+                'Authorization': 'Basic ' + this.decode (base64Sid),
             };
             if (method === 'POST') {
                 body = suffix;
