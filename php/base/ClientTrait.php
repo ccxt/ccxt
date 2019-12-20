@@ -19,6 +19,7 @@ trait ClientTrait {
         return $this->clients[$url];
     }
 
+    // the ellipsis packing/unpacking requires PHP 5.6+ :(
     public function after($future, callable $method, ... $args) {
         return $future->then (function ($result) use ($method, $args) {
             return $method(... $args);
@@ -30,12 +31,21 @@ trait ClientTrait {
         $client = $this->client($url);
         $backoff_delay = 0;
         $future = $client->future($message_hash);
-        $client->connect($backoff_delay)->then(function ($result) {
+        $connected = $client->connect($backoff_delay);
+        $connected->then(function ($result) {
+            // if (message && !client.subscriptions[subscribeHash]) {
+            //     client.subscriptions[subscribeHash] = true
+            //     // todo: decouple signing from subscriptions
+            //     message = this.signWsMessage (client, messageHash, message)
+            //     client.send (message)
+            // }
             echo "OK --------------------------------------------------------\n";
-            var_dump($result);
+            exit();
+            // var_dump($result);
         }, function ($result) {
             echo "ERROR -----------------------------------------------------\n";
-            var_dump($result);
+            var_dump((string) $result);
+            exit();
         });
         return $future;
 
