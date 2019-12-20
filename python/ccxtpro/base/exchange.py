@@ -58,6 +58,7 @@ class Exchange(BaseExchange):
 
     async def after(self, future, method, *args):
         result = await future
+        # method is bound to self instance
         return method(result, *args)
 
     def handle_message(self, client, message):
