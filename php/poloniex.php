@@ -112,7 +112,7 @@ class poloniex extends \ccxt\poloniex {
             'channel' => $numericId,
         );
         $future = $this->watch ($url, $messageHash, $subscribe, $numericId);
-        return $this->after ($future, $this->limit_order_book, $symbol, $limit, $params);
+        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
