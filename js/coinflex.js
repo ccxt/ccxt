@@ -243,7 +243,11 @@ module.exports = class coinflex extends Exchange {
         }
         request['quantity'] = amount * baseScale;
         const response = await this.privatePostOrders (this.extend (request, params));
-        return this.parseOrder (response);
+        if ('remaining' in response) {
+            return [];
+        } else {
+            return this.parseOrder (response);
+        }
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -452,8 +456,10 @@ module.exports = class coinflex extends Exchange {
         if (Object.keys (query).length) {
             suffix = this.urlencode (query);
         }
-        if (method === 'GET' || method === 'POST') {
-            url = url + '?' + suffix;
+        if (method === 'GET') {
+            if (suffix.length) {
+                url = url + '?' + suffix;
+            }
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
@@ -461,6 +467,10 @@ module.exports = class coinflex extends Exchange {
             headers = {
                 'Authorization': 'Basic ' + this.stringToBase64 (sid),
             };
+            if (method === 'POST') {
+                body = suffix;
+                headers['Content-Type'] = 'application/x-www-form-urlencoded';
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
