@@ -94,8 +94,9 @@ class bibox extends Exchange {
                 ),
             ),
             'exceptions' => array(
-                '2021' => '\\ccxt\\InsufficientFunds', // Insufficient balance available for withdrawal
+                '2011' => '\\ccxt\\AccountSuspended', // Account is locked
                 '2015' => '\\ccxt\\AuthenticationError', // Google authenticator is wrong
+                '2021' => '\\ccxt\\InsufficientFunds', // Insufficient balance available for withdrawal
                 '2027' => '\\ccxt\\InsufficientFunds', // Insufficient balance available (for trade)
                 '2033' => '\\ccxt\\OrderNotFound', // operation failed! Orders have been completed or revoked
                 '2067' => '\\ccxt\\InvalidOrder', // Does not support market orders
