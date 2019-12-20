@@ -491,7 +491,7 @@ module.exports = class bitmex extends ccxt.bitmex {
                     exception = new broad[broadKey] (error);
                 }
                 // console.log (requestId, exception);
-                this.rejectWsFuture (client, messageHash, exception);
+                client.reject (exception, messageHash);
                 return false;
             }
         }

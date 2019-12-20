@@ -173,7 +173,7 @@ module.exports = class binance extends ccxt.binance {
         // const keys = Object.keys (client.futures);
         // for (let i = 0; i < keys.length; i++) {
         //     const key = keys[i];
-        //     this.rejectWsFuture ()
+        //     client.reject ()
         // }
         //
         // --------------------------------------------------------------------

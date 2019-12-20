@@ -268,7 +268,7 @@ module.exports = class poloniex extends ccxt.poloniex {
             const messageHash = 'orderbook:' + marketId;
             const orderbook = this.orderbooks[symbol];
             // the .limit () operation will be moved to the watchOrderBook
-            client.resolve (orderbook.limit (), messageHash);
+            client.resolve (orderbook, messageHash);
         }
         if (tradesCount) {
             // resolve the trades future

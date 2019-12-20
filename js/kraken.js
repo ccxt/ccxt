@@ -492,7 +492,7 @@ module.exports = class kraken extends ccxt.kraken {
                     exception = new broad[broadKey] (errorMessage);
                 }
                 // console.log (requestId, exception);
-                this.rejectWsFuture (client, requestId, exception);
+                client.reject (exception, requestId);
                 // throw exception;
                 return false;
             }
