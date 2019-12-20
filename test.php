@@ -21,7 +21,8 @@ $exchange = new $exchange_class(array(
     ),
 ));
 
-$handler = function () use ($loop, $exchange, $symbol) {
+$handler = null;
+$handler = function () use ($loop, $exchange, $symbol, $handler) {
 
     $promise = $exchange->watch_order_book($symbol);
     $promise->then(function ($orderbook) use ($loop, $handler) {
