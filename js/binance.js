@@ -143,8 +143,8 @@ module.exports = class binance extends ccxt.binance {
         return incrementalBook.orderBook;
     }
 
-    signWsMessage (client, messageHash, message, params = {}) {
-        // todo: binance signWsMessage not implemented yet
+    signMessage (client, messageHash, message, params = {}) {
+        // todo: binance signMessage not implemented yet
         return message;
     }
 

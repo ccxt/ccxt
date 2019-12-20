@@ -258,8 +258,8 @@ class bitmex extends \ccxt\bitmex {
         return $this->watch ($url, $event);
     }
 
-    public function sign_ws_message ($client, $messageHash, $message, $params = array ()) {
-        // todo => bitmex signWsMessage not implemented yet
+    public function sign_message ($client, $messageHash, $message, $params = array ()) {
+        // todo => bitmex signMessage not implemented yet
         return $message;
     }
 

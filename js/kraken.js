@@ -500,8 +500,8 @@ module.exports = class kraken extends ccxt.kraken {
         return true;
     }
 
-    signWsMessage (client, messageHash, message, params = {}) {
-        // todo: kraken signWsMessage not implemented yet
+    signMessage (client, messageHash, message, params = {}) {
+        // todo: kraken signMessage not implemented yet
         return message;
     }
 

@@ -126,7 +126,7 @@ class poloniex extends \ccxt\poloniex {
         return $this->watch ($url, $channelId);
     }
 
-    public function sign_ws_message ($client, $messageHash, $message, $params = array ()) {
+    public function sign_message ($client, $messageHash, $message, $params = array ()) {
         if (mb_strpos($messageHash, '1000') === 0) {
             $reload = false;
             if ($this->check_required_credentials($reload)) {

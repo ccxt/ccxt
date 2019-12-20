@@ -66,7 +66,7 @@ module.exports = class Exchange extends ccxt.Exchange {
         //     connected.then (() => {
         //         if (message && !client.subscriptions[subscribeHash]) {
         //             client.subscriptions[subscribeHash] = true
-        //             message = this.signWsMessage (client, messageHash, message)
+        //             message = this.signMessage (client, messageHash, message)
         //             client.send (message)
         //         }
         //     }).catch ((error) => {})
@@ -101,7 +101,7 @@ module.exports = class Exchange extends ccxt.Exchange {
             if (message && !client.subscriptions[subscribeHash]) {
                 client.subscriptions[subscribeHash] = true
                 // todo: decouple signing from subscriptions
-                message = this.signWsMessage (client, messageHash, message)
+                message = this.signMessage (client, messageHash, message)
                 client.send (message)
             }
         }).catch ((error) => {

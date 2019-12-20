@@ -36,7 +36,7 @@ trait ClientTrait {
                 // if (message && !client.subscriptions[subscribeHash]) {
                 //     client.subscriptions[subscribeHash] = true
                 //     // todo: decouple signing from subscriptions
-                //     message = this.signWsMessage (client, messageHash, message)
+                //     message = this.signMessage (client, messageHash, message)
                 //     client.send (message)
                 // }
                 echo "OK --------------------------------------------------------\n";
@@ -70,7 +70,7 @@ trait ClientTrait {
         //         if (message && !client.subscriptions[subscribeHash]) {
         //             client.subscriptions[subscribeHash] = true
         //             // todo: decouple signing from subscriptions
-        //             message = this.signWsMessage (client, messageHash, message)
+        //             message = this.signMessage (client, messageHash, message)
         //             client.send (message)
         //         }
         //     }).catch ((error) => {

@@ -243,8 +243,8 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         url = self.urls['api']['ws']
         return self.watch(url, event)
 
-    def sign_ws_message(self, client, messageHash, message, params={}):
-        # todo: bitmex signWsMessage not implemented yet
+    def sign_message(self, client, messageHash, message, params={}):
+        # todo: bitmex signMessage not implemented yet
         return message
 
     def parse_ws_trade(self, client, trade, market=None):

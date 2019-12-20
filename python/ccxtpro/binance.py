@@ -132,8 +132,8 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         incrementalBook.message['nonce'] = message['u']
         return incrementalBook.orderBook
 
-    def sign_ws_message(self, client, messageHash, message, params={}):
-        # todo: binance signWsMessage not implemented yet
+    def sign_message(self, client, messageHash, message, params={}):
+        # todo: binance signMessage not implemented yet
         return message
 
     def handle_subscription_status(self, client, message):

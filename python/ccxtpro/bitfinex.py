@@ -166,8 +166,8 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
         self.options['subscriptionsByChannelId'][channelId] = message
         return message
 
-    def sign_ws_message(self, client, messageHash, message, params={}):
-        # todo: bitfinex signWsMessage not implemented yet
+    def sign_message(self, client, messageHash, message, params={}):
+        # todo: bitfinex signMessage not implemented yet
         return message
 
     def handle_message(self, client, message):

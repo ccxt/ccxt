@@ -147,8 +147,8 @@ class binance extends \ccxt\binance {
         return $incrementalBook->orderBook;
     }
 
-    public function sign_ws_message ($client, $messageHash, $message, $params = array ()) {
-        // todo => binance signWsMessage not implemented yet
+    public function sign_message ($client, $messageHash, $message, $params = array ()) {
+        // todo => binance signMessage not implemented yet
         return $message;
     }
 

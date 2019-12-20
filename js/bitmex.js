@@ -254,8 +254,8 @@ module.exports = class bitmex extends ccxt.bitmex {
         return this.watch (url, event);
     }
 
-    signWsMessage (client, messageHash, message, params = {}) {
-        // todo: bitmex signWsMessage not implemented yet
+    signMessage (client, messageHash, message, params = {}) {
+        // todo: bitmex signMessage not implemented yet
         return message;
     }
 

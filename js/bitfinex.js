@@ -176,8 +176,8 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         return message;
     }
 
-    signWsMessage (client, messageHash, message, params = {}) {
-        // todo: bitfinex signWsMessage not implemented yet
+    signMessage (client, messageHash, message, params = {}) {
+        // todo: bitfinex signMessage not implemented yet
         return message;
     }
 

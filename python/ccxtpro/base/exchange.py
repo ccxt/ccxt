@@ -67,10 +67,10 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + '.handle_message() not implemented yet')
         return {}
 
-    def sign_ws_message(self, client, message_hash, message):
+    def sign_message(self, client, message_hash, message):
         always = True
         if always:
-            raise NotSupported(self.id + '.sign_ws_message() not implemented yet')
+            raise NotSupported(self.id + '.sign_message() not implemented yet')
         return {}
 
     async def connect_client(self, client, message_hash, message=None, subscribe_hash=None):
@@ -81,7 +81,7 @@ class Exchange(BaseExchange):
             if message and (subscribe_hash not in client.subscriptions):
                 client.subscriptions[subscribe_hash] = True
                 # todo: decouple signing from subscriptions
-                message = self.sign_ws_message(client, message_hash, message)
+                message = self.sign_message(client, message_hash, message)
                 await client.send(message)
         except Exception as e:
             client.reject(e, message_hash)

@@ -113,7 +113,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
         url = self.urls['api']['ws']
         return self.watch(url, channelId)
 
-    def sign_ws_message(self, client, messageHash, message, params={}):
+    def sign_message(self, client, messageHash, message, params={}):
         if messageHash.find('1000') == 0:
             reload = False
             if self.check_required_credentials(reload):

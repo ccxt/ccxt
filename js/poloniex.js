@@ -122,7 +122,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         return this.watch (url, channelId);
     }
 
-    signWsMessage (client, messageHash, message, params = {}) {
+    signMessage (client, messageHash, message, params = {}) {
         if (messageHash.indexOf ('1000') === 0) {
             const reload = false;
             if (this.checkRequiredCredentials (reload)) {

@@ -468,8 +468,8 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
                 return False
         return True
 
-    def sign_ws_message(self, client, messageHash, message, params={}):
-        # todo: kraken signWsMessage not implemented yet
+    def sign_message(self, client, messageHash, message, params={}):
+        # todo: kraken signMessage not implemented yet
         return message
 
     def handle_message(self, client, message):
