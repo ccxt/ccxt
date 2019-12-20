@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, OrderNotFound, BadRequest, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -41,6 +41,7 @@ module.exports = class coinflex extends Exchange {
                         'orders/',
                         'orders/{id}',
                         'trades/',
+                        'trades/{time}',
                     ],
                     'post': [
                         'orders/',
@@ -362,22 +363,20 @@ module.exports = class coinflex extends Exchange {
         };
     }
 
-    findCurrencyById (currencies, id) {
-        const keys = Object.keys (currencies);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const currency = currencies[key];
-            if (currency['id'] === id) {
-                return currency['code'];
-            }
-        }
-        throw new ExchangeError ('Currency with id ' + id + ' not founded');
-    }
-
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        const response = await this.privateGetTrades (this.extend (request, params));
+        let response = undefined;
+        if ('id' in params) {
+            request['time'] = this.safeInteger (params, 'id');
+            const query = this.omit (params, 'id');
+            response = await this.privateGetTradesTime (this.extend (request, query));
+            const responseArray = [];
+            responseArray.push (response);
+            response = responseArray;
+        } else {
+            response = await this.privateGetTrades (this.extend (request, params));
+        }
         return this.parseTrades (response, undefined, since, limit);
     }
 
@@ -447,6 +446,18 @@ module.exports = class coinflex extends Exchange {
         };
     }
 
+    findCurrencyById (currencies, id) {
+        const keys = Object.keys (currencies);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const currency = currencies[key];
+            if (currency['id'] === id) {
+                return currency['code'];
+            }
+        }
+        throw new ExchangeError ('Currency with id ' + id + ' not founded');
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const base = this.urls['api'][api];
         const request = '/' + this.implodeParams (path, params);
@@ -473,5 +484,38 @@ module.exports = class coinflex extends Exchange {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (code === 400) {
+            if (method === 'POST') {
+                if (url.indexOf ('orders/') > -1) {
+                    throw new InvalidOrder (body);
+                }
+            }
+        }
+        if (code === 403) {
+            if (method === 'POST') {
+                if (url.indexOf ('orders/') > -1) {
+                    if (body.indexOf ('insufficient funds') > -1) {
+                        throw new InsufficientFunds (body);
+                    }
+                }
+            }
+        }
+        if (code === 404) {
+            if (method === 'GET' || method === 'DELETE') {
+                if (url.indexOf ('orders/') > -1) {
+                    const index = url.indexOf ('orders/');
+                    const id = url.slice (index + 7);
+                    throw new OrderNotFound (id);
+                }
+                if (url.indexOf ('trades/') > -1) {
+                    const index = url.indexOf ('trades/');
+                    const id = url.slice (index + 7);
+                    throw new BadRequest ('Trade with id ' + id + ' not found');
+                }
+            }
+        }
     }
 };
