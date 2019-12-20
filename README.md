@@ -1,4 +1,4 @@
-# CCXT Pro
+![CCXT Pro](https://user-images.githubusercontent.com/1294454/71230147-79917b80-22f9-11ea-9c7e-dcd40123a1d0.png)
 
 info@ccxt.pro
 
@@ -9,11 +9,20 @@ CCXT Pro is a professional extension to the standard CCXT that is going to inclu
 - FIX protocol adapters – planned for the future
 -
 
+## Technicalities:
+
+- public and private unified APIs
+- auto-connection and re-connection
+- connection timeouts
+- re-connection exponential backoff delay
+- keep-alive ping-pong
+- proxies
+
 ## The Access To The Repository
 
 The access to the CCXT Pro repository is prepaid and restricted (by invitation only). In order to get the access to the repository, the user must buy an access plan at https://ccxt.pro and visit the repository on GitHub via https://github.com/kroitor/ccxt.pro.
 
-## Licensing Summary
+## License Summary
 
 The CCXT Pro License does not include mechanisms that enforce technical limitations on the user or any other restrictions that would affect direct communication between the users and the exchanges without intermediaries. The mechanism that protects the CCXT Pro license is not technical, but works based purely on laws.
 
