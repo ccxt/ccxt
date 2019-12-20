@@ -543,9 +543,13 @@ class Transpiler {
         let bodyAsString = body.join ("\n")
 
         for (let method of methods) {
-            const regex = new RegExp ('this->(' + method + ')([^a-zA-Z0-9])', 'g')
+            const regex = new RegExp ('\\$this->(' + method + ')(\\s\\(|[^a-zA-Z0-9])', 'g')
             bodyAsString = bodyAsString.replace (regex,
-                (match, p1, p2) => ('this->' + unCamelCase (p1) + p2))
+                (match, p1, p2) => {
+                    return ((p2 === ' (') ?
+                        ('$this->' + unCamelCase (p1) + p2) : // support direct php calls
+                        ("array($this, '" + unCamelCase (p1) + "')" + p2)) // as well as passing instance methods as callables
+                })
         }
 
         const footer =[
