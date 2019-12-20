@@ -2,9 +2,13 @@
 
 namespace ccxtpro;
 
+use React\Promise\Timer;
+use React\Promise\Timer\TimeoutException;
+
 use Ratchet\RFC6455\Messaging\Frame;
 use Ratchet\RFC6455\Messaging\Message;
 
+use Exception;
 use RuntimeException;
 
 class Client {
@@ -21,7 +25,7 @@ class Client {
     public $connectionStarted;
     public $connectionEstablished;
     // public $connection_timer; // ?
-    public $connectionTimeout = 10;
+    public $connectionTimeout = 3210.0;
     public $pingInterval;
     public $keepAlive;
     public $connection = null;
@@ -29,7 +33,7 @@ class Client {
 
     // ratchet/pawl/reactphp stuff
     public $loop = null;
-    public $connector;
+    public $connector = null;
 
     // ------------------------------------------------------------------------
 
@@ -87,7 +91,7 @@ class Client {
         $timeoutTimer = null;
         $this->futures = array();
         $this->subscriptions = array();
-        $this->connected = new Future ();
+        $this->connected = new Future();
 
         $this->on_message_callback = $on_message_callback;
         $this->on_error_callback = $on_error_callback;
@@ -104,11 +108,23 @@ class Client {
             throw new \ccxt\NotSupported('Client requires a reactphp event loop');
         }
 
-        $options = array('timeout' => $this->connectionTimeout);
-        $connector = new \React\Socket\Connector($this->loop, $options);
+        // $options = array('timeout' => $this->connectionTimeout / 1000);
+        // $options = array('timeout' => 1.5);
+
+        // var_dump ($options);
+
+        // $connector = new \React\Socket\Connector($this->loop, $options);
+
+        $connector = new \React\Socket\Connector($this->loop);
+
+        // var_dump ($connector);
+        // exit();
+
         $this->connector = new \Ratchet\Client\Connector($this->loop, $connector);
 
     }
+
+    // return Timer\timeout($this->connector->connect($uri), $this->timeout, $this->loop)->then(null, self::handler($uri));
 
     public function connect($backoff_delay = 0) {
         if (!$this->connection) {
@@ -117,22 +133,62 @@ class Client {
                 // $this->loop->futureTick
             }
             $connector = $this->connector;
-            $connector($this->url)->then(function($connection) {
-                $this->connection = $connection;
-                $this->connection->on('message', array($this, 'on_message'));
-                $this->connection->on('close', array($this, 'on_close'));
-                $this->connection->on('pong', array($this, 'on_pong'));
-                $this->connected->resolve($this->url);
-            }, function($error) {
-                if (is_a($error, 'RuntimeException')) {
-                    // connection failed or rejected
-                    $error = new \ccxt\NetworkError($error->getMessage ());
+            $timeout = $this->connectionTimeout / 1000;
+            echo date('c'), ' connecting to ', $this->url, "\n";
+            Timer\timeout($connector($this->url), $timeout, $this->loop)->then(
+                function($connection) {
+                    echo date('c'), " connected\n";
+                    exit();
+                    $this->connection = $connection;
+                    $this->connection->on('message', array($this, 'on_message'));
+                    $this->connection->on('close', array($this, 'on_close'));
+                    $this->connection->on('pong', array($this, 'on_pong'));
+                    $this->connected->resolve($this->url);
+                },
+                function(\Exception $error) {
+                    echo date('c'), ' connection failed ', get_class($error), ' ', $error->getMessage(), "\n";
+                    // the ordering of these exceptions is important
+                    // since one inherits another
+                    if ($error instanceof \React\Promise\Timer\TimeoutException) {
+                        $error = new \ccxt\RequestTimeout($error->getMessage());
+                    } else if ($error instanceof \RuntimeException) {
+                        // connection failed or rejected
+                        $error = new \ccxt\NetworkError($error->getMessage());
+                    }
+                    $this->on_error($error);
                 }
-                $this->on_error($error);
-            });
+            );
         }
         return $this->connected;
     }
+
+    // public function connect($backoff_delay = 0) {
+    //     if (!$this->connection) {
+    //         $this->connection = true;
+    //         if ($backoff_delay) {
+    //             // $this->loop->futureTick
+    //         }
+    //         $connector = $this->connector;
+    //         echo date('c'), ' connecting to ', $this->url, "\n";
+    //         $connector($this->url)->then(function($connection) {
+    //             echo date('c'), " connected\n";
+    //             $this->connection = $connection;
+    //             $this->connection->on('message', array($this, 'on_message'));
+    //             $this->connection->on('close', array($this, 'on_close'));
+    //             $this->connection->on('pong', array($this, 'on_pong'));
+    //             $this->connected->resolve($this->url);
+    //         }, function(\Exception $error) {
+    //             echo date('c'), $error->getMessage(), "\n";
+    //             exit();
+    //             if ($error instanceof \RuntimeException) {
+    //                 // connection failed or rejected
+    //                 $error = new \ccxt\NetworkError($error->getMessage());
+    //             }
+    //             $this->on_error($error);
+    //         });
+    //     }
+    //     return $this->connected;
+    // }
 
     public function send($data) {
         $this->connection->send(Exchange::json($data));
@@ -151,12 +207,11 @@ class Client {
     }
 
     public function on_error($error) {
-        echo date('c'), ' on_error ', $error->getMessage(), "\n";
-        // convert ws errors to ccxt errors if necessary
-        $this->error = new \ccxt\NetworkError($error->getMessage ());
-        $this->reset($this->error);
+        echo date('c'), ' on_error ', get_class($error), ' ', $error->getMessage(), "\n";
+        $this->error = $error;
+        $this->reset($error);
         $on_error_callback = $this->on_error_callback;
-        $on_error_callback($this, $this->error);
+        $on_error_callback($this, $error);
     }
 
     public function on_close($message) {
