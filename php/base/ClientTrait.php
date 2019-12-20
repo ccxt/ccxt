@@ -19,7 +19,7 @@ trait ClientTrait {
         return $this->clients[$url];
     }
 
-    public function after($future, $method, ... $args) {
+    public function after($future, callable $method, ... $args) {
         return $future->then (function ($result) use ($method, $args) {
             return $method(... $args);
         });
@@ -30,8 +30,6 @@ trait ClientTrait {
         $client = $this->client($url);
         $backoff_delay = 0;
         $future = $client->future($message_hash);
-        echo "EVERYTHING ALRIGHT SO FAR (WIP)\n";
-        exit();
         $client->connect($backoff_delay)->then(function ($result) {
             echo "OK --------------------------------------------------------\n";
             var_dump($result);
