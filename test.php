@@ -27,6 +27,10 @@ $handler = function () use ($loop, $exchange, $symbol, $handler) {
     $promise = $exchange->watch_order_book($symbol);
     $promise->then(function ($orderbook) use ($loop, $handler) {
         $loop->futureTick($handler);
+    }, function ($error) {
+        // echo "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ\n";
+        echo date('c'), ' ERROR ', $error->getMessage (), "\n";
+        exit();
     });
 
     // x = None

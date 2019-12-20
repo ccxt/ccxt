@@ -48,9 +48,9 @@ class Client {
                 unset($this->futures[$message_hash]);
             }
         } else {
-            $message_hashes = Object.keys($this->futures);
-            for ($i = 0; $i < $message_hashes.length; $i++) {
-                $this->resolve($result, $message_hashes[$i]);
+            $message_hashes = array_keys($this->futures);
+            foreach ($message_hashes as $message_hash) {
+                $this->resolve($result, $message_hash);
             }
         }
         return $result;
@@ -64,9 +64,9 @@ class Client {
                 unset($this->futures[$message_hash]);
             }
         } else {
-            $message_hashes = Object.keys($this->futures);
-            for ($i = 0; $i < $message_hashes.length; $i++) {
-                $this->reject($result, $message_hashes[i]);
+            $message_hashes = array_keys($this->futures);
+            foreach ($message_hashes as $message_hash) {
+                $this->reject($result, $message_hash);
             }
         }
         return $result;
@@ -81,14 +81,13 @@ class Client {
         ) {
 
         $this->url = $url;
-        $this->timeout = 5000;
-        $this->connected = false;
-        $this->pingNonce = 0;
-        $this->lastPong = PHP_INT_MAX;
+        // $this->timeout = 5000;
+        // $this->pingNonce = 0;
+        // $this->lastPong = PHP_INT_MAX;
         $timeoutTimer = null;
-        $this->connected = null;
         $this->futures = array();
         $this->subscriptions = array();
+        $this->connected = new Future ();
 
         $this->on_message_callback = $on_message_callback;
         $this->on_error_callback = $on_error_callback;
@@ -108,6 +107,7 @@ class Client {
         $options = array('timeout' => $this->connectionTimeout);
         $connector = new \React\Socket\Connector($this->loop, $options);
         $this->connector = new \Ratchet\Client\Connector($this->loop, $connector);
+
     }
 
     public function connect($backoff_delay = 0) {
@@ -117,22 +117,18 @@ class Client {
                 // $this->loop->futureTick
             }
             $connector = $this->connector;
-            $this->connected = $connector($this->url)->then(function($connection) {
+            $connector($this->url)->then(function($connection) {
                 $this->connection = $connection;
                 $this->connection->on('message', array($this, 'on_message'));
                 $this->connection->on('close', array($this, 'on_close'));
                 $this->connection->on('pong', array($this, 'on_pong'));
-                // $this->check_timeout();
+                $this->connected->resolve($this->url);
             }, function($error) {
                 if (is_a($error, 'RuntimeException')) {
                     // connection failed or rejected
-                    $error = new \ccxt\NetworkError($error);
-                    // echo date('c'), ' NetworkError ', (string) $error, "\n";
-                    $this->on_error($error);
-                } else {
-                    // echo date('c'), ' Error ', (string) $error, "\n";
-                    $this->on_error($error);
+                    $error = new \ccxt\NetworkError($error->getMessage ());
                 }
+                $this->on_error($error);
             });
         }
         return $this->connected;
@@ -155,11 +151,10 @@ class Client {
     }
 
     public function on_error($error) {
-        echo date('c'), ' on_error ', (string) $error, "\n";
-        exit();
+        echo date('c'), ' on_error ', $error->getMessage(), "\n";
         // convert ws errors to ccxt errors if necessary
-        $this->error = new \ccxt\NetworkError ((string) $error);
-        $this->reset ($this->error);
+        $this->error = new \ccxt\NetworkError($error->getMessage ());
+        $this->reset($this->error);
         $on_error_callback = $this->on_error_callback;
         $on_error_callback($this, $this->error);
     }
@@ -181,13 +176,21 @@ class Client {
             $message = json_decode($message, true);
             // message = isJsonEncodedObject (message) ? JSON.parse (message) : message
         } catch (Exception $e) {
-            echo date('c'), ' on_message json_decode ', (string) $message, "\n";
+            echo date('c'), ' on_message json_decode ', $e->getMessage(), "\n";
             // reset with a json encoding error ?
         }
         $on_message_callback = $this->on_message_callback;
         $on_message_callback($this, $message);
         exit();
     }
+
+    public function reset($error) {
+        // $this->clearConnectionTimeout();
+        // $this->clearPingInterval();
+        $this->connected->reject($error);
+        $this->reject($error);
+    }
+
 
     // onError (error) {
     //     console.log (new Date (), 'onError', error.message)

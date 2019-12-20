@@ -27,26 +27,29 @@ trait ClientTrait {
     }
 
     public function watch($url, $message_hash, $message, $subscribe_hash = null) {
-
         $client = $this->client($url);
         $backoff_delay = 0;
         $future = $client->future($message_hash);
         $connected = $client->connect($backoff_delay);
-        $connected->then(function ($result) {
-            // if (message && !client.subscriptions[subscribeHash]) {
-            //     client.subscriptions[subscribeHash] = true
-            //     // todo: decouple signing from subscriptions
-            //     message = this.signWsMessage (client, messageHash, message)
-            //     client.send (message)
-            // }
-            echo "OK --------------------------------------------------------\n";
-            exit();
-            // var_dump($result);
-        }, function ($result) {
-            echo "ERROR -----------------------------------------------------\n";
-            var_dump((string) $result);
-            exit();
-        });
+        $connected->then(
+            function ($result) {
+                // if (message && !client.subscriptions[subscribeHash]) {
+                //     client.subscriptions[subscribeHash] = true
+                //     // todo: decouple signing from subscriptions
+                //     message = this.signWsMessage (client, messageHash, message)
+                //     client.send (message)
+                // }
+                echo "OK --------------------------------------------------------\n";
+                exit();
+                // var_dump($result);
+            },
+            function ($error) {
+                // we do nothing and don't return a resolvable value from here
+                // we leave it in a rejected state to avoid triggering the
+                // then-clauses that will follow (if any)
+                // removing this catch will raise UnhandledPromiseRejection in JS
+                // upon connection failure
+            });
         return $future;
 
         // ....................................................................
