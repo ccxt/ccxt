@@ -51,6 +51,7 @@ module.exports = class Exchange extends ccxt.Exchange {
 
     async after (future, method, ... args) {
         const result = await future
+        // call it as an instance method on this
         return method.apply (this, [ result, ... args ])
     }
 
