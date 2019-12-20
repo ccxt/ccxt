@@ -2,13 +2,14 @@
 
 namespace ccxtpro;
 
-// use \ccxtpro\ClientTrait;
-
 $version = 'undefined';
 
 class Exchange extends \ccxt\Exchange {
 
+    // todo: fix version numbers in php
+
     public static $VERSION = 'undefined';
+
     use ClientTrait;
 }
 
