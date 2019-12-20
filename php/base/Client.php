@@ -5,6 +5,8 @@ namespace ccxtpro;
 use Ratchet\RFC6455\Messaging\Frame;
 use Ratchet\RFC6455\Messaging\Message;
 
+use RuntimeException;
+
 class Client {
 
     public $url;
@@ -19,7 +21,7 @@ class Client {
     public $connectionStarted;
     public $connectionEstablished;
     // public $connection_timer; // ?
-    public $connectionTimeout;
+    public $connectionTimeout = 10;
     public $pingInterval;
     public $keepAlive;
     public $connection = null;
@@ -108,10 +110,12 @@ class Client {
         $this->connector = new \Ratchet\Client\Connector($this->loop, $connector);
     }
 
-    public function connect() {
+    public function connect($backoff_delay = 0) {
         if (!$this->connection) {
             $this->connection = true;
-            echo "EVERYTHING ALRIGHT SO FAR (WIP)\n";
+            if ($backoff_delay) {
+                // $this->loop->futureTick
+            }
             $connector = $this->connector;
             $this->connected = $connector($this->url)->then(function($connection) {
                 $this->connection = $connection;
@@ -119,6 +123,16 @@ class Client {
                 $this->connection->on('close', array($this, 'on_close'));
                 $this->connection->on('pong', array($this, 'on_pong'));
                 // $this->check_timeout();
+            }, function($error) {
+                if (is_a($error, 'RuntimeException')) {
+                    // connection failed or rejected
+                    $error = new \ccxt\NetworkError($error);
+                    // echo date('c'), ' NetworkError ', (string) $error, "\n";
+                    $this->on_error($error);
+                } else {
+                    // echo date('c'), ' Error ', (string) $error, "\n";
+                    $this->on_error($error);
+                }
             });
         }
         return $this->connected;
@@ -136,14 +150,78 @@ class Client {
         return $this->connected;
     }
 
-    public function on_message(Message $message) {
-        $x = $this->on_message_callback;
-        $x($this, Exchange::parse_json((string) $message));
+    public function on_pong() {
+        // $this->lastPong = Exchange::milliseconds();
     }
 
-    public function on_pong() {
-        $this->lastPong = Exchange::milliseconds();
+    public function on_error($error) {
+        echo date('c'), ' on_error ', (string) $error, "\n";
+        exit();
+        // convert ws errors to ccxt errors if necessary
+        $this->error = new \ccxt\NetworkError ((string) $error);
+        $this->reset ($this->error);
+        $on_error_callback = $this->on_error_callback;
+        $on_error_callback($this, $this->error);
     }
+
+    public function on_close($message) {
+        echo date('c'), ' on_close ', (string) $message, "\n";
+        exit();
+        if (!$this->error) {
+            // todo: exception types for server-side disconnects
+            $this->reset(new NetworkError($message));
+        }
+        $on_close_callback = $this->on_close_callback;
+        $on_close_callback($this, $message);
+        exit();
+    }
+
+    public function on_message(Message $message) {
+        try {
+            $message = json_decode($message, true);
+            // message = isJsonEncodedObject (message) ? JSON.parse (message) : message
+        } catch (Exception $e) {
+            echo date('c'), ' on_message json_decode ', (string) $message, "\n";
+            // reset with a json encoding error ?
+        }
+        $on_message_callback = $this->on_message_callback;
+        $on_message_callback($this, $message);
+        exit();
+    }
+
+    // onError (error) {
+    //     console.log (new Date (), 'onError', error.message)
+    //     // convert ws errors to ccxt errors if necessary
+    //     this.error = new NetworkError (error.message)
+    //     this.reset (this.error)
+    //     this.onErrorCallback (this, this.error)
+    // }
+
+    // onClose (message) {
+    //     console.log (new Date (), 'onClose', message)
+    //     if (!this.error) {
+    //         // todo: exception types for server-side disconnects
+    //         this.reset (new NetworkError (message))
+    //     }
+    //     this.onCloseCallback (this, message)
+    // }
+
+    // def on_error(self, error):
+    //     print(Exchange.iso8601(Exchange.milliseconds()), 'on_error', error)
+    //     self.error = error
+    //     self.reset(error)
+    //     self.on_error_callback(self, error)
+    //     if not self.closed():
+    //         ensure_future(self.close(1006))
+
+    // def on_close(self, code):
+    //     print(Exchange.iso8601(Exchange.milliseconds()), 'on_close', code)
+    //     if not self.error:
+    //         self.reset(NetworkError(code))
+    //     self.on_close_callback(self, code)
+    //     if not self.closed():
+    //         ensure_future(self.close(code))
+
 
     // public static $clients = array ();
     // private $timeout;
