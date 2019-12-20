@@ -18,7 +18,7 @@ class Client {
     public $error;
     public $connectionStarted;
     public $connectionEstablished;
-    public $connectionTimer;
+    // public $connection_timer; // ?
     public $connectionTimeout;
     public $pingInterval;
     public $keepAlive;
@@ -103,15 +103,17 @@ class Client {
             throw new \ccxt\NotSupported('Client requires a reactphp event loop');
         }
 
-        // $this->loop = \React\EventLoop\Factory::create ();
-        $connector = new \React\Socket\Connector($this->loop);
+        $options = array('timeout' => $this->connectionTimeout);
+        $connector = new \React\Socket\Connector($this->loop, $options);
         $this->connector = new \Ratchet\Client\Connector($this->loop, $connector);
     }
 
     public function connect() {
         if (!$this->connection) {
             $this->connection = true;
-            $this->connected = $this->connector($this->url)->then(function($connection) {
+            echo "EVERYTHING ALRIGHT SO FAR (WIP)\n";
+            $connector = $this->connector;
+            $this->connected = $connector($this->url)->then(function($connection) {
                 $this->connection = $connection;
                 $this->connection->on('message', array($this, 'on_message'));
                 $this->connection->on('close', array($this, 'on_close'));
@@ -152,15 +154,6 @@ class Client {
     // protected $pingNonce;
     // protected $timeoutTimer;
     // protected $connectedFuture;
-
-    // globals are obsolete
-
-
-    // globals are obsolete
-
-    // register_shutdown_function(function () {
-    //     $this->loop->run ();
-    // });
 
     // private function check_timeout () {
     //     $this->timeoutTimer = $this->loop->addPeriodicTimer(1, function () {
