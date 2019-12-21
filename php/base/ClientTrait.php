@@ -26,21 +26,21 @@ trait ClientTrait {
         });
     }
 
-    public function watch($url, $message_hash, $message, $subscribe_hash = null) {
+    public function watch($url, $message_hash, $message = null, $subscribe_hash = null) {
         $client = $this->client($url);
         $backoff_delay = 0;
         $future = $client->future($message_hash);
         $connected = $client->connect($backoff_delay);
         $connected->then(
-            function($result) {
-                // if (message && !client.subscriptions[subscribeHash]) {
-                //     client.subscriptions[subscribeHash] = true
-                //     // todo: decouple signing from subscriptions
-                //     message = this.signMessage (client, messageHash, message)
-                //     client.send (message)
-                // }
-                echo "OK --------------------------------------------------------\n";
-                exit();
+            function($result) use ($client, $message_hash, $message, $subscribe_hash) {
+                if ($message && !isset($client->subscriptions[$subscribe_hash])) {
+                    $client->subscriptions[$subscribe_hash] = true;
+                    // todo: decouple signing from subscriptions
+                    $message = $this->sign_message($client, $message_hash, $message);
+                    $client->send($message);
+                }
+                // echo "OK --------------------------------------------------------\n";
+                // exit();
                 // var_dump($result);
             },
             function($error) {
@@ -55,4 +55,32 @@ trait ClientTrait {
             });
         return $future;
     }
+
+    public function on_error($client, $error) {
+        if (array_key_exists($client->url, $this->clients) && $this->clients[$client->url]->error) {
+            unset($this->clients[$client->url]);
+        }
+    }
+
+    public function on_close($client, $message) {
+        if ($client->error) {
+            // connection closed due to an error, do nothing
+        } else {
+            // server disconnected a working connection
+            if (array_key_exists($client->url, $this->clients)) {
+                unset($this->clients[$client->url]);
+            }
+        }
+    }
+
+    public function close () {
+        // todo: implement ClientTrait.php close
+        // const clients = Object.values (this.clients || {})
+        // for (let i = 0; i < clients.length; i++) {
+        //     const client = clients[i]
+        //     await client.close ()
+        //     delete this.clients[client.url]
+        // }
+    }
+
 }
