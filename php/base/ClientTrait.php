@@ -52,7 +52,8 @@ trait ClientTrait {
 
     public function watch($url, $message_hash, $message = null, $subscribe_hash = null) {
         $client = $this->client($url);
-        $backoff_delay = 0;
+        // todo: calculate the backoff delay in php
+        $backoff_delay = 0; // milliseconds
         $future = $client->future($message_hash);
         $connected = $client->connect($backoff_delay);
         $connected->then(
