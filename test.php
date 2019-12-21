@@ -14,46 +14,32 @@ $exchange_class = '\\ccxtpro\\' . $id;
 $exchange = new $exchange_class(array(
     'enableRateLimit' => true,
     'loop' => $loop,
-    'urls' => array(
-        'api' => array(
-            'ws' => 'ws://127.0.0.1:8080',
-        ),
-    ),
+    // 'urls' => array(
+    //     'api' => array(
+    //         'ws' => 'ws://127.0.0.1:8080',
+    //     ),
+    // ),
 ));
 
-$handler = null;
-$handler = function () use ($loop, $exchange, $symbol, $handler) {
+$tick = null;
+$tick = function () use ($loop, $exchange, $symbol, $tick) {
 
     $promise = $exchange->watch_order_book($symbol);
-    $promise->then(function ($orderbook) use ($loop, $handler) {
-        $loop->futureTick($handler);
-    }, function ($error) {
-        // echo "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ\n";
-        echo date('c'), ' ERROR ', $error->getMessage (), "\n";
-        exit();
-    });
-
-    // x = None
-    // while True:
-    //     try:
-    //         response = await exchange.watch_order_book(symbol)
-    //         print(len(response['asks']), 'asks', response['asks'][0], len(response['bids']), 'bids', response['bids'][0])
-    //     except Exception as e:
-    //         print('Error', type(e), str(e))
-    //         await sleep(1)
-    //         # await exchange.close()
-    //     # sys.exit()
-    // await exchange.close()
-    // print('test() is done', x)
-    // # pprint(orderbook)
-
-    // echo "Hello, World!\n";
-
+    $promise->then(
+        function ($response) use ($loop, $tick) {
+            echo date('c '), count($response['asks']), ' asks [', $response['asks'][0][0], ', ', $response['asks'][0][1], '] ', count($response['bids']), ' bids [', $response['asks'][0][0], ', ', $response['asks'][0][1], ']' . "\n";
+            echo "\n";
+            exit();
+            $loop->futureTick($tick);
+        },
+        function ($error) {
+            echo date('c'), ' ERROR ', $error->getMessage (), "\n";
+        }
+    );
 };
 
 
-$loop->futureTick($handler);
-
+$loop->futureTick($tick);
 $loop->run ();
 
 ?>
