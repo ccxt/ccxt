@@ -33,7 +33,7 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
         }
     }
 
-    public function store($price, $size, $id) {
+    public function store($price, $size) {
         if ($size) {
             $this->index[$price] = $size;
         } else {
@@ -106,7 +106,7 @@ class LimitedOrderBookSide extends OrderBookSide {
 // or deletes price levels based on order counts (3rd value in a bidask delta)
 
 trait Counted {
-    public function store($price, $size, $count) {
+    public function store($price, $size, $count = null) {
         if ($size && $count) {
             $this->index[$price] = array($price, $size, $count);
         } else {
@@ -147,7 +147,7 @@ class CountedOrderBookSide extends OrderBookSide {
 // indexed by order ids (3rd value in a bidask delta)
 
 trait Indexed {
-    public function store($price, $size, $id) {
+    public function store($price, $size, $id = null) {
         if ($size) {
             $this->index[$id] = [$price, $size, $id];
         } else {
@@ -187,7 +187,7 @@ class IndexedOrderBookSide extends OrderBookSide {
 // adjusts the volumes by positive or negative relative changes or differences
 
 class IncrementalOrderBookSide extends OrderBookSide {
-    public function store($price, $size, $id) {
+    public function store($price, $size, $id = null) {
         $this->index[$price] = $this->index->get($price, 0) + $size;
         if ($this->index[$price] <= 0) {
             unset($this->index[$price]);
@@ -275,7 +275,7 @@ class LimitedCountedOrderBookSide extends CountedOrderBookSide {
 class IncrementalIndexedOrderBookSide extends IndexedOrderBookSide {
     use Indexed;
 
-    public function store($price, $size, $id) {
+    public function store($price, $size, $id = null) {
         if ($size) {
             $this->index[$id] = $this->index->get($id, 0) + $size;
             if ($this->index[$id] <= 0) {
