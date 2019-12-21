@@ -40,7 +40,7 @@ class binance(Exchange):
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
+                'fetchClosedOrders': 'emulated',
                 'withdraw': True,
                 'fetchFundingFees': True,
                 'fetchDeposits': True,
