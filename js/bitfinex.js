@@ -51,7 +51,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
             request['limit'] = limit.toString ();
         }
         const messageHash = channel + ':' + marketId;
-        return this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
     handleOrderBook (client, message) {

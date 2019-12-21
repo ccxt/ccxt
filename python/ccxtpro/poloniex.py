@@ -52,7 +52,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
         }
         messageHash = channelId + ':b:e'
         url = self.urls['api']['ws']
-        return self.watch(url, messageHash, subscribe, channelId)
+        return await self.watch(url, messageHash, subscribe, channelId)
 
     async def watch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -89,7 +89,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
             'command': 'subscribe',
             'channel': numericId,
         }
-        return self.watch(url, messageHash, subscribe, numericId)
+        return await self.watch(url, messageHash, subscribe, numericId)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -111,7 +111,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
         await self.load_markets()
         channelId = '1010'
         url = self.urls['api']['ws']
-        return self.watch(url, channelId)
+        return await self.watch(url, channelId)
 
     def sign_message(self, client, messageHash, message, params={}):
         if messageHash.find('1000') == 0:

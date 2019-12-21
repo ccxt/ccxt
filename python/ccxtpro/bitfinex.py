@@ -49,7 +49,7 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
         if limit is not None:
             request['limit'] = str(limit)
         messageHash = channel + ':' + marketId
-        return self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+        return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
     def handle_order_book(self, client, message):
         #

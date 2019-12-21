@@ -271,7 +271,7 @@ module.exports = class kraken extends ccxt.kraken {
         await this.loadMarkets ();
         const event = 'heartbeat';
         const url = this.urls['api']['ws']['public'];
-        return this.watch (url, event);
+        return await this.watch (url, event);
     }
 
     handleHeartbeat (client, message) {

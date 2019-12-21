@@ -259,7 +259,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         await self.load_markets()
         event = 'heartbeat'
         url = self.urls['api']['ws']['public']
-        return self.watch(url, event)
+        return await self.watch(url, event)
 
     def handle_heartbeat(self, client, message):
         #

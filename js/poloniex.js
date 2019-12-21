@@ -52,7 +52,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         };
         const messageHash = channelId + ':b:e';
         const url = this.urls['api']['ws'];
-        return this.watch (url, messageHash, subscribe, channelId);
+        return await this.watch (url, messageHash, subscribe, channelId);
     }
 
     async watchTickers (symbols = undefined, params = {}) {
@@ -94,7 +94,7 @@ module.exports = class poloniex extends ccxt.poloniex {
             'command': 'subscribe',
             'channel': numericId,
         };
-        return this.watch (url, messageHash, subscribe, numericId);
+        return await this.watch (url, messageHash, subscribe, numericId);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -119,7 +119,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         await this.loadMarkets ();
         const channelId = '1010';
         const url = this.urls['api']['ws'];
-        return this.watch (url, channelId);
+        return await this.watch (url, channelId);
     }
 
     signMessage (client, messageHash, message, params = {}) {
