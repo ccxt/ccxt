@@ -5,6 +5,9 @@ namespace ccxtpro;
 use React\Promise\Timer;
 use React\Promise\Timer\TimeoutException;
 
+use ccxt\RequestTimeout;
+use ccxt\NetworkError;
+
 use Ratchet\RFC6455\Messaging\Frame;
 use Ratchet\RFC6455\Messaging\Message;
 
@@ -110,42 +113,48 @@ class Client {
 
         $connector = new \React\Socket\Connector($this->loop);
         $this->connector = new \Ratchet\Client\Connector($this->loop, $connector);
+    }
 
+    public function create_connection() {
+        $connector = $this->connector;
+        $timeout = $this->connectionTimeout / 1000;
+        echo date('c'), ' connecting to ', $this->url, "\n";
+        Timer\timeout($connector($this->url), $timeout, $this->loop)->then(
+            function($connection) {
+                echo date('c'), " connected\n";
+                $this->connection = $connection;
+                $this->connection->on('message', array($this, 'on_message'));
+                $this->connection->on('close', array($this, 'on_close'));
+                $this->connection->on('error', array($this, 'on_error'));
+                $this->connection->on('pong', array($this, 'on_pong'));
+                $this->connected->resolve($this->url);
+            },
+            function(\Exception $error) {
+                // echo date('c'), ' connection failed ', get_class($error), ' ', $error->getMessage(), "\n";
+                // the ordering of these exceptions is important
+                // since one inherits another
+                if ($error instanceof TimeoutException) {
+                    $error = new RequestTimeout($error->getMessage());
+                } else if ($error instanceof RuntimeException) {
+                    // connection failed or rejected
+                    $error = new NetworkError($error->getMessage());
+                }
+                $this->on_error($error);
+            }
+        );
     }
 
     public function connect($backoff_delay = 0) {
         if (!$this->connection) {
             $this->connection = true;
             if ($backoff_delay) {
-                // $this->loop->addTimer(..?);
+                echo date('c'), ' backoff delay ', $backoff_delay, " seconds\n";
+                $callback = array($this, 'create_connection');
+                $this->loop->addTimer(((float)$backoff_delay) / 1000, $callback);
+            } else {
+                echo date('c'), ' no backoff delay', "\n";
+                $this->create_connection();
             }
-            $connector = $this->connector;
-            $timeout = $this->connectionTimeout / 1000;
-            echo date('c'), ' connecting to ', $this->url, "\n";
-            Timer\timeout($connector($this->url), $timeout, $this->loop)->then(
-                function($connection) {
-                    echo date('c'), " connected\n";
-                    // exit();
-                    $this->connection = $connection;
-                    $this->connection->on('message', array($this, 'on_message'));
-                    $this->connection->on('close', array($this, 'on_close'));
-                    $this->connection->on('error', array($this, 'on_error'));
-                    $this->connection->on('pong', array($this, 'on_pong'));
-                    $this->connected->resolve($this->url);
-                },
-                function(\Exception $error) {
-                    // echo date('c'), ' connection failed ', get_class($error), ' ', $error->getMessage(), "\n";
-                    // the ordering of these exceptions is important
-                    // since one inherits another
-                    if ($error instanceof \React\Promise\Timer\TimeoutException) {
-                        $error = new \ccxt\RequestTimeout($error->getMessage());
-                    } else if ($error instanceof \RuntimeException) {
-                        // connection failed or rejected
-                        $error = new \ccxt\NetworkError($error->getMessage());
-                    }
-                    $this->on_error($error);
-                }
-            );
         }
         return $this->connected;
     }
@@ -200,7 +209,6 @@ class Client {
     }
 
     public function reset($error) {
-        // $this->clearConnectionTimeout();
         // $this->clearPingInterval();
         $this->connected->reject($error);
         $this->reject($error);
@@ -231,4 +239,18 @@ class Client {
     //     }
     // }
 
+    // private function check_timeout () {
+    //     $this->timeoutTimer = $this->loop->addPeriodicTimer(1, function () {
+    //         $this->pingNonce = ($this->pingNonce + 1) % (PHP_INT_MAX - 1);
+    //         $this->connection->send (new Frame($this->pingNonce, true, Frame::OP_PING));
+    //         if (Exchange::milliseconds ()  - $this->lastPong > $this->timeout) {
+    //             $this->connected = false;
+    //             foreach ($this->futures as $deferred) {
+    //                 $deferred->reject (new RequestTimeout ('Client did not receive a pong in reply to a ping within ' . $this->timeout . ' seconds'));
+    //             }
+    //             $this->futures = array ();
+    //             $this->loop->cancelTimer ($this->timeoutTimer);
+    //         }
+    //     });
+    // }
 };
