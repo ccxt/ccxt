@@ -100,9 +100,7 @@ module.exports = class Client {
     onConnectionTimeout () {
         if (!this.isOpen ()) {
             const error = new RequestTimeout ('Connection to ' + this.url + ' failed due to a connection timeout')
-            this.error = error
-            this.reset (error)
-            this.onErrorCallback (this, error)
+            this.onError (error)
             this.connection.close (1006)
         }
     }
@@ -167,7 +165,8 @@ module.exports = class Client {
     onError (error) {
         console.log (new Date (), 'onError', error.message)
         // convert ws errors to ccxt errors if necessary
-        this.error = new NetworkError (error.message)
+        // this.error = new NetworkError (error.message)
+        this.error = error
         this.reset (this.error)
         this.onErrorCallback (this, this.error)
     }
