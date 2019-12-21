@@ -15,7 +15,7 @@ class WebSocketServer {
             terminateTimeout: undefined, // terminate the connection immediately or later
             closeTimeout: undefined, // close after a while
             closeCode: 1000, // default closing code 1000 = ok
-            handshakeDelay: 60000, // delay the handshake to simulate connection timeout
+            handshakeDelay: undefined, // delay the handshake to simulate connection timeout
             port: 8080,
         }
 
