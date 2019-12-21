@@ -28,7 +28,7 @@ module.exports = class binance extends Exchange {
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
+                'fetchClosedOrders': 'emulated',
                 'withdraw': true,
                 'fetchFundingFees': true,
                 'fetchDeposits': true,
