@@ -7,6 +7,30 @@ trait ClientTrait {
     public $clients = array();
     public $loop = null;
 
+    public function orderbook ($snapshot = array()) {
+        return new OrderBook($snapshot);
+    }
+
+    public function limited_order_book($snapshot = array(), $depth = null) {
+        return new LimitedOrderBook($snapshot, $depth);
+    }
+
+    public function indexed_order_book($snapshot = array()) {
+        return new IndexedOrderBook($snapshot);
+    }
+
+    public function limited_indexed_order_book($snapshot = array(), $depth = null) {
+        return new LimitedIndexedOrderBook($snapshot, $depth);
+    }
+
+    public function limited_counted_order_book($snapshot = array(), $depth = null) {
+        return new LimitedCountedOrderBook($snapshot, $depth);
+    }
+
+    public function countedOrderBook($snapshot = array()) {
+        return new CountedOrderBook($snapshot);
+    }
+
     public function client($url) {
         if (!in_array($url, $this->clients)) {
             $on_message = array($this, 'handle_message');
@@ -22,7 +46,7 @@ trait ClientTrait {
     // the ellipsis packing/unpacking requires PHP 5.6+ :(
     public function after($future, callable $method, ... $args) {
         return $future->then (function($result) use ($method, $args) {
-            return $method(... $args);
+            return $method($result, ... $args);
         });
     }
 
