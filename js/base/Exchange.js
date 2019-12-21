@@ -115,7 +115,7 @@ module.exports = class Exchange extends ccxt.Exchange {
     }
 
     onError (client, error) {
-        if (this.clients[client.url].error) {
+        if ((client.url in this.clients) && (this.clients[client.url].error)) {
             delete this.clients[client.url]
         }
     }
