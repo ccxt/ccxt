@@ -128,8 +128,8 @@ class poloniex extends \ccxt\poloniex {
 
     public function sign_message ($client, $messageHash, $message, $params = array ()) {
         if (mb_strpos($messageHash, '1000') === 0) {
-            $reload = false;
-            if ($this->check_required_credentials($reload)) {
+            $throwOnError = false;
+            if ($this->check_required_credentials($throwOnError)) {
                 $nonce = $this->nonce ();
                 $payload = $this->urlencode (array( 'nonce' => $nonce ));
                 $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha512');

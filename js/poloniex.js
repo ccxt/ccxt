@@ -124,8 +124,8 @@ module.exports = class poloniex extends ccxt.poloniex {
 
     signMessage (client, messageHash, message, params = {}) {
         if (messageHash.indexOf ('1000') === 0) {
-            const reload = false;
-            if (this.checkRequiredCredentials (reload)) {
+            const throwOnError = false;
+            if (this.checkRequiredCredentials (throwOnError)) {
                 const nonce = this.nonce ();
                 const payload = this.urlencode ({ 'nonce': nonce });
                 const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha512');

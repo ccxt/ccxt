@@ -115,8 +115,8 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
 
     def sign_message(self, client, messageHash, message, params={}):
         if messageHash.find('1000') == 0:
-            reload = False
-            if self.check_required_credentials(reload):
+            throwOnError = False
+            if self.check_required_credentials(throwOnError):
                 nonce = self.nonce()
                 payload = self.urlencode({'nonce': nonce})
                 signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
