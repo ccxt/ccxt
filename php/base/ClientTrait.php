@@ -32,7 +32,7 @@ trait ClientTrait {
     }
 
     public function client($url) {
-        if (!in_array($url, $this->clients)) {
+        if (!array_key_exists($url, $this->clients)) {
             $on_message = array($this, 'handle_message');
             $on_error = array($this, 'on_error');
             $on_close = array($this, 'on_close');

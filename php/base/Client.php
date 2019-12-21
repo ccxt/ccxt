@@ -46,7 +46,7 @@ class Client {
 
     public function resolve($result, $message_hash = null) {
         if ($message_hash) {
-            if ($this->futures[$message_hash]) {
+            if (array_key_exists($message_hash, $this->futures)) {
                 $promise = $this->futures[$message_hash];
                 $promise->resolve($result);
                 unset($this->futures[$message_hash]);
@@ -62,7 +62,7 @@ class Client {
 
     public function reject($result, $message_hash = null) {
         if ($message_hash) {
-            if ($this->futures[$message_hash]) {
+            if (array_key_exists($message_hash, $this->futures)) {
                 $promise = $this->futures[$message_hash];
                 $promise->reject($result);
                 unset($this->futures[$message_hash]);
