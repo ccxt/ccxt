@@ -22,14 +22,12 @@ $exchange = new $exchange_class(array(
 ));
 
 $tick = null;
-$tick = function () use ($loop, $exchange, $symbol, $tick) {
+$tick = function () use ($loop, $exchange, $symbol, &$tick) {
 
     $promise = $exchange->watch_order_book($symbol);
     $promise->then(
         function ($response) use ($loop, $tick) {
             echo date('c '), count($response['asks']), ' asks [', $response['asks'][0][0], ', ', $response['asks'][0][1], '] ', count($response['bids']), ' bids [', $response['asks'][0][0], ', ', $response['asks'][0][1], ']' . "\n";
-            echo "\n";
-            exit();
             $loop->futureTick($tick);
         },
         function ($error) {
