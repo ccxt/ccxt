@@ -88,7 +88,7 @@ class Client {
         // $this->timeout = 5000;
         // $this->pingNonce = 0;
         // $this->lastPong = PHP_INT_MAX;
-        $timeoutTimer = null;
+        // $timeoutTimer = null;
         $this->futures = array();
         $this->subscriptions = array();
         $this->connected = new Future();
@@ -108,29 +108,16 @@ class Client {
             throw new \ccxt\NotSupported('Client requires a reactphp event loop');
         }
 
-        // $options = array('timeout' => $this->connectionTimeout / 1000);
-        // $options = array('timeout' => 1.5);
-
-        // var_dump ($options);
-
-        // $connector = new \React\Socket\Connector($this->loop, $options);
-
         $connector = new \React\Socket\Connector($this->loop);
-
-        // var_dump ($connector);
-        // exit();
-
         $this->connector = new \Ratchet\Client\Connector($this->loop, $connector);
 
     }
-
-    // return Timer\timeout($this->connector->connect($uri), $this->timeout, $this->loop)->then(null, self::handler($uri));
 
     public function connect($backoff_delay = 0) {
         if (!$this->connection) {
             $this->connection = true;
             if ($backoff_delay) {
-                // $this->loop->futureTick
+                // $this->loop->addTimer(..?);
             }
             $connector = $this->connector;
             $timeout = $this->connectionTimeout / 1000;
@@ -138,15 +125,16 @@ class Client {
             Timer\timeout($connector($this->url), $timeout, $this->loop)->then(
                 function($connection) {
                     echo date('c'), " connected\n";
-                    exit();
+                    // exit();
                     $this->connection = $connection;
                     $this->connection->on('message', array($this, 'on_message'));
                     $this->connection->on('close', array($this, 'on_close'));
+                    $this->connection->on('error', array($this, 'on_error'));
                     $this->connection->on('pong', array($this, 'on_pong'));
                     $this->connected->resolve($this->url);
                 },
                 function(\Exception $error) {
-                    echo date('c'), ' connection failed ', get_class($error), ' ', $error->getMessage(), "\n";
+                    // echo date('c'), ' connection failed ', get_class($error), ' ', $error->getMessage(), "\n";
                     // the ordering of these exceptions is important
                     // since one inherits another
                     if ($error instanceof \React\Promise\Timer\TimeoutException) {
@@ -161,34 +149,6 @@ class Client {
         }
         return $this->connected;
     }
-
-    // public function connect($backoff_delay = 0) {
-    //     if (!$this->connection) {
-    //         $this->connection = true;
-    //         if ($backoff_delay) {
-    //             // $this->loop->futureTick
-    //         }
-    //         $connector = $this->connector;
-    //         echo date('c'), ' connecting to ', $this->url, "\n";
-    //         $connector($this->url)->then(function($connection) {
-    //             echo date('c'), " connected\n";
-    //             $this->connection = $connection;
-    //             $this->connection->on('message', array($this, 'on_message'));
-    //             $this->connection->on('close', array($this, 'on_close'));
-    //             $this->connection->on('pong', array($this, 'on_pong'));
-    //             $this->connected->resolve($this->url);
-    //         }, function(\Exception $error) {
-    //             echo date('c'), $error->getMessage(), "\n";
-    //             exit();
-    //             if ($error instanceof \RuntimeException) {
-    //                 // connection failed or rejected
-    //                 $error = new \ccxt\NetworkError($error->getMessage());
-    //             }
-    //             $this->on_error($error);
-    //         });
-    //     }
-    //     return $this->connected;
-    // }
 
     public function send($data) {
         $this->connection->send(Exchange::json($data));
@@ -209,25 +169,26 @@ class Client {
     public function on_error($error) {
         echo date('c'), ' on_error ', get_class($error), ' ', $error->getMessage(), "\n";
         $this->error = $error;
-        $this->reset($error);
         $on_error_callback = $this->on_error_callback;
         $on_error_callback($this, $error);
+        $this->reset($error);
     }
 
     public function on_close($message) {
         echo date('c'), ' on_close ', (string) $message, "\n";
         exit();
+        $on_close_callback = $this->on_close_callback;
+        $on_close_callback($this, $message);
         if (!$this->error) {
             // todo: exception types for server-side disconnects
             $this->reset(new NetworkError($message));
         }
-        $on_close_callback = $this->on_close_callback;
-        $on_close_callback($this, $message);
         exit();
     }
 
     public function on_message(Message $message) {
         try {
+            // todo: add json detection in php
             $message = json_decode($message, true);
             // message = isJsonEncodedObject (message) ? JSON.parse (message) : message
         } catch (Exception $e) {
@@ -236,7 +197,6 @@ class Client {
         }
         $on_message_callback = $this->on_message_callback;
         $on_message_callback($this, $message);
-        exit();
     }
 
     public function reset($error) {
@@ -246,40 +206,33 @@ class Client {
         $this->reject($error);
     }
 
+    // todo: finish ping-pong keep-alive in php
 
-    // onError (error) {
-    //     console.log (new Date (), 'onError', error.message)
-    //     // convert ws errors to ccxt errors if necessary
-    //     this.error = new NetworkError (error.message)
-    //     this.reset (this.error)
-    //     this.onErrorCallback (this, this.error)
-    // }
-
-    // onClose (message) {
-    //     console.log (new Date (), 'onClose', message)
-    //     if (!this.error) {
-    //         // todo: exception types for server-side disconnects
-    //         this.reset (new NetworkError (message))
+    // public function set_ping_interval() {
+    //     if ($this->keepAlive) {
+    //         $on_ping_interval = $this->on_ping_interval; // .bind (this)
+    //         $this->pingInterval = setInterval($on_ping_interval, $this->keepAlive);
     //     }
-    //     this.onCloseCallback (this, message)
     // }
 
-    // def on_error(self, error):
-    //     print(Exchange.iso8601(Exchange.milliseconds()), 'on_error', error)
-    //     self.error = error
-    //     self.reset(error)
-    //     self.on_error_callback(self, error)
-    //     if not self.closed():
-    //         ensure_future(self.close(1006))
+    // public function clear_ping_interval() {
+    //     if ($this->pingInterval) {
+    //         $this->pingInterval = clearInterval($this->pingInterval);
+    //     }
+    // }
 
-    // def on_close(self, code):
-    //     print(Exchange.iso8601(Exchange.milliseconds()), 'on_close', code)
-    //     if not self.error:
-    //         self.reset(NetworkError(code))
-    //     self.on_close_callback(self, code)
-    //     if not self.closed():
-    //         ensure_future(self.close(code))
+    // public function on_ping_interval() {
+    //     if (($this->lastPong + $this->keepAlive) < milliseconds()) {
+    //         $this->reset(new RequestTimeout('Connection to ' . $this->url . ' timed out due to a ping-pong keepalive missing on time'));
+    //     } else {
+    //         if ($this->is_open()) {
+    //             $this->connection->ping(); // ?
+    //         }
+    //     }
+    // }
 
+    // ------------------------------------------------------------------------
+    // obsolete code
 
     // public static $clients = array ();
     // private $timeout;
