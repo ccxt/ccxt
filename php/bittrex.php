@@ -6,6 +6,13 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\AuthenticationError;
+use \ccxt\AddressPending;
+use \ccxt\InvalidOrder;
+use \ccxt\OrderNotFound;
+use \ccxt\DDoSProtection;
+use \ccxt\ExchangeNotAvailable;
 
 class bittrex extends Exchange {
 
