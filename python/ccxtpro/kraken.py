@@ -213,10 +213,11 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
                 'name': name,
             },
         }
-        future = self.watch(url, messageHash, self.deep_extend(subscribe, params), messageHash)
+        request = self.deep_extend(subscribe, params)
+        future = self.watch(url, messageHash, request, messageHash)
         client = self.clients[url]
         client['futures'][requestId] = future
-        return future
+        return await future
 
     async def watch_ticker(self, symbol, params={}):
         return await self.watch_public_message('ticker', symbol, params)
@@ -228,7 +229,9 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         name = 'book'
         request = {}
         if limit is not None:
-            request['subscription'] = {'depth': limit}  # default 10, valid options 10, 25, 100, 500, 1000
+            request['subscription'] = {
+                'depth': limit,  # default 10, valid options 10, 25, 100, 500, 1000
+            }
         return await self.watch_public_message(name, symbol, self.extend(request, params))
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):

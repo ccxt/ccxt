@@ -5,6 +5,7 @@
 
 import ccxtpro
 import ccxt.async_support as ccxt
+from ccxt.base.errors import NotSupported
 
 
 class binance(ccxtpro.Exchange, ccxt.binance):
@@ -46,13 +47,13 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         #     market = self.market(symbol)
         #     url = self.urls['api']['ws'] + market['id'].lower() + '@trade'
         #     return await self.WsTradesMessage(url, url)
-        raise NotImplemented(self.id + ' watchTrades not implemented yet')
+        raise NotSupported(self.id + ' watchTrades not implemented yet')
 
     def handle_trades(self, response):
         #     parsed = self.parse_trade(response)
         #     parsed['symbol'] = self.parseSymbol(response)
         #     return parsed
-        raise NotImplemented(self.id + ' handleTrades not implemented yet')
+        raise NotSupported(self.id + ' handleTrades not implemented yet')
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         #     await self.load_markets()
@@ -60,7 +61,7 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         #     market = self.market(symbol)
         #     url = self.urls['api']['ws'] + market['id'].lower() + '@kline_' + interval
         #     return await self.WsOHLCVMessage(url, url)
-        raise NotImplemented(self.id + ' watchOHLCV not implemented yet')
+        raise NotSupported(self.id + ' watchOHLCV not implemented yet')
 
     def handle_ohlcv(self, ohlcv):
         #     data = ohlcv['k']
@@ -71,7 +72,7 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         #     low = self.safe_float(data, 'c')
         #     volume = self.safe_float(data, 'v')
         #     return [timestamp, open, high, close, low, volume]
-        raise NotImplemented(self.id + ' handleOHLCV not implemented yet ' + self.json(ohlcv))
+        raise NotSupported(self.id + ' handleOHLCV not implemented yet ' + self.json(ohlcv))
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
