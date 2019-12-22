@@ -1251,21 +1251,16 @@ class Exchange {
         $verbose_headers = $headers;
 
         // https://github.com/ccxt/ccxt/issues/5914
-        // we don't do a reset here to save those cookies in between the calls
-        // if the user wants to reset the curl handle between his requests
-        // then curl_reset can be called manually in userland
-        // curl_reset($this->curl); // this was removed because it kills cookies
         if ($this->curl) {
             if ($this->curl_close) {
                 curl_close($this->curl); // we properly close the curl channel here to save cookies
                 $this->curl = curl_init();
             } else if ($this->curl_reset) {
-                curl_reset($this->curl);
+                curl_reset($this->curl); // this is the default
             }
         } else {
             $this->curl = curl_init();
         }
-        // $this->curl = curl_init(); // we need a "clean" curl object for additional calls, so we initialize curl again
 
         curl_setopt($this->curl, CURLOPT_URL, $url);
 
