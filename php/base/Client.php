@@ -28,7 +28,7 @@ class Client {
     public $connectionStarted;
     public $connectionEstablished;
     // public $connection_timer; // ?
-    public $connectionTimeout = 3210.0;
+    public $connectionTimeout = 30000;
     public $pingInterval;
     public $keepAlive;
     public $connection = null;
