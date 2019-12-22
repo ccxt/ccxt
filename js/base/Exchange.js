@@ -13,7 +13,7 @@ const ccxt = require ('ccxt')
 
 module.exports = class Exchange extends ccxt.Exchange {
 
-    orderbook (snapshot = {}) {
+    orderBook (snapshot = {}) {
         return new OrderBook (snapshot)
     }
 
