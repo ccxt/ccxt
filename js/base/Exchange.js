@@ -49,6 +49,14 @@ module.exports = class Exchange extends ccxt.Exchange {
         return this.clients[url]
     }
 
+    call (method, ... args) {
+        return method.apply (this, args)
+    }
+
+    callAsync (method, ... args) {
+        return method.apply (this, args)
+    }
+
     async after (future, method, ... args) {
         const result = await future
         // call it as an instance method on this
