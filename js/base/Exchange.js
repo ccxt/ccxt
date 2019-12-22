@@ -376,6 +376,10 @@ module.exports = class Exchange {
             } else if (this.httpsAgent && url.indexOf ('https://') === 0) {
                 params['agent'] = this.httpsAgent;
             }
+            if (this.agent) {
+                params['agent'] = this.agent
+                this.agent.keepAlive = true
+            }
 
             const promise =
                 fetchImplementation (url, this.extend (params, this.fetchOptions))
