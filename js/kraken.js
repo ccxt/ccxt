@@ -125,7 +125,7 @@ module.exports = class kraken extends ccxt.kraken {
         //
         // todo: incremental trades – add max limit to the dequeue of trades, unshift and push
         //
-        //     const trade = this.parseWsTrade (client, delta, market);
+        //     const trade = this.handleTrade (client, delta, market);
         //     this.trades.push (trade);
         //     tradesCount += 1;
         //
@@ -287,7 +287,7 @@ module.exports = class kraken extends ccxt.kraken {
         client.resolve (message, event);
     }
 
-    parseWsTrade (client, trade, market = undefined) {
+    handleTrade (client, trade, market = undefined) {
         //
         // public trades
         //

@@ -149,7 +149,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         client.resolve (message, channelId);
     }
 
-    parseWsTrade (client, trade, market = undefined) {
+    handleTrade (client, trade, market = undefined) {
         //
         // public trades
         //
@@ -258,7 +258,7 @@ module.exports = class poloniex extends ccxt.poloniex {
                 orderbookUpdatesCount += 1;
             } else if (delta[0] === 't') {
                 // todo: add max limit to the dequeue of trades, unshift and push
-                const trade = this.parseWsTrade (client, delta, market);
+                const trade = this.handleTrade (client, delta, market);
                 this.trades.push (trade);
                 tradesCount += 1;
             }
