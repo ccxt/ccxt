@@ -800,7 +800,7 @@ class Exchange {
         // }
 
         $this->defined_rest_api = array();
-        $this->curl = curl_init();
+        $this->curl = null;
         $this->curl_options = array(); // overrideable by user, empty by default
         $this->curl_reset = true;
         $this->curl_close = false;
@@ -1256,13 +1256,14 @@ class Exchange {
         // then curl_reset can be called manually in userland
         // curl_reset($this->curl); // this was removed because it kills cookies
         if ($this->curl) {
-
             if ($this->curl_close) {
                 curl_close($this->curl); // we properly close the curl channel here to save cookies
                 $this->curl = curl_init();
             } else if ($this->curl_reset) {
                 curl_reset($this->curl);
             }
+        } else {
+            $this->curl = curl_init();
         }
         // $this->curl = curl_init(); // we need a "clean" curl object for additional calls, so we initialize curl again
 
