@@ -267,15 +267,15 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
         if market is None:
             methods = {
                 # '<numericId>': 'handleOrderBookAndTrades',  # Price Aggregated Book
-                '1000': 'handleAccountNotifications',  # Beta
-                '1002': 'handleTickers',  # Ticker Data
+                '1000': self.handle_account_notifications,  # Beta
+                '1002': self.handle_tickers,  # Ticker Data
                 # '1003': None,  # 24 Hour Exchange Volume
-                '1010': 'handleHeartbeat',
+                '1010': self.handle_heartbeat,
             }
-            method = self.safe_string(methods, channelId)
+            method = self.safe_value(methods, channelId)
             if method is None:
                 return message
             else:
-                return getattr(self, method)(client, message)
+                return self.call(method, client, message)
         else:
             return self.handle_order_book_and_trades(client, message)

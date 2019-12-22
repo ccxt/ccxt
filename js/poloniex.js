@@ -290,16 +290,16 @@ module.exports = class poloniex extends ccxt.poloniex {
         if (market === undefined) {
             const methods = {
                 // '<numericId>': 'handleOrderBookAndTrades', // Price Aggregated Book
-                '1000': 'handleAccountNotifications', // Beta
-                '1002': 'handleTickers', // Ticker Data
+                '1000': this.handleAccountNotifications, // Beta
+                '1002': this.handleTickers, // Ticker Data
                 // '1003': undefined, // 24 Hour Exchange Volume
-                '1010': 'handleHeartbeat',
+                '1010': this.handleHeartbeat,
             };
-            const method = this.safeString (methods, channelId);
+            const method = this.safeValue (methods, channelId);
             if (method === undefined) {
                 return message;
             } else {
-                return this[method] (client, message);
+                return this.call (method, client, message);
             }
         } else {
             return this.handleOrderBookAndTrades (client, message);

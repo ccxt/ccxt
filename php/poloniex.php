@@ -294,16 +294,16 @@ class poloniex extends \ccxt\poloniex {
         if ($market === null) {
             $methods = array(
                 // '<numericId>' => 'handleOrderBookAndTrades', // Price Aggregated Book
-                '1000' => 'handleAccountNotifications', // Beta
-                '1002' => 'handleTickers', // Ticker Data
+                '1000' => array($this, 'handle_account_notifications'), // Beta
+                '1002' => array($this, 'handle_tickers'), // Ticker Data
                 // '1003' => null, // 24 Hour Exchange Volume
-                '1010' => 'handleHeartbeat',
+                '1010' => array($this, 'handle_heartbeat'),
             );
-            $method = $this->safe_string($methods, $channelId);
+            $method = $this->safe_value($methods, $channelId);
             if ($method === null) {
                 return $message;
             } else {
-                return $this->$method ($client, $message);
+                return $this->call ($method, $client, $message);
             }
         } else {
             return $this->handle_order_book_and_trades ($client, $message);
