@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import json
 # from asyncio import sleep, ensure_future, wait_for, gather, TimeoutError
 from ccxt.async_support import Exchange
@@ -31,7 +33,7 @@ class WebsocketsClient(Client):
         return self.connection.close(code)
 
 
-# # -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 # class WebSocketClientWs(object):
@@ -172,8 +174,8 @@ class WebsocketsClient(Client):
 
 # -----------------------------------------------------------------------------
 
-# # @author frosty00
-# # @email carlo.revelli@berkeley.edu
+# @author frosty00
+# @email carlo.revelli@berkeley.edu
 
 
 # class WebSocketClient(object):

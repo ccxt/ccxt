@@ -136,7 +136,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
         channelId = '1010'
         client.resolve(message, channelId)
 
-    def parse_ws_trade(self, client, trade, market=None):
+    def handle_trade(self, client, trade, market=None):
         #
         # public trades
         #
@@ -241,7 +241,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
                 orderbookUpdatesCount += 1
             elif delta[0] == 't':
                 # todo: add max limit to the dequeue of trades, unshift and push
-                trade = self.parse_ws_trade(client, delta, market)
+                trade = self.handle_trade(client, delta, market)
                 self.trades.append(trade)
                 tradesCount += 1
         if orderbookUpdatesCount:

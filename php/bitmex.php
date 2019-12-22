@@ -126,7 +126,7 @@ class bitmex extends \ccxt\bitmex {
         //
         // todo => incremental trades – add max limit to the dequeue of trades, unshift and push
         //
-        //     $trade = $this->parse_ws_trade ($client, delta, $market);
+        //     $trade = $this->handle_trade ($client, delta, $market);
         //     $this->trades[] = $trade;
         //     tradesCount .= 1;
         //
@@ -153,7 +153,7 @@ class bitmex extends \ccxt\bitmex {
             // 'fee' => fee,
         );
         $result['id'] = null;
-        throw NotImplemented ($this->id . ' handleTrades() not implemented yet (wip)');
+        throw new NotImplemented($this->id . ' handleTrades() not implemented yet (wip)');
     }
 
     public function handle_ohlcv ($client, $message) {
@@ -224,13 +224,14 @@ class bitmex extends \ccxt\bitmex {
     }
 
     public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $name = 'ohlc';
-        $request = array(
-            'subscription' => array(
-                'interval' => intval ($this->timeframes[$timeframe]),
-            ),
-        );
-        return $this->watchPublicMessage ($name, $symbol, array_merge($request, $params));
+        // $name = 'ohlc';
+        // $request = array(
+        //     'subscription' => array(
+        //         'interval' => intval ($this->timeframes[$timeframe]),
+        //     ),
+        // );
+        // return $this->watchPublicMessage ($name, $symbol, array_merge($request, $params));
+        throw new NotImplemented($this->id . ' watchOHLCV() not implemented yet (wip)');
     }
 
     public function load_markets ($reload = false, $params = array ()) {
@@ -264,7 +265,7 @@ class bitmex extends \ccxt\bitmex {
         return $message;
     }
 
-    public function parse_ws_trade ($client, $trade, $market = null) {
+    public function handle_trade ($client, $trade, $market = null) {
         //
         // public trades
         //

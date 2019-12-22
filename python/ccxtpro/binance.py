@@ -95,7 +95,8 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         future = self.watch(url, messageHash, self.extend(request, params), messageHash)
         client = self.clients[url]
         client['futures'][requestId] = future
-        return future
+        raise NotSupported(self.id + ' watchOrderBook not implemented yet')
+        # return future
 
     def handle_order_book(self, client, message):
         #

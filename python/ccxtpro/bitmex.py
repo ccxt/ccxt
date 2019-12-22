@@ -120,7 +120,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         #
         # todo: incremental trades – add max limit to the dequeue of trades, unshift and push
         #
-        #     trade = self.parse_ws_trade(client, delta, market)
+        #     trade = self.handle_trade(client, delta, market)
         #     self.trades.append(trade)
         #     tradesCount += 1
         #
@@ -214,13 +214,14 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        name = 'ohlc'
-        request = {
-            'subscription': {
-                'interval': int(self.timeframes[timeframe]),
-            },
-        }
-        return await self.watchPublicMessage(name, symbol, self.extend(request, params))
+        # name = 'ohlc'
+        # request = {
+        #     'subscription': {
+        #         'interval': int(self.timeframes[timeframe]),
+        #     },
+        # }
+        # return await self.watchPublicMessage(name, symbol, self.extend(request, params))
+        raise NotImplemented(self.id + ' watchOHLCV() not implemented yet(wip)')
 
     async def load_markets(self, reload=False, params={}):
         markets = await super(bitmex, self).load_markets(reload, params)
@@ -247,7 +248,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         # todo: bitmex signMessage not implemented yet
         return message
 
-    def parse_ws_trade(self, client, trade, market=None):
+    def handle_trade(self, client, trade, market=None):
         #
         # public trades
         #

@@ -153,7 +153,7 @@ class poloniex extends \ccxt\poloniex {
         $client->resolve ($message, $channelId);
     }
 
-    public function parse_ws_trade ($client, $trade, $market = null) {
+    public function handle_trade ($client, $trade, $market = null) {
         //
         // public trades
         //
@@ -262,7 +262,7 @@ class poloniex extends \ccxt\poloniex {
                 $orderbookUpdatesCount .= 1;
             } else if ($delta[0] === 't') {
                 // todo => add max limit to the dequeue of trades, unshift and push
-                $trade = $this->parse_ws_trade ($client, $delta, $market);
+                $trade = $this->handle_trade ($client, $delta, $market);
                 $this->trades[] = $trade;
                 $tradesCount .= 1;
             }

@@ -130,7 +130,7 @@ class kraken extends \ccxt\kraken {
         //
         // todo => incremental trades – add max limit to the dequeue of trades, unshift and push
         //
-        //     $trade = $this->parse_ws_trade ($client, delta, $market);
+        //     $trade = $this->handle_trade ($client, delta, $market);
         //     $this->trades[] = $trade;
         //     tradesCount .= 1;
         //
@@ -203,7 +203,7 @@ class kraken extends \ccxt\kraken {
         $client->resolve ($result, $messageHash);
     }
 
-    public function watch_public_message ($name, $symbol, $params = array ()) {
+    public function watch_public ($name, $symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $wsName = $this->safe_value($market['info'], 'wsname');
@@ -228,11 +228,11 @@ class kraken extends \ccxt\kraken {
     }
 
     public function watch_ticker ($symbol, $params = array ()) {
-        return $this->watch_public_message ('ticker', $symbol, $params);
+        return $this->watch_public ('ticker', $symbol, $params);
     }
 
     public function watch_trades ($symbol, $params = array ()) {
-        return $this->watch_public_message ('trade', $symbol, $params);
+        return $this->watch_public ('trade', $symbol, $params);
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
@@ -243,7 +243,7 @@ class kraken extends \ccxt\kraken {
                 'depth' => $limit, // default 10, valid options 10, 25, 100, 500, 1000
             );
         }
-        return $this->watch_public_message ($name, $symbol, array_merge($request, $params));
+        return $this->watch_public ($name, $symbol, array_merge($request, $params));
     }
 
     public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -253,7 +253,7 @@ class kraken extends \ccxt\kraken {
                 'interval' => intval ($this->timeframes[$timeframe]),
             ),
         );
-        return $this->watch_public_message ($name, $symbol, array_merge($request, $params));
+        return $this->watch_public ($name, $symbol, array_merge($request, $params));
     }
 
     public function load_markets ($reload = false, $params = array ()) {
@@ -292,7 +292,7 @@ class kraken extends \ccxt\kraken {
         $client->resolve ($message, $event);
     }
 
-    public function parse_ws_trade ($client, $trade, $market = null) {
+    public function handle_trade ($client, $trade, $market = null) {
         //
         // public trades
         //

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import json
 from asyncio import sleep
 from aiohttp import WSMsgType

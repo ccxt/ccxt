@@ -106,7 +106,8 @@ class binance extends \ccxt\binance {
         $future = $this->watch ($url, $messageHash, array_merge($request, $params), $messageHash);
         $client = $this->clients[$url];
         $client['futures'][$requestId] = $future;
-        return $future;
+        throw new NotSupported($this->id . ' watchOrderBook not implemented yet');
+        // return $future;
     }
 
     public function handle_order_book ($client, $message) {

@@ -125,7 +125,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         #
         # todo: incremental trades – add max limit to the dequeue of trades, unshift and push
         #
-        #     trade = self.parse_ws_trade(client, delta, market)
+        #     trade = self.handle_trade(client, delta, market)
         #     self.trades.append(trade)
         #     tradesCount += 1
         #
@@ -196,7 +196,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         messageHash = wsName + ':' + name
         client.resolve(result, messageHash)
 
-    async def watch_public_message(self, name, symbol, params={}):
+    async def watch_public(self, name, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
         wsName = self.safe_value(market['info'], 'wsname')
@@ -220,10 +220,10 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         return await future
 
     async def watch_ticker(self, symbol, params={}):
-        return await self.watch_public_message('ticker', symbol, params)
+        return await self.watch_public('ticker', symbol, params)
 
     async def watch_trades(self, symbol, params={}):
-        return await self.watch_public_message('trade', symbol, params)
+        return await self.watch_public('trade', symbol, params)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         name = 'book'
@@ -232,7 +232,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
             request['subscription'] = {
                 'depth': limit,  # default 10, valid options 10, 25, 100, 500, 1000
             }
-        return await self.watch_public_message(name, symbol, self.extend(request, params))
+        return await self.watch_public(name, symbol, self.extend(request, params))
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         name = 'ohlc'
@@ -241,7 +241,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
                 'interval': int(self.timeframes[timeframe]),
             },
         }
-        return await self.watch_public_message(name, symbol, self.extend(request, params))
+        return await self.watch_public(name, symbol, self.extend(request, params))
 
     async def load_markets(self, reload=False, params={}):
         markets = await super(kraken, self).load_markets(reload, params)
@@ -273,7 +273,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         event = self.safe_string(message, 'event')
         client.resolve(message, event)
 
-    def parse_ws_trade(self, client, trade, market=None):
+    def handle_trade(self, client, trade, market=None):
         #
         # public trades
         #
