@@ -171,12 +171,6 @@ async function main () {
 
         const www = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
 
-        if (cloudscrape)
-            exchange.headers = await scrapeCloudflareHttpHeaderCookie (www)
-
-        if (cfscrape)
-            exchange.headers = cfscrapeCookies (www)
-
         if (cors) {
             exchange.proxy =  'https://cors-anywhere.herokuapp.com/';
             exchange.origin = exchange.uuid ()
