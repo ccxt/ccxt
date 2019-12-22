@@ -403,7 +403,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
             delta = deltas[j]
             price = float(delta[0])
             amount = float(delta[1])
-            timestamp = max(timestamp or 0, int(delta[2] * 1000))
+            timestamp = max(timestamp or 0, int(float(delta[2]) * 1000))
             bookside.store(price, amount)
         return timestamp
 
@@ -438,6 +438,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         #         subscription: {depth: 10, name: 'book'}
         #     }
         #
+        print(message)
         channelId = self.safe_string(message, 'channelID')
         self.options['subscriptionStatusByChannelId'][channelId] = message
         requestId = self.safe_string(message, 'reqid')

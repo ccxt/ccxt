@@ -431,7 +431,7 @@ class kraken extends \ccxt\kraken {
             $delta = $deltas[$j];
             $price = floatval ($delta[0]);
             $amount = floatval ($delta[1]);
-            $timestamp = max ($timestamp || 0, intval ($delta[2] * 1000));
+            $timestamp = max ($timestamp || 0, intval (floatval ($delta[2]) * 1000));
             $bookside->store ($price, $amount);
         }
         return $timestamp;
@@ -469,6 +469,7 @@ class kraken extends \ccxt\kraken {
         //         subscription => array( depth => 10, name => 'book' )
         //     }
         //
+        var_dump ($message)
         $channelId = $this->safe_string($message, 'channelID');
         $this->options['subscriptionStatusByChannelId'][$channelId] = $message;
         $requestId = $this->safe_string($message, 'reqid');
