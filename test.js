@@ -65,6 +65,7 @@ const ccxtpro = require ('./ccxt.pro.js')
             console.log (new Date (), response.asks.length, 'asks', response.asks[0], response.bids.length, 'bids', response.bids[0])
         } catch (e) {
             console.log (new Date (), e)
+            await ccxtpro.sleep (1000)
         }
     }
 
