@@ -371,14 +371,13 @@ module.exports = class Exchange {
 
             const params = { method, headers, body, timeout: this.timeout }
 
-            if (this.httpAgent && url.indexOf ('http://') === 0) {
-                params['agent'] = this.httpAgent;
-            } else if (this.httpsAgent && url.indexOf ('https://') === 0) {
-                params['agent'] = this.httpsAgent;
-            }
             if (this.agent) {
                 params['agent'] = this.agent
                 this.agent.keepAlive = true
+            } else if (this.httpAgent && url.indexOf ('http://') === 0) {
+                params['agent'] = this.httpAgent
+            } else if (this.httpsAgent && url.indexOf ('https://') === 0) {
+                params['agent'] = this.httpsAgent
             }
 
             const promise =
