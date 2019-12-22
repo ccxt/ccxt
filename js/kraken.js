@@ -64,7 +64,7 @@ module.exports = class kraken extends ccxt.kraken {
         //
         const wsName = message[3];
         const name = 'ticker';
-        const messageHash = wsName + ':' + name;
+        const messageHash = name + ':' + wsName;
         const market = this.safeValue (this.options['marketsByWsName'], wsName);
         const symbol = market['symbol'];
         const ticker = message[1];
@@ -131,7 +131,7 @@ module.exports = class kraken extends ccxt.kraken {
         //
         const wsName = message[3];
         // const name = 'ticker';
-        // const messageHash = wsName + ':' + name;
+        // const messageHash = name + ':' + wsName;
         const market = this.safeValue (this.options['marketsByWsName'], wsName);
         const symbol = market['symbol'];
         // for (let i = 0; i < message[1].length; i++)
@@ -194,7 +194,7 @@ module.exports = class kraken extends ccxt.kraken {
             parseFloat (candle[5]),
             parseFloat (candle[7]),
         ];
-        const messageHash = wsName + ':' + name;
+        const messageHash = name + ':' + wsName;
         client.resolve (result, messageHash);
     }
 
@@ -202,7 +202,7 @@ module.exports = class kraken extends ccxt.kraken {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const wsName = this.safeValue (market['info'], 'wsname');
-        const messageHash = wsName + ':' + name;
+        const messageHash = name + ':' + wsName;
         const url = this.urls['api']['ws']['public'];
         const requestId = this.nonce ();
         const subscribe = {
@@ -373,7 +373,7 @@ module.exports = class kraken extends ccxt.kraken {
         const market = this.safeValue (this.options['marketsByWsName'], wsName);
         const symbol = market['symbol'];
         let timestamp = undefined;
-        const messageHash = wsName + ':book';
+        const messageHash = 'book:' + wsName;
         // if this is a snapshot
         if ('as' in message[1]) {
             // todo get depth from marketsByWsName

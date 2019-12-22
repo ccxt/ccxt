@@ -69,7 +69,7 @@ class kraken extends \ccxt\kraken {
         //
         $wsName = $message[3];
         $name = 'ticker';
-        $messageHash = $wsName . ':' . $name;
+        $messageHash = $name . ':' . $wsName;
         $market = $this->safe_value($this->options['marketsByWsName'], $wsName);
         $symbol = $market['symbol'];
         $ticker = $message[1];
@@ -136,7 +136,7 @@ class kraken extends \ccxt\kraken {
         //
         $wsName = $message[3];
         // $name = 'ticker';
-        // $messageHash = $wsName . ':' . $name;
+        // $messageHash = $name . ':' . $wsName;
         $market = $this->safe_value($this->options['marketsByWsName'], $wsName);
         $symbol = $market['symbol'];
         // for ($i = 0; $i < is_array($message[1]) ? count($message[1]) : 0; $i++)
@@ -199,7 +199,7 @@ class kraken extends \ccxt\kraken {
             floatval ($candle[5]),
             floatval ($candle[7]),
         ];
-        $messageHash = $wsName . ':' . $name;
+        $messageHash = $name . ':' . $wsName;
         $client->resolve ($result, $messageHash);
     }
 
@@ -207,7 +207,7 @@ class kraken extends \ccxt\kraken {
         $this->load_markets();
         $market = $this->market ($symbol);
         $wsName = $this->safe_value($market['info'], 'wsname');
-        $messageHash = $wsName . ':' . $name;
+        $messageHash = $name . ':' . $wsName;
         $url = $this->urls['api']['ws']['public'];
         $requestId = $this->nonce ();
         $subscribe = array(
@@ -378,7 +378,7 @@ class kraken extends \ccxt\kraken {
         $market = $this->safe_value($this->options['marketsByWsName'], $wsName);
         $symbol = $market['symbol'];
         $timestamp = null;
-        $messageHash = $wsName . ':book';
+        $messageHash = 'book:' . $wsName;
         // if this is $a snapshot
         if (is_array($message[1]) && array_key_exists('as', $message[1])) {
             // todo get depth from marketsByWsName

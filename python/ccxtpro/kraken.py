@@ -67,7 +67,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         #
         wsName = message[3]
         name = 'ticker'
-        messageHash = wsName + ':' + name
+        messageHash = name + ':' + wsName
         market = self.safe_value(self.options['marketsByWsName'], wsName)
         symbol = market['symbol']
         ticker = message[1]
@@ -131,7 +131,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         #
         wsName = message[3]
         # name = 'ticker'
-        # messageHash = wsName + ':' + name
+        # messageHash = name + ':' + wsName
         market = self.safe_value(self.options['marketsByWsName'], wsName)
         symbol = market['symbol']
         # for(i = 0; i < len(message[1]); i++)
@@ -193,14 +193,14 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
             float(candle[5]),
             float(candle[7]),
         ]
-        messageHash = wsName + ':' + name
+        messageHash = name + ':' + wsName
         client.resolve(result, messageHash)
 
     async def watch_public(self, name, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
         wsName = self.safe_value(market['info'], 'wsname')
-        messageHash = wsName + ':' + name
+        messageHash = name + ':' + wsName
         url = self.urls['api']['ws']['public']
         requestId = self.nonce()
         subscribe = {
@@ -357,7 +357,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         market = self.safe_value(self.options['marketsByWsName'], wsName)
         symbol = market['symbol']
         timestamp = None
-        messageHash = wsName + ':book'
+        messageHash = 'book:' + wsName
         # if self is a snapshot
         if 'as' in message[1]:
             # todo get depth from marketsByWsName
