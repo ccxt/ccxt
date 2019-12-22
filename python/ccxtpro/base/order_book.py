@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import sys
 from ccxtpro.base import order_book_side
 from ccxt import Exchange
 

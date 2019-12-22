@@ -221,7 +221,7 @@ class kraken extends \ccxt\kraken {
             ),
         );
         $request = array_replace_recursive($subscribe, $params);
-        return $this->watch ($url, array( $messageHash, $requestId ), $request, $messageHash);
+        return $this->watch ($url, $messageHash, $request, $messageHash);
         // $future = $this->watch ($url, array( $messageHash, $requestId ), $request, $messageHash);
         // $client = $this->clients[$url];
         // $client['futures'][$requestId] = $future;
@@ -469,13 +469,12 @@ class kraken extends \ccxt\kraken {
         //         subscription => array( depth => 10, name => 'book' )
         //     }
         //
-        var_dump ($message)
         $channelId = $this->safe_string($message, 'channelID');
         $this->options['subscriptionStatusByChannelId'][$channelId] = $message;
-        $requestId = $this->safe_string($message, 'reqid');
-        if (is_array($client->futures) && array_key_exists($requestId, $client->futures)) {
-            unset($client->futures[$requestId]);
-        }
+        // $requestId = $this->safe_string($message, 'reqid');
+        // if (is_array($client->futures) && array_key_exists($requestId, $client->futures)) {
+        //     unset($client->futures[$requestId]);
+        // }
     }
 
     public function handle_error_message ($client, $message) {

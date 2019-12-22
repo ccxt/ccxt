@@ -216,7 +216,7 @@ module.exports = class kraken extends ccxt.kraken {
             },
         };
         const request = this.deepExtend (subscribe, params);
-        return await this.watch (url, [ messageHash, requestId ], request, messageHash);
+        return await this.watch (url, messageHash, request, messageHash);
         // const future = this.watch (url, [ messageHash, requestId ], request, messageHash);
         // const client = this.clients[url];
         // client['futures'][requestId] = future;
@@ -464,13 +464,12 @@ module.exports = class kraken extends ccxt.kraken {
         //         subscription: { depth: 10, name: 'book' }
         //     }
         //
-        console.log (message)
         const channelId = this.safeString (message, 'channelID');
         this.options['subscriptionStatusByChannelId'][channelId] = message;
-        const requestId = this.safeString (message, 'reqid');
-        if (requestId in client.futures) {
-            delete client.futures[requestId];
-        }
+        // const requestId = this.safeString (message, 'reqid');
+        // if (requestId in client.futures) {
+        //     delete client.futures[requestId];
+        // }
     }
 
     handleErrorMessage (client, message) {

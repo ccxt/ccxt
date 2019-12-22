@@ -214,7 +214,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
             },
         }
         request = self.deep_extend(subscribe, params)
-        return await self.watch(url, [messageHash, requestId], request, messageHash)
+        return await self.watch(url, messageHash, request, messageHash)
         # future = self.watch(url, [messageHash, requestId], request, messageHash)
         # client = self.clients[url]
         # client['futures'][requestId] = future
@@ -438,12 +438,12 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         #         subscription: {depth: 10, name: 'book'}
         #     }
         #
-        print(message)
         channelId = self.safe_string(message, 'channelID')
         self.options['subscriptionStatusByChannelId'][channelId] = message
-        requestId = self.safe_string(message, 'reqid')
-        if requestId in client.futures:
-            del client.futures[requestId]
+        # requestId = self.safe_string(message, 'reqid')
+        # if requestId in client.futures:
+        #     del client.futures[requestId]
+        # }
 
     def handle_error_message(self, client, message):
         #
