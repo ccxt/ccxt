@@ -2,6 +2,8 @@
 
 /*  ------------------------------------------------------------------------ */
 
+const http = require ('http')
+const https = require ('https')
 const functions = require ('./functions')
 
 const {
@@ -224,6 +226,8 @@ module.exports = class Exchange {
             'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
         }
+        this.httpAgent = new http.Agent ({ 'keepAlive': true })
+        this.httpsAgent = new https.Agent({ 'keepAlive': true })
 
         this.headers = {}
 
@@ -371,8 +375,6 @@ module.exports = class Exchange {
                 params['agent'] = this.httpAgent;
             } else if (this.httpsAgent && url.indexOf ('https://') === 0) {
                 params['agent'] = this.httpsAgent;
-            } else if (this.agent) {
-                params['agent'] = this.agent;
             }
 
             const promise =
