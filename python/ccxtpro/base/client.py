@@ -48,9 +48,22 @@ class Client(object):
         self.connected = Future()
 
     def future(self, message_hash):
-        if message_hash not in self.futures:
-            self.futures[message_hash] = Future()
-        return self.futures[message_hash]
+        if isinstance(message_hash, list):
+            first_hash = message_hash[0]
+            if first_hash not in self.futures:
+                future = Future()
+                self.futures[first_hash] = future
+                i = 1
+                length = len(message_hash)
+                while i < length:
+                    hash = message_hash[i]
+                    self.futures[hash] = future
+                    i += 1
+            return self.futures[first_hash]
+        else:
+            if message_hash not in self.futures:
+                self.futures[message_hash] = Future()
+            return self.futures[message_hash]
 
     def resolve(self, result, message_hash=None):
         if message_hash:

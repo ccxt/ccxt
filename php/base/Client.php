@@ -41,10 +41,24 @@ class Client {
     // ------------------------------------------------------------------------
 
     public function future($message_hash) {
-        if (!isset($this->futures[$message_hash])) {
-            $this->futures[$message_hash] = new Future();
+        if (is_array($message_hash)) {
+            $first_hash = $message_hash[0];
+            if (!array_key_exists($first_hash, $this->futures)) {
+                $future = new Future();
+                $this->futures[$first_hash] = $future;
+                $length = count($message_hash);
+                for ($i = 1; $i < $length; $i++) {
+                    $hash = $message_hash[$i];
+                    $this->futures[$hash] = $future;
+                }
+            }
+            return $this->futures[$first_hash];
+        } else {
+            if (!array_key_exists($message_hash, $this->futures)) {
+                $this->futures[$message_hash] = new Future();
+            }
+            return $this->futures[$message_hash];
         }
-        return $this->futures[$message_hash];
     }
 
     public function resolve($result, $message_hash = null) {

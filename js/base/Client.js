@@ -29,9 +29,9 @@ module.exports = class Client {
             connectionStarted: undefined, // initiation timestamp in milliseconds
             connectionEstablished: undefined, // success timestamp in milliseconds
             connectionTimer: undefined, // connection-related setTimeout
-            connectionTimeout: 10000, // 10 seconds by default, false to disable
+            connectionTimeout: 10000, // in milliseconds, false to disable
             pingInterval: undefined, // stores the ping-related interval
-            keepAlive: 3000, // ping-pong keep-alive frequency
+            keepAlive: 30000, // ping-pong keep-alive rate in milliseconds
             // timeout is not used atm
             // timeout: 30000, // throw if a request is not satisfied in 30 seconds, false to disable
             connection: {
@@ -44,10 +44,23 @@ module.exports = class Client {
     }
 
     future (messageHash) {
-        if (!this.futures[messageHash]) {
-            this.futures[messageHash] = Future ()
+        if (Array.isArray (messageHash)) {
+            const firstHash = messageHash[0]
+            if (!this.futures[firstHash]) {
+                const future = Future ()
+                this.futures[firstHash] = future
+                for (let i = 1; i < messageHash.length; i++) {
+                    const hash = messageHash[i]
+                    this.futures[hash] = future
+                }
+            }
+            return this.futures[firstHash]
+        } else {
+            if (!this.futures[messageHash]) {
+                this.futures[messageHash] = Future ()
+            }
+            return this.futures[messageHash]
         }
-        return this.futures[messageHash]
     }
 
     resolve (result, messageHash = undefined) {
