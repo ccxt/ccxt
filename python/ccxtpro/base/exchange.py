@@ -56,6 +56,12 @@ class Exchange(BaseExchange):
             self.clients[url] = AiohttpClient(url, on_message, on_error, on_close)
         return self.clients[url]
 
+    def call(self, method, *args):
+        return method(*args)
+
+    async def callAsync(self, method, *args):
+        return await method(*args)
+
     async def after(self, future, method, *args):
         result = await future
         # method is bound to self instance
