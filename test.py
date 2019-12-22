@@ -20,7 +20,7 @@ from ccxt.base.errors import NetworkError, RequestTimeout
 
 async def test():
     symbol = 'ETH/BTC'
-    exchange = ccxtpro.poloniex({
+    exchange = ccxtpro.kraken({
         'enableRateLimit': True,
         # 'urls': {
         #     'api': {
@@ -33,7 +33,7 @@ async def test():
             response = await exchange.watch_order_book(symbol)
             print(Exchange.iso8601(Exchange.milliseconds()), len(response['asks']), 'asks', response['asks'][0], len(response['bids']), 'bids', response['bids'][0])
         except Exception as e:
-            print('Error', type(e), str(e))
+            print('Error', e)
             await sleep(1)
     await exchange.close()
 

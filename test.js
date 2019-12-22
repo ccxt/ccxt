@@ -47,7 +47,7 @@ const ccxtpro = require ('./ccxt.pro.js')
 
     const symbol = 'ETH/BTC'
 
-    const exchange = new ccxtpro.poloniex ({
+    const exchange = new ccxtpro.kraken ({
         'enableRateLimit': true,
         // 'urls': {
         //     'api': {
