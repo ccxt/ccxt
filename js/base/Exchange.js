@@ -226,8 +226,6 @@ module.exports = class Exchange {
             'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
         }
-        this.httpAgent = new http.Agent ({ 'keepAlive': true })
-        this.httpsAgent = new https.Agent ({ 'keepAlive': true })
 
         this.headers = {}
 
@@ -291,6 +289,14 @@ module.exports = class Exchange {
         // merge to this
         for (const [property, value] of Object.entries (config))
             this[property] = deepExtend (this[property], value)
+        
+        if (!this.httpAgent) {
+            this.httpAgent = new http.Agent ({ 'keepAlive': true })
+        }
+        
+        if (!this.httpsAgent) {
+            this.httpsAgent = new https.Agent ({ 'keepAlive': true })
+        }
 
         // generate old metainfo interface
         for (const k in this.has) {
