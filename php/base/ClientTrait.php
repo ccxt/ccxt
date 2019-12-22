@@ -43,6 +43,14 @@ trait ClientTrait {
         return $this->clients[$url];
     }
 
+    public function call($method, ... $args) {
+        return $method(... $args);
+    }
+
+    public function callAsync($method, ... $args) {
+        return $method(... $args);
+    }
+
     // the ellipsis packing/unpacking requires PHP 5.6+ :(
     public function after($future, callable $method, ... $args) {
         return $future->then (function($result) use ($method, $args) {
