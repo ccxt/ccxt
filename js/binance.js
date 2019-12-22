@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { NotImplemented } = require ('ccxt/js/base/errors');
+const { NotSupported } = require ('ccxt/js/base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -49,14 +49,14 @@ module.exports = class binance extends ccxt.binance {
         //     const market = this.market (symbol);
         //     const url = this.urls['api']['ws'] + market['id'].toLowerCase () + '@trade';
         //     return await this.WsTradesMessage (url, url);
-        throw new NotImplemented (this.id + ' watchTrades not implemented yet');
+        throw new NotSupported (this.id + ' watchTrades not implemented yet');
     }
 
     handleTrades (response) {
         //     const parsed = this.parseTrade (response);
         //     parsed['symbol'] = this.parseSymbol (response);
         //     return parsed;
-        throw new NotImplemented (this.id + ' handleTrades not implemented yet');
+        throw new NotSupported (this.id + ' handleTrades not implemented yet');
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -65,7 +65,7 @@ module.exports = class binance extends ccxt.binance {
         //     const market = this.market (symbol);
         //     const url = this.urls['api']['ws'] + market['id'].toLowerCase () + '@kline_' + interval;
         //     return await this.WsOHLCVMessage (url, url);
-        throw new NotImplemented (this.id + ' watchOHLCV not implemented yet');
+        throw new NotSupported (this.id + ' watchOHLCV not implemented yet');
     }
 
     handleOHLCV (ohlcv) {
@@ -77,7 +77,7 @@ module.exports = class binance extends ccxt.binance {
         //     const low = this.safeFloat (data, 'c');
         //     const volume = this.safeFloat (data, 'v');
         //     return [timestamp, open, high, close, low, volume];
-        throw new NotImplemented (this.id + ' handleOHLCV not implemented yet ' + this.json (ohlcv));
+        throw new NotSupported (this.id + ' handleOHLCV not implemented yet ' + this.json (ohlcv));
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
