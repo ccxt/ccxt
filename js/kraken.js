@@ -215,10 +215,11 @@ module.exports = class kraken extends ccxt.kraken {
                 'name': name,
             },
         };
-        const future = this.watch (url, messageHash, this.deepExtend (subscribe, params), messageHash);
+        const request = this.deepExtend (subscribe, params);
+        const future = this.watch (url, messageHash, request, messageHash);
         const client = this.clients[url];
         client['futures'][requestId] = future;
-        return future;
+        return await future;
     }
 
     async watchTicker (symbol, params = {}) {
@@ -233,7 +234,9 @@ module.exports = class kraken extends ccxt.kraken {
         const name = 'book';
         const request = {};
         if (limit !== undefined) {
-            request['subscription'] = { 'depth': limit }; // default 10, valid options 10, 25, 100, 500, 1000
+            request['subscription'] = {
+                'depth': limit, // default 10, valid options 10, 25, 100, 500, 1000
+            };
         }
         return await this.watchPublicMessage (name, symbol, this.extend (request, params));
     }
