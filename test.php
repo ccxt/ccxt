@@ -23,7 +23,7 @@ $exchange = new $exchange_class(array(
 
 $tick = null;
 
-/*
+//*
 $tick = function () use ($loop, $exchange, $symbol, &$tick) {
 
     $promise = $exchange->watch_order_book($symbol);
@@ -38,7 +38,7 @@ $tick = function () use ($loop, $exchange, $symbol, &$tick) {
     );
 };
 //*/
-//*
+/*
 $tick = function () use ($loop, $exchange, &$tick) {
 
     $promise = $exchange->watch_heartbeat();
