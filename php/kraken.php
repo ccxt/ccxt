@@ -221,10 +221,11 @@ class kraken extends \ccxt\kraken {
             ),
         );
         $request = array_replace_recursive($subscribe, $params);
-        $future = $this->watch ($url, $messageHash, $request, $messageHash);
-        $client = $this->clients[$url];
-        $client['futures'][$requestId] = $future;
-        return $future;
+        return $this->watch ($url, array( $messageHash, $requestId ), $request, $messageHash);
+        // $future = $this->watch ($url, array( $messageHash, $requestId ), $request, $messageHash);
+        // $client = $this->clients[$url];
+        // $client['futures'][$requestId] = $future;
+        // return $future;
     }
 
     public function watch_ticker ($symbol, $params = array ()) {
@@ -471,7 +472,7 @@ class kraken extends \ccxt\kraken {
         $channelId = $this->safe_string($message, 'channelID');
         $this->options['subscriptionStatusByChannelId'][$channelId] = $message;
         $requestId = $this->safe_string($message, 'reqid');
-        if ($client->futures[$requestId]) {
+        if (is_array($client->futures) && array_key_exists($requestId, $client->futures)) {
             unset($client->futures[$requestId]);
         }
     }
@@ -520,30 +521,30 @@ class kraken extends \ccxt\kraken {
             $subscription = $this->safe_value($subscriptionStatus, 'subscription', array());
             $name = $this->safe_string($subscription, 'name');
             $methods = array(
-                'book' => 'handleOrderBook',
-                'ohlc' => 'handleOHLCV',
-                'ticker' => 'handleTicker',
-                'trade' => 'handleTrades',
+                'book' => array($this, 'handle_order_book'),
+                'ohlc' => array($this, 'handle_ohlcv'),
+                'ticker' => array($this, 'handle_ticker'),
+                'trade' => array($this, 'handle_trades'),
             );
-            $method = $this->safe_string($methods, $name);
+            $method = $this->safe_value($methods, $name);
             if ($method === null) {
                 return $message;
             } else {
-                return $this->$method ($client, $message);
+                return $this->call ($method, $client, $message);
             }
         } else {
             if ($this->handle_error_message ($client, $message)) {
                 $event = $this->safe_string($message, 'event');
                 $methods = array(
-                    'heartbeat' => 'handleHeartbeat',
-                    'systemStatus' => 'handleSystemStatus',
-                    'subscriptionStatus' => 'handleSubscriptionStatus',
+                    'heartbeat' => array($this, 'handle_heartbeat'),
+                    'systemStatus' => array($this, 'handle_system_status'),
+                    'subscriptionStatus' => array($this, 'handle_subscription_status'),
                 );
-                $method = $this->safe_string($methods, $event);
+                $method = $this->safe_value($methods, $event);
                 if ($method === null) {
                     return $message;
                 } else {
-                    return $this->$method ($client, $message);
+                    return $this->call ($method, $client, $message);
                 }
             }
         }

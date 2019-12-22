@@ -216,10 +216,11 @@ module.exports = class kraken extends ccxt.kraken {
             },
         };
         const request = this.deepExtend (subscribe, params);
-        const future = this.watch (url, messageHash, request, messageHash);
-        const client = this.clients[url];
-        client['futures'][requestId] = future;
-        return await future;
+        return await this.watch (url, [ messageHash, requestId ], request, messageHash);
+        // const future = this.watch (url, [ messageHash, requestId ], request, messageHash);
+        // const client = this.clients[url];
+        // client['futures'][requestId] = future;
+        // return await future;
     }
 
     async watchTicker (symbol, params = {}) {
@@ -466,7 +467,7 @@ module.exports = class kraken extends ccxt.kraken {
         const channelId = this.safeString (message, 'channelID');
         this.options['subscriptionStatusByChannelId'][channelId] = message;
         const requestId = this.safeString (message, 'reqid');
-        if (client.futures[requestId]) {
+        if (requestId in client.futures) {
             delete client.futures[requestId];
         }
     }
@@ -515,30 +516,30 @@ module.exports = class kraken extends ccxt.kraken {
             const subscription = this.safeValue (subscriptionStatus, 'subscription', {});
             const name = this.safeString (subscription, 'name');
             const methods = {
-                'book': 'handleOrderBook',
-                'ohlc': 'handleOHLCV',
-                'ticker': 'handleTicker',
-                'trade': 'handleTrades',
+                'book': this.handleOrderBook,
+                'ohlc': this.handleOHLCV,
+                'ticker': this.handleTicker,
+                'trade': this.handleTrades,
             };
-            const method = this.safeString (methods, name);
+            const method = this.safeValue (methods, name);
             if (method === undefined) {
                 return message;
             } else {
-                return this[method] (client, message);
+                return this.call (method, client, message);
             }
         } else {
             if (this.handleErrorMessage (client, message)) {
                 const event = this.safeString (message, 'event');
                 const methods = {
-                    'heartbeat': 'handleHeartbeat',
-                    'systemStatus': 'handleSystemStatus',
-                    'subscriptionStatus': 'handleSubscriptionStatus',
+                    'heartbeat': this.handleHeartbeat,
+                    'systemStatus': this.handleSystemStatus,
+                    'subscriptionStatus': this.handleSubscriptionStatus,
                 };
-                const method = this.safeString (methods, event);
+                const method = this.safeValue (methods, event);
                 if (method === undefined) {
                     return message;
                 } else {
-                    return this[method] (client, message);
+                    return this.call (method, client, message);
                 }
             }
         }

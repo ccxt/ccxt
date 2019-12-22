@@ -214,10 +214,11 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
             },
         }
         request = self.deep_extend(subscribe, params)
-        future = self.watch(url, messageHash, request, messageHash)
-        client = self.clients[url]
-        client['futures'][requestId] = future
-        return await future
+        return await self.watch(url, [messageHash, requestId], request, messageHash)
+        # future = self.watch(url, [messageHash, requestId], request, messageHash)
+        # client = self.clients[url]
+        # client['futures'][requestId] = future
+        # return await future
 
     async def watch_ticker(self, symbol, params={}):
         return await self.watch_public('ticker', symbol, params)
@@ -440,7 +441,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         channelId = self.safe_string(message, 'channelID')
         self.options['subscriptionStatusByChannelId'][channelId] = message
         requestId = self.safe_string(message, 'reqid')
-        if client.futures[requestId]:
+        if requestId in client.futures:
             del client.futures[requestId]
 
     def handle_error_message(self, client, message):
@@ -482,26 +483,26 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
             subscription = self.safe_value(subscriptionStatus, 'subscription', {})
             name = self.safe_string(subscription, 'name')
             methods = {
-                'book': 'handleOrderBook',
-                'ohlc': 'handleOHLCV',
-                'ticker': 'handleTicker',
-                'trade': 'handleTrades',
+                'book': self.handle_order_book,
+                'ohlc': self.handle_ohlcv,
+                'ticker': self.handle_ticker,
+                'trade': self.handle_trades,
             }
-            method = self.safe_string(methods, name)
+            method = self.safe_value(methods, name)
             if method is None:
                 return message
             else:
-                return getattr(self, method)(client, message)
+                return self.call(method, client, message)
         else:
             if self.handle_error_message(client, message):
                 event = self.safe_string(message, 'event')
                 methods = {
-                    'heartbeat': 'handleHeartbeat',
-                    'systemStatus': 'handleSystemStatus',
-                    'subscriptionStatus': 'handleSubscriptionStatus',
+                    'heartbeat': self.handle_heartbeat,
+                    'systemStatus': self.handle_system_status,
+                    'subscriptionStatus': self.handle_subscription_status,
                 }
-                method = self.safe_string(methods, event)
+                method = self.safe_value(methods, event)
                 if method is None:
                     return message
                 else:
-                    return getattr(self, method)(client, message)
+                    return self.call(method, client, message)
