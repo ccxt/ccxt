@@ -233,7 +233,7 @@ module.exports = class poloniex extends ccxt.poloniex {
             if (delta[0] === 'i') {
                 const snapshot = this.safeValue (delta[1], 'orderBook', []);
                 const sides = [ 'asks', 'bids' ];
-                this.orderbooks[symbol] = this.orderbook ();
+                this.orderbooks[symbol] = this.orderBook ();
                 const orderbook = this.orderbooks[symbol];
                 for (let j = 0; j < snapshot.length; j++) {
                     const side = sides[j];

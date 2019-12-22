@@ -377,7 +377,7 @@ class kraken extends \ccxt\kraken {
         // if this is $a snapshot
         if (is_array($message[1]) && array_key_exists('as', $message[1])) {
             // todo get depth from marketsByWsName
-            $this->orderbooks[$symbol] = $this->limitedOrderBook (array(), 10);
+            $this->orderbooks[$symbol] = $this->limited_order_book(array(), 10);
             $orderbook = $this->orderbooks[$symbol];
             $sides = array(
                 'as' => 'asks',

@@ -334,11 +334,11 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                 market = self.markets_by_id[marketId]
                 symbol = market['symbol']
                 if table == 'orderBookL2':
-                    self.orderbooks[symbol] = self.indexedOrderBook()
+                    self.orderbooks[symbol] = self.indexed_order_book()
                 elif table == 'orderBookL2_25':
-                    self.orderbooks[symbol] = self.limitedIndexedOrderBook({}, 25)
+                    self.orderbooks[symbol] = self.limited_indexed_order_book({}, 25)
                 elif table == 'orderBook10':
-                    self.orderbooks[symbol] = self.limitedIndexedOrderBook({}, 10)
+                    self.orderbooks[symbol] = self.limited_indexed_order_book({}, 10)
                 orderbook = self.orderbooks[symbol]
                 for i in range(0, len(data)):
                     price = self.safe_float(data[i], 'price')

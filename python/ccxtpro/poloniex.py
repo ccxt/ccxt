@@ -218,7 +218,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
             if delta[0] == 'i':
                 snapshot = self.safe_value(delta[1], 'orderBook', [])
                 sides = ['asks', 'bids']
-                self.orderbooks[symbol] = self.orderbook()
+                self.orderbooks[symbol] = self.order_book()
                 orderbook = self.orderbooks[symbol]
                 for j in range(0, len(snapshot)):
                     side = sides[j]

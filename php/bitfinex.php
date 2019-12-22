@@ -102,7 +102,7 @@ class bitfinex extends \ccxt\bitfinex {
         // if it is an initial snapshot
         if (gettype($message[1][0]) === 'array' && count(array_filter(array_keys($message[1][0]), 'is_string')) == 0) {
             $limit = $this->safe_integer($subscription, 'len');
-            $this->orderbooks[$symbol] = $this->limitedCountedOrderBook (array(), $limit);
+            $this->orderbooks[$symbol] = $this->limited_counted_order_book(array(), $limit);
             $orderbook = $this->orderbooks[$symbol];
             $deltas = $message[1];
             for ($i = 0; $i < count($deltas); $i++) {
