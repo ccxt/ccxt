@@ -11,6 +11,7 @@ root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(root + '/python')
 
 import ccxtpro
+from ccxtpro.base.exchange import Exchange
 from ccxtpro.base.future import Future
 from ccxt.base.errors import NetworkError, RequestTimeout
 
@@ -52,7 +53,7 @@ async def test():
     while True:
         try:
             response = await exchange.watch_order_book(symbol)
-            print(len(response['asks']), 'asks', response['asks'][0], len(response['bids']), 'bids', response['bids'][0])
+            print(Exchange.iso8601(Exchange.milliseconds()), len(response['asks']), 'asks', response['asks'][0], len(response['bids']), 'bids', response['bids'][0])
         except Exception as e:
             print('Error', type(e), str(e))
             await sleep(1)
