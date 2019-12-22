@@ -148,7 +148,7 @@ module.exports = class bitmex extends ccxt.bitmex {
             // 'fee': fee,
         };
         result['id'] = undefined;
-        throw NotImplemented (this.id + ' handleTrades() not implemented yet (wip)');
+        throw new NotImplemented (this.id + ' handleTrades() not implemented yet (wip)');
     }
 
     handleOHLCV (client, message) {
@@ -219,13 +219,14 @@ module.exports = class bitmex extends ccxt.bitmex {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const name = 'ohlc';
-        const request = {
-            'subscription': {
-                'interval': parseInt (this.timeframes[timeframe]),
-            },
-        };
-        return await this.watchPublicMessage (name, symbol, this.extend (request, params));
+        // const name = 'ohlc';
+        // const request = {
+        //     'subscription': {
+        //         'interval': parseInt (this.timeframes[timeframe]),
+        //     },
+        // };
+        // return await this.watchPublicMessage (name, symbol, this.extend (request, params));
+        throw new NotImplemented (this.id + ' watchOHLCV() not implemented yet (wip)');
     }
 
     async loadMarkets (reload = false, params = {}) {

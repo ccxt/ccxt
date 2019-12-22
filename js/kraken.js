@@ -198,7 +198,7 @@ module.exports = class kraken extends ccxt.kraken {
         client.resolve (result, messageHash);
     }
 
-    async watchPublicMessage (name, symbol, params = {}) {
+    async watchPublic (name, symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const wsName = this.safeValue (market['info'], 'wsname');
@@ -223,11 +223,11 @@ module.exports = class kraken extends ccxt.kraken {
     }
 
     async watchTicker (symbol, params = {}) {
-        return await this.watchPublicMessage ('ticker', symbol, params);
+        return await this.watchPublic ('ticker', symbol, params);
     }
 
     async watchTrades (symbol, params = {}) {
-        return await this.watchPublicMessage ('trade', symbol, params);
+        return await this.watchPublic ('trade', symbol, params);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -238,7 +238,7 @@ module.exports = class kraken extends ccxt.kraken {
                 'depth': limit, // default 10, valid options 10, 25, 100, 500, 1000
             };
         }
-        return await this.watchPublicMessage (name, symbol, this.extend (request, params));
+        return await this.watchPublic (name, symbol, this.extend (request, params));
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -248,7 +248,7 @@ module.exports = class kraken extends ccxt.kraken {
                 'interval': parseInt (this.timeframes[timeframe]),
             },
         };
-        return await this.watchPublicMessage (name, symbol, this.extend (request, params));
+        return await this.watchPublic (name, symbol, this.extend (request, params));
     }
 
     async loadMarkets (reload = false, params = {}) {

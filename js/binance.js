@@ -101,7 +101,8 @@ module.exports = class binance extends ccxt.binance {
         const future = this.watch (url, messageHash, this.extend (request, params), messageHash);
         const client = this.clients[url];
         client['futures'][requestId] = future;
-        return future;
+        throw new NotSupported (this.id + ' watchOrderBook not implemented yet');
+        // return future;
     }
 
     handleOrderBook (client, message) {
