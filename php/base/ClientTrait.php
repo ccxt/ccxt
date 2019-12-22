@@ -7,7 +7,7 @@ trait ClientTrait {
     public $clients = array();
     public $loop = null;
 
-    public function orderbook ($snapshot = array()) {
+    public function order_book ($snapshot = array()) {
         return new OrderBook($snapshot);
     }
 
@@ -27,7 +27,7 @@ trait ClientTrait {
         return new LimitedCountedOrderBook($snapshot, $depth);
     }
 
-    public function countedOrderBook($snapshot = array()) {
+    public function counted_order_book($snapshot = array()) {
         return new CountedOrderBook($snapshot);
     }
 
