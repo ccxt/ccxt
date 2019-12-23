@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection, BadSymbol } = require ('./base/errors');
+const { AuthenticationError, DDoSProtection, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, BadSymbol, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -594,18 +594,158 @@ module.exports = class whitebit extends Exchange {
         ];
     }
 
-    async fetchStatus (params = {}) {
-        const response = await this.webGetV1Healthcheck ();
-        const status = this.safeInteger (response, 'status');
-        let formattedStatus = 'ok';
-        if (status === 503) {
-            formattedStatus = 'maintenance';
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateV1PostAccountBalances (params);
+        const balances = this.safeValue (response, 'result');
+        const currencies = Object.keys (balances);
+        const parsedBalances = {};
+        for (let currencyIndex = 0; currencyIndex < currencies.length; currencyIndex++) {
+            const currency = currencies[currencyIndex];
+            const balance = balances[currency];
+            parsedBalances[currency] = {
+                'free': this.safeFloat (balance, 'available'),
+                'used': this.safeFloat (balance, 'freeze'),
+            };
         }
-        this.status = this.extend (this.status, {
-            'status': formattedStatus,
-            'updated': this.milliseconds (),
-        });
-        return this.status;
+        parsedBalances['info'] = balances;
+        return this.parseBalance (parsedBalances);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        if (limit !== undefined) {
+            symbol['limit'] = limit;
+        }
+        if (since !== undefined) {
+            symbol['since'] = limit;
+        }
+        const response = await this.privateV1PostOrders (this.extend (request, params));
+        const result = this.safeValue (response, 'result');
+        const orders = this.safeValue (result, 'records');
+        return this.parseOrders (orders, market, since, limit, params);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const response = await this.privateV1PostAccountOrderHistory (params);
+        const result = this.safeValue (response, 'result');
+        if (Array.isArray (result)) {
+            // User has no closed orders yet.
+            return [];
+        }
+        const market = this.market (symbol);
+        const orders = this.safeValue (result, market['id'], []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    parseOrder (order, market = undefined) {
+        let id = undefined;
+        if ('id' in order) {
+            id = this.safeString (order, 'id');
+        } else if ('orderId' in order) {
+            id = this.safeString (order, 'orderId');
+        }
+        let timestamp = undefined;
+        if ('timestamp' in order) {
+            timestamp = this.safeTimestamp (order, 'timestamp');
+        } else if ('ctime' in order) {
+            timestamp = this.safeTimestamp (order, 'ctime');
+        }
+        const datetime = this.iso8601 (timestamp);
+        const lastTradeTimestamp = this.safeTimestamp (order, 'ftime');
+        const marketId = this.safeString (order, 'market');
+        let orderMarket = undefined;
+        let symbol = undefined;
+        let currency = undefined;
+        if (marketId in this.markets_by_id) {
+            orderMarket = this.markets_by_id[marketId];
+            symbol = orderMarket['symbol'];
+            currency = orderMarket['quote'];
+        }
+        const type = this.safeString (order, 'type');
+        const side = this.safeString (order, 'side');
+        const amount = this.safeFloat (order, 'amount');
+        const remaining = this.safeFloat (order, 'left');
+        let status = undefined;
+        let filled = undefined;
+        if (remaining === undefined || remaining === 0.0) {
+            status = 'closed';
+            filled = amount;
+        } else {
+            status = 'open';
+            filled = amount - remaining;
+        }
+        let price = this.safeFloat (order, 'price');
+        const cost = this.safeFloat (order, 'dealMoney');
+        if (price === 0.0) {
+            if ((cost !== undefined) && (filled !== undefined)) {
+                if ((cost > 0) && (filled > 0)) {
+                    price = cost / filled;
+                }
+            }
+        }
+        const fee = {
+            'currency': currency,
+            'cost': this.safeFloat (order, 'dealFee'),
+        };
+        return {
+            'id': id,
+            'datetime': datetime,
+            'timestamp': timestamp,
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': cost,
+            'trades': undefined,
+            'fee': fee,
+            'info': order,
+        };
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type !== 'limit') {
+            throw new ExchangeError (this.id + ' allows limit orders only');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'side': side,
+            'price': this.priceToPrecision (symbol, price),
+            'amount': this.amountToPrecision (symbol, amount),
+        };
+        const response = await this.privateV1PostOrderNew (this.extend (request, params));
+        const result = this.safeValue (response, 'result');
+        return this.parseOrder (result, market);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'orderId': parseInt (id),
+        };
+        const response = await this.privateV1PostOrderCancel (this.extend (request, params));
+        const result = this.safeValue (response, 'result');
+        return this.parseOrder (result, market);
     }
 
     sign (path, api = 'publicV1', method = 'GET', params = {}, headers = undefined, body = undefined) {
