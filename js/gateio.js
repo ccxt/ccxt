@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InvalidAddress, OrderNotFound, NotSupported, DDoSProtection, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, ArgumentsRequired, InvalidAddress, OrderNotFound, NotSupported, DDoSProtection, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -104,6 +104,7 @@ module.exports = class gateio extends Exchange {
             'exceptions': {
                 'exact': {
                     '4': DDoSProtection,
+                    '6': AuthenticationError, // { result: 'false', code: 6, message: 'Error: invalid data  ' }
                     '7': NotSupported,
                     '8': NotSupported,
                     '9': NotSupported,
