@@ -174,7 +174,9 @@ class Client {
     }
 
     public function send($data) {
-        $this->connection->send(Exchange::json($data));
+        $message = Exchange::json($data);
+        echo date('c'), ' sending ', $message, "\n";
+        $this->connection->send($message);
     }
 
     public function close() {
@@ -199,17 +201,16 @@ class Client {
 
     public function on_close($message) {
         echo date('c'), ' on_close ', (string) $message, "\n";
-        exit();
         $on_close_callback = $this->on_close_callback;
         $on_close_callback($this, $message);
         if (!$this->error) {
             // todo: exception types for server-side disconnects
             $this->reset(new NetworkError($message));
         }
-        exit();
     }
 
     public function on_message(Message $message) {
+        echo date('c'), ' on_message ', (string) $message, "\n";
         try {
             // todo: add json detection in php
             $message = json_decode($message, true);
