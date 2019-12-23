@@ -828,6 +828,7 @@ module.exports = class dragonex extends Exchange {
         const token = this.safeString (this.safeValue (res, 'data', {}), 'token', '');
         this.options['accessToken'] = token;
         this.options['date'] = date;
+        this.options['ip'] = ip;
         return {};
     }
 
@@ -851,23 +852,12 @@ module.exports = class dragonex extends Exchange {
             const contentMd5 = '';
             const contentType = 'application/json';
             const canonicalizedHeaders = '';
-            const ip = this.safeValue (params, 'bind_ip', '0.0.0.0');
-            const date = this.gmt (this.milliseconds ());
-            const strToTokenSign = ['POST', contentMd5, contentType, date, canonicalizedHeaders].join ('\n') + '/api/v1/token/new/';
-            let signature = this.hmac (this.encode (this.secret), this.encode (strToTokenSign), 'sha1', 'base64');
-            const authToken = this.apiKey + ':' + signature;
-            const tokenHeader = {
-                'Content-Sha1': contentMd5,
-                'Date': date,
-                'Content-Type': contentType,
-                'X-Real-IP-Proxy': ip,
-                'Auth': authToken,
-            };
-            const res = this.fetch ('https://openapi.dragonex.co/api/v1/token/new/', 'POST', tokenHeader);
-            const token = this.safeString (this.safeValue (res, 'data', {}), 'token', '');
+            const date = this.options['date'];
+            const token = this.options['accessToken'];
+            const ip = this.options['ip'];
             let strToSign = [method.upper (), contentMd5, contentType, date, canonicalizedHeaders].join ('\n');
             strToSign += request;
-            signature = this.hmac (this.encode (this.secret), this.encode (strToSign), 'sha1', 'base64');
+            const signature = this.hmac (this.encode (this.secret), this.encode (strToSign), 'sha1', 'base64');
             const auth = this.apiKey + ':' + signature;
             headers = {
                 'Content-Sha1': contentMd5,
