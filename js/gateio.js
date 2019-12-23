@@ -104,6 +104,7 @@ module.exports = class gateio extends Exchange {
             'exceptions': {
                 'exact': {
                     '4': DDoSProtection,
+                    '5': AuthenticationError, // { result: "false", code:  5, message: "Error: invalid key or sign, please re-generate it from your account" }
                     '6': AuthenticationError, // { result: 'false', code: 6, message: 'Error: invalid data  ' }
                     '7': NotSupported,
                     '8': NotSupported,
