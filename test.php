@@ -9,7 +9,7 @@ $loop = \React\EventLoop\Factory::create();
 
 $symbol = 'ETH/BTC';
 
-$id = 'poloniex';
+$id = 'kraken';
 $exchange_class = '\\ccxtpro\\' . $id;
 $exchange = new $exchange_class(array(
     'enableRateLimit' => true,
@@ -29,7 +29,8 @@ $tick = function () use ($loop, $exchange, $symbol, &$tick) {
     $promise = $exchange->watch_order_book($symbol);
     $promise->then(
         function ($response) use ($loop, $tick) {
-            echo date('c '), count($response['asks']), ' asks [', $response['asks'][0][0], ', ', $response['asks'][0][1], '] ', count($response['bids']), ' bids [', $response['asks'][0][0], ', ', $response['asks'][0][1], ']', "\n";
+            echo date('c '), count($response['asks']), ' asks [', $response['asks'][0][0], ', ', $response['asks'][0][1], '] ', count($response['bids']), ' bids [', $response['bids'][0][0], ', ', $response['bids'][0][1], ']', "\n";
+            // exit();
             $loop->futureTick($tick);
         },
         function ($error) {
