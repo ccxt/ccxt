@@ -198,13 +198,19 @@ module.exports = class kraken extends ccxt.kraken {
         client.resolve (result, messageHash);
     }
 
+    reqid () {
+        const reqid = this.sum (this.safeInteger (this.options, 'reqid', 0), 1);
+        this.options['reqid'] = reqid;
+        return reqid;
+    }
+
     async watchPublic (name, symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const wsName = this.safeValue (market['info'], 'wsname');
         const messageHash = name + ':' + wsName;
         const url = this.urls['api']['ws']['public'];
-        const requestId = this.nonce ();
+        const requestId = this.reqid ();
         const subscribe = {
             'event': 'subscribe',
             'reqid': requestId,
