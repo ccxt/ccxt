@@ -572,7 +572,7 @@ class ftx extends Exchange {
         $symbol = null;
         if ($marketId !== null) {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id;
+                $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
             } else {
                 $base = $this->safe_currency_code($this->safe_string($trade, 'baseCurrency'));

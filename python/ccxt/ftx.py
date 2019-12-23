@@ -557,7 +557,7 @@ class ftx(Exchange):
         symbol = None
         if marketId is not None:
             if marketId in self.markets_by_id:
-                market = self.markets_by_id
+                market = self.markets_by_id[marketId]
                 symbol = market['symbol']
             else:
                 base = self.safe_currency_code(self.safe_string(trade, 'baseCurrency'))
