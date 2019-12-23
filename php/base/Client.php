@@ -210,7 +210,7 @@ class Client {
     }
 
     public function on_message(Message $message) {
-        echo date('c'), ' on_message ', (string) $message, "\n";
+        // echo date('c'), ' on_message ', (string) $message, "\n";
         try {
             // todo: add json detection in php
             $message = json_decode($message, true);
