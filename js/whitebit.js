@@ -595,6 +595,16 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        // {
+        //     "success": true,
+        //     "message": "",
+        //     "result": {
+        //         "BTC": {
+        //             "available": "0",
+        //             "freeze": "0"
+        //         }
+        //     }
+        // }
         await this.loadMarkets ();
         const response = await this.privateV1PostAccountBalances (params);
         const balances = this.safeValue (response, 'result');
@@ -613,6 +623,32 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // {
+        //     "success": true,
+        //     "message": "",
+        //     "result": {
+        //         "limit": 100,
+        //         "offset": 0,
+        //         "total": 1,
+        //         "result": [
+        //             {
+        //                 "id": 3900714,
+        //                 "left": "1",
+        //                 "market": "ETH_BTC",
+        //                 "amount": "1",
+        //                 "type": "limit",
+        //                 "price": "0.008",
+        //                 "timestamp": 1546459568.376407,
+        //                 "side": "buy",
+        //                 "dealFee": "0",
+        //                 "takerFee": "0.001",
+        //                 "makerFee": "0.001",
+        //                 "dealStock": "0",
+        //                 "dealMoney": "0"
+        //             }
+        //         ]
+        //     }
+        // }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         }
@@ -634,6 +670,30 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // {
+        //     "success": true,
+        //     "message": "",
+        //     "result": {
+        //         "ETH_BTC": [
+        //             {
+        //                 "amount": "1",
+        //                 "price": "0.01",
+        //                 "type": "limit",
+        //                 "id": 9740,
+        //                 "side": "sell",
+        //                 "ctime": 1533568890.583023,
+        //                 "takerFee": "0.002",
+        //                 "ftime": 1533630652.62185,
+        //                 "market": "ETH_BTC",
+        //                 "makerFee": "0.002",
+        //                 "dealFee": "0.002",
+        //                 "dealStock": "1",
+        //                 "dealMoney": "0.01",
+        //                 "marketName": "ETH_BTC"
+        //             }
+        //         ]
+        //     }
+        // }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         }
@@ -720,6 +780,25 @@ module.exports = class whitebit extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        // {
+        //     "success": true,
+        //     "message": "",
+        //     "result": {
+        //         "orderId": 25749,
+        //         "market": "ETH_BTC",
+        //         "price": "0.1",
+        //         "side": "sell",
+        //         "type": "limit",
+        //         "timestamp": 1537535284.828868,
+        //         "dealMoney": "0",
+        //         "dealStock": "0",
+        //         "amount": "0.1",
+        //         "takerFee": "0.002",
+        //         "makerFee": "0.002",
+        //         "left": "0.1",
+        //         "dealFee": "0"
+        //     }
+        // }
         if (type !== 'limit') {
             throw new ExchangeError (this.id + ' allows limit orders only');
         }
@@ -737,6 +816,25 @@ module.exports = class whitebit extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        // {
+        //     "success": true,
+        //     "message": "",
+        //     "result": {
+        //         "orderId": 25749,
+        //         "market": "ETH_BTC",
+        //         "price": "0.1",
+        //         "side": "sell",
+        //         "type": "limit",
+        //         "timestamp": 1537535284.828868,
+        //         "dealMoney": "0",
+        //         "dealStock": "0",
+        //         "amount": "0.1",
+        //         "takerFee": "0.002",
+        //         "makerFee": "0.002",
+        //         "left": "0.1",
+        //         "dealFee": "0"
+        //     }
+        // }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
