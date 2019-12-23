@@ -94,6 +94,7 @@ class Client(object):
         while not self.closed():
             try:
                 message = await self.receive()
+                # print(Exchange.iso8601(Exchange.milliseconds()), 'received', message)
                 await self.handle_message(message)
             except Exception as e:
                 error = NetworkError(e)
