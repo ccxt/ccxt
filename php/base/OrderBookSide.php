@@ -87,10 +87,14 @@ trait Limited {
             array_splice($keys, $limit);
             array_splice($values, $limit);
         }
-        $result = array_map(null, $keys, $values);
+        $result = array();
+        $limit = count($keys);
+        for ($i = 0; $i < $limit; $i++) {
+            $result[$i] = array($keys[$i], $values[$i]);
+        }
         $this->index->clear();
-        foreach ($result as $key => $value) {
-            $this->index[$key] = $value;
+        foreach ($result as $value) {
+            $this->index[$value[0]] = $value[1];
         }
         $this->exchangeArray($result);
         return $this;
