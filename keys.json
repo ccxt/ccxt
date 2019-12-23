@@ -86,6 +86,7 @@
     "theocean":      { "skip": true },
     "tidebit":       { "skip": true },
     "tidex":         { "skip": true },
+    "timex":         { "skip": true },
     "therock":       { "skip": true },
     "uex":           { "skip": true },
     "upbit":         { "skip": true },
