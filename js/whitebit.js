@@ -16,25 +16,26 @@ module.exports = class whitebit extends Exchange {
             'countries': [ 'EE' ],
             'rateLimit': 500,
             'has': {
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'CORS': false,
                 'createDepositAddress': false,
-                'createLimitOrder': false,
+                'createLimitOrder': true,
                 'createMarketOrder': false,
-                'createOrder': false,
+                'createOrder': true,
                 'deposit': false,
-                'editOrder': false,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
-                'fetchStatus': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
+                'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'privateAPI': false,
+                'privateAPI': true,
                 'publicAPI': true,
             },
             'timeframes': {
@@ -57,9 +58,10 @@ module.exports = class whitebit extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg',
                 'api': {
-                    'web': 'https://whitebit.com/',
+                    'web': 'https://whitebit.com',
                     'publicV2': 'https://whitebit.com/api/v2/public',
                     'publicV1': 'https://whitebit.com/api/v1/public',
+                    'privateV1': 'https://whitebit.com/api/v1',
                 },
                 'www': 'https://www.whitebit.com',
                 'doc': 'https://documenter.getpostman.com/view/7473075/SVSPomwS?version=latest#intro',
@@ -93,6 +95,16 @@ module.exports = class whitebit extends Exchange {
                         'trades/{market}',
                     ],
                 },
+                'privateV1': {
+                    'post': [
+                        'order/new',
+                        'order/cancel',
+                        'orders',
+                        'account/balances',
+                        'account/order',
+                        'account/order_history',
+                    ],
+                },
             },
             'fees': {
                 'trading': {
@@ -106,11 +118,14 @@ module.exports = class whitebit extends Exchange {
                 'fetchTradesMethod': 'fetchTradesV1',
             },
             'exceptions': {
-                'exact': {
-                },
-                'broad': {
-                    'Market is not available': BadSymbol, // {"success":false,"message":{"market":["Market is not available"]},"result":[]}
-                },
+                'Market is not available': BadSymbol, // {"success":false,"message":{"market":["Market is not available"]},"result":[]}
+                'balance not enough': InsufficientFunds,
+                'amount is less than': InvalidOrder,
+                'Total is less than': InvalidOrder,
+                'validation.total': InvalidOrder,
+                'Too many requests.': DDoSProtection,
+                'This action is unauthorized.': AuthenticationError,
+                'order not found': OrderNotFound,
             },
         });
     }
@@ -598,30 +613,48 @@ module.exports = class whitebit extends Exchange {
     }
 
     sign (path, api = 'publicV1', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const query = this.omit (params, this.extractParams (path));
+        let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
-        if (Object.keys (query).length) {
-            url += '?' + this.urlencode (query);
+        if (api === 'publicV1' || api === 'publicV2') {
+            const queryKeysArray = Object.keys (query);
+            const queryKeysArrayLength = queryKeysArray.length;
+            if (queryKeysArrayLength > 0) {
+                url += '?' + this.urlencode (query);
+            }
+        } else if (api === 'privateV1') {
+            this.checkRequiredCredentials ();
+            const request = '/api/v1/' + this.implodeParams (path, params);
+            const nonce = this.nonce ().toString ();
+            query = this.extend ({
+                'nonce': nonce,
+                'request': request,
+            }, query);
+            body = this.json (query, { 'jsonUnescapedSlashes': true });
+            query = this.encode (body);
+            const payload = this.stringToBase64 (query);
+            const secret = this.encode (this.secret);
+            const signature = this.hmac (payload, secret, 'sha512');
+            headers = {
+                'Content-type': 'application/json',
+                'X-TXC-APIKEY': this.apiKey,
+                'X-TXC-PAYLOAD': this.decode (payload),
+                'X-TXC-SIGNATURE': signature,
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if ((code === 418) || (code === 429)) {
-            throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
-        }
-        if (code === 404) {
-            throw new ExchangeError (this.id + ' ' + code.toString () + ' endpoint not found');
+        if (code !== 200) {
+            const feedback = "\n" + 'id: ' + this.id + "\n" + 'url: ' + url + "\n" + 'request body: ' + requestBody + "\n" + 'code: ' + code + "\n" + 'body:' + "\n" + body; // eslint-disable-line quotes
+            this.throwExactlyMatchedException (this.httpExceptions, code.toString (), feedback);
         }
         if (response !== undefined) {
             const success = this.safeValue (response, 'success');
             if (!success) {
-                const feedback = this.id + ' ' + body;
-                const message = this.safeValue (response, 'message');
-                if (typeof message === 'string') {
-                    this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-                }
-                this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+                const messages = this.json (this.safeValue (response, 'message'));
+                const feedback = "\n" + 'id: ' + this.id + "\n" + 'url: ' + url + "\n" + 'request body: ' + requestBody + "\n" + 'Error: ' + messages + "\n" + 'body:' + "\n" + body; // eslint-disable-line quotes
+                this.throwBroadlyMatchedException (this.exceptions, messages, feedback);
                 throw new ExchangeError (feedback);
             }
         }
