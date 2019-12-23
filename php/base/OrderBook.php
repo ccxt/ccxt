@@ -57,8 +57,8 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
 
 class LimitedOrderBook extends OrderBook {
     public function __construct($snapshot = array(), $depth = null) {
-        $snapshot['asks'] = new LimitedAsks($snapshot['asks'] ? $snapshot['asks'] : array(), $depth);
-        $snapshot['bids'] = new LimitedBids($snapshot['bids'] ? $snapshot['bids'] : array(), $depth);
+        $snapshot['asks'] = new LimitedAsks(array_key_exists('asks', $snapshot) ? $snapshot['asks'] : array(), $depth);
+        $snapshot['bids'] = new LimitedBids(array_key_exists('bids', $snapshot) ? $snapshot['bids'] : array(), $depth);
         parent::__construct($snapshot);
     }
 }
@@ -70,8 +70,8 @@ class LimitedOrderBook extends OrderBook {
 
 class CountedOrderBook extends OrderBook {
     public function __construct($snapshot = array()) {
-        $snapshot['asks'] = new CountedAsks($snapshot['asks'] ? $snapshot['asks'] : array());
-        $snapshot['bids'] = new CountedBids($snapshot['bids'] ? $snapshot['bids'] : array());
+        $snapshot['asks'] = new CountedAsks(array_key_exists('asks', $snapshot) ? $snapshot['asks'] : array());
+        $snapshot['bids'] = new CountedBids(array_key_exists('bids', $snapshot) ? $snapshot['bids'] : array());
         parent::__construct($snapshot);
     }
 }
@@ -81,8 +81,8 @@ class CountedOrderBook extends OrderBook {
 
 class IndexedOrderBook extends OrderBook {
     public function __construct($snapshot = array()) {
-        $snapshot['asks'] = new IndexedAsks($snapshot['asks'] ? $snapshot['asks'] : array());
-        $snapshot['bids'] = new IndexedBids($snapshot['bids'] ? $snapshot['bids'] : array());
+        $snapshot['asks'] = new IndexedAsks(array_key_exists('asks', $snapshot) ? $snapshot['asks'] : array());
+        $snapshot['bids'] = new IndexedBids(array_key_exists('bids', $snapshot) ? $snapshot['bids'] : array());
         parent::__construct($snapshot);
     }
 }
@@ -92,8 +92,8 @@ class IndexedOrderBook extends OrderBook {
 
 class IncrementalOrderBook extends OrderBook {
     public function __construct($snapshot = array()) {
-        $snapshot['asks'] = new IncrementalAsks($snapshot['asks'] ? $snapshot['asks'] : array());
-        $snapshot['bids'] = new IncrementalBids($snapshot['bids'] ? $snapshot['bids'] : array());
+        $snapshot['asks'] = new IncrementalAsks(array_key_exists('asks', $snapshot) ? $snapshot['asks'] : array());
+        $snapshot['bids'] = new IncrementalBids(array_key_exists('bids', $snapshot) ? $snapshot['bids'] : array());
         parent::__construct($snapshot);
     }
 }
@@ -103,8 +103,8 @@ class IncrementalOrderBook extends OrderBook {
 
 class LimitedIndexedOrderBook extends OrderBook {
     public function __construct($snapshot = array(), $depth = null) {
-        $snapshot['asks'] = new LimitedIndexedAsks($snapshot['asks'] ? $snapshot['asks'] : array(), $depth);
-        $snapshot['bids'] = new LimitedIndexedBids($snapshot['bids'] ? $snapshot['bids'] : array(), $depth);
+        $snapshot['asks'] = new LimitedIndexedAsks(array_key_exists('asks', $snapshot) ? $snapshot['asks'] : array(), $depth);
+        $snapshot['bids'] = new LimitedIndexedBids(array_key_exists('bids', $snapshot) ? $snapshot['bids'] : array(), $depth);
         parent::__construct($snapshot);
     }
 }
@@ -114,8 +114,8 @@ class LimitedIndexedOrderBook extends OrderBook {
 
 class LimitedCountedOrderBook extends OrderBook {
     public function __construct($snapshot = array()) {
-        $snapshot['asks'] = new LimitedCountedAsks($snapshot['asks'] ? $snapshot['asks'] : array());
-        $snapshot['bids'] = new LimitedCountedBids($snapshot['bids'] ? $snapshot['bids'] : array());
+        $snapshot['asks'] = new LimitedCountedAsks(array_key_exists('asks', $snapshot) ? $snapshot['asks'] : array());
+        $snapshot['bids'] = new LimitedCountedBids(array_key_exists('bids', $snapshot) ? $snapshot['bids'] : array());
         parent::__construct($snapshot);
     }
 }
@@ -125,8 +125,8 @@ class LimitedCountedOrderBook extends OrderBook {
 
 class IncrementalIndexedOrderBook extends OrderBook {
     public function __construct($snapshot = array()) {
-        $snapshot['asks'] = new IncrementalIndexedAsks($snapshot['asks'] ? $snapshot['asks'] : array());
-        $snapshot['bids'] = new IncrementalIndexedBids($snapshot['bids'] ? $snapshot['bids'] : array());
+        $snapshot['asks'] = new IncrementalIndexedAsks(array_key_exists('asks', $snapshot) ? $snapshot['asks'] : array());
+        $snapshot['bids'] = new IncrementalIndexedBids(array_key_exists('bids', $snapshot) ? $snapshot['bids'] : array());
         parent::__construct($snapshot);
     }
 }
