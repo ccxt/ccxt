@@ -324,7 +324,7 @@ module.exports = class coinsbit extends Exchange {
         await this.loadMarkets ();
         const response = await this.privatePostAccountOrderHistory (params);
         const result = this.safeValue (response, 'result');
-        if (this.isArray (result)) {
+        if (Array.isArray (result)) {
             // User has no closed orders yet.
             return [];
         }
