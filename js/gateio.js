@@ -769,7 +769,7 @@ module.exports = class gateio extends Exchange {
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'message', body);
         if (errorCode !== undefined) {
-            const feedback = this.safeString (this.errorCodeNames, errorCode, message);
+            const feedback = this.safeString (this.exceptions['errorCodeNames'], errorCode, message);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         }
     }
