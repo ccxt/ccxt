@@ -203,13 +203,19 @@ class kraken extends \ccxt\kraken {
         $client->resolve ($result, $messageHash);
     }
 
+    public function reqid () {
+        $reqid = $this->sum ($this->safe_integer($this->options, 'reqid', 0), 1);
+        $this->options['reqid'] = $reqid;
+        return $reqid;
+    }
+
     public function watch_public ($name, $symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $wsName = $this->safe_value($market['info'], 'wsname');
         $messageHash = $name . ':' . $wsName;
         $url = $this->urls['api']['ws']['public'];
-        $requestId = $this->nonce ();
+        $requestId = $this->reqid ();
         $subscribe = array(
             'event' => 'subscribe',
             'reqid' => $requestId,

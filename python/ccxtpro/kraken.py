@@ -196,13 +196,18 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         messageHash = name + ':' + wsName
         client.resolve(result, messageHash)
 
+    def reqid(self):
+        reqid = self.sum(self.safe_integer(self.options, 'reqid', 0), 1)
+        self.options['reqid'] = reqid
+        return reqid
+
     async def watch_public(self, name, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
         wsName = self.safe_value(market['info'], 'wsname')
         messageHash = name + ':' + wsName
         url = self.urls['api']['ws']['public']
-        requestId = self.nonce()
+        requestId = self.reqid()
         subscribe = {
             'event': 'subscribe',
             'reqid': requestId,
