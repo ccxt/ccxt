@@ -114,9 +114,6 @@ module.exports = class whitebit extends Exchange {
                     'maker': 0.001,
                 },
             },
-            'options': {
-                'fetchTradesMethod': 'fetchTradesV1',
-            },
             'exceptions': {
                 'Market is not available': BadSymbol, // {"success":false,"message":{"market":["Market is not available"]},"result":[]}
                 'balance not enough': InsufficientFunds,
@@ -504,8 +501,7 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const method = this.safeString (this.options, 'fetchTradesMethod', 'fetchTradesV2');
-        return await this[method] (symbol, since, limit, params);
+        return await this.fetchTradesV1 (symbol, since, limit, params);
     }
 
     parseTrade (trade, market = undefined) {
