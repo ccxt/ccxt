@@ -199,6 +199,7 @@ module.exports = class kraken extends ccxt.kraken {
     }
 
     reqid () {
+        // their support said that reqid must be an int32, not documented
         const reqid = this.sum (this.safeInteger (this.options, 'reqid', 0), 1);
         this.options['reqid'] = reqid;
         return reqid;
