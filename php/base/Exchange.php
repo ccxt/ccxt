@@ -716,6 +716,7 @@ class Exchange {
     public static function json($data, $params = array()) {
         $options = array(
             'convertArraysToObjects' => JSON_FORCE_OBJECT,
+            'jsonUnescapedSlashes' => JSON_UNESCAPED_SLASHES,
             // other flags if needed...
         );
         $flags = 0;
