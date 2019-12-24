@@ -1945,14 +1945,6 @@ class Exchange(object):
         )
         return '0x' + base64.b16encode(sha3).decode('ascii').lower()
 
-    def signZeroExOrder(self, order, privateKey):
-        orderHash = self.getZeroExOrderHash(order)
-        signature = self.signMessage(orderHash[-64:], privateKey)
-        return self.extend(order, {
-            'orderHash': orderHash,
-            'ecSignature': signature,  # todo fix v if needed
-        })
-
     def signZeroExOrderV2(self, order, privateKey):
         orderHash = self.getZeroExOrderHashV2(order)
         signature = self.signMessage(orderHash[-64:], privateKey)
