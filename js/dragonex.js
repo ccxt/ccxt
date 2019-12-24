@@ -873,7 +873,7 @@ module.exports = class dragonex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return;
         }
         if ('code' in response) {
             if (response['code'] !== 1) {
