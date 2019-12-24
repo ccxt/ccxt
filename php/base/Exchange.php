@@ -1148,10 +1148,11 @@ class Exchange {
             $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true, 'extraEntropy' => $count->toArray('le', 32)));
             $count = $count->add(new BN('1'));
         }
-        $signature = array();
-        $signature['r'] = $ellipticSignature->r->bi->toHex();
-        $signature['s'] = $ellipticSignature->s->bi->toHex();
-        $signature['v'] = $ellipticSignature->recoveryParam;
+        $signature = array(
+            'r' =>  $ellipticSignature->r->bi->toHex(),
+            's' => $ellipticSignature->s->bi->toHex(),
+            'v' => $ellipticSignature->recoveryParam,
+        );
         return $signature;
     }
 
@@ -2740,9 +2741,10 @@ class Exchange {
     }
 
     public static function hashMessage($message) {
-        $buffer = unpack('C*', hex2bin($message));
+        $trimmed = ltrim($message, '0x');
+        $buffer = unpack('C*', hex2bin($trimmed));
         $prefix = bin2hex("\u{0019}Ethereum Signed Message:\n" . sizeof($buffer));
-        return '0x' . Keccak::hash(hex2bin($prefix . $message), 256);
+        return '0x' . Keccak::hash(hex2bin($prefix . $trimmed), 256);
     }
 
     public static function signHash($hash, $privateKey) {
