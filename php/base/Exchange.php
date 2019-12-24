@@ -2730,15 +2730,6 @@ class Exchange {
         return call_user_func_array('\kornrunner\Solidity::sha3', $unpacked);
     }
 
-    public function signZeroExOrder($order, $privateKey) {
-        $orderHash = $this->getZeroExOrderHash($order);
-        $signature = $this->signMessage($orderHash, $privateKey);
-        return array_merge($order, array(
-            'orderHash' => $orderHash,
-            'ecSignature' => $signature, // todo fix v if needed
-        ));
-    }
-
     public static function hashMessage($message) {
         $trimmed = ltrim($message, '0x');
         $buffer = unpack('C*', hex2bin($trimmed));
