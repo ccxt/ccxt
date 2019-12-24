@@ -14,7 +14,7 @@ module.exports = class whitebit extends Exchange {
             'name': 'WhiteBit',
             'version': 'v2',
             'countries': [ 'EE' ],
-            'rateLimit': 500,
+            'rateLimit': 1000,
             'has': {
                 'cancelOrder': true,
                 'CORS': false,
@@ -630,7 +630,7 @@ module.exports = class whitebit extends Exchange {
         //         "limit": 100,
         //         "offset": 0,
         //         "total": 1,
-        //         "result": [
+        //         "records": [
         //             {
         //                 "id": 3900714,
         //                 "left": "1",
