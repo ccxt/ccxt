@@ -1268,8 +1268,21 @@ module.exports = class Exchange {
 
     soliditySha3 (array) {
         // we only support address, uint256, and string solidity types
-        const encoded = array.map (value => (typeof value === 'string' ? (value.slice (0, 2) === '0x' ? this.base16ToBinary (value.slice (2)) : this.stringToBinary (value)) : this.numberToBE (value, 32)))
-        return '0x' + this.hash (this.binaryConcatArray (encoded), 'keccak', 'hex')
+        const encoded = []
+        for (const value of array) {
+            if (Number.isInteger (value) || value.match (/^[0-9]+$/)) {
+                encoded.push (this.numberToBE (this.numberToString (value), 32))
+            } else {
+                const noPrefix = Exchange.remove0xPrefix (value)
+                if (noPrefix.length === 40 && noPrefix.toLowerCase ().match (/^[0-9a-f]+$/)) { // check if it is an address
+                    encoded.push (this.base16ToBinary (noPrefix))
+                } else {
+                    encoded.push (this.stringToBinary (noPrefix))
+                }
+            }
+        }
+        const concated = this.binaryConcatArray (encoded)
+        return '0x' + this.hash (concated, 'keccak', 'hex')
     }
 
     getZeroExOrderHash (order) {
