@@ -6,6 +6,8 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ArgumentsRequired;
+use \ccxt\InvalidOrder;
 
 class coinex extends Exchange {
 

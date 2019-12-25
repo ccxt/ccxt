@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
@@ -112,39 +113,43 @@ class gateio(Exchange):
                 },
             },
             'exceptions': {
-                '4': DDoSProtection,
-                '7': NotSupported,
-                '8': NotSupported,
-                '9': NotSupported,
-                '15': DDoSProtection,
-                '16': OrderNotFound,
-                '17': OrderNotFound,
-                '20': InvalidOrder,
-                '21': InsufficientFunds,
-            },
-            # https://gate.io/api2#errCode
-            'errorCodeNames': {
-                '1': 'Invalid request',
-                '2': 'Invalid version',
-                '3': 'Invalid request',
-                '4': 'Too many attempts',
-                '5': 'Invalid sign',
-                '6': 'Invalid sign',
-                '7': 'Currency is not supported',
-                '8': 'Currency is not supported',
-                '9': 'Currency is not supported',
-                '10': 'Verified failed',
-                '11': 'Obtaining address failed',
-                '12': 'Empty params',
-                '13': 'Internal error, please report to administrator',
-                '14': 'Invalid user',
-                '15': 'Cancel order too fast, please wait 1 min and try again',
-                '16': 'Invalid order id or order is already closed',
-                '17': 'Invalid orderid',
-                '18': 'Invalid amount',
-                '19': 'Not permitted or trade is disabled',
-                '20': 'Your order size is too small',
-                '21': 'You don\'t have enough fund',
+                'exact': {
+                    '4': DDoSProtection,
+                    '5': AuthenticationError,  # {result: "false", code:  5, message: "Error: invalid key or sign, please re-generate it from your account"}
+                    '6': AuthenticationError,  # {result: 'false', code: 6, message: 'Error: invalid data  '}
+                    '7': NotSupported,
+                    '8': NotSupported,
+                    '9': NotSupported,
+                    '15': DDoSProtection,
+                    '16': OrderNotFound,
+                    '17': OrderNotFound,
+                    '20': InvalidOrder,
+                    '21': InsufficientFunds,
+                },
+                # https://gate.io/api2#errCode
+                'errorCodeNames': {
+                    '1': 'Invalid request',
+                    '2': 'Invalid version',
+                    '3': 'Invalid request',
+                    '4': 'Too many attempts',
+                    '5': 'Invalid sign',
+                    '6': 'Invalid sign',
+                    '7': 'Currency is not supported',
+                    '8': 'Currency is not supported',
+                    '9': 'Currency is not supported',
+                    '10': 'Verified failed',
+                    '11': 'Obtaining address failed',
+                    '12': 'Empty params',
+                    '13': 'Internal error, please report to administrator',
+                    '14': 'Invalid user',
+                    '15': 'Cancel order too fast, please wait 1 min and try again',
+                    '16': 'Invalid order id or order is already closed',
+                    '17': 'Invalid orderid',
+                    '18': 'Invalid amount',
+                    '19': 'Not permitted or trade is disabled',
+                    '20': 'Your order size is too small',
+                    '21': 'You don\'t have enough fund',
+                },
             },
             'options': {
                 'fetchTradesMethod': 'public_get_tradehistory_id',  # 'public_get_tradehistory_id_tid'
@@ -712,5 +717,5 @@ class gateio(Exchange):
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string(response, 'message', body)
         if errorCode is not None:
-            feedback = self.safe_string(self.errorCodeNames, errorCode, message)
+            feedback = self.safe_string(self.exceptions['errorCodeNames'], errorCode, message)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
