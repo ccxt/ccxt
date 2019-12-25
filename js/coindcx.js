@@ -262,7 +262,7 @@ module.exports = class coindcx extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeInteger2 (trade, 't', 'timestamp');
+        const timestamp = this.safeInteger2 (trade, 'T', 'timestamp');
         let symbol = undefined;
         if (market === undefined) {
             const marketId = this.safeString2 (trade, 's', 'symbol');
