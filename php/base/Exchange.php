@@ -1140,7 +1140,7 @@ class Exchange {
             $digest = static::hash($request, $hash, 'hex');
         }
         $ec = new EC(strtolower($algorithm));
-        $key = $ec->keyFromPrivate($secret);
+        $key = $ec->keyFromPrivate(ltrim($secret, '0x'));
         $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true));
         $count = new BN ('0');
         $minimumSize = (new BN ('1'))->shln (8 * 31)->sub (new BN ('1'));
