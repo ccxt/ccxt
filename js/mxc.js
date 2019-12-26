@@ -433,7 +433,10 @@ module.exports = class mxc extends Exchange {
         // XXX: MXC returns order creation times in GMT+8 timezone with out specifying it
         //  hence appending ' GMT+8' to it so we can get the correct value
         // XXX: Also MXC api does not return actual matched prices and costs/fees
-        const timestamp = this.parseDate (dateStr + '  GMT+8');
+        let timestamp = undefined;
+        if (dateStr !== undefined) {
+            this.parseDate (dateStr + '  GMT+8');
+        }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const side = this.parseOrderSide (this.safeString (order, 'type'));
         const price = this.safeFloat (order, 'price');
