@@ -325,14 +325,18 @@ module.exports = class mxc extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const ticker = await this.publicGetTickerId (this.extend ({
+        const ticker = await this.publicGetTicker (this.extend ({
             'market': this.marketId (symbol),
         }, params));
         return this.parseTicker (ticker, market);
     }
 
     parseTrade (trade, market = undefined) {
-        const trade_time = this.safeValue (trade, 'tradeTime');
+        const dateStr = this.safeValue (trade, 'tradeTime');
+        let timestamp = undefined;
+        if (dateStr !== undefined) {
+            timestamp = this.parseDate (dateStr + '  GMT+8');
+        }
         // take either of orderid or orderId
         const price = this.safeFloat (trade, 'tradePrice');
         const amount = this.safeFloat (trade, 'tradeQuantity');
@@ -350,8 +354,8 @@ module.exports = class mxc extends Exchange {
         return {
             'id': undefined,
             'info': trade,
-            'timestamp': undefined,
-            'datetime': trade_time,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'order': undefined,
             'type': undefined,
@@ -435,7 +439,7 @@ module.exports = class mxc extends Exchange {
         // XXX: Also MXC api does not return actual matched prices and costs/fees
         let timestamp = undefined;
         if (dateStr !== undefined) {
-            this.parseDate (dateStr + '  GMT+8');
+            timestamp = this.parseDate (dateStr + '  GMT+8');
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const side = this.parseOrderSide (this.safeString (order, 'type'));
