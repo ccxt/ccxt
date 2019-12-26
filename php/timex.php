@@ -475,7 +475,7 @@ class timex extends Exchange {
             $expireIn = $this->safe_value($params, 'expireIn', $defaultExpireIn);
             if ($expireTime !== null) {
                 $request['expireTime'] = $expireTime;
-            } else if ($expireIn === null) {
+            } else if ($expireIn !== null) {
                 $request['expireIn'] = $expireIn;
             } else {
                 throw new InvalidOrder($this->id . ' createOrder method requires a $expireTime or $expireIn param for a ' . $type . ' $order, you can also set the $expireIn exchange-wide option');
