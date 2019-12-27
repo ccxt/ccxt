@@ -496,7 +496,7 @@ Here’s an overview of base exchange properties with values added for example:
            'fetchTrades': true,
            'withdraw': false,
        },
-       'timeframes': {                     // empty if the exchange !has.fetchOHLCV
+       'timeframes': {                     // empty if the exchange.has['fetchOHLCV'] !== true
            '1m': '1minute',
            '1h': '1hour',
            '1d': '1day',
@@ -792,7 +792,7 @@ In the first example the **amount** of any order placed on the market **must sat
       + good: 0.05, 0.051, 0.0501, 0.0502, ..., 0.0599, 0.06, 0.0601, ...
       - bad: 0.04, 0.049, 0.0499
 
--  *Precision of the amount* should up to 4 decimal digits:
+-  *Precision of the amount* should be up to 4 decimal digits:
 
    .. code:: diff
 
@@ -819,7 +819,7 @@ In the second example the **price** of any order placed on the market **must sat
 
 3. ``(market['limits']['amount']['min'] == 50) && (market['precision']['amount'] == -1)``
 
--  The *amount value* should be greater than 50:
+-  The *amount value* should be greater than or equal to 50:
 
    .. code:: diff
 
@@ -840,12 +840,12 @@ Notes On Precision And Limits
 
 The user is required to stay within all limits and precision! The values of the order should satisfy the following conditions:
 
--  Order ``amount`` > ``limits['min']['amount']``
--  Order ``amount`` < ``limits['max']['amount']``
--  Order ``price`` > ``limits['min']['price']``
--  Order ``price`` < ``limits['max']['price']``
--  Order ``cost`` (``amount * price``) > ``limits['min']['cost']``
--  Order ``cost`` (``amount * price``) < ``limits['max']['cost']``
+-  Order ``amount`` >= ``limits['min']['amount']``
+-  Order ``amount`` <= ``limits['max']['amount']``
+-  Order ``price`` >= ``limits['min']['price']``
+-  Order ``price`` <= ``limits['max']['price']``
+-  Order ``cost`` (``amount * price``) >= ``limits['min']['cost']``
+-  Order ``cost`` (``amount * price``) <= ``limits['max']['cost']``
 -  Precision of ``amount`` must be <= ``precision['amount']``
 -  Precision of ``price`` must be <= ``precision['price']``
 
