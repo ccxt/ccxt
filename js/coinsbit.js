@@ -59,6 +59,7 @@ module.exports = class coinsbit extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchMarkets': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': 'emulated',
                 'fetchOpenOrders': true,
                 'fetchOrder': false,
@@ -247,21 +248,37 @@ module.exports = class coinsbit extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let symbol = undefined;
+        let currency = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
+            currency = market['quote'];
         }
         const id = this.safeString (trade, 'tid');
         let timestamp = undefined;
         if ('date' in trade) {
             timestamp = this.safeTimestamp (trade, 'date');
-        } else {
+        } else if ('time' in trade) {
             timestamp = this.safeTimestamp (trade, 'time');
+        } else if ('ftime' in trade) {
+            timestamp = this.safeTimestamp (trade, 'ftime');
         }
         const datetime = this.iso8601 (timestamp);
-        const side = this.safeString (trade, 'type');
-        const price = this.safeFloat (trade, 'price');
+        let side = undefined;
+        if ('side' in trade) {
+            side = this.safeString (trade, 'side');
+        } else if ('type' in trade) {
+            side = this.safeString (trade, 'type');
+        }
+        let price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
-        const cost = this.safeFloat (trade, 'total');
+        const cost = this.safeFloat (trade, 'dealMoney');
+        if (price === 0) {
+            price = cost / amount;
+        }
+        const fee = {
+            'currency': currency,
+            'cost': this.safeFloat (trade, 'dealFee'),
+        };
         return {
             'info': trade,
             'id': id,
@@ -275,7 +292,7 @@ module.exports = class coinsbit extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -331,6 +348,22 @@ module.exports = class coinsbit extends Exchange {
         const market = this.market (symbol);
         const orders = this.safeValue (result, market['id'], []);
         return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const response = await this.privatePostAccountOrderHistory (params);
+        const result = this.safeValue (response, 'result');
+        if (Array.isArray (result)) {
+            // User has no closed orders yet.
+            return [];
+        }
+        const market = this.market (symbol);
+        const orders = this.safeValue (result, market['id'], []);
+        return this.parseTrades (orders, market, since, limit);
     }
 
     parseOrder (order, market = undefined) {
