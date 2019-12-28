@@ -18,9 +18,7 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
         parent::__construct();
         $this->index = new Map();  // support for floating point keys
         $this->data = array();
-        foreach ($deltas as $delta) {
-            $this->storeArray($delta);
-        }
+        $this->update($deltas);
     }
 
     public function storeArray($delta) {
@@ -59,6 +57,12 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
 
     public function JsonSerialize () {
         return $this->getArrayCopy();
+    }
+
+    public function update($deltas) {
+        foreach ($deltas as $delta) {
+            $this->storeArray($delta);
+        }
     }
 }
 
