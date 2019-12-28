@@ -13,8 +13,7 @@ class OrderBookSide(list):
         # allocate memory for the list here (it will not be resized...)
         super(OrderBookSide, self).__init__()
         self._index = {}
-        for delta in deltas:
-            self.storeArray(delta)
+        self.update(deltas)
 
     def storeArray(self, delta):
         price = delta[0]
@@ -41,6 +40,10 @@ class OrderBookSide(list):
         self.clear()
         self.extend(array)
         return self
+
+    def update(self, deltas):
+        for delta in deltas:
+            self.storeArray(delta)
 
 
 # -----------------------------------------------------------------------------
