@@ -33,20 +33,21 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
         return $this;
     }
 
-    public function update($nonce, $timestamp, $asks, $bids) {
-        if ($nonce !== null && $this['nonce'] !== null && $nonce < $this['nonce']) {
-            return $this;
-        }
-        foreach ($asks as $ask) {
-            $this['asks']->storeArray($ask);
-        }
-        foreach ($bids as $bid) {
-            $this['bid']->storeArray($bid);
-        }
+    public function reset($nonce, $timestamp, &$asks, &$bids) {
+        $this['asks']->update($asks);
+        $this['bids']->update($bids);
         $this['nonce'] = $nonce;
         $this['timestamp'] = $timestamp;
         $this['datetime'] = \ccxt\Exchange::iso8601($timestamp);
-        return $this;
+    }
+
+    public function update($snapshot) {
+        $nonce = @$snapshot['nonce'];
+        if ($nonce !== null && $this['nonce'] !== null && $nonce < $this['nonce']) {
+            return $this;
+        }
+        $timestamp = @$snapshot['timestamp'];
+        return @$this->reset($nonce, $timestamp, $snapshot['asks'], $snapshot['bids']);
     }
 }
 
