@@ -24,7 +24,8 @@ class OrderBookSide extends Array {
         for (let i = 0; i < deltas.length; i++) {
             this.storeArray (deltas[i])
         }
-        return this.limit ()
+        return this
+        // return this.limit ()
     }
 
     store (price, size) {
