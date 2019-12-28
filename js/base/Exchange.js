@@ -63,6 +63,12 @@ module.exports = class Exchange extends ccxt.Exchange {
         return method.apply (this, [ result, ... args ])
     }
 
+    spawn (method, ... args) {
+        ((method.bind (this)) (... args)).catch ((e) => {
+            // todo: handle spawned errors
+        })
+    }
+
     watch (url, messageHash, message = undefined, subscribeHash = undefined) {
         //
         // Without comments the code of this method is short and easy:
