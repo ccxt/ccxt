@@ -27,6 +27,7 @@ class binance(ccxtpro.Exchange, ccxt.binance):
             },
             'options': {
                 'marketsByLowerCaseId': {},
+                'subscriptions': {},
             },
         })
 
@@ -99,6 +100,12 @@ class binance(ccxtpro.Exchange, ccxt.binance):
             ],
             'id': requestId,
         }
+        requestId = str(requestId)
+        self.options['subscriptions'][requestId] = {
+            'messageHash': messageHash,
+            'name': name,
+            'symbol': symbol,
+        }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
         # self.onetwo = future
         # client = self.clients[url]
@@ -150,12 +157,6 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         # initial snapshot is fetched with ccxt's fetchOrderBook
         # the feed does not include a snapshot, just the deltas
         #
-        #
-        fetching = False
-        if not fetching:
-            # fetch the snapshot in a separate async call
-            # self.spawn(self.fetch_order_book_snapshot, ...)
-            raise NotSupported(self.id + ' snapshot fetching is wip')
         if symbol in self.orderbooks:
             orderbook = self.orderbooks[symbol]
             # resolve
@@ -188,6 +189,19 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         # todo: binance signMessage not implemented yet
         return message
 
+    def handle_order_book_subscription(self, client, message, params={}):
+        symbol = self.safe_string(params, 'symbol')
+        # print(self.id, params, message)
+        # print('+++++++++++++++++++++++++++')
+        # sys.exit()
+        # fetch the snapshot in a separate async call
+        self.spawn(self.fetch_order_book_snapshot, symbol)
+        raise NotSupported(self.id + ' snapshot fetching is wip ' + symbol)
+        # self.
+        # fetching = False
+        # if not fetching:
+        # }
+
     def handle_subscription_status(self, client, message):
         #
         #     {
@@ -195,6 +209,16 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         #         "id": 1574649734450
         #     }
         #
+        requestId = self.safe_string(message, 'id')
+        subscription = self.safe_value(self.options['subscriptions'], requestId)
+        if subscription is not None:
+            name = self.safe_string(subscription, 'name')
+            methods = {
+                'depth': self.handle_order_book_subscription,
+            }
+            method = self.safe_value(methods, name)
+            if method is not None:
+                return self.call(method, client, message, subscription)
         return message
 
     def handle_message(self, client, message):
