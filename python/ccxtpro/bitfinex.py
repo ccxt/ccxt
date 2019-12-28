@@ -145,10 +145,6 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
 
     def handle_subscription_status(self, client, message):
         #
-        # todo: answer the question whether handleSubscriptionStatus should be renamed
-        # and unified as handleResponse for any usage pattern that
-        # involves an identified request/response sequence
-        #
         #     {
         #         event: 'subscribed',
         #         channel: 'book',
@@ -159,8 +155,6 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
         #         len: '25',
         #         pair: 'BTCUSD'
         #     }
-        #
-        # --------------------------------------------------------------------
         #
         channelId = self.safe_string(message, 'chanId')
         self.options['subscriptionsByChannelId'][channelId] = message
@@ -177,16 +171,16 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
             subscription = self.safe_value(self.options['subscriptionsByChannelId'], channelId, {})
             channel = self.safe_string(subscription, 'channel')
             methods = {
-                'book': 'handleOrderBook',
-                # 'ohlc': 'handleOHLCV',
-                # 'ticker': 'handleTicker',
-                # 'trade': 'handleTrades',
+                'book': self.handle_order_book,
+                # 'ohlc': self.handleOHLCV,
+                # 'ticker': self.handleTicker,
+                # 'trade': self.handleTrades,
             }
-            method = self.safe_string(methods, channel)
+            method = self.safe_value(methods, channel)
             if method is None:
                 return message
             else:
-                return getattr(self, method)(client, message)
+                return self.call(method, client, message)
         else:
             # todo: add bitfinex handleErrorMessage
             #
@@ -200,12 +194,12 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
             event = self.safe_string(message, 'event')
             if event is not None:
                 methods = {
-                    'info': 'handleSystemStatus',
+                    'info': self.handle_system_status,
                     # 'book': 'handleOrderBook',
-                    'subscribed': 'handleSubscriptionStatus',
+                    'subscribed': self.handle_subscription_status,
                 }
-                method = self.safe_string(methods, event)
+                method = self.safe_value(methods, event)
                 if method is None:
                     return message
                 else:
-                    return getattr(self, method)(client, message)
+                    return self.call(method, client, message)

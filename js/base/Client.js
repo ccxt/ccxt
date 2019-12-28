@@ -217,7 +217,9 @@ module.exports = class Client {
             // reset with a json encoding error ?
         }
         if (this.onMessageCallback.constructor.name === "AsyncFunction") {
-            await this.onMessageCallback (this, message)
+            this.onMessageCallback (this, message).catch ((e) => {
+                // todo: handle async onMessageCallback errors
+            })
         } else {
             this.onMessageCallback (this, message)
         }

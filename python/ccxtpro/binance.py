@@ -5,6 +5,7 @@
 
 import ccxtpro
 import ccxt.async_support as ccxt
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 
 
@@ -19,9 +20,9 @@ class binance(ccxtpro.Exchange, ccxt.binance):
             },
             'urls': {
                 'api': {
-                    # 'ws': 'wss://stream.binance.com:9443/ws',
+                    'ws': 'wss://stream.binance.com:9443/ws',
                     # 'ws': 'wss://echo.websocket.org/',
-                    'ws': 'ws://127.0.0.1:8080',
+                    # 'ws': 'ws://127.0.0.1:8080',
                 },
             },
             'options': {
@@ -75,33 +76,52 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         raise NotSupported(self.id + ' handleOHLCV not implemented yet ' + self.json(ohlcv))
 
     async def watch_order_book(self, symbol, limit=None, params={}):
+        # for 1000ms: <symbol>@depth<levels>
+        # OR
+        # for 100ms: <symbol>@depth<levels>@100ms
+        # valid <levels> are 5, 10, or 20
+        if limit is not None:
+            if (limit != 25) and (limit != 100):
+                raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 5, 10 or 20')
         await self.load_markets()
         market = self.market(symbol)
         # self should be executed much later
         # orderbook = await self.fetch_order_book(symbol, limit, params)
         # request = {}
         name = 'depth'
-        stream = market['lowercaseId'] + '@' + name
-        url = self.urls['api']['ws']  # + '/' + stream
+        messageHash = market['lowercaseId'] + '@' + name
+        url = self.urls['api']['ws']  # + '/' + messageHash
         requestId = self.nonce()
         request = {
             'method': 'SUBSCRIBE',
             'params': [
-                stream,
+                messageHash,
             ],
             'id': requestId,
         }
-        messageHash = stream
-        future = self.watch(url, messageHash, self.extend(request, params), messageHash)
-        client = self.clients[url]
-        client['futures'][requestId] = future
-        raise NotSupported(self.id + ' watchOrderBook not implemented yet')
+        return await self.watch(url, messageHash, self.extend(request, params), messageHash)
+        # self.onetwo = future
+        # client = self.clients[url]
+        # client['futures'][requestId] = future
+        # return await future  # self.watch(url, messageHash, self.extend(request, params), messageHash)
+        # raise NotSupported(self.id + ' watchOrderBook not implemented yet')
         # return future
 
+    async def fetch_order_book_snapshot(self, symbol):
+        # todo: self is sync in php - make it async
+        snapshot = await self.fetch_order_book(symbol)
+        orderbook = self.orderbooks[symbol]
+        orderbook.update(snapshot)
+        # asks = orderbook['asks']
+        # for i in range(0, len(snapshot['asks'])):
+        #     asks.storeArray(snapshot['asks'][i])
+        # }
+        # bids = orderbook['bids']
+        # for i in range(0, len(snapshot['bids'])):
+        #     bids.storeArray(snapshot['bids'][i])
+        # }
+
     def handle_order_book(self, client, message):
-        #
-        # initial snapshot is fetched with ccxt's fetchOrderBook
-        # the feed does not include a snapshot, just the deltas
         #
         #     {
         #         "e": "depthUpdate",  # Event type
@@ -117,22 +137,52 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         #         ]
         #     }
         #
-        deltas = []
-        nonce = message['u']
-        for i in range(0, len(message['b'])):
-            bid = message['b'][i]
-            deltas.append([nonce, 'absolute', 'bids', float(bid[0]), float(bid[1])])
-        for i in range(0, len(message['a'])):
-            asks = message['a'][i]
-            deltas.append([nonce, 'absolute', 'asks', float(asks[0]), float(asks[1])])
-        symbol = self.parseSymbol(message)
-        incrementalBook = self.orderbooks[symbol]
-        incrementalBook.update(deltas)
-        timestamp = self.safe_integer(message, 'E')
-        incrementalBook.message['timestamp'] = timestamp
-        incrementalBook.message['datetime'] = self.iso8601(timestamp)
-        incrementalBook.message['nonce'] = message['u']
-        return incrementalBook.orderBook
+        marketId = self.safe_string(message, 's')
+        market = None
+        symbol = None
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+        name = 'depth'
+        messageHash = market['lowercaseId'] + '@' + name
+        #
+        # initial snapshot is fetched with ccxt's fetchOrderBook
+        # the feed does not include a snapshot, just the deltas
+        #
+        #
+        fetching = False
+        if not fetching:
+            # fetch the snapshot in a separate async call
+            # self.spawn(self.fetch_order_book_snapshot, ...)
+            raise NotSupported(self.id + ' snapshot fetching is wip')
+        if symbol in self.orderbooks:
+            orderbook = self.orderbooks[symbol]
+            # resolve
+            client.resolve(orderbook, messageHash)
+        else:
+            # accumulate deltas
+            self.options['cache'][symbol] = []
+            self.options['cache'][messageHash].append(message)
+        # orderbook = self.order
+        # deltas = []
+        # nonce = message['u']
+        # for i in range(0, len(message['b'])):
+        #     bid = message['b'][i]
+        #     deltas.append([nonce, 'absolute', 'bids', float(bid[0]), float(bid[1])])
+        # }
+        # for i in range(0, len(message['a'])):
+        #     asks = message['a'][i]
+        #     deltas.append([nonce, 'absolute', 'asks', float(asks[0]), float(asks[1])])
+        # }
+        # symbol = self.parseSymbol(message)
+        # incrementalBook = self.orderbooks[symbol]
+        # incrementalBook.update(deltas)
+        # timestamp = self.safe_integer(message, 'E')
+        # incrementalBook.message['timestamp'] = timestamp
+        # incrementalBook.message['datetime'] = self.iso8601(timestamp)
+        # incrementalBook.message['nonce'] = message['u']
+        # return incrementalBook.orderBook
 
     def sign_message(self, client, messageHash, message, params={}):
         # todo: binance signMessage not implemented yet
@@ -140,23 +190,29 @@ class binance(ccxtpro.Exchange, ccxt.binance):
 
     def handle_subscription_status(self, client, message):
         #
-        # todo: answer the question whether handleSubscriptionStatus should be renamed
-        # and unified as handleResponse for any usage pattern that
-        # involves an identified request/response sequence
-        #
         #     {
         #         "result": null,
         #         "id": 1574649734450
         #     }
         #
-        channelId = self.safe_string(message, 'channelID')
-        self.options['subscriptionStatusByChannelId'][channelId] = message
-        requestId = self.safe_string(message, 'reqid')
-        if client.futures[requestId]:
-            del client.futures[requestId]
+        return message
 
     def handle_message(self, client, message):
-        print(message)
+        # requestId = self.safe_string(
+        methods = {
+            'depthUpdate': self.handle_order_book,
+        }
+        event = self.safe_string(message, 'e')
+        method = self.safe_string(methods, event)
+        if method is None:
+            requestId = self.safe_string(message, 'id')
+            if requestId is not None:
+                return self.handle_subscription_status(client, message)
+            return message
+        else:
+            return self.call(method, client, message)
+        # print(message)
+        # sys.exit()
         #
         # keys = list(client.futures.keys())
         # for i in range(0, len(keys)):

@@ -442,10 +442,6 @@ class bitmex extends \ccxt\bitmex {
 
     public function handle_subscription_status ($client, $message) {
         //
-        // todo => answer the question whether handleSubscriptionStatus should be renamed
-        // and unified as handleResponse for any usage pattern that
-        // involves an identified request/response sequence
-        //
         //     {
         //         success => true,
         //         subscribe => 'orderBookL2:XBTUSD',

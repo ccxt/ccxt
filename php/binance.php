@@ -7,6 +7,7 @@ namespace ccxtpro;
 
 use \ccxtpro\ClientTrait; // websocket functionality
 use Exception; // a common import
+use \ccxt\ExchangeError;
 use \ccxt\NotSupported;
 
 class binance extends \ccxt\binance {
@@ -22,9 +23,9 @@ class binance extends \ccxt\binance {
             ),
             'urls' => array(
                 'api' => array(
-                    // 'ws' => 'wss://stream.binance.com:9443/ws',
+                    'ws' => 'wss://stream.binance.com:9443/ws',
                     // 'ws' => 'wss://echo.websocket.org/',
-                    'ws' => 'ws://127.0.0.1:8080',
+                    // 'ws' => 'ws://127.0.0.1:8080',
                 ),
             ),
             'options' => array(
@@ -86,34 +87,56 @@ class binance extends \ccxt\binance {
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
+        // for 1000ms => <$symbol>@depth<levels>
+        // OR
+        // for 100ms => <$symbol>@depth<levels>@100ms
+        // valid <levels> are 5, 10, or 20
+        if ($limit !== null) {
+            if (($limit !== 25) && ($limit !== 100)) {
+                throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 5, 10 or 20');
+            }
+        }
         $this->load_markets();
         $market = $this->market ($symbol);
         // this should be executed much later
         // $orderbook = $this->fetch_order_book($symbol, $limit, $params);
         // $request = array();
         $name = 'depth';
-        $stream = $market['lowercaseId'] . '@' . $name;
-        $url = $this->urls['api']['ws']; // . '/' . $stream;
+        $messageHash = $market['lowercaseId'] . '@' . $name;
+        $url = $this->urls['api']['ws']; // . '/' . $messageHash;
         $requestId = $this->nonce ();
         $request = array(
             'method' => 'SUBSCRIBE',
             'params' => array(
-                $stream,
+                $messageHash,
             ),
             'id' => $requestId,
         );
-        $messageHash = $stream;
-        $future = $this->watch ($url, $messageHash, array_merge($request, $params), $messageHash);
-        $client = $this->clients[$url];
-        $client['futures'][$requestId] = $future;
-        throw new NotSupported($this->id . ' watchOrderBook not implemented yet');
-        // return $future;
+        return $this->watch ($url, $messageHash, array_merge($request, $params), $messageHash);
+        // $this->onetwo = future;
+        // $client = $this->clients[$url];
+        // $client['futures'][$requestId] = future;
+        // return future; // $this->watch ($url, $messageHash, array_merge($request, $params), $messageHash);
+        // throw new NotSupported($this->id . ' watchOrderBook not implemented yet');
+        // return future;
+    }
+
+    public function fetch_order_book_snapshot ($symbol) {
+        // todo => this is sync in php - make it async
+        $snapshot = $this->fetch_order_book($symbol);
+        $orderbook = $this->orderbooks[$symbol];
+        $orderbook->update ($snapshot);
+        // $asks = $orderbook['asks'];
+        // for ($i = 0; $i < count($snapshot['asks']); $i++) {
+        //     $asks->storeArray ($snapshot['asks'][$i]);
+        // }
+        // $bids = $orderbook['bids'];
+        // for ($i = 0; $i < count($snapshot['bids']); $i++) {
+        //     $bids->storeArray ($snapshot['bids'][$i]);
+        // }
     }
 
     public function handle_order_book ($client, $message) {
-        //
-        // initial snapshot is fetched with ccxt's fetchOrderBook
-        // the feed does not include a snapshot, just the $deltas
         //
         //     {
         //         "e" => "depthUpdate", // Event type
@@ -129,24 +152,56 @@ class binance extends \ccxt\binance {
         //         )
         //     }
         //
-        $deltas = array();
-        $nonce = $message['u'];
-        for ($i = 0; $i < count($message['b']); $i++) {
-            $bid = $message['b'][$i];
-            $deltas[] = [$nonce, 'absolute', 'bids', floatval ($bid[0]), floatval ($bid[1])];
+        $marketId = $this->safe_string($message, 's');
+        $market = null;
+        $symbol = null;
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $symbol = $market['symbol'];
+            }
         }
-        for ($i = 0; $i < count($message['a']); $i++) {
-            $asks = $message['a'][$i];
-            $deltas[] = [$nonce, 'absolute', 'asks', floatval ($asks[0]), floatval ($asks[1])];
+        $name = 'depth';
+        $messageHash = $market['lowercaseId'] . '@' . $name;
+        //
+        // initial snapshot is fetched with ccxt's fetchOrderBook
+        // the feed does not include a snapshot, just the $deltas
+        //
+        //
+        $fetching = false;
+        if (!$fetching) {
+            // fetch the snapshot in a separate async call
+            // $this->spawn (array($this, 'fetch_order_book_snapshot'), ...)
+            throw new NotSupported($this->id . ' snapshot $fetching is wip');
         }
-        $symbol = $this->parseSymbol ($message);
-        $incrementalBook = $this->orderbooks[$symbol];
-        $incrementalBook->update ($deltas);
-        $timestamp = $this->safe_integer($message, 'E');
-        $incrementalBook->message['timestamp'] = $timestamp;
-        $incrementalBook->message['datetime'] = $this->iso8601 ($timestamp);
-        $incrementalBook->message['nonce'] = $message['u'];
-        return $incrementalBook->orderBook;
+        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+            $orderbook = $this->orderbooks[$symbol];
+            // resolve
+            $client->resolve ($orderbook, $messageHash);
+        } else {
+            // accumulate $deltas
+            $this->options['cache'][$symbol] = array();
+            $this->options['cache'][$messageHash][] = $message;
+        }
+        // $orderbook = $this->order
+        // $deltas = array();
+        // $nonce = $message['u'];
+        // for ($i = 0; $i < count($message['b']); $i++) {
+        //     $bid = $message['b'][$i];
+        //     $deltas[] = [$nonce, 'absolute', 'bids', floatval ($bid[0]), floatval ($bid[1])];
+        // }
+        // for ($i = 0; $i < count($message['a']); $i++) {
+        //     $asks = $message['a'][$i];
+        //     $deltas[] = [$nonce, 'absolute', 'asks', floatval ($asks[0]), floatval ($asks[1])];
+        // }
+        // $symbol = $this->parseSymbol ($message);
+        // $incrementalBook = $this->orderbooks[$symbol];
+        // $incrementalBook->update ($deltas);
+        // $timestamp = $this->safe_integer($message, 'E');
+        // $incrementalBook->message['timestamp'] = $timestamp;
+        // $incrementalBook->message['datetime'] = $this->iso8601 ($timestamp);
+        // $incrementalBook->message['nonce'] = $message['u'];
+        // return $incrementalBook->orderBook;
     }
 
     public function sign_message ($client, $messageHash, $message, $params = array ()) {
@@ -156,25 +211,32 @@ class binance extends \ccxt\binance {
 
     public function handle_subscription_status ($client, $message) {
         //
-        // todo => answer the question whether handleSubscriptionStatus should be renamed
-        // and unified as handleResponse for any usage pattern that
-        // involves an identified request/response sequence
-        //
         //     {
         //         "result" => null,
         //         "id" => 1574649734450
         //     }
         //
-        $channelId = $this->safe_string($message, 'channelID');
-        $this->options['subscriptionStatusByChannelId'][$channelId] = $message;
-        $requestId = $this->safe_string($message, 'reqid');
-        if ($client->futures[$requestId]) {
-            unset($client->futures[$requestId]);
-        }
+        return $message;
     }
 
     public function handle_message ($client, $message) {
-        var_dump ($message);
+        // $requestId = $this->safe_string(
+        $methods = array(
+            'depthUpdate' => array($this, 'handle_order_book'),
+        );
+        $event = $this->safe_string($message, 'e');
+        $method = $this->safe_string($methods, $event);
+        if ($method === null) {
+            $requestId = $this->safe_string($message, 'id');
+            if ($requestId !== null) {
+                return $this->handle_subscription_status ($client, $message);
+            }
+            return $message;
+        } else {
+            return $this->call ($method, $client, $message);
+        }
+        // var_dump ($message);
+        // exit ();
         //
         // $keys = is_array($client->futures) ? array_keys($client->futures) : array();
         // for ($i = 0; $i < count($keys); $i++) {

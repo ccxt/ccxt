@@ -159,10 +159,6 @@ class bitfinex extends \ccxt\bitfinex {
 
     public function handle_subscription_status ($client, $message) {
         //
-        // todo => answer the question whether handleSubscriptionStatus should be renamed
-        // and unified as handleResponse for any usage pattern that
-        // involves an identified request/response sequence
-        //
         //     {
         //         event => 'subscribed',
         //         channel => 'book',
@@ -173,8 +169,6 @@ class bitfinex extends \ccxt\bitfinex {
         //         len => '25',
         //         pair => 'BTCUSD'
         //     }
-        //
-        // --------------------------------------------------------------------
         //
         $channelId = $this->safe_string($message, 'chanId');
         $this->options['subscriptionsByChannelId'][$channelId] = $message;
@@ -193,16 +187,16 @@ class bitfinex extends \ccxt\bitfinex {
             $subscription = $this->safe_value($this->options['subscriptionsByChannelId'], $channelId, array());
             $channel = $this->safe_string($subscription, 'channel');
             $methods = array(
-                'book' => 'handleOrderBook',
-                // 'ohlc' => 'handleOHLCV',
-                // 'ticker' => 'handleTicker',
-                // 'trade' => 'handleTrades',
+                'book' => array($this, 'handle_order_book'),
+                // 'ohlc' => $this->handleOHLCV,
+                // 'ticker' => $this->handleTicker,
+                // 'trade' => $this->handleTrades,
             );
-            $method = $this->safe_string($methods, $channel);
+            $method = $this->safe_value($methods, $channel);
             if ($method === null) {
                 return $message;
             } else {
-                return $this->$method ($client, $message);
+                return $this->call ($method, $client, $message);
             }
         } else {
             // todo => add bitfinex handleErrorMessage
@@ -217,15 +211,15 @@ class bitfinex extends \ccxt\bitfinex {
             $event = $this->safe_string($message, 'event');
             if ($event !== null) {
                 $methods = array(
-                    'info' => 'handleSystemStatus',
+                    'info' => array($this, 'handle_system_status'),
                     // 'book' => 'handleOrderBook',
-                    'subscribed' => 'handleSubscriptionStatus',
+                    'subscribed' => array($this, 'handle_subscription_status'),
                 );
-                $method = $this->safe_string($methods, $event);
+                $method = $this->safe_value($methods, $event);
                 if ($method === null) {
                     return $message;
                 } else {
-                    return $this->$method ($client, $message);
+                    return $this->call ($method, $client, $message);
                 }
             }
         }

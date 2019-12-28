@@ -410,10 +410,6 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
 
     def handle_subscription_status(self, client, message):
         #
-        # todo: answer the question whether handleSubscriptionStatus should be renamed
-        # and unified as handleResponse for any usage pattern that
-        # involves an identified request/response sequence
-        #
         #     {
         #         success: True,
         #         subscribe: 'orderBookL2:XBTUSD',

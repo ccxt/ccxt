@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { NotSupported } = require ('ccxt/js/base/errors');
+const { NotSupported, ExchangeError } = require ('ccxt/js/base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -17,9 +17,9 @@ module.exports = class binance extends ccxt.binance {
             },
             'urls': {
                 'api': {
-                    // 'ws': 'wss://stream.binance.com:9443/ws',
+                    'ws': 'wss://stream.binance.com:9443/ws',
                     // 'ws': 'wss://echo.websocket.org/',
-                    'ws': 'ws://127.0.0.1:8080',
+                    // 'ws': 'ws://127.0.0.1:8080',
                 },
             },
             'options': {
@@ -81,34 +81,56 @@ module.exports = class binance extends ccxt.binance {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
+        // for 1000ms: <symbol>@depth<levels>
+        // OR
+        // for 100ms: <symbol>@depth<levels>@100ms
+        // valid <levels> are 5, 10, or 20
+        if (limit !== undefined) {
+            if ((limit !== 25) && (limit !== 100)) {
+                throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, 10 or 20');
+            }
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         // this should be executed much later
         // const orderbook = await this.fetchOrderBook (symbol, limit, params);
         // const request = {};
         const name = 'depth';
-        const stream = market['lowercaseId'] + '@' + name;
-        const url = this.urls['api']['ws']; // + '/' + stream;
+        const messageHash = market['lowercaseId'] + '@' + name;
+        const url = this.urls['api']['ws']; // + '/' + messageHash;
         const requestId = this.nonce ();
         const request = {
             'method': 'SUBSCRIBE',
             'params': [
-                stream,
+                messageHash,
             ],
             'id': requestId,
         };
-        const messageHash = stream;
-        const future = this.watch (url, messageHash, this.extend (request, params), messageHash);
-        const client = this.clients[url];
-        client['futures'][requestId] = future;
-        throw new NotSupported (this.id + ' watchOrderBook not implemented yet');
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        // this.onetwo = future;
+        // const client = this.clients[url];
+        // client['futures'][requestId] = future;
+        // return await future; // this.watch (url, messageHash, this.extend (request, params), messageHash);
+        // throw new NotSupported (this.id + ' watchOrderBook not implemented yet');
         // return future;
     }
 
+    async fetchOrderBookSnapshot (symbol) {
+        // todo: this is sync in php - make it async
+        const snapshot = await this.fetchOrderBook (symbol);
+        const orderbook = this.orderbooks[symbol];
+        orderbook.update (snapshot);
+        // const asks = orderbook['asks'];
+        // for (let i = 0; i < snapshot['asks'].length; i++) {
+        //     asks.storeArray (snapshot['asks'][i]);
+        // }
+        // const bids = orderbook['bids'];
+        // for (let i = 0; i < snapshot['bids'].length; i++) {
+        //     bids.storeArray (snapshot['bids'][i]);
+        // }
+    }
+
     handleOrderBook (client, message) {
-        //
-        // initial snapshot is fetched with ccxt's fetchOrderBook
-        // the feed does not include a snapshot, just the deltas
         //
         //     {
         //         "e": "depthUpdate", // Event type
@@ -124,24 +146,56 @@ module.exports = class binance extends ccxt.binance {
         //         ]
         //     }
         //
-        const deltas = [];
-        const nonce = message['u'];
-        for (let i = 0; i < message['b'].length; i++) {
-            const bid = message['b'][i];
-            deltas.push ([nonce, 'absolute', 'bids', parseFloat (bid[0]), parseFloat (bid[1])]);
+        const marketId = this.safeString (message, 's');
+        let market = undefined;
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            }
         }
-        for (let i = 0; i < message['a'].length; i++) {
-            const asks = message['a'][i];
-            deltas.push ([nonce, 'absolute', 'asks', parseFloat (asks[0]), parseFloat (asks[1])]);
+        const name = 'depth';
+        const messageHash = market['lowercaseId'] + '@' + name;
+        //
+        // initial snapshot is fetched with ccxt's fetchOrderBook
+        // the feed does not include a snapshot, just the deltas
+        //
+        //
+        const fetching = false;
+        if (!fetching) {
+            // fetch the snapshot in a separate async call
+            // this.spawn (this.fetchOrderBookSnapshot, ...)
+            throw new NotSupported (this.id + ' snapshot fetching is wip');
         }
-        const symbol = this.parseSymbol (message);
-        const incrementalBook = this.orderbooks[symbol];
-        incrementalBook.update (deltas);
-        const timestamp = this.safeInteger (message, 'E');
-        incrementalBook.message['timestamp'] = timestamp;
-        incrementalBook.message['datetime'] = this.iso8601 (timestamp);
-        incrementalBook.message['nonce'] = message['u'];
-        return incrementalBook.orderBook;
+        if (symbol in this.orderbooks) {
+            const orderbook = this.orderbooks[symbol];
+            // resolve
+            client.resolve (orderbook, messageHash);
+        } else {
+            // accumulate deltas
+            this.options['cache'][symbol] = [];
+            this.options['cache'][messageHash].push (message);
+        }
+        // const orderbook = this.order
+        // const deltas = [];
+        // const nonce = message['u'];
+        // for (let i = 0; i < message['b'].length; i++) {
+        //     const bid = message['b'][i];
+        //     deltas.push ([nonce, 'absolute', 'bids', parseFloat (bid[0]), parseFloat (bid[1])]);
+        // }
+        // for (let i = 0; i < message['a'].length; i++) {
+        //     const asks = message['a'][i];
+        //     deltas.push ([nonce, 'absolute', 'asks', parseFloat (asks[0]), parseFloat (asks[1])]);
+        // }
+        // const symbol = this.parseSymbol (message);
+        // const incrementalBook = this.orderbooks[symbol];
+        // incrementalBook.update (deltas);
+        // const timestamp = this.safeInteger (message, 'E');
+        // incrementalBook.message['timestamp'] = timestamp;
+        // incrementalBook.message['datetime'] = this.iso8601 (timestamp);
+        // incrementalBook.message['nonce'] = message['u'];
+        // return incrementalBook.orderBook;
     }
 
     signMessage (client, messageHash, message, params = {}) {
@@ -151,25 +205,32 @@ module.exports = class binance extends ccxt.binance {
 
     handleSubscriptionStatus (client, message) {
         //
-        // todo: answer the question whether handleSubscriptionStatus should be renamed
-        // and unified as handleResponse for any usage pattern that
-        // involves an identified request/response sequence
-        //
         //     {
         //         "result": null,
         //         "id": 1574649734450
         //     }
         //
-        const channelId = this.safeString (message, 'channelID');
-        this.options['subscriptionStatusByChannelId'][channelId] = message;
-        const requestId = this.safeString (message, 'reqid');
-        if (client.futures[requestId]) {
-            delete client.futures[requestId];
-        }
+        return message;
     }
 
     handleMessage (client, message) {
-        console.log (message);
+        // const requestId = this.safeString (
+        const methods = {
+            'depthUpdate': this.handleOrderBook,
+        };
+        const event = this.safeString (message, 'e');
+        const method = this.safeString (methods, event);
+        if (method === undefined) {
+            const requestId = this.safeString (message, 'id');
+            if (requestId !== undefined) {
+                return this.handleSubscriptionStatus (client, message);
+            }
+            return message;
+        } else {
+            return this.call (method, client, message);
+        }
+        // console.log (message);
+        // process.exit ();
         //
         // const keys = Object.keys (client.futures);
         // for (let i = 0; i < keys.length; i++) {

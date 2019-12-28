@@ -197,6 +197,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         client.resolve(result, messageHash)
 
     def reqid(self):
+        # their support said that reqid must be an int32, not documented
         reqid = self.sum(self.safe_integer(self.options, 'reqid', 0), 1)
         self.options['reqid'] = reqid
         return reqid
@@ -428,10 +429,6 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         return message
 
     def handle_subscription_status(self, client, message):
-        #
-        # todo: answer the question whether handleSubscriptionStatus should be renamed
-        # and unified as handleResponse for any usage pattern that
-        # involves an identified request/response sequence
         #
         #     {
         #         channelID: 210,
