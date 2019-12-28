@@ -61,17 +61,26 @@ class OrderBook {
         return this
     }
 
-    update (nonce, timestamp, asks, bids) {
-        if ((nonce !== undefined) &&
+    update (snapshot) {
+        if ((snapshot.nonce !== undefined) &&
             (this.nonce !== undefined) &&
-            (nonce <= this.nonce)) {
+            (snapshot.nonce <= this.nonce)) {
             return this
         }
+        return this.reset (
+            snapshot.nonce,
+            snapshot.timestamp,
+            snapshot.asks,
+            snapshot.bids
+        )
+    }
+
+    reset (nonce, timestamp, asks, bids) {
         this.asks.update (asks)
         this.bids.update (bids)
         this.nonce = nonce
         this.timestamp = timestamp
-        this.datetime = iso8601 (timestamp)
+        this.datetime = iso8601 (this.timestamp)
         return this
     }
 }
