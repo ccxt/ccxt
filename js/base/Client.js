@@ -211,10 +211,16 @@ module.exports = class Client {
     onMessage (message) {
         try {
             message = isJsonEncodedObject (message) ? JSON.parse (message) : message
+            // console.log (new Date (), 'onMessage', message)
         } catch (e) {
             console.log (new Date (), 'onMessage JSON.parse', e)
             // reset with a json encoding error ?
         }
-        this.onMessageCallback (this, message)
+        if (this.onMessageCallback.constructor.name === "AsyncFunction") {
+            await this.onMessageCallback (this, message)
+        } else {
+            this.onMessageCallback (this, message)
+        }
+
     }
 }
