@@ -58,6 +58,19 @@ trait ClientTrait {
         });
     }
 
+    public function spawn($method, ... $args) {
+        echo date('c '), "spawn\n";
+        $this->loop->futureTick(function () use ($method, $args) {
+            echo date('c '), "spawn futureTick\n";
+            try {
+                $method(... $args);
+            } catch (\Exception $e) {
+                // todo: handle spawned errors
+                throw $e;
+            }
+        });
+    }
+
     public function watch($url, $message_hash, $message = null, $subscribe_hash = null, $subscription = null) {
         $client = $this->client($url);
         // todo: calculate the backoff delay in php
@@ -65,9 +78,9 @@ trait ClientTrait {
         $future = $client->future($message_hash);
         $connected = $client->connect($backoff_delay);
         $connected->then(
-            function($result) use ($client, $message_hash, $message, $subscribe_hash) {
+            function($result) use ($client, $message_hash, $message, $subscribe_hash, $subscription) {
                 if ($message && !isset($client->subscriptions[$subscribe_hash])) {
-                    $client->subscriptions[$subscribe_hash] = $subscription ? $subscription : true;
+                    $client->subscriptions[$subscribe_hash] = isset($subscription) ? $subscription : true;
                     // todo: decouple signing from subscriptions
                     $message = $this->sign_message($client, $message_hash, $message);
                     $client->send($message);
