@@ -33,11 +33,11 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
         return $this;
     }
 
-    public function reset($nonce, $timestamp, &$asks, &$bids) {
-        $this['asks']->update($asks);
-        $this['bids']->update($bids);
-        $this['nonce'] = $nonce;
-        $this['timestamp'] = $timestamp;
+    public function reset(&$snapshot) {
+        @$this['asks']->update($snapshot['asks']);
+        @$this['bids']->update($snapshot['bids']);
+        @$this['nonce'] = $snapshot['nonce'];
+        @$this['timestamp'] = $snapshot['timestamp'];
         $this['datetime'] = \ccxt\Exchange::iso8601($timestamp);
     }
 
@@ -46,8 +46,7 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
         if ($nonce !== null && $this['nonce'] !== null && $nonce < $this['nonce']) {
             return $this;
         }
-        $timestamp = @$snapshot['timestamp'];
-        return @$this->reset($nonce, $timestamp, $snapshot['asks'], $snapshot['bids']);
+        return @$this->reset($snapshot);
     }
 }
 

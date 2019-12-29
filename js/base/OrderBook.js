@@ -75,11 +75,11 @@ class OrderBook {
         )
     }
 
-    reset (nonce, timestamp, asks, bids) {
-        this.asks.update (asks)
-        this.bids.update (bids)
-        this.nonce = nonce
-        this.timestamp = timestamp
+    reset (snapshot) {
+        this.asks.update (snapshot.asks)
+        this.bids.update (snapshot.bids)
+        this.nonce = snapshot.nonce
+        this.timestamp = snapshot.timestamp
         this.datetime = iso8601 (this.timestamp)
         return this
     }

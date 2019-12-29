@@ -27,21 +27,18 @@ class OrderBook(dict):
         self['bids'].limit(n)
         return self
 
-    def reset(self, nonce, timestamp, asks, bids):
-        self['asks'].update(asks)
-        self['bids'].update(bids)
-        self['nonce'] = nonce
-        self['timestamp'] = timestamp
-        self['datetime'] = Exchange.iso8601(timestamp)
+    def reset(self, snapshot):
+        self['asks'].update(snapshot.get('asks', []))
+        self['bids'].update(snapshot.get('asks', []))
+        self['nonce'] = snapshot.get('nonce')
+        self['timestamp'] = snapshot.get('timestamp')
+        self['datetime'] = Exchange.iso8601(self['timestamp'])
 
     def update(self, snapshot):
         nonce = snapshot.get('nonce')
         if nonce is not None and self['nonce'] is not None and nonce < self['nonce']:
             return self
-        timestamp = snapshot.get('timestamp')
-        asks = snapshot.get('asks')
-        bids = snapshot.get('bids')
-        self.reset(nonce, timestamp, asks, bids)
+        self.reset(snapshot)
 
 
 # -----------------------------------------------------------------------------
