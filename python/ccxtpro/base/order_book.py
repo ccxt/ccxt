@@ -29,7 +29,7 @@ class OrderBook(dict):
 
     def reset(self, snapshot):
         self['asks'].update(snapshot.get('asks', []))
-        self['bids'].update(snapshot.get('asks', []))
+        self['bids'].update(snapshot.get('bids', []))
         self['nonce'] = snapshot.get('nonce')
         self['timestamp'] = snapshot.get('timestamp')
         self['datetime'] = Exchange.iso8601(self['timestamp'])
