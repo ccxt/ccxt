@@ -18,9 +18,7 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
         if (!is_object($this['bids'])) {
             $this['bids'] = new Bids($this['bids']);
         }
-        if ($this['timestamp']) {
-            $this['datetime'] = \ccxt\Exchange::iso8601($this['timestamp']);
-        }
+        $this['datetime'] = \ccxt\Exchange::iso8601($this['timestamp']);
     }
 
     public function jsonSerialize() {
@@ -38,7 +36,7 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
         @$this['bids']->update($snapshot['bids']);
         @$this['nonce'] = $snapshot['nonce'];
         @$this['timestamp'] = $snapshot['timestamp'];
-        $this['datetime'] = \ccxt\Exchange::iso8601($timestamp);
+        $this['datetime'] = \ccxt\Exchange::iso8601($this['timestamp']);
     }
 
     public function update($snapshot) {
