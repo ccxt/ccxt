@@ -69,7 +69,7 @@ module.exports = class Exchange extends ccxt.Exchange {
         })
     }
 
-    watch (url, messageHash, message = undefined, subscribeHash = undefined) {
+    watch (url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
         //
         // Without comments the code of this method is short and easy:
         //
@@ -113,7 +113,7 @@ module.exports = class Exchange extends ccxt.Exchange {
         // (connection established successfully)
         connected.then (() => {
             if (message && !client.subscriptions[subscribeHash]) {
-                client.subscriptions[subscribeHash] = true
+                client.subscriptions[subscribeHash] = subscription || true
                 // todo: decouple signing from subscriptions
                 message = this.signMessage (client, messageHash, message)
                 client.send (message)

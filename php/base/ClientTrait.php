@@ -58,7 +58,7 @@ trait ClientTrait {
         });
     }
 
-    public function watch($url, $message_hash, $message = null, $subscribe_hash = null) {
+    public function watch($url, $message_hash, $message = null, $subscribe_hash = null, $subscription = null) {
         $client = $this->client($url);
         // todo: calculate the backoff delay in php
         $backoff_delay = 0; // milliseconds
@@ -67,7 +67,7 @@ trait ClientTrait {
         $connected->then(
             function($result) use ($client, $message_hash, $message, $subscribe_hash) {
                 if ($message && !isset($client->subscriptions[$subscribe_hash])) {
-                    $client->subscriptions[$subscribe_hash] = true;
+                    $client->subscriptions[$subscribe_hash] = $subscription ? $subscription : true;
                     // todo: decouple signing from subscriptions
                     $message = $this->sign_message($client, $message_hash, $message);
                     $client->send($message);
