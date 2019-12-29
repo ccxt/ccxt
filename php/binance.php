@@ -29,7 +29,10 @@ class binance extends \ccxt\binance {
                 ),
             ),
             'options' => array(
-                'marketsByLowerCaseId' => array(),
+                // 'marketsByLowercaseId' => array(),
+                'subscriptions' => array(),
+                'messages' => array(),
+                'watchOrderBookRate' => 100, // get updated every 100ms or null (1000ms)
             ),
         ));
     }
@@ -41,8 +44,11 @@ class binance extends \ccxt\binance {
             $marketsByLowercaseId = array();
             for ($i = 0; $i < count($this->symbols); $i++) {
                 $symbol = $this->symbols[$i];
-                $lowercaseId = strtolower($this->markets[$symbol]['id']);
-                $this->markets[$symbol]['lowercaseId'] = $lowercaseId;
+                $market = $this->markets[$symbol];
+                $lowercaseId = $this->safe_string_lower($market, 'id');
+                $market['lowercaseId'] = $lowercaseId;
+                $this->markets_by_id[$market['id']] = $market;
+                $this->markets[$symbol] = $market;
                 $marketsByLowercaseId[$lowercaseId] = $this->markets[$symbol];
             }
             $this->options['marketsByLowercaseId'] = $marketsByLowercaseId;
@@ -87,20 +93,32 @@ class binance extends \ccxt\binance {
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
-        // for 1000ms => <$symbol>@depth<levels>
-        // OR
-        // for 100ms => <$symbol>@depth<levels>@100ms
+        //
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams
+        //
+        // <$symbol>@depth<levels>@100ms or <$symbol>@depth<levels> (1000ms)
         // valid <levels> are 5, 10, or 20
+        //
         if ($limit !== null) {
-            if (($limit !== 25) && ($limit !== 100)) {
+            if (($limit !== 5) && ($limit !== 10) && ($limit !== 20)) {
                 throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 5, 10 or 20');
             }
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        // this should be executed much later
-        // $orderbook = $this->fetch_order_book($symbol, $limit, $params);
-        // $request = array();
+        //
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#how-to-manage-a-local-order-book-correctly
+        //
+        // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
+        // 2. Buffer the events you receive from the stream.
+        // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?$symbol=BNBBTC&$limit=1000 .
+        // 4. Drop any event where u is <= lastUpdateId in the snapshot.
+        // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
+        // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
+        // 7. The data in each event is the absolute quantity for a price level.
+        // 8. If the quantity is 0, remove the price level.
+        // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
+        //
         $name = 'depth';
         $messageHash = $market['lowercaseId'] . '@' . $name;
         $url = $this->urls['api']['ws']; // . '/' . $messageHash;
@@ -108,46 +126,94 @@ class binance extends \ccxt\binance {
         $request = array(
             'method' => 'SUBSCRIBE',
             'params' => array(
-                $messageHash,
+                $messageHash . '@' . $this->safe_string($this->options, 'watchOrderBookRate', 100) . 'ms',
             ),
             'id' => $requestId,
         );
-        return $this->watch ($url, $messageHash, array_merge($request, $params), $messageHash);
-        // $this->onetwo = future;
-        // $client = $this->clients[$url];
-        // $client['futures'][$requestId] = future;
-        // return future; // $this->watch ($url, $messageHash, array_merge($request, $params), $messageHash);
-        // throw new NotSupported($this->id . ' watchOrderBook not implemented yet');
-        // return future;
+        $requestId = (string) $requestId;
+        $this->options['subscriptions'][$requestId] = array(
+            'requestId' => $requestId,
+            'messageHash' => $messageHash,
+            'name' => $name,
+            'symbol' => $symbol,
+            'method' => array($this, 'handle_order_book_subscription'),
+        );
+        $future = $this->watch ($url, $messageHash, array_merge($request, $params), $messageHash);
+        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
-    public function fetch_order_book_snapshot ($symbol) {
+    public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
+        return $orderbook->limit ($limit);
+    }
+
+    public function fetch_order_book_snapshot ($client, $message, $subscription) {
+        // var_dump (new Date (), 'fetchOrderBookSnapshot...');
+        $symbol = $this->safe_string($subscription, 'symbol');
+        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+            unset($this->orderbooks[$symbol]);
+        }
+        $messageHash = $this->safe_string($subscription, 'messageHash');
         // todo => this is sync in php - make it async
         $snapshot = $this->fetch_order_book($symbol);
-        $orderbook = $this->orderbooks[$symbol];
-        $orderbook->update ($snapshot);
-        // $asks = $orderbook['asks'];
-        // for ($i = 0; $i < count($snapshot['asks']); $i++) {
-        //     $asks->storeArray ($snapshot['asks'][$i]);
-        // }
-        // $bids = $orderbook['bids'];
-        // for ($i = 0; $i < count($snapshot['bids']); $i++) {
-        //     $bids->storeArray ($snapshot['bids'][$i]);
-        // }
+        $orderbook = $this->limited_order_book();
+        $orderbook->reset ($snapshot);
+        // push the deltas
+        $messages = $this->safe_value($this->options['messages'], $messageHash, array());
+        // var_dump (new Date (), 'fetchOrderBookSnapshot', strlen($messages), 'messages', $snapshot);
+        for ($i = 0; $i < count($messages); $i++) {
+            $message = $messages[$i];
+            // var_dump (new Date (), $message);
+            $this->handle_order_book_message ($client, $message, $orderbook);
+        }
+        $this->orderbooks[$symbol] = $orderbook;
+        $client->resolve ($orderbook, $messageHash);
+    }
+
+    public function handle_delta ($bookside, $delta) {
+        $price = $this->safe_float($delta, 0);
+        $amount = $this->safe_float($delta, 1);
+        $bookside->store ($price, $amount);
+    }
+
+    public function handle_deltas ($bookside, $deltas) {
+        for ($i = 0; $i < count($deltas); $i++) {
+            $this->handle_delta ($bookside, $deltas[$i]);
+        }
+    }
+
+    public function handle_order_book_message ($client, $message, $orderbook) {
+        // var_dump (new Date (), '-------------------------', $message);
+        $u = $this->safe_integer_2($message, 'u', 'lastUpdateId');
+        if ($u > $orderbook['nonce']) {
+            // var_dump (new Date (), 'merging...');
+            $U = $this->safe_integer($message, 'U');
+            if (($U !== null) && (($U - 1) > $orderbook['nonce'])) {
+                throw new ExchangeError($this->id . ' handleOrderBook received an out-of-order nonce');
+            }
+            $this->handle_deltas ($orderbook['asks'], $this->safe_value($message, 'a', array()));
+            $this->handle_deltas ($orderbook['bids'], $this->safe_value($message, 'b', array()));
+            $orderbook['nonce'] = $u;
+            $timestamp = $this->safe_integer($message, 'E');
+            $orderbook['timestamp'] = $timestamp;
+            $orderbook['datetime'] = $this->iso8601 ($timestamp);
+        }
     }
 
     public function handle_order_book ($client, $message) {
         //
+        // initial snapshot is fetched with ccxt's fetchOrderBook
+        // the feed does not include a snapshot, just the deltas
+        //
         //     {
         //         "e" => "depthUpdate", // Event type
-        //         "E" => 123456789, // Event time
+        //         "E" => 1577554482280, // Event time
         //         "s" => "BNBBTC", // Symbol
         //         "U" => 157, // First update ID in event
         //         "u" => 160, // Final update ID in event
         //         "b" => array( // bids
         //             array( "0.0024", "10" ), // price, size
         //         ),
-        //         "a" => array( // $asks
+        //         "a" => array( // asks
         //             array( "0.0026", "100" ), // price, size
         //         )
         //     }
@@ -163,50 +229,34 @@ class binance extends \ccxt\binance {
         }
         $name = 'depth';
         $messageHash = $market['lowercaseId'] . '@' . $name;
-        //
-        // initial snapshot is fetched with ccxt's fetchOrderBook
-        // the feed does not include a snapshot, just the $deltas
-        //
-        //
-        $fetching = false;
-        if (!$fetching) {
-            // fetch the snapshot in a separate async call
-            // $this->spawn (array($this, 'fetch_order_book_snapshot'), ...)
-            throw new NotSupported($this->id . ' snapshot $fetching is wip');
-        }
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
             $orderbook = $this->orderbooks[$symbol];
-            // resolve
-            $client->resolve ($orderbook, $messageHash);
+            $nonce = $orderbook['nonce'];
+            // var_dump (new Date (), $messageHash, 'initialized', $message);
+            $this->handle_order_book_message ($client, $message, $orderbook);
+            if ($nonce < $orderbook['nonce']) {
+                $client->resolve ($orderbook, $messageHash);
+            }
         } else {
-            // accumulate $deltas
-            $this->options['cache'][$symbol] = array();
-            $this->options['cache'][$messageHash][] = $message;
+            // var_dump (new Date (), $messageHash, 'caching', $message);
+            // accumulate deltas
+            $this->options['messages'][$messageHash] = $this->safe_value($this->options['messages'], $messageHash, array());
+            $this->options['messages'][$messageHash][] = $message;
         }
-        // $orderbook = $this->order
-        // $deltas = array();
-        // $nonce = $message['u'];
-        // for ($i = 0; $i < count($message['b']); $i++) {
-        //     $bid = $message['b'][$i];
-        //     $deltas[] = [$nonce, 'absolute', 'bids', floatval ($bid[0]), floatval ($bid[1])];
-        // }
-        // for ($i = 0; $i < count($message['a']); $i++) {
-        //     $asks = $message['a'][$i];
-        //     $deltas[] = [$nonce, 'absolute', 'asks', floatval ($asks[0]), floatval ($asks[1])];
-        // }
-        // $symbol = $this->parseSymbol ($message);
-        // $incrementalBook = $this->orderbooks[$symbol];
-        // $incrementalBook->update ($deltas);
-        // $timestamp = $this->safe_integer($message, 'E');
-        // $incrementalBook->message['timestamp'] = $timestamp;
-        // $incrementalBook->message['datetime'] = $this->iso8601 ($timestamp);
-        // $incrementalBook->message['nonce'] = $message['u'];
-        // return $incrementalBook->orderBook;
     }
 
     public function sign_message ($client, $messageHash, $message, $params = array ()) {
         // todo => binance signMessage not implemented yet
         return $message;
+    }
+
+    public function handle_order_book_subscription ($client, $message, $subscription) {
+        $messageHash = $this->safe_string($subscription, 'messageHash');
+        // var_dump ($messageHash);
+        // exit ();
+        $this->options['messages'][$messageHash] = array();
+        // fetch the snapshot in a separate async call
+        $this->spawn (array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
     }
 
     public function handle_subscription_status ($client, $message) {
@@ -216,16 +266,21 @@ class binance extends \ccxt\binance {
         //         "id" => 1574649734450
         //     }
         //
+        $requestId = $this->safe_string($message, 'id');
+        $subscription = $this->safe_value($this->options['subscriptions'], $requestId, array());
+        $method = $this->safe_value($subscription, 'method');
+        if ($method !== null) {
+            $this->call ($method, $client, $message, $subscription);
+        }
         return $message;
     }
 
     public function handle_message ($client, $message) {
-        // $requestId = $this->safe_string(
         $methods = array(
             'depthUpdate' => array($this, 'handle_order_book'),
         );
         $event = $this->safe_string($message, 'e');
-        $method = $this->safe_string($methods, $event);
+        $method = $this->safe_value($methods, $event);
         if ($method === null) {
             $requestId = $this->safe_string($message, 'id');
             if ($requestId !== null) {

@@ -23,7 +23,10 @@ module.exports = class binance extends ccxt.binance {
                 },
             },
             'options': {
-                'marketsByLowerCaseId': {},
+                // 'marketsByLowercaseId': {},
+                'subscriptions': {},
+                'messages': {},
+                'watchOrderBookRate': 100, // get updated every 100ms or undefined (1000ms)
             },
         });
     }
@@ -35,8 +38,11 @@ module.exports = class binance extends ccxt.binance {
             marketsByLowercaseId = {};
             for (let i = 0; i < this.symbols.length; i++) {
                 const symbol = this.symbols[i];
-                const lowercaseId = this.markets[symbol]['id'].toLowerCase ();
-                this.markets[symbol]['lowercaseId'] = lowercaseId;
+                const market = this.markets[symbol];
+                const lowercaseId = this.safeStringLower (market, 'id');
+                market['lowercaseId'] = lowercaseId;
+                this.markets_by_id[market['id']] = market;
+                this.markets[symbol] = market;
                 marketsByLowercaseId[lowercaseId] = this.markets[symbol];
             }
             this.options['marketsByLowercaseId'] = marketsByLowercaseId;
@@ -81,60 +87,120 @@ module.exports = class binance extends ccxt.binance {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
-        // for 1000ms: <symbol>@depth<levels>
-        // OR
-        // for 100ms: <symbol>@depth<levels>@100ms
+        //
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams
+        //
+        // <symbol>@depth<levels>@100ms or <symbol>@depth<levels> (1000ms)
         // valid <levels> are 5, 10, or 20
+        //
         if (limit !== undefined) {
-            if ((limit !== 25) && (limit !== 100)) {
+            if ((limit !== 5) && (limit !== 10) && (limit !== 20)) {
                 throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, 10 or 20');
             }
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // this should be executed much later
-        // const orderbook = await this.fetchOrderBook (symbol, limit, params);
-        // const request = {};
+        //
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#how-to-manage-a-local-order-book-correctly
+        //
+        // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
+        // 2. Buffer the events you receive from the stream.
+        // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
+        // 4. Drop any event where u is <= lastUpdateId in the snapshot.
+        // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
+        // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
+        // 7. The data in each event is the absolute quantity for a price level.
+        // 8. If the quantity is 0, remove the price level.
+        // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
+        //
         const name = 'depth';
         const messageHash = market['lowercaseId'] + '@' + name;
         const url = this.urls['api']['ws']; // + '/' + messageHash;
-        const requestId = this.nonce ();
+        let requestId = this.nonce ();
         const request = {
             'method': 'SUBSCRIBE',
             'params': [
-                messageHash,
+                messageHash + '@' + this.safeString (this.options, 'watchOrderBookRate', 100) + 'ms',
             ],
             'id': requestId,
         };
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
-        // this.onetwo = future;
-        // const client = this.clients[url];
-        // client['futures'][requestId] = future;
-        // return await future; // this.watch (url, messageHash, this.extend (request, params), messageHash);
-        // throw new NotSupported (this.id + ' watchOrderBook not implemented yet');
-        // return future;
+        requestId = requestId.toString ();
+        this.options['subscriptions'][requestId] = {
+            'requestId': requestId,
+            'messageHash': messageHash,
+            'name': name,
+            'symbol': symbol,
+            'method': this.handleOrderBookSubscription,
+        };
+        const future = this.watch (url, messageHash, this.extend (request, params), messageHash);
+        return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
-    async fetchOrderBookSnapshot (symbol) {
+    limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
+        return orderbook.limit (limit);
+    }
+
+    async fetchOrderBookSnapshot (client, message, subscription) {
+        // console.log (new Date (), 'fetchOrderBookSnapshot...');
+        const symbol = this.safeString (subscription, 'symbol');
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
+        }
+        const messageHash = this.safeString (subscription, 'messageHash');
         // todo: this is sync in php - make it async
         const snapshot = await this.fetchOrderBook (symbol);
-        const orderbook = this.orderbooks[symbol];
-        orderbook.update (snapshot);
-        // const asks = orderbook['asks'];
-        // for (let i = 0; i < snapshot['asks'].length; i++) {
-        //     asks.storeArray (snapshot['asks'][i]);
-        // }
-        // const bids = orderbook['bids'];
-        // for (let i = 0; i < snapshot['bids'].length; i++) {
-        //     bids.storeArray (snapshot['bids'][i]);
-        // }
+        const orderbook = this.limitedOrderBook ();
+        orderbook.reset (snapshot);
+        // push the deltas
+        const messages = this.safeValue (this.options['messages'], messageHash, []);
+        // console.log (new Date (), 'fetchOrderBookSnapshot', messages.length, 'messages', snapshot);
+        for (let i = 0; i < messages.length; i++) {
+            const message = messages[i];
+            // console.log (new Date (), message);
+            this.handleOrderBookMessage (client, message, orderbook);
+        }
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
+    }
+
+    handleDelta (bookside, delta) {
+        const price = this.safeFloat (delta, 0);
+        const amount = this.safeFloat (delta, 1);
+        bookside.store (price, amount);
+    }
+
+    handleDeltas (bookside, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (bookside, deltas[i]);
+        }
+    }
+
+    handleOrderBookMessage (client, message, orderbook) {
+        // console.log (new Date (), '-------------------------', message);
+        const u = this.safeInteger2 (message, 'u', 'lastUpdateId');
+        if (u > orderbook['nonce']) {
+            // console.log (new Date (), 'merging...');
+            const U = this.safeInteger (message, 'U');
+            if ((U !== undefined) && ((U - 1) > orderbook['nonce'])) {
+                throw new ExchangeError (this.id + ' handleOrderBook received an out-of-order nonce');
+            }
+            this.handleDeltas (orderbook['asks'], this.safeValue (message, 'a', []));
+            this.handleDeltas (orderbook['bids'], this.safeValue (message, 'b', []));
+            orderbook['nonce'] = u;
+            const timestamp = this.safeInteger (message, 'E');
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
+        }
     }
 
     handleOrderBook (client, message) {
         //
+        // initial snapshot is fetched with ccxt's fetchOrderBook
+        // the feed does not include a snapshot, just the deltas
+        //
         //     {
         //         "e": "depthUpdate", // Event type
-        //         "E": 123456789, // Event time
+        //         "E": 1577554482280, // Event time
         //         "s": "BNBBTC", // Symbol
         //         "U": 157, // First update ID in event
         //         "u": 160, // Final update ID in event
@@ -157,50 +223,34 @@ module.exports = class binance extends ccxt.binance {
         }
         const name = 'depth';
         const messageHash = market['lowercaseId'] + '@' + name;
-        //
-        // initial snapshot is fetched with ccxt's fetchOrderBook
-        // the feed does not include a snapshot, just the deltas
-        //
-        //
-        const fetching = false;
-        if (!fetching) {
-            // fetch the snapshot in a separate async call
-            // this.spawn (this.fetchOrderBookSnapshot, ...)
-            throw new NotSupported (this.id + ' snapshot fetching is wip');
-        }
         if (symbol in this.orderbooks) {
             const orderbook = this.orderbooks[symbol];
-            // resolve
-            client.resolve (orderbook, messageHash);
+            const nonce = orderbook['nonce'];
+            // console.log (new Date (), messageHash, 'initialized', message);
+            this.handleOrderBookMessage (client, message, orderbook);
+            if (nonce < orderbook['nonce']) {
+                client.resolve (orderbook, messageHash);
+            }
         } else {
+            // console.log (new Date (), messageHash, 'caching', message);
             // accumulate deltas
-            this.options['cache'][symbol] = [];
-            this.options['cache'][messageHash].push (message);
+            this.options['messages'][messageHash] = this.safeValue (this.options['messages'], messageHash, []);
+            this.options['messages'][messageHash].push (message);
         }
-        // const orderbook = this.order
-        // const deltas = [];
-        // const nonce = message['u'];
-        // for (let i = 0; i < message['b'].length; i++) {
-        //     const bid = message['b'][i];
-        //     deltas.push ([nonce, 'absolute', 'bids', parseFloat (bid[0]), parseFloat (bid[1])]);
-        // }
-        // for (let i = 0; i < message['a'].length; i++) {
-        //     const asks = message['a'][i];
-        //     deltas.push ([nonce, 'absolute', 'asks', parseFloat (asks[0]), parseFloat (asks[1])]);
-        // }
-        // const symbol = this.parseSymbol (message);
-        // const incrementalBook = this.orderbooks[symbol];
-        // incrementalBook.update (deltas);
-        // const timestamp = this.safeInteger (message, 'E');
-        // incrementalBook.message['timestamp'] = timestamp;
-        // incrementalBook.message['datetime'] = this.iso8601 (timestamp);
-        // incrementalBook.message['nonce'] = message['u'];
-        // return incrementalBook.orderBook;
     }
 
     signMessage (client, messageHash, message, params = {}) {
         // todo: binance signMessage not implemented yet
         return message;
+    }
+
+    handleOrderBookSubscription (client, message, subscription) {
+        const messageHash = this.safeString (subscription, 'messageHash');
+        // console.log (messageHash);
+        // process.exit ();
+        this.options['messages'][messageHash] = [];
+        // fetch the snapshot in a separate async call
+        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 
     handleSubscriptionStatus (client, message) {
@@ -210,16 +260,21 @@ module.exports = class binance extends ccxt.binance {
         //         "id": 1574649734450
         //     }
         //
+        const requestId = this.safeString (message, 'id');
+        const subscription = this.safeValue (this.options['subscriptions'], requestId, {});
+        const method = this.safeValue (subscription, 'method');
+        if (method !== undefined) {
+            this.call (method, client, message, subscription);
+        }
         return message;
     }
 
     handleMessage (client, message) {
-        // const requestId = this.safeString (
         const methods = {
             'depthUpdate': this.handleOrderBook,
         };
         const event = this.safeString (message, 'e');
-        const method = this.safeString (methods, event);
+        const method = this.safeValue (methods, event);
         if (method === undefined) {
             const requestId = this.safeString (message, 'id');
             if (requestId !== undefined) {
