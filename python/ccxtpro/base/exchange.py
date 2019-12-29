@@ -6,7 +6,7 @@ __version__ = '1.0.0'
 
 # -----------------------------------------------------------------------------
 
-import asyncio
+from asyncio import ensure_future
 from ccxtpro.base.aiohttp_client import AiohttpClient
 from ccxt.async_support import Exchange as BaseExchange
 from ccxt import NotSupported
@@ -67,6 +67,16 @@ class Exchange(BaseExchange):
         # method is bound to self instance
         return method(result, *args)
 
+    async def spawnAsync(self, method, *args):
+        try:
+            await method(*args)
+        except Exception as e:
+            # todo: handle spawned errors
+            pass
+
+    def spawn(self, method, *args):
+        ensure_future(self.spawnAsync(method, *args))
+
     def handle_message(self, client, message):
         always = True
         if always:
@@ -98,7 +108,7 @@ class Exchange(BaseExchange):
         future = client.future(message_hash)
         # we intentionally do not use await here to avoid unhandled exceptions
         # the policy is to make sure that 100% of promises are resolved or rejected
-        asyncio.ensure_future(self.connect_client(client, message_hash, message, subscribe_hash, subscription))
+        ensure_future(self.connect_client(client, message_hash, message, subscribe_hash, subscription))
         return future
 
     def on_error(self, client, error):
