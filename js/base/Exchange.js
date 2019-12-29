@@ -64,7 +64,7 @@ module.exports = class Exchange extends ccxt.Exchange {
     }
 
     spawn (method, ... args) {
-        ((method.bind (this)) (... args)).catch ((e) => {
+        (method.apply (this, args)).catch ((e) => {
             // todo: handle spawned errors
         })
     }
