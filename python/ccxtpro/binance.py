@@ -118,14 +118,15 @@ class binance(ccxtpro.Exchange, ccxt.binance):
             'id': requestId,
         }
         requestId = str(requestId)
-        self.options['subscriptions'][requestId] = {
+        subscription = {
             'requestId': requestId,
             'messageHash': messageHash,
             'name': name,
             'symbol': symbol,
             'method': self.handle_order_book_subscription,
         }
-        future = self.watch(url, messageHash, self.extend(request, params), messageHash)
+        message = self.extend(request, params)
+        future = self.watch(url, messageHash, message, messageHash, subscription)
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
     def limit_order_book(self, orderbook, symbol, limit=None, params={}):
@@ -236,7 +237,8 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         #     }
         #
         requestId = self.safe_string(message, 'id')
-        subscription = self.safe_value(self.options['subscriptions'], requestId, {})
+        subscriptionsByRequestId = self.index_by(client.subscriptions, 'requestId')
+        subscription = self.safe_value(subscriptionsByRequestId, requestId, {})
         method = self.safe_value(subscription, 'method')
         if method is not None:
             self.call(method, client, message, subscription)

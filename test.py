@@ -20,7 +20,7 @@ from ccxt.base.errors import NetworkError, RequestTimeout
 
 async def test():
     symbol = 'ETH/BTC'
-    exchange = ccxtpro.kraken({
+    exchange = ccxtpro.binance({
         'enableRateLimit': True,
         # 'urls': {
         #     'api': {

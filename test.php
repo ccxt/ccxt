@@ -9,7 +9,7 @@ $loop = \React\EventLoop\Factory::create();
 
 $symbol = 'ETH/BTC';
 
-$id = 'kraken';
+$id = 'binance';
 $exchange_class = '\\ccxtpro\\' . $id;
 $exchange = new $exchange_class(array(
     'enableRateLimit' => true,

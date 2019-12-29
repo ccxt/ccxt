@@ -125,14 +125,15 @@ module.exports = class binance extends ccxt.binance {
             'id': requestId,
         };
         requestId = requestId.toString ();
-        this.options['subscriptions'][requestId] = {
+        const subscription = {
             'requestId': requestId,
             'messageHash': messageHash,
             'name': name,
             'symbol': symbol,
             'method': this.handleOrderBookSubscription,
         };
-        const future = this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const message = this.extend (request, params);
+        const future = this.watch (url, messageHash, message, messageHash, subscription);
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
@@ -261,7 +262,8 @@ module.exports = class binance extends ccxt.binance {
         //     }
         //
         const requestId = this.safeString (message, 'id');
-        const subscription = this.safeValue (this.options['subscriptions'], requestId, {});
+        const subscriptionsByRequestId = this.indexBy (client.subscriptions, 'requestId');
+        const subscription = this.safeValue (subscriptionsByRequestId, requestId, {});
         const method = this.safeValue (subscription, 'method');
         if (method !== undefined) {
             this.call (method, client, message, subscription);

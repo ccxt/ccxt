@@ -131,14 +131,15 @@ class binance extends \ccxt\binance {
             'id' => $requestId,
         );
         $requestId = (string) $requestId;
-        $this->options['subscriptions'][$requestId] = array(
+        $subscription = array(
             'requestId' => $requestId,
             'messageHash' => $messageHash,
             'name' => $name,
             'symbol' => $symbol,
             'method' => array($this, 'handle_order_book_subscription'),
         );
-        $future = $this->watch ($url, $messageHash, array_merge($request, $params), $messageHash);
+        $message = array_merge($request, $params);
+        $future = $this->watch ($url, $messageHash, $message, $messageHash, $subscription);
         return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
@@ -267,7 +268,8 @@ class binance extends \ccxt\binance {
         //     }
         //
         $requestId = $this->safe_string($message, 'id');
-        $subscription = $this->safe_value($this->options['subscriptions'], $requestId, array());
+        $subscriptionsByRequestId = $this->index_by($client->subscriptions, 'requestId');
+        $subscription = $this->safe_value($subscriptionsByRequestId, $requestId, array());
         $method = $this->safe_value($subscription, 'method');
         if ($method !== null) {
             $this->call ($method, $client, $message, $subscription);
