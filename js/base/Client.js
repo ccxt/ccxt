@@ -200,6 +200,7 @@ module.exports = class Client {
     }
 
     send (message) {
+        // console.log (new Date (), 'sending', message)
         this.connection.send (JSON.stringify (message))
     }
 
