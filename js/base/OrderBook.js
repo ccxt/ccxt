@@ -28,6 +28,12 @@ class OrderBook {
 
     constructor (snapshot = {}) {
 
+        Object.defineProperty (this, 'cache', {
+            __proto__: null, // make it invisible
+            value: [],
+            writable: true,
+        })
+
         const defaults = {
             'bids': [],
             'asks': [],
