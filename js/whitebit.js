@@ -663,9 +663,7 @@ module.exports = class whitebit extends Exchange {
         if (since !== undefined) {
             symbol['since'] = limit;
         }
-        const response = await this.privateV1PostOrders (this.extend (request, params));
-        const result = this.safeValue (response, 'result');
-        const orders = this.safeValue (result, 'records');
+        const orders = await this.privateV1PostOrders (this.extend (request, params));
         return this.parseOrders (orders, market, since, limit, params);
     }
 
@@ -810,9 +808,8 @@ module.exports = class whitebit extends Exchange {
             'price': this.priceToPrecision (symbol, price),
             'amount': this.amountToPrecision (symbol, amount),
         };
-        const response = await this.privateV1PostOrderNew (this.extend (request, params));
-        const result = this.safeValue (response, 'result');
-        return this.parseOrder (result, market);
+        const order = await this.privateV1PostOrderNew (this.extend (request, params));
+        return this.parseOrder (order, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -841,9 +838,8 @@ module.exports = class whitebit extends Exchange {
             'market': market['id'],
             'orderId': parseInt (id),
         };
-        const response = await this.privateV1PostOrderCancel (this.extend (request, params));
-        const result = this.safeValue (response, 'result');
-        return this.parseOrder (result, market);
+        const order = await this.privateV1PostOrderCancel (this.extend (request, params));
+        return this.parseOrder (order, market);
     }
 
     sign (path, api = 'publicV1', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -884,8 +880,8 @@ module.exports = class whitebit extends Exchange {
             this.throwExactlyMatchedException (this.httpExceptions, code.toString (), feedback);
         }
         if (response !== undefined) {
-            const success = this.safeValue (response, 'success');
-            if (!success) {
+            const isSuccess = this.safeValue (response, 'success', true);
+            if (!isSuccess) {
                 const messages = this.json (this.safeValue (response, 'message'));
                 const feedback = "\n" + 'id: ' + this.id + "\n" + 'url: ' + url + "\n" + 'request body: ' + requestBody + "\n" + 'Error: ' + messages + "\n" + 'body:' + "\n" + body; // eslint-disable-line quotes
                 this.throwBroadlyMatchedException (this.exceptions, messages, feedback);
