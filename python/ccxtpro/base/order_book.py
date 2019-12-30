@@ -5,6 +5,9 @@ from ccxt import Exchange
 
 
 class OrderBook(dict):
+
+    cache = []
+
     def __init__(self, snapshot={}):
         super(OrderBook, self).__init__()
         defaults = {
