@@ -2,8 +2,6 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const http = require ('http')
-const https = require ('https')
 const functions = require ('./functions')
 
 const {
@@ -220,7 +218,11 @@ module.exports = class Exchange {
         // }
 
         this.options = {} // exchange-specific options, if any
-        this.fetchOptions = {} // fetch implementation options (JS only)
+
+        // fetch implementation options (JS only)
+        this.fetchOptions = {
+            keepalive: true,
+        }
 
         this.userAgents = {
             'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -289,13 +291,13 @@ module.exports = class Exchange {
         // merge to this
         for (const [property, value] of Object.entries (config))
             this[property] = deepExtend (this[property], value)
-        
+
         if (!this.httpAgent) {
-            this.httpAgent = new http.Agent ({ 'keepAlive': true })
+            this.httpAgent = defaultFetch.http ? new defaultFetch.http.Agent ({ 'keepAlive': true }) : undefined
         }
-        
+
         if (!this.httpsAgent) {
-            this.httpsAgent = new https.Agent ({ 'keepAlive': true })
+            this.httpsAgent = defaultFetch.https ? new defaultFetch.https.Agent ({ 'keepAlive': true }) : undefined
         }
 
         // generate old metainfo interface
