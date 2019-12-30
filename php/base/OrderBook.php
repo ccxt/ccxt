@@ -4,6 +4,9 @@ namespace ccxtpro;
 
 class OrderBook extends \ArrayObject implements \JsonSerializable {
     public function __construct($snapshot = array()) {
+
+        $this->cache = array();
+
         $defaults = array(
             'bids' => array(),
             'asks' => array(),
