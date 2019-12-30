@@ -224,6 +224,5 @@ module.exports = class Client {
         } else {
             this.onMessageCallback (this, message)
         }
-
     }
 }
