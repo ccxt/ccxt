@@ -21,15 +21,13 @@ class binance(ccxtpro.Exchange, ccxt.binance):
             'urls': {
                 'api': {
                     'ws': 'wss://stream.binance.com:9443/ws',
-                    # 'ws': 'wss://echo.websocket.org/',
-                    # 'ws': 'ws://127.0.0.1:8080',
                 },
             },
             'options': {
                 # 'marketsByLowercaseId': {},
                 'subscriptions': {},
                 'messages': {},
-                'watchOrderBookRate': 100,  # get updated every 100ms or None(1000ms)
+                'watchOrderBookRate': 100,  # get updates every 100ms or 1000ms
             },
         })
 
@@ -110,22 +108,23 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         messageHash = market['lowercaseId'] + '@' + name
         url = self.urls['api']['ws']  # + '/' + messageHash
         requestId = self.nonce()
+        watchOrderBookRate = self.safe_string(self.options, 'watchOrderBookRate', '100')
         request = {
             'method': 'SUBSCRIBE',
             'params': [
-                messageHash + '@' + self.safe_string(self.options, 'watchOrderBookRate', 100) + 'ms',
+                messageHash + '@' + watchOrderBookRate + 'ms',
             ],
             'id': requestId,
         }
-        requestId = str(requestId)
         subscription = {
-            'requestId': requestId,
+            'requestId': str(requestId),
             'messageHash': messageHash,
             'name': name,
             'symbol': symbol,
             'method': self.handle_order_book_subscription,
         }
         message = self.extend(request, params)
+        # 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
         future = self.watch(url, messageHash, message, messageHash, subscription)
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
@@ -133,21 +132,17 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         return orderbook.limit(limit)
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
-        # print(new Date(), 'fetchOrderBookSnapshot...')
         symbol = self.safe_string(subscription, 'symbol')
-        if symbol in self.orderbooks:
-            del self.orderbooks[symbol]
         messageHash = self.safe_string(subscription, 'messageHash')
-        # todo: self is sync in php - make it async
+        # 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
+        # todo: self is a synch blocking call in ccxt.php - make it async
         snapshot = await self.fetch_order_book(symbol)
-        orderbook = self.limited_order_book()
+        orderbook = self.orderbooks[symbol]
         orderbook.reset(snapshot)
-        # push the deltas
-        messages = self.safe_value(self.options['messages'], messageHash, [])
-        # print(new Date(), 'fetchOrderBookSnapshot', len(messages), 'messages', snapshot)
+        # unroll the accumulated deltas
+        messages = orderbook.cache
         for i in range(0, len(messages)):
             message = messages[i]
-            # print(new Date(), message)
             self.handle_order_book_message(client, message, orderbook)
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
@@ -162,11 +157,12 @@ class binance(ccxtpro.Exchange, ccxt.binance):
             self.handle_delta(bookside, deltas[i])
 
     def handle_order_book_message(self, client, message, orderbook):
-        # print(new Date(), '-------------------------', message)
         u = self.safe_integer_2(message, 'u', 'lastUpdateId')
+        # merge accumulated deltas
+        # 4. Drop any event where u is <= lastUpdateId in the snapshot.
         if u > orderbook['nonce']:
-            # print(new Date(), 'merging...')
             U = self.safe_integer(message, 'U')
+            # 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
             if (U is not None) and ((U - 1) > orderbook['nonce']):
                 raise ExchangeError(self.id + ' handleOrderBook received an out-of-order nonce')
             self.handle_deltas(orderbook['asks'], self.safe_value(message, 'a', []))
@@ -175,6 +171,7 @@ class binance(ccxtpro.Exchange, ccxt.binance):
             timestamp = self.safe_integer(message, 'E')
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
+        return orderbook
 
     def handle_order_book(self, client, message):
         #
@@ -204,28 +201,25 @@ class binance(ccxtpro.Exchange, ccxt.binance):
                 symbol = market['symbol']
         name = 'depth'
         messageHash = market['lowercaseId'] + '@' + name
-        if symbol in self.orderbooks:
-            orderbook = self.orderbooks[symbol]
-            nonce = orderbook['nonce']
-            # print(new Date(), messageHash, 'initialized', message)
+        orderbook = self.orderbooks[symbol]
+        if orderbook['nonce'] is not None:
+            # 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
+            # 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
             self.handle_order_book_message(client, message, orderbook)
-            if nonce < orderbook['nonce']:
-                client.resolve(orderbook, messageHash)
+            client.resolve(orderbook, messageHash)
         else:
-            # print(new Date(), messageHash, 'caching', message)
-            # accumulate deltas
-            self.options['messages'][messageHash] = self.safe_value(self.options['messages'], messageHash, [])
-            self.options['messages'][messageHash].append(message)
+            # 2. Buffer the events you receive from the stream.
+            orderbook.cache.append(message)
 
     def sign_message(self, client, messageHash, message, params={}):
         # todo: binance signMessage not implemented yet
         return message
 
     def handle_order_book_subscription(self, client, message, subscription):
-        messageHash = self.safe_string(subscription, 'messageHash')
-        # print(messageHash)
-        # sys.exit()
-        self.options['messages'][messageHash] = []
+        symbol = self.safe_string(subscription, 'symbol')
+        if symbol in self.orderbooks:
+            del self.orderbooks[symbol]
+        self.orderbooks[symbol] = self.limited_order_book()
         # fetch the snapshot in a separate async call
         self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
 
@@ -257,14 +251,6 @@ class binance(ccxtpro.Exchange, ccxt.binance):
             return message
         else:
             return self.call(method, client, message)
-        # print(message)
-        # sys.exit()
-        #
-        # keys = list(client.futures.keys())
-        # for i in range(0, len(keys)):
-        #     key = keys[i]
-        #     client.reject()
-        # }
         #
         # --------------------------------------------------------------------
         #

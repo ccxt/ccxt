@@ -18,15 +18,13 @@ module.exports = class binance extends ccxt.binance {
             'urls': {
                 'api': {
                     'ws': 'wss://stream.binance.com:9443/ws',
-                    // 'ws': 'wss://echo.websocket.org/',
-                    // 'ws': 'ws://127.0.0.1:8080',
                 },
             },
             'options': {
                 // 'marketsByLowercaseId': {},
                 'subscriptions': {},
                 'messages': {},
-                'watchOrderBookRate': 100, // get updated every 100ms or undefined (1000ms)
+                'watchOrderBookRate': 100, // get updates every 100ms or 1000ms
             },
         });
     }
@@ -116,23 +114,24 @@ module.exports = class binance extends ccxt.binance {
         const name = 'depth';
         const messageHash = market['lowercaseId'] + '@' + name;
         const url = this.urls['api']['ws']; // + '/' + messageHash;
-        let requestId = this.nonce ();
+        const requestId = this.nonce ();
+        const watchOrderBookRate = this.safeString (this.options, 'watchOrderBookRate', '100');
         const request = {
             'method': 'SUBSCRIBE',
             'params': [
-                messageHash + '@' + this.safeString (this.options, 'watchOrderBookRate', 100) + 'ms',
+                messageHash + '@' + watchOrderBookRate + 'ms',
             ],
             'id': requestId,
         };
-        requestId = requestId.toString ();
         const subscription = {
-            'requestId': requestId,
+            'requestId': requestId.toString (),
             'messageHash': messageHash,
             'name': name,
             'symbol': symbol,
             'method': this.handleOrderBookSubscription,
         };
         const message = this.extend (request, params);
+        // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
         const future = this.watch (url, messageHash, message, messageHash, subscription);
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
@@ -142,22 +141,17 @@ module.exports = class binance extends ccxt.binance {
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {
-        // console.log (new Date (), 'fetchOrderBookSnapshot...');
         const symbol = this.safeString (subscription, 'symbol');
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
-        }
         const messageHash = this.safeString (subscription, 'messageHash');
-        // todo: this is sync in php - make it async
+        // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
+        // todo: this is a synch blocking call in ccxt.php - make it async
         const snapshot = await this.fetchOrderBook (symbol);
-        const orderbook = this.limitedOrderBook ();
+        const orderbook = this.orderbooks[symbol];
         orderbook.reset (snapshot);
-        // push the deltas
-        const messages = this.safeValue (this.options['messages'], messageHash, []);
-        // console.log (new Date (), 'fetchOrderBookSnapshot', messages.length, 'messages', snapshot);
+        // unroll the accumulated deltas
+        const messages = orderbook.cache;
         for (let i = 0; i < messages.length; i++) {
             const message = messages[i];
-            // console.log (new Date (), message);
             this.handleOrderBookMessage (client, message, orderbook);
         }
         this.orderbooks[symbol] = orderbook;
@@ -177,11 +171,12 @@ module.exports = class binance extends ccxt.binance {
     }
 
     handleOrderBookMessage (client, message, orderbook) {
-        // console.log (new Date (), '-------------------------', message);
         const u = this.safeInteger2 (message, 'u', 'lastUpdateId');
+        // merge accumulated deltas
+        // 4. Drop any event where u is <= lastUpdateId in the snapshot.
         if (u > orderbook['nonce']) {
-            // console.log (new Date (), 'merging...');
             const U = this.safeInteger (message, 'U');
+            // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
             if ((U !== undefined) && ((U - 1) > orderbook['nonce'])) {
                 throw new ExchangeError (this.id + ' handleOrderBook received an out-of-order nonce');
             }
@@ -192,6 +187,7 @@ module.exports = class binance extends ccxt.binance {
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
         }
+        return orderbook;
     }
 
     handleOrderBook (client, message) {
@@ -224,19 +220,15 @@ module.exports = class binance extends ccxt.binance {
         }
         const name = 'depth';
         const messageHash = market['lowercaseId'] + '@' + name;
-        if (symbol in this.orderbooks) {
-            const orderbook = this.orderbooks[symbol];
-            const nonce = orderbook['nonce'];
-            // console.log (new Date (), messageHash, 'initialized', message);
+        const orderbook = this.orderbooks[symbol];
+        if (orderbook['nonce'] !== undefined) {
+            // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
+            // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
             this.handleOrderBookMessage (client, message, orderbook);
-            if (nonce < orderbook['nonce']) {
-                client.resolve (orderbook, messageHash);
-            }
+            client.resolve (orderbook, messageHash);
         } else {
-            // console.log (new Date (), messageHash, 'caching', message);
-            // accumulate deltas
-            this.options['messages'][messageHash] = this.safeValue (this.options['messages'], messageHash, []);
-            this.options['messages'][messageHash].push (message);
+            // 2. Buffer the events you receive from the stream.
+            orderbook.cache.push (message);
         }
     }
 
@@ -246,10 +238,11 @@ module.exports = class binance extends ccxt.binance {
     }
 
     handleOrderBookSubscription (client, message, subscription) {
-        const messageHash = this.safeString (subscription, 'messageHash');
-        // console.log (messageHash);
-        // process.exit ();
-        this.options['messages'][messageHash] = [];
+        const symbol = this.safeString (subscription, 'symbol');
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
+        }
+        this.orderbooks[symbol] = this.limitedOrderBook ();
         // fetch the snapshot in a separate async call
         this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
@@ -286,14 +279,6 @@ module.exports = class binance extends ccxt.binance {
         } else {
             return this.call (method, client, message);
         }
-        // console.log (message);
-        // process.exit ();
-        //
-        // const keys = Object.keys (client.futures);
-        // for (let i = 0; i < keys.length; i++) {
-        //     const key = keys[i];
-        //     client.reject ()
-        // }
         //
         // --------------------------------------------------------------------
         //

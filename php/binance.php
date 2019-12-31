@@ -24,15 +24,13 @@ class binance extends \ccxt\binance {
             'urls' => array(
                 'api' => array(
                     'ws' => 'wss://stream.binance.com:9443/ws',
-                    // 'ws' => 'wss://echo.websocket.org/',
-                    // 'ws' => 'ws://127.0.0.1:8080',
                 ),
             ),
             'options' => array(
                 // 'marketsByLowercaseId' => array(),
                 'subscriptions' => array(),
                 'messages' => array(),
-                'watchOrderBookRate' => 100, // get updated every 100ms or null (1000ms)
+                'watchOrderBookRate' => 100, // get updates every 100ms or 1000ms
             ),
         ));
     }
@@ -123,22 +121,23 @@ class binance extends \ccxt\binance {
         $messageHash = $market['lowercaseId'] . '@' . $name;
         $url = $this->urls['api']['ws']; // . '/' . $messageHash;
         $requestId = $this->nonce ();
+        $watchOrderBookRate = $this->safe_string($this->options, 'watchOrderBookRate', '100');
         $request = array(
             'method' => 'SUBSCRIBE',
             'params' => array(
-                $messageHash . '@' . $this->safe_string($this->options, 'watchOrderBookRate', 100) . 'ms',
+                $messageHash . '@' . $watchOrderBookRate . 'ms',
             ),
             'id' => $requestId,
         );
-        $requestId = (string) $requestId;
         $subscription = array(
-            'requestId' => $requestId,
+            'requestId' => (string) $requestId,
             'messageHash' => $messageHash,
             'name' => $name,
             'symbol' => $symbol,
             'method' => array($this, 'handle_order_book_subscription'),
         );
         $message = array_merge($request, $params);
+        // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
         $future = $this->watch ($url, $messageHash, $message, $messageHash, $subscription);
         return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
@@ -148,22 +147,17 @@ class binance extends \ccxt\binance {
     }
 
     public function fetch_order_book_snapshot ($client, $message, $subscription) {
-        // var_dump (new Date (), 'fetchOrderBookSnapshot...');
         $symbol = $this->safe_string($subscription, 'symbol');
-        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
-            unset($this->orderbooks[$symbol]);
-        }
         $messageHash = $this->safe_string($subscription, 'messageHash');
-        // todo => this is sync in php - make it async
+        // 3. Get a depth $snapshot from https://www.binance.com/api/v1/depth?$symbol=BNBBTC&limit=1000 .
+        // todo => this is a synch blocking call in ccxt.php - make it async
         $snapshot = $this->fetch_order_book($symbol);
-        $orderbook = $this->limited_order_book();
+        $orderbook = $this->orderbooks[$symbol];
         $orderbook->reset ($snapshot);
-        // push the deltas
-        $messages = $this->safe_value($this->options['messages'], $messageHash, array());
-        // var_dump (new Date (), 'fetchOrderBookSnapshot', strlen($messages), 'messages', $snapshot);
+        // unroll the accumulated deltas
+        $messages = $orderbook->cache;
         for ($i = 0; $i < count($messages); $i++) {
             $message = $messages[$i];
-            // var_dump (new Date (), $message);
             $this->handle_order_book_message ($client, $message, $orderbook);
         }
         $this->orderbooks[$symbol] = $orderbook;
@@ -183,11 +177,12 @@ class binance extends \ccxt\binance {
     }
 
     public function handle_order_book_message ($client, $message, $orderbook) {
-        // var_dump (new Date (), '-------------------------', $message);
         $u = $this->safe_integer_2($message, 'u', 'lastUpdateId');
+        // merge accumulated deltas
+        // 4. Drop any event where $u is <= lastUpdateId in the snapshot.
         if ($u > $orderbook['nonce']) {
-            // var_dump (new Date (), 'merging...');
             $U = $this->safe_integer($message, 'U');
+            // 5. The first processed event should have $U <= lastUpdateId+1 AND $u >= lastUpdateId+1.
             if (($U !== null) && (($U - 1) > $orderbook['nonce'])) {
                 throw new ExchangeError($this->id . ' handleOrderBook received an out-of-order nonce');
             }
@@ -198,6 +193,7 @@ class binance extends \ccxt\binance {
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601 ($timestamp);
         }
+        return $orderbook;
     }
 
     public function handle_order_book ($client, $message) {
@@ -230,19 +226,15 @@ class binance extends \ccxt\binance {
         }
         $name = 'depth';
         $messageHash = $market['lowercaseId'] . '@' . $name;
-        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
-            $orderbook = $this->orderbooks[$symbol];
-            $nonce = $orderbook['nonce'];
-            // var_dump (new Date (), $messageHash, 'initialized', $message);
+        $orderbook = $this->orderbooks[$symbol];
+        if ($orderbook['nonce'] !== null) {
+            // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
+            // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
             $this->handle_order_book_message ($client, $message, $orderbook);
-            if ($nonce < $orderbook['nonce']) {
-                $client->resolve ($orderbook, $messageHash);
-            }
+            $client->resolve ($orderbook, $messageHash);
         } else {
-            // var_dump (new Date (), $messageHash, 'caching', $message);
-            // accumulate deltas
-            $this->options['messages'][$messageHash] = $this->safe_value($this->options['messages'], $messageHash, array());
-            $this->options['messages'][$messageHash][] = $message;
+            // 2. Buffer the events you receive from the stream.
+            $orderbook->cache[] = $message;
         }
     }
 
@@ -252,10 +244,11 @@ class binance extends \ccxt\binance {
     }
 
     public function handle_order_book_subscription ($client, $message, $subscription) {
-        $messageHash = $this->safe_string($subscription, 'messageHash');
-        // var_dump ($messageHash);
-        // exit ();
-        $this->options['messages'][$messageHash] = array();
+        $symbol = $this->safe_string($subscription, 'symbol');
+        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+            unset($this->orderbooks[$symbol]);
+        }
+        $this->orderbooks[$symbol] = $this->limited_order_book();
         // fetch the snapshot in a separate async call
         $this->spawn (array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
     }
@@ -292,14 +285,6 @@ class binance extends \ccxt\binance {
         } else {
             return $this->call ($method, $client, $message);
         }
-        // var_dump ($message);
-        // exit ();
-        //
-        // $keys = is_array($client->futures) ? array_keys($client->futures) : array();
-        // for ($i = 0; $i < count($keys); $i++) {
-        //     $key = $keys[$i];
-        //     $client->reject ()
-        // }
         //
         // --------------------------------------------------------------------
         //
