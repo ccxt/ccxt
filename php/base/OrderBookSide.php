@@ -157,11 +157,22 @@ class CountedOrderBookSide extends OrderBookSide {
 trait Indexed {
     public function store($price, $size, $id = null) {
         if ($size) {
-            $this->index[$id] = [$price, $size, $id];
+            $this->index[$id] = array($price, $size, $id);
         } else {
             unset($this->index[$id]);
         }
     }
+
+    public function restore($price, $size, $id) { // price is presumably null
+        if ($size) {
+            $array = $this->index[$id];
+            $price = $price || $array[0];
+            $this->index[$id] = array($price, $size, $id);
+        } else {
+            unset($this->index[$id]);
+        }
+    }
+
 
     public function storeArray($delta) {
         $size = $delta[1];
