@@ -245,6 +245,7 @@ class LimitedIndexedOrderBookSide extends OrderBookSide {
         if ($n || $this->depth) {
             $limit = min($n ? $n : PHP_INT_MAX, $this->depth ? $this->depth : PHP_INT_MAX);
             array_splice($values, $limit);
+            array_splice($keys, $limit);
         }
         $this->index->clear();
         foreach ($values as $value) {
@@ -277,6 +278,7 @@ class LimitedCountedOrderBookSide extends CountedOrderBookSide {
         if ($n || $this->depth) {
             $limit = min($n ? $n : PHP_INT_MAX, $this->depth ? $this->depth : PHP_INT_MAX);
             array_splice($values, $limit);
+            array_splice($keys, $limit);
         }
         $this->index->clear();
         foreach ($values as $value) {
