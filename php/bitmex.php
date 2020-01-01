@@ -220,7 +220,12 @@ class bitmex extends \ccxt\bitmex {
                 $messageHash,
             ),
         );
-        return $this->watch ($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
+        $future = $this->watch ($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
+        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+    }
+
+    public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
+        return $orderbook->limit ($limit);
     }
 
     public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -232,25 +237,6 @@ class bitmex extends \ccxt\bitmex {
         // );
         // return $this->watchPublicMessage ($name, $symbol, array_merge($request, $params));
         throw new NotImplemented($this->id . ' watchOHLCV() not implemented yet (wip)');
-    }
-
-    public function load_markets ($reload = false, $params = array ()) {
-        $markets = parent::load_markets($reload, $params);
-        $marketsByWsName = $this->safe_value($this->options, 'marketsByWsName');
-        if (($marketsByWsName === null) || $reload) {
-            $marketsByWsName = array();
-            for ($i = 0; $i < count($this->symbols); $i++) {
-                $symbol = $this->symbols[$i];
-                $market = $this->markets[$symbol];
-                if (!$market['darkpool']) {
-                    $info = $this->safe_value($market, 'info', array());
-                    $wsName = $this->safe_string($info, 'wsname');
-                    $marketsByWsName[$wsName] = $market;
-                }
-            }
-            $this->options['marketsByWsName'] = $marketsByWsName;
-        }
-        return $markets;
     }
 
     public function watch_heartbeat ($params = array ()) {
@@ -372,7 +358,7 @@ class bitmex extends \ccxt\bitmex {
                 }
                 $messageHash = $table . ':' . $marketId;
                 // the .limit () operation will be moved to the watchOrderBook
-                $client->resolve ($orderbook->limit (), $messageHash);
+                $client->resolve ($orderbook, $messageHash);
             }
         } else {
             $numUpdatesByMarketId = array();
@@ -407,7 +393,7 @@ class bitmex extends \ccxt\bitmex {
                 $symbol = $market['symbol'];
                 $orderbook = $this->orderbooks[$symbol];
                 // the .limit () operation will be moved to the watchOrderBook
-                $client->resolve ($orderbook->limit (), $messageHash);
+                $client->resolve ($orderbook, $messageHash);
             }
         }
     }
