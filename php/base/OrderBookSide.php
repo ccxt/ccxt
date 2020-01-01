@@ -166,7 +166,7 @@ trait Indexed {
     public function restore($price, $size, $id) { // price is presumably null
         if ($size) {
             $array = $this->index[$id];
-            $price = $price || $array[0];
+            $price = isset($price) ? $price : $array[0];
             $this->index[$id] = array($price, $size, $id);
         } else {
             unset($this->index[$id]);
