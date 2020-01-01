@@ -19,3 +19,13 @@ matrix:
         - npm install
       script:
         - echo "node_js test"
+
+    - language: php
+      php:
+        - 7.4.0
+      before_install:
+        - echo "php before_install"
+      install:
+        - echo "php install"
+      script:
+        - echo "php test"
