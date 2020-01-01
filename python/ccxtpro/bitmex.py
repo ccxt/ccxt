@@ -494,7 +494,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                 'orderBookL2_25': self.handle_order_book,
                 'orderBook10': self.handle_order_book,
             }
-            method = self.safe_string(methods, table)
+            method = self.safe_value(methods, table)
             if method is None:
                 print(message)
                 return message

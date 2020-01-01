@@ -528,7 +528,7 @@ class bitmex extends \ccxt\bitmex {
                 'orderBookL2_25' => array($this, 'handle_order_book'),
                 'orderBook10' => array($this, 'handle_order_book'),
             );
-            $method = $this->safe_string($methods, $table);
+            $method = $this->safe_value($methods, $table);
             if ($method === null) {
                 var_dump ($message);
                 return $message;

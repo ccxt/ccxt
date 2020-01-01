@@ -523,7 +523,7 @@ module.exports = class bitmex extends ccxt.bitmex {
                 'orderBookL2_25': this.handleOrderBook,
                 'orderBook10': this.handleOrderBook,
             };
-            const method = this.safeString (methods, table);
+            const method = this.safeValue (methods, table);
             if (method === undefined) {
                 console.log (message);
                 return message;
