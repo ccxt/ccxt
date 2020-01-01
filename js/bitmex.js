@@ -519,16 +519,16 @@ module.exports = class bitmex extends ccxt.bitmex {
         if (this.handleErrorMessage (client, message)) {
             const table = this.safeString (message, 'table');
             const methods = {
-                'orderBookL2': 'handleOrderBook',
-                'orderBookL2_25': 'handleOrderBook',
-                'orderBook10': 'handleOrderBook',
+                'orderBookL2': this.handleOrderBook,
+                'orderBookL2_25': this.handleOrderBook,
+                'orderBook10': this.handleOrderBook,
             };
             const method = this.safeString (methods, table);
             if (method === undefined) {
                 console.log (message);
                 return message;
             } else {
-                return this[method] (client, message);
+                return this.call (method, client, message);
             }
         }
     }

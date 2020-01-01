@@ -490,13 +490,13 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         if self.handle_error_message(client, message):
             table = self.safe_string(message, 'table')
             methods = {
-                'orderBookL2': 'handleOrderBook',
-                'orderBookL2_25': 'handleOrderBook',
-                'orderBook10': 'handleOrderBook',
+                'orderBookL2': self.handle_order_book,
+                'orderBookL2_25': self.handle_order_book,
+                'orderBook10': self.handle_order_book,
             }
             method = self.safe_string(methods, table)
             if method is None:
                 print(message)
                 return message
             else:
-                return getattr(self, method)(client, message)
+                return self.call(method, client, message)

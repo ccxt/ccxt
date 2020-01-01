@@ -524,16 +524,16 @@ class bitmex extends \ccxt\bitmex {
         if ($this->handle_error_message ($client, $message)) {
             $table = $this->safe_string($message, 'table');
             $methods = array(
-                'orderBookL2' => 'handleOrderBook',
-                'orderBookL2_25' => 'handleOrderBook',
-                'orderBook10' => 'handleOrderBook',
+                'orderBookL2' => array($this, 'handle_order_book'),
+                'orderBookL2_25' => array($this, 'handle_order_book'),
+                'orderBook10' => array($this, 'handle_order_book'),
             );
             $method = $this->safe_string($methods, $table);
             if ($method === null) {
                 var_dump ($message);
                 return $message;
             } else {
-                return $this->$method ($client, $message);
+                return $this->call ($method, $client, $message);
             }
         }
     }
