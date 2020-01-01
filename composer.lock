@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.21.2",
+            "version": "1.21.25",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "e0a2a35cb3510ba87ee90a286b397cfe067504fc"
+                "reference": "4eda15540b329b2b96a9143d04ee46891eb4bcde"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/e0a2a35cb3510ba87ee90a286b397cfe067504fc",
-                "reference": "e0a2a35cb3510ba87ee90a286b397cfe067504fc",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/4eda15540b329b2b96a9143d04ee46891eb4bcde",
+                "reference": "4eda15540b329b2b96a9143d04ee46891eb4bcde",
                 "shasum": ""
             },
             "require": {
@@ -269,7 +269,7 @@
                 "zec",
                 "zerocoin"
             ],
-            "time": "2019-12-19T17:58:07+00:00"
+            "time": "2020-01-01T02:09:01+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -713,16 +713,16 @@
         },
         {
             "name": "react/event-loop",
-            "version": "v1.1.0",
+            "version": "v1.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/event-loop.git",
-                "reference": "a0ecac955c67b57c40fe4a1b88a7cca1b58c982d"
+                "reference": "6d24de090cd59cfc830263cfba965be77b563c13"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/event-loop/zipball/a0ecac955c67b57c40fe4a1b88a7cca1b58c982d",
-                "reference": "a0ecac955c67b57c40fe4a1b88a7cca1b58c982d",
+                "url": "https://api.github.com/repos/reactphp/event-loop/zipball/6d24de090cd59cfc830263cfba965be77b563c13",
+                "reference": "6d24de090cd59cfc830263cfba965be77b563c13",
                 "shasum": ""
             },
             "require": {
@@ -751,7 +751,7 @@
                 "asynchronous",
                 "event-loop"
             ],
-            "time": "2019-02-07T16:19:49+00:00"
+            "time": "2020-01-01T18:39:52+00:00"
         },
         {
             "name": "react/promise",
