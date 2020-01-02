@@ -21,6 +21,7 @@ class kucoin extends Exchange {
             'certified' => true,
             'comment' => 'Platform 2.0',
             'has' => array(
+                'fetchTime' => true,
                 'fetchMarkets' => true,
                 'fetchCurrencies' => true,
                 'fetchTicker' => true,
@@ -201,6 +202,18 @@ class kucoin extends Exchange {
         $kucoinTime = $this->safe_integer($response, 'data');
         $this->options['timeDifference'] = intval ($after - $kucoinTime);
         return $this->options['timeDifference'];
+    }
+
+    public function fetch_time ($params = array ()) {
+        $response = $this->publicGetTimestamp ($params);
+        //
+        //     {
+        //         "code":"200000",
+        //         "msg":"success",
+        //         "data":1546837113087
+        //     }
+        //
+        return $this->safe_integer($response, 'data');
     }
 
     public function fetch_markets ($params = array ()) {
