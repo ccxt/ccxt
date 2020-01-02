@@ -4,6 +4,26 @@ info@ccxt.pro
 
 # CCXT Pro
 
+```JavaScript
+// JavaScript
+
+;(async () => {
+
+    const ccxtpro = require ('ccxt.pro')
+        , exchange = new ccxtpro.binance ()
+        , symbol = 'ETH/BTC'
+
+    while (true) {
+        const orderbook = await this.watchOrderBook (symbol, limit)
+        console.log (new Date (), symbol,
+            orderbook['asks'].length, 'asks', orderbook['asks'][0],
+            orderbook['bids'].length, 'bids', orderbook['bids'][0],
+        );
+    }
+
+}) ()
+```
+
 CCXT Pro is a professional extension to the standard CCXT that is going to include:
 - The support for unified public and private WebSockets (pub and sub) – work in progress now
 - FIX protocol adapters – planned for the future
@@ -207,11 +227,11 @@ Many of the CCXT rules and concepts also apply to CCXT Pro:
 
 Despite of the numerous commonalities, streaming-based APIs have their own specifics, because of their connection-based nature.
 
-Having a connection-based interface implies connection-handling mechanisms. Connection management is handled by CCXT Pro transparently to the user.
+Having a connection-based interface implies connection-handling mechanisms. Connections are managed by CCXT Pro transparently to the user. Each exchange instance manages its own set of connections.
 
-Upon your first call to any `watch` method CCXT Pro will establish a connection to a specific stream/resource of the exchange and will maintain it. The library will handle the subscription request/response messaging sequence as well as the authentication/signing if the requested stream is private.
+Upon your first call to any `watch` method CCXT Pro will establish a connection to a specific stream/resource of the exchange and will maintain it. In case the connection exists – it is reused. The library will handle the subscription request/response messaging sequences as well as the authentication/signing if the requested stream is private.
 
-The library will also watch the status of the uplink and will keep the connection alive. Upon a critical exception, a disconnect or a connection timeout/failure, the next iteration of the tick function will call the `watch` method that will trigger a reconnection. This way the library handles disconnections and reconnections for the user transparently. CCXT Pro applies the necessary rate-limiting and exponential backoff delays. All of that functionality is enabled by default and can be configured via exchange properties, as usual.
+The library will also watch the status of the uplink and will keep the connection alive. Upon a critical exception, a disconnect or a connection timeout/failure, the next iteration of the tick function will call the `watch` method that will trigger a reconnection. This way the library handles disconnections and reconnections for the user transparently. CCXT Pro applies the necessary rate-limiting and exponential backoff reconnection delays. All of that functionality is enabled by default and can be configured via exchange properties, as usual.
 
 ### Linking Against CCXT Pro
 
