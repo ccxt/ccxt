@@ -183,9 +183,9 @@ Every CCXT Pro instance contains all properties of the underlying CCXT instance.
 
 - `has`: an extended associative array of extended exchange capabilities (e.g. `watchOrderBook`, `watchOHLCV`, ...)
 - `urls['api']`: will contain a streaming API base URL, depending on the underlying protocol
-    - `'ws'`: A [WebSocket](https://en.wikipedia.org/wiki/WebSocket)-based streaming API base URL
-    - `'signalr'`: A [SignalR](https://en.wikipedia.org/wiki/SignalR)-based streaming API base URL
-    - `'socketio'`: A [Socket.IO](https://socket.io/)-based streaming API base URL
+    - `'ws'`: [WebSocket](https://en.wikipedia.org/wiki/WebSocket)
+    - `'signalr'`: [SignalR](https://en.wikipedia.org/wiki/SignalR)
+    - `'socketio'`: [Socket.IO](https://socket.io/)
 - `version`: ...
 
 ### Rate limiting
