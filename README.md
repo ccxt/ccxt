@@ -158,16 +158,16 @@ while (condition) {
 
 In CCXT Pro each public and private unified RESTful method having a `fetch*` prefix also has a corresponding stream-based counterpart method prefixed with `watch*`, as follows:
 
-- fetchStatus → watchStatus
-- fetchOrderBook → watchOrderBook
-- fetchTicker → watchTicker
-- fetchTickers → watchTickers
-- fetchOHLCV → watchOHLCV
-- fetchTrades → watchTrades
-- fetchBalance → watchBalance
-- fetchOrders → watchOrders
-- fetchMyTrades → watchMyTrades
-- fetchTransactions → watchTransactions
+- `fetchStatus` → `watchStatus`
+- `fetchOrderBook` → `watchOrderBook`
+- `fetchTicker` → `watchTicker`
+- `fetchTickers` → `watchTickers`
+- `fetchOHLCV` → `watchOHLCV`
+- `fetchTrades` → `watchTrades`
+- `fetchBalance` → `watchBalance`
+- `fetchOrders` → `watchOrders`
+- `fetchMyTrades` → `watchMyTrades`
+- `fetchTransactions` → `watchTransactions`
 - ...
 
 The Unified CCXT Pro Streaming API inherits CCXT usage patterns to make the code easier to migrate.
