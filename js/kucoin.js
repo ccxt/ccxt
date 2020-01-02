@@ -18,6 +18,7 @@ module.exports = class kucoin extends Exchange {
             'certified': true,
             'comment': 'Platform 2.0',
             'has': {
+                'fetchTime': true,
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
                 'fetchTicker': true,
@@ -198,6 +199,18 @@ module.exports = class kucoin extends Exchange {
         const kucoinTime = this.safeInteger (response, 'data');
         this.options['timeDifference'] = parseInt (after - kucoinTime);
         return this.options['timeDifference'];
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetTimestamp (params);
+        //
+        //     {
+        //         "code":"200000",
+        //         "msg":"success",
+        //         "data":1546837113087
+        //     }
+        //
+        return this.safeInteger (response, 'data');
     }
 
     async fetchMarkets (params = {}) {
