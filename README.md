@@ -160,17 +160,35 @@ The imported CCXT Pro module wraps the CCXT inside itself – every exchange ins
 
 ### Instantiation
 
+Creating a CCXT Pro exchange instance is pretty much identical to creating a CCXT exchange instance, as shown below.
+
 ```JavaScript
 // JavaScript
+const exchange = new ccxtpro.binance ()
 ```
 
 ```Python
 # Python
+exchange = ccxtpro.kraken()
 ```
 
 ```PHP
 // PHP
+$exchange = new \ccxtpro\kucoin();
 ```
 
+### Exchange Properties
 
+Every CCXT Pro instance contains all properties of the underlying CCXT instance. Apart from the standard CCXT properties, the CCXT Pro instance includes the following:
+
+- `has`: an extended associative array of extended exchange capabilities (e.g. `watchOrderBook`, `watchOHLCV`, ...)
+- `urls['api']`: will contain a streaming API base URL, depending on the underlying protocol
+    - `'ws'`: A [WebSocket](https://en.wikipedia.org/wiki/WebSocket)-based streaming API base URL
+    - `'signalr'`: A [SignalR](https://en.wikipedia.org/wiki/SignalR)-based streaming API base URL
+    - `'socketio'`: A [Socket.IO](https://socket.io/)-based streaming API base URL
+- `version`: ...
+
+### Rate limiting
+
+### Error Handling
 
