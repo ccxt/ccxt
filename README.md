@@ -170,7 +170,7 @@ In CCXT Pro each public and private unified RESTful method having a `fetch*` pre
 - `fetchTransactions` → `watchTransactions`
 - ...
 
-The Unified CCXT Pro Streaming API inherits CCXT usage patterns to make the code easier to migrate.
+The Unified CCXT Pro Streaming API inherits CCXT usage patterns to make migration easier.
 
 The general async-style flow for a CCXT Pro application (as opposed to a CCXT application above) is shown below:
 
