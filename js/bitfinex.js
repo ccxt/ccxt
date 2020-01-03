@@ -48,7 +48,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
             // 'len': '25', // string, number of price points, '25', '100', default = '25'
         };
         if (limit !== undefined) {
-            request['limit'] = limit.toString ();
+            request['len'] = limit.toString ();
         }
         const messageHash = channel + ':' + marketId;
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
