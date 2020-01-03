@@ -26,7 +26,6 @@ class binance(ccxtpro.Exchange, ccxt.binance):
             'options': {
                 # 'marketsByLowercaseId': {},
                 'subscriptions': {},
-                'messages': {},
                 'watchOrderBookRate': 100,  # get updates every 100ms or 1000ms
             },
         })

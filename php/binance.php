@@ -29,7 +29,6 @@ class binance extends \ccxt\binance {
             'options' => array(
                 // 'marketsByLowercaseId' => array(),
                 'subscriptions' => array(),
-                'messages' => array(),
                 'watchOrderBookRate' => 100, // get updates every 100ms or 1000ms
             ),
         ));

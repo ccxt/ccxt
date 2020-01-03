@@ -23,7 +23,6 @@ module.exports = class binance extends ccxt.binance {
             'options': {
                 // 'marketsByLowercaseId': {},
                 'subscriptions': {},
-                'messages': {},
                 'watchOrderBookRate': 100, // get updates every 100ms or 1000ms
             },
         });
