@@ -489,8 +489,9 @@ class Transpiler {
 
         for (let error in errors) {
             const regex = new RegExp ("[^\\'\"]" + error + "[^\\'\"]")
-            if (bodyAsString.match (regex))
+            if (bodyAsString.match (regex)) {
                 errorImports.push ('from ccxt.base.errors import ' + error)
+            }
         }
 
         const precisionImports = []
@@ -521,7 +522,11 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
-    createPHPClassHeader (className, baseClass) {
+    createPHPClassDeclaration (className, baseClass) {
+        return 'class ' + className + ' extends ' + baseClass + ' {'
+    }
+
+    createPHPClassHeader (className, baseClass, bodyAsString) {
         return [
             "<?php",
             "",
@@ -531,22 +536,37 @@ class Transpiler {
             "// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code",
             "",
             "use Exception; // a common import",
-            "",
-            'class ' + className + ' extends ' + baseClass + ' {',
         ]
     }
 
     createPHPClass (className, baseClass, body, methods) {
 
-        const header = this.createPHPClassHeader (className, baseClass)
-
         let bodyAsString = body.join ("\n")
 
-        for (let method of methods) {
-            const regex = new RegExp ('this->(' + method + ')([^a-zA-Z0-9])', 'g')
-            bodyAsString = bodyAsString.replace (regex,
-                (match, p1, p2) => ('this->' + unCamelCase (p1) + p2))
+        let header = this.createPHPClassHeader (className, baseClass, bodyAsString)
+
+        const errorImports = []
+
+        for (let error in errors) {
+            const regex = new RegExp ("[^'\"]" + error + "[^'\"]")
+            if (bodyAsString.match (regex)) {
+                errorImports.push ('use \\ccxt\\' + error + ';')
+            }
         }
+
+        header = header.concat (errorImports)
+
+        for (let method of methods) {
+            const regex = new RegExp ('\\$this->(' + method + ')(\\s\\(|[^a-zA-Z0-9])', 'g')
+            bodyAsString = bodyAsString.replace (regex,
+                (match, p1, p2) => {
+                    return ((p2 === ' (') ?
+                        ('$this->' + unCamelCase (p1) + p2) : // support direct php calls
+                        ("array($this, '" + unCamelCase (p1) + "')" + p2)) // as well as passing instance methods as callables
+                })
+        }
+
+        header.push ("\n" + this.createPHPClassDeclaration (className, baseClass))
 
         const footer =[
             "}\n",

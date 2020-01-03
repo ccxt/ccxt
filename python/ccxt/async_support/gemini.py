@@ -23,7 +23,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
-from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 
@@ -126,7 +125,7 @@ class gemini(Exchange):
                 '429': DDoSProtection,  # Rate Limiting was applied
                 '500': ExchangeError,  # The server encountered an error
                 '502': ExchangeError,  # Technical issues are preventing the request from being satisfied
-                '503': ExchangeNotAvailable,  # The exchange is down for maintenance
+                '503': OnMaintenance,  # The exchange is down for maintenance
             },
             'timeframes': {
                 '1m': '1m',
@@ -156,7 +155,7 @@ class gemini(Exchange):
                     'InvalidSignature': AuthenticationError,  # The signature did not match the expected signature
                     'InvalidSymbol': BadRequest,  # An invalid symbol was specified
                     'InvalidTimestampInPayload': BadRequest,  # The JSON payload contained a timestamp parameter with an unsupported value.
-                    'Maintenance': ExchangeNotAvailable,  # The system is down for maintenance
+                    'Maintenance': OnMaintenance,  # The system is down for maintenance
                     'MarketNotOpen': InvalidOrder,  # The order was rejected because the market is not accepting new orders
                     'MissingApikeyHeader': AuthenticationError,  # The X-GEMINI-APIKEY header was missing
                     'MissingOrderField': InvalidOrder,  # A required order_id field was not specified

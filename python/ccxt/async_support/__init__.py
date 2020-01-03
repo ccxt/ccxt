@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.20.99'
+__version__ = '1.21.27'
 
 # -----------------------------------------------------------------------------
 
@@ -143,7 +143,6 @@ from ccxt.async_support.liquid import liquid                              # noqa
 from ccxt.async_support.livecoin import livecoin                          # noqa: F401
 from ccxt.async_support.luno import luno                                  # noqa: F401
 from ccxt.async_support.lykke import lykke                                # noqa: F401
-from ccxt.async_support.mandala import mandala                            # noqa: F401
 from ccxt.async_support.mercado import mercado                            # noqa: F401
 from ccxt.async_support.mixcoins import mixcoins                          # noqa: F401
 from ccxt.async_support.oceanex import oceanex                            # noqa: F401
@@ -269,7 +268,6 @@ exchanges = [
     'livecoin',
     'luno',
     'lykke',
-    'mandala',
     'mercado',
     'mixcoins',
     'oceanex',

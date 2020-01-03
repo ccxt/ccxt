@@ -13,6 +13,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
@@ -554,6 +555,7 @@ class hitbtc2(hitbtc):
                 'defaultTimeInForce': 'FOK',
             },
             'exceptions': {
+                '504': RequestTimeout,  # {"error":{"code":504,"message":"Gateway Timeout"}}
                 '1003': PermissionDenied,  # "Action is forbidden for self API key"
                 '2010': InvalidOrder,  # "Quantity not a valid number"
                 '2001': BadSymbol,  # "Symbol not found"

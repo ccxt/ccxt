@@ -466,7 +466,7 @@ class timex(Exchange):
             expireIn = self.safe_value(params, 'expireIn', defaultExpireIn)
             if expireTime is not None:
                 request['expireTime'] = expireTime
-            elif expireIn is None:
+            elif expireIn is not None:
                 request['expireIn'] = expireIn
             else:
                 raise InvalidOrder(self.id + ' createOrder method requires a expireTime or expireIn param for a ' + type + ' order, you can also set the expireIn exchange-wide option')

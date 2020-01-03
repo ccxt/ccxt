@@ -6,6 +6,9 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
+use \ccxt\InvalidAddress;
 
 class gateio extends Exchange {
 
@@ -103,39 +106,43 @@ class gateio extends Exchange {
                 ),
             ),
             'exceptions' => array(
-                '4' => '\\ccxt\\DDoSProtection',
-                '7' => '\\ccxt\\NotSupported',
-                '8' => '\\ccxt\\NotSupported',
-                '9' => '\\ccxt\\NotSupported',
-                '15' => '\\ccxt\\DDoSProtection',
-                '16' => '\\ccxt\\OrderNotFound',
-                '17' => '\\ccxt\\OrderNotFound',
-                '20' => '\\ccxt\\InvalidOrder',
-                '21' => '\\ccxt\\InsufficientFunds',
-            ),
-            // https://gate.io/api2#errCode
-            'errorCodeNames' => array(
-                '1' => 'Invalid request',
-                '2' => 'Invalid version',
-                '3' => 'Invalid request',
-                '4' => 'Too many attempts',
-                '5' => 'Invalid sign',
-                '6' => 'Invalid sign',
-                '7' => 'Currency is not supported',
-                '8' => 'Currency is not supported',
-                '9' => 'Currency is not supported',
-                '10' => 'Verified failed',
-                '11' => 'Obtaining address failed',
-                '12' => 'Empty params',
-                '13' => 'Internal error, please report to administrator',
-                '14' => 'Invalid user',
-                '15' => 'Cancel order too fast, please wait 1 min and try again',
-                '16' => 'Invalid order id or order is already closed',
-                '17' => 'Invalid orderid',
-                '18' => 'Invalid amount',
-                '19' => 'Not permitted or trade is disabled',
-                '20' => 'Your order size is too small',
-                '21' => 'You don\'t have enough fund',
+                'exact' => array(
+                    '4' => '\\ccxt\\DDoSProtection',
+                    '5' => '\\ccxt\\AuthenticationError', // array( result => "false", code =>  5, message => "Error => invalid key or sign, please re-generate it from your account" )
+                    '6' => '\\ccxt\\AuthenticationError', // array( result => 'false', code => 6, message => 'Error => invalid data  ' )
+                    '7' => '\\ccxt\\NotSupported',
+                    '8' => '\\ccxt\\NotSupported',
+                    '9' => '\\ccxt\\NotSupported',
+                    '15' => '\\ccxt\\DDoSProtection',
+                    '16' => '\\ccxt\\OrderNotFound',
+                    '17' => '\\ccxt\\OrderNotFound',
+                    '20' => '\\ccxt\\InvalidOrder',
+                    '21' => '\\ccxt\\InsufficientFunds',
+                ),
+                // https://gate.io/api2#errCode
+                'errorCodeNames' => array(
+                    '1' => 'Invalid request',
+                    '2' => 'Invalid version',
+                    '3' => 'Invalid request',
+                    '4' => 'Too many attempts',
+                    '5' => 'Invalid sign',
+                    '6' => 'Invalid sign',
+                    '7' => 'Currency is not supported',
+                    '8' => 'Currency is not supported',
+                    '9' => 'Currency is not supported',
+                    '10' => 'Verified failed',
+                    '11' => 'Obtaining address failed',
+                    '12' => 'Empty params',
+                    '13' => 'Internal error, please report to administrator',
+                    '14' => 'Invalid user',
+                    '15' => 'Cancel order too fast, please wait 1 min and try again',
+                    '16' => 'Invalid order id or order is already closed',
+                    '17' => 'Invalid orderid',
+                    '18' => 'Invalid amount',
+                    '19' => 'Not permitted or trade is disabled',
+                    '20' => 'Your order size is too small',
+                    '21' => 'You don\'t have enough fund',
+                ),
             ),
             'options' => array(
                 'fetchTradesMethod' => 'public_get_tradehistory_id', // 'public_get_tradehistory_id_tid'
@@ -767,7 +774,7 @@ class gateio extends Exchange {
         $errorCode = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'message', $body);
         if ($errorCode !== null) {
-            $feedback = $this->safe_string($this->errorCodeNames, $errorCode, $message);
+            $feedback = $this->safe_string($this->exceptions['errorCodeNames'], $errorCode, $message);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
         }
     }

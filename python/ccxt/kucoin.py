@@ -33,6 +33,7 @@ class kucoin(Exchange):
             'certified': True,
             'comment': 'Platform 2.0',
             'has': {
+                'fetchTime': True,
                 'fetchMarkets': True,
                 'fetchCurrencies': True,
                 'fetchTicker': True,
@@ -211,6 +212,17 @@ class kucoin(Exchange):
         kucoinTime = self.safe_integer(response, 'data')
         self.options['timeDifference'] = int(after - kucoinTime)
         return self.options['timeDifference']
+
+    def fetch_time(self, params={}):
+        response = self.publicGetTimestamp(params)
+        #
+        #     {
+        #         "code":"200000",
+        #         "msg":"success",
+        #         "data":1546837113087
+        #     }
+        #
+        return self.safe_integer(response, 'data')
 
     def fetch_markets(self, params={}):
         response = self.publicGetSymbols(params)
