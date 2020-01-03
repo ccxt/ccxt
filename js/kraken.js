@@ -247,7 +247,7 @@ module.exports = class kraken extends ccxt.kraken {
             };
         }
         const future = this.watchPublic (name, symbol, this.extend (request, params));
-        return await this.after (future, this.limitedOrderBook, symbol, limit, params);
+        return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
     limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
@@ -405,7 +405,7 @@ module.exports = class kraken extends ccxt.kraken {
             }
             orderbook['timestamp'] = timestamp;
             // the .limit () operation will be moved to the watchOrderBook
-            client.resolve (orderbook.limit (), messageHash);
+            client.resolve (orderbook, messageHash);
         } else {
             const orderbook = this.orderbooks[symbol];
             // else, if this is an orderbook update
