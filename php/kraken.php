@@ -251,7 +251,12 @@ class kraken extends \ccxt\kraken {
                 'depth' => $limit, // default 10, valid options 10, 25, 100, 500, 1000
             );
         }
-        return $this->watch_public ($name, $symbol, array_merge($request, $params));
+        $future = $this->watch_public ($name, $symbol, array_merge($request, $params));
+        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+    }
+
+    public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
+        return $orderbook->limit ($limit);
     }
 
     public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -405,7 +410,7 @@ class kraken extends \ccxt\kraken {
             }
             $orderbook['timestamp'] = $timestamp;
             // the .limit () operation will be moved to the watchOrderBook
-            $client->resolve ($orderbook->limit (), $messageHash);
+            $client->resolve ($orderbook, $messageHash);
         } else {
             $orderbook = $this->orderbooks[$symbol];
             // else, if this is an $orderbook update
@@ -429,7 +434,7 @@ class kraken extends \ccxt\kraken {
             }
             $orderbook['timestamp'] = $timestamp;
             // the .limit () operation will be moved to the watchOrderBook
-            $client->resolve ($orderbook->limit (), $messageHash);
+            $client->resolve ($orderbook, $messageHash);
         }
     }
 

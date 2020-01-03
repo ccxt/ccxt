@@ -239,7 +239,11 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
             request['subscription'] = {
                 'depth': limit,  # default 10, valid options 10, 25, 100, 500, 1000
             }
-        return await self.watch_public(name, symbol, self.extend(request, params))
+        future = self.watch_public(name, symbol, self.extend(request, params))
+        return await self.after(future, self.limit_order_book, symbol, limit, params)
+
+    def limit_order_book(self, orderbook, symbol, limit=None, params={}):
+        return orderbook.limit(limit)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         name = 'ohlc'
@@ -382,7 +386,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
                 timestamp = self.handle_deltas(bookside, deltas, timestamp)
             orderbook['timestamp'] = timestamp
             # the .limit() operation will be moved to the watchOrderBook
-            client.resolve(orderbook.limit(), messageHash)
+            client.resolve(orderbook, messageHash)
         else:
             orderbook = self.orderbooks[symbol]
             # else, if self is an orderbook update
@@ -402,7 +406,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
                 timestamp = self.handle_deltas(orderbook['bids'], b, timestamp)
             orderbook['timestamp'] = timestamp
             # the .limit() operation will be moved to the watchOrderBook
-            client.resolve(orderbook.limit(), messageHash)
+            client.resolve(orderbook, messageHash)
 
     def handle_deltas(self, bookside, deltas, timestamp):
         for j in range(0, len(deltas)):
