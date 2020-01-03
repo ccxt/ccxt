@@ -246,7 +246,12 @@ module.exports = class kraken extends ccxt.kraken {
                 'depth': limit, // default 10, valid options 10, 25, 100, 500, 1000
             };
         }
-        return await this.watchPublic (name, symbol, this.extend (request, params));
+        const future = this.watchPublic (name, symbol, this.extend (request, params));
+        return await this.after (future, this.limitedOrderBook, symbol, limit, params);
+    }
+
+    limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
+        return orderbook.limit (limit);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -424,7 +429,7 @@ module.exports = class kraken extends ccxt.kraken {
             }
             orderbook['timestamp'] = timestamp;
             // the .limit () operation will be moved to the watchOrderBook
-            client.resolve (orderbook.limit (), messageHash);
+            client.resolve (orderbook, messageHash);
         }
     }
 
