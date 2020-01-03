@@ -8,7 +8,6 @@ namespace ccxtpro;
 use \ccxtpro\ClientTrait; // websocket functionality
 use Exception; // a common import
 use \ccxt\ExchangeError;
-use \ccxt\NotSupported;
 
 class binance extends \ccxt\binance {
 
@@ -18,8 +17,6 @@ class binance extends \ccxt\binance {
         return array_replace_recursive(parent::describe (), array(
             'has' => array(
                 'watchOrderBook' => true,
-                'watchOHLCV' => true,
-                'watchTrades' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -27,8 +24,6 @@ class binance extends \ccxt\binance {
                 ),
             ),
             'options' => array(
-                // 'marketsByLowercaseId' => array(),
-                'subscriptions' => array(),
                 'watchOrderBookRate' => 100, // get updates every 100ms or 1000ms
             ),
         ));
@@ -51,42 +46,6 @@ class binance extends \ccxt\binance {
             $this->options['marketsByLowercaseId'] = $marketsByLowercaseId;
         }
         return $markets;
-    }
-
-    public function watch_trades ($symbol) {
-        //     $this->load_markets();
-        //     $market = $this->market ($symbol);
-        //     $url = $this->urls['api']['ws'] . strtolower($market['id']) . '@trade';
-        //     return $this->WsTradesMessage ($url, $url);
-        throw new NotSupported($this->id . ' watchTrades not implemented yet');
-    }
-
-    public function handle_trades ($response) {
-        //     $parsed = $this->parse_trade($response);
-        //     $parsed['symbol'] = $this->parseSymbol ($response);
-        //     return $parsed;
-        throw new NotSupported($this->id . ' handleTrades not implemented yet');
-    }
-
-    public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        //     $this->load_markets();
-        //     $interval = $this->timeframes[$timeframe];
-        //     $market = $this->market ($symbol);
-        //     $url = $this->urls['api']['ws'] . strtolower($market['id']) . '@kline_' . $interval;
-        //     return $this->WsOHLCVMessage ($url, $url);
-        throw new NotSupported($this->id . ' watchOHLCV not implemented yet');
-    }
-
-    public function handle_ohlcv ($ohlcv) {
-        //     $data = $ohlcv['k'];
-        //     $timestamp = $this->safe_integer($data, 'T');
-        //     $open = $this->safe_float($data, 'o');
-        //     $high = $this->safe_float($data, 'h');
-        //     $close = $this->safe_float($data, 'l');
-        //     $low = $this->safe_float($data, 'c');
-        //     $volume = $this->safe_float($data, 'v');
-        //     return [$timestamp, $open, $high, $close, $low, $volume];
-        throw new NotSupported($this->id . ' handleOHLCV not implemented yet ' . $this->json ($ohlcv));
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
@@ -129,7 +88,7 @@ class binance extends \ccxt\binance {
             'id' => $requestId,
         );
         $subscription = array(
-            'requestId' => (string) $requestId,
+            'id' => (string) $requestId,
             'messageHash' => $messageHash,
             'name' => $name,
             'symbol' => $symbol,
@@ -260,7 +219,7 @@ class binance extends \ccxt\binance {
         //     }
         //
         $requestId = $this->safe_string($message, 'id');
-        $subscriptionsByRequestId = $this->index_by($client->subscriptions, 'requestId');
+        $subscriptionsByRequestId = $this->index_by($client->subscriptions, 'id');
         $subscription = $this->safe_value($subscriptionsByRequestId, $requestId, array());
         $method = $this->safe_value($subscription, 'method');
         if ($method !== null) {
@@ -284,43 +243,5 @@ class binance extends \ccxt\binance {
         } else {
             return $this->call ($method, $client, $message);
         }
-        //
-        // --------------------------------------------------------------------
-        //
-        // var_dump (new Date (), json_encode ($message, null, 4));
-        // var_dump ('---------------------------------------------------------');
-        // if (gettype($message) === 'array' && count(array_filter(array_keys($message), 'is_string')) == 0) {
-        //     $channelId = (string) $message[0];
-        //     $subscriptionStatus = $this->safe_value($this->options['subscriptionStatusByChannelId'], $channelId, array());
-        //     $subscription = $this->safe_value($subscriptionStatus, 'subscription', array());
-        //     $name = $this->safe_string($subscription, 'name');
-        //     $methods = array(
-        //         'book' => 'handleOrderBook',
-        //         'ohlc' => 'handleOHLCV',
-        //         'ticker' => 'handleTicker',
-        //         'trade' => 'handleTrades',
-        //     );
-        //     $method = $this->safe_string($methods, $name);
-        //     if ($method === null) {
-        //         return $message;
-        //     } else {
-        //         return $this->$method ($client, $message);
-        //     }
-        // } else {
-        //     if ($this->handleErrorMessage ($client, $message)) {
-        //         $event = $this->safe_string($message, 'event');
-        //         $methods = array(
-        //             'heartbeat' => 'handleHeartbeat',
-        //             'systemStatus' => 'handleSystemStatus',
-        //             'subscriptionStatus' => 'handleSubscriptionStatus',
-        //         );
-        //         $method = $this->safe_string($methods, $event);
-        //         if ($method === null) {
-        //             return $message;
-        //         } else {
-        //             return $this->$method ($client, $message);
-        //         }
-        //     }
-        // }
     }
 }

@@ -6,7 +6,6 @@
 import ccxtpro
 import ccxt.async_support as ccxt
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 
 
 class binance(ccxtpro.Exchange, ccxt.binance):
@@ -15,8 +14,6 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         return self.deep_extend(super(binance, self).describe(), {
             'has': {
                 'watchOrderBook': True,
-                'watchOHLCV': True,
-                'watchTrades': True,
             },
             'urls': {
                 'api': {
@@ -24,8 +21,6 @@ class binance(ccxtpro.Exchange, ccxt.binance):
                 },
             },
             'options': {
-                # 'marketsByLowercaseId': {},
-                'subscriptions': {},
                 'watchOrderBookRate': 100,  # get updates every 100ms or 1000ms
             },
         })
@@ -45,38 +40,6 @@ class binance(ccxtpro.Exchange, ccxt.binance):
                 marketsByLowercaseId[lowercaseId] = self.markets[symbol]
             self.options['marketsByLowercaseId'] = marketsByLowercaseId
         return markets
-
-    async def watch_trades(self, symbol):
-        #     await self.load_markets()
-        #     market = self.market(symbol)
-        #     url = self.urls['api']['ws'] + market['id'].lower() + '@trade'
-        #     return await self.WsTradesMessage(url, url)
-        raise NotSupported(self.id + ' watchTrades not implemented yet')
-
-    def handle_trades(self, response):
-        #     parsed = self.parse_trade(response)
-        #     parsed['symbol'] = self.parseSymbol(response)
-        #     return parsed
-        raise NotSupported(self.id + ' handleTrades not implemented yet')
-
-    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        #     await self.load_markets()
-        #     interval = self.timeframes[timeframe]
-        #     market = self.market(symbol)
-        #     url = self.urls['api']['ws'] + market['id'].lower() + '@kline_' + interval
-        #     return await self.WsOHLCVMessage(url, url)
-        raise NotSupported(self.id + ' watchOHLCV not implemented yet')
-
-    def handle_ohlcv(self, ohlcv):
-        #     data = ohlcv['k']
-        #     timestamp = self.safe_integer(data, 'T')
-        #     open = self.safe_float(data, 'o')
-        #     high = self.safe_float(data, 'h')
-        #     close = self.safe_float(data, 'l')
-        #     low = self.safe_float(data, 'c')
-        #     volume = self.safe_float(data, 'v')
-        #     return [timestamp, open, high, close, low, volume]
-        raise NotSupported(self.id + ' handleOHLCV not implemented yet ' + self.json(ohlcv))
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         #
@@ -116,7 +79,7 @@ class binance(ccxtpro.Exchange, ccxt.binance):
             'id': requestId,
         }
         subscription = {
-            'requestId': str(requestId),
+            'id': str(requestId),
             'messageHash': messageHash,
             'name': name,
             'symbol': symbol,
@@ -230,7 +193,7 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         #     }
         #
         requestId = self.safe_string(message, 'id')
-        subscriptionsByRequestId = self.index_by(client.subscriptions, 'requestId')
+        subscriptionsByRequestId = self.index_by(client.subscriptions, 'id')
         subscription = self.safe_value(subscriptionsByRequestId, requestId, {})
         method = self.safe_value(subscription, 'method')
         if method is not None:
@@ -250,41 +213,3 @@ class binance(ccxtpro.Exchange, ccxt.binance):
             return message
         else:
             return self.call(method, client, message)
-        #
-        # --------------------------------------------------------------------
-        #
-        # print(new Date(), json.dumps(message, null, 4))
-        # print('---------------------------------------------------------')
-        # if isinstance(message, list):
-        #     channelId = str(message[0])
-        #     subscriptionStatus = self.safe_value(self.options['subscriptionStatusByChannelId'], channelId, {})
-        #     subscription = self.safe_value(subscriptionStatus, 'subscription', {})
-        #     name = self.safe_string(subscription, 'name')
-        #     methods = {
-        #         'book': 'handleOrderBook',
-        #         'ohlc': 'handleOHLCV',
-        #         'ticker': 'handleTicker',
-        #         'trade': 'handleTrades',
-        #     }
-        #     method = self.safe_string(methods, name)
-        #     if method is None:
-        #         return message
-        #     else:
-        #         return getattr(self, method)(client, message)
-        #     }
-        # else:
-        #     if self.handleErrorMessage(client, message):
-        #         event = self.safe_string(message, 'event')
-        #         methods = {
-        #             'heartbeat': 'handleHeartbeat',
-        #             'systemStatus': 'handleSystemStatus',
-        #             'subscriptionStatus': 'handleSubscriptionStatus',
-        #         }
-        #         method = self.safe_string(methods, event)
-        #         if method is None:
-        #             return message
-        #         else:
-        #             return getattr(self, method)(client, message)
-        #         }
-        #     }
-        # }

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { NotSupported, ExchangeError } = require ('ccxt/js/base/errors');
+const { ExchangeError } = require ('ccxt/js/base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -12,8 +12,6 @@ module.exports = class binance extends ccxt.binance {
         return this.deepExtend (super.describe (), {
             'has': {
                 'watchOrderBook': true,
-                'watchOHLCV': true,
-                'watchTrades': true,
             },
             'urls': {
                 'api': {
@@ -21,8 +19,6 @@ module.exports = class binance extends ccxt.binance {
                 },
             },
             'options': {
-                // 'marketsByLowercaseId': {},
-                'subscriptions': {},
                 'watchOrderBookRate': 100, // get updates every 100ms or 1000ms
             },
         });
@@ -45,42 +41,6 @@ module.exports = class binance extends ccxt.binance {
             this.options['marketsByLowercaseId'] = marketsByLowercaseId;
         }
         return markets;
-    }
-
-    async watchTrades (symbol) {
-        //     await this.loadMarkets ();
-        //     const market = this.market (symbol);
-        //     const url = this.urls['api']['ws'] + market['id'].toLowerCase () + '@trade';
-        //     return await this.WsTradesMessage (url, url);
-        throw new NotSupported (this.id + ' watchTrades not implemented yet');
-    }
-
-    handleTrades (response) {
-        //     const parsed = this.parseTrade (response);
-        //     parsed['symbol'] = this.parseSymbol (response);
-        //     return parsed;
-        throw new NotSupported (this.id + ' handleTrades not implemented yet');
-    }
-
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        //     await this.loadMarkets ();
-        //     const interval = this.timeframes[timeframe];
-        //     const market = this.market (symbol);
-        //     const url = this.urls['api']['ws'] + market['id'].toLowerCase () + '@kline_' + interval;
-        //     return await this.WsOHLCVMessage (url, url);
-        throw new NotSupported (this.id + ' watchOHLCV not implemented yet');
-    }
-
-    handleOHLCV (ohlcv) {
-        //     const data = ohlcv['k'];
-        //     const timestamp = this.safeInteger (data, 'T');
-        //     const open = this.safeFloat (data, 'o');
-        //     const high = this.safeFloat (data, 'h');
-        //     const close = this.safeFloat (data, 'l');
-        //     const low = this.safeFloat (data, 'c');
-        //     const volume = this.safeFloat (data, 'v');
-        //     return [timestamp, open, high, close, low, volume];
-        throw new NotSupported (this.id + ' handleOHLCV not implemented yet ' + this.json (ohlcv));
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -123,7 +83,7 @@ module.exports = class binance extends ccxt.binance {
             'id': requestId,
         };
         const subscription = {
-            'requestId': requestId.toString (),
+            'id': requestId.toString (),
             'messageHash': messageHash,
             'name': name,
             'symbol': symbol,
@@ -254,7 +214,7 @@ module.exports = class binance extends ccxt.binance {
         //     }
         //
         const requestId = this.safeString (message, 'id');
-        const subscriptionsByRequestId = this.indexBy (client.subscriptions, 'requestId');
+        const subscriptionsByRequestId = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeValue (subscriptionsByRequestId, requestId, {});
         const method = this.safeValue (subscription, 'method');
         if (method !== undefined) {
@@ -278,44 +238,6 @@ module.exports = class binance extends ccxt.binance {
         } else {
             return this.call (method, client, message);
         }
-        //
-        // --------------------------------------------------------------------
-        //
-        // console.log (new Date (), JSON.stringify (message, null, 4));
-        // console.log ('---------------------------------------------------------');
-        // if (Array.isArray (message)) {
-        //     const channelId = message[0].toString ();
-        //     const subscriptionStatus = this.safeValue (this.options['subscriptionStatusByChannelId'], channelId, {});
-        //     const subscription = this.safeValue (subscriptionStatus, 'subscription', {});
-        //     const name = this.safeString (subscription, 'name');
-        //     const methods = {
-        //         'book': 'handleOrderBook',
-        //         'ohlc': 'handleOHLCV',
-        //         'ticker': 'handleTicker',
-        //         'trade': 'handleTrades',
-        //     };
-        //     const method = this.safeString (methods, name);
-        //     if (method === undefined) {
-        //         return message;
-        //     } else {
-        //         return this[method] (client, message);
-        //     }
-        // } else {
-        //     if (this.handleErrorMessage (client, message)) {
-        //         const event = this.safeString (message, 'event');
-        //         const methods = {
-        //             'heartbeat': 'handleHeartbeat',
-        //             'systemStatus': 'handleSystemStatus',
-        //             'subscriptionStatus': 'handleSubscriptionStatus',
-        //         };
-        //         const method = this.safeString (methods, event);
-        //         if (method === undefined) {
-        //             return message;
-        //         } else {
-        //             return this[method] (client, message);
-        //         }
-        //     }
-        // }
     }
 };
 
