@@ -94,6 +94,7 @@ class huobipro extends Exchange {
                     'get' => array(
                         'account/accounts', // 查询当前用户的所有账户(即account-id)
                         'account/accounts/{id}/balance', // 查询指定账户的余额
+                        'account/history',
                         'order/openOrders',
                         'order/orders',
                         'order/orders/{id}', // 查询某个订单详情
