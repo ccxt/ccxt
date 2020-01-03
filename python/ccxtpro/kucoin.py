@@ -21,6 +21,9 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
         })
 
     async def watch_order_book(self, symbol, limit=None, params={}):
+        if limit is not None:
+            if (limit != 20) and (limit != 100):
+                raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 20 or 100')
         await self.load_markets()
         market = self.market(symbol)
         #
@@ -88,6 +91,7 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
             'topic': topic,
             'messageHash': messageHash,
             'method': self.handle_order_book_subscription,
+            'limit': limit,
         }
         request = self.extend(subscribe, params)
         future = self.watch(url, messageHash, request, messageHash, subscription)
@@ -205,9 +209,9 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
         #         type: 'ack'
         #     }
         #
-        requestId = self.safe_string(message, 'id')
-        subscriptionsByRequestId = self.index_by(client.subscriptions, 'id')
-        subscription = self.safe_value(subscriptionsByRequestId, requestId, {})
+        id = self.safe_string(message, 'id')
+        subscriptionsById = self.index_by(client.subscriptions, 'id')
+        subscription = self.safe_value(subscriptionsById, id, {})
         method = self.safe_value(subscription, 'method')
         if method is not None:
             self.call(method, client, message, subscription)

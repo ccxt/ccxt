@@ -25,6 +25,11 @@ class kucoin extends \ccxt\kucoin {
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
+        if ($limit !== null) {
+            if (($limit !== 20) && ($limit !== 100)) {
+                throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 20 or 100');
+            }
+        }
         $this->load_markets();
         $market = $this->market ($symbol);
         //
@@ -94,6 +99,7 @@ class kucoin extends \ccxt\kucoin {
             'topic' => $topic,
             'messageHash' => $messageHash,
             'method' => array($this, 'handle_order_book_subscription'),
+            'limit' => $limit,
         );
         $request = array_merge($subscribe, $params);
         $future = $this->watch ($url, $messageHash, $request, $messageHash, $subscription);
@@ -224,13 +230,13 @@ class kucoin extends \ccxt\kucoin {
     public function handle_subscription_status ($client, $message) {
         //
         //     {
-        //         id => '1578090438322',
+        //         $id => '1578090438322',
         //         type => 'ack'
         //     }
         //
-        $requestId = $this->safe_string($message, 'id');
-        $subscriptionsByRequestId = $this->index_by($client->subscriptions, 'id');
-        $subscription = $this->safe_value($subscriptionsByRequestId, $requestId, array());
+        $id = $this->safe_string($message, 'id');
+        $subscriptionsById = $this->index_by($client->subscriptions, 'id');
+        $subscription = $this->safe_value($subscriptionsById, $id, array());
         $method = $this->safe_value($subscription, 'method');
         if ($method !== null) {
             $this->call ($method, $client, $message, $subscription);

@@ -192,9 +192,9 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         #         "id": 1574649734450
         #     }
         #
-        requestId = self.safe_string(message, 'id')
-        subscriptionsByRequestId = self.index_by(client.subscriptions, 'id')
-        subscription = self.safe_value(subscriptionsByRequestId, requestId, {})
+        id = self.safe_string(message, 'id')
+        subscriptionsById = self.index_by(client.subscriptions, 'id')
+        subscription = self.safe_value(subscriptionsById, id, {})
         method = self.safe_value(subscription, 'method')
         if method is not None:
             self.call(method, client, message, subscription)

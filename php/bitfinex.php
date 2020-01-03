@@ -53,7 +53,7 @@ class bitfinex extends \ccxt\bitfinex {
             // 'len' => '25', // string, number of price points, '25', '100', default = '25'
         );
         if ($limit !== null) {
-            $request['limit'] = (string) $limit;
+            $request['len'] = (string) $limit;
         }
         $messageHash = $channel . ':' . $marketId;
         return $this->watch ($url, $messageHash, array_replace_recursive($request, $params), $messageHash);

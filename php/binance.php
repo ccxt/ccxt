@@ -215,12 +215,12 @@ class binance extends \ccxt\binance {
         //
         //     {
         //         "result" => null,
-        //         "id" => 1574649734450
+        //         "$id" => 1574649734450
         //     }
         //
-        $requestId = $this->safe_string($message, 'id');
-        $subscriptionsByRequestId = $this->index_by($client->subscriptions, 'id');
-        $subscription = $this->safe_value($subscriptionsByRequestId, $requestId, array());
+        $id = $this->safe_string($message, 'id');
+        $subscriptionsById = $this->index_by($client->subscriptions, 'id');
+        $subscription = $this->safe_value($subscriptionsById, $id, array());
         $method = $this->safe_value($subscription, 'method');
         if ($method !== null) {
             $this->call ($method, $client, $message, $subscription);

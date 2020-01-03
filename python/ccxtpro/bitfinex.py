@@ -47,7 +47,7 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
             # 'len': '25',  # string, number of price points, '25', '100', default = '25'
         }
         if limit is not None:
-            request['limit'] = str(limit)
+            request['len'] = str(limit)
         messageHash = channel + ':' + marketId
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
