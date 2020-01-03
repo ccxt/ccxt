@@ -571,9 +571,14 @@ class kucoin(Exchange):
         }
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        level = '2'
+        if limit is not None:
+            if (limit != 20) and (limit != 100):
+                raise ExchangeError(self.id + ' fetchOrderBook limit argument must be None, 20 or 100')
+            level += '_' + str(limit)
         self.load_markets()
         marketId = self.market_id(symbol)
-        request = self.extend({'symbol': marketId, 'level': 2}, params)
+        request = self.extend({'symbol': marketId, 'level': level}, params)
         response = self.publicGetMarketOrderbookLevelLevel(request)
         #
         # {sequence: '1547731421688',
@@ -585,8 +590,8 @@ class kucoin(Exchange):
         # level can be a string such as 2_20 or 2_100
         levelString = self.safe_string(request, 'level')
         levelParts = levelString.split('_')
-        level = int(levelParts[0])
-        orderbook = self.parse_order_book(data, timestamp, 'bids', 'asks', level - 2, level - 1)
+        offset = int(levelParts[0])
+        orderbook = self.parse_order_book(data, timestamp, 'bids', 'asks', offset - 2, offset - 1)
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
         return orderbook
 
