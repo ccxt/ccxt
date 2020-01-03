@@ -213,9 +213,9 @@ module.exports = class binance extends ccxt.binance {
         //         "id": 1574649734450
         //     }
         //
-        const requestId = this.safeString (message, 'id');
-        const subscriptionsByRequestId = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsByRequestId, requestId, {});
+        const id = this.safeString (message, 'id');
+        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+        const subscription = this.safeValue (subscriptionsById, id, {});
         const method = this.safeValue (subscription, 'method');
         if (method !== undefined) {
             this.call (method, client, message, subscription);
