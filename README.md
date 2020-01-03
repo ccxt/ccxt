@@ -5,20 +5,21 @@ info@ccxt.pro
 # CCXT Pro
 
 ```JavaScript
-// JavaScript
+'use strict';
+
+const ccxtpro = require ('ccxt.pro')
 
 ;(async () => {
 
-    const ccxtpro = require ('ccxt.pro')
-        , exchange = new ccxtpro.binance ()
+    const id = 'binance'
         , symbol = 'ETH/BTC'
+        , exchange = new ccxtpro[id] ()
 
     while (true) {
-        const orderbook = await this.watchOrderBook (symbol, limit)
+        const orderbook = await exchange.watchOrderBook (symbol, limit)
         console.log (new Date (), symbol,
             orderbook['asks'].length, 'asks', orderbook['asks'][0],
-            orderbook['bids'].length, 'bids', orderbook['bids'][0],
-        );
+            orderbook['bids'].length, 'bids', orderbook['bids'][0])
     }
 
 }) ()
@@ -151,7 +152,7 @@ The best way to understand CCXT Pro is to make sure you grasp the entire CCXT Ma
 - authentication and API keys (for private feeds and calls)
 - configuration options
 
-The CCXT Pro audience consists mostly of professional algorithmic traders and developers, in order to work efficiently with this library the user is required to be well-familiar with the concepts of streaming. One has to understand the difference between connection-based streaming APIs (WebSocket, CCXT Pro) and request-response based APIs (REST, CCXT).
+The CCXT Pro audience consists mostly of professional algorithmic traders and developers, in order to work efficiently with this library the user is required to be well-familiar with the concepts of streaming. One has to understand the difference between connection-based streaming APIs ([WebSocket](https://en.wikipedia.org/wiki/WebSocket), CCXT Pro) and request-response based APIs ([REST](https://en.wikipedia.org/wiki/Representational_state_transfer), CCXT).
 
 The general async-style flow for a CCXT application is as follows:
 
@@ -215,7 +216,7 @@ while (condition) {
 }
 ```
 
-That usage pattern is usually wrapped up into a core business-logic method called _"a `tick()` function"_, since it reiterates a reaction to the incoming events (aka trading ticks). From the two examples above it is obvious, that the generic usage pattern in CCXT Pro and CCXT is identical.
+That usage pattern is usually wrapped up into a core business-logic method called _"a `tick()` function"_, since it reiterates a reaction to the incoming events (aka ticks). From the two examples above it is obvious that the generic usage pattern in CCXT Pro and CCXT is identical.
 
 Many of the CCXT rules and concepts also apply to CCXT Pro:
 
@@ -232,6 +233,8 @@ Having a connection-based interface implies connection-handling mechanisms. Conn
 Upon your first call to any `watch` method CCXT Pro will establish a connection to a specific stream/resource of the exchange and will maintain it. In case the connection exists – it is reused. The library will handle the subscription request/response messaging sequences as well as the authentication/signing if the requested stream is private.
 
 The library will also watch the status of the uplink and will keep the connection alive. Upon a critical exception, a disconnect or a connection timeout/failure, the next iteration of the tick function will call the `watch` method that will trigger a reconnection. This way the library handles disconnections and reconnections for the user transparently. CCXT Pro applies the necessary rate-limiting and exponential backoff reconnection delays. All of that functionality is enabled by default and can be configured via exchange properties, as usual.
+
+Most of the exchanges only have a single base URL for streaming APIs (usually, WebSocket, starting with `ws://` or `wss://`). Some of them may have more than one URL for each stream, depending on the feed in question.
 
 ### Linking Against CCXT Pro
 
