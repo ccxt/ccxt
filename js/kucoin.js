@@ -20,6 +20,11 @@ module.exports = class kucoin extends ccxt.kucoin {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
+        if (limit !== undefined) {
+            if ((limit !== 20) && (limit !== 100)) {
+                throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 20 or 100');
+            }
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         //
@@ -89,6 +94,7 @@ module.exports = class kucoin extends ccxt.kucoin {
             'topic': topic,
             'messageHash': messageHash,
             'method': this.handleOrderBookSubscription,
+            'limit': limit,
         };
         const request = this.extend (subscribe, params);
         const future = this.watch (url, messageHash, request, messageHash, subscription);
@@ -223,9 +229,9 @@ module.exports = class kucoin extends ccxt.kucoin {
         //         type: 'ack'
         //     }
         //
-        const requestId = this.safeString (message, 'id');
-        const subscriptionsByRequestId = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsByRequestId, requestId, {});
+        const id = this.safeString (message, 'id');
+        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+        const subscription = this.safeValue (subscriptionsById, id, {});
         const method = this.safeValue (subscription, 'method');
         if (method !== undefined) {
             this.call (method, client, message, subscription);
