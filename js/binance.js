@@ -88,6 +88,7 @@ module.exports = class binance extends ccxt.binance {
             'name': name,
             'symbol': symbol,
             'method': this.handleOrderBookSubscription,
+            'limit': limit,
         };
         const message = this.extend (request, params);
         // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
@@ -137,6 +138,7 @@ module.exports = class binance extends ccxt.binance {
             const U = this.safeInteger (message, 'U');
             // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
             if ((U !== undefined) && ((U - 1) > orderbook['nonce'])) {
+                // todo: client.reject from handleOrderBookMessage properly
                 throw new ExchangeError (this.id + ' handleOrderBook received an out-of-order nonce');
             }
             this.handleDeltas (orderbook['asks'], this.safeValue (message, 'a', []));
@@ -192,16 +194,17 @@ module.exports = class binance extends ccxt.binance {
     }
 
     signMessage (client, messageHash, message, params = {}) {
-        // todo: binance signMessage not implemented yet
+        // todo: implement binance signMessage
         return message;
     }
 
     handleOrderBookSubscription (client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
+        const limit = this.safeString (subscription, 'limit');
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.limitedOrderBook ();
+        this.orderbooks[symbol] = this.limitedOrderBook ({}, limit);
         // fetch the snapshot in a separate async call
         this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }

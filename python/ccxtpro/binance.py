@@ -84,6 +84,7 @@ class binance(ccxtpro.Exchange, ccxt.binance):
             'name': name,
             'symbol': symbol,
             'method': self.handle_order_book_subscription,
+            'limit': limit,
         }
         message = self.extend(request, params)
         # 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
@@ -126,6 +127,7 @@ class binance(ccxtpro.Exchange, ccxt.binance):
             U = self.safe_integer(message, 'U')
             # 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
             if (U is not None) and ((U - 1) > orderbook['nonce']):
+                # todo: client.reject from handleOrderBookMessage properly
                 raise ExchangeError(self.id + ' handleOrderBook received an out-of-order nonce')
             self.handle_deltas(orderbook['asks'], self.safe_value(message, 'a', []))
             self.handle_deltas(orderbook['bids'], self.safe_value(message, 'b', []))
@@ -174,14 +176,15 @@ class binance(ccxtpro.Exchange, ccxt.binance):
             orderbook.cache.append(message)
 
     def sign_message(self, client, messageHash, message, params={}):
-        # todo: binance signMessage not implemented yet
+        # todo: implement binance signMessage
         return message
 
     def handle_order_book_subscription(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
+        limit = self.safe_string(subscription, 'limit')
         if symbol in self.orderbooks:
             del self.orderbooks[symbol]
-        self.orderbooks[symbol] = self.limited_order_book()
+        self.orderbooks[symbol] = self.limited_order_book({}, limit)
         # fetch the snapshot in a separate async call
         self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
 
