@@ -11,9 +11,7 @@ const ccxtpro = require ('ccxt.pro');
     const exchange = new ccxtpro.binance ()
     while (true) {
         const orderbook = await exchange.watchOrderBook ('ETH/BTC')
-        console.log (new Date (),
-            orderbook['asks'].length, 'asks', orderbook['asks'][0],
-            orderbook['bids'].length, 'bids', orderbook['bids'][0])
+        console.log (new Date (), orderbook['asks'][0], orderbook['bids'][0])
     }
 }) ()
 ```
