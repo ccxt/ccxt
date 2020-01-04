@@ -252,7 +252,7 @@ echo 'CCXT Pro version ', \ccxtpro\Exchange::VERSION, "\n";
 echo 'Supported exchanges: ', json_encode(\ccxtpro\Exchange::$exchanges), "\n";
 ```
 
-The imported CCXT Pro module wraps the CCXT inside itself – every exchange instantiated via CCXT Pro has all the CCXT methods inside itself as well as the additional functionality.
+The imported CCXT Pro module wraps the CCXT inside itself – every exchange instantiated via CCXT Pro has all the CCXT methods as well as the additional functionality.
 
 ### Instantiation
 
