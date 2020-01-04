@@ -211,7 +211,11 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                 messageHash,
             ],
         }
-        return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+        future = self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+        return await self.after(future, self.limit_order_book, symbol, limit, params)
+
+    def limit_order_book(self, orderbook, symbol, limit=None, params={}):
+        return orderbook.limit(limit)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         # name = 'ohlc'
@@ -222,21 +226,6 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         # }
         # return await self.watchPublicMessage(name, symbol, self.extend(request, params))
         raise NotImplemented(self.id + ' watchOHLCV() not implemented yet(wip)')
-
-    async def load_markets(self, reload=False, params={}):
-        markets = await super(bitmex, self).load_markets(reload, params)
-        marketsByWsName = self.safe_value(self.options, 'marketsByWsName')
-        if (marketsByWsName is None) or reload:
-            marketsByWsName = {}
-            for i in range(0, len(self.symbols)):
-                symbol = self.symbols[i]
-                market = self.markets[symbol]
-                if not market['darkpool']:
-                    info = self.safe_value(market, 'info', {})
-                    wsName = self.safe_string(info, 'wsname')
-                    marketsByWsName[wsName] = market
-            self.options['marketsByWsName'] = marketsByWsName
-        return markets
 
     async def watch_heartbeat(self, params={}):
         await self.load_markets()
@@ -351,7 +340,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                     bookside.store(price, size, id)
                 messageHash = table + ':' + marketId
                 # the .limit() operation will be moved to the watchOrderBook
-                client.resolve(orderbook.limit(), messageHash)
+                client.resolve(orderbook, messageHash)
         else:
             numUpdatesByMarketId = {}
             for i in range(0, len(data)):
@@ -381,7 +370,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                 symbol = market['symbol']
                 orderbook = self.orderbooks[symbol]
                 # the .limit() operation will be moved to the watchOrderBook
-                client.resolve(orderbook.limit(), messageHash)
+                client.resolve(orderbook, messageHash)
 
     def handle_deltas(self, bookside, deltas, timestamp):
         for j in range(0, len(deltas)):
@@ -409,10 +398,6 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         return message
 
     def handle_subscription_status(self, client, message):
-        #
-        # todo: answer the question whether handleSubscriptionStatus should be renamed
-        # and unified as handleResponse for any usage pattern that
-        # involves an identified request/response sequence
         #
         #     {
         #         success: True,
@@ -505,13 +490,13 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         if self.handle_error_message(client, message):
             table = self.safe_string(message, 'table')
             methods = {
-                'orderBookL2': 'handleOrderBook',
-                'orderBookL2_25': 'handleOrderBook',
-                'orderBook10': 'handleOrderBook',
+                'orderBookL2': self.handle_order_book,
+                'orderBookL2_25': self.handle_order_book,
+                'orderBook10': self.handle_order_book,
             }
-            method = self.safe_string(methods, table)
+            method = self.safe_value(methods, table)
             if method is None:
                 print(message)
                 return message
             else:
-                return getattr(self, method)(client, message)
+                return self.call(method, client, message)

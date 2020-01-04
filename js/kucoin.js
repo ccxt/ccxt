@@ -7,16 +7,11 @@ const { ExchangeError } = require ('ccxt/js/base/errors');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class binance extends ccxt.binance {
+module.exports = class kucoin extends ccxt.kucoin {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
                 'watchOrderBook': true,
-            },
-            'urls': {
-                'api': {
-                    'ws': 'wss://stream.binance.com:9443/ws',
-                },
             },
             'options': {
                 'watchOrderBookRate': 100, // get updates every 100ms or 1000ms
@@ -24,75 +19,96 @@ module.exports = class binance extends ccxt.binance {
         });
     }
 
-    async loadMarkets (reload = false, params = {}) {
-        const markets = await super.loadMarkets (reload, params);
-        let marketsByLowercaseId = this.safeValue (this.options, 'marketsByLowercaseId');
-        if ((marketsByLowercaseId === undefined) || reload) {
-            marketsByLowercaseId = {};
-            for (let i = 0; i < this.symbols.length; i++) {
-                const symbol = this.symbols[i];
-                const market = this.markets[symbol];
-                const lowercaseId = this.safeStringLower (market, 'id');
-                market['lowercaseId'] = lowercaseId;
-                this.markets_by_id[market['id']] = market;
-                this.markets[symbol] = market;
-                marketsByLowercaseId[lowercaseId] = this.markets[symbol];
-            }
-            this.options['marketsByLowercaseId'] = marketsByLowercaseId;
-        }
-        return markets;
-    }
-
     async watchOrderBook (symbol, limit = undefined, params = {}) {
-        //
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams
-        //
-        // <symbol>@depth<levels>@100ms or <symbol>@depth<levels> (1000ms)
-        // valid <levels> are 5, 10, or 20
-        //
         if (limit !== undefined) {
-            if ((limit !== 5) && (limit !== 10) && (limit !== 20)) {
-                throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, 10 or 20');
+            if ((limit !== 20) && (limit !== 100)) {
+                throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 20 or 100');
             }
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         //
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#how-to-manage-a-local-order-book-correctly
+        // https://docs.kucoin.com/#level-2-market-data
         //
-        // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-        // 2. Buffer the events you receive from the stream.
-        // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
-        // 4. Drop any event where u is <= lastUpdateId in the snapshot.
-        // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
-        // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-        // 7. The data in each event is the absolute quantity for a price level.
-        // 8. If the quantity is 0, remove the price level.
-        // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
+        // 1. After receiving the websocket Level 2 data flow, cache the data.
+        // 2. Initiate a REST request to get the snapshot data of Level 2 order book.
+        // 3. Playback the cached Level 2 data flow.
+        // 4. Apply the new Level 2 data flow to the local snapshot to ensure that
+        // the sequence of the new Level 2 update lines up with the sequence of
+        // the previous Level 2 data. Discard all the message prior to that
+        // sequence, and then playback the change to snapshot.
+        // 5. Update the level2 full data based on sequence according to the
+        // size. If the price is 0, ignore the messages and update the sequence.
+        // If the size=0, update the sequence and remove the price of which the
+        // size is 0 out of level 2. For other cases, please update the price.
         //
-        const name = 'depth';
-        const messageHash = market['lowercaseId'] + '@' + name;
-        const url = this.urls['api']['ws']; // + '/' + messageHash;
-        const requestId = this.nonce ();
-        const watchOrderBookRate = this.safeString (this.options, 'watchOrderBookRate', '100');
-        const request = {
-            'method': 'SUBSCRIBE',
-            'params': [
-                messageHash + '@' + watchOrderBookRate + 'ms',
-            ],
-            'id': requestId,
+        let tokenResponse = this.safeValue (this.options, 'token');
+        if (tokenResponse === undefined) {
+            const throwException = false;
+            if (this.checkRequiredCredentials (throwException)) {
+                tokenResponse = await this.privatePostBulletPrivate ();
+                //
+                //     {
+                //         code: "200000",
+                //         data: {
+                //             instanceServers: [
+                //                 {
+                //                     pingInterval:  50000,
+                //                     endpoint: "wss://push-private.kucoin.com/endpoint",
+                //                     protocol: "websocket",
+                //                     encrypt: true,
+                //                     pingTimeout: 10000
+                //                 }
+                //             ],
+                //             token: "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+                //         }
+                //     }
+                //
+            } else {
+                tokenResponse = await this.publicPostBulletPublic ();
+            }
+        }
+        const data = this.safeValue (tokenResponse, 'data', {});
+        const instanceServers = this.safeValue (data, 'instanceServers', []);
+        const firstServer = this.safeValue (instanceServers, 0, {});
+        const endpoint = this.safeString (firstServer, 'endpoint');
+        const token = this.safeString (data, 'token');
+        const nonce = this.nonce ();
+        const query = {
+            'token': token,
+            'connectId': nonce,
+            'acceptUserMessage': 'true',
+        };
+        const url = endpoint + '?' + this.urlencode (query);
+        const topic = '/market/level2';
+        const messageHash = topic + ':' + market['id'];
+        const subscribe = {
+            'id': nonce,
+            'type': 'subscribe',
+            'topic': messageHash,
+            'response': true,
         };
         const subscription = {
-            'id': requestId.toString (),
-            'messageHash': messageHash,
-            'name': name,
+            'id': nonce.toString (),
             'symbol': symbol,
+            'topic': topic,
+            'messageHash': messageHash,
             'method': this.handleOrderBookSubscription,
+            'limit': limit,
         };
-        const message = this.extend (request, params);
-        // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-        const future = this.watch (url, messageHash, message, messageHash, subscription);
+        const request = this.extend (subscribe, params);
+        const future = this.watch (url, messageHash, request, messageHash, subscription);
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        // return await this.watch (url, messageHash, request, messageHash);
+        // // const token = await this.publicPostBulletPublic ();
+        // const name = 'book';
+        // const request = {};
+        // if (limit !== undefined) {
+        //     request['subscription'] = {
+        //         'depth': limit, // default 10, valid options 10, 25, 100, 500, 1000
+        //     };
+        // }
+        // return await this.watchPublic (name, symbol, this.extend (request, params));
     }
 
     limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
@@ -192,7 +208,7 @@ module.exports = class binance extends ccxt.binance {
     }
 
     signMessage (client, messageHash, message, params = {}) {
-        // todo: binance signMessage not implemented yet
+        // todo: implement kucoin signMessage
         return message;
     }
 
@@ -209,8 +225,8 @@ module.exports = class binance extends ccxt.binance {
     handleSubscriptionStatus (client, message) {
         //
         //     {
-        //         "result": null,
-        //         "id": 1574649734450
+        //         id: '1578090438322',
+        //         type: 'ack'
         //     }
         //
         const id = this.safeString (message, 'id');
@@ -223,21 +239,69 @@ module.exports = class binance extends ccxt.binance {
         return message;
     }
 
-    handleMessage (client, message) {
+    handleSystemStatus (client, message) {
+        //
+        // todo: answer the question whether handleSystemStatus should be renamed
+        // and unified as handleStatus for any usage pattern that
+        // involves system status and maintenance updates
+        //
+        //     {
+        //         id: '1578090234088', // connectId
+        //         type: 'welcome',
+        //     }
+        //
+        console.log (message);
+        return message;
+    }
+
+    handleSubject (client, message) {
+        //
+        //     {
+        //         "type":"message",
+        //         "topic":"/market/level2:BTC-USDT",
+        //         "subject":"trade.l2update",
+        //         "data":{
+        //             "sequenceStart":1545896669105,
+        //             "sequenceEnd":1545896669106,
+        //             "symbol":"BTC-USDT",
+        //             "changes": {
+        //                 "asks": [["6","1","1545896669105"]], // price, size, sequence
+        //                 "bids": [["4","1","1545896669106"]]
+        //             }
+        //         }
+        //     }
+        //
+        const subject = this.safeString (message, 'subject');
         const methods = {
-            'depthUpdate': this.handleOrderBook,
+            'trade.l2update': this.handleOrderBook,
         };
-        const event = this.safeString (message, 'e');
-        const method = this.safeValue (methods, event);
+        const method = this.safeValue (methods, subject);
         if (method === undefined) {
-            const requestId = this.safeString (message, 'id');
-            if (requestId !== undefined) {
-                return this.handleSubscriptionStatus (client, message);
-            }
             return message;
         } else {
             return this.call (method, client, message);
         }
     }
-};
 
+    handleErrorMessage (client, message) {
+        return message;
+    }
+
+    handleMessage (client, message) {
+        if (this.handleErrorMessage (client, message)) {
+            const type = this.safeString (message, 'type');
+            const methods = {
+                // 'heartbeat': this.handleHeartbeat,
+                'welcome': this.handleSystemStatus,
+                'ack': this.handleSubscriptionStatus,
+                'message': this.handleSubject,
+            };
+            const method = this.safeValue (methods, type);
+            if (method === undefined) {
+                return message;
+            } else {
+                return this.call (method, client, message);
+            }
+        }
+    }
+};

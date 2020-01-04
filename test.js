@@ -45,9 +45,9 @@ const ccxtpro = require ('./ccxt.pro.js')
     // ========================================================================
     // a sandbox ws client for testing
 
-    const symbol = 'ETH/BTC'
+    const symbol = 'BTC/USD'
 
-    const exchange = new ccxtpro.kraken ({
+    const exchange = new ccxtpro.bitmex ({
         'enableRateLimit': true,
         // 'urls': {
         //     'api': {

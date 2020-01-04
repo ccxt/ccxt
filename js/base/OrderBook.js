@@ -22,6 +22,12 @@ class OrderBook {
 
     constructor (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
 
+        Object.defineProperty (this, 'cache', {
+            __proto__: null, // make it invisible
+            value: [],
+            writable: true,
+        })
+
         const defaults = {
             'bids': [],
             'asks': [],
@@ -52,27 +58,38 @@ class OrderBook {
     limit (n = undefined) {
         this.asks.limit (n)
         this.bids.limit (n)
-        if (this.bids.length > 0 && this.bids[0][0] > this.asks[0][0]) {
-            throw new Error ('orderbooks have crossed >.<')
-        }
         return this
     }
 
-    update (nonce, timestamp, asks, bids) {
-        if ((nonce !== undefined) &&
+    update (snapshot) {
+        if ((snapshot.nonce !== undefined) &&
             (this.nonce !== undefined) &&
-            (nonce <= this.nonce)) {
+            (snapshot.nonce <= this.nonce)) {
             return this
         }
-        for (let i = 0; i < asks.length; i++) {
-            this.asks.storeArray (asks[i])
+        for (let i = 0; i < snapshot.asks.length; i++) {
+            this.asks.storeArray (snapshot.asks[i])
         }
-        for (let i = 0; i < bids.length; i++) {
-            this.bids.storeArray (bids[i])
+        for (let i = 0; i < snapshot.bids.length; i++) {
+            this.bids.storeArray (snapshot.bids[i])
         }
-        this.nonce = nonce
-        this.timestamp = timestamp
-        this.datetime = iso8601 (timestamp)
+        this.nonce = snapshot.nonce
+        this.timestamp = snapshot.timestamp
+        this.datetime = iso8601 (this.timestamp)
+        return this.reset (
+            snapshot.nonce,
+            snapshot.timestamp,
+            snapshot.asks,
+            snapshot.bids
+        )
+    }
+
+    reset (snapshot) {
+        this.asks.update (snapshot.asks)
+        this.bids.update (snapshot.bids)
+        this.nonce = snapshot.nonce
+        this.timestamp = snapshot.timestamp
+        this.datetime = iso8601 (this.timestamp)
         return this
     }
 }

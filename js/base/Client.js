@@ -200,6 +200,7 @@ module.exports = class Client {
     }
 
     send (message) {
+        // console.log (new Date (), 'sending', message)
         this.connection.send (JSON.stringify (message))
     }
 
@@ -211,10 +212,17 @@ module.exports = class Client {
     onMessage (message) {
         try {
             message = isJsonEncodedObject (message) ? JSON.parse (message) : message
+            // console.log (new Date (), 'onMessage', message)
         } catch (e) {
             console.log (new Date (), 'onMessage JSON.parse', e)
             // reset with a json encoding error ?
         }
-        this.onMessageCallback (this, message)
+        if (this.onMessageCallback.constructor.name === "AsyncFunction") {
+            this.onMessageCallback (this, message).catch ((e) => {
+                // todo: handle async onMessageCallback errors
+            })
+        } else {
+            this.onMessageCallback (this, message)
+        }
     }
 }

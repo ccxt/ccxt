@@ -94,6 +94,14 @@ class IndexedOrderBookSide(OrderBookSide):
             if order_id in self._index:
                 del self._index[order_id]
 
+    def restore(self, price, size, order_id):  # price is presumably None
+        if size:
+            array = self._index.get(order_id)
+            price = array[0] if price is None else price
+            self._index[order_id] = [price, size, order_id]
+        else:
+            del self._index[order_id]
+
     def storeArray(self, delta):
         size = delta[1]
         order_id = delta[2]

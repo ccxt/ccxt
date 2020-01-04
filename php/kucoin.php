@@ -9,7 +9,7 @@ use \ccxtpro\ClientTrait; // websocket functionality
 use Exception; // a common import
 use \ccxt\ExchangeError;
 
-class binance extends \ccxt\binance {
+class kucoin extends \ccxt\kucoin {
 
     use ClientTrait;
 
@@ -18,86 +18,102 @@ class binance extends \ccxt\binance {
             'has' => array(
                 'watchOrderBook' => true,
             ),
-            'urls' => array(
-                'api' => array(
-                    'ws' => 'wss://stream.binance.com:9443/ws',
-                ),
-            ),
             'options' => array(
                 'watchOrderBookRate' => 100, // get updates every 100ms or 1000ms
             ),
         ));
     }
 
-    public function load_markets ($reload = false, $params = array ()) {
-        $markets = parent::load_markets($reload, $params);
-        $marketsByLowercaseId = $this->safe_value($this->options, 'marketsByLowercaseId');
-        if (($marketsByLowercaseId === null) || $reload) {
-            $marketsByLowercaseId = array();
-            for ($i = 0; $i < count($this->symbols); $i++) {
-                $symbol = $this->symbols[$i];
-                $market = $this->markets[$symbol];
-                $lowercaseId = $this->safe_string_lower($market, 'id');
-                $market['lowercaseId'] = $lowercaseId;
-                $this->markets_by_id[$market['id']] = $market;
-                $this->markets[$symbol] = $market;
-                $marketsByLowercaseId[$lowercaseId] = $this->markets[$symbol];
-            }
-            $this->options['marketsByLowercaseId'] = $marketsByLowercaseId;
-        }
-        return $markets;
-    }
-
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
-        //
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams
-        //
-        // <$symbol>@depth<levels>@100ms or <$symbol>@depth<levels> (1000ms)
-        // valid <levels> are 5, 10, or 20
-        //
         if ($limit !== null) {
-            if (($limit !== 5) && ($limit !== 10) && ($limit !== 20)) {
-                throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 5, 10 or 20');
+            if (($limit !== 20) && ($limit !== 100)) {
+                throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 20 or 100');
             }
         }
         $this->load_markets();
         $market = $this->market ($symbol);
         //
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#how-to-manage-a-local-order-book-correctly
+        // https://docs.kucoin.com/#level-2-$market-$data
         //
-        // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-        // 2. Buffer the events you receive from the stream.
-        // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?$symbol=BNBBTC&$limit=1000 .
-        // 4. Drop any event where u is <= lastUpdateId in the snapshot.
-        // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
-        // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-        // 7. The data in each event is the absolute quantity for a price level.
-        // 8. If the quantity is 0, remove the price level.
-        // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
+        // 1. After receiving the websocket Level 2 $data flow, cache the $data->
+        // 2. Initiate a REST $request to get the snapshot $data of Level 2 order book.
+        // 3. Playback the cached Level 2 $data flow.
+        // 4. Apply the new Level 2 $data flow to the local snapshot to ensure that
+        // the sequence of the new Level 2 update lines up with the sequence of
+        // the previous Level 2 $data-> Discard all the message prior to that
+        // sequence, and then playback the change to snapshot.
+        // 5. Update the level2 full $data based on sequence according to the
+        // size. If the price is 0, ignore the messages and update the sequence.
+        // If the size=0, update the sequence and remove the price of which the
+        // size is 0 out of level 2. For other cases, please update the price.
         //
-        $name = 'depth';
-        $messageHash = $market['lowercaseId'] . '@' . $name;
-        $url = $this->urls['api']['ws']; // . '/' . $messageHash;
-        $requestId = $this->nonce ();
-        $watchOrderBookRate = $this->safe_string($this->options, 'watchOrderBookRate', '100');
-        $request = array(
-            'method' => 'SUBSCRIBE',
-            'params' => array(
-                $messageHash . '@' . $watchOrderBookRate . 'ms',
-            ),
-            'id' => $requestId,
+        $tokenResponse = $this->safe_value($this->options, 'token');
+        if ($tokenResponse === null) {
+            $throwException = false;
+            if ($this->check_required_credentials($throwException)) {
+                $tokenResponse = $this->privatePostBulletPrivate ();
+                //
+                //     {
+                //         code => "200000",
+                //         $data => {
+                //             $instanceServers => array(
+                //                 {
+                //                     pingInterval =>  50000,
+                //                     $endpoint => "wss://push-private.kucoin.com/endpoint",
+                //                     protocol => "websocket",
+                //                     encrypt => true,
+                //                     pingTimeout => 10000
+                //                 }
+                //             ),
+                //             $token => "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+                //         }
+                //     }
+                //
+            } else {
+                $tokenResponse = $this->publicPostBulletPublic ();
+            }
+        }
+        $data = $this->safe_value($tokenResponse, 'data', array());
+        $instanceServers = $this->safe_value($data, 'instanceServers', array());
+        $firstServer = $this->safe_value($instanceServers, 0, array());
+        $endpoint = $this->safe_string($firstServer, 'endpoint');
+        $token = $this->safe_string($data, 'token');
+        $nonce = $this->nonce ();
+        $query = array(
+            'token' => $token,
+            'connectId' => $nonce,
+            'acceptUserMessage' => 'true',
+        );
+        $url = $endpoint . '?' . $this->urlencode ($query);
+        $topic = '/market/level2';
+        $messageHash = $topic . ':' . $market['id'];
+        $subscribe = array(
+            'id' => $nonce,
+            'type' => 'subscribe',
+            'topic' => $messageHash,
+            'response' => true,
         );
         $subscription = array(
-            'id' => (string) $requestId,
-            'messageHash' => $messageHash,
-            'name' => $name,
+            'id' => (string) $nonce,
             'symbol' => $symbol,
+            'topic' => $topic,
+            'messageHash' => $messageHash,
             'method' => array($this, 'handle_order_book_subscription'),
+            'limit' => $limit,
         );
-        $message = array_merge($request, $params);
-        // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-        $future = $this->watch ($url, $messageHash, $message, $messageHash, $subscription);
+        $request = array_merge($subscribe, $params);
+        $future = $this->watch ($url, $messageHash, $request, $messageHash, $subscription);
         return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        // return $this->watch ($url, $messageHash, $request, $messageHash);
+        // // $token = $this->publicPostBulletPublic ();
+        // $name = 'book';
+        // $request = array();
+        // if ($limit !== null) {
+        //     $request['subscription'] = array(
+        //         'depth' => $limit, // default 10, valid options 10, 25, 100, 500, 1000
+        //     );
+        // }
+        // return $this->watchPublic ($name, $symbol, array_merge($request, $params));
     }
 
     public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
@@ -197,7 +213,7 @@ class binance extends \ccxt\binance {
     }
 
     public function sign_message ($client, $messageHash, $message, $params = array ()) {
-        // todo => binance signMessage not implemented yet
+        // todo => implement kucoin signMessage
         return $message;
     }
 
@@ -214,8 +230,8 @@ class binance extends \ccxt\binance {
     public function handle_subscription_status ($client, $message) {
         //
         //     {
-        //         "result" => null,
-        //         "$id" => 1574649734450
+        //         $id => '1578090438322',
+        //         type => 'ack'
         //     }
         //
         $id = $this->safe_string($message, 'id');
@@ -228,20 +244,69 @@ class binance extends \ccxt\binance {
         return $message;
     }
 
-    public function handle_message ($client, $message) {
+    public function handle_system_status ($client, $message) {
+        //
+        // todo => answer the question whether handleSystemStatus should be renamed
+        // and unified as handleStatus for any usage pattern that
+        // involves system status and maintenance updates
+        //
+        //     {
+        //         id => '1578090234088', // connectId
+        //         type => 'welcome',
+        //     }
+        //
+        var_dump ($message);
+        return $message;
+    }
+
+    public function handle_subject ($client, $message) {
+        //
+        //     {
+        //         "type":"$message",
+        //         "topic":"/market/level2:BTC-USDT",
+        //         "$subject":"trade.l2update",
+        //         "data":{
+        //             "sequenceStart":1545896669105,
+        //             "sequenceEnd":1545896669106,
+        //             "symbol":"BTC-USDT",
+        //             "changes" => {
+        //                 "asks" => [["6","1","1545896669105"]], // price, size, sequence
+        //                 "bids" => [["4","1","1545896669106"]]
+        //             }
+        //         }
+        //     }
+        //
+        $subject = $this->safe_string($message, 'subject');
         $methods = array(
-            'depthUpdate' => array($this, 'handle_order_book'),
+            'trade.l2update' => array($this, 'handle_order_book'),
         );
-        $event = $this->safe_string($message, 'e');
-        $method = $this->safe_value($methods, $event);
+        $method = $this->safe_value($methods, $subject);
         if ($method === null) {
-            $requestId = $this->safe_string($message, 'id');
-            if ($requestId !== null) {
-                return $this->handle_subscription_status ($client, $message);
-            }
             return $message;
         } else {
             return $this->call ($method, $client, $message);
+        }
+    }
+
+    public function handle_error_message ($client, $message) {
+        return $message;
+    }
+
+    public function handle_message ($client, $message) {
+        if ($this->handle_error_message ($client, $message)) {
+            $type = $this->safe_string($message, 'type');
+            $methods = array(
+                // 'heartbeat' => $this->handleHeartbeat,
+                'welcome' => array($this, 'handle_system_status'),
+                'ack' => array($this, 'handle_subscription_status'),
+                'message' => array($this, 'handle_subject'),
+            );
+            $method = $this->safe_value($methods, $type);
+            if ($method === null) {
+                return $message;
+            } else {
+                return $this->call ($method, $client, $message);
+            }
         }
     }
 }

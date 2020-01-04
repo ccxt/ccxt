@@ -6,6 +6,7 @@ from ccxt import Exchange
 
 class OrderBook(dict):
     def __init__(self, snapshot={}, depth=float('inf')):
+        self.cache = []
         defaults = {
             'bids': [],
             'asks': [],
@@ -28,17 +29,18 @@ class OrderBook(dict):
         self['bids'].limit(n)
         return self
 
-    def update(self, nonce, timestamp, asks, bids):
-        if nonce is not None and self['nonce'] is not None \
-                and nonce < self['nonce']:
+    def reset(self, snapshot):
+        self['asks'].update(snapshot.get('asks', []))
+        self['bids'].update(snapshot.get('bids', []))
+        self['nonce'] = snapshot.get('nonce')
+        self['timestamp'] = snapshot.get('timestamp')
+        self['datetime'] = Exchange.iso8601(self['timestamp'])
+
+    def update(self, snapshot):
+        nonce = snapshot.get('nonce')
+        if nonce is not None and self['nonce'] is not None and nonce < self['nonce']:
             return self
-        for ask in asks:
-            self['asks'].storeArray(ask)
-        for bid in bids:
-            self['bids'].storeArray(bid)
-        self['nonce'] = nonce
-        self['timestamp'] = timestamp
-        self['datetime'] = Exchange.iso8601(timestamp)
+        self.reset(snapshot)
 
 # -----------------------------------------------------------------------------
 # overwrites absolute volumes at price levels

@@ -3,7 +3,11 @@
 namespace ccxtpro;
 
 class OrderBook extends \ArrayObject implements \JsonSerializable {
+    public $cache;
+    
     public function __construct($snapshot = array(), $depth = PHP_INT_MAX) {
+        $this->cache = array();
+
         $defaults = array(
             'bids' => array(),
             'asks' => array(),
@@ -16,9 +20,7 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
             $this['asks'] = new Asks($this['asks'], $depth);
             $this['bids'] = new Bids($this['bids'], $depth);
         }
-        if ($this['timestamp']) {
-            $this['datetime'] = \ccxt\Exchange::iso8601($this['timestamp']);
-        }
+        $this['datetime'] = \ccxt\Exchange::iso8601($this['timestamp']);
     }
 
     public function jsonSerialize() {
@@ -31,20 +33,20 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
         return $this;
     }
 
-    public function update($nonce, $timestamp, $asks, $bids) {
+    public function reset(&$snapshot) {
+        @$this['asks']->update($snapshot['asks']);
+        @$this['bids']->update($snapshot['bids']);
+        @$this['nonce'] = $snapshot['nonce'];
+        @$this['timestamp'] = $snapshot['timestamp'];
+        $this['datetime'] = \ccxt\Exchange::iso8601($this['timestamp']);
+    }
+
+    public function update($snapshot) {
+        $nonce = @$snapshot['nonce'];
         if ($nonce !== null && $this['nonce'] !== null && $nonce < $this['nonce']) {
             return $this;
         }
-        foreach ($asks as $ask) {
-            $this['asks']->storeArray($ask);
-        }
-        foreach ($bids as $bid) {
-            $this['bid']->storeArray($bid);
-        }
-        $this['nonce'] = $nonce;
-        $this['timestamp'] = $timestamp;
-        $this['datetime'] = \ccxt\Exchange::iso8601($timestamp);
-        return $this;
+        return @$this->reset($snapshot);
     }
 }
 

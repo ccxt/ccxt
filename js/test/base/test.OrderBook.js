@@ -202,6 +202,8 @@ const doubleStoredIncremetalOrderBookTarget = {
     'nonce': 69,
 };
 
+let bids = undefined;
+let asks = undefined;
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -218,16 +220,18 @@ assert (equals (limited, limitedOrderBookTarget));
 orderBook.limit ();
 assert (equals (orderBook, orderBookTarget));
 
-orderBook['bids'].store (1000, 0);
+bids = orderBook['bids'];
+bids.store (1000, 0);
 orderBook.limit ();
 assert (equals (orderBook, orderBookTarget));
-orderBook['bids'].store (3, 4);
+bids.store (3, 4);
 orderBook.limit ();
 assert (equals (orderBook, storeBid));
-orderBook['bids'].store (3, 0);
+bids.store (3, 0);
 orderBook.limit ();
 assert (equals (orderBook, orderBookTarget));
-limited['asks'].store (15.5, 0);
+asks = limited['asks'];
+asks.store (15.5, 0);
 limited.limit ();
 assert (equals (limited, limitedDeletedOrderBookTarget));
 
@@ -245,13 +249,15 @@ assert (equals (limitedIndexedOrderBook, limitedIndexedOrderBookTarget));
 indexedOrderBook.limit ();
 assert (equals (indexedOrderBook, indexedOrderBookTarget));
 
-indexedOrderBook['bids'].store (1000, 0, '12345');
+bids = indexedOrderBook['bids'];
+bids.store (1000, 0, '12345');
 assert (equals (indexedOrderBook, indexedOrderBookTarget));
-indexedOrderBook['bids'].store (10, 0, '1234');
+bids.store (10, 0, '1234');
 indexedOrderBook.limit ();
 assert (equals (indexedOrderBook, overwrite1234));
 indexedOrderBook = new IndexedOrderBook (indexedOrderBookInput);
-indexedOrderBook['asks'].store (13.5, 13, '1244');
+asks = indexedOrderBook['asks'];
+asks.store (13.5, 13, '1244');
 indexedOrderBook.limit ();
 assert (equals (indexedOrderBook, overwrite1244));
 
@@ -269,10 +275,11 @@ assert (equals (limitedCountedOrderBook, limitedCountedOrderBookTarget));
 countedOrderBook.limit ();
 assert (equals (countedOrderBook, countedOrderBookTarget));
 
-countedOrderBook['bids'].store (5, 0, 6);
+bids = countedOrderBook['bids'];
+bids.store (5, 0, 6);
 countedOrderBook.limit ();
 assert (equals (countedOrderBook, countedOrderBookTarget));
-countedOrderBook['bids'].store (1, 1, 6);
+bids.store (1, 1, 6);
 countedOrderBook.limit ();
 assert (equals (countedOrderBook, storedCountedOrderbookTarget));
 
@@ -290,13 +297,14 @@ assert (equals (limitedIncrementalOrderBook, limitedIncremetalOrderBookTarget));
 incrementalOrderBook.limit ();
 assert (equals (incrementalOrderBook, incremetalOrderBookTarget));
 
-incrementalOrderBook['bids'].store (3, 3);
+bids = incrementalOrderBook['bids'];
+bids.store (3, 3);
 incrementalOrderBook.limit ();
 assert (equals (incrementalOrderBook, storedIncremetalOrderBookTarget));
-incrementalOrderBook['bids'].store (3, 7);
+bids.store (3, 7);
 incrementalOrderBook.limit ();
 assert (equals (incrementalOrderBook, doubleStoredIncremetalOrderBookTarget));
-incrementalOrderBook['bids'].store (17, 0);
+bids.store (17, 0);
 assert (equals (incrementalOrderBook, doubleStoredIncremetalOrderBookTarget));
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -314,13 +322,15 @@ assert (equals (limitedIncrementalIndexedOrderBook, limitedIncrementalIndexedOrd
 incrementalIndexedOrderBook.limit ();
 assert (equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget));
 
-incrementalIndexedOrderBook['bids'].store (5, -1, 'xxyy');
+bids = incrementalIndexedOrderBook['bids'];
+bids.store (5, -1, 'xxyy');
 incrementalIndexedOrderBook.limit ();
 assert (equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget));
-incrementalIndexedOrderBook['bids'].store (10.0, 3, '1234');  // price does match merge size
+bids.store (10.0, 3, '1234');  // price does match merge size
 incrementalIndexedOrderBook.limit ();
 assert (equals (incrementalIndexedOrderBook, storedIncrementalIndexedOrderBookTarget));
 incrementalIndexedOrderBook = new IncrementalIndexedOrderBook (indexedOrderBookInput);
-incrementalIndexedOrderBook['bids'].store (10.2, 10, '1234');  // price does not match overwrite size
+bids = incrementalIndexedOrderBook['bids'];
+bids.store (10.2, 10, '1234');  // price does not match overwrite size
 incrementalIndexedOrderBook.limit ();
 assert (equals (incrementalIndexedOrderBook, anotherStoredIncrementalIndexedOrderBookTarget));

@@ -48,7 +48,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
             // 'len': '25', // string, number of price points, '25', '100', default = '25'
         };
         if (limit !== undefined) {
-            request['limit'] = limit.toString ();
+            request['len'] = limit.toString ();
         }
         const messageHash = channel + ':' + marketId;
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
@@ -154,10 +154,6 @@ module.exports = class bitfinex extends ccxt.bitfinex {
 
     handleSubscriptionStatus (client, message) {
         //
-        // todo: answer the question whether handleSubscriptionStatus should be renamed
-        // and unified as handleResponse for any usage pattern that
-        // involves an identified request/response sequence
-        //
         //     {
         //         event: 'subscribed',
         //         channel: 'book',
@@ -168,8 +164,6 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         //         len: '25',
         //         pair: 'BTCUSD'
         //     }
-        //
-        // --------------------------------------------------------------------
         //
         const channelId = this.safeString (message, 'chanId');
         this.options['subscriptionsByChannelId'][channelId] = message;
@@ -188,16 +182,16 @@ module.exports = class bitfinex extends ccxt.bitfinex {
             const subscription = this.safeValue (this.options['subscriptionsByChannelId'], channelId, {});
             const channel = this.safeString (subscription, 'channel');
             const methods = {
-                'book': 'handleOrderBook',
-                // 'ohlc': 'handleOHLCV',
-                // 'ticker': 'handleTicker',
-                // 'trade': 'handleTrades',
+                'book': this.handleOrderBook,
+                // 'ohlc': this.handleOHLCV,
+                // 'ticker': this.handleTicker,
+                // 'trade': this.handleTrades,
             };
-            const method = this.safeString (methods, channel);
+            const method = this.safeValue (methods, channel);
             if (method === undefined) {
                 return message;
             } else {
-                return this[method] (client, message);
+                return this.call (method, client, message);
             }
         } else {
             // todo: add bitfinex handleErrorMessage
@@ -212,15 +206,15 @@ module.exports = class bitfinex extends ccxt.bitfinex {
             const event = this.safeString (message, 'event');
             if (event !== undefined) {
                 const methods = {
-                    'info': 'handleSystemStatus',
+                    'info': this.handleSystemStatus,
                     // 'book': 'handleOrderBook',
-                    'subscribed': 'handleSubscriptionStatus',
+                    'subscribed': this.handleSubscriptionStatus,
                 };
-                const method = this.safeString (methods, event);
+                const method = this.safeValue (methods, event);
                 if (method === undefined) {
                     return message;
                 } else {
-                    return this[method] (client, message);
+                    return this.call (method, client, message);
                 }
             }
         }

@@ -31,12 +31,6 @@ class CCXTProTranspiler extends Transpiler {
         ])
     }
 
-    getPHPRegexes () {
-        return super.getPHPRegexes ().concat ([
-            [ /]\.store/g, ']->store' ],
-        ])
-    }
-
     getPHPPreamble () {
         return [
             "<?php",

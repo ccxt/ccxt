@@ -6,7 +6,7 @@ __version__ = '1.0.0'
 
 # -----------------------------------------------------------------------------
 
-import asyncio
+from asyncio import ensure_future
 from ccxtpro.base.aiohttp_client import AiohttpClient
 from ccxt.async_support import Exchange as BaseExchange
 from ccxt import NotSupported
@@ -67,6 +67,16 @@ class Exchange(BaseExchange):
         # method is bound to self instance
         return method(result, *args)
 
+    async def spawnAsync(self, method, *args):
+        try:
+            await method(*args)
+        except Exception as e:
+            # todo: handle spawned errors
+            pass
+
+    def spawn(self, method, *args):
+        ensure_future(self.spawnAsync(method, *args))
+
     def handle_message(self, client, message):
         always = True
         if always:
@@ -79,13 +89,13 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + '.sign_message() not implemented yet')
         return {}
 
-    async def connect_client(self, client, message_hash, message=None, subscribe_hash=None):
+    async def connect_client(self, client, message_hash, message=None, subscribe_hash=None, subscription=None):
         # todo: calculate the backoff using the clients cache
         backoff_delay = 0
         try:
             await client.connect(self.session, backoff_delay)
             if message and (subscribe_hash not in client.subscriptions):
-                client.subscriptions[subscribe_hash] = True
+                client.subscriptions[subscribe_hash] = subscription or True
                 # todo: decouple signing from subscriptions
                 message = self.sign_message(client, message_hash, message)
                 await client.send(message)
@@ -93,12 +103,12 @@ class Exchange(BaseExchange):
             client.reject(e, message_hash)
             print(self.iso8601(self.milliseconds()), 'connect_client', 'Exception', e)
 
-    def watch(self, url, message_hash, message=None, subscribe_hash=None):
+    def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
         client = self.client(url)
         future = client.future(message_hash)
         # we intentionally do not use await here to avoid unhandled exceptions
         # the policy is to make sure that 100% of promises are resolved or rejected
-        asyncio.ensure_future(self.connect_client(client, message_hash, message, subscribe_hash))
+        ensure_future(self.connect_client(client, message_hash, message, subscribe_hash, subscription))
         return future
 
     def on_error(self, client, error):

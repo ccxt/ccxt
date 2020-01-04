@@ -105,7 +105,7 @@ class Client(object):
         # exponential backoff for consequent connections if necessary
         if backoff_delay:
             await sleep(backoff_delay)
-        print(Exchange.iso8601(Exchange.milliseconds()), 'connecting with timeout', self.connectionTimeout, 'ms')
+        print(Exchange.iso8601(Exchange.milliseconds()), 'connecting to', self.url, 'with timeout', self.connectionTimeout, 'ms')
         self.connectionStarted = Exchange.milliseconds()
         try:
             coroutine = self.create_connection(session)

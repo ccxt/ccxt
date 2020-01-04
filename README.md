@@ -2,7 +2,19 @@
 
 info@ccxt.pro
 
-# Intro To CCXT Pro
+# CCXT Pro
+
+```JavaScript
+'use strict';
+const ccxtpro = require ('ccxt.pro');
+(async () => {
+    const exchange = new ccxtpro.binance ()
+    while (true) {
+        const orderbook = await exchange.watchOrderBook ('ETH/BTC')
+        console.log (new Date (), orderbook['asks'][0], orderbook['bids'][0])
+    }
+}) ()
+```
 
 CCXT Pro is a professional extension to the standard CCXT that is going to include:
 - The support for unified public and private WebSockets (pub and sub) – work in progress now
@@ -11,7 +23,7 @@ CCXT Pro is a professional extension to the standard CCXT that is going to inclu
 
 ## Technicalities:
 
-- public and private unified APIs
+- public and private unified streaming APIs
 - auto-connection and re-connection
 - connection timeouts
 - re-connection exponential backoff delay
@@ -30,9 +42,47 @@ CCXT Pro is open-source which is another important aspect in the licensing. With
 
 The CCXT Pro license addresses abusive access to the repository, leaking the source-code and republishing it without a permission from us. Violations of licensing terms will be pursued legally.
 
+# How To Install
+
+Installing CCXT Pro requires visiting the https://ccxt.pro website and obtaining a CCXT Pro license. The license gives the access to the CCXT Pro codebase in a private GitHub repository.
+
+```diff
+- this part of the doc is currenty a work in progress
+- there may be some issues and missing implementations here and there
+- contributions, pull requests and feedback appreciated
+```
+
+## JavaScript
+
+```shell
+# in your project directory
+npm install ccxt.pro
+```
+
+## Python
+
+```
+pip install ccxtpro
+```
+
+## PHP
+
+```shell
+# in your project directory
+composer install ccxt/ccxtpro
+```
+
+# How To Use
+
 ## The Technical Overview
 
-The CCXT Pro stack uses mixins in JS and Python to extend the core CCXT, and in PHP it is using traits. The structure of the CCXT Pro repository mimics the structure of the CCXT repository. The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguge support](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support).
+The CCXT Pro stack is built upon CCXT and extends the core CCXT classes, using:
+
+- JavaScript prototype-level mixins
+- Python multiple inheritance
+- PHP Traits
+
+The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguge support](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support).
 
 
 ```
@@ -45,11 +95,22 @@ The CCXT Pro stack uses mixins in JS and Python to extend the core CCXT, and in 
     +=============================================================+
     │                              .                              |
     │                  The Unified CCXT Pro API                   |
+    |                              .                              |
+    |       loadMarkets            .           watchBalance       |
+    |       fetchMarkets           .            createOrder       |
+    |       fetchCurrencies        .            cancelOrder       |
+    |       fetchTicker            .             watchOrder       |
+    |       fetchTickers           .            watchOrders       |
+    |       fetchOrderBook         .        watcgOpenOrders       |
+    |       fetchOHLCV             .      watchClosedOrders       |
+    |       fetchStatus            .          watchMyTrades       |
+    |       fetchTrades            .                deposit       |
+    |                              .               withdraw       |
     │                              .                              |
     +=============================================================+
     │                              .                              |
     |            The Underlying Exchange-Specific APIs            |
-    |         (Derived Classes And Their Implicit Methods)        |
+    |         (Derived Classes And Their Implementations)         |
     │                              .                              |
     +=============================================================+
     │                              .                              |
@@ -63,3 +124,169 @@ The CCXT Pro stack uses mixins in JS and Python to extend the core CCXT, and in 
     |                                                             |
     +=============================================================+
 ```
+
+## Usage
+
+```diff
+- this part of the doc is currenty a work in progress
+- there may be some issues and missing implementations here and there
+- contributions, pull requests and feedback appreciated
+```
+
+### Prerequisites
+
+The best way to understand CCXT Pro is to make sure you grasp the entire CCXT Manual and practice standard CCXT first. CCXT Pro borrows a lot from CCXT, therefore the two libraries share a lot of commonalities, including:
+
+- markets, symbols and ids
+- unified data structures and formats, orderbooks, trades, orders, candles, ...
+- exceptions and error mappings
+- authentication and API keys (for private feeds and calls)
+- configuration options
+
+The CCXT Pro audience consists mostly of professional algorithmic traders and developers, in order to work efficiently with this library the user is required to be well-familiar with the concepts of streaming. One has to understand the difference between connection-based streaming APIs ([WebSocket](https://en.wikipedia.org/wiki/WebSocket), CCXT Pro) and request-response based APIs ([REST](https://en.wikipedia.org/wiki/Representational_state_transfer), CCXT).
+
+The general async-style flow for a CCXT application is as follows:
+
+```JavaScript
+
+// the RESTful orderbook polling request-response loop
+
+while (condition) {
+
+    try {
+
+        // fetch some of the public data
+        orderbook = await exchange.fetchOrderBook (symbol, limit)
+
+        // do something or react somehow based on that data
+        // ...
+
+    } catch (e) {
+
+        // handle errors
+    }
+}
+```
+
+In CCXT Pro each public and private unified RESTful method having a `fetch*` prefix also has a corresponding stream-based counterpart method prefixed with `watch*`, as follows:
+
+- `fetchStatus` → `watchStatus`
+- `fetchOrderBook` → `watchOrderBook`
+- `fetchTicker` → `watchTicker`
+- `fetchTickers` → `watchTickers`
+- `fetchOHLCV` → `watchOHLCV`
+- `fetchTrades` → `watchTrades`
+- `fetchBalance` → `watchBalance`
+- `fetchOrders` → `watchOrders`
+- `fetchMyTrades` → `watchMyTrades`
+- `fetchTransactions` → `watchTransactions`
+- ...
+
+The Unified CCXT Pro Streaming API inherits CCXT usage patterns to make migration easier.
+
+The general async-style flow for a CCXT Pro application (as opposed to a CCXT application above) is shown below:
+
+```JavaScript
+
+// the stream-based (WebSocket) orderbook feed loop
+
+while (condition) {
+
+    try {
+
+        // watch some of the public data
+        orderbook = await exchange.watchOrderBook (symbol, limit)
+
+        // do something or react somehow based on that data
+        // ...
+
+    } catch (e) {
+
+        // handle errors
+    }
+}
+```
+
+That usage pattern is usually wrapped up into a core business-logic method called _"a `tick()` function"_, since it reiterates a reaction to the incoming events (aka ticks). From the two examples above it is obvious that the generic usage pattern in CCXT Pro and CCXT is identical.
+
+Many of the CCXT rules and concepts also apply to CCXT Pro:
+
+- CCXT Pro will load markets and will cache markets upon the first call to a unified API method
+- CCXT Pro will call CCXT RESTful methods under the hood if necessary
+- ...
+
+### Streaming Specifics
+
+Despite of the numerous commonalities, streaming-based APIs have their own specifics, because of their connection-based nature.
+
+Having a connection-based interface implies connection-handling mechanisms. Connections are managed by CCXT Pro transparently to the user. Each exchange instance manages its own set of connections.
+
+Upon your first call to any `watch` method CCXT Pro will establish a connection to a specific stream/resource of the exchange and will maintain it. In case the connection exists – it is reused. The library will handle the subscription request/response messaging sequences as well as the authentication/signing if the requested stream is private.
+
+The library will also watch the status of the uplink and will keep the connection alive. Upon a critical exception, a disconnect or a connection timeout/failure, the next iteration of the tick function will call the `watch` method that will trigger a reconnection. This way the library handles disconnections and reconnections for the user transparently. CCXT Pro applies the necessary rate-limiting and exponential backoff reconnection delays. All of that functionality is enabled by default and can be configured via exchange properties, as usual.
+
+Most of the exchanges only have a single base URL for streaming APIs (usually, WebSocket, starting with `ws://` or `wss://`). Some of them may have more than one URL for each stream, depending on the feed in question.
+
+### Linking Against CCXT Pro
+
+The process of including the CCXT Pro library into your script is pretty much the same as with the standard CCXT, the only difference is the name of the actual module (js), package (py) or namespace (php).
+
+```JavaScript
+// JavaScript
+const ccxtpro = require ('ccxt.pro')
+console.log ('CCXT Pro version', ccxtpro.version)
+console.log ('Supported exchanges:', ccxtpro.exchanges)
+```
+
+```Python
+# Python
+import ccxtpro
+print('CCXT Pro version', ccxtpro.__version__)
+print('Supported exchanges:', ccxtpro.exchanges)
+```
+
+```PHP
+// PHP
+use \ccxtpro; // optional, since you can use fully qualified names
+echo 'CCXT Pro version ', \ccxtpro\Exchange::VERSION, "\n";
+echo 'Supported exchanges: ', json_encode(\ccxtpro\Exchange::$exchanges), "\n";
+```
+
+The imported CCXT Pro module wraps the CCXT inside itself – every exchange instantiated via CCXT Pro has all the CCXT methods as well as the additional functionality.
+
+### Instantiation
+
+Creating a CCXT Pro exchange instance is pretty much identical to creating a CCXT exchange instance, as shown below.
+
+```JavaScript
+// JavaScript
+const exchange = new ccxtpro.binance ()
+```
+
+```Python
+# Python
+exchange = ccxtpro.kraken()
+```
+
+```PHP
+// PHP
+$exchange = new \ccxtpro\kucoin();
+```
+
+### Exchange Properties
+
+Every CCXT Pro instance contains all properties of the underlying CCXT instance. Apart from the standard CCXT properties, the CCXT Pro instance includes the following:
+
+- `has`: an extended associative array of extended exchange capabilities (e.g. `watchOrderBook`, `watchOHLCV`, ...)
+- `urls['api']`: will contain a streaming API base URL, depending on the underlying protocol
+    - `'ws'`: [WebSocket](https://en.wikipedia.org/wiki/WebSocket)
+    - `'signalr'`: [SignalR](https://en.wikipedia.org/wiki/SignalR)
+    - `'socketio'`: [Socket.IO](https://socket.io/)
+- `version`: ...
+
+### Rate limiting
+
+### API Methods
+
+### Error Handling
+

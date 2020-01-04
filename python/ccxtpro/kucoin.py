@@ -8,87 +8,104 @@ import ccxt.async_support as ccxt
 from ccxt.base.errors import ExchangeError
 
 
-class binance(ccxtpro.Exchange, ccxt.binance):
+class kucoin(ccxtpro.Exchange, ccxt.kucoin):
 
     def describe(self):
-        return self.deep_extend(super(binance, self).describe(), {
+        return self.deep_extend(super(kucoin, self).describe(), {
             'has': {
                 'watchOrderBook': True,
-            },
-            'urls': {
-                'api': {
-                    'ws': 'wss://stream.binance.com:9443/ws',
-                },
             },
             'options': {
                 'watchOrderBookRate': 100,  # get updates every 100ms or 1000ms
             },
         })
 
-    async def load_markets(self, reload=False, params={}):
-        markets = await super(binance, self).load_markets(reload, params)
-        marketsByLowercaseId = self.safe_value(self.options, 'marketsByLowercaseId')
-        if (marketsByLowercaseId is None) or reload:
-            marketsByLowercaseId = {}
-            for i in range(0, len(self.symbols)):
-                symbol = self.symbols[i]
-                market = self.markets[symbol]
-                lowercaseId = self.safe_string_lower(market, 'id')
-                market['lowercaseId'] = lowercaseId
-                self.markets_by_id[market['id']] = market
-                self.markets[symbol] = market
-                marketsByLowercaseId[lowercaseId] = self.markets[symbol]
-            self.options['marketsByLowercaseId'] = marketsByLowercaseId
-        return markets
-
     async def watch_order_book(self, symbol, limit=None, params={}):
-        #
-        # https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams
-        #
-        # <symbol>@depth<levels>@100ms or <symbol>@depth<levels>(1000ms)
-        # valid <levels> are 5, 10, or 20
-        #
         if limit is not None:
-            if (limit != 5) and (limit != 10) and (limit != 20):
-                raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 5, 10 or 20')
+            if (limit != 20) and (limit != 100):
+                raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 20 or 100')
         await self.load_markets()
         market = self.market(symbol)
         #
-        # https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#how-to-manage-a-local-order-book-correctly
+        # https://docs.kucoin.com/#level-2-market-data
         #
-        # 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-        # 2. Buffer the events you receive from the stream.
-        # 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
-        # 4. Drop any event where u is <= lastUpdateId in the snapshot.
-        # 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
-        # 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-        # 7. The data in each event is the absolute quantity for a price level.
-        # 8. If the quantity is 0, remove the price level.
-        # 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
+        # 1. After receiving the websocket Level 2 data flow, cache the data.
+        # 2. Initiate a REST request to get the snapshot data of Level 2 order book.
+        # 3. Playback the cached Level 2 data flow.
+        # 4. Apply the new Level 2 data flow to the local snapshot to ensure that
+        # the sequence of the new Level 2 update lines up with the sequence of
+        # the previous Level 2 data. Discard all the message prior to that
+        # sequence, and then playback the change to snapshot.
+        # 5. Update the level2 full data based on sequence according to the
+        # size. If the price is 0, ignore the messages and update the sequence.
+        # If the size=0, update the sequence and remove the price of which the
+        # size is 0 out of level 2. For other cases, please update the price.
         #
-        name = 'depth'
-        messageHash = market['lowercaseId'] + '@' + name
-        url = self.urls['api']['ws']  # + '/' + messageHash
-        requestId = self.nonce()
-        watchOrderBookRate = self.safe_string(self.options, 'watchOrderBookRate', '100')
-        request = {
-            'method': 'SUBSCRIBE',
-            'params': [
-                messageHash + '@' + watchOrderBookRate + 'ms',
-            ],
-            'id': requestId,
+        tokenResponse = self.safe_value(self.options, 'token')
+        if tokenResponse is None:
+            throwException = False
+            if self.check_required_credentials(throwException):
+                tokenResponse = await self.privatePostBulletPrivate()
+                #
+                #     {
+                #         code: "200000",
+                #         data: {
+                #             instanceServers: [
+                #                 {
+                #                     pingInterval:  50000,
+                #                     endpoint: "wss://push-private.kucoin.com/endpoint",
+                #                     protocol: "websocket",
+                #                     encrypt: True,
+                #                     pingTimeout: 10000
+                #                 }
+                #             ],
+                #             token: "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+                #         }
+                #     }
+                #
+            else:
+                tokenResponse = await self.publicPostBulletPublic()
+        data = self.safe_value(tokenResponse, 'data', {})
+        instanceServers = self.safe_value(data, 'instanceServers', [])
+        firstServer = self.safe_value(instanceServers, 0, {})
+        endpoint = self.safe_string(firstServer, 'endpoint')
+        token = self.safe_string(data, 'token')
+        nonce = self.nonce()
+        query = {
+            'token': token,
+            'connectId': nonce,
+            'acceptUserMessage': 'true',
+        }
+        url = endpoint + '?' + self.urlencode(query)
+        topic = '/market/level2'
+        messageHash = topic + ':' + market['id']
+        subscribe = {
+            'id': nonce,
+            'type': 'subscribe',
+            'topic': messageHash,
+            'response': True,
         }
         subscription = {
-            'id': str(requestId),
-            'messageHash': messageHash,
-            'name': name,
+            'id': str(nonce),
             'symbol': symbol,
+            'topic': topic,
+            'messageHash': messageHash,
             'method': self.handle_order_book_subscription,
+            'limit': limit,
         }
-        message = self.extend(request, params)
-        # 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-        future = self.watch(url, messageHash, message, messageHash, subscription)
+        request = self.extend(subscribe, params)
+        future = self.watch(url, messageHash, request, messageHash, subscription)
         return await self.after(future, self.limit_order_book, symbol, limit, params)
+        # return await self.watch(url, messageHash, request, messageHash)
+        #  # token = await self.publicPostBulletPublic()
+        # name = 'book'
+        # request = {}
+        # if limit is not None:
+        #     request['subscription'] = {
+        #         'depth': limit,  # default 10, valid options 10, 25, 100, 500, 1000
+        #     }
+        # }
+        # return await self.watchPublic(name, symbol, self.extend(request, params))
 
     def limit_order_book(self, orderbook, symbol, limit=None, params={}):
         return orderbook.limit(limit)
@@ -174,7 +191,7 @@ class binance(ccxtpro.Exchange, ccxt.binance):
             orderbook.cache.append(message)
 
     def sign_message(self, client, messageHash, message, params={}):
-        # todo: binance signMessage not implemented yet
+        # todo: implement kucoin signMessage
         return message
 
     def handle_order_book_subscription(self, client, message, subscription):
@@ -188,8 +205,8 @@ class binance(ccxtpro.Exchange, ccxt.binance):
     def handle_subscription_status(self, client, message):
         #
         #     {
-        #         "result": null,
-        #         "id": 1574649734450
+        #         id: '1578090438322',
+        #         type: 'ack'
         #     }
         #
         id = self.safe_string(message, 'id')
@@ -200,16 +217,61 @@ class binance(ccxtpro.Exchange, ccxt.binance):
             self.call(method, client, message, subscription)
         return message
 
-    def handle_message(self, client, message):
+    def handle_system_status(self, client, message):
+        #
+        # todo: answer the question whether handleSystemStatus should be renamed
+        # and unified as handleStatus for any usage pattern that
+        # involves system status and maintenance updates
+        #
+        #     {
+        #         id: '1578090234088',  # connectId
+        #         type: 'welcome',
+        #     }
+        #
+        print(message)
+        return message
+
+    def handle_subject(self, client, message):
+        #
+        #     {
+        #         "type":"message",
+        #         "topic":"/market/level2:BTC-USDT",
+        #         "subject":"trade.l2update",
+        #         "data":{
+        #             "sequenceStart":1545896669105,
+        #             "sequenceEnd":1545896669106,
+        #             "symbol":"BTC-USDT",
+        #             "changes": {
+        #                 "asks": [["6","1","1545896669105"]],  # price, size, sequence
+        #                 "bids": [["4","1","1545896669106"]]
+        #             }
+        #         }
+        #     }
+        #
+        subject = self.safe_string(message, 'subject')
         methods = {
-            'depthUpdate': self.handle_order_book,
+            'trade.l2update': self.handle_order_book,
         }
-        event = self.safe_string(message, 'e')
-        method = self.safe_value(methods, event)
+        method = self.safe_value(methods, subject)
         if method is None:
-            requestId = self.safe_string(message, 'id')
-            if requestId is not None:
-                return self.handle_subscription_status(client, message)
             return message
         else:
             return self.call(method, client, message)
+
+    def handle_error_message(self, client, message):
+        return message
+
+    def handle_message(self, client, message):
+        if self.handle_error_message(client, message):
+            type = self.safe_string(message, 'type')
+            methods = {
+                # 'heartbeat': self.handleHeartbeat,
+                'welcome': self.handle_system_status,
+                'ack': self.handle_subscription_status,
+                'message': self.handle_subject,
+            }
+            method = self.safe_value(methods, type)
+            if method is None:
+                return message
+            else:
+                return self.call(method, client, message)

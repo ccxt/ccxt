@@ -7,9 +7,9 @@ require_once 'vendor/autoload.php';
 
 $loop = \React\EventLoop\Factory::create();
 
-$symbol = 'ETH/BTC';
+$symbol = 'BTC/USD';
 
-$id = 'kraken';
+$id = 'bitmex';
 $exchange_class = '\\ccxtpro\\' . $id;
 $exchange = new $exchange_class(array(
     'enableRateLimit' => true,

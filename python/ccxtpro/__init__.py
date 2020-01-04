@@ -138,7 +138,6 @@ from ccxt.async_support.independentreserve import independentreserve      # noqa
 from ccxt.async_support.indodax import indodax                            # noqa: F401
 from ccxt.async_support.itbit import itbit                                # noqa: F401
 from ccxt.async_support.kkex import kkex                                  # noqa: F401
-from ccxt.async_support.kucoin import kucoin                              # noqa: F401
 from ccxt.async_support.kuna import kuna                                  # noqa: F401
 from ccxt.async_support.lakebtc import lakebtc                            # noqa: F401
 from ccxt.async_support.latoken import latoken                            # noqa: F401
@@ -147,7 +146,6 @@ from ccxt.async_support.liquid import liquid                              # noqa
 from ccxt.async_support.livecoin import livecoin                          # noqa: F401
 from ccxt.async_support.luno import luno                                  # noqa: F401
 from ccxt.async_support.lykke import lykke                                # noqa: F401
-from ccxt.async_support.mandala import mandala                            # noqa: F401
 from ccxt.async_support.mercado import mercado                            # noqa: F401
 from ccxt.async_support.mixcoins import mixcoins                          # noqa: F401
 from ccxt.async_support.oceanex import oceanex                            # noqa: F401

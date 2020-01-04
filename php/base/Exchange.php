@@ -21,6 +21,7 @@ Exchange::$exchanges = array(
     'bitfinex',
     'bitmex',
     'kraken',
+    'kucoin',
     'poloniex',
 );
 

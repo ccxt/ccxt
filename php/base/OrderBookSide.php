@@ -130,6 +130,17 @@ class IndexedOrderBookSide extends OrderBookSide {
         }
     }
 
+    public function restore($price, $size, $id) { // price is presumably null
+        if ($size) {
+            $array = $this->index[$id];
+            $price = isset($price) ? $price : $array[0];
+            $this->index[$id] = array($price, $size, $id);
+        } else {
+            unset($this->index[$id]);
+        }
+    }
+
+
     public function storeArray($delta) {
         $size = $delta[1];
         $id = $delta[2];

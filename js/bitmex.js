@@ -215,7 +215,12 @@ module.exports = class bitmex extends ccxt.bitmex {
                 messageHash,
             ],
         };
-        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const future = this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+    }
+
+    limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
+        return orderbook.limit (limit);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -227,25 +232,6 @@ module.exports = class bitmex extends ccxt.bitmex {
         // };
         // return await this.watchPublicMessage (name, symbol, this.extend (request, params));
         throw new NotImplemented (this.id + ' watchOHLCV() not implemented yet (wip)');
-    }
-
-    async loadMarkets (reload = false, params = {}) {
-        const markets = await super.loadMarkets (reload, params);
-        let marketsByWsName = this.safeValue (this.options, 'marketsByWsName');
-        if ((marketsByWsName === undefined) || reload) {
-            marketsByWsName = {};
-            for (let i = 0; i < this.symbols.length; i++) {
-                const symbol = this.symbols[i];
-                const market = this.markets[symbol];
-                if (!market['darkpool']) {
-                    const info = this.safeValue (market, 'info', {});
-                    const wsName = this.safeString (info, 'wsname');
-                    marketsByWsName[wsName] = market;
-                }
-            }
-            this.options['marketsByWsName'] = marketsByWsName;
-        }
-        return markets;
     }
 
     async watchHeartbeat (params = {}) {
@@ -367,7 +353,7 @@ module.exports = class bitmex extends ccxt.bitmex {
                 }
                 const messageHash = table + ':' + marketId;
                 // the .limit () operation will be moved to the watchOrderBook
-                client.resolve (orderbook.limit (), messageHash);
+                client.resolve (orderbook, messageHash);
             }
         } else {
             const numUpdatesByMarketId = {};
@@ -402,7 +388,7 @@ module.exports = class bitmex extends ccxt.bitmex {
                 const symbol = market['symbol'];
                 const orderbook = this.orderbooks[symbol];
                 // the .limit () operation will be moved to the watchOrderBook
-                client.resolve (orderbook.limit (), messageHash);
+                client.resolve (orderbook, messageHash);
             }
         }
     }
@@ -436,10 +422,6 @@ module.exports = class bitmex extends ccxt.bitmex {
     }
 
     handleSubscriptionStatus (client, message) {
-        //
-        // todo: answer the question whether handleSubscriptionStatus should be renamed
-        // and unified as handleResponse for any usage pattern that
-        // involves an identified request/response sequence
         //
         //     {
         //         success: true,
@@ -537,16 +519,16 @@ module.exports = class bitmex extends ccxt.bitmex {
         if (this.handleErrorMessage (client, message)) {
             const table = this.safeString (message, 'table');
             const methods = {
-                'orderBookL2': 'handleOrderBook',
-                'orderBookL2_25': 'handleOrderBook',
-                'orderBook10': 'handleOrderBook',
+                'orderBookL2': this.handleOrderBook,
+                'orderBookL2_25': this.handleOrderBook,
+                'orderBook10': this.handleOrderBook,
             };
-            const method = this.safeString (methods, table);
+            const method = this.safeValue (methods, table);
             if (method === undefined) {
                 console.log (message);
                 return message;
             } else {
-                return this[method] (client, message);
+                return this.call (method, client, message);
             }
         }
     }

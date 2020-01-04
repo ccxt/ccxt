@@ -220,7 +220,12 @@ class bitmex extends \ccxt\bitmex {
                 $messageHash,
             ),
         );
-        return $this->watch ($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
+        $future = $this->watch ($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
+        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+    }
+
+    public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
+        return $orderbook->limit ($limit);
     }
 
     public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -232,25 +237,6 @@ class bitmex extends \ccxt\bitmex {
         // );
         // return $this->watchPublicMessage ($name, $symbol, array_merge($request, $params));
         throw new NotImplemented($this->id . ' watchOHLCV() not implemented yet (wip)');
-    }
-
-    public function load_markets ($reload = false, $params = array ()) {
-        $markets = parent::load_markets($reload, $params);
-        $marketsByWsName = $this->safe_value($this->options, 'marketsByWsName');
-        if (($marketsByWsName === null) || $reload) {
-            $marketsByWsName = array();
-            for ($i = 0; $i < count($this->symbols); $i++) {
-                $symbol = $this->symbols[$i];
-                $market = $this->markets[$symbol];
-                if (!$market['darkpool']) {
-                    $info = $this->safe_value($market, 'info', array());
-                    $wsName = $this->safe_string($info, 'wsname');
-                    $marketsByWsName[$wsName] = $market;
-                }
-            }
-            $this->options['marketsByWsName'] = $marketsByWsName;
-        }
-        return $markets;
     }
 
     public function watch_heartbeat ($params = array ()) {
@@ -372,7 +358,7 @@ class bitmex extends \ccxt\bitmex {
                 }
                 $messageHash = $table . ':' . $marketId;
                 // the .limit () operation will be moved to the watchOrderBook
-                $client->resolve ($orderbook->limit (), $messageHash);
+                $client->resolve ($orderbook, $messageHash);
             }
         } else {
             $numUpdatesByMarketId = array();
@@ -407,7 +393,7 @@ class bitmex extends \ccxt\bitmex {
                 $symbol = $market['symbol'];
                 $orderbook = $this->orderbooks[$symbol];
                 // the .limit () operation will be moved to the watchOrderBook
-                $client->resolve ($orderbook->limit (), $messageHash);
+                $client->resolve ($orderbook, $messageHash);
             }
         }
     }
@@ -441,10 +427,6 @@ class bitmex extends \ccxt\bitmex {
     }
 
     public function handle_subscription_status ($client, $message) {
-        //
-        // todo => answer the question whether handleSubscriptionStatus should be renamed
-        // and unified as handleResponse for any usage pattern that
-        // involves an identified request/response sequence
         //
         //     {
         //         success => true,
@@ -542,16 +524,16 @@ class bitmex extends \ccxt\bitmex {
         if ($this->handle_error_message ($client, $message)) {
             $table = $this->safe_string($message, 'table');
             $methods = array(
-                'orderBookL2' => 'handleOrderBook',
-                'orderBookL2_25' => 'handleOrderBook',
-                'orderBook10' => 'handleOrderBook',
+                'orderBookL2' => array($this, 'handle_order_book'),
+                'orderBookL2_25' => array($this, 'handle_order_book'),
+                'orderBook10' => array($this, 'handle_order_book'),
             );
-            $method = $this->safe_string($methods, $table);
+            $method = $this->safe_value($methods, $table);
             if ($method === null) {
                 var_dump ($message);
                 return $message;
             } else {
-                return $this->$method ($client, $message);
+                return $this->call ($method, $client, $message);
             }
         }
     }

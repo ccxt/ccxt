@@ -111,11 +111,11 @@ class IndexedOrderBookSide extends OrderBookSide {
         }
     }
 
-    restore (price = undefined, size, id) {
+    restore (price, size, id) { // price is presumably undefined
         if (size) {
             const array = this.index.get (id)
-            array[0] = price || array[0]
-            array[1] = size
+            price = price || array[0]
+            this.index.set (id, [ price, size, id ])
         } else {
             this.index.delete (id)
         }
