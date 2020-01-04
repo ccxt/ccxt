@@ -6,22 +6,15 @@ info@ccxt.pro
 
 ```JavaScript
 'use strict';
-
-const ccxtpro = require ('ccxt.pro')
-
-;(async () => {
-
-    const id = 'binance'
-        , symbol = 'ETH/BTC'
-        , exchange = new ccxtpro[id] ()
-
+const ccxtpro = require ('ccxt.pro');
+(async () => {
+    const exchange = new ccxtpro.binance ()
     while (true) {
-        const orderbook = await exchange.watchOrderBook (symbol, limit)
-        console.log (new Date (), symbol,
+        const orderbook = await exchange.watchOrderBook ('ETH/BTC')
+        console.log (new Date (),
             orderbook['asks'].length, 'asks', orderbook['asks'][0],
             orderbook['bids'].length, 'bids', orderbook['bids'][0])
     }
-
 }) ()
 ```
 
