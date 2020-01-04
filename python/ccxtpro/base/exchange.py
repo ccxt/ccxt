@@ -10,7 +10,7 @@ import asyncio
 from ccxtpro.base.aiohttp_client import AiohttpClient
 from ccxt.async_support import Exchange as BaseExchange
 from ccxt import NotSupported
-from ccxtpro.base.order_book import OrderBook, LimitedOrderBook, IndexedOrderBook, LimitedIndexedOrderBook, CountedOrderBook
+from ccxtpro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 
 
 # -----------------------------------------------------------------------------
@@ -30,14 +30,14 @@ class Exchange(BaseExchange):
     def order_book(self, snapshot={}):
         return OrderBook(snapshot)
 
-    def limited_order_book(self, snapshot={}, depth=None):
-        return LimitedOrderBook(snapshot, depth)
+    #def limited_order_book(self, snapshot={}, depth=None):
+    #    return LimitedOrderBook(snapshot, depth)
 
     def indexed_order_book(self, snapshot={}):
         return IndexedOrderBook(snapshot)
 
-    def limited_indexed_order_book(self, snapshot={}, depth=None):
-        return LimitedIndexedOrderBook(snapshot, depth)
+    #def limited_indexed_order_book(self, snapshot={}, depth=None):
+    #    return LimitedIndexedOrderBook(snapshot, depth)
 
     # todo: implement in python
     # def limited_counted_order_book(self, snapshot={}, depth=None):
