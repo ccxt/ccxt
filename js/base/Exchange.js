@@ -153,4 +153,8 @@ module.exports = class Exchange extends ccxt.Exchange {
             await client.close ()
         }
     }
+
+    signMessage (client, messageHash, message, params = {}) {
+        throw new ccxt.NotSupported (this.id + ' signMessage () not implemented yet')
+    }
 }
