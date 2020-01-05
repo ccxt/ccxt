@@ -129,4 +129,7 @@ trait ClientTrait {
         // }
     }
 
+    public function sign_message($client, $messag_hash, $message, $params = array()) {
+        throw new \ccxt\NotSupported ($this->id . ' signMessage () not implemented yet');
+    }
 }
