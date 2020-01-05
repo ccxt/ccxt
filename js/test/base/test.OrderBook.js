@@ -86,7 +86,7 @@ const limitedIndexedOrderBookTarget = {
 
 const incrementalIndexedOrderBookTarget = {
     'bids': [ [ 10.0, 10, '1234' ], [ 9.1, 11, '1235' ], [ 8.2, 12, '1236' ], [ 7.3, 13, '1237' ], [ 6.4, 14, '1238' ], [ 4.5, 13, '1239' ] ],
-    'asks': [ [ 11.1, 13, '1244' ], [ 13.3, 13, '1243' ], [ 14.4, 12, '1242' ], [ 15.5, 11, '1241' ], [ 16.6, 10, '1240' ] ],
+    'asks': [ [ 11.1, 27, '1244' ], [ 13.3, 13, '1243' ], [ 14.4, 12, '1242' ], [ 15.5, 11, '1241' ], [ 16.6, 10, '1240' ] ],
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
@@ -94,7 +94,7 @@ const incrementalIndexedOrderBookTarget = {
 
 const limitedIncrementalIndexedOrderBookTarget = {
     'bids': [ [ 10.0, 10, '1234' ], [ 9.1, 11, '1235' ], [ 8.2, 12, '1236' ], [ 7.3, 13, '1237' ], [ 6.4, 14, '1238' ] ],
-    'asks': [ [ 11.1, 13, '1244' ], [ 13.3, 13, '1243' ], [ 14.4, 12, '1242' ], [ 15.5, 11, '1241' ], [ 16.6, 10, '1240' ] ],
+    'asks': [ [ 11.1, 27, '1244' ], [ 13.3, 13, '1243' ], [ 14.4, 12, '1242' ], [ 15.5, 11, '1241' ], [ 16.6, 10, '1240' ] ],
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
@@ -102,15 +102,15 @@ const limitedIncrementalIndexedOrderBookTarget = {
 
 const storedIncrementalIndexedOrderBookTarget = {
     'bids': [ [ 10.0, 13, '1234' ], [ 9.1, 11, '1235' ], [ 8.2, 12, '1236' ], [ 7.3, 13, '1237' ], [ 6.4, 14, '1238' ], [ 4.5, 13, '1239' ] ],
-    'asks': [ [ 11.1, 13, '1244' ], [ 13.3, 13, '1243' ], [ 14.4, 12, '1242' ], [ 15.5, 11, '1241' ], [ 16.6, 10, '1240' ] ],
+    'asks': [ [ 11.1, 27, '1244' ], [ 13.3, 13, '1243' ], [ 14.4, 12, '1242' ], [ 15.5, 11, '1241' ], [ 16.6, 10, '1240' ] ],
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
 };
 
 const anotherStoredIncrementalIndexedOrderBookTarget = {
-    'bids': [ [ 10.2, 10, '1234' ], [ 9.1, 11, '1235' ], [ 8.2, 12, '1236' ], [ 7.3, 13, '1237' ], [ 6.4, 14, '1238' ], [ 4.5, 13, '1239' ] ],
-    'asks': [ [ 11.1, 13, '1244' ], [ 13.3, 13, '1243' ], [ 14.4, 12, '1242' ], [ 15.5, 11, '1241' ], [ 16.6, 10, '1240' ] ],
+    'bids': [ [ 10.2, 13, '1234' ], [ 9.1, 11, '1235' ], [ 8.2, 12, '1236' ], [ 7.3, 13, '1237' ], [ 6.4, 14, '1238' ], [ 4.5, 13, '1239' ] ],
+    'asks': [ [ 11.1, 27, '1244' ], [ 13.3, 13, '1243' ], [ 14.4, 12, '1242' ], [ 15.5, 11, '1241' ], [ 16.6, 10, '1240' ] ],
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
@@ -202,11 +202,18 @@ const doubleStoredIncremetalOrderBookTarget = {
     'nonce': 69,
 };
 
+const negativeStoredIncremetalOrderBookTarget = {
+    'bids': [ [ 10.0, 3 ], [ 8.2, 1 ], [ 7.3, 1 ], [ 6.4, 1 ] ],
+    'asks': [ [ 11.1, 2 ], [ 12.2, 0.125 ], [ 13.3, 3 ], [ 14.4, 4 ], [ 16.6, 3 ] ],
+    'timestamp': 1574827239000,
+    'datetime': '2019-11-27T04:00:39.000Z',
+    'nonce': 69,
+};
+
 let bids = undefined;
 let asks = undefined;
 
 // --------------------------------------------------------------------------------------------------------------------
-
 
 const orderBook = new OrderBook (orderBookInput);
 const limited = new OrderBook (orderBookInput, 5);
@@ -285,7 +292,7 @@ assert (equals (countedOrderBook, storedCountedOrderbookTarget));
 
 // --------------------------------------------------------------------------------------------------------------------
 
-const incrementalOrderBook = new IncrementalOrderBook (incrementalOrderBookInput);
+let incrementalOrderBook = new IncrementalOrderBook (incrementalOrderBookInput);
 const limitedIncrementalOrderBook = new IncrementalOrderBook (incrementalOrderBookInput, 5);
 incrementalOrderBook.limit ();
 assert (equals (incrementalOrderBook, incremetalOrderBookTarget));
@@ -306,6 +313,11 @@ incrementalOrderBook.limit ();
 assert (equals (incrementalOrderBook, doubleStoredIncremetalOrderBookTarget));
 bids.store (17, 0);
 assert (equals (incrementalOrderBook, doubleStoredIncremetalOrderBookTarget));
+incrementalOrderBook = new IncrementalOrderBook (incrementalOrderBookInput);
+asks = incrementalOrderBook['asks'];
+asks.store (15.5, -10);
+incrementalOrderBook.limit ();
+assert (equals (incrementalOrderBook, negativeStoredIncremetalOrderBookTarget));
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -323,7 +335,7 @@ incrementalIndexedOrderBook.limit ();
 assert (equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget));
 
 bids = incrementalIndexedOrderBook['bids'];
-bids.store (5, -1, 'xxyy');
+bids.store (5, 0, 'xxyy');
 incrementalIndexedOrderBook.limit ();
 assert (equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget));
 bids.store (10.0, 3, '1234');  // price does match merge size
@@ -331,6 +343,6 @@ incrementalIndexedOrderBook.limit ();
 assert (equals (incrementalIndexedOrderBook, storedIncrementalIndexedOrderBookTarget));
 incrementalIndexedOrderBook = new IncrementalIndexedOrderBook (indexedOrderBookInput);
 bids = incrementalIndexedOrderBook['bids'];
-bids.store (10.2, 10, '1234');  // price does not match overwrite size
+bids.store (10.2, 3, '1234');  // price does not match merge size
 incrementalIndexedOrderBook.limit ();
 assert (equals (incrementalIndexedOrderBook, anotherStoredIncrementalIndexedOrderBookTarget));

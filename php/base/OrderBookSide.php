@@ -127,11 +127,9 @@ class IndexedOrderBookSide extends OrderBookSide {
 
     public function store($price, $size, $id) {
         if ($size) {
-            if (!$price) {
-                $array = $this->index->get($id);
-                if ($array) {
-                    $price = $array[0];
-                }
+            $stored = $this->index->get($id, null);
+            if ($stored) {
+                $price = $price ? $price : $stored[0];
             }
             $this->index->put($id, array($price, $size, $id));
         } else {
@@ -148,13 +146,11 @@ class IndexedOrderBookSide extends OrderBookSide {
         $size = $delta[1];
         $id = $delta[2];
         if ($size) {
-            if (!$price) {
-                $array = $this->index->get($id);
-                if ($array) {
-                    $price = $array[0];
-                    $this->index->put($id, array($price, $size, $id));
-                    return;
-                }
+            $stored = $this->index->get($id, null);
+            if ($stored) {
+                $price = $price ? $price : $stored[0];
+                $this->index->put($id, array($price, $size, $id));
+                return;
             }
             $this->index->put($id, $delta);
         } else {
@@ -196,16 +192,16 @@ class IncrementalOrderBookSide extends OrderBookSide {
 // incremental and indexed (2 in 1)
 
 class IncrementalIndexedOrderBookSide extends IndexedOrderBookSide {
-    public static $fallback = array(null, 0, null);
-
     public function store($price, $size, $id) {
-        $stored = $this->index->get($id, static::$fallback);
-        if ($size && $size + $stored[1] >= 0) {
-            if ($price === $stored[0]) {
-                $this->index->put($id, array($price, $size + $stored[1], $id));
-            } else {
-                $this->index->put($id, array($price, $size, $id));
+        if ($size) {
+            $stored = $this->index->get($id, null);
+            if ($stored) {
+                if ($size + $stored[1] >= 0) {
+                    $price = $price ? $price : $stored[0];
+                    $size = $size + $stored[1];
+                }
             }
+            $this->index->put($id, array($price, $size, $id));
         } else {
             $this->index->remove($id, null);
         }
@@ -215,13 +211,17 @@ class IncrementalIndexedOrderBookSide extends IndexedOrderBookSide {
         $price = $delta[0];
         $size = $delta[1];
         $id = $delta[2];
-        $stored = $this->index->get($id, static::$fallback);
-        if ($size && $size + $stored[1] >= 0) {
-            if ($price === $stored[0]) {
-                $this->index->put($id, array($price, $size + $stored[1], $id));
-            } else {
-                $this->index->put($id, array($price, $size, $id));
+        if ($size) {
+            $stored = $this->index->get($id, null);
+            if ($stored) {
+                if ($size + $stored[1] >= 0) {
+                    $price = $price ? $price : $stored[0];
+                    $size = $size + $stored[1];
+                    $this->index->put($id, array($price, $size, $id));
+                    return;
+                }
             }
+            $this->index->put($id, $delta);
         } else {
             $this->index->remove($id, null);
         }

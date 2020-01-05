@@ -14,7 +14,7 @@ class OrderBookSide(list):
         self._limit_type = limit_type
         self._index = {}
         for delta in deltas:
-            self.storeArray(delta)
+            self.storeArray(list(delta))
 
     def storeArray(self, delta):
         price = delta[0]
@@ -89,10 +89,11 @@ class IndexedOrderBookSide(OrderBookSide):
 
     def store(self, price, size, order_id):
         if size:
-            if not price:
-                array = self._index.get(order_id)
-                if array:
-                    price = array[0]
+            stored = self._index.get(order_id)
+            if stored:
+                stored[0] = price or stored[0]
+                stored[1] = size
+                return
             self._index[order_id] = [price, size, order_id]
         else:
             if order_id in self._index:
@@ -104,12 +105,11 @@ class IndexedOrderBookSide(OrderBookSide):
     def storeArray(self, delta):
         price, size, order_id = delta
         if size:
-            if not price:
-                array = self._index.get(order_id)
-                if array:
-                    price = array[0]
-                    self._index[order_id] = [price, size, order_id]
-                    return
+            stored = self._index.get(order_id)
+            if stored:
+                stored[0] = price or stored[0]
+                stored[1] = size
+                return
             self._index[order_id] = delta
         else:
             if order_id in self._index:
@@ -124,48 +124,50 @@ class IncrementalOrderBookSide(OrderBookSide):
         super(IncrementalOrderBookSide, self).__init__(deltas, depth, 0)
 
     def store(self, price, size):
-        result = self._index.get(price, 0) + size
-        if result > 0:
-            self._index[price] = result
-            return
-        if price in self._index:
-            del self._index[price]
+        size = self._index.get(price, 0) + size
+        if size <= 0:
+            if price in self._index:
+                del self._index[price]
+        else:
+            self._index[price] = size
 
     def storeArray(self, delta):
         price, size = delta
-        result = self._index.get(price, 0) + size
-        if result > 0:
-            self._index[price] = result
-            return
-        if price in self._index:
-            del self._index[price]
+        size = self._index.get(price, 0) + size
+        if size <= 0:
+            if price in self._index:
+                del self._index[price]
+        else:
+            self._index[price] = size
 
 # -----------------------------------------------------------------------------
 # incremental and indexed (2 in 1)
 
 
 class IncrementalIndexedOrderBookSide(IndexedOrderBookSide):
-    _fallback = [None, 0, None]
-
     def store(self, price, size, order_id):
-        stored = self._index.get(order_id) or IncrementalIndexedOrderBookSide._fallback
-        if size and size + stored[1] >= 0:
-            if price == stored[0]:
-                self._index[order_id] = [price, size + stored[1], order_id]
-            else:
-                self._index[order_id] = [price, size, order_id]
+        if size:
+            stored = self._index.get(order_id)
+            if stored:
+                if size + stored[1] >= 0:
+                    stored[0] = price or stored[0]
+                    stored[1] = size + stored[1]
+                    return
+            self._index[order_id] = [price, size, order_id]
         else:
             if order_id in self._index:
                 del self._index[order_id]
 
     def storeArray(self, delta):
         price, size, order_id = delta
-        stored = self._index.get(order_id) or IncrementalIndexedOrderBookSide._fallback
-        if size and size + stored[1] >= 0:
-            if price == stored[0]:
-                self._index[order_id] = [price, size + stored[1], order_id]
-            else:
-                self._index[order_id] = delta
+        if size:
+            stored = self._index.get(order_id)
+            if stored:
+                if size + stored[1] >= 0:
+                    stored[0] = price or stored[0]
+                    stored[1] = size + stored[1]
+                    return
+            self._index[order_id] = delta
         else:
             if order_id in self._index:
                 del self._index[order_id]

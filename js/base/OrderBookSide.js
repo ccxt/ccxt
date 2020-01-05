@@ -25,7 +25,7 @@ class OrderBookSide extends Array {
             writable: true,
         })
         for (let i = 0; i < deltas.length; i++) {
-            this.storeArray (deltas[i])
+            this.storeArray (deltas[i].slice ())  // slice is muy importante
         }
     }
 
@@ -105,11 +105,11 @@ class IndexedOrderBookSide extends OrderBookSide {
 
     store (price, size, id) {
         if (size) {
-            if (!price) {
-                const array = this.index.get (id)
-                if (array) {
-                    price = array[0]
-                }
+            const stored = this.index.get (id)
+            if (stored) {
+                stored[0] = price || stored[0]
+                stored[1] = size
+                return
             }
             this.index.set (id, [ price, size, id ])
         } else {
@@ -122,17 +122,13 @@ class IndexedOrderBookSide extends OrderBookSide {
     }
 
     storeArray (delta) {
-        const size = delta[0]
-        let price = delta[1]
-        const id = delta[2]
+        const [ price, size, id ] = delta
         if (size) {
-            if (!price) {
-                const array = this.index.get (id)
-                if (array) {
-                    price = array[0]
-                    this.index.set (id, [ price, size, id ])
-                    return
-                }
+            const stored = this.index.get (id)
+            if (stored) {
+                stored[0] = price || stored[0]
+                stored[1] = size
+                return
             }
             this.index.set (id, delta)
         } else {
@@ -151,35 +147,38 @@ class IncrementalOrderBookSide extends OrderBookSide {
 
     store (price, size) {
         size = (this.index.get (price) || 0) + size
-        this.index.set (price, size)
         if (size <= 0) {
             this.index.delete (price)
+        } else {
+            this.index.set (price, size)
         }
     }
 
     storeArray (delta) {
         const price = delta[0]
             , size = (this.index.get (price) || 0) + delta[1]
-        this.index.set (price, size)
         if (size <= 0) {
             this.index.delete (price)
+        } else {
+            this.index.set (price, size)
         }
     }
 }
 
 // ----------------------------------------------------------------------------
 // incremental and indexed (2 in 1)
-const FALLBACK = [null, 0, null]
-
 class IncrementalIndexedOrderBookSide extends IndexedOrderBookSide {
     store (price, size, id) {
-        const stored = this.index.get (id) || FALLBACK
-        if (size && size + stored[1] >= 0) {
-            if (price === stored[0]) {
-                this.index.set (id, [ price, size + stored[1], id ])
-            } else {
-                this.index.set (id, [ price, size, id ])
+        if (size) {
+            const stored = this.index.get (id)
+            if (stored) {
+                if (size + stored[1] >= 0) {
+                    stored[0] = price || stored[0]
+                    stored[1] = size + stored[1]
+                    return
+                }
             }
+            this.index.set (id, [ price, size, id ])
         } else {
             this.index.delete (id)
         }
@@ -187,13 +186,16 @@ class IncrementalIndexedOrderBookSide extends IndexedOrderBookSide {
 
     storeArray (delta) {
         const [ price, size, id ] = delta
-        const stored = this.index.get (id) || FALLBACK
-        if (size && size + stored[1] >= 0) {
-            if (price === stored[0]) {
-                this.index.set (id, [ price, size + stored[1], id ])
-            } else {
-                this.index.set (id, delta)
+        if (size) {
+            const stored = this.index.get (id)
+            if (stored) {
+                if (size + stored[1] >= 0) {
+                    stored[0] = price || stored[0]
+                    stored[1] = size + stored[1]
+                    return
+                }
             }
+            this.index.set (id, [ price, size, id ])
         } else {
             this.index.delete (id)
         }
