@@ -105,28 +105,35 @@ class IndexedOrderBookSide extends OrderBookSide {
 
     store (price, size, id) {
         if (size) {
+            if (!price) {
+                const array = this.index.get (id)
+                if (array) {
+                    price = array[0]
+                }
+            }
             this.index.set (id, [ price, size, id ])
         } else {
             this.index.delete (id)
         }
     }
 
-    restore (price, size, id) { // price is presumably undefined
-        if (size) {
-            const array = this.index.get (id)
-            price = price || array[0]
-            this.index.set (id, [ price, size, id ])
-        } else {
-            this.index.delete (id)
-        }
+    restore (price = undefined, size, id) {
+        return this.store (price, size, id)
     }
 
     storeArray (delta) {
-        // const [ price, size, id ] = delta
-        // const price = delta[0]
-        const size = delta[1]
-            , id = delta[2]
+        const size = delta[0]
+        let price = delta[1]
+        const id = delta[2]
         if (size) {
+            if (!price) {
+                const array = this.index.get (id)
+                if (array) {
+                    price = array[0]
+                    this.index.set (id, [ price, size, id ])
+                    return
+                }
+            }
             this.index.set (id, delta)
         } else {
             this.index.delete (id)

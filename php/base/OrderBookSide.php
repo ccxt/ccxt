@@ -10,6 +10,9 @@ namespace ccxtpro;
 
 use \Ds\Map;
 
+error_reporting(E_ALL ^ E_WARNING);  // temporarily disable warnings
+
+
 class OrderBookSide extends \ArrayObject implements \JsonSerializable {
     public $index;
     public $depth;
@@ -124,6 +127,12 @@ class IndexedOrderBookSide extends OrderBookSide {
 
     public function store($price, $size, $id) {
         if ($size) {
+            if (!$price) {
+                $array = $this->index->get($id);
+                if ($array) {
+                    $price = $array[0];
+                }
+            }
             $this->index->put($id, array($price, $size, $id));
         } else {
             $this->index->remove($id, null);
@@ -131,20 +140,22 @@ class IndexedOrderBookSide extends OrderBookSide {
     }
 
     public function restore($price, $size, $id) { // price is presumably null
-        if ($size) {
-            $array = $this->index[$id];
-            $price = isset($price) ? $price : $array[0];
-            $this->index[$id] = array($price, $size, $id);
-        } else {
-            unset($this->index[$id]);
-        }
+        return $this->store($price, $size, $id);
     }
 
-
     public function storeArray($delta) {
+        $price = $delta[0];
         $size = $delta[1];
         $id = $delta[2];
         if ($size) {
+            if (!$price) {
+                $array = $this->index->get($id);
+                if ($array) {
+                    $price = $array[0];
+                    $this->index->put($id, array($price, $size, $id));
+                    return;
+                }
+            }
             $this->index->put($id, $delta);
         } else {
             $this->index->remove($id, null);
@@ -232,3 +243,5 @@ class IncrementalIndexedAsks extends IncrementalIndexedOrderBookSide { public st
 class IncrementalIndexedBids extends IncrementalIndexedOrderBookSide { public static $side = true; }
 
 // ----------------------------------------------------------------------------
+
+error_reporting(E_ALL);  // reset change made above
