@@ -17,7 +17,8 @@ module.exports = class kucoin extends ccxt.kucoin {
                 'watchOrderBookRate': 100, // get updates every 100ms or 1000ms
             },
             'streaming': {
-                'keepAlive': false,
+                'heartbeat': false,
+                'ping': this.ping,
             },
         });
     }
@@ -331,5 +332,15 @@ module.exports = class kucoin extends ccxt.kucoin {
                 return this.call (method, client, message);
             }
         }
+    }
+
+    ping (client) {
+        console.log (client.url, 'ping triggered');
+        // https://docs.kucoin.com/#ping
+        const id = this.nonce ().toString ();
+        return {
+            'id': id,
+            'type': 'ping',
+        };
     }
 };

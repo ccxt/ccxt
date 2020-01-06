@@ -19,7 +19,8 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
                 'watchOrderBookRate': 100,  # get updates every 100ms or 1000ms
             },
             'streaming': {
-                'keepAlive': False,
+                'heartbeat': False,
+                'ping': self.ping,
             },
         })
 
@@ -301,3 +302,12 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
                 return message
             else:
                 return self.call(method, client, message)
+
+    def ping(self, client):
+        print(client.url, 'ping triggered')
+        # https://docs.kucoin.com/#ping
+        id = str(self.nonce())
+        return {
+            'id': id,
+            'type': 'ping',
+        }

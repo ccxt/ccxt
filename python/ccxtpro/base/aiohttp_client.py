@@ -6,7 +6,7 @@ from aiohttp import WSMsgType
 from ccxt.async_support import Exchange
 from ccxtpro.base.client import Client
 from ccxt import NetworkError, RequestTimeout
-import sys
+
 
 class AiohttpClient(Client):
 

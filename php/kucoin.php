@@ -22,7 +22,8 @@ class kucoin extends \ccxt\kucoin {
                 'watchOrderBookRate' => 100, // get updates every 100ms or 1000ms
             ),
             'streaming' => array(
-                'keepAlive' => false,
+                'heartbeat' => false,
+                'ping' => array($this, 'ping'),
             ),
         ));
     }
@@ -336,5 +337,15 @@ class kucoin extends \ccxt\kucoin {
                 return $this->call ($method, $client, $message);
             }
         }
+    }
+
+    public function ping ($client) {
+        var_dump ($client->url, 'ping triggered');
+        // https://docs.kucoin.com/#ping
+        $id = (string) $this->nonce ();
+        return array(
+            'id' => $id,
+            'type' => 'ping',
+        );
     }
 }
