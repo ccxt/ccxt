@@ -18,6 +18,9 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
             'options': {
                 'watchOrderBookRate': 100,  # get updates every 100ms or 1000ms
             },
+            'streaming': {
+                'keepAlive': False,
+            },
         })
 
     async def watch_order_book(self, symbol, limit=None, params={}):
@@ -75,6 +78,7 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
         query = {
             'token': token,
             'acceptUserMessage': 'true',
+            # 'connectId': nonce,  # user-defined id is supported, received by handleSystemStatus
         }
         url = endpoint + '?' + self.urlencode(query)
         topic = '/market/level2'

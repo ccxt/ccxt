@@ -16,6 +16,9 @@ module.exports = class kucoin extends ccxt.kucoin {
             'options': {
                 'watchOrderBookRate': 100, // get updates every 100ms or 1000ms
             },
+            'streaming': {
+                'keepAlive': false,
+            },
         });
     }
 
@@ -78,6 +81,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         const query = {
             'token': token,
             'acceptUserMessage': 'true',
+            // 'connectId': nonce, // user-defined id is supported, received by handleSystemStatus
         };
         const url = endpoint + '?' + this.urlencode (query);
         const topic = '/market/level2';

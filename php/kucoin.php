@@ -21,6 +21,9 @@ class kucoin extends \ccxt\kucoin {
             'options' => array(
                 'watchOrderBookRate' => 100, // get updates every 100ms or 1000ms
             ),
+            'streaming' => array(
+                'keepAlive' => false,
+            ),
         ));
     }
 
@@ -83,6 +86,7 @@ class kucoin extends \ccxt\kucoin {
         $query = array(
             'token' => $token,
             'acceptUserMessage' => 'true',
+            // 'connectId' => $nonce, // user-defined id is supported, received by handleSystemStatus
         );
         $url = $endpoint . '?' . $this->urlencode ($query);
         $topic = '/market/level2';
