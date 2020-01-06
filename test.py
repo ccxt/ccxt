@@ -19,8 +19,8 @@ from ccxt.base.errors import NetworkError, RequestTimeout
 # -----------------------------------------------------------------------------
 
 async def test():
-    symbol = 'BTC/USD'
-    exchange = ccxtpro.bitmex({
+    symbol = 'ETH/BTC'
+    exchange = ccxtpro.kucoin({
         'enableRateLimit': True,
         # 'urls': {
         #     'api': {
