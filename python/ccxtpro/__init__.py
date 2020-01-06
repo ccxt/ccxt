@@ -178,7 +178,9 @@ from ccxt.async_support.zb import zb                                      # noqa
 from ccxtpro.binance import binance                                       # noqa: F401
 from ccxtpro.bitfinex import bitfinex                                     # noqa: F401
 from ccxtpro.bitmex import bitmex                                         # noqa: F401
+from ccxtpro.coinbasepro import coinbasepro                               # noqa: F401
 from ccxtpro.kraken import kraken                                         # noqa: F401
+from ccxtpro.kucoin import kucoin                                         # noqa: F401
 from ccxtpro.poloniex import poloniex                                     # noqa: F401
 
 __all__ = ccxt.__all__
