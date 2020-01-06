@@ -5,7 +5,13 @@ namespace ccxtpro;
 trait ClientTrait {
 
     public $clients = array();
-    public $loop = null;
+
+    // streaming-specific options
+    public $streaming = array(
+        'keepAlive' => 30000,
+    );
+
+    public $loop = null; // reactphp's loop
 
     public function order_book ($snapshot = array()) {
         return new OrderBook($snapshot);
