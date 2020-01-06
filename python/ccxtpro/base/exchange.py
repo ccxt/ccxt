@@ -116,8 +116,6 @@ class Exchange(BaseExchange):
             del self.clients[client.url]
 
     def on_close(self, client, error):
-        print('someone called us')
-        # sys.exit()
         if client.error:
             # connection closed due to an error, do nothing
             pass
