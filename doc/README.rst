@@ -66,7 +66,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 123 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 122 cryptocurrency exchange markets and trading APIs:
 
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 |        logo                                                                               | id                 | name                                                                                       | ver | doc                                                                                             | certified                                                            |
@@ -305,8 +305,6 @@ The ccxt library currently supports the following 123 cryptocurrency exchange ma
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `vbtc <https://vbtc.exchange>`__                                                          | vbtc               | `VBTC <https://vbtc.exchange>`__                                                           | 1   | `API <https://blinktrade.com/docs>`__                                                           |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `virwox <https://www.virwox.com>`__                                                       | virwox             | `VirWoX <https://www.virwox.com>`__                                                        | \*  | `API <https://www.virwox.com/developers.php>`__                                                 |                                                                      |
-+-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `whitebit <https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963>`__         | whitebit           | `WhiteBit <https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963>`__          | 2   | `API <https://documenter.getpostman.com/view/7473075/SVSPomwS?version=latest#intro>`__          |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `xbtce <https://xbtce.com/?agent=XX97BTCXXXG687021000B>`__                                | xbtce              | `xBTCe <https://xbtce.com/?agent=XX97BTCXXXG687021000B>`__                                 | 1   | `API <https://www.xbtce.com/tradeapi>`__                                                        |                                                                      |
@@ -367,14 +365,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.21.32/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.21.32/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.21.33/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.21.33/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.21.32/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.21.33/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
