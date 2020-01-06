@@ -27,24 +27,14 @@ class Exchange(BaseExchange):
 
     clients = {}
 
-    def order_book(self, snapshot={}):
-        return OrderBook(snapshot)
+    def order_book(self, snapshot={}, depth=float('inf')):
+        return OrderBook(snapshot, depth)
 
-    #def limited_order_book(self, snapshot={}, depth=None):
-    #    return LimitedOrderBook(snapshot, depth)
+    def indexed_order_book(self, snapshot={}, depth=float('inf')):
+        return IndexedOrderBook(snapshot, depth)
 
-    def indexed_order_book(self, snapshot={}):
-        return IndexedOrderBook(snapshot)
-
-    #def limited_indexed_order_book(self, snapshot={}, depth=None):
-    #    return LimitedIndexedOrderBook(snapshot, depth)
-
-    # todo: implement in python
-    # def limited_counted_order_book(self, snapshot={}, depth=None):
-    #     return LimitedCountedOrderBook(snapshot, depth)
-
-    def counted_order_book(self, snapshot={}):
-        return CountedOrderBook(snapshot)
+    def counted_order_book(self, snapshot={}, depth=float('inf')):
+        return CountedOrderBook(snapshot, depth)
 
     def client(self, url):
         self.clients = self.clients or {}

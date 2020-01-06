@@ -389,7 +389,7 @@ module.exports = class kraken extends ccxt.kraken {
         // if this is a snapshot
         if ('as' in message[1]) {
             // todo get depth from marketsByWsName
-            this.orderbooks[symbol] = this.limitedOrderBook ({}, 10);
+            this.orderbooks[symbol] = this.orderBook ({}, 10);
             const orderbook = this.orderbooks[symbol];
             const sides = {
                 'as': 'asks',

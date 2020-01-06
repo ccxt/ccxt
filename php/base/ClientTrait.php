@@ -7,28 +7,16 @@ trait ClientTrait {
     public $clients = array();
     public $loop = null;
 
-    public function order_book ($snapshot = array()) {
-        return new OrderBook($snapshot);
+    public function order_book ($snapshot = array(), $depth = PHP_INT_MAX) {
+        return new OrderBook($snapshot, $depth);
     }
 
-    public function limited_order_book($snapshot = array(), $depth = null) {
-        return new LimitedOrderBook($snapshot, $depth);
+    public function indexed_order_book($snapshot = array(), $depth = PHP_INT_MAX) {
+        return new IndexedOrderBook($snapshot, $depth);
     }
 
-    public function indexed_order_book($snapshot = array()) {
-        return new IndexedOrderBook($snapshot);
-    }
-
-    public function limited_indexed_order_book($snapshot = array(), $depth = null) {
-        return new LimitedIndexedOrderBook($snapshot, $depth);
-    }
-
-    public function limited_counted_order_book($snapshot = array(), $depth = null) {
-        return new LimitedCountedOrderBook($snapshot, $depth);
-    }
-
-    public function counted_order_book($snapshot = array()) {
-        return new CountedOrderBook($snapshot);
+    public function counted_order_book($snapshot = array(), $depth = PHP_INT_MAX) {
+        return new CountedOrderBook($snapshot, $depth);
     }
 
     public function client($url) {

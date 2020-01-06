@@ -201,7 +201,7 @@ module.exports = class binance extends ccxt.binance {
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.limitedOrderBook ();
+        this.orderbooks[symbol] = this.orderBook ();
         // fetch the snapshot in a separate async call
         this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
