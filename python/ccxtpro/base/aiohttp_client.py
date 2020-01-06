@@ -6,7 +6,7 @@ from aiohttp import WSMsgType
 from ccxt.async_support import Exchange
 from ccxtpro.base.client import Client
 from ccxt import NetworkError, RequestTimeout
-
+import sys
 
 class AiohttpClient(Client):
 
@@ -53,8 +53,7 @@ class AiohttpClient(Client):
         # to a ping incoming from a server, we have to disable autoping
         # with aiohttp's websockets and respond with pong manually
         # otherwise aiohttp's websockets client won't trigger WSMsgType.PONG
-        heartbeat = (self.keepAlive / 1000) if self.keepAlive else None
-        print('self.keepAlive', self.keepAlive, heartbeat)
+        heartbeat = (self.keepAlive / 1000) if self.keepAlive and self.heartbeat else None
         return session.ws_connect(self.url, autoping=False, heartbeat=heartbeat)
 
     def send(self, message):
@@ -69,12 +68,15 @@ class AiohttpClient(Client):
         print(Exchange.iso8601(Exchange.milliseconds()), 'ping loop')
         while self.keepAlive and not self.closed():
             now = Exchange.milliseconds()
-            if self.lastPong is None:
-                self.lastPong = now
+            self.lastPong = now if self.lastPong is None else self.lastPong
             if (self.lastPong + self.keepAlive * self.maxPingPongMisses) < now:
                 self.on_error(RequestTimeout('Connection to ' + self.url + ' timed out due to a ping-pong keepalive missing on time'))
-            # the following ping-clause is not necessary with aiohttp's ws
+            # the following ping-clause is not necessary with aiohttp's built-in ws
             # since it has a heartbeat option (see create_connection above)
-            # else:
-            #     await self.connection.ping()
+            # however some exchanges require a text-type ping message
+            # therefore we need this clause anyway
+            else:
+                # await self.connection.ping()  # handled by aiohttp
+                if self.ping:
+                    await self.send(self.ping(self))
             await sleep(self.keepAlive / 1000)

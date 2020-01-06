@@ -30,6 +30,9 @@ class Exchange(BaseExchange):
     # streaming-specific options
     streaming = {
         'keepAlive': 30000,
+        'heartbeat': True,
+        'ping': None,
+        'maxPingPongMisses': 2.0,
     }
 
     def order_book(self, snapshot={}):
@@ -58,10 +61,7 @@ class Exchange(BaseExchange):
             on_error = self.on_error
             on_close = self.on_close
             # decide client type here: aiohttp ws / websockets / signalr / socketio
-            params = {
-                'keepAlive': self.streaming['keepAlive'],
-            }
-            self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, params)
+            self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, self.streaming)
         return self.clients[url]
 
     def call(self, method, *args):

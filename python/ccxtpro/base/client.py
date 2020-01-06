@@ -15,13 +15,15 @@ class Client(object):
     on_message_callback = None
     on_error_callback = None
     on_close_callback = None
-    keepAlive = 5000
     connectionTimeout = 10000  # ms, false to disable
     connection = None
     error = None  # low-level networking exception, if any
     connected = None  # connection-related Future
-    lastPong = None
+    keepAlive = 5000
+    heartbeat = True
     maxPingPongMisses = 2.0  # how many missed pongs to raise a timeout
+    lastPong = None
+    ping = None
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
         defaults = {
