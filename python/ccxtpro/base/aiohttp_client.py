@@ -31,7 +31,7 @@ class AiohttpClient(Client):
         # with aiohttp's websockets and respond with pong manually
         # otherwise aiohttp's websockets client won't trigger WSMsgType.PONG
         elif message.type == WSMsgType.PING:
-            print(Exchange.iso8601(Exchange.milliseconds()), 'ping', message.toString ())
+            print(Exchange.iso8601(Exchange.milliseconds()), 'ping', message)
             await self.connection.pong()
         elif message.type == WSMsgType.PONG:
             self.lastPong = Exchange.milliseconds()
