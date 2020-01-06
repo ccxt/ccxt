@@ -300,7 +300,7 @@ class Transpiler {
             [ /this\.deepExtend\s/g, 'array_replace_recursive'],
             [ /(\w+)\.shift\s*\(\)/g, 'array_shift($1)' ],
             [ /(\w+)\.pop\s*\(\)/g, 'array_pop($1)' ],
-            [ /Number.MAX_SAFE_INTEGER/g, 'PHP_INT_MAX' ],
+            [ /Number\.MAX_SAFE_INTEGER/g, 'PHP_INT_MAX' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
