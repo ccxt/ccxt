@@ -302,6 +302,10 @@ module.exports = class p2pb2b extends Exchange {
         return this.parseBalance (result);
     }
 
+    nonce () {
+        return this.microseconds () * 1000;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
@@ -442,6 +446,8 @@ module.exports = class p2pb2b extends Exchange {
                     let message = '';
                     if (Array.isArray (errorMessage)) {
                         message = errorMessage.toString ();
+                    } else if (typeof errorMessage === 'string') {
+                        message = errorMessage;
                     } else {
                         const messageKey = Object.keys (errorMessage)[0];
                         message = errorMessage[messageKey][0];
