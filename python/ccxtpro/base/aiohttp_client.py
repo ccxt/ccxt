@@ -35,7 +35,7 @@ class AiohttpClient(Client):
             await self.connection.pong()
         elif message.type == WSMsgType.PONG:
             self.lastPong = Exchange.milliseconds()
-            print(Exchange.iso8601(Exchange.milliseconds()), 'pong', message, '-')
+            print(Exchange.iso8601(Exchange.milliseconds()), 'pong', message)
             pass
         elif message.type == WSMsgType.CLOSE:
             print(Exchange.iso8601(Exchange.milliseconds()), 'close', self.closed(), message)
@@ -66,7 +66,10 @@ class AiohttpClient(Client):
     async def ping_loop(self):
         print(Exchange.iso8601(Exchange.milliseconds()), 'ping loop')
         while not self.closed():
-            if (self.lastPong + self.keepAlive) < Exchange.milliseconds():
+            now = Exchange.milliseconds()
+            if self.lastPong is None:
+                self.lastPong = now
+            if (self.lastPong + self.keepAlive * self.maxPingPongMisses) < now:
                 self.on_error(RequestTimeout('Connection to ' + self.url + ' timed out due to a ping-pong keepalive missing on time'))
             # the following ping-clause is not necessary with aiohttp's ws
             # since it has a heartbeat option (see create_connection above)
