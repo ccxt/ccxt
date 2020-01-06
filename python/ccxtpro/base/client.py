@@ -20,6 +20,7 @@ class Client(object):
     connection = None
     error = None  # low-level networking exception, if any
     connected = None  # connection-related Future
+    lastPong = None
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
         defaults = {
@@ -32,7 +33,7 @@ class Client(object):
             'connectionStarted': None,  # initiation timestamp in milliseconds
             'connectionEstablished': None,  # success timestamp in milliseconds
             'connectionTimeout': 5000,  # 10 seconds by default, false to disable
-            'keepAlive': 3000,  # ping-pong keep-alive frequency
+            'keepAlive': 5000,  # ping-pong keep-alive frequency
             # timeout is not used atm
             # timeout: 30000,  # throw if a request is not satisfied in 30 seconds, false to disable
         }
@@ -111,6 +112,7 @@ class Client(object):
             coroutine = self.create_connection(session)
             self.connection = await wait_for(coroutine, timeout=int(self.connectionTimeout / 1000))
             print(Exchange.iso8601(Exchange.milliseconds()), 'connected')
+            self.lastPong = Exchange.milliseconds()
             self.connected.resolve()
             # run both loops forever
             await gather(self.ping_loop(), self.receive_loop())
