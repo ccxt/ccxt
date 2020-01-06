@@ -733,7 +733,7 @@ class Transpiler {
         let python3 = []
         let php = []
 
-        let methodNames = []
+        let methodNames = [ 'limitOrderBook' ]
 
         // run through all methods
         for (let i = 0; i < methods.length; i++) {
