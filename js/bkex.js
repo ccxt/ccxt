@@ -199,9 +199,9 @@ module.exports = class bkex extends Exchange {
         const method = 'privatePostTradeOrderCreate';
         const direction = side === 'buy' ? 'BID' : 'ASK';
         const request = {
+            'amount': this.amountToPrecision (symbol, amount),
             'direction': direction,
             'pair': market['id'],
-            'amount': this.amountToPrecision (symbol, amount),
             'price': this.priceToPrecision (symbol, price),
         };
         const response = await this[method] (this.extend (request, params));
@@ -214,8 +214,8 @@ module.exports = class bkex extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
+            'orderNo': id,
             'pair': this.marketId (symbol),
-            'orderNo': parseInt (id),
         };
         return await this.privatePostTradeOrderCancel (this.extend (request, params));
     }
@@ -241,8 +241,8 @@ module.exports = class bkex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'pair': market['id'],
             'orderNo': id,
+            'pair': market['id'],
         };
         const response = await this.privateGetTradeOrderUnfinishedDetail (this.extend (request, params));
         const data = this.safeValue (response, 'data');
@@ -286,6 +286,7 @@ module.exports = class bkex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
+        let originalQuery;
         if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
@@ -293,16 +294,16 @@ module.exports = class bkex extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             if (method === 'POST') {
-                body = this.json (query);
-                query = this.encode (body);
+                query = this.urlencode (query);
+                body = query;
             } else {
                 query = this.encode (query);
             }
-            const payload = this.stringToBase64 (query);
             const secret = this.encode (this.secret);
-            const signature = this.hmac (payload, secret, 'sha256');
+            const signature = this.hmac (query, secret, 'sha256');
             headers = {
-                'Content-type': 'application/json',
+                'Cache-Control': 'no-cache',
+                'Content-type': 'application/x-www-form-urlencoded',
                 'X_ACCESS_KEY': this.apiKey,
                 'X_SIGNATURE': signature,
             };
