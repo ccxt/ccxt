@@ -588,9 +588,16 @@ class kucoin extends Exchange {
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+        $level = '2';
+        if ($limit !== null) {
+            if (($limit !== 20) && ($limit !== 100)) {
+                throw new ExchangeError($this->id . ' fetchOrderBook $limit argument must be null, 20 or 100');
+            }
+            $level .= '_' . (string) $limit;
+        }
         $this->load_markets();
         $marketId = $this->market_id($symbol);
-        $request = array_merge(array( 'symbol' => $marketId, 'level' => 2 ), $params);
+        $request = array_merge(array( 'symbol' => $marketId, 'level' => $level ), $params);
         $response = $this->publicGetMarketOrderbookLevelLevel ($request);
         //
         // { sequence => '1547731421688',
@@ -602,8 +609,8 @@ class kucoin extends Exchange {
         // $level can be a string such as 2_20 or 2_100
         $levelString = $this->safe_string($request, 'level');
         $levelParts = explode('_', $levelString);
-        $level = intval ($levelParts[0]);
-        $orderbook = $this->parse_order_book($data, $timestamp, 'bids', 'asks', $level - 2, $level - 1);
+        $offset = intval ($levelParts[0]);
+        $orderbook = $this->parse_order_book($data, $timestamp, 'bids', 'asks', $offset - 2, $offset - 1);
         $orderbook['nonce'] = $this->safe_integer($data, 'sequence');
         return $orderbook;
     }
