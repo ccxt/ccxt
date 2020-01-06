@@ -53,7 +53,8 @@ class AiohttpClient(Client):
         # to a ping incoming from a server, we have to disable autoping
         # with aiohttp's websockets and respond with pong manually
         # otherwise aiohttp's websockets client won't trigger WSMsgType.PONG
-        heartbeat = None if self.keepAlive is None else (self.keepAlive / 1000)
+        heartbeat = (self.keepAlive / 1000) if self.keepAlive else None
+        print('self.keepAlive', self.keepAlive, heartbeat)
         return session.ws_connect(self.url, autoping=False, heartbeat=heartbeat)
 
     def send(self, message):
@@ -66,7 +67,7 @@ class AiohttpClient(Client):
 
     async def ping_loop(self):
         print(Exchange.iso8601(Exchange.milliseconds()), 'ping loop')
-        while not self.closed() and self.keepAlive is not None:
+        while self.keepAlive and not self.closed():
             now = Exchange.milliseconds()
             if self.lastPong is None:
                 self.lastPong = now
