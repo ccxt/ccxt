@@ -201,7 +201,7 @@ module.exports = class bkex extends Exchange {
         const request = {
             'amount': this.amountToPrecision (symbol, amount),
             'direction': direction,
-            'pair': market['id'],
+            'pair': this.safeString (market, 'id'),
             'price': this.priceToPrecision (symbol, price),
         };
         const response = await this[method] (this.extend (request, params));
@@ -227,7 +227,7 @@ module.exports = class bkex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'pair': market['id'],
+            'pair': this.safeString (market, 'id'),
         };
         if (limit !== undefined) {
             request['size'] = limit;
@@ -269,7 +269,7 @@ module.exports = class bkex extends Exchange {
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': undefined,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'side': side,
             'type': this.safeString (order, 'orderType'),
             'price': this.safeFloat (order, 'price'),
