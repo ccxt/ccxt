@@ -5,8 +5,12 @@
 // overwrites absolute volumes at price levels
 // this class stores scalar order sizes indexed by price
 
+const LIMIT_BY_KEY = 0
+const LIMIT_BY_VALUE_PRICE_KEY = 1
+const LIMIT_BY_VALUE_INDEX_KEY = 2
+
 class OrderBookSide extends Array {
-    constructor (deltas = [], depth = Number.MAX_SAFE_INTEGER, limitType = 0) {
+    constructor (deltas = [], depth = Number.MAX_SAFE_INTEGER, limitType = LIMIT_BY_KEY) {
         super (deltas.length)
         // a string-keyed dictionary of price levels / ids / indices
         Object.defineProperty (this, 'index', {
@@ -60,7 +64,6 @@ class OrderBookSide extends Array {
                 const size = array[i][1]
                 this.index.set (price, size)
             }
-
         }
         this.length = Math.min (threshold, n);
         return this
@@ -74,7 +77,7 @@ class OrderBookSide extends Array {
 
 class CountedOrderBookSide extends OrderBookSide {
     constructor (deltas = [], depth = Number.MAX_SAFE_INTEGER) {
-        super (deltas, depth, 1)
+        super (deltas, depth, LIMIT_BY_VALUE_PRICE_KEY)
     }
 
     store (price, size, count) {
@@ -100,7 +103,7 @@ class CountedOrderBookSide extends OrderBookSide {
 
 class IndexedOrderBookSide extends OrderBookSide {
     constructor (deltas = [], depth = Number.MAX_SAFE_INTEGER) {
-        super (deltas, depth, 2)
+        super (deltas, depth, LIMIT_BY_VALUE_INDEX_KEY)
     }
 
     store (price, size, id) {
@@ -142,7 +145,7 @@ class IndexedOrderBookSide extends OrderBookSide {
 
 class IncrementalOrderBookSide extends OrderBookSide {
     constructor (deltas = [], depth = Number.MAX_SAFE_INTEGER) {
-        super (deltas, depth, 0)
+        super (deltas, depth, LIMIT_BY_KEY)
     }
 
     store (price, size) {

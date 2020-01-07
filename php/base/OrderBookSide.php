@@ -12,6 +12,9 @@ use \Ds\Map;
 
 error_reporting(E_ALL ^ E_WARNING);  // temporarily disable warnings
 
+const LIMIT_BY_KEY = 0;
+const LIMIT_BY_VALUE_PRICE_KEY = 1;
+const LIMIT_BY_VALUE_INDEX_KEY = 2;
 
 class OrderBookSide extends \ArrayObject implements \JsonSerializable {
     public $index;
@@ -19,7 +22,7 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
     public $limit_type;
     public static $side = null;
 
-    public function __construct($deltas = array(), $depth = PHP_INT_MAX, $limit_type = 0) {
+    public function __construct($deltas = array(), $depth = PHP_INT_MAX, $limit_type = LIMIT_BY_KEY) {
         parent::__construct();
         $this->index = new Map();  // support for floating point keys
         $this->depth = $depth;
@@ -95,7 +98,7 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
 
 class CountedOrderBookSide extends OrderBookSide {
     public function __construct($deltas = array(), $depth = PHP_INT_MAX) {
-        parent::__construct($deltas, $depth, 1);
+        parent::__construct($deltas, $depth, LIMIT_BY_VALUE_PRICE_KEY);
     }
 
     public function store($price, $size, $count = null) {
@@ -122,7 +125,7 @@ class CountedOrderBookSide extends OrderBookSide {
 
 class IndexedOrderBookSide extends OrderBookSide {
     public function __construct($deltas = array(), $depth = PHP_INT_MAX) {
-        parent::__construct($deltas, $depth, 2);
+        parent::__construct($deltas, $depth, LIMIT_BY_VALUE_INDEX_KEY);
     }
 
     public function store($price, $size, $id) {
@@ -164,7 +167,7 @@ class IndexedOrderBookSide extends OrderBookSide {
 
 class IncrementalOrderBookSide extends OrderBookSide {
     public function __construct($deltas = array(), $depth = PHP_INT_MAX) {
-        parent::__construct($deltas, $depth, 0);
+        parent::__construct($deltas, $depth, LIMIT_BY_KEY);
     }
 
     public function store($price, $size, $id = null) {
