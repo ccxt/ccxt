@@ -19,6 +19,9 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
                 'watchOrderBookRate': 100,  # get updates every 100ms or 1000ms
             },
             'streaming': {
+                # kucoin does not support built-in ws protocol-level ping-pong
+                # instead it requires a custom json-based text ping-pong
+                # https://docs.kucoin.com/#ping
                 'heartbeat': False,
                 'ping': self.ping,
             },
@@ -285,6 +288,21 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
         else:
             return self.call(method, client, message)
 
+    def ping(self, client):
+        # kucoin does not support built-in ws protocol-level ping-pong
+        # instead it requires a custom json-based text ping-pong
+        # https://docs.kucoin.com/#ping
+        id = str(self.nonce())
+        return {
+            'id': id,
+            'type': 'ping',
+        }
+
+    def handle_pong(self, client, message):
+        # https://docs.kucoin.com/#ping
+        client.lastPong = self.milliseconds()
+        return message
+
     def handle_error_message(self, client, message):
         return message
 
@@ -296,18 +314,10 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
                 'welcome': self.handle_system_status,
                 'ack': self.handle_subscription_status,
                 'message': self.handle_subject,
+                'pong': self.handle_pong,
             }
             method = self.safe_value(methods, type)
             if method is None:
                 return message
             else:
                 return self.call(method, client, message)
-
-    def ping(self, client):
-        print(client.url, 'ping triggered')
-        # https://docs.kucoin.com/#ping
-        id = str(self.nonce())
-        return {
-            'id': id,
-            'type': 'ping',
-        }

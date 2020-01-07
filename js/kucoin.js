@@ -17,6 +17,9 @@ module.exports = class kucoin extends ccxt.kucoin {
                 'watchOrderBookRate': 100, // get updates every 100ms or 1000ms
             },
             'streaming': {
+                // kucoin does not support built-in ws protocol-level ping-pong
+                // instead it requires a custom json-based text ping-pong
+                // https://docs.kucoin.com/#ping
                 'heartbeat': false,
                 'ping': this.ping,
             },
@@ -312,6 +315,23 @@ module.exports = class kucoin extends ccxt.kucoin {
         }
     }
 
+    ping (client) {
+        // kucoin does not support built-in ws protocol-level ping-pong
+        // instead it requires a custom json-based text ping-pong
+        // https://docs.kucoin.com/#ping
+        const id = this.nonce ().toString ();
+        return {
+            'id': id,
+            'type': 'ping',
+        };
+    }
+
+    handlePong (client, message) {
+        // https://docs.kucoin.com/#ping
+        client.lastPong = this.milliseconds ();
+        return message;
+    }
+
     handleErrorMessage (client, message) {
         return message;
     }
@@ -324,6 +344,7 @@ module.exports = class kucoin extends ccxt.kucoin {
                 'welcome': this.handleSystemStatus,
                 'ack': this.handleSubscriptionStatus,
                 'message': this.handleSubject,
+                'pong': this.handlePong,
             };
             const method = this.safeValue (methods, type);
             if (method === undefined) {
@@ -332,15 +353,5 @@ module.exports = class kucoin extends ccxt.kucoin {
                 return this.call (method, client, message);
             }
         }
-    }
-
-    ping (client) {
-        console.log (client.url, 'ping triggered');
-        // https://docs.kucoin.com/#ping
-        const id = this.nonce ().toString ();
-        return {
-            'id': id,
-            'type': 'ping',
-        };
     }
 };
