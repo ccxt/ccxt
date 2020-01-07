@@ -133,7 +133,7 @@ module.exports = class bkex extends Exchange {
         const timestamp = this.milliseconds ();
         const market = this.market (symbol);
         const request = this.extend ({
-            'pair': market['id'],
+            'pair': this.safeString (market, 'id'),
         }, params);
         const response = await this.publicGetQTicker (request);
         const ticker = this.safeValue (response, 'data');
