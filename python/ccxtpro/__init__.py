@@ -101,7 +101,6 @@ from ccxt.async_support.chilebit import chilebit                          # noqa
 from ccxt.async_support.cobinhood import cobinhood                        # noqa: F401
 from ccxt.async_support.coinbase import coinbase                          # noqa: F401
 from ccxt.async_support.coinbaseprime import coinbaseprime                # noqa: F401
-from ccxt.async_support.coinbasepro import coinbasepro                    # noqa: F401
 from ccxt.async_support.coincheck import coincheck                        # noqa: F401
 from ccxt.async_support.coinegg import coinegg                            # noqa: F401
 from ccxt.async_support.coinex import coinex                              # noqa: F401
@@ -167,7 +166,6 @@ from ccxt.async_support.timex import timex                                # noqa
 from ccxt.async_support.upbit import upbit                                # noqa: F401
 from ccxt.async_support.vaultoro import vaultoro                          # noqa: F401
 from ccxt.async_support.vbtc import vbtc                                  # noqa: F401
-from ccxt.async_support.virwox import virwox                              # noqa: F401
 from ccxt.async_support.whitebit import whitebit                          # noqa: F401
 from ccxt.async_support.xbtce import xbtce                                # noqa: F401
 from ccxt.async_support.yobit import yobit                                # noqa: F401
@@ -179,7 +177,9 @@ from ccxt.async_support.zb import zb                                      # noqa
 from ccxtpro.binance import binance                                       # noqa: F401
 from ccxtpro.bitfinex import bitfinex                                     # noqa: F401
 from ccxtpro.bitmex import bitmex                                         # noqa: F401
+from ccxtpro.coinbasepro import coinbasepro                               # noqa: F401
 from ccxtpro.kraken import kraken                                         # noqa: F401
+from ccxtpro.kucoin import kucoin                                         # noqa: F401
 from ccxtpro.poloniex import poloniex                                     # noqa: F401
 
 __all__ = ccxt.__all__

@@ -20,6 +20,7 @@ Exchange::$exchanges = array(
     'binance',
     'bitfinex',
     'bitmex',
+    'coinbasepro',
     'kraken',
     'kucoin',
     'poloniex',

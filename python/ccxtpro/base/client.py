@@ -15,11 +15,15 @@ class Client(object):
     on_message_callback = None
     on_error_callback = None
     on_close_callback = None
-    keepAlive = 3000
-    connectionTimeout = 10000  # 10 seconds by default, false to disable
+    connectionTimeout = 10000  # ms, false to disable
     connection = None
     error = None  # low-level networking exception, if any
     connected = None  # connection-related Future
+    keepAlive = 5000
+    heartbeat = True
+    maxPingPongMisses = 2.0  # how many missed pongs to raise a timeout
+    lastPong = None
+    ping = None
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
         defaults = {
@@ -29,12 +33,12 @@ class Client(object):
             'on_message_callback': on_message_callback,
             'on_error_callback': on_error_callback,
             'on_close_callback': on_close_callback,
-            'connectionStarted': None,  # initiation timestamp in milliseconds
-            'connectionEstablished': None,  # success timestamp in milliseconds
-            'connectionTimeout': 5000,  # 10 seconds by default, false to disable
-            'keepAlive': 3000,  # ping-pong keep-alive frequency
+            'connectionStarted': None,  # initiation timestamp, ms
+            'connectionEstablished': None,  # success timestamp, ms
+            'connectionTimeout': 5000,  # milliseconds, false to disable
+            'keepAlive': 5000,  # ping-pong keep-alive frequency, ms
             # timeout is not used atm
-            # timeout: 30000,  # throw if a request is not satisfied in 30 seconds, false to disable
+            # timeout: 30000,  # ms, throw if a request is not satisfied, false to disable
         }
         settings = {}
         settings.update(defaults)

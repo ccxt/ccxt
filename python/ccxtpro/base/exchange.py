@@ -27,6 +27,14 @@ class Exchange(BaseExchange):
 
     clients = {}
 
+    # streaming-specific options
+    streaming = {
+        'keepAlive': 30000,
+        'heartbeat': True,
+        'ping': None,
+        'maxPingPongMisses': 2.0,
+    }
+
     def order_book(self, snapshot={}, depth=float('inf')):
         return OrderBook(snapshot, depth)
 
@@ -43,7 +51,7 @@ class Exchange(BaseExchange):
             on_error = self.on_error
             on_close = self.on_close
             # decide client type here: aiohttp ws / websockets / signalr / socketio
-            self.clients[url] = AiohttpClient(url, on_message, on_error, on_close)
+            self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, self.streaming)
         return self.clients[url]
 
     def call(self, method, *args):
@@ -106,8 +114,6 @@ class Exchange(BaseExchange):
             del self.clients[client.url]
 
     def on_close(self, client, error):
-        print('someone called us')
-        # sys.exit()
         if client.error:
             # connection closed due to an error, do nothing
             pass

@@ -35,8 +35,8 @@ function exportEverything () {
         },
         {
             file: './python/ccxtpro/__init__.py',
-            regex: /(?:from ccxtpro\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
-            replacement: ids.map (id => ('from ccxtpro.' + id + ' import ' + id).padEnd (74) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+            regex: /(?:from ccxtpro\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]/,
+            replacement: ids.map (id => ('from ccxtpro.' + id + ' import ' + id).padEnd (74) + '# noqa: F401').join ("\n") + "\n\n",
         },
         {
             file: './python/ccxtpro/__init__.py',

@@ -93,6 +93,7 @@ class binance extends \ccxt\binance {
             'name' => $name,
             'symbol' => $symbol,
             'method' => array($this, 'handle_order_book_subscription'),
+            'limit' => $limit,
         );
         $message = array_merge($request, $params);
         // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
@@ -142,6 +143,7 @@ class binance extends \ccxt\binance {
             $U = $this->safe_integer($message, 'U');
             // 5. The first processed event should have $U <= lastUpdateId+1 AND $u >= lastUpdateId+1.
             if (($U !== null) && (($U - 1) > $orderbook['nonce'])) {
+                // todo => $client->reject from handleOrderBookMessage properly
                 throw new ExchangeError($this->id . ' handleOrderBook received an out-of-order nonce');
             }
             $this->handle_deltas ($orderbook['asks'], $this->safe_value($message, 'a', array()));
@@ -197,16 +199,17 @@ class binance extends \ccxt\binance {
     }
 
     public function sign_message ($client, $messageHash, $message, $params = array ()) {
-        // todo => binance signMessage not implemented yet
+        // todo => implement binance signMessage
         return $message;
     }
 
     public function handle_order_book_subscription ($client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
+        $limit = $this->safe_string($subscription, 'limit');
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
-        $this->orderbooks[$symbol] = $this->limited_order_book();
+        $this->orderbooks[$symbol] = $this->limited_order_book(array(), $limit);
         // fetch the snapshot in a separate async call
         $this->spawn (array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
     }

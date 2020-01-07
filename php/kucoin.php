@@ -21,6 +21,13 @@ class kucoin extends \ccxt\kucoin {
             'options' => array(
                 'watchOrderBookRate' => 100, // get updates every 100ms or 1000ms
             ),
+            'streaming' => array(
+                // kucoin does not support built-in ws protocol-level ping-pong
+                // instead it requires a custom json-based text ping-pong
+                // https://docs.kucoin.com/#ping
+                'heartbeat' => false,
+                'ping' => array($this, 'ping'),
+            ),
         ));
     }
 
@@ -47,7 +54,7 @@ class kucoin extends \ccxt\kucoin {
         // If the size=0, update the sequence and remove the price of which the
         // size is 0 out of level 2. For other cases, please update the price.
         //
-        $tokenResponse = $this->safe_value($this->options, 'token');
+        $tokenResponse = $this->safe_value($this->options, 'tokenResponse');
         if ($tokenResponse === null) {
             $throwException = false;
             if ($this->check_required_credentials($throwException)) {
@@ -72,6 +79,7 @@ class kucoin extends \ccxt\kucoin {
             } else {
                 $tokenResponse = $this->publicPostBulletPublic ();
             }
+            $this->options['tokenResponse'] = $tokenResponse;
         }
         $data = $this->safe_value($tokenResponse, 'data', array());
         $instanceServers = $this->safe_value($data, 'instanceServers', array());
@@ -81,8 +89,8 @@ class kucoin extends \ccxt\kucoin {
         $nonce = $this->nonce ();
         $query = array(
             'token' => $token,
-            'connectId' => $nonce,
             'acceptUserMessage' => 'true',
+            // 'connectId' => $nonce, // user-defined id is supported, received by handleSystemStatus
         );
         $url = $endpoint . '?' . $this->urlencode ($query);
         $topic = '/market/level2';
@@ -104,16 +112,6 @@ class kucoin extends \ccxt\kucoin {
         $request = array_merge($subscribe, $params);
         $future = $this->watch ($url, $messageHash, $request, $messageHash, $subscription);
         return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
-        // return $this->watch ($url, $messageHash, $request, $messageHash);
-        // // $token = $this->publicPostBulletPublic ();
-        // $name = 'book';
-        // $request = array();
-        // if ($limit !== null) {
-        //     $request['subscription'] = array(
-        //         'depth' => $limit, // default 10, valid options 10, 25, 100, 500, 1000
-        //     );
-        // }
-        // return $this->watchPublic ($name, $symbol, array_merge($request, $params));
     }
 
     public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
@@ -122,14 +120,16 @@ class kucoin extends \ccxt\kucoin {
 
     public function fetch_order_book_snapshot ($client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
+        $limit = $this->safe_integer($subscription, 'limit');
         $messageHash = $this->safe_string($subscription, 'messageHash');
-        // 3. Get a depth $snapshot from https://www.binance.com/api/v1/depth?$symbol=BNBBTC&limit=1000 .
+        // 2. Initiate a REST request to get the $snapshot data of Level 2 order book.
         // todo => this is a synch blocking call in ccxt.php - make it async
-        $snapshot = $this->fetch_order_book($symbol);
+        $snapshot = $this->fetch_order_book($symbol, $limit);
         $orderbook = $this->orderbooks[$symbol];
         $orderbook->reset ($snapshot);
         // unroll the accumulated deltas
         $messages = $orderbook->cache;
+        // 3. Playback the cached Level 2 data flow.
         for ($i = 0; $i < count($messages); $i++) {
             $message = $messages[$i];
             $this->handle_order_book_message ($client, $message, $orderbook);
@@ -138,34 +138,66 @@ class kucoin extends \ccxt\kucoin {
         $client->resolve ($orderbook, $messageHash);
     }
 
-    public function handle_delta ($bookside, $delta) {
+    public function handle_delta ($bookside, $delta, $nonce) {
         $price = $this->safe_float($delta, 0);
-        $amount = $this->safe_float($delta, 1);
-        $bookside->store ($price, $amount);
+        if ($price > 0) {
+            $sequence = $this->safe_integer($delta, 2);
+            if ($sequence > $nonce) {
+                $amount = $this->safe_float($delta, 1);
+                $bookside->store ($price, $amount);
+            }
+        }
     }
 
-    public function handle_deltas ($bookside, $deltas) {
+    public function handle_deltas ($bookside, $deltas, $nonce) {
         for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta ($bookside, $deltas[$i]);
+            $this->handle_delta ($bookside, $deltas[$i], $nonce);
         }
     }
 
     public function handle_order_book_message ($client, $message, $orderbook) {
-        $u = $this->safe_integer_2($message, 'u', 'lastUpdateId');
-        // merge accumulated deltas
-        // 4. Drop any event where $u is <= lastUpdateId in the snapshot.
-        if ($u > $orderbook['nonce']) {
-            $U = $this->safe_integer($message, 'U');
-            // 5. The first processed event should have $U <= lastUpdateId+1 AND $u >= lastUpdateId+1.
-            if (($U !== null) && (($U - 1) > $orderbook['nonce'])) {
+        //
+        //     {
+        //         "type":"$message",
+        //         "topic":"/market/level2:BTC-USDT",
+        //         "subject":"trade.l2update",
+        //         "$data":{
+        //             "$sequenceStart":1545896669105,
+        //             "$sequenceEnd":1545896669106,
+        //             "symbol":"BTC-USDT",
+        //             "$changes" => {
+        //                 "$asks" => [["6","1","1545896669105"]], // price, size, sequence
+        //                 "$bids" => [["4","1","1545896669106"]]
+        //             }
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($message, 'data', array());
+        $sequenceEnd = $this->safe_integer($data, 'sequenceEnd');
+        // 4. Apply the new Level 2 $data flow to the local snapshot to ensure that
+        // the sequence of the new Level 2 update lines up with the sequence of
+        // the previous Level 2 $data-> Discard all the $message prior to that
+        // sequence, and then playback the change to snapshot.
+        if ($sequenceEnd > $orderbook['nonce']) {
+            $sequenceStart = $this->safe_integer($message, 'sequenceStart');
+            if (($sequenceStart !== null) && (($sequenceStart - 1) > $orderbook['nonce'])) {
+                // todo => $client->reject from handleOrderBookMessage properly
                 throw new ExchangeError($this->id . ' handleOrderBook received an out-of-order nonce');
             }
-            $this->handle_deltas ($orderbook['asks'], $this->safe_value($message, 'a', array()));
-            $this->handle_deltas ($orderbook['bids'], $this->safe_value($message, 'b', array()));
-            $orderbook['nonce'] = $u;
-            $timestamp = $this->safe_integer($message, 'E');
-            $orderbook['timestamp'] = $timestamp;
-            $orderbook['datetime'] = $this->iso8601 ($timestamp);
+            $changes = $this->safe_value($data, 'changes', array());
+            $asks = $this->safe_value($changes, 'asks', array());
+            $bids = $this->safe_value($changes, 'bids', array());
+            $asks = $this->sort_by($asks, 2); // sort by sequence
+            $bids = $this->sort_by($bids, 2);
+            // 5. Update the level2 full $data based on sequence according to the
+            // size. If the price is 0, ignore the messages and update the sequence.
+            // If the size=0, update the sequence and remove the price of which the
+            // size is 0 out of level 2. For other cases, please update the price.
+            $this->handle_deltas ($orderbook['asks'], $asks, $orderbook['nonce']);
+            $this->handle_deltas ($orderbook['bids'], $bids, $orderbook['nonce']);
+            $orderbook['nonce'] = $sequenceEnd;
+            $orderbook['timestamp'] = null;
+            $orderbook['datetime'] = null;
         }
         return $orderbook;
     }
@@ -176,20 +208,23 @@ class kucoin extends \ccxt\kucoin {
         // the feed does not include a snapshot, just the deltas
         //
         //     {
-        //         "e" => "depthUpdate", // Event type
-        //         "E" => 1577554482280, // Event time
-        //         "s" => "BNBBTC", // Symbol
-        //         "U" => 157, // First update ID in event
-        //         "u" => 160, // Final update ID in event
-        //         "b" => array( // bids
-        //             array( "0.0024", "10" ), // price, size
-        //         ),
-        //         "a" => array( // asks
-        //             array( "0.0026", "100" ), // price, size
-        //         )
+        //         "type":"$message",
+        //         "topic":"/market/level2:BTC-USDT",
+        //         "subject":"trade.l2update",
+        //         "$data":{
+        //             "sequenceStart":1545896669105,
+        //             "sequenceEnd":1545896669106,
+        //             "$symbol":"BTC-USDT",
+        //             "changes" => {
+        //                 "asks" => [["6","1","1545896669105"]], // price, size, sequence
+        //                 "bids" => [["4","1","1545896669106"]]
+        //             }
+        //         }
         //     }
         //
-        $marketId = $this->safe_string($message, 's');
+        $messageHash = $this->safe_string($message, 'topic');
+        $data = $this->safe_value($message, 'data');
+        $marketId = $this->safe_string($data, 'symbol');
         $market = null;
         $symbol = null;
         if ($marketId !== null) {
@@ -198,16 +233,12 @@ class kucoin extends \ccxt\kucoin {
                 $symbol = $market['symbol'];
             }
         }
-        $name = 'depth';
-        $messageHash = $market['lowercaseId'] . '@' . $name;
         $orderbook = $this->orderbooks[$symbol];
         if ($orderbook['nonce'] !== null) {
-            // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
-            // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
             $this->handle_order_book_message ($client, $message, $orderbook);
             $client->resolve ($orderbook, $messageHash);
         } else {
-            // 2. Buffer the events you receive from the stream.
+            // 1. After receiving the websocket Level 2 $data flow, cache the $data->
             $orderbook->cache[] = $message;
         }
     }
@@ -219,10 +250,11 @@ class kucoin extends \ccxt\kucoin {
 
     public function handle_order_book_subscription ($client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
+        $limit = $this->safe_string($subscription, 'limit');
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
-        $this->orderbooks[$symbol] = $this->limited_order_book();
+        $this->orderbooks[$symbol] = $this->limited_order_book(array(), $limit);
         // fetch the snapshot in a separate async call
         $this->spawn (array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
     }
@@ -288,6 +320,23 @@ class kucoin extends \ccxt\kucoin {
         }
     }
 
+    public function ping ($client) {
+        // kucoin does not support built-in ws protocol-level ping-pong
+        // instead it requires a custom json-based text ping-pong
+        // https://docs.kucoin.com/#ping
+        $id = (string) $this->nonce ();
+        return array(
+            'id' => $id,
+            'type' => 'ping',
+        );
+    }
+
+    public function handle_pong ($client, $message) {
+        // https://docs.kucoin.com/#ping
+        $client->lastPong = $this->milliseconds ();
+        return $message;
+    }
+
     public function handle_error_message ($client, $message) {
         return $message;
     }
@@ -300,6 +349,7 @@ class kucoin extends \ccxt\kucoin {
                 'welcome' => array($this, 'handle_system_status'),
                 'ack' => array($this, 'handle_subscription_status'),
                 'message' => array($this, 'handle_subject'),
+                'pong' => array($this, 'handle_pong'),
             );
             $method = $this->safe_value($methods, $type);
             if ($method === null) {

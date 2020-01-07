@@ -70,7 +70,8 @@ class WebSocketServer {
             ws.send (message) // echo back
         })
         ws.on ('ping', function incoming (message) {
-            console.log (new Date (), 'onPing', message)
+            console.log (new Date (), 'onPing', message.toString ())
+            // ws.pong () // ws sends pong automatically
         })
         ws.on ('pong', function incoming (message) {
             console.log (new Date (), 'onPong', message)
