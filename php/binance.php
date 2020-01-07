@@ -1418,6 +1418,7 @@ class binance extends Exchange {
         //     { withdrawList => array( array(      amount =>  14,
         //                             address => "0x0123456789abcdef...",
         //                         successTime =>  1514489710000,
+        //                      transactionFee =>  0.01,
         //                          addressTag => "",
         //                                txId => "0x0123456789abcdef...",
         //                                  id => "0123456789abcdef...",
@@ -1427,6 +1428,7 @@ class binance extends Exchange {
         //                       {      amount =>  7600,
         //                             address => "0x0123456789abcdef...",
         //                         successTime =>  1515323226000,
+        //                      transactionFee =>  0.01,
         //                          addressTag => "",
         //                                txId => "0x0123456789abcdef...",
         //                                  id => "0123456789abcdef...",
@@ -1476,6 +1478,7 @@ class binance extends Exchange {
         //       {      $amount =>  14,
         //             $address => "0x0123456789abcdef...",
         //         successTime =>  1514489710000,
+        //      transactionFee =>  0.01,
         //          addressTag => "",
         //                txId => "0x0123456789abcdef...",
         //                  $id => "0123456789abcdef...",
@@ -1509,6 +1512,11 @@ class binance extends Exchange {
         }
         $status = $this->parse_transaction_status_by_type ($this->safe_string($transaction, 'status'), $type);
         $amount = $this->safe_float($transaction, 'amount');
+        $feeCost = $this->safe_float($transaction, 'transactionFee');
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array( 'currency' => $code, 'cost' => $feeCost );
+        }
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -1522,7 +1530,7 @@ class binance extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => null,
-            'fee' => null,
+            'fee' => $fee,
         );
     }
 
