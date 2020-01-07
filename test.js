@@ -4,14 +4,17 @@ const ccxtpro = require ('./ccxt.pro.js')
 
 ;(async () => {
 
-    const id = 'coinbasepro'
+    const id = 'kucoin'
         , symbol = 'ETH/BTC'
         , enableRateLimit = true
         , exchange = new ccxtpro[id] ({ enableRateLimit })
 
     while (true) {
         try {
-            const response = await exchange.watchOrderBook (symbol)
+            let response = undefined
+            for (let i = 0; i < 10; i++) {
+                response = await exchange.watchOrderBook (symbol)
+            }
             console.log (new Date (), symbol,
                 response['asks'].length, 'asks', response['asks'][0],
                 response['bids'].length, 'bids', response['bids'][0])
