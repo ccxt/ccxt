@@ -5,7 +5,13 @@ namespace ccxtpro;
 trait ClientTrait {
 
     public $clients = array();
-    public $loop = null;
+
+    // streaming-specific options
+    public $streaming = array(
+        'keepAlive' => 30000,
+    );
+
+    public $loop = null; // reactphp's loop
 
     public function order_book ($snapshot = array(), $depth = PHP_INT_MAX) {
         return new OrderBook($snapshot, $depth);
@@ -117,4 +123,7 @@ trait ClientTrait {
         // }
     }
 
+    public function sign_message($client, $messag_hash, $message, $params = array()) {
+        throw new \ccxt\NotSupported ($this->id . ' signMessage () not implemented yet');
+    }
 }

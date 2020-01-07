@@ -18,6 +18,13 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
             'options': {
                 'watchOrderBookRate': 100,  # get updates every 100ms or 1000ms
             },
+            'streaming': {
+                # kucoin does not support built-in ws protocol-level ping-pong
+                # instead it requires a custom json-based text ping-pong
+                # https://docs.kucoin.com/#ping
+                'heartbeat': False,
+                'ping': self.ping,
+            },
         })
 
     async def watch_order_book(self, symbol, limit=None, params={}):
@@ -41,7 +48,7 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
         # If the size=0, update the sequence and remove the price of which the
         # size is 0 out of level 2. For other cases, please update the price.
         #
-        tokenResponse = self.safe_value(self.options, 'token')
+        tokenResponse = self.safe_value(self.options, 'tokenResponse')
         if tokenResponse is None:
             throwException = False
             if self.check_required_credentials(throwException):
@@ -65,6 +72,7 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
                 #
             else:
                 tokenResponse = await self.publicPostBulletPublic()
+            self.options['tokenResponse'] = tokenResponse
         data = self.safe_value(tokenResponse, 'data', {})
         instanceServers = self.safe_value(data, 'instanceServers', [])
         firstServer = self.safe_value(instanceServers, 0, {})
@@ -73,8 +81,8 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
         nonce = self.nonce()
         query = {
             'token': token,
-            'connectId': nonce,
             'acceptUserMessage': 'true',
+            # 'connectId': nonce,  # user-defined id is supported, received by handleSystemStatus
         }
         url = endpoint + '?' + self.urlencode(query)
         topic = '/market/level2'
@@ -96,60 +104,82 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
         request = self.extend(subscribe, params)
         future = self.watch(url, messageHash, request, messageHash, subscription)
         return await self.after(future, self.limit_order_book, symbol, limit, params)
-        # return await self.watch(url, messageHash, request, messageHash)
-        #  # token = await self.publicPostBulletPublic()
-        # name = 'book'
-        # request = {}
-        # if limit is not None:
-        #     request['subscription'] = {
-        #         'depth': limit,  # default 10, valid options 10, 25, 100, 500, 1000
-        #     }
-        # }
-        # return await self.watchPublic(name, symbol, self.extend(request, params))
 
     def limit_order_book(self, orderbook, symbol, limit=None, params={}):
         return orderbook.limit(limit)
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
+        limit = self.safe_integer(subscription, 'limit')
         messageHash = self.safe_string(subscription, 'messageHash')
-        # 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
+        # 2. Initiate a REST request to get the snapshot data of Level 2 order book.
         # todo: self is a synch blocking call in ccxt.php - make it async
-        snapshot = await self.fetch_order_book(symbol)
+        snapshot = await self.fetch_order_book(symbol, limit)
         orderbook = self.orderbooks[symbol]
         orderbook.reset(snapshot)
         # unroll the accumulated deltas
         messages = orderbook.cache
+        # 3. Playback the cached Level 2 data flow.
         for i in range(0, len(messages)):
             message = messages[i]
             self.handle_order_book_message(client, message, orderbook)
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    def handle_delta(self, bookside, delta):
+    def handle_delta(self, bookside, delta, nonce):
         price = self.safe_float(delta, 0)
-        amount = self.safe_float(delta, 1)
-        bookside.store(price, amount)
+        if price > 0:
+            sequence = self.safe_integer(delta, 2)
+            if sequence > nonce:
+                amount = self.safe_float(delta, 1)
+                bookside.store(price, amount)
 
-    def handle_deltas(self, bookside, deltas):
+    def handle_deltas(self, bookside, deltas, nonce):
         for i in range(0, len(deltas)):
-            self.handle_delta(bookside, deltas[i])
+            self.handle_delta(bookside, deltas[i], nonce)
 
     def handle_order_book_message(self, client, message, orderbook):
-        u = self.safe_integer_2(message, 'u', 'lastUpdateId')
-        # merge accumulated deltas
-        # 4. Drop any event where u is <= lastUpdateId in the snapshot.
-        if u > orderbook['nonce']:
-            U = self.safe_integer(message, 'U')
-            # 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
-            if (U is not None) and ((U - 1) > orderbook['nonce']):
+        #
+        #     {
+        #         "type":"message",
+        #         "topic":"/market/level2:BTC-USDT",
+        #         "subject":"trade.l2update",
+        #         "data":{
+        #             "sequenceStart":1545896669105,
+        #             "sequenceEnd":1545896669106,
+        #             "symbol":"BTC-USDT",
+        #             "changes": {
+        #                 "asks": [["6","1","1545896669105"]],  # price, size, sequence
+        #                 "bids": [["4","1","1545896669106"]]
+        #             }
+        #         }
+        #     }
+        #
+        data = self.safe_value(message, 'data', {})
+        sequenceEnd = self.safe_integer(data, 'sequenceEnd')
+        # 4. Apply the new Level 2 data flow to the local snapshot to ensure that
+        # the sequence of the new Level 2 update lines up with the sequence of
+        # the previous Level 2 data. Discard all the message prior to that
+        # sequence, and then playback the change to snapshot.
+        if sequenceEnd > orderbook['nonce']:
+            sequenceStart = self.safe_integer(message, 'sequenceStart')
+            if (sequenceStart is not None) and ((sequenceStart - 1) > orderbook['nonce']):
+                # todo: client.reject from handleOrderBookMessage properly
                 raise ExchangeError(self.id + ' handleOrderBook received an out-of-order nonce')
-            self.handle_deltas(orderbook['asks'], self.safe_value(message, 'a', []))
-            self.handle_deltas(orderbook['bids'], self.safe_value(message, 'b', []))
-            orderbook['nonce'] = u
-            timestamp = self.safe_integer(message, 'E')
-            orderbook['timestamp'] = timestamp
-            orderbook['datetime'] = self.iso8601(timestamp)
+            changes = self.safe_value(data, 'changes', {})
+            asks = self.safe_value(changes, 'asks', [])
+            bids = self.safe_value(changes, 'bids', [])
+            asks = self.sort_by(asks, 2)  # sort by sequence
+            bids = self.sort_by(bids, 2)
+            # 5. Update the level2 full data based on sequence according to the
+            # size. If the price is 0, ignore the messages and update the sequence.
+            # If the size=0, update the sequence and remove the price of which the
+            # size is 0 out of level 2. For other cases, please update the price.
+            self.handle_deltas(orderbook['asks'], asks, orderbook['nonce'])
+            self.handle_deltas(orderbook['bids'], bids, orderbook['nonce'])
+            orderbook['nonce'] = sequenceEnd
+            orderbook['timestamp'] = None
+            orderbook['datetime'] = None
         return orderbook
 
     def handle_order_book(self, client, message):
@@ -158,36 +188,35 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
         # the feed does not include a snapshot, just the deltas
         #
         #     {
-        #         "e": "depthUpdate",  # Event type
-        #         "E": 1577554482280,  # Event time
-        #         "s": "BNBBTC",  # Symbol
-        #         "U": 157,  # First update ID in event
-        #         "u": 160,  # Final update ID in event
-        #         "b": [ # bids
-        #             ["0.0024", "10"],  # price, size
-        #         ],
-        #         "a": [ # asks
-        #             ["0.0026", "100"],  # price, size
-        #         ]
+        #         "type":"message",
+        #         "topic":"/market/level2:BTC-USDT",
+        #         "subject":"trade.l2update",
+        #         "data":{
+        #             "sequenceStart":1545896669105,
+        #             "sequenceEnd":1545896669106,
+        #             "symbol":"BTC-USDT",
+        #             "changes": {
+        #                 "asks": [["6","1","1545896669105"]],  # price, size, sequence
+        #                 "bids": [["4","1","1545896669106"]]
+        #             }
+        #         }
         #     }
         #
-        marketId = self.safe_string(message, 's')
+        messageHash = self.safe_string(message, 'topic')
+        data = self.safe_value(message, 'data')
+        marketId = self.safe_string(data, 'symbol')
         market = None
         symbol = None
         if marketId is not None:
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
                 symbol = market['symbol']
-        name = 'depth'
-        messageHash = market['lowercaseId'] + '@' + name
         orderbook = self.orderbooks[symbol]
         if orderbook['nonce'] is not None:
-            # 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
-            # 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
             self.handle_order_book_message(client, message, orderbook)
             client.resolve(orderbook, messageHash)
         else:
-            # 2. Buffer the events you receive from the stream.
+            # 1. After receiving the websocket Level 2 data flow, cache the data.
             orderbook.cache.append(message)
 
     def sign_message(self, client, messageHash, message, params={}):
@@ -196,9 +225,10 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
 
     def handle_order_book_subscription(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
+        limit = self.safe_string(subscription, 'limit')
         if symbol in self.orderbooks:
             del self.orderbooks[symbol]
-        self.orderbooks[symbol] = self.limited_order_book()
+        self.orderbooks[symbol] = self.limited_order_book({}, limit)
         # fetch the snapshot in a separate async call
         self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
 
@@ -258,6 +288,21 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
         else:
             return self.call(method, client, message)
 
+    def ping(self, client):
+        # kucoin does not support built-in ws protocol-level ping-pong
+        # instead it requires a custom json-based text ping-pong
+        # https://docs.kucoin.com/#ping
+        id = str(self.nonce())
+        return {
+            'id': id,
+            'type': 'ping',
+        }
+
+    def handle_pong(self, client, message):
+        # https://docs.kucoin.com/#ping
+        client.lastPong = self.milliseconds()
+        return message
+
     def handle_error_message(self, client, message):
         return message
 
@@ -269,6 +314,7 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
                 'welcome': self.handle_system_status,
                 'ack': self.handle_subscription_status,
                 'message': self.handle_subject,
+                'pong': self.handle_pong,
             }
             method = self.safe_value(methods, type)
             if method is None:

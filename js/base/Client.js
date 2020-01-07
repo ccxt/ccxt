@@ -31,7 +31,10 @@ module.exports = class Client {
             connectionTimer: undefined, // connection-related setTimeout
             connectionTimeout: 10000, // in milliseconds, false to disable
             pingInterval: undefined, // stores the ping-related interval
+            heartbeat: true, // use built-in ws ping/pong or a custom ping text message
+            ping: undefined, // ping-function (if defined)
             keepAlive: 30000, // ping-pong keep-alive rate in milliseconds
+            maxPingPongMisses: 2.0, // how many missing pongs to throw a RequestTimeout
             // timeout is not used atm
             // timeout: 30000, // throw if a request is not satisfied in 30 seconds, false to disable
             connection: {
@@ -145,11 +148,17 @@ module.exports = class Client {
     }
 
     onPingInterval () {
-        if ((this.lastPong + this.keepAlive) < milliseconds ()) {
-            this.reset (new RequestTimeout ('Connection to ' + this.url + ' timed out due to a ping-pong keepalive missing on time'))
-        } else {
-            if (this.isOpen ()) {
-                this.connection.ping ()
+        if (this.keepAlive && this.isOpen ()) {
+            const now = milliseconds ()
+            this.lastPong = this.lastPoing || now
+            if ((this.lastPong + this.keepAlive * this.maxPingPongMisses) < now) {
+                this.onError (new RequestTimeout ('Connection to ' + this.url + ' timed out due to a ping-pong keepalive missing on time'))
+            } else {
+                if (this.heartbeat) {
+                    this.connection.ping ()
+                } else {
+                    this.send (this.ping (this))
+                }
             }
         }
     }
@@ -200,7 +209,7 @@ module.exports = class Client {
     }
 
     send (message) {
-        // console.log (new Date (), 'sending', message)
+        console.log (new Date (), 'sending', message)
         this.connection.send (JSON.stringify (message))
     }
 

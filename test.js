@@ -1,11 +1,25 @@
 'use strict';
 
 const ccxtpro = require ('./ccxt.pro.js')
-    , WebSocket = require ('ws')
-
-// ----------------------------------------------------------------------------
 
 ;(async () => {
+
+    const id = 'coinbasepro'
+        , symbol = 'ETH/BTC'
+        , enableRateLimit = true
+        , exchange = new ccxtpro[id] ({ enableRateLimit })
+
+    while (true) {
+        try {
+            const response = await exchange.watchOrderBook (symbol)
+            console.log (new Date (), symbol,
+                response['asks'].length, 'asks', response['asks'][0],
+                response['bids'].length, 'bids', response['bids'][0])
+        } catch (e) {
+            console.log (new Date (), e)
+            await ccxtpro.sleep (1000)
+        }
+    }
 
     // ========================================================================
     // a sandbox ws server for testing
@@ -42,32 +56,6 @@ const ccxtpro = require ('./ccxt.pro.js')
 
     server.listen (8080)
     //*/
-    // ========================================================================
-    // a sandbox ws client for testing
-
-    const symbol = 'BTC/USD'
-
-    const exchange = new ccxtpro.bitmex ({
-        'enableRateLimit': true,
-        // 'urls': {
-        //     'api': {
-        //         'ws': 'ws://127.0.0.1:8080',
-        //     },
-        // },
-    })
-
-    while (true) {
-        try {
-            let response = undefined
-            for (let i = 0; i < 1; i++) {
-                response = await exchange.watchOrderBook (symbol)
-            }
-            console.log (new Date (), response.asks.length, 'asks', response.asks[0], response.bids.length, 'bids', response.bids[0])
-        } catch (e) {
-            console.log (new Date (), e)
-            await ccxtpro.sleep (1000)
-        }
-    }
 
     // ========================================================================
     // a sandbox ws server for testing v1

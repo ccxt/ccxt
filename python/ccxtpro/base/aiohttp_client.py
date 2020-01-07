@@ -5,7 +5,7 @@ from asyncio import sleep
 from aiohttp import WSMsgType
 from ccxt.async_support import Exchange
 from ccxtpro.base.client import Client
-from ccxt import NetworkError
+from ccxt import NetworkError, RequestTimeout
 
 
 class AiohttpClient(Client):
@@ -26,10 +26,15 @@ class AiohttpClient(Client):
         elif message.type == WSMsgType.BINARY:
             print(Exchange.iso8601(Exchange.milliseconds()), 'binary', message)
             pass
+        # autoping is responsible for automatically replying with pong
+        # to a ping incoming from a server, we have to disable autoping
+        # with aiohttp's websockets and respond with pong manually
+        # otherwise aiohttp's websockets client won't trigger WSMsgType.PONG
         elif message.type == WSMsgType.PING:
             print(Exchange.iso8601(Exchange.milliseconds()), 'ping', message)
-            self.connection.pong()
+            await self.connection.pong()
         elif message.type == WSMsgType.PONG:
+            self.lastPong = Exchange.milliseconds()
             print(Exchange.iso8601(Exchange.milliseconds()), 'pong', message)
             pass
         elif message.type == WSMsgType.CLOSE:
@@ -44,7 +49,12 @@ class AiohttpClient(Client):
             self.on_error(error)
 
     def create_connection(self, session):
-        return session.ws_connect(self.url)
+        # autoping is responsible for automatically replying with pong
+        # to a ping incoming from a server, we have to disable autoping
+        # with aiohttp's websockets and respond with pong manually
+        # otherwise aiohttp's websockets client won't trigger WSMsgType.PONG
+        heartbeat = (self.keepAlive / 1000) if self.keepAlive and self.heartbeat else None
+        return session.ws_connect(self.url, autoping=False, heartbeat=heartbeat)
 
     def send(self, message):
         print(Exchange.iso8601(Exchange.milliseconds()), 'sending', message)
@@ -52,14 +62,21 @@ class AiohttpClient(Client):
 
     def close(self, code=1000):
         print(Exchange.iso8601(Exchange.milliseconds()), 'closing', code)
-        return self.connection.close(code)
+        return self.connection.close()
 
     async def ping_loop(self):
         print(Exchange.iso8601(Exchange.milliseconds()), 'ping loop')
-        while not self.closed():
-            #     if (self.lastPong + self.keepAlive) < Exchange.milliseconds():
-            #         self.reset(RequestTimeout('Connection to ' + self.url + ' timed out due to a ping-pong keepalive missing on time'))
-            #     else:
-            #         if self.connection.readyState == WebSocket.OPEN:
-            #             self.connection.ping()
+        while self.keepAlive and not self.closed():
+            now = Exchange.milliseconds()
+            self.lastPong = now if self.lastPong is None else self.lastPong
+            if (self.lastPong + self.keepAlive * self.maxPingPongMisses) < now:
+                self.on_error(RequestTimeout('Connection to ' + self.url + ' timed out due to a ping-pong keepalive missing on time'))
+            # the following ping-clause is not necessary with aiohttp's built-in ws
+            # since it has a heartbeat option (see create_connection above)
+            # however some exchanges require a text-type ping message
+            # therefore we need this clause anyway
+            else:
+                # await self.connection.ping()  # handled by aiohttp
+                if self.ping:
+                    await self.send(self.ping(self))
             await sleep(self.keepAlive / 1000)
