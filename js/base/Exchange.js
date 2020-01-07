@@ -44,7 +44,10 @@ module.exports = class Exchange extends ccxt.Exchange {
             const onError = this.onError.bind (this)
             const onClose = this.onClose.bind (this)
             // decide client type here: ws / signalr / socketio
-            this.clients[url] = new WsClient (url, onMessage, onError, onClose)
+            const options = this.extend (this.streaming, {
+                'ping': this.ping ? this.ping.bind (this) : this.ping,
+            })
+            this.clients[url] = new WsClient (url, onMessage, onError, onClose, options)
         }
         return this.clients[url]
     }
