@@ -28,9 +28,9 @@ SOFTWARE.
 
 //-----------------------------------------------------------------------------
 
-const Exchange  = require ('./js/base/Exchange')
-    , functions = require ('./js/base/functions')
-    , errors    = require ('./js/base/errors')
+const Exchange = require('./js/base/Exchange')
+  , functions = require('./js/base/functions')
+  , errors = require('./js/base/errors')
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
@@ -168,6 +168,6 @@ const exchanges = {
 
 //-----------------------------------------------------------------------------
 
-module.exports = Object.assign ({ version, Exchange, exchanges: Object.keys (exchanges) }, exchanges, functions, errors)
+module.exports = Object.assign({ version, Exchange, exchanges: Object.keys(exchanges) }, exchanges, functions, errors)
 
 //-----------------------------------------------------------------------------
