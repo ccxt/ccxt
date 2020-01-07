@@ -227,7 +227,7 @@ module.exports = class bkex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'pair': market['id'],
+            'pair': market['id']
         };
         if (limit !== undefined) {
             request['size'] = limit;
@@ -242,7 +242,7 @@ module.exports = class bkex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'orderNo': id,
-            'pair': market['id'],
+            'pair': this.marketId (symbol)
         };
         const response = await this.privateGetTradeOrderUnfinishedDetail (this.extend (request, params));
         const data = this.safeValue (response, 'data');
@@ -270,7 +270,7 @@ module.exports = class bkex extends Exchange {
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': undefined,
-            'symbol': market,
+            'symbol': market['symbol'],
             'side': side,
             'type': this.safeString (order, 'orderType'),
             'price': this.safeFloat (order, 'price'),
@@ -286,18 +286,16 @@ module.exports = class bkex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        let originalQuery;
-        if (api === 'public') {
+        if (method === 'GET') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-        } else {
+        } 
+        if (api === 'private') {
             this.checkRequiredCredentials ();
+            query = this.urlencode (query);
             if (method === 'POST') {
-                query = this.urlencode (query);
                 body = query;
-            } else {
-                query = this.encode (query);
             }
             const secret = this.encode (this.secret);
             const signature = this.hmac (query, secret, 'sha256');
