@@ -28,7 +28,9 @@ module.exports = class bitstamp extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
-                'api': 'https://www.bitstamp.net/api',
+                'api': {
+                    'public': 'https://www.bitstamp.net/api',
+                },
                 'www': 'https://www.bitstamp.net',
                 'doc': 'https://www.bitstamp.net/api',
             },
@@ -1063,7 +1065,7 @@ module.exports = class bitstamp extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/';
+        let url = this.urls['api'][api] + '/';
         if (api !== 'v1') {
             url += this.version + '/';
         }
