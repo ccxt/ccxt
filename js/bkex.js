@@ -227,7 +227,7 @@ module.exports = class bkex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'pair': market['id']
+            'pair': market['id'],
         };
         if (limit !== undefined) {
             request['size'] = limit;
@@ -239,10 +239,9 @@ module.exports = class bkex extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const request = {
             'orderNo': id,
-            'pair': this.marketId (symbol)
+            'pair': this.marketId (symbol),
         };
         const response = await this.privateGetTradeOrderUnfinishedDetail (this.extend (request, params));
         const data = this.safeValue (response, 'data');
@@ -290,7 +289,7 @@ module.exports = class bkex extends Exchange {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-        } 
+        }
         if (api === 'private') {
             this.checkRequiredCredentials ();
             query = this.urlencode (query);
