@@ -5,18 +5,12 @@ const { extend, deepExtend } = require ('ccxt/js/base/functions/generic.js')
     , {
         Asks,
         Bids,
-        LimitedAsks,
-        LimitedBids,
         CountedAsks,
         CountedBids,
         IndexedAsks,
         IndexedBids,
         IncrementalAsks,
         IncrementalBids,
-        LimitedIndexedAsks,
-        LimitedIndexedBids,
-        LimitedCountedAsks,
-        LimitedCountedBids,
         IncrementalIndexedAsks,
         IncrementalIndexedBids,
     } = require ('./OrderBookSide')
@@ -26,7 +20,7 @@ const { extend, deepExtend } = require ('ccxt/js/base/functions/generic.js')
 
 class OrderBook {
 
-    constructor (snapshot = {}) {
+    constructor (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
 
         Object.defineProperty (this, 'cache', {
             __proto__: null, // make it invisible
@@ -51,10 +45,10 @@ class OrderBook {
 
         // wrap plain arrays with Bids/Asks classes if necessary
         if (this.asks.constructor.name === 'Array') {
-            this.asks = new Asks (this.asks)
+            this.asks = new Asks (this.asks, depth)
         }
         if (this.bids.constructor.name === 'Array') {
-            this.bids = new Bids (this.bids)
+            this.bids = new Bids (this.bids, depth)
         }
         if (this.timestamp) {
             this.datetime = iso8601 (this.timestamp)
@@ -73,6 +67,15 @@ class OrderBook {
             (snapshot.nonce <= this.nonce)) {
             return this
         }
+        for (let i = 0; i < snapshot.asks.length; i++) {
+            this.asks.storeArray (snapshot.asks[i])
+        }
+        for (let i = 0; i < snapshot.bids.length; i++) {
+            this.bids.storeArray (snapshot.bids[i])
+        }
+        this.nonce = snapshot.nonce
+        this.timestamp = snapshot.timestamp
+        this.datetime = iso8601 (this.timestamp)
         return this.reset (
             snapshot.nonce,
             snapshot.timestamp,
@@ -92,28 +95,14 @@ class OrderBook {
 }
 
 // ----------------------------------------------------------------------------
-// some exchanges limit the number of bids/asks in the aggregated orderbook
-// orders beyond the limit threshold are not updated with new ws deltas
-// those orders should not be returned to the user, they are outdated quickly
-
-class LimitedOrderBook extends OrderBook {
-    constructor (snapshot = {}, depth = undefined) {
-        super (extend (snapshot, {
-            'asks': new LimitedAsks (snapshot.asks || [], depth),
-            'bids': new LimitedBids (snapshot.bids || [], depth),
-        }))
-    }
-}
-
-// ----------------------------------------------------------------------------
 // overwrites absolute volumes at price levels
 // or deletes price levels based on order counts (3rd value in a bidask delta)
 
 class CountedOrderBook extends OrderBook {
-    constructor (snapshot = {}) {
+    constructor (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
         super (extend (snapshot, {
-            'asks': new CountedAsks (snapshot.asks || []),
-            'bids': new CountedBids (snapshot.bids || []),
+            'asks': new CountedAsks (snapshot.asks || [], depth),
+            'bids': new CountedBids (snapshot.bids || [], depth),
         }))
     }
 }
@@ -122,10 +111,10 @@ class CountedOrderBook extends OrderBook {
 // indexed by order ids (3rd value in a bidask delta)
 
 class IndexedOrderBook extends OrderBook {
-    constructor (snapshot = {}) {
+    constructor (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
         super (extend (snapshot, {
-            'asks': new IndexedAsks (snapshot.asks || []),
-            'bids': new IndexedBids (snapshot.bids || []),
+            'asks': new IndexedAsks (snapshot.asks || [], depth),
+            'bids': new IndexedBids (snapshot.bids || [], depth),
         }))
     }
 }
@@ -134,34 +123,10 @@ class IndexedOrderBook extends OrderBook {
 // adjusts the volumes by positive or negative relative changes or differences
 
 class IncrementalOrderBook extends OrderBook {
-    constructor (snapshot = {}) {
+    constructor (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
         super (extend (snapshot, {
-            'asks': new IncrementalAsks (snapshot.asks || []),
-            'bids': new IncrementalBids (snapshot.bids || []),
-        }))
-    }
-}
-
-// ----------------------------------------------------------------------------
-// limited and indexed (2 in 1)
-
-class LimitedIndexedOrderBook extends OrderBook {
-    constructor (snapshot = {}, depth = undefined) {
-        super (extend (snapshot, {
-            'asks': new LimitedIndexedAsks (snapshot.asks || [], depth),
-            'bids': new LimitedIndexedBids (snapshot.bids || [], depth),
-        }))
-    }
-}
-
-// ----------------------------------------------------------------------------
-// limited and indexed (2 in 1)
-
-class LimitedCountedOrderBook extends OrderBook {
-    constructor (snapshot = {}, depth = undefined) {
-        super (extend (snapshot, {
-            'asks': new LimitedCountedAsks (snapshot.asks || [], depth),
-            'bids': new LimitedCountedBids (snapshot.bids || [], depth),
+            'asks': new IncrementalAsks (snapshot.asks || [], depth),
+            'bids': new IncrementalBids (snapshot.bids || [], depth),
         }))
     }
 }
@@ -171,10 +136,10 @@ class LimitedCountedOrderBook extends OrderBook {
 // incremental and indexed (2 in 1)
 
 class IncrementalIndexedOrderBook extends OrderBook {
-    constructor (snapshot = {}) {
+    constructor (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
         super (extend (snapshot, {
-            'asks': new IncrementalIndexedAsks (snapshot.asks || []),
-            'bids': new IncrementalIndexedBids (snapshot.bids || []),
+            'asks': new IncrementalIndexedAsks (snapshot.asks || [], depth),
+            'bids': new IncrementalIndexedBids (snapshot.bids || [], depth),
         }))
     }
 }
@@ -183,11 +148,8 @@ class IncrementalIndexedOrderBook extends OrderBook {
 
 module.exports = {
     OrderBook,
-    LimitedOrderBook,
     CountedOrderBook,
     IndexedOrderBook,
     IncrementalOrderBook,
-    LimitedIndexedOrderBook,
-    LimitedCountedOrderBook,
     IncrementalIndexedOrderBook,
 }

@@ -249,7 +249,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.limitedOrderBook ({}, limit);
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
         // fetch the snapshot in a separate async call
         this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }

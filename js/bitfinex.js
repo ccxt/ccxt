@@ -98,7 +98,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         // if it is an initial snapshot
         if (Array.isArray (message[1][0])) {
             const limit = this.safeInteger (subscription, 'len');
-            this.orderbooks[symbol] = this.limitedCountedOrderBook ({}, limit);
+            this.orderbooks[symbol] = this.countedOrderBook ({}, limit);
             const orderbook = this.orderbooks[symbol];
             const deltas = message[1];
             for (let i = 0; i < deltas.length; i++) {

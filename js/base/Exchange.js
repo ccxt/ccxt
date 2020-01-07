@@ -4,37 +4,22 @@ const ccxt = require ('ccxt')
     , WsClient = require ('./WsClient')
     , {
         OrderBook,
-        LimitedOrderBook,
         IndexedOrderBook,
-        LimitedIndexedOrderBook,
-        LimitedCountedOrderBook,
         CountedOrderBook,
     } = require ('./OrderBook')
 
 module.exports = class Exchange extends ccxt.Exchange {
 
-    orderBook (snapshot = {}) {
-        return new OrderBook (snapshot)
+    orderBook (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
+        return new OrderBook (snapshot, depth)
     }
 
-    limitedOrderBook (snapshot = {}, depth = undefined) {
-        return new LimitedOrderBook (snapshot, depth)
+    indexedOrderBook (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
+        return new IndexedOrderBook (snapshot, depth)
     }
 
-    indexedOrderBook (snapshot = {}) {
-        return new IndexedOrderBook (snapshot)
-    }
-
-    limitedIndexedOrderBook (snapshot = {}, depth = undefined) {
-        return new LimitedIndexedOrderBook (snapshot, depth)
-    }
-
-    limitedCountedOrderBook (snapshot = {}, depth = undefined) {
-        return new LimitedCountedOrderBook (snapshot, depth)
-    }
-
-    countedOrderBook (snapshot = {}) {
-        return new CountedOrderBook (snapshot)
+    countedOrderBook (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
+        return new CountedOrderBook (snapshot, depth)
     }
 
     client (url) {

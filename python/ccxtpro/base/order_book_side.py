@@ -2,18 +2,23 @@
 
 import operator
 
-INFINITY = float('inf')
+LIMIT_BY_KEY = 0
+LIMIT_BY_VALUE_PRICE_KEY = 1
+LIMIT_BY_VALUE_INDEX_KEY = 2
 
 
 class OrderBookSide(list):
     side = None  # set to True for bids and False for asks
     # sorted(..., reverse=self.side)
 
-    def __init__(self, deltas=[]):
+    def __init__(self, deltas=[], depth=float('inf'), limit_type=LIMIT_BY_KEY):
         # allocate memory for the list here (it will not be resized...)
         super(OrderBookSide, self).__init__()
+        self._depth = depth
+        self._limit_type = limit_type
         self._index = {}
-        self.update(deltas)
+        for delta in deltas:
+            self.storeArray(list(delta))
 
     def storeArray(self, delta):
         price = delta[0]
@@ -31,49 +36,37 @@ class OrderBookSide(list):
             if price in self._index:
                 del self._index[price]
 
-    def limit(self, n=None):
+    def limit(self, n=float('inf')):
         first_element = operator.itemgetter(0)
-        generator = (list(t) for t in self._index.items())
+        iterator = self._index.values() if self._limit_type else self._index.items()
+        generator = (list(t) for t in iterator)  # lazy evaluation
         array = sorted(generator, key=first_element, reverse=self.side)
-        if n and n < len(array):
-            array = array[:n]
+        threshold = int(min(self._depth, len(array)))
         self.clear()
-        self.extend(array)
+        self._index.clear()
+        for i in range(threshold):
+            delta = array[i]
+            price = delta[0]
+            size = delta[1]
+            if self._limit_type:
+                last = delta[2]
+                self._index[price if self._limit_type & 1 else last] = delta
+            else:
+                self._index[price] = size
+            if i < n:
+                self.append(delta)
         return self
-
-    def update(self, deltas):
-        for delta in deltas:
-            self.storeArray(delta)
-
-
-# -----------------------------------------------------------------------------
-# some exchanges limit the number of bids/asks in the aggregated orderbook
-# orders beyond the limit threshold are not updated with new ws deltas
-# those orders should not be returned to the user, they are outdated quickly
-
-class LimitedOrderBookSide(OrderBookSide):
-    def __init__(self, deltas=[], depth=None):
-        self._depth = depth
-        super(LimitedOrderBookSide, self).__init__(deltas)
-
-    def limit(self, n=None):
-        first_element = operator.itemgetter(0)
-        generator = (list(t) for t in self._index.items())
-        array = sorted(generator, key=first_element, reverse=self.side)
-        limit = min(n or INFINITY, self._depth or INFINITY)
-        if limit < len(array):
-            array = array[:limit]
-        self._index = dict(array)
-        self.clear()
-        self.extend(array)
-        return self
-
 
 # -----------------------------------------------------------------------------
 # overwrites absolute volumes at price levels
 # or deletes price levels based on order counts (3rd value in a bidask delta)
+# this class stores vector arrays of values indexed by price
+
 
 class CountedOrderBookSide(OrderBookSide):
+    def __init__(self, deltas=[], depth=float('inf')):
+        super(CountedOrderBookSide, self).__init__(deltas, depth, LIMIT_BY_VALUE_PRICE_KEY)
+
     def store(self, price, size, count):
         if count and size:
             self._index[price] = [price, size, count]
@@ -89,107 +82,99 @@ class CountedOrderBookSide(OrderBookSide):
             if price in self._index:
                 del self._index[price]
 
-    def limit(self, n=None):
-        first_element = operator.itemgetter(0)
-        generator = (list(t) for t in self._index.values())
-        array = sorted(generator, key=first_element, reverse=self.side)
-        if n and n < len(array):
-            array = array[:n]
-        self.clear()
-        self.extend(array)
-        return self
 
 # -----------------------------------------------------------------------------
 # indexed by order ids (3rd value in a bidask delta)
 
 
 class IndexedOrderBookSide(OrderBookSide):
+    def __init__(self, deltas=[], depth=float('inf')):
+        super(IndexedOrderBookSide, self).__init__(deltas, depth, LIMIT_BY_VALUE_INDEX_KEY)
+
     def store(self, price, size, order_id):
         if size:
+            stored = self._index.get(order_id)
+            if stored:
+                stored[0] = price or stored[0]
+                stored[1] = size
+                return
             self._index[order_id] = [price, size, order_id]
         else:
             if order_id in self._index:
                 del self._index[order_id]
 
     def restore(self, price, size, order_id):  # price is presumably None
-        if size:
-            array = self._index.get(order_id)
-            price = array[0] if price is None else price
-            self._index[order_id] = [price, size, order_id]
-        else:
-            del self._index[order_id]
+        return self.store(price, size, order_id)
 
     def storeArray(self, delta):
-        size = delta[1]
-        order_id = delta[2]
+        price, size, order_id = delta
         if size:
+            stored = self._index.get(order_id)
+            if stored:
+                stored[0] = price or stored[0]
+                stored[1] = size
+                return
             self._index[order_id] = delta
         else:
             if order_id in self._index:
                 del self._index[order_id]
 
-    def limit(self, n=None):
-        first_element = operator.itemgetter(0)
-        generator = (list(t) for t in self._index.values())
-        array = sorted(generator, key=first_element, reverse=self.side)
-        if n and n < len(array):
-            array = array[:n]
-        self.clear()
-        self.extend(array)
-        return self
-
-
-# -----------------------------------------------------------------------------
-# limited and order-id-based
-
-class LimitedIndexedOrderBookSide(IndexedOrderBookSide, LimitedOrderBookSide):
-    pass
-
-
 # -----------------------------------------------------------------------------
 # adjusts the volumes by positive or negative relative changes or differences
 
+
 class IncrementalOrderBookSide(OrderBookSide):
+    def __init__(self, deltas=[], depth=float('inf')):
+        super(IncrementalOrderBookSide, self).__init__(deltas, depth, LIMIT_BY_KEY)
+
     def store(self, price, size):
-        result = self._index.get(price, 0) + size
-        if result > 0:
-            self._index[price] = result
-            return
-        if price in self._index:
-            del self._index[price]
+        size = self._index.get(price, 0) + size
+        if size <= 0:
+            if price in self._index:
+                del self._index[price]
+        else:
+            self._index[price] = size
 
     def storeArray(self, delta):
         price, size = delta
-        result = self._index.get(price, 0) + size
-        if result > 0:
-            self._index[price] = result
-            return
-        if price in self._index:
-            del self._index[price]
-
+        size = self._index.get(price, 0) + size
+        if size <= 0:
+            if price in self._index:
+                del self._index[price]
+        else:
+            self._index[price] = size
 
 # -----------------------------------------------------------------------------
 # incremental and indexed (2 in 1)
 
-class IncrementalIndexedOrderBookSide(OrderBookSide):
+
+class IncrementalIndexedOrderBookSide(IndexedOrderBookSide):
     def store(self, price, size, order_id):
         if size:
-            result = self._index.get(price, 0) + size
-            if result > 0:
-                self._index[order_id] = result
-                return
-        if order_id in self._index:
-            del self._index[order_id]
+            stored = self._index.get(order_id)
+            if stored:
+                if size + stored[1] >= 0:
+                    stored[0] = price or stored[0]
+                    stored[1] = size + stored[1]
+                    return
+            self._index[order_id] = [price, size, order_id]
+        else:
+            if order_id in self._index:
+                del self._index[order_id]
 
     def storeArray(self, delta):
         price, size, order_id = delta
         if size:
-            result = self._index.get(price, 0) + size
-            if result > 0:
-                self._index[order_id] = result
-                return
-        if order_id in self._index:
-            del self._index[order_id]
+            stored = self._index.get(order_id)
+            if stored:
+                if size + stored[1] >= 0:
+                    stored[0] = price or stored[0]
+                    stored[1] = size + stored[1]
+                    return
+            self._index[order_id] = delta
+        else:
+            if order_id in self._index:
+                del self._index[order_id]
 
 
 # -----------------------------------------------------------------------------
@@ -197,14 +182,10 @@ class IncrementalIndexedOrderBookSide(OrderBookSide):
 
 class Asks(OrderBookSide): side = False                                     # noqa
 class Bids(OrderBookSide): side = True                                      # noqa
-class LimitedAsks(LimitedOrderBookSide): side = False                       # noqa
-class LimitedBids(LimitedOrderBookSide): side = True                        # noqa
 class CountedAsks(CountedOrderBookSide): side = False                       # noqa
 class CountedBids(CountedOrderBookSide): side = True                        # noqa
 class IndexedAsks(IndexedOrderBookSide): side = False                       # noqa
 class IndexedBids(IndexedOrderBookSide): side = True                        # noqa
-class LimitedIndexedAsks(LimitedIndexedOrderBookSide): side = False         # noqa
-class LimitedIndexedBids(LimitedIndexedOrderBookSide): side = True          # noqa
 class IncrementalAsks(IncrementalOrderBookSide): side = False               # noqa
 class IncrementalBids(IncrementalOrderBookSide): side = True                # noqa
 class IncrementalIndexedAsks(IncrementalIndexedOrderBookSide): side = False # noqa

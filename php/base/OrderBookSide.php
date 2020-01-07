@@ -10,110 +10,97 @@ namespace ccxtpro;
 
 use \Ds\Map;
 
+error_reporting(E_ALL ^ E_WARNING);  // temporarily disable warnings
+
+const LIMIT_BY_KEY = 0;
+const LIMIT_BY_VALUE_PRICE_KEY = 1;
+const LIMIT_BY_VALUE_INDEX_KEY = 2;
+
 class OrderBookSide extends \ArrayObject implements \JsonSerializable {
     public $index;
+    public $depth;
+    public $limit_type;
     public static $side = null;
 
-    public function __construct($deltas = array()) {
+    public function __construct($deltas = array(), $depth = PHP_INT_MAX, $limit_type = LIMIT_BY_KEY) {
         parent::__construct();
         $this->index = new Map();  // support for floating point keys
-        $this->data = array();
-        $this->update($deltas);
+        $this->depth = $depth;
+        $this->limit_type = $limit_type;
+        foreach ($deltas as $delta) {
+            $this->storeArray($delta);
+        }
     }
 
     public function storeArray($delta) {
         $price = $delta[0];
         $size = $delta[1];
         if ($size) {
-            $this->index[$price] = $size;
+            $this->index->put($price, $size);
         } else {
-            unset($this->index[$price]);
+            $this->index->remove($price);
         }
     }
 
     public function store($price, $size) {
         if ($size) {
-            $this->index[$price] = $size;
+            $this->index->put($price, $size);
         } else {
-            unset($this->index[$price]);
+            $this->index->remove($price, null);
         }
     }
 
-    public function limit($n = null) {
-        $this->index->ksort();
+    public function limit($n = PHP_INT_MAX) {
+        if ($this->limit_type) {
+            $this->index->sort();
+        } else {
+            $this->index->ksort();
+        }
         if (static::$side) {
             $this->index->reverse();
         }
-        $keys = $this->index->keys()->toArray();
-        $values = $this->index->values()->toArray();
-        if ($n) {
-            array_splice($keys, $n);
-            array_splice($values, $n);
+        if ($this->limit_type) {
+            $array = $this->index->values()->toArray();
+        } else {
+            $array = [];
+            foreach ($this->index as $key => $value) {
+                $array[] = array($key, $value);
+            }
         }
-        $result = array_map(null, $keys, $values);
-        $this->exchangeArray($result);
+        $threshold = min($this->depth, count($array));
+        $this->exchangeArray(array());
+        $this->index->clear();
+        for ($i = 0; $i < $threshold; $i++) {
+            $current = $array[$i];
+            $price = $current[0];
+            if ($this->limit_type) {
+                $last = $current[2];
+                $this->index->put($this->limit_type & 1 ? $price : $last, $current);
+            } else {
+                $size = $current[1];
+                $this->index->put($price, $size);
+            }
+            if ($i < $n) {
+                $this->append($current);
+            }
+        }
         return $this;
     }
 
     public function JsonSerialize () {
         return $this->getArrayCopy();
     }
-
-    public function update($deltas) {
-        foreach ($deltas as $delta) {
-            $this->storeArray($delta);
-        }
-    }
-}
-
-// ----------------------------------------------------------------------------
-// some exchanges limit the number of bids/asks in the aggregated orderbook
-// orders beyond the limit threshold are not updated with new ws deltas
-// those orders should not be returned to the user, they are outdated quickly
-
-trait Limited {
-    public $depth;
-
-    public function __construct($deltas = array(), $depth = null) {
-        parent::__construct($deltas);
-        $this->depth = $depth;
-    }
-
-    public function limit($n = null) {
-        $this->index->ksort();
-        if (static::$side) {
-            $this->index->reverse();
-        }
-        $keys = $this->index->keys()->toArray();
-        $values = $this->index->values()->toArray();
-        if ($n || $this->depth) {
-            $limit = min($n ? $n : PHP_INT_MAX, $this->depth ? $this->depth : PHP_INT_MAX);
-            array_splice($keys, $limit);
-            array_splice($values, $limit);
-        }
-        $result = array();
-        $limit = count($keys);
-        for ($i = 0; $i < $limit; $i++) {
-            $result[$i] = array($keys[$i], $values[$i]);
-        }
-        $this->index->clear();
-        foreach ($result as $value) {
-            $this->index[$value[0]] = $value[1];
-        }
-        $this->exchangeArray($result);
-        return $this;
-    }
-}
-
-class LimitedOrderBookSide extends OrderBookSide {
-    use Limited;
 }
 
 // ----------------------------------------------------------------------------
 // overwrites absolute volumes at price levels
 // or deletes price levels based on order counts (3rd value in a bidask delta)
 
-trait Counted {
+class CountedOrderBookSide extends OrderBookSide {
+    public function __construct($deltas = array(), $depth = PHP_INT_MAX) {
+        parent::__construct($deltas, $depth, LIMIT_BY_VALUE_PRICE_KEY);
+    }
+
     public function store($price, $size, $count = null) {
         if ($size && $count) {
             $this->index[$price] = array($price, $size, $count);
@@ -131,192 +118,115 @@ trait Counted {
         } else {
             unset($this->index[$price]);
         }
-    }
-
-    public function limit($n = null) {
-        $this->index->ksort();
-        if (static::$side) {
-            $this->index->reverse();
-        }
-        $values = $this->index->values()->toArray();
-        if ($n) {
-            array_splice($values, $n);
-        }
-        $this->exchangeArray($values);
-        return $this;
-    }
-}
-
-class CountedOrderBookSide extends OrderBookSide {
-    use Counted;
-}
+    }}
 
 // ----------------------------------------------------------------------------
 // indexed by order ids (3rd value in a bidask delta)
 
-trait Indexed {
-    public function store($price, $size, $id = null) {
+class IndexedOrderBookSide extends OrderBookSide {
+    public function __construct($deltas = array(), $depth = PHP_INT_MAX) {
+        parent::__construct($deltas, $depth, LIMIT_BY_VALUE_INDEX_KEY);
+    }
+
+    public function store($price, $size, $id) {
         if ($size) {
-            $this->index[$id] = array($price, $size, $id);
+            $stored = $this->index->get($id, null);
+            if ($stored) {
+                $price = $price ? $price : $stored[0];
+            }
+            $this->index->put($id, array($price, $size, $id));
         } else {
-            unset($this->index[$id]);
+            $this->index->remove($id, null);
         }
     }
 
     public function restore($price, $size, $id) { // price is presumably null
-        if ($size) {
-            $array = $this->index[$id];
-            $price = isset($price) ? $price : $array[0];
-            $this->index[$id] = array($price, $size, $id);
-        } else {
-            unset($this->index[$id]);
-        }
+        return $this->store($price, $size, $id);
     }
 
-
     public function storeArray($delta) {
+        $price = $delta[0];
         $size = $delta[1];
         $id = $delta[2];
         if ($size) {
-            $this->index[$id] = $delta;
+            $stored = $this->index->get($id, null);
+            if ($stored) {
+                $price = $price ? $price : $stored[0];
+                $this->index->put($id, array($price, $size, $id));
+                return;
+            }
+            $this->index->put($id, $delta);
         } else {
-            unset($this->index[$id]);
+            $this->index->remove($id, null);
         }
     }
-
-    public function limit($n = null) {
-        $this->index->sort();
-        if (static::$side) {
-            $this->index->reverse();
-        }
-        $values = $this->index->values()->toArray();
-        if ($n) {
-            array_splice($values, $n);
-        }
-        $this->exchangeArray($values);
-        return $this;
-    }
-}
-
-class IndexedOrderBookSide extends OrderBookSide {
-    use Indexed;
 }
 
 // ----------------------------------------------------------------------------
 // adjusts the volumes by positive or negative relative changes or differences
 
 class IncrementalOrderBookSide extends OrderBookSide {
+    public function __construct($deltas = array(), $depth = PHP_INT_MAX) {
+        parent::__construct($deltas, $depth, LIMIT_BY_KEY);
+    }
+
     public function store($price, $size, $id = null) {
-        $this->index[$price] = $this->index->get($price, 0) + $size;
-        if ($this->index[$price] <= 0) {
-            unset($this->index[$price]);
+        $size = $this->index->get($price, 0) + $size;
+        if ($size <= 0) {
+            $this->index->remove($price, null);
+        } else {
+            $this->index->put($price, $size);
         }
     }
 
     public function storeArray($delta) {
         $price = $delta[0];
         $size = $delta[1];
-        $this->index[$price] = $this->index->get($price, 0) + $size;
-        if ($this->index[$price] <= 0) {
-            unset($this->index[$price]);
+        $size = $this->index->get($price, 0) + $size;
+        if ($size <= 0) {
+            $this->index->remove($price, null);
+        } else {
+            $this->index->put($price, $size);
         }
     }
-}
-
-// ----------------------------------------------------------------------------
-// limited and order-id-based
-
-class LimitedIndexedOrderBookSide extends OrderBookSide {
-    public $depth;
-    use Indexed;
-
-    public function __construct($deltas = array(), $depth = null) {
-        parent::__construct($deltas);
-        $this->depth = $depth;
-    }
-
-    public function limit($n = null) {
-        $this->index->sort();
-        if (static::$side) {
-            $this->index->reverse();
-        }
-        $keys = $this->index->keys()->toArray();
-        $values = $this->index->values()->toArray();
-        if ($n || $this->depth) {
-            $limit = min($n ? $n : PHP_INT_MAX, $this->depth ? $this->depth : PHP_INT_MAX);
-            array_splice($values, $limit);
-            array_splice($keys, $limit);
-        }
-        $this->index->clear();
-        foreach ($values as $value) {
-            $this->index[next($keys)] = $value;
-        }
-        $this->exchangeArray($values);
-        return $this;
-    }
-}
-
-// ----------------------------------------------------------------------------
-// limited and count-based
-
-class LimitedCountedOrderBookSide extends CountedOrderBookSide {
-    public $depth;
-    use Counted;
-
-    public function __construct($deltas = array(), $depth = null) {
-        parent::__construct($deltas);
-        $this->depth = $depth;
-    }
-
-    public function limit($n = null) {
-        $this->index->sort();
-        if (static::$side) {
-            $this->index->reverse();
-        }
-        $keys = $this->index->keys()->toArray();
-        $values = $this->index->values()->toArray();
-        if ($n || $this->depth) {
-            $limit = min($n ? $n : PHP_INT_MAX, $this->depth ? $this->depth : PHP_INT_MAX);
-            array_splice($values, $limit);
-            array_splice($keys, $limit);
-        }
-        $this->index->clear();
-        foreach ($values as $value) {
-            $this->index[next($keys)] = $value;
-        }
-        $this->exchangeArray($values);
-        return $this;
-    }
-
 }
 
 // ----------------------------------------------------------------------------
 // incremental and indexed (2 in 1)
 
 class IncrementalIndexedOrderBookSide extends IndexedOrderBookSide {
-    use Indexed;
-
-    public function store($price, $size, $id = null) {
+    public function store($price, $size, $id) {
         if ($size) {
-            $this->index[$id] = $this->index->get($id, 0) + $size;
-            if ($this->index[$id] <= 0) {
-                unset($this->index[$id]);
+            $stored = $this->index->get($id, null);
+            if ($stored) {
+                if ($size + $stored[1] >= 0) {
+                    $price = $price ? $price : $stored[0];
+                    $size = $size + $stored[1];
+                }
             }
+            $this->index->put($id, array($price, $size, $id));
         } else {
-            unset($this->index[$id]);
+            $this->index->remove($id, null);
         }
     }
 
     public function storeArray($delta) {
+        $price = $delta[0];
         $size = $delta[1];
         $id = $delta[2];
         if ($size) {
-            $this->index[$id] = $this->index->get($id, 0) + $size;
-            if ($this->index[$id] <= 0) {
-                unset($this->index[$id]);
+            $stored = $this->index->get($id, null);
+            if ($stored) {
+                if ($size + $stored[1] >= 0) {
+                    $price = $price ? $price : $stored[0];
+                    $size = $size + $stored[1];
+                    $this->index->put($id, array($price, $size, $id));
+                    return;
+                }
             }
+            $this->index->put($id, $delta);
         } else {
-            unset($this->index[$id]);
+            $this->index->remove($id, null);
         }
     }
 }
@@ -326,19 +236,15 @@ class IncrementalIndexedOrderBookSide extends IndexedOrderBookSide {
 
 class Asks extends OrderBookSide { public static $side = false; }
 class Bids extends OrderBookSide { public static $side = true; }
-class LimitedAsks extends LimitedOrderBookSide { public static $side = false; }
-class LimitedBids extends LimitedOrderBookSide { public static $side = true; }
 class CountedAsks extends CountedOrderBookSide { public static $side = false; }
 class CountedBids extends CountedOrderBookSide { public static $side = true; }
 class IndexedAsks extends IndexedOrderBookSide { public static $side = false; }
 class IndexedBids extends IndexedOrderBookSide { public static $side = true; }
 class IncrementalAsks extends IncrementalOrderBookSide { public static $side = false; }
 class IncrementalBids extends IncrementalOrderBookSide { public static $side = true; }
-class LimitedIndexedAsks extends LimitedIndexedOrderBookSide { public static $side = false; }
-class LimitedIndexedBids extends LimitedIndexedOrderBookSide { public static $side = true; }
-class LimitedCountedAsks extends LimitedCountedOrderBookSide { public static $side = false; }
-class LimitedCountedBids extends LimitedCountedOrderBookSide { public static $side = true; }
 class IncrementalIndexedAsks extends IncrementalIndexedOrderBookSide { public static $side = false; }
 class IncrementalIndexedBids extends IncrementalIndexedOrderBookSide { public static $side = true; }
 
 // ----------------------------------------------------------------------------
+
+error_reporting(E_ALL);  // reset change made above
