@@ -5,11 +5,8 @@ from ccxt import Exchange
 
 
 class OrderBook(dict):
-
-    cache = []
-
-    def __init__(self, snapshot={}):
-        super(OrderBook, self).__init__()
+    def __init__(self, snapshot={}, depth=float('inf')):
+        self.cache = []
         defaults = {
             'bids': [],
             'asks': [],
@@ -17,15 +14,17 @@ class OrderBook(dict):
             'datetime': None,
             'nonce': None,
         }
-        snapshot['datetime'] = Exchange.iso8601(snapshot.get('timestamp'))
-        super(OrderBook, self).update(defaults)
-        super(OrderBook, self).update(snapshot)
-        if not isinstance(self['asks'], order_book_side.OrderBookSide):
-            self['asks'] = order_book_side.Asks(self['asks'])
-        if not isinstance(self['bids'], order_book_side.OrderBookSide):
-            self['bids'] = order_book_side.Bids(self['bids'])
+        # do not mutate snapshot
+        defaults.update(snapshot)
+        if not isinstance(defaults['asks'], order_book_side.OrderBookSide):
+            defaults['asks'] = order_book_side.Asks(defaults['asks'], depth)
+        if not isinstance(defaults['bids'], order_book_side.OrderBookSide):
+            defaults['bids'] = order_book_side.Bids(defaults['bids'], depth)
+        defaults['datetime'] = Exchange.iso8601(defaults.get('timestamp'))
+        # merge to self
+        super(OrderBook, self).__init__(defaults)
 
-    def limit(self, n=None):
+    def limit(self, n=float('inf')):
         self['asks'].limit(n)
         self['bids'].limit(n)
         return self
@@ -43,65 +42,51 @@ class OrderBook(dict):
             return self
         self.reset(snapshot)
 
-
-# -----------------------------------------------------------------------------
-# some exchanges limit the number of bids/asks in the aggregated orderbook
-# orders beyond the limit threshold are not updated with new ws deltas
-# those orders should not be returned to the user, they are outdated quickly
-
-class LimitedOrderBook(OrderBook):
-    def __init__(self, snapshot={}, depth=None):
-        snapshot['asks'] = order_book_side.LimitedAsks(snapshot.get('asks', []), depth)
-        snapshot['bids'] = order_book_side.LimitedBids(snapshot.get('bids', []), depth)
-        super(LimitedOrderBook, self).__init__(snapshot)
-
 # -----------------------------------------------------------------------------
 # overwrites absolute volumes at price levels
 # or deletes price levels based on order counts (3rd value in a bidask delta)
 
 
 class CountedOrderBook(OrderBook):
-    def __init__(self, snapshot={}):
-        snapshot['asks'] = order_book_side.CountedAsks(snapshot.get('asks', []))
-        snapshot['bids'] = order_book_side.CountedBids(snapshot.get('bids', []))
-        super(CountedOrderBook, self).__init__(snapshot)
+    def __init__(self, snapshot={}, depth=float('inf')):
+        copy = Exchange.extend(snapshot, {
+            'asks': order_book_side.CountedAsks(snapshot.get('asks', []), depth),
+            'bids': order_book_side.CountedBids(snapshot.get('bids', []), depth),
+        })
+        super(CountedOrderBook, self).__init__(copy, depth)
 
 # -----------------------------------------------------------------------------
 # indexed by order ids (3rd value in a bidask delta)
 
 
 class IndexedOrderBook(OrderBook):
-    def __init__(self, snapshot={}):
-        snapshot['asks'] = order_book_side.IndexedAsks(snapshot.get('asks', []))
-        snapshot['bids'] = order_book_side.IndexedBids(snapshot.get('bids', []))
-        super(IndexedOrderBook, self).__init__(snapshot)
+    def __init__(self, snapshot={}, depth=float('inf')):
+        copy = Exchange.extend(snapshot, {
+            'asks': order_book_side.IndexedAsks(snapshot.get('asks', []), depth),
+            'bids': order_book_side.IndexedBids(snapshot.get('bids', []), depth),
+        })
+        super(IndexedOrderBook, self).__init__(copy, depth)
 
 # -----------------------------------------------------------------------------
 # adjusts the volumes by positive or negative relative changes or differences
 
 
 class IncrementalOrderBook(OrderBook):
-    def __init__(self, snapshot={}):
-        snapshot['asks'] = order_book_side.IncrementalAsks(snapshot.get('asks', []))
-        snapshot['bids'] = order_book_side.IncrementalBids(snapshot.get('bids', []))
-        super(IncrementalOrderBook, self).__init__(snapshot)
-
-# -----------------------------------------------------------------------------
-# limited and indexed (2 in 1)
-
-
-class LimitedIndexedOrderBook(OrderBook):
-    def __init__(self, snapshot={}, depth=None):
-        snapshot['asks'] = order_book_side.LimitedIndexedAsks(snapshot.get('asks', []), depth)
-        snapshot['bids'] = order_book_side.LimitedIndexedBids(snapshot.get('bids', []), depth)
-        super(LimitedIndexedOrderBook, self).__init__(snapshot)
+    def __init__(self, snapshot={}, depth=float('inf')):
+        copy = Exchange.extend(snapshot, {
+            'asks': order_book_side.IncrementalAsks(snapshot.get('asks', []), depth),
+            'bids': order_book_side.IncrementalBids(snapshot.get('bids', []), depth),
+        })
+        super(IncrementalOrderBook, self).__init__(copy, depth)
 
 # -----------------------------------------------------------------------------
 # incremental and indexed (2 in 1)
 
 
 class IncrementalIndexedOrderBook(OrderBook):
-    def __init__(self, snapshot={}):
-        snapshot['asks'] = order_book_side.IncrementalIndexedAsks(snapshot.get('asks', []))
-        snapshot['bids'] = order_book_side.IncrementalIndexedBids(snapshot.get('bids', []))
-        super(IncrementalIndexedOrderBook, self).__init__(snapshot)
+    def __init__(self, snapshot={}, depth=float('inf')):
+        copy = Exchange.extend(snapshot, {
+            'asks': order_book_side.IncrementalIndexedAsks(snapshot.get('asks', []), depth),
+            'bids': order_book_side.IncrementalIndexedBids(snapshot.get('bids', []), depth),
+        })
+        super(IncrementalIndexedOrderBook, self).__init__(copy, depth)

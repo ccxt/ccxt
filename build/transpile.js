@@ -110,7 +110,7 @@ class CCXTProTranspiler extends Transpiler {
 
         const pythonHeader = [
             "",
-            "from ccxtpro.base.order_book import OrderBook, LimitedOrderBook, IndexedOrderBook, CountedOrderBook, IncrementalOrderBook, LimitedIndexedOrderBook  # noqa: F402",
+            "from ccxtpro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook, IncrementalOrderBook, IncrementalIndexedOrderBook  # noqa: F402",
             "",
             "",
             "def equals(a, b):",

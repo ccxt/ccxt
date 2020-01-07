@@ -220,7 +220,7 @@ module.exports = class bitmex extends ccxt.bitmex {
     }
 
     limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -337,9 +337,9 @@ module.exports = class bitmex extends ccxt.bitmex {
                 if (table === 'orderBookL2') {
                     this.orderbooks[symbol] = this.indexedOrderBook ();
                 } else if (table === 'orderBookL2_25') {
-                    this.orderbooks[symbol] = this.limitedIndexedOrderBook ({}, 25);
+                    this.orderbooks[symbol] = this.indexedOrderBook ({}, 25);
                 } else if (table === 'orderBook10') {
-                    this.orderbooks[symbol] = this.limitedIndexedOrderBook ({}, 10);
+                    this.orderbooks[symbol] = this.indexedOrderBook ({}, 10);
                 }
                 const orderbook = this.orderbooks[symbol];
                 for (let i = 0; i < data.length; i++) {

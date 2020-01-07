@@ -10,7 +10,7 @@ from asyncio import ensure_future
 from ccxtpro.base.aiohttp_client import AiohttpClient
 from ccxt.async_support import Exchange as BaseExchange
 from ccxt import NotSupported
-from ccxtpro.base.order_book import OrderBook, LimitedOrderBook, IndexedOrderBook, LimitedIndexedOrderBook, CountedOrderBook
+from ccxtpro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 
 
 # -----------------------------------------------------------------------------
@@ -35,24 +35,14 @@ class Exchange(BaseExchange):
         'maxPingPongMisses': 2.0,
     }
 
-    def order_book(self, snapshot={}):
-        return OrderBook(snapshot)
+    def order_book(self, snapshot={}, depth=float('inf')):
+        return OrderBook(snapshot, depth)
 
-    def limited_order_book(self, snapshot={}, depth=None):
-        return LimitedOrderBook(snapshot, depth)
+    def indexed_order_book(self, snapshot={}, depth=float('inf')):
+        return IndexedOrderBook(snapshot, depth)
 
-    def indexed_order_book(self, snapshot={}):
-        return IndexedOrderBook(snapshot)
-
-    def limited_indexed_order_book(self, snapshot={}, depth=None):
-        return LimitedIndexedOrderBook(snapshot, depth)
-
-    # todo: implement in python
-    # def limited_counted_order_book(self, snapshot={}, depth=None):
-    #     return LimitedCountedOrderBook(snapshot, depth)
-
-    def counted_order_book(self, snapshot={}):
-        return CountedOrderBook(snapshot)
+    def counted_order_book(self, snapshot={}, depth=float('inf')):
+        return CountedOrderBook(snapshot, depth)
 
     def client(self, url):
         self.clients = self.clients or {}
