@@ -35,7 +35,7 @@ class Client(object):
             'on_close_callback': on_close_callback,
             'connectionStarted': None,  # initiation timestamp, ms
             'connectionEstablished': None,  # success timestamp, ms
-            'connectionTimeout': 5000,  # milliseconds, false to disable
+            'connectionTimeout': 10000,  # milliseconds, false to disable
             'keepAlive': 5000,  # ping-pong keep-alive frequency, ms
             # timeout is not used atm
             # timeout: 30000,  # ms, throw if a request is not satisfied, false to disable
