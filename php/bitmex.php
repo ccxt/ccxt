@@ -398,17 +398,6 @@ class bitmex extends \ccxt\bitmex {
         }
     }
 
-    public function handle_deltas ($bookside, $deltas, $timestamp) {
-        for ($j = 0; $j < count($deltas); $j++) {
-            $delta = $deltas[$j];
-            $price = floatval ($delta[0]);
-            $amount = floatval ($delta[1]);
-            $timestamp = max ($timestamp || 0, intval ($delta[2] * 1000));
-            $bookside->store ($price, $amount);
-        }
-        return $timestamp;
-    }
-
     public function handle_system_status ($client, $message) {
         //
         // todo => answer the question whether handleSystemStatus should be renamed

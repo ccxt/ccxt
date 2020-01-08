@@ -372,15 +372,6 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                 # the .limit() operation will be moved to the watchOrderBook
                 client.resolve(orderbook, messageHash)
 
-    def handle_deltas(self, bookside, deltas, timestamp):
-        for j in range(0, len(deltas)):
-            delta = deltas[j]
-            price = float(delta[0])
-            amount = float(delta[1])
-            timestamp = max(timestamp or 0, int(delta[2] * 1000))
-            bookside.store(price, amount)
-        return timestamp
-
     def handle_system_status(self, client, message):
         #
         # todo: answer the question whether handleSystemStatus should be renamed

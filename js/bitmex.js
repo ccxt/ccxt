@@ -393,17 +393,6 @@ module.exports = class bitmex extends ccxt.bitmex {
         }
     }
 
-    handleDeltas (bookside, deltas, timestamp) {
-        for (let j = 0; j < deltas.length; j++) {
-            const delta = deltas[j];
-            const price = parseFloat (delta[0]);
-            const amount = parseFloat (delta[1]);
-            timestamp = Math.max (timestamp || 0, parseInt (delta[2] * 1000));
-            bookside.store (price, amount);
-        }
-        return timestamp;
-    }
-
     handleSystemStatus (client, message) {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
