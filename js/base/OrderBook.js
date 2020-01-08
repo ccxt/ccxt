@@ -67,12 +67,6 @@ class OrderBook {
             (snapshot.nonce <= this.nonce)) {
             return this
         }
-        for (let i = 0; i < snapshot.asks.length; i++) {
-            this.asks.storeArray (snapshot.asks[i])
-        }
-        for (let i = 0; i < snapshot.bids.length; i++) {
-            this.bids.storeArray (snapshot.bids[i])
-        }
         this.nonce = snapshot.nonce
         this.timestamp = snapshot.timestamp
         this.datetime = iso8601 (this.timestamp)
@@ -85,8 +79,12 @@ class OrderBook {
     }
 
     reset (snapshot) {
-        this.asks.update (snapshot.asks)
-        this.bids.update (snapshot.bids)
+        for (let i = 0; i < snapshot.asks.length; i++) {
+            this.asks.storeArray (snapshot.asks[i])
+        }
+        for (let i = 0; i < snapshot.bids.length; i++) {
+            this.bids.storeArray (snapshot.bids[i])
+        }
         this.nonce = snapshot.nonce
         this.timestamp = snapshot.timestamp
         this.datetime = iso8601 (this.timestamp)
