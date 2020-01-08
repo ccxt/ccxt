@@ -24,7 +24,8 @@ const exchanges = {
     'coinbasepro':             require ('./js/coinbasepro.js'),
     'kraken':                  require ('./js/kraken.js'),
     'kucoin':                  require ('./js/kucoin.js'),
-    'poloniex':                require ('./js/poloniex.js'),    
+    'poloniex':                require ('./js/poloniex.js'),
+    'gateio':                require ('./js/gateio.js'),
 }
 
 // ----------------------------------------------------------------------------
