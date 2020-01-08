@@ -10,7 +10,7 @@ const LIMIT_BY_VALUE_PRICE_KEY = 1
 const LIMIT_BY_VALUE_INDEX_KEY = 2
 
 class OrderBookSide extends Array {
-    constructor (deltas = [], depth = Number.MAX_SAFE_INTEGER, limitType = LIMIT_BY_KEY) {
+    constructor (deltas = [], depth = undefined, limitType = LIMIT_BY_KEY) {
         super (deltas.length)
         // a string-keyed dictionary of price levels / ids / indices
         Object.defineProperty (this, 'index', {
@@ -20,7 +20,7 @@ class OrderBookSide extends Array {
         })
         Object.defineProperty (this, 'depth', {
             __proto__: null, // make it invisible
-            value: depth,
+            value: depth || Number.MAX_SAFE_INTEGER,
             writable: true,
         })
         Object.defineProperty (this, 'limitType', {

@@ -20,13 +20,15 @@ const { extend, deepExtend } = require ('ccxt/js/base/functions/generic.js')
 
 class OrderBook {
 
-    constructor (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
+    constructor (snapshot = {}, depth = undefined) {
 
         Object.defineProperty (this, 'cache', {
             __proto__: null, // make it invisible
             value: [],
             writable: true,
         })
+
+        depth = depth || Number.MAX_SAFE_INTEGER
 
         const defaults = {
             'bids': [],
@@ -79,9 +81,11 @@ class OrderBook {
     }
 
     reset (snapshot) {
+        this.asks.index.clear ()
         for (let i = 0; i < snapshot.asks.length; i++) {
             this.asks.storeArray (snapshot.asks[i])
         }
+        this.bids.index.clear ()
         for (let i = 0; i < snapshot.bids.length; i++) {
             this.bids.storeArray (snapshot.bids[i])
         }
@@ -97,7 +101,7 @@ class OrderBook {
 // or deletes price levels based on order counts (3rd value in a bidask delta)
 
 class CountedOrderBook extends OrderBook {
-    constructor (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
+    constructor (snapshot = {}, depth = undefined) {
         super (extend (snapshot, {
             'asks': new CountedAsks (snapshot.asks || [], depth),
             'bids': new CountedBids (snapshot.bids || [], depth),
@@ -109,7 +113,7 @@ class CountedOrderBook extends OrderBook {
 // indexed by order ids (3rd value in a bidask delta)
 
 class IndexedOrderBook extends OrderBook {
-    constructor (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
+    constructor (snapshot = {}, depth = undefined) {
         super (extend (snapshot, {
             'asks': new IndexedAsks (snapshot.asks || [], depth),
             'bids': new IndexedBids (snapshot.bids || [], depth),
@@ -121,7 +125,7 @@ class IndexedOrderBook extends OrderBook {
 // adjusts the volumes by positive or negative relative changes or differences
 
 class IncrementalOrderBook extends OrderBook {
-    constructor (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
+    constructor (snapshot = {}, depth = undefined) {
         super (extend (snapshot, {
             'asks': new IncrementalAsks (snapshot.asks || [], depth),
             'bids': new IncrementalBids (snapshot.bids || [], depth),
@@ -134,7 +138,7 @@ class IncrementalOrderBook extends OrderBook {
 // incremental and indexed (2 in 1)
 
 class IncrementalIndexedOrderBook extends OrderBook {
-    constructor (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
+    constructor (snapshot = {}, depth = undefined) {
         super (extend (snapshot, {
             'asks': new IncrementalIndexedAsks (snapshot.asks || [], depth),
             'bids': new IncrementalIndexedBids (snapshot.bids || [], depth),

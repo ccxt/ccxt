@@ -11,10 +11,10 @@ class OrderBookSide(list):
     side = None  # set to True for bids and False for asks
     # sorted(..., reverse=self.side)
 
-    def __init__(self, deltas=[], depth=float('inf'), limit_type=LIMIT_BY_KEY):
+    def __init__(self, deltas=[], depth=None, limit_type=LIMIT_BY_KEY):
         # allocate memory for the list here (it will not be resized...)
         super(OrderBookSide, self).__init__()
-        self._depth = depth
+        self._depth = depth or float('inf')
         self._limit_type = limit_type
         self._index = {}
         for delta in deltas:
@@ -64,7 +64,7 @@ class OrderBookSide(list):
 
 
 class CountedOrderBookSide(OrderBookSide):
-    def __init__(self, deltas=[], depth=float('inf')):
+    def __init__(self, deltas=[], depth=None):
         super(CountedOrderBookSide, self).__init__(deltas, depth, LIMIT_BY_VALUE_PRICE_KEY)
 
     def store(self, price, size, count):
@@ -88,7 +88,7 @@ class CountedOrderBookSide(OrderBookSide):
 
 
 class IndexedOrderBookSide(OrderBookSide):
-    def __init__(self, deltas=[], depth=float('inf')):
+    def __init__(self, deltas=[], depth=None):
         super(IndexedOrderBookSide, self).__init__(deltas, depth, LIMIT_BY_VALUE_INDEX_KEY)
 
     def store(self, price, size, order_id):
@@ -124,7 +124,7 @@ class IndexedOrderBookSide(OrderBookSide):
 
 
 class IncrementalOrderBookSide(OrderBookSide):
-    def __init__(self, deltas=[], depth=float('inf')):
+    def __init__(self, deltas=[], depth=None):
         super(IncrementalOrderBookSide, self).__init__(deltas, depth, LIMIT_BY_KEY)
 
     def store(self, price, size):

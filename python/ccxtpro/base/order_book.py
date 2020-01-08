@@ -5,8 +5,9 @@ from ccxt import Exchange
 
 
 class OrderBook(dict):
-    def __init__(self, snapshot={}, depth=float('inf')):
+    def __init__(self, snapshot={}, depth=None):
         self.cache = []
+        depth = depth or float('inf')
         defaults = {
             'bids': [],
             'asks': [],
@@ -30,8 +31,12 @@ class OrderBook(dict):
         return self
 
     def reset(self, snapshot):
-        self['asks'].update(snapshot.get('asks', []))
-        self['bids'].update(snapshot.get('bids', []))
+        self['asks']._index.clear()
+        for ask in snapshot.get('asks', []):
+            self['asks'].storeArray(ask)
+        self['bids']._index.clear()
+        for bid in snapshot.get('bids', []):
+            self['bids'].storeArray(bid)
         self['nonce'] = snapshot.get('nonce')
         self['timestamp'] = snapshot.get('timestamp')
         self['datetime'] = Exchange.iso8601(self['timestamp'])
@@ -48,7 +53,7 @@ class OrderBook(dict):
 
 
 class CountedOrderBook(OrderBook):
-    def __init__(self, snapshot={}, depth=float('inf')):
+    def __init__(self, snapshot={}, depth=None):
         copy = Exchange.extend(snapshot, {
             'asks': order_book_side.CountedAsks(snapshot.get('asks', []), depth),
             'bids': order_book_side.CountedBids(snapshot.get('bids', []), depth),
@@ -60,7 +65,7 @@ class CountedOrderBook(OrderBook):
 
 
 class IndexedOrderBook(OrderBook):
-    def __init__(self, snapshot={}, depth=float('inf')):
+    def __init__(self, snapshot={}, depth=None):
         copy = Exchange.extend(snapshot, {
             'asks': order_book_side.IndexedAsks(snapshot.get('asks', []), depth),
             'bids': order_book_side.IndexedBids(snapshot.get('bids', []), depth),
@@ -72,7 +77,7 @@ class IndexedOrderBook(OrderBook):
 
 
 class IncrementalOrderBook(OrderBook):
-    def __init__(self, snapshot={}, depth=float('inf')):
+    def __init__(self, snapshot={}, depth=None):
         copy = Exchange.extend(snapshot, {
             'asks': order_book_side.IncrementalAsks(snapshot.get('asks', []), depth),
             'bids': order_book_side.IncrementalBids(snapshot.get('bids', []), depth),
@@ -84,7 +89,7 @@ class IncrementalOrderBook(OrderBook):
 
 
 class IncrementalIndexedOrderBook(OrderBook):
-    def __init__(self, snapshot={}, depth=float('inf')):
+    def __init__(self, snapshot={}, depth=None):
         copy = Exchange.extend(snapshot, {
             'asks': order_book_side.IncrementalIndexedAsks(snapshot.get('asks', []), depth),
             'bids': order_book_side.IncrementalIndexedBids(snapshot.get('bids', []), depth),

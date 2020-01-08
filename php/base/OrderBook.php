@@ -5,22 +5,24 @@ namespace ccxtpro;
 class OrderBook extends \ArrayObject implements \JsonSerializable {
     public $cache;
 
-    public function __construct($snapshot = array(), $depth = PHP_INT_MAX) {
+    public function __construct($snapshot = array(), $depth = null) {
         $this->cache = array();
 
+        $depth = $depth ? $depth : PHP_INT_MAX;
+
         $defaults = array(
-            'bids' => null,
-            'asks' => null,
+            'bids' => array(),
+            'asks' => array(),
             'timestamp' => null,
             'datetime' => null,
             'nonce' => null,
         );
         parent::__construct(array_merge($defaults, $snapshot));
-        if (!isset($this['asks'])) {
-            $this['asks'] = new Asks(array(), $depth);
+        if (!($this['asks'] instanceof OrderBookSide)) {
+            $this['asks'] = new Asks($this['asks'], $depth);
         }
-        if (!isset($this['bids'])) {
-            $this['bids'] = new Asks(array(), $depth);
+        if (!($this['bids'] instanceof OrderBookSide)) {
+            $this['bids'] = new Bids($this['bids'], $depth);
         }
         $this['datetime'] = \ccxt\Exchange::iso8601($this['timestamp']);
     }
@@ -35,16 +37,16 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
         return $this;
     }
 
-    public function reset(&$snapshot) {
+    public function reset($snapshot) {
+        $this['asks']->index->clear();
         if (array_key_exists('asks', $snapshot) && is_array($snapshot['asks'])) {
             foreach ($snapshot['asks'] as $delta) {
-                echo "aSTORING " . json_encode ($delta) . "\n";
                 $this['asks']->storeArray ($delta);
             }
         }
+        $this['bids']->index->clear();
         if (array_key_exists('bids', $snapshot) && is_array($snapshot['bids'])) {
             foreach ($snapshot['bids'] as $delta) {
-                echo "bSTORING " . json_encode ($delta) . "\n";
                 $this['bids']->storeArray ($delta);
             }
         }
@@ -67,7 +69,7 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
 // or deletes price levels based on order counts (3rd value in a bidask delta)
 
 class CountedOrderBook extends OrderBook {
-    public function __construct($snapshot = array(), $depth = PHP_INT_MAX) {
+    public function __construct($snapshot = array(), $depth = null) {
         $snapshot['asks'] = new CountedAsks(array_key_exists('asks', $snapshot) ? $snapshot['asks'] : array(), $depth);
         $snapshot['bids'] = new CountedBids(array_key_exists('bids', $snapshot) ? $snapshot['bids'] : array(), $depth);
         parent::__construct($snapshot);
@@ -78,7 +80,7 @@ class CountedOrderBook extends OrderBook {
 // indexed by order ids (3rd value in a bidask delta)
 
 class IndexedOrderBook extends OrderBook {
-    public function __construct($snapshot = array(), $depth = PHP_INT_MAX) {
+    public function __construct($snapshot = array(), $depth = null) {
         $snapshot['asks'] = new IndexedAsks(array_key_exists('asks', $snapshot) ? $snapshot['asks'] : array(), $depth);
         $snapshot['bids'] = new IndexedBids(array_key_exists('bids', $snapshot) ? $snapshot['bids'] : array(), $depth);
         parent::__construct($snapshot);
@@ -89,7 +91,7 @@ class IndexedOrderBook extends OrderBook {
 // adjusts the volumes by positive or negative relative changes or differences
 
 class IncrementalOrderBook extends OrderBook {
-    public function __construct($snapshot = array(), $depth = PHP_INT_MAX) {
+    public function __construct($snapshot = array(), $depth = null) {
         $snapshot['asks'] = new IncrementalAsks(array_key_exists('asks', $snapshot) ? $snapshot['asks'] : array(), $depth);
         $snapshot['bids'] = new IncrementalBids(array_key_exists('bids', $snapshot) ? $snapshot['bids'] : array(), $depth);
         parent::__construct($snapshot);
@@ -100,7 +102,7 @@ class IncrementalOrderBook extends OrderBook {
 // incremental and indexed (2 in 1)
 
 class IncrementalIndexedOrderBook extends OrderBook {
-    public function __construct($snapshot = array(), $depth = PHP_INT_MAX) {
+    public function __construct($snapshot = array(), $depth = null) {
         $snapshot['asks'] = new IncrementalIndexedAsks(array_key_exists('asks', $snapshot) ? $snapshot['asks'] : array(), $depth);
         $snapshot['bids'] = new IncrementalIndexedBids(array_key_exists('bids', $snapshot) ? $snapshot['bids'] : array(), $depth);
         parent::__construct($snapshot);

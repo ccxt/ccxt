@@ -321,7 +321,6 @@ assert (equals (incrementalOrderBook, negativeStoredIncremetalOrderBookTarget));
 
 // --------------------------------------------------------------------------------------------------------------------
 
-
 let incrementalIndexedOrderBook = new IncrementalIndexedOrderBook (indexedOrderBookInput);
 const limitedIncrementalIndexedOrderBook = new IncrementalIndexedOrderBook (indexedOrderBookInput, 5);
 incrementalIndexedOrderBook.limit ();
@@ -346,3 +345,11 @@ bids = incrementalIndexedOrderBook['bids'];
 bids.store (10.2, 3, '1234');  // price does not match merge size
 incrementalIndexedOrderBook.limit ();
 assert (equals (incrementalIndexedOrderBook, anotherStoredIncrementalIndexedOrderBookTarget));
+
+// --------------------------------------------------------------------------------------------------------------------
+
+const resetBook = new OrderBook (storeBid);
+resetBook.limit ();
+resetBook.reset (orderBookInput);
+resetBook.limit ();
+assert (equals (resetBook, orderBookTarget));

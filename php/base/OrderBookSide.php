@@ -23,7 +23,7 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
     public function __construct($deltas = array(), $depth = PHP_INT_MAX, $limit_type = LIMIT_BY_KEY) {
         parent::__construct();
         $this->index = new Map();  // support for floating point keys
-        $this->depth = $depth;
+        $this->depth = $depth ? $depth : PHP_INT_MAX;
         $this->limit_type = $limit_type;
         foreach ($deltas as $delta) {
             $this->storeArray($delta);
