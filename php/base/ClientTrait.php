@@ -53,9 +53,7 @@ trait ClientTrait {
     }
 
     public function spawn($method, ... $args) {
-        echo date('c '), "spawn\n";
         $this->loop->futureTick(function () use ($method, $args) {
-            echo date('c '), "spawn futureTick\n";
             try {
                 $method(... $args);
             } catch (\Exception $e) {
