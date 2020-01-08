@@ -10,8 +10,6 @@ namespace ccxtpro;
 
 use \Ds\Map;
 
-error_reporting(E_ALL ^ E_WARNING);  // temporarily disable warnings
-
 const LIMIT_BY_KEY = 0;
 const LIMIT_BY_VALUE_PRICE_KEY = 1;
 const LIMIT_BY_VALUE_INDEX_KEY = 2;
@@ -42,7 +40,7 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
         }
     }
 
-    public function store($price, $size) {
+    public function store($price, $size, $id = null) {
         if ($size) {
             $this->index->put($price, $size);
         } else {
@@ -128,7 +126,7 @@ class IndexedOrderBookSide extends OrderBookSide {
         parent::__construct($deltas, $depth, LIMIT_BY_VALUE_INDEX_KEY);
     }
 
-    public function store($price, $size, $id) {
+    public function store($price, $size, $id = null) {
         if ($size) {
             $stored = $this->index->get($id, null);
             if ($stored) {
@@ -195,7 +193,7 @@ class IncrementalOrderBookSide extends OrderBookSide {
 // incremental and indexed (2 in 1)
 
 class IncrementalIndexedOrderBookSide extends IndexedOrderBookSide {
-    public function store($price, $size, $id) {
+    public function store($price, $size, $id = null) {
         if ($size) {
             $stored = $this->index->get($id, null);
             if ($stored) {
@@ -246,5 +244,3 @@ class IncrementalIndexedAsks extends IncrementalIndexedOrderBookSide { public st
 class IncrementalIndexedBids extends IncrementalIndexedOrderBookSide { public static $side = true; }
 
 // ----------------------------------------------------------------------------
-
-error_reporting(E_ALL);  // reset change made above
