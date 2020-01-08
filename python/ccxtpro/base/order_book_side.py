@@ -36,7 +36,8 @@ class OrderBookSide(list):
             if price in self._index:
                 del self._index[price]
 
-    def limit(self, n=float('inf')):
+    def limit(self, n=None):
+        n = n or float('inf')
         first_element = operator.itemgetter(0)
         iterator = self._index.values() if self._limit_type else self._index.items()
         generator = (list(t) for t in iterator)  # lazy evaluation

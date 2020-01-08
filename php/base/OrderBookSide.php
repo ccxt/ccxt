@@ -48,7 +48,8 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
         }
     }
 
-    public function limit($n = PHP_INT_MAX) {
+    public function limit($n = null) {
+        $n = $n ? $n : PHP_INT_MAX;
         if ($this->limit_type) {
             $this->index->sort();
         } else {
