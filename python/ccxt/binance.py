@@ -871,7 +871,7 @@ class binance(Exchange):
             'CANCELED': 'canceled',
             'PENDING_CANCEL': 'canceling',  # currently unused
             'REJECTED': 'rejected',
-            'EXPIRED': 'expired',
+            'EXPIRED': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
@@ -914,6 +914,8 @@ class binance(Exchange):
                         price = cost / filled
                         if self.options['parseOrderToPrecision']:
                             price = float(self.price_to_precision(symbol, price))
+        elif type == 'limit_maker':
+            type = 'limit'
         side = self.safe_string_lower(order, 'side')
         fee = None
         trades = None

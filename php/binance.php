@@ -909,7 +909,7 @@ class binance extends Exchange {
             'CANCELED' => 'canceled',
             'PENDING_CANCEL' => 'canceling', // currently unused
             'REJECTED' => 'rejected',
-            'EXPIRED' => 'expired',
+            'EXPIRED' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -965,6 +965,8 @@ class binance extends Exchange {
                     }
                 }
             }
+        } else if ($type === 'limit_maker') {
+            $type = 'limit';
         }
         $side = $this->safe_string_lower($order, 'side');
         $fee = null;
