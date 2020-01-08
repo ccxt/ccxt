@@ -381,7 +381,7 @@ module.exports = class fcoin extends Exchange {
             }
         }
         const values = ticker['ticker'];
-        const last = parseFloat (values[0]);
+        const last = this.safeFloat (values, 0);
         if (market !== undefined) {
             symbol = market['symbol'];
         }
@@ -389,12 +389,12 @@ module.exports = class fcoin extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (values[7]),
-            'low': parseFloat (values[8]),
-            'bid': parseFloat (values[2]),
-            'bidVolume': parseFloat (values[3]),
-            'ask': parseFloat (values[4]),
-            'askVolume': parseFloat (values[5]),
+            'high': this.safeFloat (values, 7),
+            'low': this.safeFloat (values, 8),
+            'bid': this.safeFloat (values, 2),
+            'bidVolume': this.safeFloat (values, 3),
+            'ask': this.safeFloat (values, 4),
+            'askVolume': this.safeFloat (values, 5),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -403,8 +403,8 @@ module.exports = class fcoin extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (values[9]),
-            'quoteVolume': parseFloat (values[10]),
+            'baseVolume': this.safeFloat (values, 9),
+            'quoteVolume': this.safeFloat (values, 10),
             'info': ticker,
         };
     }
