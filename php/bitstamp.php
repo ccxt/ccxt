@@ -34,6 +34,7 @@ class bitstamp extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
                 'api' => array(
                     'public' => 'https://www.bitstamp.net/api',
+                    'private' => 'https://www.bitstamp.net/api',
                 ),
                 'www' => 'https://www.bitstamp.net',
                 'doc' => 'https://www.bitstamp.net/api',
