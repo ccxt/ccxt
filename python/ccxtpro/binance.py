@@ -184,7 +184,7 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         limit = self.safe_string(subscription, 'limit')
         if symbol in self.orderbooks:
             del self.orderbooks[symbol]
-        self.orderbooks[symbol] = self.limited_order_book({}, limit)
+        self.orderbooks[symbol] = self.order_book({}, limit)
         # fetch the snapshot in a separate async call
         self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
 

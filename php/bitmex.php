@@ -225,7 +225,7 @@ class bitmex extends \ccxt\bitmex {
     }
 
     public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
-        return $orderbook->limit ($limit);
+        return $orderbook->limit ();
     }
 
     public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -342,9 +342,9 @@ class bitmex extends \ccxt\bitmex {
                 if ($table === 'orderBookL2') {
                     $this->orderbooks[$symbol] = $this->indexed_order_book();
                 } else if ($table === 'orderBookL2_25') {
-                    $this->orderbooks[$symbol] = $this->limited_indexed_order_book(array(), 25);
+                    $this->orderbooks[$symbol] = $this->indexed_order_book(array(), 25);
                 } else if ($table === 'orderBook10') {
-                    $this->orderbooks[$symbol] = $this->limited_indexed_order_book(array(), 10);
+                    $this->orderbooks[$symbol] = $this->indexed_order_book(array(), 10);
                 }
                 $orderbook = $this->orderbooks[$symbol];
                 for ($i = 0; $i < count($data); $i++) {

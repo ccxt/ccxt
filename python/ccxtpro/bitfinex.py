@@ -95,7 +95,7 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
         # if it is an initial snapshot
         if isinstance(message[1][0], list):
             limit = self.safe_integer(subscription, 'len')
-            self.orderbooks[symbol] = self.limited_counted_order_book({}, limit)
+            self.orderbooks[symbol] = self.counted_order_book({}, limit)
             orderbook = self.orderbooks[symbol]
             deltas = message[1]
             for i in range(0, len(deltas)):

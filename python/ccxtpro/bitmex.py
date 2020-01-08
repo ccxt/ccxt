@@ -215,7 +215,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
     def limit_order_book(self, orderbook, symbol, limit=None, params={}):
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         # name = 'ohlc'
@@ -326,9 +326,9 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                 if table == 'orderBookL2':
                     self.orderbooks[symbol] = self.indexed_order_book()
                 elif table == 'orderBookL2_25':
-                    self.orderbooks[symbol] = self.limited_indexed_order_book({}, 25)
+                    self.orderbooks[symbol] = self.indexed_order_book({}, 25)
                 elif table == 'orderBook10':
-                    self.orderbooks[symbol] = self.limited_indexed_order_book({}, 10)
+                    self.orderbooks[symbol] = self.indexed_order_book({}, 10)
                 orderbook = self.orderbooks[symbol]
                 for i in range(0, len(data)):
                     price = self.safe_float(data[i], 'price')

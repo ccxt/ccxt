@@ -371,7 +371,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         # if self is a snapshot
         if 'as' in message[1]:
             # todo get depth from marketsByWsName
-            self.orderbooks[symbol] = self.limited_order_book({}, 10)
+            self.orderbooks[symbol] = self.order_book({}, 10)
             orderbook = self.orderbooks[symbol]
             sides = {
                 'as': 'asks',
