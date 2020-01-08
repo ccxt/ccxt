@@ -73,7 +73,7 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
             $price = $current[0];
             if ($this->limit_type) {
                 $last = $current[2];
-                $this->index->put($this->limit_type & 1 ? $price : $last, $current);
+                $this->index->put(($this->limit_type & 1) ? $price : $last, $current);
             } else {
                 $size = $current[1];
                 $this->index->put($price, $size);
