@@ -4,21 +4,23 @@ namespace ccxtpro;
 
 class OrderBook extends \ArrayObject implements \JsonSerializable {
     public $cache;
-    
+
     public function __construct($snapshot = array(), $depth = PHP_INT_MAX) {
         $this->cache = array();
 
         $defaults = array(
-            'bids' => array(),
-            'asks' => array(),
+            'bids' => null,
+            'asks' => null,
             'timestamp' => null,
             'datetime' => null,
             'nonce' => null,
         );
         parent::__construct(array_merge($defaults, $snapshot));
-        if (explode('\\', get_class($this))[1] === 'OrderBook') {
-            $this['asks'] = new Asks($this['asks'], $depth);
-            $this['bids'] = new Bids($this['bids'], $depth);
+        if (!isset($this['asks'])) {
+            $this['asks'] = new Asks(array(), $depth);
+        }
+        if (!isset($this['bids'])) {
+            $this['bids'] = new Asks(array(), $depth);
         }
         $this['datetime'] = \ccxt\Exchange::iso8601($this['timestamp']);
     }
@@ -34,8 +36,18 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
     }
 
     public function reset(&$snapshot) {
-        @$this['asks']->update($snapshot['asks']);
-        @$this['bids']->update($snapshot['bids']);
+        if (array_key_exists('asks', $snapshot) && is_array($snapshot['asks'])) {
+            foreach ($snapshot['asks'] as $delta) {
+                echo "aSTORING " . json_encode ($delta) . "\n";
+                $this['asks']->storeArray ($delta);
+            }
+        }
+        if (array_key_exists('bids', $snapshot) && is_array($snapshot['bids'])) {
+            foreach ($snapshot['bids'] as $delta) {
+                echo "bSTORING " . json_encode ($delta) . "\n";
+                $this['bids']->storeArray ($delta);
+            }
+        }
         @$this['nonce'] = $snapshot['nonce'];
         @$this['timestamp'] = $snapshot['timestamp'];
         $this['datetime'] = \ccxt\Exchange::iso8601($this['timestamp']);
