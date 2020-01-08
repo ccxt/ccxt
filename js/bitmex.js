@@ -220,7 +220,7 @@ module.exports = class bitmex extends ccxt.bitmex {
     }
 
     limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
-        return orderbook.limit ();
+        return orderbook.limit (limit);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
