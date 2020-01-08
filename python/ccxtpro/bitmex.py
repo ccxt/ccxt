@@ -215,7 +215,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
     def limit_order_book(self, orderbook, symbol, limit=None, params={}):
-        return orderbook.limit()
+        return orderbook.limit(limit)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         # name = 'ohlc'
