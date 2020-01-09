@@ -519,6 +519,7 @@ module.exports = class kraken extends ccxt.kraken {
 
     handleMessage (client, message) {
         if (Array.isArray (message)) {
+            // todo: move this branch and the 'method' property – to the client.subscriptions
             const channelId = message[0].toString ();
             const subscriptionStatus = this.safeValue (this.options['subscriptionStatusByChannelId'], channelId, {});
             const subscription = this.safeValue (subscriptionStatus, 'subscription', {});
