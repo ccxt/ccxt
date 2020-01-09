@@ -85,11 +85,12 @@ if (settings && settings.skip) {
 ;(async () => {
 
     const symbol = 'ETH/BTC'
+        , n = 1 // output every nth snapshot
 
     while (true) {
         try {
             let response = undefined
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < n; i++) {
                 response = await exchange.watchOrderBook (symbol)
             }
             console.log (new Date (), symbol,
