@@ -9,6 +9,8 @@ trait ClientTrait {
     // streaming-specific options
     public $streaming = array(
         'keepAlive' => 30000,
+        'heartbeat' => true,
+        'ping' => null,
     );
 
     public $loop = null; // reactphp's loop
@@ -30,8 +32,9 @@ trait ClientTrait {
             $on_message = array($this, 'handle_message');
             $on_error = array($this, 'on_error');
             $on_close = array($this, 'on_close');
-            // decide client type here: ws / signalr / socketio
-            $config = array('loop' => $this->loop);
+            $config = array_replace_recursive(array(
+                'loop' => $this->loop, // reactphp-specific
+            ), $this->streaming);
             $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $config);
         }
         return $this->clients[$url];
@@ -83,8 +86,6 @@ trait ClientTrait {
             },
             function($error) {
                 echo date('c '), get_class($error), ' ', $error->getMessage(), "\n";
-                echo "ERROR -----------------------------------------------------\n";
-                exit();
                 // we do nothing and don't return a resolvable value from here
                 // we leave it in a rejected state to avoid triggering the
                 // then-clauses that will follow (if any)
