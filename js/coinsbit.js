@@ -271,7 +271,7 @@ module.exports = class coinsbit extends Exchange {
         }
         let price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
-        const cost = this.safeFloat (trade, 'dealMoney');
+        const cost = this.safeFloat (trade, 'total');
         if (price === 0) {
             price = cost / amount;
         }
