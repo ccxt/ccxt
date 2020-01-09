@@ -80,9 +80,6 @@ trait ClientTrait {
                     $message = $this->sign_message($client, $message_hash, $message);
                     $client->send($message);
                 }
-                // echo "OK --------------------------------------------------------\n";
-                // exit();
-                // var_dump($result);
             },
             function($error) {
                 echo date('c '), get_class($error), ' ', $error->getMessage(), "\n";
