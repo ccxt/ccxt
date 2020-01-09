@@ -18,6 +18,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
@@ -231,6 +232,7 @@ class kraken(Exchange):
                 'inactiveCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
             },
             'exceptions': {
+                'EQuery:Invalid asset pair': BadSymbol,  # {"error":["EQuery:Invalid asset pair"]}
                 'EAPI:Invalid key': AuthenticationError,
                 'EFunding:Unknown withdraw key': ExchangeError,
                 'EFunding:Invalid amount': InsufficientFunds,
