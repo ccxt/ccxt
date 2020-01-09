@@ -510,14 +510,13 @@ module.exports = class coinsbit extends Exchange {
         if (response === undefined) {
             return;
         }
+        const feedback = this.id + ' ' + body;
         if (code !== 200) {
-            const feedback = "\n" + 'id: ' + this.id + "\n" + 'url: ' + url + "\n" + 'request body: ' + requestBody + "\n" + 'code: ' + code + "\n" + 'body:' + "\n" + body; // eslint-disable-line quotes
             this.throwExactlyMatchedException (this.httpExceptions, code.toString (), feedback);
         }
         const isSuccess = this.safeValue (response, 'success', true);
         if (!isSuccess) {
             const messages = this.json (this.safeValue (response, 'message'));
-            const feedback = "\n" + 'id: ' + this.id + "\n" + 'url: ' + url + "\n" + 'request body: ' + requestBody + "\n" + 'Error: ' + messages + "\n" + 'body:' + "\n" + body; // eslint-disable-line quotes
             this.throwBroadlyMatchedException (this.exceptions, messages, feedback);
             throw new ExchangeError (feedback);
         }
