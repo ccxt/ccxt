@@ -319,7 +319,6 @@ assert(equals(incrementalOrderBook, negativeStoredIncremetalOrderBookTarget))
 
 # --------------------------------------------------------------------------------------------------------------------
 
-
 incrementalIndexedOrderBook = IncrementalIndexedOrderBook(indexedOrderBookInput)
 limitedIncrementalIndexedOrderBook = IncrementalIndexedOrderBook(indexedOrderBookInput, 5)
 incrementalIndexedOrderBook.limit()
@@ -344,3 +343,11 @@ bids = incrementalIndexedOrderBook['bids']
 bids.store(10.2, 3, '1234')  # price does not match merge size
 incrementalIndexedOrderBook.limit()
 assert(equals(incrementalIndexedOrderBook, anotherStoredIncrementalIndexedOrderBookTarget))
+
+# --------------------------------------------------------------------------------------------------------------------
+
+resetBook = OrderBook(storeBid)
+resetBook.limit()
+resetBook.reset(orderBookInput)
+resetBook.limit()
+assert(equals(resetBook, orderBookTarget))
