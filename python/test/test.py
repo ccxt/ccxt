@@ -331,9 +331,6 @@ def test_exchange(exchange):
 def try_all_proxies(exchange, proxies=['']):
     current_proxy = 0
     max_retries = len(proxies)
-    # a special case for ccex
-    if exchange.id == 'ccex' and max_retries > 1:
-        current_proxy = 1
     if exchange.proxy in proxies:
         current_proxy = proxies.index(exchange.proxy)
     for num_retries in range(0, max_retries):
