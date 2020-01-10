@@ -534,7 +534,7 @@ module.exports = class kraken extends ccxt.kraken {
             if (method === undefined) {
                 return message;
             } else {
-                return this.call (method, client, message);
+                return method.call (this, client, message);
             }
         } else {
             if (this.handleErrorMessage (client, message)) {
@@ -548,7 +548,7 @@ module.exports = class kraken extends ccxt.kraken {
                 if (method === undefined) {
                     return message;
                 } else {
-                    return this.call (method, client, message);
+                    return method.call (this, client, message);
                 }
             }
         }
