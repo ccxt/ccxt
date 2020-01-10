@@ -539,7 +539,7 @@ class kraken extends \ccxt\kraken {
             if ($method === null) {
                 return $message;
             } else {
-                return $this->call ($method, $client, $message);
+                return $method($client, $message);
             }
         } else {
             if ($this->handle_error_message ($client, $message)) {
@@ -553,7 +553,7 @@ class kraken extends \ccxt\kraken {
                 if ($method === null) {
                     return $message;
                 } else {
-                    return $this->call ($method, $client, $message);
+                    return $method($client, $message);
                 }
             }
         }

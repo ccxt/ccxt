@@ -244,7 +244,7 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
         subscription = self.safe_value(subscriptionsById, id, {})
         method = self.safe_value(subscription, 'method')
         if method is not None:
-            self.call(method, client, message, subscription)
+            method(client, message, subscription)
         return message
 
     def handle_system_status(self, client, message):
@@ -286,7 +286,7 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
         if method is None:
             return message
         else:
-            return self.call(method, client, message)
+            return method(client, message)
 
     def ping(self, client):
         # kucoin does not support built-in ws protocol-level ping-pong
@@ -320,4 +320,4 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
             if method is None:
                 return message
             else:
-                return self.call(method, client, message)
+                return method(client, message)
