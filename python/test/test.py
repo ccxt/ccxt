@@ -23,7 +23,7 @@ from ccxtpro.base.exchange import Exchange  # noqa: F401
 
 class Argv(object):
     verbose = False
-    exchange = None
+    exchange_id = None
     pass
 
 
@@ -31,9 +31,14 @@ argv = Argv()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
-parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
+parser.add_argument('exchange_id', type=str, help='exchange id in lowercase', nargs='?')
 
 parser.parse_args(namespace=argv)
+
+if not argv.exchange_id:
+    print('Exchange id not specified')
+else:
+    print('Testing', { 'exchange': argv.exchange_id, 'symbol': None })
 
 exchanges = {}
 
@@ -56,7 +61,7 @@ if 'site-packages' in os.path.dirname(ccxtpro.__file__):
 
 async def test():
     symbol = 'ETH/BTC'
-    exchange = ccxtpro.binance({
+    exchange = getattr(ccxtpro, argv.exchange_id)({
         'enableRateLimit': True,
         'urls': {
             # 'api': {
