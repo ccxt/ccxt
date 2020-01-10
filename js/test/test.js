@@ -12,18 +12,10 @@ const verbose = process.argv.includes ('--verbose') || false
 
 if (!exchangeId) {
     console.log ('Exchange id not specified')
-    process.exit ();
+    process.exit ()
 }
 
 log.bright ('\nTESTING', { exchange: exchangeId, symbol: exchangeSymbol || 'all' }, '\n')
-
-// ----------------------------------------------------------------------------
-
-let proxies = [
-    '',
-    'https://cors-anywhere.herokuapp.com/',
-    // 'https://crossorigin.me/',
-]
 
 // ----------------------------------------------------------------------------
 
@@ -67,7 +59,7 @@ if (settings) {
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i]
         if (settings[key]) {
-            settings[key] = ccxt.deepExtend (exchange[key] || {}, settings[key])
+            settings[key] = ccxtpro.deepExtend (exchange[key] || {}, settings[key])
         }
     }
 }
@@ -79,15 +71,13 @@ if (settings && settings.skip) {
     process.exit ()
 }
 
-// console.log ('--')
-// process.exit();
-
-;(async () => {
+(async () => {
 
     const symbol = 'ETH/BTC'
         , n = 1 // output every nth snapshot
+        , forever = true
 
-    while (true) {
+    while (forever) {
         try {
             let response = undefined
             for (let i = 0; i < n; i++) {
