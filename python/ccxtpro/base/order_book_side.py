@@ -51,7 +51,10 @@ class OrderBookSide(list):
             size = delta[1]
             if self._limit_type:
                 last = delta[2]
-                self._index[price if self._limit_type & 1 else last] = delta
+                if self._limit_type == LIMIT_BY_VALUE_PRICE_KEY:
+                    self._index[price] = delta
+                else:
+                    self._index[last] = delta
             else:
                 self._index[price] = size
             if i < n:
