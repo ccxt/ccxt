@@ -154,4 +154,4 @@ class coinbasepro(ccxtpro.Exchange, ccxt.coinbasepro):
         if method is None:
             return message
         else:
-            return self.call(method, client, message)
+            return method(client, message)

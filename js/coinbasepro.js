@@ -165,7 +165,7 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         if (method === undefined) {
             return message;
         } else {
-            return this.call (method, client, message);
+            return method.call (this, client, message);
         }
     }
 };

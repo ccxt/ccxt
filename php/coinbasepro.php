@@ -170,7 +170,7 @@ class coinbasepro extends \ccxt\coinbasepro {
         if ($method === null) {
             return $message;
         } else {
-            return $this->call ($method, $client, $message);
+            return $method($client, $message);
         }
     }
 }
