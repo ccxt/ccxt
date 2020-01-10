@@ -157,11 +157,11 @@ module.exports = class gateio extends ccxt.gateio {
         const marketId = market['id'].toUpperCase ();
         const requestId = this.nonce ();
         const url = this.urls['api']['ws'];
-        const interval = parseInt (this.timeframes['10mins']);
+        const interval = parseInt (this.timeframes[timeframe]);
         const subscribeMessage = {
             'id': requestId,
             'method': 'kline.subscribe',
-            'params': [marketId, 1800],
+            'params': [marketId, interval],
         };
         const messageHash = 'kline.update' + ':' + marketId;
         return await this.watch (url, messageHash, subscribeMessage);
@@ -191,7 +191,7 @@ module.exports = class gateio extends ccxt.gateio {
         const methodType = this.safeString (message, 'method');
         const method = this.safeValue (methods, methodType);
         if (method) {
-            method.apply (this, [client, message]);
+            method.call (this, client, message);
         }
     }
 };
