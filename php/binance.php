@@ -226,7 +226,7 @@ class binance extends \ccxt\binance {
         $subscription = $this->safe_value($subscriptionsById, $id, array());
         $method = $this->safe_value($subscription, 'method');
         if ($method !== null) {
-            $this->call ($method, $client, $message, $subscription);
+            $method($client, $message, $subscription);
         }
         return $message;
     }
@@ -244,7 +244,7 @@ class binance extends \ccxt\binance {
             }
             return $message;
         } else {
-            return $this->call ($method, $client, $message);
+            return $method($client, $message);
         }
     }
 }

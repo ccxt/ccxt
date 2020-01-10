@@ -262,8 +262,8 @@ class poloniex extends \ccxt\poloniex {
                 $orderbookUpdatesCount .= 1;
             } else if ($delta[0] === 't') {
                 // todo => add max limit to the dequeue of trades, unshift and push
-                $trade = $this->handle_trade ($client, $delta, $market);
-                $this->trades[] = $trade;
+                // $trade = $this->handle_trade ($client, $delta, $market);
+                // $this->trades[] = $trade;
                 $tradesCount .= 1;
             }
         }
@@ -303,7 +303,7 @@ class poloniex extends \ccxt\poloniex {
             if ($method === null) {
                 return $message;
             } else {
-                $method($client, $message);
+                $method->apply (this, $client, $message);
             }
         } else {
             return $this->handle_order_book_and_trades ($client, $message);
