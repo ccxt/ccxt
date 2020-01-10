@@ -403,7 +403,7 @@ with open(keys_file) as file:
 
 # instantiate all exchanges
 for id in ccxt.exchanges:
-    if id == 'theocean' or id == 'theocean1':
+    if id == 'theocean':
         continue
     exchange = getattr(ccxt, id)
     exchange_config = {'verbose': argv.verbose}
@@ -420,7 +420,7 @@ async def main():
 
     if argv.exchange:
 
-        if argv.exchange != 'theocean' and argv.exchange != 'theocean1':
+        if argv.exchange != 'theocean':
 
             exchange = exchanges[argv.exchange]
             symbol = argv.symbol
