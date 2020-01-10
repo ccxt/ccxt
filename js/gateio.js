@@ -312,12 +312,14 @@ module.exports = class gateio extends Exchange {
             change = last - open;
             average = this.sum (last, open) / 2;
         }
+        open = this.safeFloat (ticker, 'open', open);
+        change = this.safeFloat (ticker, 'change', change);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high24hr'),
-            'low': this.safeFloat (ticker, 'low24hr'),
+            'high': this.safeFloat2 (ticker, 'high24hr', 'high'),
+            'low': this.safeFloat2 (ticker, 'low24hr', 'low'),
             'bid': this.safeFloat (ticker, 'highestBid'),
             'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'lowestAsk'),
@@ -371,11 +373,12 @@ module.exports = class gateio extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeTimestamp2 (trade, 'timestamp', 'time_unix');
+        let timestamp = this.safeTimestamp2 (trade, 'timestamp', 'time_unix');
+        timestamp = this.safeTimestamp (trade, 'time', timestamp);
         const id = this.safeString2 (trade, 'tradeID', 'id');
         // take either of orderid or orderId
         const orderId = this.safeString2 (trade, 'orderid', 'orderNumber');
-        const price = this.safeFloat (trade, 'rate');
+        const price = this.safeFloat2 (trade, 'rate', 'price');
         const amount = this.safeFloat (trade, 'amount');
         const type = this.safeString (trade, 'type');
         let cost = undefined;
