@@ -9,12 +9,20 @@ if (count($argv) < 2) {
     echo "Exchange id not specified\n";
     exit();
 } else {
+
     $id = $argv[1];
     $exchange_class = '\\ccxtpro\\' . $id;
     $exchange = new $exchange_class(array(
         'verbose' => true,
     ));
-    echo $exchange->id, "\n";
+
+    echo 'Testing ', $exchange->id, "\n";
+
+    $keys_global = './keys.json';
+    $keys_local = './keys.local.json';
+    $keys_file = file_exists($keys_local) ? $keys_local : $keys_global;
+
+    $config = json_decode(file_get_contents($keys_file), true);
 
     $loop = \React\EventLoop\Factory::create();
 
@@ -86,55 +94,6 @@ $tick = function () use ($loop, $exchange, &$tick) {
 
 //-----------------------------------------------------------------------------
 
-foreach (\ccxt\Exchange::$exchanges as $id) {
-    $exchange = '\\ccxt\\' . $id;
-    $exchanges[$id] = new $exchange(array('verbose' => false));
-}
-
-$keys_global = './keys.json';
-$keys_local = './keys.local.json';
-$keys_file = file_exists($keys_local) ? $keys_local : $keys_global;
-
-var_dump($keys_file);
-
-$config = json_decode(file_get_contents($keys_file), true);
-
-foreach ($config as $id => $params) {
-    foreach ($params as $key => $value) {
-        if (array_key_exists($id, $exchanges)) {
-            if (property_exists($exchanges[$id], $key)) {
-                $exchanges[$id]->$key = is_array($exchanges[$id]->$key) ? array_replace_recursive($exchanges[$id]->$key, $value) : $value;
-            }
-        }
-    }
-}
-
-function test_ticker($exchange, $symbol) {
-    $delay = $exchange->rateLimit * 1000;
-    usleep($delay);
-    dump(green($exchange->id), green($symbol), 'fetching ticker...');
-    $ticker = $exchange->fetch_ticker($symbol);
-    dump(green($exchange->id), green($symbol), 'ticker:', implode(' ', array(
-        $ticker['datetime'],
-        'high: ' . $ticker['high'],
-        'low: ' . $ticker['low'],
-        'bid: ' . $ticker['bid'],
-        'ask: ' . $ticker['ask'],
-        'volume: ' . $ticker['quoteVolume'], )));
-}
-
-function test_order_book($exchange, $symbol) {
-    $delay = $exchange->rateLimit * 1000;
-    usleep($delay);
-    dump(green($exchange->id), green($symbol), 'fetching order book...');
-    $orderbook = $exchange->fetch_order_book($symbol);
-    dump(green($exchange->id), green($symbol), 'order book:', implode(' ', array(
-        $orderbook['datetime'],
-        'bid: '       . @$orderbook['bids'][0][0],
-        'bidVolume: ' . @$orderbook['bids'][0][1],
-        'ask: '       . @$orderbook['asks'][0][0],
-        'askVolume: ' . @$orderbook['asks'][0][1])));
-}
 
 //-----------------------------------------------------------------------------
 

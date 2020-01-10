@@ -85,79 +85,9 @@ if __name__ == '__main__':
     print(asyncio.get_event_loop().run_until_complete(test()))
 
 
-# # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-
-# async def test_order_book(exchange, symbol):
-#     if exchange.has['fetchOrderBook']:
-#         delay = int(exchange.rateLimit / 1000)
-#         await asyncio.sleep(delay)
-#         # dump(green(exchange.id), green(symbol), 'fetching order book...')
-#         orderbook = await exchange.fetch_order_book(symbol)
-#         dump(
-#             green(exchange.id),
-#             green(symbol),
-#             'order book',
-#             orderbook['datetime'],
-#             'bid: ' + str(orderbook['bids'][0][0] if len(orderbook['bids']) else 'N/A'),
-#             'bidVolume: ' + str(orderbook['bids'][0][1] if len(orderbook['bids']) else 'N/A'),
-#             'ask: ' + str(orderbook['asks'][0][0] if len(orderbook['asks']) else 'N/A'),
-#             'askVolume: ' + str(orderbook['asks'][0][1] if len(orderbook['asks']) else 'N/A'))
-#     else:
-#         dump(yellow(exchange.id), 'fetch_order_book() supported')
-
-# # ------------------------------------------------------------------------------
-
-
-# async def test_ohlcv(exchange, symbol):
-#     ignored_exchanges = [
-#         'cex',  # CEX can return historical candles for a certain date only
-#         'okex',  # okex fetchOHLCV counts "limit" candles from current time backwards
-#         'okcoinusd',  # okex base class
-#     ]
-#     if exchange.id in ignored_exchanges:
-#         return
-#     if exchange.has['fetchOHLCV']:
-#         delay = int(exchange.rateLimit / 1000)
-#         await asyncio.sleep(delay)
-#         timeframes = exchange.timeframes if exchange.timeframes else {'1d': '1d'}
-#         timeframe = list(timeframes.keys())[0]
-#         limit = 10
-#         duration = exchange.parse_timeframe(timeframe)
-#         since = exchange.milliseconds() - duration * limit * 1000 - 1000
-#         ohlcvs = await exchange.fetch_ohlcv(symbol, timeframe, since, limit)
-#         dump(green(exchange.id), 'fetched', green(len(ohlcvs)), 'OHLCVs')
-#     else:
-#         dump(yellow(exchange.id), 'fetching OHLCV not supported')
-
-# # ------------------------------------------------------------------------------
-
-
-# async def test_tickers(exchange, symbol):
-#     ignored_exchanges = [
-#         'digifinex',  # requires apiKey to call v2 tickers
-#     ]
-#     if exchange.id in ignored_exchanges:
-#         return
-#     if exchange.has['fetchTickers']:
-#         delay = int(exchange.rateLimit / 1000)
-#         await asyncio.sleep(delay)
-#         tickers = None
-#         try:
-#             # dump(green(exchange.id), 'fetching all tickers at once...')
-#             tickers = await exchange.fetch_tickers()
-#             dump(green(exchange.id), 'fetched all', green(len(list(tickers.keys()))), 'tickers')
-#         except Exception as e:
-#             dump(green(exchange.id), 'failed to fetch all tickers, fetching multiple tickers at once...')
-#             tickers = await exchange.fetch_tickers([symbol])
-#             dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
-#     elif argv.token_bucket:
-#         await test_tickers_async(exchange)
-#     if argv.token_bucket:
-#         await test_l2_order_books_async(exchange)
-
-
-# # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 # def get_active_symbols(exchange):
 #     return [symbol for symbol in exchange.symbols if is_active_symbol(exchange, symbol)]
