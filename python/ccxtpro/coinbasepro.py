@@ -98,7 +98,7 @@ class coinbasepro(ccxtpro.Exchange, ccxt.coinbasepro):
             messageHash = name + ':' + marketId
             if type == 'snapshot':
                 depth = 50  # default depth is 50
-                self.orderbooks[symbol] = self.limited_order_book({}, depth)
+                self.orderbooks[symbol] = self.order_book({}, depth)
                 orderbook = self.orderbooks[symbol]
                 self.handle_deltas(orderbook['asks'], self.safe_value(message, 'asks', []))
                 self.handle_deltas(orderbook['bids'], self.safe_value(message, 'bids', []))
