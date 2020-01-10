@@ -191,7 +191,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
             if (method === undefined) {
                 return message;
             } else {
-                return this.call (method, client, message);
+                return method.call (this, client, message);
             }
         } else {
             // todo: add bitfinex handleErrorMessage
@@ -214,7 +214,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
                 if (method === undefined) {
                     return message;
                 } else {
-                    return this.call (method, client, message);
+                    return method.call (this, client, message);
                 }
             }
         }
