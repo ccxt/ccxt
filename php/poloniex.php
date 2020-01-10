@@ -303,7 +303,7 @@ class poloniex extends \ccxt\poloniex {
             if ($method === null) {
                 return $message;
             } else {
-                return $this->call ($method, $client, $message);
+                $method($client, $message);
             }
         } else {
             return $this->handle_order_book_and_trades ($client, $message);

@@ -276,6 +276,6 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
             if method is None:
                 return message
             else:
-                return self.call(method, client, message)
+                method(client, message)
         else:
             return self.handle_order_book_and_trades(client, message)
