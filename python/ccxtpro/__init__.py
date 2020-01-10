@@ -125,7 +125,6 @@ from ccxt.async_support.flowbtc import flowbtc                            # noqa
 from ccxt.async_support.foxbit import foxbit                              # noqa: F401
 from ccxt.async_support.ftx import ftx                                    # noqa: F401
 from ccxt.async_support.fybse import fybse                                # noqa: F401
-from ccxt.async_support.gateio import gateio                              # noqa: F401
 from ccxt.async_support.gemini import gemini                              # noqa: F401
 from ccxt.async_support.hitbtc import hitbtc                              # noqa: F401
 from ccxt.async_support.hitbtc2 import hitbtc2                            # noqa: F401
@@ -178,6 +177,7 @@ from ccxtpro.binance import binance                                       # noqa
 from ccxtpro.bitfinex import bitfinex                                     # noqa: F401
 from ccxtpro.bitmex import bitmex                                         # noqa: F401
 from ccxtpro.coinbasepro import coinbasepro                               # noqa: F401
+from ccxtpro.gateio import gateio                                         # noqa: F401
 from ccxtpro.kraken import kraken                                         # noqa: F401
 from ccxtpro.kucoin import kucoin                                         # noqa: F401
 from ccxtpro.poloniex import poloniex                                     # noqa: F401

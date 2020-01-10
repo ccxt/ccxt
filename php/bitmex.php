@@ -522,7 +522,7 @@ class bitmex extends \ccxt\bitmex {
                 var_dump ($message);
                 return $message;
             } else {
-                return $this->call ($method, $client, $message);
+                return $method($client, $message);
             }
         }
     }

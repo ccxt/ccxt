@@ -500,7 +500,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
             if method is None:
                 return message
             else:
-                return self.call(method, client, message)
+                return method(client, message)
         else:
             if self.handle_error_message(client, message):
                 event = self.safe_string(message, 'event')
@@ -513,4 +513,4 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
                 if method is None:
                     return message
                 else:
-                    return self.call(method, client, message)
+                    return method(client, message)
