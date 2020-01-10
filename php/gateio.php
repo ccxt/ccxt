@@ -316,12 +316,14 @@ class gateio extends Exchange {
             $change = $last - $open;
             $average = $this->sum ($last, $open) / 2;
         }
+        $open = $this->safe_float($ticker, 'open', $open);
+        $change = $this->safe_float($ticker, 'change', $change);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => $this->safe_float($ticker, 'high24hr'),
-            'low' => $this->safe_float($ticker, 'low24hr'),
+            'high' => $this->safe_float_2($ticker, 'high24hr', 'high'),
+            'low' => $this->safe_float_2($ticker, 'low24hr', 'low'),
             'bid' => $this->safe_float($ticker, 'highestBid'),
             'bidVolume' => null,
             'ask' => $this->safe_float($ticker, 'lowestAsk'),
@@ -376,10 +378,11 @@ class gateio extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $timestamp = $this->safe_timestamp_2($trade, 'timestamp', 'time_unix');
+        $timestamp = $this->safe_timestamp($trade, 'time', $timestamp);
         $id = $this->safe_string_2($trade, 'tradeID', 'id');
         // take either of orderid or $orderId
         $orderId = $this->safe_string_2($trade, 'orderid', 'orderNumber');
-        $price = $this->safe_float($trade, 'rate');
+        $price = $this->safe_float_2($trade, 'rate', 'price');
         $amount = $this->safe_float($trade, 'amount');
         $type = $this->safe_string($trade, 'type');
         $cost = null;

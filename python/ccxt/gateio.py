@@ -309,12 +309,14 @@ class gateio(Exchange):
             open = last / self.sum(1, relativeChange)
             change = last - open
             average = self.sum(last, open) / 2
+        open = self.safe_float(ticker, 'open', open)
+        change = self.safe_float(ticker, 'change', change)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high24hr'),
-            'low': self.safe_float(ticker, 'low24hr'),
+            'high': self.safe_float_2(ticker, 'high24hr', 'high'),
+            'low': self.safe_float_2(ticker, 'low24hr', 'low'),
             'bid': self.safe_float(ticker, 'highestBid'),
             'bidVolume': None,
             'ask': self.safe_float(ticker, 'lowestAsk'),
@@ -363,10 +365,11 @@ class gateio(Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_timestamp_2(trade, 'timestamp', 'time_unix')
+        timestamp = self.safe_timestamp(trade, 'time', timestamp)
         id = self.safe_string_2(trade, 'tradeID', 'id')
         # take either of orderid or orderId
         orderId = self.safe_string_2(trade, 'orderid', 'orderNumber')
-        price = self.safe_float(trade, 'rate')
+        price = self.safe_float_2(trade, 'rate', 'price')
         amount = self.safe_float(trade, 'amount')
         type = self.safe_string(trade, 'type')
         cost = None
