@@ -10,10 +10,19 @@ if (count($argv) < 2) {
     exit();
 } else {
 
+    $loop = \React\EventLoop\Factory::create();
+
     $id = $argv[1];
     $exchange_class = '\\ccxtpro\\' . $id;
     $exchange = new $exchange_class(array(
+        'enableRateLimit' => true,
+        'loop' => $loop,
         'verbose' => true,
+        // 'urls' => array(
+        //     'api' => array(
+        //         'ws' => 'ws://127.0.0.1:8080',
+        //     ),
+        // ),
     ));
 
     echo 'Testing ', $exchange->id, "\n";
@@ -24,20 +33,7 @@ if (count($argv) < 2) {
 
     $config = json_decode(file_get_contents($keys_file), true);
 
-    $loop = \React\EventLoop\Factory::create();
-
     $symbol = 'ETH/BTC';
-
-    $exchange_class = '\\ccxtpro\\' . $id;
-    $exchange = new $exchange_class(array(
-        'enableRateLimit' => true,
-        'loop' => $loop,
-        // 'urls' => array(
-        //     'api' => array(
-        //         'ws' => 'ws://127.0.0.1:8080',
-        //     ),
-        // ),
-    ));
 
     $tick = null;
 
