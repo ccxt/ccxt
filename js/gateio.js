@@ -15,6 +15,8 @@ module.exports = class gateio extends ccxt.gateio {
                 'watchTicker': true,
                 'watchTrades': true,
                 'watchOHLCV': true,
+                'watchBalance': true,
+                'watchOrders': true,
             },
             'urls': {
                 'api': {
@@ -46,7 +48,7 @@ module.exports = class gateio extends ccxt.gateio {
             'method': 'depth.subscribe',
             'params': [marketId, limit, interval],
         };
-        const future = this.watch (url, messageHash, subscribeMessage);
+        const future = this.watch (url, messageHash, subscribeMessage, messageHash);
         return future;
     }
 
@@ -99,7 +101,7 @@ module.exports = class gateio extends ccxt.gateio {
             'params': [marketId],
         };
         const messageHash = 'ticker.update' + ':' + marketId;
-        return await this.watch (url, messageHash, subscribeMessage);
+        return await this.watch (url, messageHash, subscribeMessage, messageHash);
     }
 
     handleTicker (client, message) {
@@ -129,7 +131,7 @@ module.exports = class gateio extends ccxt.gateio {
             'params': [marketId],
         };
         const messageHash = 'trades.update' + ':' + marketId;
-        return await this.watch (url, messageHash, subscribeMessage);
+        return await this.watch (url, messageHash, subscribeMessage, messageHash);
     }
 
     handleTrades (client, messsage) {
@@ -164,7 +166,19 @@ module.exports = class gateio extends ccxt.gateio {
             'params': [marketId, interval],
         };
         const messageHash = 'kline.update' + ':' + marketId;
-        return await this.watch (url, messageHash, subscribeMessage);
+        return await this.watch (url, messageHash, subscribeMessage, messageHash);
+    }
+
+    async authenticate () {
+        const url = this.urls['api']['ws'];
+        const requestId = this.milliseconds ();
+        const signature = this.hmac (requestId.toString (), this.secret, 'sha512', 'base64');
+        const authenticateMessage = {
+            'id': requestId,
+            'method': 'server.sign',
+            'params': [this.apiKey, signature, requestId],
+        };
+        return await this.watch (url, requestId, authenticateMessage, 'authenticated');
     }
 
     handleOHLCV (client, message) {
@@ -181,17 +195,83 @@ module.exports = class gateio extends ccxt.gateio {
         client.resolve (parsed, messageHash);
     }
 
+    async watchBalance (params = {}) {
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        if (!client.subscriptions['authenticated']) {
+            await this.authenticate ();
+        }
+        const requestId = this.nonce ();
+        const method = 'balance.update';
+        const subsribeMessage = {
+            'id': requestId,
+            'method': 'balance.subscribe',
+            'params': [],
+        };
+        return await this.watch (url, method, subsribeMessage, method);
+    }
+
+    handleBalance (client, message) {
+        const messageHash = message['method'];
+        const result = message['params'][0];
+        const keys = Object.keys (result);
+        for (let i = 0; i < keys.length; i++) {
+            const account = this.account ();
+            const key = keys[i];
+            const info = result[key];
+            account['free'] = parseFloat (info['available']);
+            account['used'] = parseFloat (info['freeze']);
+            const code = this.safeCurrencyCode (key);
+            this.balance[code] = account;
+        }
+        client.resolve (this.parseBalance (this.balance), messageHash);
+    }
+
+    async watchOrders (params = {}) {
+        await this.loadMarkets ();
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        if (!client.subscriptions['authenticated']) {
+            await this.authenticate ();
+        }
+        const requestId = this.nonce ();
+        const method = 'order.update';
+        const subscribeMessage = {
+            'id': requestId,
+            'method': 'order.subscribe',
+            'params': [],
+        };
+        return await this.watch (url, method, subscribeMessage, method);
+    }
+
+    handleOrder (client, message) {
+        const messageHash = message['method'];
+        const order = message['params'][1];
+        const marketId = order['market'];
+        const normalMarketId = marketId.toLowerCase ();
+        let market = undefined;
+        if (normalMarketId in this.markets_by_id) {
+            market = this.markets_by_id[normalMarketId];
+        }
+        const parsed = this.parseOrder (order, market);
+        client.resolve (parsed, messageHash);
+    }
+
     handleMessage (client, message) {
         const methods = {
             'depth.update': this.handleOrderBook,
             'ticker.update': this.handleTicker,
             'trades.update': this.handleTrades,
             'kline.update': this.handleOHLCV,
+            'balance.update': this.handleBalance,
+            'order.update': this.handleOrder,
         };
         const methodType = this.safeString (message, 'method');
         const method = this.safeValue (methods, methodType);
         if (method) {
             method.call (this, client, message);
+        } else if ('id' in message) {
+            client.resolve (message, message['id']);
         }
     }
 };
