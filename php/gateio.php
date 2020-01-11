@@ -52,7 +52,7 @@ class gateio extends \ccxt\gateio {
             'params' => [$marketId, $limit, $interval],
         );
         $future = $this->watch ($url, $messageHash, $subscribeMessage);
-        return $future;
+        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function sign_message ($client, $messageHash, $message, $params = array ()) {

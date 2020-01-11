@@ -47,7 +47,7 @@ class gateio(ccxtpro.Exchange, ccxt.gateio):
             'params': [marketId, limit, interval],
         }
         future = self.watch(url, messageHash, subscribeMessage)
-        return future
+        return await self.after(future, self.limit_order_book, symbol, limit, params)
 
     def sign_message(self, client, messageHash, message, params={}):
         # todo: implement gateio signMessage
