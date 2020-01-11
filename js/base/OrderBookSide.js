@@ -253,4 +253,9 @@ module.exports = {
     IncrementalIndexedAsks,
     IncrementalIndexedBids,
     IncrementalIndexedOrderBookSide,
+
+    // limit type constants
+    LIMIT_BY_KEY,
+    LIMIT_BY_VALUE_PRICE_KEY,
+    LIMIT_BY_VALUE_INDEX_KEY,
 }
