@@ -180,7 +180,7 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
             if method is None:
                 return message
             else:
-                return self.call(method, client, message)
+                return method(client, message)
         else:
             # todo: add bitfinex handleErrorMessage
             #
@@ -202,4 +202,4 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
                 if method is None:
                     return message
                 else:
-                    return self.call(method, client, message)
+                    return method(client, message)

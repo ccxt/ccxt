@@ -490,4 +490,4 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                 print(message)
                 return message
             else:
-                return self.call(method, client, message)
+                return method(client, message)

@@ -103,7 +103,7 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
             const messageHash = name + ':' + marketId;
             if (type === 'snapshot') {
                 const depth = 50; // default depth is 50
-                this.orderbooks[symbol] = this.limitedOrderBook ({}, depth);
+                this.orderbooks[symbol] = this.orderBook ({}, depth);
                 const orderbook = this.orderbooks[symbol];
                 this.handleDeltas (orderbook['asks'], this.safeValue (message, 'asks', []));
                 this.handleDeltas (orderbook['bids'], this.safeValue (message, 'bids', []));
@@ -165,7 +165,7 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         if (method === undefined) {
             return message;
         } else {
-            return this.call (method, client, message);
+            return method.call (this, client, message);
         }
     }
 };

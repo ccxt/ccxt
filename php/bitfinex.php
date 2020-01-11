@@ -196,7 +196,7 @@ class bitfinex extends \ccxt\bitfinex {
             if ($method === null) {
                 return $message;
             } else {
-                return $this->call ($method, $client, $message);
+                return $method($client, $message);
             }
         } else {
             // todo => add bitfinex handleErrorMessage
@@ -219,7 +219,7 @@ class bitfinex extends \ccxt\bitfinex {
                 if ($method === null) {
                     return $message;
                 } else {
-                    return $this->call ($method, $client, $message);
+                    return $method($client, $message);
                 }
             }
         }

@@ -50,19 +50,25 @@ class OrderBookSide extends Array {
     }
 
     // replace stored orders with new values
-    limit (n = Number.MAX_SAFE_INTEGER) {
-        const array = Array.from ( this.limitType ? this.index.values () : this.index.entries ()).sort (this.compare)
+    limit (n = undefined) {
+        n = n || Number.MAX_SAFE_INTEGER
+        const elements = (this.limitType === LIMIT_BY_KEY) ? this.index.entries () : this.index.values ()
+        const array = Array.from (elements).sort (this.compare)
         const threshold = Math.min (this.depth, array.length)
         this.index = new Map ()
         for (let i = 0; i < threshold; i++) {
             this[i] = array[i];
             const price = array[i][0]
-            if (this.limitType) {
-                const last = array[i][2]
-                this.index.set (this.limitType & 1 ? price : last, array[i])
-            } else {
+            if (this.limitType === LIMIT_BY_KEY) {
                 const size = array[i][1]
                 this.index.set (price, size)
+            } else {
+                const last = array[i][2]
+                if (this.limitType === LIMIT_BY_VALUE_PRICE_KEY) {
+                    this.index.set (price, array[i])
+                } else {
+                    this.index.set (last, array[i])
+                }
             }
         }
         this.length = Math.min (threshold, n);
@@ -247,4 +253,9 @@ module.exports = {
     IncrementalIndexedAsks,
     IncrementalIndexedBids,
     IncrementalIndexedOrderBookSide,
+
+    // limit type constants
+    LIMIT_BY_KEY,
+    LIMIT_BY_VALUE_PRICE_KEY,
+    LIMIT_BY_VALUE_INDEX_KEY,
 }

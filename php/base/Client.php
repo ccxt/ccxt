@@ -30,9 +30,14 @@ class Client {
     // public $connection_timer; // ?
     public $connectionTimeout = 30000;
     public $pingInterval;
-    public $keepAlive;
+    public $keepAlive = 30000;
+    public $heartbeat = true;
+    public $maxPingPongMisses = 2.0;
+    public $lastPong = null;
+    public $ping = null;
     public $connection = null;
     public $connected; // connection-related Future
+    public $isConnected = false;
 
     // ratchet/pawl/reactphp stuff
     public $loop = null;
@@ -102,10 +107,6 @@ class Client {
         ) {
 
         $this->url = $url;
-        // $this->timeout = 5000;
-        // $this->pingNonce = 0;
-        // $this->lastPong = PHP_INT_MAX;
-        // $timeoutTimer = null;
         $this->futures = array();
         $this->subscriptions = array();
         $this->connected = new Future();
@@ -142,6 +143,8 @@ class Client {
                 $this->connection->on('error', array($this, 'on_error'));
                 $this->connection->on('pong', array($this, 'on_pong'));
                 $this->connected->resolve($this->url);
+                $this->isConnected = true;
+                $this->set_ping_interval();
             },
             function(\Exception $error) {
                 // echo date('c'), ' connection failed ', get_class($error), ' ', $error->getMessage(), "\n";
@@ -176,19 +179,16 @@ class Client {
     public function send($data) {
         $message = Exchange::json($data);
         echo date('c'), ' sending ', $message, "\n";
-        $this->connection->send($message);
+        return $this->connection->send($message);
     }
 
     public function close() {
         $this->connection->close();
     }
 
-    public function isConnected() {
-        return $this->connected;
-    }
-
-    public function on_pong() {
-        // $this->lastPong = Exchange::milliseconds();
+    public function on_pong($message) {
+        // echo date('c'), ' on_pong ', (string) $message, "\n";
+        $this->lastPong = $this->milliseconds();
     }
 
     public function on_error($error) {
@@ -224,48 +224,43 @@ class Client {
     }
 
     public function reset($error) {
-        // $this->clearPingInterval();
+        $this->clear_ping_interval();
         $this->connected->reject($error);
         $this->reject($error);
     }
 
-    // todo: finish ping-pong keep-alive in php
+    public function set_ping_interval() {
+        if ($this->keepAlive) {
+            $delay = ($this->keepAlive / 1000);
+            $this->pingInterval = $this->loop->addPeriodicTimer($delay, array($this, 'on_ping_interval'));
+        }
+    }
 
-    // public function set_ping_interval() {
-    //     if ($this->keepAlive) {
-    //         $on_ping_interval = $this->on_ping_interval; // .bind (this)
-    //         $this->pingInterval = setInterval($on_ping_interval, $this->keepAlive);
-    //     }
-    // }
+    public function clear_ping_interval() {
+        if ($this->pingInterval) {
+            $this->loop->cancelTimer($this->pingInterval);
+        }
+    }
 
-    // public function clear_ping_interval() {
-    //     if ($this->pingInterval) {
-    //         $this->pingInterval = clearInterval($this->pingInterval);
-    //     }
-    // }
+    public function milliseconds() {
+        list($msec, $sec) = explode(' ', microtime());
+        return (int)($sec . substr($msec, 2, 3));
+    }
 
-    // public function on_ping_interval() {
-    //     if (($this->lastPong + $this->keepAlive) < milliseconds()) {
-    //         $this->reset(new RequestTimeout('Connection to ' . $this->url . ' timed out due to a ping-pong keepalive missing on time'));
-    //     } else {
-    //         if ($this->is_open()) {
-    //             $this->connection->ping(); // ?
-    //         }
-    //     }
-    // }
-
-    // private function check_timeout () {
-    //     $this->timeoutTimer = $this->loop->addPeriodicTimer(1, function () {
-    //         $this->pingNonce = ($this->pingNonce + 1) % (PHP_INT_MAX - 1);
-    //         $this->connection->send (new Frame($this->pingNonce, true, Frame::OP_PING));
-    //         if (Exchange::milliseconds ()  - $this->lastPong > $this->timeout) {
-    //             $this->connected = false;
-    //             foreach ($this->futures as $deferred) {
-    //                 $deferred->reject (new RequestTimeout ('Client did not receive a pong in reply to a ping within ' . $this->timeout . ' seconds'));
-    //             }
-    //             $this->futures = array ();
-    //             $this->loop->cancelTimer ($this->timeoutTimer);
-    //         }
-    //     });
-    // }
+    public function on_ping_interval() {
+        if ($this->keepAlive && $this->isConnected) {
+            $now = $this->milliseconds();
+            $this->lastPong = isset ($this->lastPong) ? $this->lastPong : $now;
+            if (($this->lastPong + $this->keepAlive * $this->maxPingPongMisses) < $now) {
+                $this->on_error(new RequestTimeout('Connection to ' . $this->url . ' timed out due to a ping-pong keepalive missing on time'));
+            } else {
+                if ($this->heartbeat) {
+                    $this->connection->send(new Frame('', true, Frame::OP_PING));
+                } else {
+                    $function = $this->ping;
+                    $this->send($function($this));
+                }
+            }
+        }
+    }
 };

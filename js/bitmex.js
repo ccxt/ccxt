@@ -517,7 +517,7 @@ module.exports = class bitmex extends ccxt.bitmex {
                 console.log (message);
                 return message;
             } else {
-                return this.call (method, client, message);
+                return method.call (this, client, message);
             }
         }
     }

@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "85737efbe387944319ab196d06b91455",
+    "content-hash": "7a674ab30f3266637450978b69e7c032",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.21.25",
+            "version": "1.21.46",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "4eda15540b329b2b96a9143d04ee46891eb4bcde"
+                "reference": "157abd20415c99952d4e23bb1a82baa3ee39be0c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/4eda15540b329b2b96a9143d04ee46891eb4bcde",
-                "reference": "4eda15540b329b2b96a9143d04ee46891eb4bcde",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/157abd20415c99952d4e23bb1a82baa3ee39be0c",
+                "reference": "157abd20415c99952d4e23bb1a82baa3ee39be0c",
                 "shasum": ""
             },
             "require": {
@@ -269,7 +269,7 @@
                 "zec",
                 "zerocoin"
             ],
-            "time": "2020-01-01T02:09:01+00:00"
+            "time": "2020-01-10T18:33:36+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -1012,7 +1012,8 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=5.4.0"
+        "php": ">=5.4.0",
+        "ext-ds": "*"
     },
     "platform-dev": []
 }

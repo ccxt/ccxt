@@ -524,6 +524,7 @@ class kraken extends \ccxt\kraken {
 
     public function handle_message ($client, $message) {
         if (gettype($message) === 'array' && count(array_filter(array_keys($message), 'is_string')) == 0) {
+            // todo => move this branch and the 'method' property – to the $client->subscriptions
             $channelId = (string) $message[0];
             $subscriptionStatus = $this->safe_value($this->options['subscriptionStatusByChannelId'], $channelId, array());
             $subscription = $this->safe_value($subscriptionStatus, 'subscription', array());
@@ -538,7 +539,7 @@ class kraken extends \ccxt\kraken {
             if ($method === null) {
                 return $message;
             } else {
-                return $this->call ($method, $client, $message);
+                return $method($client, $message);
             }
         } else {
             if ($this->handle_error_message ($client, $message)) {
@@ -552,7 +553,7 @@ class kraken extends \ccxt\kraken {
                 if ($method === null) {
                     return $message;
                 } else {
-                    return $this->call ($method, $client, $message);
+                    return $method($client, $message);
                 }
             }
         }

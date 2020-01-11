@@ -258,8 +258,8 @@ module.exports = class poloniex extends ccxt.poloniex {
                 orderbookUpdatesCount += 1;
             } else if (delta[0] === 't') {
                 // todo: add max limit to the dequeue of trades, unshift and push
-                const trade = this.handleTrade (client, delta, market);
-                this.trades.push (trade);
+                // const trade = this.handleTrade (client, delta, market);
+                // this.trades.push (trade);
                 tradesCount += 1;
             }
         }
@@ -299,7 +299,7 @@ module.exports = class poloniex extends ccxt.poloniex {
             if (method === undefined) {
                 return message;
             } else {
-                return this.call (method, client, message);
+                method.apply (this, client, message);
             }
         } else {
             return this.handleOrderBookAndTrades (client, message);

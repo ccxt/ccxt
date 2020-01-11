@@ -168,8 +168,6 @@ class CCXTProTranspiler extends Transpiler {
         // transpileDateTimeTests ()
         // transpileCryptoTests ()
 
-        // transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
-
         log.bright.green ('Transpiled successfully.')
     }
 }

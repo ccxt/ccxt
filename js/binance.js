@@ -221,7 +221,7 @@ module.exports = class binance extends ccxt.binance {
         const subscription = this.safeValue (subscriptionsById, id, {});
         const method = this.safeValue (subscription, 'method');
         if (method !== undefined) {
-            this.call (method, client, message, subscription);
+            method.call (this, client, message, subscription);
         }
         return message;
     }
@@ -239,7 +239,7 @@ module.exports = class binance extends ccxt.binance {
             }
             return message;
         } else {
-            return this.call (method, client, message);
+            return method.call (this, client, message);
         }
     }
 };

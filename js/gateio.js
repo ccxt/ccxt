@@ -49,7 +49,7 @@ module.exports = class gateio extends ccxt.gateio {
             'params': [marketId, limit, interval],
         };
         const future = this.watch (url, messageHash, subscribeMessage, messageHash);
-        return future;
+        return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
     signMessage (client, messageHash, message, params = {}) {

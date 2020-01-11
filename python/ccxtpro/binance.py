@@ -200,7 +200,7 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         subscription = self.safe_value(subscriptionsById, id, {})
         method = self.safe_value(subscription, 'method')
         if method is not None:
-            self.call(method, client, message, subscription)
+            method(client, message, subscription)
         return message
 
     def handle_message(self, client, message):
@@ -215,4 +215,4 @@ class binance(ccxtpro.Exchange, ccxt.binance):
                 return self.handle_subscription_status(client, message)
             return message
         else:
-            return self.call(method, client, message)
+            return method(client, message)
