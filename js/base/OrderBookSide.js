@@ -52,7 +52,8 @@ class OrderBookSide extends Array {
     // replace stored orders with new values
     limit (n = undefined) {
         n = n || Number.MAX_SAFE_INTEGER
-        const array = Array.from (this.limitType ? this.index.values () : this.index.entries ()).sort (this.compare)
+        const elements = (this.limitType === LIMIT_BY_KEY) ? this.index.entries () : this.index.values ()
+        const array = Array.from (elements).sort (this.compare)
         const threshold = Math.min (this.depth, array.length)
         this.index = new Map ()
         for (let i = 0; i < threshold; i++) {
