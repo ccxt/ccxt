@@ -462,7 +462,7 @@ module.exports = class gateio extends Exchange {
         //     'timestamp': 1531158583,
         //     'type': 'sell'},
         //
-        const id = this.safeString (order, 'orderNumber');
+        const id = this.safeString2 (order, 'orderNumber', 'id');
         let symbol = undefined;
         const marketId = this.safeString (order, 'currencyPair');
         if (marketId in this.markets_by_id) {
@@ -471,12 +471,19 @@ module.exports = class gateio extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const timestamp = this.safeTimestamp (order, 'timestamp');
+        const timestamp = this.safeTimestamp2 (order, 'timestamp', 'ctime');
+        const lastTradeTimestamp = this.safeTimestamp (order, 'mtime');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const side = this.safeString (order, 'type');
-        const price = this.safeFloat (order, 'initialRate');
+        let side = this.safeString (order, 'type');
+        // handling for order.update messages
+        if (side === '1') {
+            side = 'sell';
+        } else if (side === '2') {
+            side = 'buy';
+        }
+        const price = this.safeFloat2 (order, 'initialRate', 'price');
         const average = this.safeFloat (order, 'filledRate');
-        const amount = this.safeFloat (order, 'initialAmount');
+        const amount = this.safeFloat2 (order, 'initialAmount', 'amount');
         const filled = this.safeFloat (order, 'filledAmount');
         // In the order status response, this field has a different name.
         const remaining = this.safeFloat2 (order, 'leftAmount', 'left');
@@ -491,6 +498,7 @@ module.exports = class gateio extends Exchange {
             'id': id,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
             'symbol': symbol,
             'type': 'limit',
