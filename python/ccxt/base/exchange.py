@@ -1197,16 +1197,16 @@ class Exchange(object):
 
     def cost_to_precision(self, symbol, cost, rounding_mode=ROUND):
         return self.decimal_to_precision(cost, rounding_mode, self.markets[symbol]['precision']['price'], self.precisionMode)
- 
+
     def price_to_precision(self, symbol, price, rounding_mode=ROUND):
         return self.decimal_to_precision(price, rounding_mode, self.markets[symbol]['precision']['price'], self.precisionMode)
- 
+
     def amount_to_precision(self, symbol, amount, rounding_mode=TRUNCATE):
         return self.decimal_to_precision(amount, rounding_mode, self.markets[symbol]['precision']['amount'], self.precisionMode)
- 
+
     def fee_to_precision(self, symbol, fee, rounding_mode=ROUND):
         return self.decimal_to_precision(fee, rounding_mode, self.markets[symbol]['precision']['price'], self.precisionMode)
- 
+
     def currency_to_precision(self, currency, fee, rounding_mode=ROUND):
         return self.decimal_to_precision(fee, rounding_mode, self.currencies[currency]['precision'], self.precisionMode)
 
