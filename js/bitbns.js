@@ -24,7 +24,7 @@ module.exports = class bitbns extends Exchange {
                 'createOrder': true,
                 'cancelOrder': true,
                 'fetchOpenOrders': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchDepositAddress': false,
                 'fetchWithdrawals': false,
                 'fetchDeposits': false,
@@ -42,7 +42,8 @@ module.exports = class bitbns extends Exchange {
             'urls': {
                 'logo': 'https://bitbns.com/assets/img/logos/bitbns.svg',
                 'api': {
-                    'public': 'https://c086dmj6f2.execute-api.ap-south-1.amazonaws.com/dev/',
+                    // 'public': 'https://c086dmj6f2.execute-api.ap-south-1.amazonaws.com/dev/',
+                    'public': 'https://bitbns.com/order/',
                     'private': 'https://api.bitbns.com/api/trade/v2',
                     'private1': 'https://api.bitbns.com/api/trade/v1',
                 },
@@ -67,6 +68,7 @@ module.exports = class bitbns extends Exchange {
                     'orderStatus',
                     'listOpenOrders',
                     'currentCoinBalance',
+                    'listExecutedOrders',
                 ] },
             },
             'fees': {
@@ -157,6 +159,7 @@ module.exports = class bitbns extends Exchange {
             }
             // console.log (method, url);
         }
+        console.log(url);
         // if (api === 'private')
         // console.log ("ccxt obj:",{ 'url': url, 'method': method, 'body': body, 'headers': headers });
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -197,6 +200,7 @@ module.exports = class bitbns extends Exchange {
         // console.log (trades.length);
         for (let i = 0; i < trades.length; i++) {
             trades[i]['symbol'] = symbol;
+            trades[i]['id'] = this.safeString(trades[i], "id");
             const keys = Object.keys (trades[i]);
             for (let k = 0; k < keys.length; k += 1) {
                 if (!this.safeString (trades[i], keys[k])) {
@@ -393,5 +397,38 @@ module.exports = class bitbns extends Exchange {
         }
         // console.log ('balances :', balances);
         return balances;
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const tradingSymbol = market['id'];
+        const request = {
+            'symbol': tradingSymbol,
+            'page': 0,
+            'since': since,
+        };
+        const resp = await this.private1PostListExecutedOrders (this.extend (request, params));
+        const trades = this.safeValue (resp, 'data');
+        const result = [];
+        for (let i = 0; i < trades.length; i += 1) {
+            const dateObj = new Date (trades[i].date);
+            const tradeObj = {
+                'info': trades[i],
+                'id': undefined,
+                'timestamp': dateObj.getTime (),
+                'datetime': dateObj.toISOString (),
+                'symbol': symbol,
+                'order': undefined,
+                'type': 'limit',
+                'side': undefined,
+                'takerOrMaker': undefined,
+                'price': trades[i].rate,
+                'amount': trades[i].amount,
+                'fee': trades[i].fee,
+            };
+            result.push (tradeObj);
+        }
+        return result;
     }
 };
