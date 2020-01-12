@@ -6,6 +6,9 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
+use \ccxt\InvalidOrder;
 
 class fcoin extends Exchange {
 
@@ -382,7 +385,7 @@ class fcoin extends Exchange {
             }
         }
         $values = $ticker['ticker'];
-        $last = floatval ($values[0]);
+        $last = $this->safe_float($values, 0);
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
@@ -390,12 +393,12 @@ class fcoin extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($values[7]),
-            'low' => floatval ($values[8]),
-            'bid' => floatval ($values[2]),
-            'bidVolume' => floatval ($values[3]),
-            'ask' => floatval ($values[4]),
-            'askVolume' => floatval ($values[5]),
+            'high' => $this->safe_float($values, 7),
+            'low' => $this->safe_float($values, 8),
+            'bid' => $this->safe_float($values, 2),
+            'bidVolume' => $this->safe_float($values, 3),
+            'ask' => $this->safe_float($values, 4),
+            'askVolume' => $this->safe_float($values, 5),
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -404,8 +407,8 @@ class fcoin extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($values[9]),
-            'quoteVolume' => floatval ($values[10]),
+            'baseVolume' => $this->safe_float($values, 9),
+            'quoteVolume' => $this->safe_float($values, 10),
             'info' => $ticker,
         );
     }

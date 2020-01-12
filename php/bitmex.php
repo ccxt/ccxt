@@ -6,6 +6,10 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\BadRequest;
+use \ccxt\OrderNotFound;
+use \ccxt\DDoSProtection;
 
 class bitmex extends Exchange {
 
@@ -37,9 +41,15 @@ class bitmex extends Exchange {
                 '1d' => '1d',
             ),
             'urls' => array(
-                'test' => 'https://testnet.bitmex.com',
+                'test' => array(
+                    'public' => 'https://testnet.bitmex.com',
+                    'private' => 'https://testnet.bitmex.com',
+                ),
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
-                'api' => 'https://www.bitmex.com',
+                'api' => array(
+                    'public' => 'https://www.bitmex.com',
+                    'private' => 'https://www.bitmex.com',
+                ),
                 'www' => 'https://www.bitmex.com',
                 'doc' => array(
                     'https://www.bitmex.com/app/apiOverview',
@@ -1286,7 +1296,7 @@ class bitmex extends Exchange {
                 $params = $this->omit ($params, '_format');
             }
         }
-        $url = $this->urls['api'] . $query;
+        $url = $this->urls['api'][$api] . $query;
         if ($this->apiKey && $this->secret) {
             $auth = $method . $query;
             $expires = $this->safe_integer($this->options, 'api-expires');

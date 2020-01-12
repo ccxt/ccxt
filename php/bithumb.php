@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
 
 class bithumb extends Exchange {
 
@@ -148,11 +149,10 @@ class bithumb extends Exchange {
             $code = $codes[$i];
             $account = $this->account ();
             $currency = $this->currency ($code);
-            $currencyId = $currency['id'];
-            $lowercase = strtolower($currencyId);
-            $account['total'] = $this->safe_float($balances, 'total_' . $lowercase);
-            $account['used'] = $this->safe_float($balances, 'in_use_' . $lowercase);
-            $account['free'] = $this->safe_float($balances, 'available_' . $lowercase);
+            $lowerCurrencyId = $this->safe_string_lower($currency, 'id');
+            $account['total'] = $this->safe_float($balances, 'total_' . $lowerCurrencyId);
+            $account['used'] = $this->safe_float($balances, 'in_use_' . $lowerCurrencyId);
+            $account['free'] = $this->safe_float($balances, 'available_' . $lowerCurrencyId);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

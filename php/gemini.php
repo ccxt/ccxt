@@ -6,6 +6,9 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
+use \ccxt\NotSupported;
 
 class gemini extends Exchange {
 
@@ -105,7 +108,7 @@ class gemini extends Exchange {
                 '429' => '\\ccxt\\DDoSProtection', // Rate Limiting was applied
                 '500' => '\\ccxt\\ExchangeError', // The server encountered an error
                 '502' => '\\ccxt\\ExchangeError', // Technical issues are preventing the request from being satisfied
-                '503' => '\\ccxt\\ExchangeNotAvailable', // The exchange is down for maintenance
+                '503' => '\\ccxt\\OnMaintenance', // The exchange is down for maintenance
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -135,7 +138,7 @@ class gemini extends Exchange {
                     'InvalidSignature' => '\\ccxt\\AuthenticationError', // The signature did not match the expected signature
                     'InvalidSymbol' => '\\ccxt\\BadRequest', // An invalid symbol was specified
                     'InvalidTimestampInPayload' => '\\ccxt\\BadRequest', // The JSON payload contained a timestamp parameter with an unsupported value.
-                    'Maintenance' => '\\ccxt\\ExchangeNotAvailable', // The system is down for maintenance
+                    'Maintenance' => '\\ccxt\\OnMaintenance', // The system is down for maintenance
                     'MarketNotOpen' => '\\ccxt\\InvalidOrder', // The order was rejected because the market is not accepting new orders
                     'MissingApikeyHeader' => '\\ccxt\\AuthenticationError', // The X-GEMINI-APIKEY header was missing
                     'MissingOrderField' => '\\ccxt\\InvalidOrder', // A required order_id field was not specified

@@ -6,6 +6,9 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\AuthenticationError;
+use \ccxt\NotSupported;
 
 class bitstamp extends Exchange {
 
@@ -29,7 +32,10 @@ class bitstamp extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
-                'api' => 'https://www.bitstamp.net/api',
+                'api' => array(
+                    'public' => 'https://www.bitstamp.net/api',
+                    'private' => 'https://www.bitstamp.net/api',
+                ),
                 'www' => 'https://www.bitstamp.net',
                 'doc' => 'https://www.bitstamp.net/api',
             ),
@@ -873,10 +879,9 @@ class bitstamp extends Exchange {
         $timestamp = $this->parse8601 ($this->safe_string($order, 'datetime'));
         $lastTradeTimestamp = null;
         $symbol = null;
-        $marketId = $this->safe_string($order, 'currency_pair');
+        $marketId = $this->safe_string_lower($order, 'currency_pair');
         if ($marketId !== null) {
             $marketId = str_replace('/', '', $marketId);
-            $marketId = strtolower($marketId);
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
@@ -1064,7 +1069,7 @@ class bitstamp extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/';
+        $url = $this->urls['api'][$api] . '/';
         if ($api !== 'v1') {
             $url .= $this->version . '/';
         }

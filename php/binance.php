@@ -6,6 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
+use \ccxt\InvalidAddress;
+use \ccxt\InvalidOrder;
+use \ccxt\DDoSProtection;
 
 class binance extends Exchange {
 
@@ -28,7 +33,7 @@ class binance extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
+                'fetchClosedOrders' => 'emulated',
                 'withdraw' => true,
                 'fetchFundingFees' => true,
                 'fetchDeposits' => true,
@@ -158,7 +163,6 @@ class binance extends Exchange {
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
-                        'income',
                     ),
                     'put' => array( 'listenKey' ),
                     'post' => array( 'listenKey' ),
@@ -171,10 +175,14 @@ class binance extends Exchange {
                         'order',
                         'account',
                         'balance',
+                        'positionMargin/history',
                         'positionRisk',
                         'userTrades',
+                        'income',
                     ),
                     'post' => array(
+                        'positionMargin',
+                        'marginType',
                         'order',
                         'leverage',
                     ),
@@ -901,7 +909,7 @@ class binance extends Exchange {
             'CANCELED' => 'canceled',
             'PENDING_CANCEL' => 'canceling', // currently unused
             'REJECTED' => 'rejected',
-            'EXPIRED' => 'expired',
+            'EXPIRED' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -957,6 +965,8 @@ class binance extends Exchange {
                     }
                 }
             }
+        } else if ($type === 'limit_maker') {
+            $type = 'limit';
         }
         $side = $this->safe_string_lower($order, 'side');
         $fee = null;
@@ -1410,6 +1420,7 @@ class binance extends Exchange {
         //     { withdrawList => array( array(      amount =>  14,
         //                             address => "0x0123456789abcdef...",
         //                         successTime =>  1514489710000,
+        //                      transactionFee =>  0.01,
         //                          addressTag => "",
         //                                txId => "0x0123456789abcdef...",
         //                                  id => "0123456789abcdef...",
@@ -1419,6 +1430,7 @@ class binance extends Exchange {
         //                       {      amount =>  7600,
         //                             address => "0x0123456789abcdef...",
         //                         successTime =>  1515323226000,
+        //                      transactionFee =>  0.01,
         //                          addressTag => "",
         //                                txId => "0x0123456789abcdef...",
         //                                  id => "0123456789abcdef...",
@@ -1468,6 +1480,7 @@ class binance extends Exchange {
         //       {      $amount =>  14,
         //             $address => "0x0123456789abcdef...",
         //         successTime =>  1514489710000,
+        //      transactionFee =>  0.01,
         //          addressTag => "",
         //                txId => "0x0123456789abcdef...",
         //                  $id => "0123456789abcdef...",
@@ -1501,6 +1514,11 @@ class binance extends Exchange {
         }
         $status = $this->parse_transaction_status_by_type ($this->safe_string($transaction, 'status'), $type);
         $amount = $this->safe_float($transaction, 'amount');
+        $feeCost = $this->safe_float($transaction, 'transactionFee');
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array( 'currency' => $code, 'cost' => $feeCost );
+        }
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -1514,7 +1532,7 @@ class binance extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => null,
-            'fee' => null,
+            'fee' => $fee,
         );
     }
 

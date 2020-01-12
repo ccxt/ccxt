@@ -6,6 +6,9 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
+use \ccxt\NotSupported;
 
 class bitfinex extends Exchange {
 
@@ -623,17 +626,17 @@ class bitfinex extends Exchange {
             $symbol = $market['symbol'];
         } else if (is_array($ticker) && array_key_exists('pair', $ticker)) {
             $marketId = $this->safe_string($ticker, 'pair');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
-            if ($market !== null) {
-                $symbol = $market['symbol'];
-            } else {
-                $baseId = mb_substr($marketId, 0, 3 - 0);
-                $quoteId = mb_substr($marketId, 3, 6 - 3);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
+            if ($marketId !== null) {
+                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                    $market = $this->markets_by_id[$marketId];
+                    $symbol = $market['symbol'];
+                } else {
+                    $baseId = mb_substr($marketId, 0, 3 - 0);
+                    $quoteId = mb_substr($marketId, 3, 6 - 3);
+                    $base = $this->safe_currency_code($baseId);
+                    $quote = $this->safe_currency_code($quoteId);
+                    $symbol = $base . '/' . $quote;
+                }
             }
         }
         $last = $this->safe_float($ticker, 'last_price');
@@ -808,9 +811,8 @@ class bitfinex extends Exchange {
         }
         $symbol = null;
         if ($market === null) {
-            $marketId = $this->safe_string($order, 'symbol');
+            $marketId = $this->safe_string_upper($order, 'symbol');
             if ($marketId !== null) {
-                $marketId = strtoupper($marketId);
                 if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                     $market = $this->markets_by_id[$marketId];
                 }

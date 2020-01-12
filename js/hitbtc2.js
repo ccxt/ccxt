@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const hitbtc = require ('./hitbtc');
-const { BadSymbol, PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { BadSymbol, PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, RequestTimeout } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 // ---------------------------------------------------------------------------
 
@@ -543,6 +543,7 @@ module.exports = class hitbtc2 extends hitbtc {
                 'defaultTimeInForce': 'FOK',
             },
             'exceptions': {
+                '504': RequestTimeout, // {"error":{"code":504,"message":"Gateway Timeout"}}
                 '1003': PermissionDenied, // "Action is forbidden for this API key"
                 '2010': InvalidOrder, // "Quantity not a valid number"
                 '2001': BadSymbol, // "Symbol not found"

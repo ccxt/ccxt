@@ -6,6 +6,16 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
+use \ccxt\InsufficientFunds;
+use \ccxt\InvalidAddress;
+use \ccxt\InvalidOrder;
+use \ccxt\OrderNotFound;
+use \ccxt\CancelPending;
+use \ccxt\NotSupported;
+use \ccxt\ExchangeNotAvailable;
+use \ccxt\InvalidNonce;
 
 class kraken extends Exchange {
 
@@ -207,6 +217,7 @@ class kraken extends Exchange {
                 'inactiveCurrencies' => array( 'CAD', 'USD', 'JPY', 'GBP' ),
             ),
             'exceptions' => array(
+                'EQuery:Invalid asset pair' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Invalid asset pair"])
                 'EAPI:Invalid key' => '\\ccxt\\AuthenticationError',
                 'EFunding:Unknown withdraw key' => '\\ccxt\\ExchangeError',
                 'EFunding:Invalid amount' => '\\ccxt\\InsufficientFunds',

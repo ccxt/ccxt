@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, DDoSProtection, NotSupported, BadRequest, AuthenticationError, BadSymbol } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, DDoSProtection, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -18,6 +18,7 @@ module.exports = class kucoin extends Exchange {
             'certified': true,
             'comment': 'Platform 2.0',
             'has': {
+                'fetchTime': true,
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
                 'fetchTicker': true,
@@ -127,37 +128,42 @@ module.exports = class kucoin extends Exchange {
                 '1w': '1week',
             },
             'exceptions': {
-                'order not exist': OrderNotFound,
-                'order not exist.': OrderNotFound, // duplicated error temporarily
-                'order_not_exist': OrderNotFound, // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
-                'order_not_exist_or_not_allow_to_cancel': InvalidOrder, // {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
-                'Order size below the minimum requirement.': InvalidOrder, // {"code":"400100","msg":"Order size below the minimum requirement."}
-                'The withdrawal amount is below the minimum requirement.': ExchangeError, // {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
-                '400': BadRequest,
-                '401': AuthenticationError,
-                '403': NotSupported,
-                '404': NotSupported,
-                '405': NotSupported,
-                '429': DDoSProtection,
-                '500': ExchangeError,
-                '503': ExchangeNotAvailable,
-                '200004': InsufficientFunds,
-                '230003': InsufficientFunds, // {"code":"230003","msg":"Balance insufficient!"}
-                '260100': InsufficientFunds, // {"code":"260100","msg":"account.noBalance"}
-                '300000': InvalidOrder,
-                '400000': BadSymbol,
-                '400001': AuthenticationError,
-                '400002': InvalidNonce,
-                '400003': AuthenticationError,
-                '400004': AuthenticationError,
-                '400005': AuthenticationError,
-                '400006': AuthenticationError,
-                '400007': AuthenticationError,
-                '400008': NotSupported,
-                '400100': BadRequest,
-                '411100': AccountSuspended,
-                '415000': BadRequest, // {"code":"415000","msg":"Unsupported Media Type"}
-                '500000': ExchangeError,
+                'exact': {
+                    'order not exist': OrderNotFound,
+                    'order not exist.': OrderNotFound, // duplicated error temporarily
+                    'order_not_exist': OrderNotFound, // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
+                    'order_not_exist_or_not_allow_to_cancel': InvalidOrder, // {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
+                    'Order size below the minimum requirement.': InvalidOrder, // {"code":"400100","msg":"Order size below the minimum requirement."}
+                    'The withdrawal amount is below the minimum requirement.': ExchangeError, // {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
+                    '400': BadRequest,
+                    '401': AuthenticationError,
+                    '403': NotSupported,
+                    '404': NotSupported,
+                    '405': NotSupported,
+                    '429': DDoSProtection,
+                    '500': ExchangeError,
+                    '503': ExchangeNotAvailable,
+                    '200004': InsufficientFunds,
+                    '230003': InsufficientFunds, // {"code":"230003","msg":"Balance insufficient!"}
+                    '260100': InsufficientFunds, // {"code":"260100","msg":"account.noBalance"}
+                    '300000': InvalidOrder,
+                    '400000': BadSymbol,
+                    '400001': AuthenticationError,
+                    '400002': InvalidNonce,
+                    '400003': AuthenticationError,
+                    '400004': AuthenticationError,
+                    '400005': AuthenticationError,
+                    '400006': AuthenticationError,
+                    '400007': AuthenticationError,
+                    '400008': NotSupported,
+                    '400100': BadRequest,
+                    '411100': AccountSuspended,
+                    '415000': BadRequest, // {"code":"415000","msg":"Unsupported Media Type"}
+                    '500000': ExchangeError,
+                },
+                'broad': {
+                    'Exceeded the access frequency': RateLimitExceeded,
+                },
             },
             'fees': {
                 'trading': {
@@ -198,6 +204,18 @@ module.exports = class kucoin extends Exchange {
         const kucoinTime = this.safeInteger (response, 'data');
         this.options['timeDifference'] = parseInt (after - kucoinTime);
         return this.options['timeDifference'];
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetTimestamp (params);
+        //
+        //     {
+        //         "code":"200000",
+        //         "msg":"success",
+        //         "data":1546837113087
+        //     }
+        //
+        return this.safeInteger (response, 'data');
     }
 
     async fetchMarkets (params = {}) {
@@ -572,9 +590,16 @@ module.exports = class kucoin extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        let level = '2';
+        if (limit !== undefined) {
+            if ((limit !== 20) && (limit !== 100)) {
+                throw new ExchangeError (this.id + ' fetchOrderBook limit argument must be undefined, 20 or 100');
+            }
+            level += '_' + limit.toString ();
+        }
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
-        const request = this.extend ({ 'symbol': marketId, 'level': 2 }, params);
+        const request = this.extend ({ 'symbol': marketId, 'level': level }, params);
         const response = await this.publicGetMarketOrderbookLevelLevel (request);
         //
         // { sequence: '1547731421688',
@@ -586,8 +611,8 @@ module.exports = class kucoin extends Exchange {
         // level can be a string such as 2_20 or 2_100
         const levelString = this.safeString (request, 'level');
         const levelParts = levelString.split ('_');
-        const level = parseInt (levelParts[0]);
-        const orderbook = this.parseOrderBook (data, timestamp, 'bids', 'asks', level - 2, level - 1);
+        const offset = parseInt (levelParts[0]);
+        const orderbook = this.parseOrderBook (data, timestamp, 'bids', 'asks', offset - 2, offset - 1);
         orderbook['nonce'] = this.safeInteger (data, 'sequence');
         return orderbook;
     }
@@ -1586,6 +1611,7 @@ module.exports = class kucoin extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, body);
             return;
         }
         //
@@ -1596,7 +1622,7 @@ module.exports = class kucoin extends Exchange {
         //
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
-        this.throwExactlyMatchedException (this.exceptions, message, message);
-        this.throwExactlyMatchedException (this.exceptions, errorCode, message);
+        this.throwExactlyMatchedException (this.exceptions['exact'], message, message);
+        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, message);
     }
 };

@@ -6,6 +6,8 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
 
 class bw extends Exchange {
 
@@ -98,6 +100,7 @@ class bw extends Exchange {
                 'exact' => array(
                     '999' => '\\ccxt\\AuthenticationError',
                     '1000' => '\\ccxt\\ExchangeNotAvailable', // array("datas":null,"resMsg":array("message":"getKlines error:data not exitsts\uff0cplease wait ,dataType=4002_KLINE_1M","method":null,"code":"1000"))
+                    '5017' => '\\ccxt\\BadSymbol', // array("datas":null,"resMsg":array("message":"market not exist","method":null,"code":"5017"))
                 ),
             ),
             'api' => array(

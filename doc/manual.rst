@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 124 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 122 cryptocurrency exchange markets and trading APIs:
 
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 |        logo                                                                               | id                 | name                                                                                       | ver | doc                                                                                             | certified                                                            |
@@ -156,7 +156,7 @@ The ccxt library currently supports the following 124 cryptocurrency exchange ma
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `coinbaseprime <https://prime.coinbase.com>`__                                            | coinbaseprime      | `Coinbase Prime <https://prime.coinbase.com>`__                                            | \*  | `API <https://docs.prime.coinbase.com>`__                                                       |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `coinbasepro <https://pro.coinbase.com/>`__                                               | coinbasepro        | `Coinbase Pro <https://pro.coinbase.com/>`__                                               | \*  | `API <https://docs.pro.coinbase.com/>`__                                                        |                                                                      |
+| `coinbasepro <https://pro.coinbase.com/>`__                                               | coinbasepro        | `Coinbase Pro <https://pro.coinbase.com/>`__                                               | \*  | `API <https://docs.pro.coinbase.com>`__                                                         |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `coincheck <https://coincheck.com>`__                                                     | coincheck          | `coincheck <https://coincheck.com>`__                                                      | \*  | `API <https://coincheck.com/documents/exchange/api>`__                                          |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -180,7 +180,7 @@ The ccxt library currently supports the following 124 cryptocurrency exchange ma
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `coolcoin <https://www.coolcoin.com/user/register?invite_code=bhaega>`__                  | coolcoin           | `CoolCoin <https://www.coolcoin.com/user/register?invite_code=bhaega>`__                   | \*  | `API <https://www.coolcoin.com/help.api.html>`__                                                |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `coss <https://www.coss.io/c/reg?r=OWCMHQVW2Q>`__                                         | coss               | `COSS <https://www.coss.io/c/reg?r=OWCMHQVW2Q>`__                                          | 1   | `API <https://api.coss.io/v1/spec>`__                                                           | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
+| `coss <https://www.coss.io/c/reg?r=OWCMHQVW2Q>`__                                         | coss               | `COSS <https://www.coss.io/c/reg?r=OWCMHQVW2Q>`__                                          | 1   | `API <https://api.coss.io/v1/spec>`__                                                           |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `crex24 <https://crex24.com/?refid=slxsjsjtil8xexl9hksr>`__                               | crex24             | `CREX24 <https://crex24.com/?refid=slxsjsjtil8xexl9hksr>`__                                | 2   | `API <https://docs.crex24.com/trade-api/v2>`__                                                  |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -250,8 +250,6 @@ The ccxt library currently supports the following 124 cryptocurrency exchange ma
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `lykke <https://www.lykke.com>`__                                                         | lykke              | `Lykke <https://www.lykke.com>`__                                                          | 1   | `API <https://hft-api.lykke.com/swagger/ui/>`__                                                 |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `mandala <https://trade.mandalaex.com/?ref=564377>`__                                     | mandala            | `Mandala <https://trade.mandalaex.com/?ref=564377>`__                                      | 2   | `API <https://apidocs.mandalaex.com>`__                                                         |                                                                      |
-+-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `mercado <https://www.mercadobitcoin.com.br>`__                                           | mercado            | `Mercado Bitcoin <https://www.mercadobitcoin.com.br>`__                                    | 3   | `API <https://www.mercadobitcoin.com.br/api-doc>`__                                             |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `mixcoins <https://mixcoins.com>`__                                                       | mixcoins           | `MixCoins <https://mixcoins.com>`__                                                        | 1   | `API <https://mixcoins.com/help/api/>`__                                                        |                                                                      |
@@ -295,8 +293,6 @@ The ccxt library currently supports the following 124 cryptocurrency exchange ma
 | `vaultoro <https://www.vaultoro.com>`__                                                   | vaultoro           | `Vaultoro <https://www.vaultoro.com>`__                                                    | 1   | `API <https://api.vaultoro.com>`__                                                              |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `vbtc <https://vbtc.exchange>`__                                                          | vbtc               | `VBTC <https://vbtc.exchange>`__                                                           | 1   | `API <https://blinktrade.com/docs>`__                                                           |                                                                      |
-+-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `virwox <https://www.virwox.com>`__                                                       | virwox             | `VirWoX <https://www.virwox.com>`__                                                        | \*  | `API <https://www.virwox.com/developers.php>`__                                                 |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `whitebit <https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963>`__         | whitebit           | `WhiteBit <https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963>`__          | 2   | `API <https://documenter.getpostman.com/view/7473075/SVSPomwS?version=latest#intro>`__          |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -498,7 +494,7 @@ Here’s an overview of base exchange properties with values added for example:
            'fetchTrades': true,
            'withdraw': false,
        },
-       'timeframes': {                     // empty if the exchange !has.fetchOHLCV
+       'timeframes': {                     // empty if the exchange.has['fetchOHLCV'] !== true
            '1m': '1minute',
            '1h': '1hour',
            '1d': '1day',
@@ -773,7 +769,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 -  ``quoteId``. An exchange-specific id of the quote currency, not unified.
 -  ``active``. A boolean indicating whether or not trading this market is currently possible. Often, when a market is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that market. The user should check if the market is active and `reload market cache periodically, as explained below <#market-cache-force-reload>`__.
 -  ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
--  ``precision``. The amounts of decimal digits accepted in order values by exchanges upon order placement for price, amount and cost.
+-  ``precision``. Precision accepted in order values by exchanges upon order placement for price, amount and cost. The values inside this market property depend on the ``exchange.precisionMode``. If ``exchange.precisionMode`` is either ``DECIMAL_DIGITS`` or ``SIGNIFICAT_DIGITS`` – then the market ``precision`` designates the number of decimal digits after the dot. When ``exchange.precisionMode`` is ``TICK_SIZE``, then the market ``precision`` designates the smallest possible float fractions.
 -  ``limits``. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price \* amount).
 
 Precision And Limits
@@ -794,7 +790,7 @@ In the first example the **amount** of any order placed on the market **must sat
       + good: 0.05, 0.051, 0.0501, 0.0502, ..., 0.0599, 0.06, 0.0601, ...
       - bad: 0.04, 0.049, 0.0499
 
--  *Precision of the amount* should up to 4 decimal digits:
+-  *Precision of the amount* should be up to 4 decimal digits:
 
    .. code:: diff
 
@@ -821,7 +817,7 @@ In the second example the **price** of any order placed on the market **must sat
 
 3. ``(market['limits']['amount']['min'] == 50) && (market['precision']['amount'] == -1)``
 
--  The *amount value* should be greater than 50:
+-  The *amount value* should be greater than or equal to 50:
 
    .. code:: diff
 
@@ -842,12 +838,12 @@ Notes On Precision And Limits
 
 The user is required to stay within all limits and precision! The values of the order should satisfy the following conditions:
 
--  Order ``amount`` > ``limits['min']['amount']``
--  Order ``amount`` < ``limits['max']['amount']``
--  Order ``price`` > ``limits['min']['price']``
--  Order ``price`` < ``limits['max']['price']``
--  Order ``cost`` (``amount * price``) > ``limits['min']['cost']``
--  Order ``cost`` (``amount * price``) < ``limits['max']['cost']``
+-  Order ``amount`` >= ``limits['min']['amount']``
+-  Order ``amount`` <= ``limits['max']['amount']``
+-  Order ``price`` >= ``limits['min']['price']``
+-  Order ``price`` <= ``limits['max']['price']``
+-  Order ``cost`` (``amount * price``) >= ``limits['min']['cost']``
+-  Order ``cost`` (``amount * price``) <= ``limits['max']['cost']``
 -  Precision of ``amount`` must be <= ``precision['amount']``
 -  Precision of ``price`` must be <= ``precision['price']``
 
@@ -865,11 +861,11 @@ Supported rounding modes are:
 
 The decimal precision counting mode is available in the ``exchange.precisionMode`` property.
 
-Supported counting modes are:
+Supported precision modes are:
 
--  ``DECIMAL_PLACES`` – counts all digits, 99% of exchanges use this counting mode
--  ``SIGNIFICANT_DIGITS`` – counts non-zero digits only, some exchanges (``bitfinex`` and maybe a few other) implement this mode of counting decimals
--  ``TICK_SIZE`` – some exchanges only allow a multiple of a specific value (``bitmex`` uses this mode)
+-  ``DECIMAL_PLACES`` – counts all digits, 99% of exchanges use this counting mode. With this mode of precision, the numbers in ``market['precision']`` designate the number of decimal digits after the dot for further rounding or truncation.
+-  ``SIGNIFICANT_DIGITS`` – counts non-zero digits only, some exchanges (``bitfinex`` and maybe a few other) implement this mode of counting decimals. With this mode of precision, the numbers in ``market['precision']`` designate the Nth place of the last significant (non-zero) decimal digit after the dot.
+-  ``TICK_SIZE`` – some exchanges only allow a multiple of a specific value (``bitmex`` and ``ftx`` use this mode, for example). In this mode, the numbers in ``market['precision']`` designate the minimal precision fractions (floats) for rounding or truncating.
 
 Supported padding modes are:
 
@@ -1218,7 +1214,7 @@ To get a list of all available methods with an exchange instance, you can simply
 ::
 
    console.log (new ccxt.kraken ())   // JavaScript
-   print (dir (ccxt.hitbtc ()))        # Python
+   print(dir(ccxt.hitbtc()))           # Python
    var_dump (new \ccxt\okcoinusd ()); // PHP
 
 Synchronous vs Asynchronous Calls
@@ -1301,14 +1297,14 @@ The ccxt library supports both camelcase notation (preferred in JavaScript) and 
 ::
 
    exchange.methodName ()  // camelcase pseudocode
-   exchange.method_name () // underscore pseudocode
+   exchange.method_name()  // underscore pseudocode
 
 To get a list of all available methods with an exchange instance, you can simply do the following:
 
 ::
 
    console.log (new ccxt.kraken ())   // JavaScript
-   print (dir (ccxt.hitbtc ()))        # Python
+   print(dir(ccxt.hitbtc()))           # Python
    var_dump (new \ccxt\okcoinusd ()); // PHP
 
 Unified API
@@ -1340,7 +1336,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 Overriding Unified API Params
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Note, that most of methods of the unified API accept an optional ``params`` parameter. It is an associative array (a dictionary, empty by default) containing the params you want to override. The contents of ``params`` are exchange-specific, consult the exchanges’ API documentation for supported fields and values. Use the ``params`` dictionary if you need to pass a custom setting or an optional parameter to your unified query.
+Note, that most of methods of the unified API accept an optional ``params`` argument. It is an associative array (a dictionary, empty by default) containing the params you want to override. The contents of ``params`` are exchange-specific, consult the exchanges’ API documentation for supported fields and values. Use the ``params`` dictionary if you need to pass a custom setting or an optional parameter to your unified query.
 
 .. code:: javascript
 

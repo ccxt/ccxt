@@ -17,6 +17,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
@@ -33,6 +34,7 @@ class kucoin(Exchange):
             'certified': True,
             'comment': 'Platform 2.0',
             'has': {
+                'fetchTime': True,
                 'fetchMarkets': True,
                 'fetchCurrencies': True,
                 'fetchTicker': True,
@@ -142,37 +144,42 @@ class kucoin(Exchange):
                 '1w': '1week',
             },
             'exceptions': {
-                'order not exist': OrderNotFound,
-                'order not exist.': OrderNotFound,  # duplicated error temporarily
-                'order_not_exist': OrderNotFound,  # {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
-                'order_not_exist_or_not_allow_to_cancel': InvalidOrder,  # {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
-                'Order size below the minimum requirement.': InvalidOrder,  # {"code":"400100","msg":"Order size below the minimum requirement."}
-                'The withdrawal amount is below the minimum requirement.': ExchangeError,  # {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
-                '400': BadRequest,
-                '401': AuthenticationError,
-                '403': NotSupported,
-                '404': NotSupported,
-                '405': NotSupported,
-                '429': DDoSProtection,
-                '500': ExchangeError,
-                '503': ExchangeNotAvailable,
-                '200004': InsufficientFunds,
-                '230003': InsufficientFunds,  # {"code":"230003","msg":"Balance insufficient!"}
-                '260100': InsufficientFunds,  # {"code":"260100","msg":"account.noBalance"}
-                '300000': InvalidOrder,
-                '400000': BadSymbol,
-                '400001': AuthenticationError,
-                '400002': InvalidNonce,
-                '400003': AuthenticationError,
-                '400004': AuthenticationError,
-                '400005': AuthenticationError,
-                '400006': AuthenticationError,
-                '400007': AuthenticationError,
-                '400008': NotSupported,
-                '400100': BadRequest,
-                '411100': AccountSuspended,
-                '415000': BadRequest,  # {"code":"415000","msg":"Unsupported Media Type"}
-                '500000': ExchangeError,
+                'exact': {
+                    'order not exist': OrderNotFound,
+                    'order not exist.': OrderNotFound,  # duplicated error temporarily
+                    'order_not_exist': OrderNotFound,  # {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
+                    'order_not_exist_or_not_allow_to_cancel': InvalidOrder,  # {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
+                    'Order size below the minimum requirement.': InvalidOrder,  # {"code":"400100","msg":"Order size below the minimum requirement."}
+                    'The withdrawal amount is below the minimum requirement.': ExchangeError,  # {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
+                    '400': BadRequest,
+                    '401': AuthenticationError,
+                    '403': NotSupported,
+                    '404': NotSupported,
+                    '405': NotSupported,
+                    '429': DDoSProtection,
+                    '500': ExchangeError,
+                    '503': ExchangeNotAvailable,
+                    '200004': InsufficientFunds,
+                    '230003': InsufficientFunds,  # {"code":"230003","msg":"Balance insufficient!"}
+                    '260100': InsufficientFunds,  # {"code":"260100","msg":"account.noBalance"}
+                    '300000': InvalidOrder,
+                    '400000': BadSymbol,
+                    '400001': AuthenticationError,
+                    '400002': InvalidNonce,
+                    '400003': AuthenticationError,
+                    '400004': AuthenticationError,
+                    '400005': AuthenticationError,
+                    '400006': AuthenticationError,
+                    '400007': AuthenticationError,
+                    '400008': NotSupported,
+                    '400100': BadRequest,
+                    '411100': AccountSuspended,
+                    '415000': BadRequest,  # {"code":"415000","msg":"Unsupported Media Type"}
+                    '500000': ExchangeError,
+                },
+                'broad': {
+                    'Exceeded the access frequency': RateLimitExceeded,
+                },
             },
             'fees': {
                 'trading': {
@@ -211,6 +218,17 @@ class kucoin(Exchange):
         kucoinTime = self.safe_integer(response, 'data')
         self.options['timeDifference'] = int(after - kucoinTime)
         return self.options['timeDifference']
+
+    def fetch_time(self, params={}):
+        response = self.publicGetTimestamp(params)
+        #
+        #     {
+        #         "code":"200000",
+        #         "msg":"success",
+        #         "data":1546837113087
+        #     }
+        #
+        return self.safe_integer(response, 'data')
 
     def fetch_markets(self, params={}):
         response = self.publicGetSymbols(params)
@@ -559,9 +577,14 @@ class kucoin(Exchange):
         }
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        level = '2'
+        if limit is not None:
+            if (limit != 20) and (limit != 100):
+                raise ExchangeError(self.id + ' fetchOrderBook limit argument must be None, 20 or 100')
+            level += '_' + str(limit)
         self.load_markets()
         marketId = self.market_id(symbol)
-        request = self.extend({'symbol': marketId, 'level': 2}, params)
+        request = self.extend({'symbol': marketId, 'level': level}, params)
         response = self.publicGetMarketOrderbookLevelLevel(request)
         #
         # {sequence: '1547731421688',
@@ -573,8 +596,8 @@ class kucoin(Exchange):
         # level can be a string such as 2_20 or 2_100
         levelString = self.safe_string(request, 'level')
         levelParts = levelString.split('_')
-        level = int(levelParts[0])
-        orderbook = self.parse_order_book(data, timestamp, 'bids', 'asks', level - 2, level - 1)
+        offset = int(levelParts[0])
+        orderbook = self.parse_order_book(data, timestamp, 'bids', 'asks', offset - 2, offset - 1)
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
         return orderbook
 
@@ -1482,6 +1505,7 @@ class kucoin(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
+            self.throw_broadly_matched_exception(self.exceptions['broad'], body, body)
             return
         #
         # bad
@@ -1491,5 +1515,5 @@ class kucoin(Exchange):
         #
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string(response, 'msg')
-        self.throw_exactly_matched_exception(self.exceptions, message, message)
-        self.throw_exactly_matched_exception(self.exceptions, errorCode, message)
+        self.throw_exactly_matched_exception(self.exceptions['exact'], message, message)
+        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, message)

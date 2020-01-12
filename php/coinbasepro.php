@@ -6,6 +6,10 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
+use \ccxt\InvalidAddress;
+use \ccxt\NotSupported;
 
 class coinbasepro extends Exchange {
 
@@ -43,11 +47,17 @@ class coinbasepro extends Exchange {
                 '1d' => 86400,
             ),
             'urls' => array(
-                'test' => 'https://api-public.sandbox.pro.coinbase.com',
+                'test' => array(
+                    'public' => 'https://api-public.sandbox.pro.coinbase.com',
+                    'private' => 'https://api-public.sandbox.pro.coinbase.com',
+                ),
                 'logo' => 'https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg',
-                'api' => 'https://api.pro.coinbase.com',
+                'api' => array(
+                    'public' => 'https://api.pro.coinbase.com',
+                    'private' => 'https://api.pro.coinbase.com',
+                ),
                 'www' => 'https://pro.coinbase.com/',
-                'doc' => 'https://docs.pro.coinbase.com/',
+                'doc' => 'https://docs.pro.coinbase.com',
                 'fees' => array(
                     'https://docs.pro.coinbase.com/#fees',
                     'https://support.pro.coinbase.com/customer/en/portal/articles/2945310-fees',
@@ -262,12 +272,32 @@ class coinbasepro extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
+        // level 1 - only the best bid and ask
+        // level 2 - top 50 bids and asks (aggregated)
+        // level 3 - full order book (non aggregated)
         $request = array(
             'id' => $this->market_id($symbol),
             'level' => 2, // 1 best bidask, 2 aggregated, 3 full
         );
         $response = $this->publicGetProductsIdBook (array_merge($request, $params));
-        return $this->parse_order_book($response);
+        //
+        //     {
+        //         "sequence":1924393896,
+        //         "bids":[
+        //             ["0.01825","24.34811287",2],
+        //             ["0.01824","72.5463",3],
+        //             ["0.01823","424.54298049",6],
+        //         ],
+        //         "asks":[
+        //             ["0.01826","171.10414904",4],
+        //             ["0.01827","22.60427028",1],
+        //             ["0.01828","397.46018784",7],
+        //         ]
+        //     }
+        //
+        $orderbook = $this->parse_order_book($response);
+        $orderbook['nonce'] = $this->safe_integer($response, 'sequence');
+        return $orderbook;
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
@@ -750,7 +780,7 @@ class coinbasepro extends Exchange {
                 $request .= '?' . $this->urlencode ($query);
             }
         }
-        $url = $this->urls['api'] . $request;
+        $url = $this->urls['api'][$api] . $request;
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();

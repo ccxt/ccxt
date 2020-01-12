@@ -42,11 +42,17 @@ module.exports = class coinbasepro extends Exchange {
                 '1d': 86400,
             },
             'urls': {
-                'test': 'https://api-public.sandbox.pro.coinbase.com',
+                'test': {
+                    'public': 'https://api-public.sandbox.pro.coinbase.com',
+                    'private': 'https://api-public.sandbox.pro.coinbase.com',
+                },
                 'logo': 'https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg',
-                'api': 'https://api.pro.coinbase.com',
+                'api': {
+                    'public': 'https://api.pro.coinbase.com',
+                    'private': 'https://api.pro.coinbase.com',
+                },
                 'www': 'https://pro.coinbase.com/',
-                'doc': 'https://docs.pro.coinbase.com/',
+                'doc': 'https://docs.pro.coinbase.com',
                 'fees': [
                     'https://docs.pro.coinbase.com/#fees',
                     'https://support.pro.coinbase.com/customer/en/portal/articles/2945310-fees',
@@ -261,12 +267,32 @@ module.exports = class coinbasepro extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        // level 1 - only the best bid and ask
+        // level 2 - top 50 bids and asks (aggregated)
+        // level 3 - full order book (non aggregated)
         const request = {
             'id': this.marketId (symbol),
             'level': 2, // 1 best bidask, 2 aggregated, 3 full
         };
         const response = await this.publicGetProductsIdBook (this.extend (request, params));
-        return this.parseOrderBook (response);
+        //
+        //     {
+        //         "sequence":1924393896,
+        //         "bids":[
+        //             ["0.01825","24.34811287",2],
+        //             ["0.01824","72.5463",3],
+        //             ["0.01823","424.54298049",6],
+        //         ],
+        //         "asks":[
+        //             ["0.01826","171.10414904",4],
+        //             ["0.01827","22.60427028",1],
+        //             ["0.01828","397.46018784",7],
+        //         ]
+        //     }
+        //
+        const orderbook = this.parseOrderBook (response);
+        orderbook['nonce'] = this.safeInteger (response, 'sequence');
+        return orderbook;
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -749,7 +775,7 @@ module.exports = class coinbasepro extends Exchange {
                 request += '?' + this.urlencode (query);
             }
         }
-        const url = this.urls['api'] + request;
+        const url = this.urls['api'][api] + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
