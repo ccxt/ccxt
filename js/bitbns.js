@@ -159,7 +159,7 @@ module.exports = class bitbns extends Exchange {
             }
             // console.log (method, url);
         }
-        console.log(url);
+        // console.log(url);
         // if (api === 'private')
         // console.log ("ccxt obj:",{ 'url': url, 'method': method, 'body': body, 'headers': headers });
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -200,7 +200,7 @@ module.exports = class bitbns extends Exchange {
         // console.log (trades.length);
         for (let i = 0; i < trades.length; i++) {
             trades[i]['symbol'] = symbol;
-            trades[i]['id'] = this.safeString(trades[i], "id");
+            trades[i]['id'] = this.safeString (trades[i], 'id');
             const keys = Object.keys (trades[i]);
             for (let k = 0; k < keys.length; k += 1) {
                 if (!this.safeString (trades[i], keys[k])) {
@@ -415,12 +415,11 @@ module.exports = class bitbns extends Exchange {
         const trades = this.safeValue (resp, 'data');
         const result = [];
         for (let i = 0; i < trades.length; i += 1) {
-            const dateObj = new Date (trades[i].date);
             const tradeObj = {
                 'info': trades[i],
                 'id': undefined,
-                'timestamp': dateObj.getTime (),
-                'datetime': dateObj.toISOString (),
+                'timestamp': this.iso8601 (trades[i].date),
+                'datetime': this.parse8601 (trades[i].date),
                 'symbol': symbol,
                 'order': undefined,
                 'type': 'limit',
