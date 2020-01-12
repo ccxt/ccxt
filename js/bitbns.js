@@ -20,7 +20,7 @@ module.exports = class bitbns extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFees': false,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'createOrder': true,
                 'cancelOrder': true,
                 'fetchOpenOrders': true,
@@ -333,10 +333,10 @@ module.exports = class bitbns extends Exchange {
                 'symbol': symbol,      // symbol
                 'type': 'limit',        // 'market', 'limit'
                 'side': undefined,          // 'buy', 'sell'
-                'price': this.safeString (orders[i], 'rate'),    // float price in quote currency
+                'price': this.safeValue (orders[i], 'rate'),    // float price in quote currency
                 'amount': undefined,           // ordered amount of base currency
                 'filled': undefined,           // filled amount of base currency
-                'remaining': this.safeString (orders[i], 'btc'), // remaining amount to fill
+                'remaining': this.safeValue (orders[i], 'btc'), // remaining amount to fill
                 'cost': undefined,   // 'filled' * 'price' (filling price used where available)
                 'trades': undefined,         // a list of order trades/executions
                 'fee': undefined,
@@ -351,6 +351,8 @@ module.exports = class bitbns extends Exchange {
             } else if (status === 2) {
                 orderObj['status'] = 'closed';
             }
+            orderObj['side'] = orders[i].type === 1 ? 'sell' : 'buy';
+            orderObj['amount'] = orderObj['price'] * orderObj['remaining'];
             openOrders.push (orderObj);
         }
         return openOrders;
@@ -400,6 +402,7 @@ module.exports = class bitbns extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // console.log("fetchMyTrades", symbol, since, limit);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const tradingSymbol = market['id'];
@@ -429,6 +432,7 @@ module.exports = class bitbns extends Exchange {
             };
             result.push (tradeObj);
         }
+        // console.log (result);
         return result;
     }
 };
