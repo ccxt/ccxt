@@ -466,7 +466,7 @@ class gateio extends Exchange {
         //     'timestamp' => 1531158583,
         //     'type' => 'sell'),
         //
-        $id = $this->safe_string($order, 'orderNumber');
+        $id = $this->safe_string_2($order, 'orderNumber', 'id');
         $symbol = null;
         $marketId = $this->safe_string($order, 'currencyPair');
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
@@ -475,12 +475,19 @@ class gateio extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_timestamp($order, 'timestamp');
+        $timestamp = $this->safe_timestamp_2($order, 'timestamp', 'ctime');
+        $lastTradeTimestamp = $this->safe_timestamp($order, 'mtime');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $side = $this->safe_string($order, 'type');
-        $price = $this->safe_float($order, 'initialRate');
+        // handling for $order->update messages
+        if ($side === '1') {
+            $side = 'sell';
+        } else if ($side === '2') {
+            $side = 'buy';
+        }
+        $price = $this->safe_float_2($order, 'initialRate', 'price');
         $average = $this->safe_float($order, 'filledRate');
-        $amount = $this->safe_float($order, 'initialAmount');
+        $amount = $this->safe_float_2($order, 'initialAmount', 'amount');
         $filled = $this->safe_float($order, 'filledAmount');
         // In the $order $status response, this field has a different name.
         $remaining = $this->safe_float_2($order, 'leftAmount', 'left');
@@ -495,6 +502,7 @@ class gateio extends Exchange {
             'id' => $id,
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',
