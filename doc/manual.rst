@@ -861,11 +861,11 @@ Supported rounding modes are:
 
 The decimal precision counting mode is available in the ``exchange.precisionMode`` property.
 
-Supported counting modes are:
+Supported precision modes are:
 
--  ``DECIMAL_PLACES`` – counts all digits, 99% of exchanges use this counting mode
--  ``SIGNIFICANT_DIGITS`` – counts non-zero digits only, some exchanges (``bitfinex`` and maybe a few other) implement this mode of counting decimals
--  ``TICK_SIZE`` – some exchanges only allow a multiple of a specific value (``bitmex`` uses this mode)
+-  ``DECIMAL_PLACES`` – counts all digits, 99% of exchanges use this counting mode. With this mode of precision, the numbers in ``market['precision']`` designate the number of decimal digits after the dot for further rounding or truncation.
+-  ``SIGNIFICANT_DIGITS`` – counts non-zero digits only, some exchanges (``bitfinex`` and maybe a few other) implement this mode of counting decimals. With this mode of precision, the numbers in ``market['precision']`` designate the Nth place of the last significant (non-zero) decimal digit after the dot.
+-  ``TICK_SIZE`` – some exchanges only allow a multiple of a specific value (``bitmex`` and ``ftx`` use this mode, for example). In this mode, the numbers in ``market['precision']`` designate the minimal precision fractions (floats) for rounding or truncating.
 
 Supported padding modes are:
 
