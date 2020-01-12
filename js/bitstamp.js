@@ -875,10 +875,9 @@ module.exports = class bitstamp extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'datetime'));
         let lastTradeTimestamp = undefined;
         let symbol = undefined;
-        let marketId = this.safeString (order, 'currency_pair');
+        let marketId = this.safeStringLower (order, 'currency_pair');
         if (marketId !== undefined) {
             marketId = marketId.replace ('/', '');
-            marketId = marketId.toLowerCase ();
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
                 symbol = market['symbol'];
