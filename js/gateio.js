@@ -218,10 +218,10 @@ module.exports = class gateio extends ccxt.gateio {
         for (let i = 0; i < keys.length; i++) {
             const account = this.account ();
             const key = keys[i];
-            const info = result[key];
-            account['free'] = parseFloat (info['available']);
-            account['used'] = parseFloat (info['freeze']);
             const code = this.safeCurrencyCode (key);
+            const balance = result[key];
+            account['free'] = this.safeFloat (balance, 'available');
+            account['used'] = this.safeFloat (balance, 'freeze');
             this.balance[code] = account;
         }
         client.resolve (this.parseBalance (this.balance), messageHash);
