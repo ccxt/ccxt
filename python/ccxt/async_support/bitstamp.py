@@ -827,10 +827,9 @@ class bitstamp(Exchange):
         timestamp = self.parse8601(self.safe_string(order, 'datetime'))
         lastTradeTimestamp = None
         symbol = None
-        marketId = self.safe_string(order, 'currency_pair')
+        marketId = self.safe_string_lower(order, 'currency_pair')
         if marketId is not None:
             marketId = marketId.replace('/', '')
-            marketId = marketId.lower()
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
                 symbol = market['symbol']

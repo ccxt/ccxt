@@ -879,10 +879,9 @@ class bitstamp extends Exchange {
         $timestamp = $this->parse8601 ($this->safe_string($order, 'datetime'));
         $lastTradeTimestamp = null;
         $symbol = null;
-        $marketId = $this->safe_string($order, 'currency_pair');
+        $marketId = $this->safe_string_lower($order, 'currency_pair');
         if ($marketId !== null) {
             $marketId = str_replace('/', '', $marketId);
-            $marketId = strtolower($marketId);
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
