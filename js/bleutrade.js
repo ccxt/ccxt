@@ -45,7 +45,6 @@ module.exports = class bleutrade extends bittrex {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
                 'api': {
                     'public': 'https://{hostname}/api/v2',
-                    'account': 'https://{hostname}/api/v2',
                     'market': 'https://{hostname}/api/v2',
                     'v3Private': 'https://{hostname}/api/v3/private',
                     'v3Public': 'https://{hostname}/api/v3/public',
@@ -57,14 +56,6 @@ module.exports = class bleutrade extends bittrex {
                 'fees': 'https://bleutrade.com/help/fees_and_deadlines',
             },
             'api': {
-                'account': {
-                    'get': [
-                        'depositaddress',
-                        'deposithistory',
-                        'withdrawhistory',
-                        'withdraw',
-                    ],
-                },
                 'public': {
                     'get': [
                         'candles',
