@@ -60,7 +60,8 @@ class Exchange(BaseExchange):
         return method(result, *args)
 
     async def afterDropped(self, future, method, *args):
-        await future
+        if future:
+            await future
         return method(*args)
 
     async def spawnAsync(self, method, *args):

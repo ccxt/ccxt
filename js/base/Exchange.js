@@ -45,7 +45,9 @@ module.exports = class Exchange extends ccxt.Exchange {
 
     async afterDropped (future, method, ... args) {
         // same as above, drop the result
-        await future
+        if (future) {
+            await future
+        }
         return method.call (this, ... args)
     }
 
