@@ -32,9 +32,9 @@ module.exports = class bleutrade extends bittrex {
             'has': {
                 'CORS': true,
                 'fetchTickers': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchClosedOrders': true,
-                'fetchOrderTrades': true,
+                'fetchOrderTrades': false,
                 'fetchLedger': true,
             },
             'timeframes': timeframes,
@@ -60,8 +60,6 @@ module.exports = class bleutrade extends bittrex {
                         'depositaddress',
                         'deposithistory',
                         'order',
-                        'orders',
-                        'orderhistory',
                         'withdrawhistory',
                         'withdraw',
                     ],
@@ -249,26 +247,6 @@ module.exports = class bleutrade extends bittrex {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // Possible params
-        // orderstatus (ALL, OK, OPEN, CANCELED)
-        // ordertype (ALL, BUY, SELL)
-        // depth (optional, default is 500, max is 20000)
-        await this.loadMarkets ();
-        let market = undefined;
-        let marketId = 'ALL';
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            marketId = market['id'];
-        }
-        const request = {
-            'market': marketId,
-            'orderstatus': 'ALL',
-        };
-        const response = await this.accountGetOrders (this.extend (request, params));
-        return this.parseOrders (response['result'], market, since, limit);
-    }
-
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.v3PrivatePostGetbalances (params);
@@ -317,21 +295,6 @@ module.exports = class bleutrade extends bittrex {
             throw new ExchangeError (this.id + ' publicGetOrderbook() returneded no result ' + this.json (response));
         }
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
-    }
-
-    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // Currently we can't set the makerOrTaker field, but if the user knows the order side then it can be
-        // determined (if the side of the trade is different to the side of the order, then the trade is maker).
-        // Similarly, the correct 'side' for the trade is that of the order.
-        // The trade fee can be set by the user, it is always 0.25% and is taken in the quote currency.
-        await this.loadMarkets ();
-        const request = {
-            'orderid': id,
-        };
-        const response = await this.accountGetOrderhistory (this.extend (request, params));
-        return this.parseTrades (response['result'], undefined, since, limit, {
-            'order': id,
-        });
     }
 
     async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
