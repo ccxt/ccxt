@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const bittrex = require ('./bittrex.js');
-const { ExchangeError, AuthenticationError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, InvalidOrder } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
