@@ -140,6 +140,8 @@ class Transpiler {
             [ /\.base16ToBinary/g, '.base16_to_binary'],
             [ /\'use strict\';?\s+/g, '' ],
             [ /\.urlencodeWithArrayRepeat\s/g, '.urlencode_with_array_repeat' ],
+            [ /\.bind\s*\(this\)([,;])$/mg, '$1' ],
+            [ /\.call\s*\(this, /g, '(' ]
         ]
     }
 
@@ -176,6 +178,7 @@ class Transpiler {
             [ /this\.binaryToBase16\s/g, 'base64.b16encode' ],
             [ /this\.base64ToBinary\s/g, 'base64.b64decode' ],
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
+            [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')']
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
@@ -299,6 +302,7 @@ class Transpiler {
             [ /this\.deepExtend\s/g, 'array_replace_recursive'],
             [ /(\w+)\.shift\s*\(\)/g, 'array_shift($1)' ],
             [ /(\w+)\.pop\s*\(\)/g, 'array_pop($1)' ],
+            [ /Number\.MAX_SAFE_INTEGER/g, 'PHP_INT_MAX' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([

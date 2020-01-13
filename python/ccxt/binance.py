@@ -871,7 +871,7 @@ class binance(Exchange):
             'CANCELED': 'canceled',
             'PENDING_CANCEL': 'canceling',  # currently unused
             'REJECTED': 'rejected',
-            'EXPIRED': 'expired',
+            'EXPIRED': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
@@ -914,6 +914,8 @@ class binance(Exchange):
                         price = cost / filled
                         if self.options['parseOrderToPrecision']:
                             price = float(self.price_to_precision(symbol, price))
+        elif type == 'limit_maker':
+            type = 'limit'
         side = self.safe_string_lower(order, 'side')
         fee = None
         trades = None
@@ -1318,6 +1320,7 @@ class binance(Exchange):
         #     {withdrawList: [{     amount:  14,
         #                             address: "0x0123456789abcdef...",
         #                         successTime:  1514489710000,
+        #                      transactionFee:  0.01,
         #                          addressTag: "",
         #                                txId: "0x0123456789abcdef...",
         #                                  id: "0123456789abcdef...",
@@ -1327,6 +1330,7 @@ class binance(Exchange):
         #                       {     amount:  7600,
         #                             address: "0x0123456789abcdef...",
         #                         successTime:  1515323226000,
+        #                      transactionFee:  0.01,
         #                          addressTag: "",
         #                                txId: "0x0123456789abcdef...",
         #                                  id: "0123456789abcdef...",
@@ -1373,6 +1377,7 @@ class binance(Exchange):
         #       {     amount:  14,
         #             address: "0x0123456789abcdef...",
         #         successTime:  1514489710000,
+        #      transactionFee:  0.01,
         #          addressTag: "",
         #                txId: "0x0123456789abcdef...",
         #                  id: "0123456789abcdef...",
@@ -1402,6 +1407,10 @@ class binance(Exchange):
                 timestamp = applyTime
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amount = self.safe_float(transaction, 'amount')
+        feeCost = self.safe_float(transaction, 'transactionFee')
+        fee = None
+        if feeCost is not None:
+            fee = {'currency': code, 'cost': feeCost}
         return {
             'info': transaction,
             'id': id,
@@ -1415,7 +1424,7 @@ class binance(Exchange):
             'currency': code,
             'status': status,
             'updated': None,
-            'fee': None,
+            'fee': fee,
         }
 
     def fetch_deposit_address(self, code, params={}):

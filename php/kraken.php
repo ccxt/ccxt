@@ -217,6 +217,7 @@ class kraken extends Exchange {
                 'inactiveCurrencies' => array( 'CAD', 'USD', 'JPY', 'GBP' ),
             ),
             'exceptions' => array(
+                'EQuery:Invalid asset pair' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Invalid asset pair"])
                 'EAPI:Invalid key' => '\\ccxt\\AuthenticationError',
                 'EFunding:Unknown withdraw key' => '\\ccxt\\ExchangeError',
                 'EFunding:Invalid amount' => '\\ccxt\\InsufficientFunds',

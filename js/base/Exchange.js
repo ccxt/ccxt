@@ -221,7 +221,7 @@ module.exports = class Exchange {
 
         // fetch implementation options (JS only)
         this.fetchOptions = {
-            keepalive: true,
+            // keepalive: true, // does not work in Chrome, https://github.com/ccxt/ccxt/issues/6368
         }
 
         this.userAgents = {
@@ -260,7 +260,7 @@ module.exports = class Exchange {
         this.orderbooks  = {}
         this.tickers     = {}
         this.orders      = {}
-        this.trades      = []
+        this.trades      = {}
         this.transactions = {}
 
         this.requiresWeb3 = false

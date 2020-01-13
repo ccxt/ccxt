@@ -131,37 +131,42 @@ class kucoin extends Exchange {
                 '1w' => '1week',
             ),
             'exceptions' => array(
-                'order not exist' => '\\ccxt\\OrderNotFound',
-                'order not exist.' => '\\ccxt\\OrderNotFound', // duplicated error temporarily
-                'order_not_exist' => '\\ccxt\\OrderNotFound', // array("code":"order_not_exist","msg":"order_not_exist") ¯\_(ツ)_/¯
-                'order_not_exist_or_not_allow_to_cancel' => '\\ccxt\\InvalidOrder', // array("code":"400100","msg":"order_not_exist_or_not_allow_to_cancel")
-                'Order size below the minimum requirement.' => '\\ccxt\\InvalidOrder', // array("code":"400100","msg":"Order size below the minimum requirement.")
-                'The withdrawal amount is below the minimum requirement.' => '\\ccxt\\ExchangeError', // array("code":"400100","msg":"The withdrawal amount is below the minimum requirement.")
-                '400' => '\\ccxt\\BadRequest',
-                '401' => '\\ccxt\\AuthenticationError',
-                '403' => '\\ccxt\\NotSupported',
-                '404' => '\\ccxt\\NotSupported',
-                '405' => '\\ccxt\\NotSupported',
-                '429' => '\\ccxt\\DDoSProtection',
-                '500' => '\\ccxt\\ExchangeError',
-                '503' => '\\ccxt\\ExchangeNotAvailable',
-                '200004' => '\\ccxt\\InsufficientFunds',
-                '230003' => '\\ccxt\\InsufficientFunds', // array("code":"230003","msg":"Balance insufficient!")
-                '260100' => '\\ccxt\\InsufficientFunds', // array("code":"260100","msg":"account.noBalance")
-                '300000' => '\\ccxt\\InvalidOrder',
-                '400000' => '\\ccxt\\BadSymbol',
-                '400001' => '\\ccxt\\AuthenticationError',
-                '400002' => '\\ccxt\\InvalidNonce',
-                '400003' => '\\ccxt\\AuthenticationError',
-                '400004' => '\\ccxt\\AuthenticationError',
-                '400005' => '\\ccxt\\AuthenticationError',
-                '400006' => '\\ccxt\\AuthenticationError',
-                '400007' => '\\ccxt\\AuthenticationError',
-                '400008' => '\\ccxt\\NotSupported',
-                '400100' => '\\ccxt\\BadRequest',
-                '411100' => '\\ccxt\\AccountSuspended',
-                '415000' => '\\ccxt\\BadRequest', // array("code":"415000","msg":"Unsupported Media Type")
-                '500000' => '\\ccxt\\ExchangeError',
+                'exact' => array(
+                    'order not exist' => '\\ccxt\\OrderNotFound',
+                    'order not exist.' => '\\ccxt\\OrderNotFound', // duplicated error temporarily
+                    'order_not_exist' => '\\ccxt\\OrderNotFound', // array("code":"order_not_exist","msg":"order_not_exist") ¯\_(ツ)_/¯
+                    'order_not_exist_or_not_allow_to_cancel' => '\\ccxt\\InvalidOrder', // array("code":"400100","msg":"order_not_exist_or_not_allow_to_cancel")
+                    'Order size below the minimum requirement.' => '\\ccxt\\InvalidOrder', // array("code":"400100","msg":"Order size below the minimum requirement.")
+                    'The withdrawal amount is below the minimum requirement.' => '\\ccxt\\ExchangeError', // array("code":"400100","msg":"The withdrawal amount is below the minimum requirement.")
+                    '400' => '\\ccxt\\BadRequest',
+                    '401' => '\\ccxt\\AuthenticationError',
+                    '403' => '\\ccxt\\NotSupported',
+                    '404' => '\\ccxt\\NotSupported',
+                    '405' => '\\ccxt\\NotSupported',
+                    '429' => '\\ccxt\\DDoSProtection',
+                    '500' => '\\ccxt\\ExchangeError',
+                    '503' => '\\ccxt\\ExchangeNotAvailable',
+                    '200004' => '\\ccxt\\InsufficientFunds',
+                    '230003' => '\\ccxt\\InsufficientFunds', // array("code":"230003","msg":"Balance insufficient!")
+                    '260100' => '\\ccxt\\InsufficientFunds', // array("code":"260100","msg":"account.noBalance")
+                    '300000' => '\\ccxt\\InvalidOrder',
+                    '400000' => '\\ccxt\\BadSymbol',
+                    '400001' => '\\ccxt\\AuthenticationError',
+                    '400002' => '\\ccxt\\InvalidNonce',
+                    '400003' => '\\ccxt\\AuthenticationError',
+                    '400004' => '\\ccxt\\AuthenticationError',
+                    '400005' => '\\ccxt\\AuthenticationError',
+                    '400006' => '\\ccxt\\AuthenticationError',
+                    '400007' => '\\ccxt\\AuthenticationError',
+                    '400008' => '\\ccxt\\NotSupported',
+                    '400100' => '\\ccxt\\BadRequest',
+                    '411100' => '\\ccxt\\AccountSuspended',
+                    '415000' => '\\ccxt\\BadRequest', // array("code":"415000","msg":"Unsupported Media Type")
+                    '500000' => '\\ccxt\\ExchangeError',
+                ),
+                'broad' => array(
+                    'Exceeded the access frequency' => '\\ccxt\\RateLimitExceeded',
+                ),
             ),
             'fees' => array(
                 'trading' => array(
@@ -1609,6 +1614,7 @@ class kucoin extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $body);
             return;
         }
         //
@@ -1619,7 +1625,7 @@ class kucoin extends Exchange {
         //
         $errorCode = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'msg');
-        $this->throw_exactly_matched_exception($this->exceptions, $message, $message);
-        $this->throw_exactly_matched_exception($this->exceptions, $errorCode, $message);
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $message);
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $message);
     }
 }

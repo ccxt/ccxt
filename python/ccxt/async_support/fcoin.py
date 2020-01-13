@@ -376,19 +376,19 @@ class fcoin(Exchange):
                 if id in self.markets_by_id:
                     market = self.markets_by_id[id]
         values = ticker['ticker']
-        last = float(values[0])
+        last = self.safe_float(values, 0)
         if market is not None:
             symbol = market['symbol']
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(values[7]),
-            'low': float(values[8]),
-            'bid': float(values[2]),
-            'bidVolume': float(values[3]),
-            'ask': float(values[4]),
-            'askVolume': float(values[5]),
+            'high': self.safe_float(values, 7),
+            'low': self.safe_float(values, 8),
+            'bid': self.safe_float(values, 2),
+            'bidVolume': self.safe_float(values, 3),
+            'ask': self.safe_float(values, 4),
+            'askVolume': self.safe_float(values, 5),
             'vwap': None,
             'open': None,
             'close': last,
@@ -397,8 +397,8 @@ class fcoin(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(values[9]),
-            'quoteVolume': float(values[10]),
+            'baseVolume': self.safe_float(values, 9),
+            'quoteVolume': self.safe_float(values, 10),
             'info': ticker,
         }
 

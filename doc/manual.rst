@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 123 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 122 cryptocurrency exchange markets and trading APIs:
 
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 |        logo                                                                               | id                 | name                                                                                       | ver | doc                                                                                             | certified                                                            |
@@ -293,8 +293,6 @@ The ccxt library currently supports the following 123 cryptocurrency exchange ma
 | `vaultoro <https://www.vaultoro.com>`__                                                   | vaultoro           | `Vaultoro <https://www.vaultoro.com>`__                                                    | 1   | `API <https://api.vaultoro.com>`__                                                              |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `vbtc <https://vbtc.exchange>`__                                                          | vbtc               | `VBTC <https://vbtc.exchange>`__                                                           | 1   | `API <https://blinktrade.com/docs>`__                                                           |                                                                      |
-+-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `virwox <https://www.virwox.com>`__                                                       | virwox             | `VirWoX <https://www.virwox.com>`__                                                        | \*  | `API <https://www.virwox.com/developers.php>`__                                                 |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `whitebit <https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963>`__         | whitebit           | `WhiteBit <https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963>`__          | 2   | `API <https://documenter.getpostman.com/view/7473075/SVSPomwS?version=latest#intro>`__          |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -771,7 +769,12 @@ Each market is an associative array (aka dictionary) with the following keys:
 -  ``quoteId``. An exchange-specific id of the quote currency, not unified.
 -  ``active``. A boolean indicating whether or not trading this market is currently possible. Often, when a market is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that market. The user should check if the market is active and `reload market cache periodically, as explained below <#market-cache-force-reload>`__.
 -  ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
--  ``precision``. The amounts of decimal digits accepted in order values by exchanges upon order placement for price, amount and cost.
+-  ``precision``. Precision accepted in order values by exchanges upon order placement for price, amount and cost. The values inside this market property depend on the ``exchange.precisionMode``.
+
+   -  If ``exchange.precisionMode`` is ``DECIMAL_DIGITS`` then the ``market['precision']`` designates the number of decimal digits after the dot.
+   -  If ``exchange.precisionMode`` is ``SIGNIFICANT_DIGITS`` then the ``market['precision']`` designates the number of non-zero digits after the dot.
+   -  When ``exchange.precisionMode`` is ``TICK_SIZE`` then the ``market['precision']`` designates the smallest possible float fractions.
+
 -  ``limits``. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price \* amount).
 
 Precision And Limits
@@ -863,11 +866,11 @@ Supported rounding modes are:
 
 The decimal precision counting mode is available in the ``exchange.precisionMode`` property.
 
-Supported counting modes are:
+Supported precision modes are:
 
--  ``DECIMAL_PLACES`` – counts all digits, 99% of exchanges use this counting mode
--  ``SIGNIFICANT_DIGITS`` – counts non-zero digits only, some exchanges (``bitfinex`` and maybe a few other) implement this mode of counting decimals
--  ``TICK_SIZE`` – some exchanges only allow a multiple of a specific value (``bitmex`` uses this mode)
+-  ``DECIMAL_PLACES`` – counts all digits, 99% of exchanges use this counting mode. With this mode of precision, the numbers in ``market['precision']`` designate the number of decimal digits after the dot for further rounding or truncation.
+-  ``SIGNIFICANT_DIGITS`` – counts non-zero digits only, some exchanges (``bitfinex`` and maybe a few other) implement this mode of counting decimals. With this mode of precision, the numbers in ``market['precision']`` designate the Nth place of the last significant (non-zero) decimal digit after the dot.
+-  ``TICK_SIZE`` – some exchanges only allow a multiple of a specific value (``bitmex`` and ``ftx`` use this mode, for example). In this mode, the numbers in ``market['precision']`` designate the minimal precision fractions (floats) for rounding or truncating.
 
 Supported padding modes are:
 
@@ -1216,7 +1219,7 @@ To get a list of all available methods with an exchange instance, you can simply
 ::
 
    console.log (new ccxt.kraken ())   // JavaScript
-   print (dir (ccxt.hitbtc ()))        # Python
+   print(dir(ccxt.hitbtc()))           # Python
    var_dump (new \ccxt\okcoinusd ()); // PHP
 
 Synchronous vs Asynchronous Calls
@@ -1299,14 +1302,14 @@ The ccxt library supports both camelcase notation (preferred in JavaScript) and 
 ::
 
    exchange.methodName ()  // camelcase pseudocode
-   exchange.method_name () // underscore pseudocode
+   exchange.method_name()  // underscore pseudocode
 
 To get a list of all available methods with an exchange instance, you can simply do the following:
 
 ::
 
    console.log (new ccxt.kraken ())   // JavaScript
-   print (dir (ccxt.hitbtc ()))        # Python
+   print(dir(ccxt.hitbtc()))           # Python
    var_dump (new \ccxt\okcoinusd ()); // PHP
 
 Unified API
@@ -1338,7 +1341,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 Overriding Unified API Params
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Note, that most of methods of the unified API accept an optional ``params`` parameter. It is an associative array (a dictionary, empty by default) containing the params you want to override. The contents of ``params`` are exchange-specific, consult the exchanges’ API documentation for supported fields and values. Use the ``params`` dictionary if you need to pass a custom setting or an optional parameter to your unified query.
+Note, that most of methods of the unified API accept an optional ``params`` argument. It is an associative array (a dictionary, empty by default) containing the params you want to override. The contents of ``params`` are exchange-specific, consult the exchanges’ API documentation for supported fields and values. Use the ``params`` dictionary if you need to pass a custom setting or an optional parameter to your unified query.
 
 .. code:: javascript
 

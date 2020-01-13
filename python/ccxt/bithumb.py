@@ -149,11 +149,10 @@ class bithumb(Exchange):
             code = codes[i]
             account = self.account()
             currency = self.currency(code)
-            currencyId = currency['id']
-            lowercase = currencyId.lower()
-            account['total'] = self.safe_float(balances, 'total_' + lowercase)
-            account['used'] = self.safe_float(balances, 'in_use_' + lowercase)
-            account['free'] = self.safe_float(balances, 'available_' + lowercase)
+            lowerCurrencyId = self.safe_string_lower(currency, 'id')
+            account['total'] = self.safe_float(balances, 'total_' + lowerCurrencyId)
+            account['used'] = self.safe_float(balances, 'in_use_' + lowerCurrencyId)
+            account['free'] = self.safe_float(balances, 'available_' + lowerCurrencyId)
             result[code] = account
         return self.parse_balance(result)
 
