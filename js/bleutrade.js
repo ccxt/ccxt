@@ -258,37 +258,6 @@ module.exports = class bleutrade extends bittrex {
         return this.parseBalance (result);
     }
 
-    // async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-    //     if (type !== 'limit') {
-    //         // todo: STOP-LIMIT and AMI order types are supported
-    //         throw new InvalidOrder (this.id + ' allows limit orders only');
-    //     }
-    //     await this.loadMarkets ();
-    //     const request = {
-    //         'rate': this.priceToPrecision (symbol, price),
-    //         'quantity': this.amountToPrecision (symbol, amount),
-    //         'tradeType': (side === 'buy') ? '1' : '0',
-    //         'market': this.marketId (symbol),
-    //     };
-    //     let response = undefined;
-    //     if (side === 'buy') {
-    //         response = await this.v3PrivatePostBuylimit (this.extend (request, params));
-    //     } else {
-    //         response = await this.v3PrivatePostSelllimit (this.extend (request, params));
-    //     }
-    //     return {
-    //         'info': response,
-    //         'id': response['id'],
-    //     };
-    // }
-
-    // async cancelOrder (id, symbol = undefined, params = {}) {
-    //     const request = {
-    //         'orderid': id,
-    //     }
-    //     const response = await this.v3PrivatePostOrdercancel (this.extend (request, params));
-    // }
-
     getOrderIdField () {
         return 'orderid';
     }
@@ -340,7 +309,7 @@ module.exports = class bleutrade extends bittrex {
             'asset': currency['id'],
         };
         const response = await this.v3PrivatePostGetdepositaddress (this.extend (request, params));
-        // { success: true,
+        //   { success: true,
         //     message: '',
         //     result:
         //     { Asset: 'ETH',
