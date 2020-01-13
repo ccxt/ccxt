@@ -576,22 +576,22 @@ module.exports = class bitfinex2 extends bitfinex {
     parseOrderStatus (status) {
         if (status === 'ACTIVE') {
             return 'open';
-        } else if (/^PARTIALLY FILLED/.test (status)) {
+        } else if (status.indexOf ('PARTIALLY FILLED') === 0) {
             // PARTIALLY FILLED @ 107.6(-0.2)
             return 'open';
-        } else if (/^EXECUTED/.test (status)) {
+        } else if (status.indexOf ('EXECUTED') === 0) {
             // EXECUTED @ 107.6(-0.2)
             return 'closed';
-        } else if (/^CANCELED/.test (status)) {
+        } else if (status.indexOf ('CANCELED') === 0) {
             return 'canceled';
-        } else if (/^INSUFFICIENT MARGIN/.test (status)) {
+        } else if (status.indexOf ('INSUFFICIENT MARGIN') === 0) {
             return 'rejected';  // ???
-        } else if (/^RSN_DUST/.test (status)) {
+        } else if (status.indexOf ('RSN_DUST') === 0) {
             return 'rejected';  // ???
-        } else if (/^RSN_PAUSE/.test (status)) {
+        } else if (status.indexOf ('RSN_PAUSE') === 0) {
             return 'rejected';  // ???
         }
-        return 'unknown';
+        return status;
     }
 
     parseOrder (order, market = undefined) {
@@ -889,13 +889,13 @@ module.exports = class bitfinex2 extends bitfinex {
                 throw new AuthenticationError (this.id + ' ' + errorText);
             } else if (errorCode === 20060) {
                 throw new OnMaintenance (this.id + ' Exchange on maintenance');
-            } else if (/^Invalid order: not enough exchange balance/.test (errorText)) {
+            } else if (errorText.indexOf ('Invalid order: not enough exchange balance') === 0) {
                 throw new InsufficientFunds (this.id + ' ' + errorText);
-            } else if (/^Invalid order/.test (errorText)) {
+            } else if (errorText.indexOf ('Invalid order') === 0) {
                 throw new InvalidOrder (this.id + ' ' + errorText);
-            } else if (/^Order not found/.test (errorText)) {
+            } else if (errorText.indexOf ('Order not found') === 0) {
                 throw new OrderNotFound (this.id + ' ' + errorText);
-            } else if (/^symbol: invalid/.test (errorText)) {
+            } else if (errorText.indexOf ('symbol: invalid') === 0) {
                 throw new BadSymbol (this.id + ' Invalid symbol');
             } else {
                 throw new ExchangeError (this.id + ' ' + errorText + ' (#' + errorCode + ')');
