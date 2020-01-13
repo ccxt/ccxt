@@ -652,10 +652,13 @@ module.exports = class bitfinex2 extends bitfinex {
         const request = {
             'symbol': market['id'],
             'type': orderType,
-            'amount': (side === 'buy') ? String (amount) : String (-amount),
+            'amount': ('' + amount),
         };
+        if (side === 'sell') {
+            request['amount'] = '-' + request['amount'];
+        }
         if (type !== 'market') {
-            request['price'] = String (price);
+            request['price'] = '' + price;
         }
         const response = await this.privatePostAuthWOrderSubmit (this.extend (request, params));
         // [
