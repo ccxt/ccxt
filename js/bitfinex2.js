@@ -648,17 +648,15 @@ module.exports = class bitfinex2 extends bitfinex {
                 break;
             }
         }
-        // Amount and price should be strings (not numbers)
         const request = {
             'symbol': market['id'],
             'type': orderType,
-            'amount': ('' + amount),
+            'amount': (side === 'sell') ? -amount : amount,
         };
-        if (side === 'sell') {
-            request['amount'] = '-' + request['amount'];
-        }
+        // Amount and price should be strings (not numbers)
+        request['amount'] = this.numberToString (request['amount']);
         if (type !== 'market') {
-            request['price'] = '' + price;
+            request['price'] = this.numberToString (price);
         }
         const response = await this.privatePostAuthWOrderSubmit (this.extend (request, params));
         // [
