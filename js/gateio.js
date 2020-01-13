@@ -171,7 +171,6 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     async authenticate () {
-        this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const requestId = this.milliseconds ();
         const signature = this.hmac (requestId.toString (), this.secret, 'sha512', 'base64');
@@ -198,6 +197,7 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     async watchBalance (params = {}) {
+        this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         if (!(this.safeValue (client.subscriptions, 'authenticated', false))) {
@@ -230,6 +230,7 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     async watchOrders (params = {}) {
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
         const client = this.client (url);
