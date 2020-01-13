@@ -114,6 +114,8 @@ module.exports = class bittrex extends Exchange {
                 'v2': {
                     'get': [
                         'currencies/GetBTCPrice',
+                        'currencies/GetWalletHealth',
+                        'general/GetLatestAlert',
                         'market/GetTicks',
                         'market/GetLatestTick',
                         'Markets/GetMarketSummaries',
