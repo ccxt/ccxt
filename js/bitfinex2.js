@@ -796,7 +796,7 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol, params = {}) {
+    async fetchOrderTrades (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
