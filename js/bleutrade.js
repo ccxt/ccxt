@@ -70,14 +70,14 @@ module.exports = class bleutrade extends bittrex {
                 },
                 'v3Public': {
                     'get': [
-                        'assets',
-                        'markets',
-                        'ticker',
-                        'marketsummary',
-                        'marketsummaries',
-                        'orderbook',
-                        'markethistory',
-                        'candles',
+                        'getassets',
+                        'getmarkets',
+                        'getticker',
+                        'getmarketsummary',
+                        'getmarketsummaries',
+                        'getorderbook',
+                        'getmarkethistory',
+                        'getcandles',
                     ],
                 },
                 'v3Private': {
@@ -181,7 +181,7 @@ module.exports = class bleutrade extends bittrex {
 
     async fetchMarkets (params = {}) {
         // https://github.com/ccxt/ccxt/issues/5668
-        const response = await this.publicGetMarkets (params);
+        const response = await this.v3PublicGetGetmarkets (params);
         const result = [];
         const markets = this.safeValue (response, 'result');
         for (let i = 0; i < markets.length; i++) {
@@ -737,21 +737,19 @@ module.exports = class bleutrade extends bittrex {
         let url = this.implodeParams (this.urls['api'][api], {
             'hostname': this.hostname,
         }) + '/';
-        if (api === 'v3Private' || api === 'account') {
+        if (api === 'v3Private') {
             this.checkRequiredCredentials ();
-            if (api === 'account') {
-                url += api + '/';
-            }
-            if (((api === 'account') && (path !== 'withdraw')) || (path === 'openorders')) {
-                url += method.toLowerCase ();
-            }
             const request = {
                 'apikey': this.apiKey,
+                'nonce': this.nonce (),
             };
-            request['nonce'] = this.nonce ();
             url += path + '?' + this.urlencode (this.extend (request, params));
             const signature = this.hmac (this.encode (url), this.encode (this.secret), 'sha512');
             headers = { 'apisign': signature };
+        } else if (api === 'v3Public') {
+            const request = {
+            };
+            url += path + '?' + this.urlencode (this.extend (request, params));
         } else {
             url += api + '/' + method.toLowerCase () + path;
             if (Object.keys (params).length) {
