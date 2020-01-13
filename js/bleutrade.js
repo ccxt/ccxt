@@ -93,7 +93,7 @@ module.exports = class bleutrade extends bittrex {
                     ],
                 },
                 'v3Private': {
-                    'get': [
+                    'post': [
                         'getbalance',
                         'getbalances',
                         'buylimit',
@@ -269,6 +269,23 @@ module.exports = class bleutrade extends bittrex {
         };
         const response = await this.accountGetOrders (this.extend (request, params));
         return this.parseOrders (response['result'], market, since, limit);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.v3PrivatePostGetbalances (params);
+        const result = { 'info': response };
+        const items = response['result'];
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            const currencyId = this.safeString (item, 'Asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeFloat (item, 'Available');
+            account['total'] = this.safeFloat (item, 'Balance');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
