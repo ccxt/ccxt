@@ -40,20 +40,20 @@ trait ClientTrait {
         return $this->clients[$url];
     }
 
-    public function call($method, ... $args) {
-        return $method(... $args);
-    }
-
-    public function callAsync($method, ... $args) {
-        return $method(... $args);
-    }
-
     // the ellipsis packing/unpacking requires PHP 5.6+ :(
     public function after($future, callable $method, ... $args) {
         return $future->then (function($result) use ($method, $args) {
             return $method($result, ... $args);
         });
     }
+
+    // the ellipsis packing/unpacking requires PHP 5.6+ :(
+    public function afterDropped($future, callable $method, ... $args) {
+        return $future->then (function($result) use ($method, $args) {
+            return $method(... $args);
+        });
+    }
+
 
     public function spawn($method, ... $args) {
         $this->loop->futureTick(function () use ($method, $args) {

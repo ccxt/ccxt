@@ -173,7 +173,8 @@ module.exports = class gateio extends ccxt.gateio {
     async authenticate () {
         const url = this.urls['api']['ws'];
         const requestId = this.milliseconds ();
-        const signature = this.hmac (requestId.toString (), this.secret, 'sha512', 'base64');
+        const requestIdString = requestId.toString ();
+        const signature = this.hmac (requestIdString, this.secret, 'sha512', 'base64');
         const authenticateMessage = {
             'id': requestId,
             'method': 'server.sign',
@@ -200,17 +201,18 @@ module.exports = class gateio extends ccxt.gateio {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const client = this.client (url);
+        let future = undefined;
         if (!(this.safeValue (client.subscriptions, 'authenticated', false))) {
-            await this.authenticate ();
+            future = this.authenticate ();
         }
         const requestId = this.nonce ();
         const method = 'balance.update';
-        const subsribeMessage = {
+        const subscribeMessage = {
             'id': requestId,
             'method': 'balance.subscribe',
             'params': [],
         };
-        return await this.watch (url, method, subsribeMessage, method);
+        return await this.afterDropped (future, this.watch, url, method, subscribeMessage, method);
     }
 
     handleBalance (client, message) {
@@ -234,8 +236,9 @@ module.exports = class gateio extends ccxt.gateio {
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
         const client = this.client (url);
+        let future = undefined;
         if (!(this.safeValue (client.subscriptions, 'authenticated', false))) {
-            await this.authenticate ();
+            future = this.authenticate ();
         }
         const requestId = this.nonce ();
         const method = 'order.update';
@@ -244,7 +247,13 @@ module.exports = class gateio extends ccxt.gateio {
             'method': 'order.subscribe',
             'params': [],
         };
-        return await this.watch (url, method, subscribeMessage, method);
+        return await this.afterDropped (future, this.watch, url, method, subscribeMessage, method);
+    }
+
+    watch (url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
+        // needed for the transpilation of this.watch -> array($this, 'watch')
+        // delete me in php to make it work ;)
+        return super.watch (url, messageHash, message, subscribeHash, subscription);
     }
 
     handleOrder (client, message) {

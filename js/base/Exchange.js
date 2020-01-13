@@ -37,18 +37,16 @@ module.exports = class Exchange extends ccxt.Exchange {
         return this.clients[url]
     }
 
-    call (method, ... args) {
-        return method.apply (this, args)
-    }
-
-    callAsync (method, ... args) {
-        return method.apply (this, args)
-    }
-
     async after (future, method, ... args) {
         const result = await future
         // call it as an instance method on this
-        return method.apply (this, [ result, ... args ])
+        return method.call (this, result, ... args)
+    }
+
+    async afterDropped (future, method, ... args) {
+        // same as above, drop the result
+        await future
+        return method.call (this, ... args)
     }
 
     spawn (method, ... args) {
@@ -99,6 +97,7 @@ module.exports = class Exchange extends ccxt.Exchange {
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client
         // (connection established successfully)
+        new FulPromise ()->
         connected.then (() => {
             if (message && !client.subscriptions[subscribeHash]) {
                 client.subscriptions[subscribeHash] = subscription || true
