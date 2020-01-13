@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const bitfinex = require ('./bitfinex.js');
-const { ExchangeError, NotSupported, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, NotSupported, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, OnMaintenance } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -18,9 +18,11 @@ module.exports = class bitfinex2 extends bitfinex {
             // new metainfo interface
             'has': {
                 'CORS': true,
-                'createLimitOrder': false,
-                'createMarketOrder': false,
-                'createOrder': false,
+                'cancelAllOrders': true,
+                'createLimitOrder': true,
+                'createMarketOrder': true,
+                'createOrder': true,
+                'cancelOrder': true,
                 'deposit': false,
                 'editOrder': false,
                 'fetchDepositAddress': false,
@@ -28,8 +30,9 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchFundingFees': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenOrders': false,
-                'fetchOrder': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': 'emulated', // no endpoint for a single open-or-closed order (just for an open/closed orders only)
+                'fetchStatus': true,
                 'fetchTickers': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
@@ -107,6 +110,8 @@ module.exports = class bitfinex2 extends bitfinex {
                         'auth/r/orders/{symbol}/hist',
                         'auth/r/order/{symbol}:{id}/trades',
                         'auth/w/order/submit',
+                        'auth/w/order/cancel',
+                        'auth/w/order/cancel/multi',
                         'auth/r/trades/hist',
                         'auth/r/trades/{symbol}/hist',
                         'auth/r/positions',
@@ -198,6 +203,8 @@ module.exports = class bitfinex2 extends bitfinex {
                     'JPY': 'JPY',
                     'GBP': 'GBP',
                 },
+                'fetchOrderOnCreate': false, // call fetchOrder after creating to update status, trades, fees, etc
+                                             // If set true strongly recommend set enableRateLimit:true
             },
         });
     }
@@ -208,6 +215,16 @@ module.exports = class bitfinex2 extends bitfinex {
 
     getCurrencyId (code) {
         return 'f' + code;
+    }
+
+    async fetchStatus (params = {}) {
+        // [1]=operative, [0]=maintenance
+        const response = await this.publicGetPlatformStatus (params);
+        this.status = {
+            'status': response[0] === 1 ? 'ok' : 'maintenance',
+            'updated': this.microseconds(),
+        };
+        return this.status;
     }
 
     async fetchMarkets (params = {}) {
@@ -466,7 +483,7 @@ module.exports = class bitfinex2 extends bitfinex {
             const feeCurrency = this.safeCurrencyCode (trade[10]);
             if (feeCost !== undefined) {
                 fee = {
-                    'cost': Math.abs (feeCost),
+                    'cost': parseFloat (this.feeToPrecision (symbol, Math.abs (feeCost))),
                     'currency': feeCurrency,
                 };
             }
@@ -554,16 +571,230 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        throw new NotSupported (this.id + ' createOrder not implemented yet');
+    parseOrderStatus (status) {
+        if (status === 'ACTIVE') {
+            return 'open';
+        }
+        // PARTIALLY FILLED @ 107.6(-0.2)
+        else if (/^PARTIALLY FILLED/.test(status)) {
+            return 'open';
+        }
+        // EXECUTED @ 107.6(-0.2)
+        else if (/^EXECUTED/.test(status)) {
+            return 'closed';
+        }
+        else if (/^CANCELED/.test(status)) {
+            return 'canceled';
+        }
+        else if (/^INSUFFICIENT MARGIN/.test(status)) {
+            return 'rejected';  // ???
+        }
+        else if (/^RSN_DUST/.test(status)) {
+            return 'rejected';  // ???
+        }
+        else if (/^RSN_PAUSE/.test(status)) {
+            return 'rejected';  // ???
+        }
+        return 'unknown';
     }
 
-    cancelOrder (id, symbol = undefined, params = {}) {
-        throw new NotSupported (this.id + ' cancelOrder not implemented yet');
+    parseOrder(order, market = undefined) {
+        const id = order[0];
+        let symbol = undefined;
+        const marketId = order[3];
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const timestamp = order[5];
+        const remaining = Math.abs (order[6]);
+        const amount = Math.abs (order[7]);
+        const filled = amount - remaining;
+        const side = order[7] < 0 ? 'sell' : 'buy';
+        const type = this.safeString (this.options.orderTypes, order[8]);
+        const status = this.parseOrderStatus (order[13]);
+        const price = order[16];
+        const average = order[17];
+        const cost = price * filled;
+
+        return {
+            'info': order,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+        };
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const orderTypes = this.options['orderTypes'];
+        // Amount and price should be strings (not numbers)
+        const request = {
+            'symbol': market['id'],
+            'type': Object.keys (orderTypes).find(key => orderTypes[key] === type),
+            'amount': side === 'buy' ? String (amount) : String (-amount)
+        };
+        if (type !== 'market') {
+            request['price'] = String (price);
+        }
+        const response = await this.privatePostAuthWOrderSubmit (this.extend (request, params));
+        // [
+        //   1578784364.748,    // Millisecond Time Stamp of the update
+        //   "on-req",          // Purpose of notification ('on-req', 'oc-req', 'uca', 'fon-req', 'foc-req')
+        //   null,              // Unique ID of the message
+        //   null,              // Ignore
+        //   [
+        //     [
+        //       37271830598,           // Order ID
+        //       null,                  // Group ID
+        //       1578784364748,         // Client Order ID
+        //       "tBTCUST",             // Pair
+        //       1578784364748,         // Millisecond timestamp of creation
+        //       1578784364748,         // Millisecond timestamp of update
+        //       -0.005,                // Positive means buy, negative means sell
+        //       -0.005,                // Original amount
+        //       "EXCHANGE LIMIT",      // Order type (LIMIT, MARKET, STOP, TRAILING STOP, EXCHANGE MARKET, EXCHANGE LIMIT, EXCHANGE STOP, EXCHANGE TRAILING STOP, FOK, EXCHANGE FOK, IOC, EXCHANGE IOC)
+        //       null,                  // Previous order type
+        //       null,                  // Millisecond timestamp of Time-In-Force: automatic order cancellation
+        //       null,                  // Ignore
+        //       0,                     // Flags (see https://docs.bitfinex.com/docs/flag-values)
+        //       "ACTIVE",              // Order Status
+        //       null,                  // Ignore
+        //       null,                  // Ignore
+        //       20000,                 // Price
+        //       0,                     // Average price
+        //       0,                     // The trailing price
+        //       0,                     // Auxiliary Limit price (for STOP LIMIT)
+        //       null,                  // Ignore
+        //       null,                  // Ignore
+        //       null,                  // Ignore
+        //       0,                     // 1 - hidden order
+        //       null,                  // If another order caused this order to be placed (OCO) this will be that other order's ID
+        //       null,                  // Ignore
+        //       null,                  // Ignore
+        //       null,                  // Ignore
+        //       "API>BFX",             // Origin of action: BFX, ETHFX, API>BFX, API>ETHFX
+        //       null,                  // Ignore
+        //       null,                  // Ignore
+        //       null                   // Meta
+        //     ]
+        //   ],
+        //   null,                  // Error code
+        //   "SUCCESS",             // Status (SUCCESS, ERROR, FAILURE, ...)
+        //   "Submitting 1 orders." // Text of the notification
+        // ]
+        if (response[6] !== 'SUCCESS') {
+            const errorCode = response[5];
+            const errorText = response[7];
+            throw new ExchangeError (this.id + ' ' + response[6] + ': ' + errorText + ' (#' + errorCode + ')');
+        }
+        const order = this.parseOrder (response[4][0]);
+        if (this.options['fetchOrderOnCreate'] !== true) return order;
+        return await this.fetchOrder (order.id, order.symbol);
+    }
+
+    async cancelAllOrders (params = {}) {
+        const request = {
+            'all': 1
+        };
+        const response = await this.privatePostAuthWOrderCancelMulti (this.extend (request, params));
+        const orders = response[4];
+        return this.parseOrders (orders);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        const request = {};
+        if (id) {
+            request['id'] = id;
+        }
+        // Also can cancel order by Client Order ID and Client Order ID Date (cid and cid_date in params)
+        const response = await this.privatePostAuthWOrderCancel (this.extend (request, params));
+        const order = response[4];
+        return this.parseOrder (order);
+    }
+
+    calculateOrderFee(order) {
+        const trades = order.trades;
+        if (this.isArray (trades) && trades.length > 0) {
+            const symbol = trades[0].fee.currency;
+            const fee = {
+                'currency': symbol,
+                'cost': 0,
+            };
+            for (let i = 0; i < trades.length; i++) fee.cost += trades[i].fee.cost;
+            fee.cost = parseFloat (this.feeToPrecision (order.symbol, fee.cost));
+            order['fee'] = fee;
+        }
+        return order;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchOrder not implemented yet');
+        const openOrders = await this.fetchOpenOrders (symbol, undefined, undefined, {id: [id]});
+        if (this.isArray (openOrders) && openOrders.length > 0) {
+            const order = openOrders[0];
+            const trades = await this.fetchOrderTrades (id, symbol);
+            order['trades'] = trades;
+            this.calculateOrderFee (order);
+            return order;
+        }
+        const closedOrders = await this.fetchClosedOrders (symbol, undefined, undefined, {id: [id]})
+        if (this.isArray (closedOrders) && closedOrders.length > 0) {
+            const order = closedOrders[0];
+            const trades = await this.fetchOrderTrades (id, symbol)
+            order['trades'] = trades;
+            this.calculateOrderFee (order);
+            return order;
+        }
+        throw new OrderNotFound (this.id + ' Order not found.');
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privatePostAuthROrdersSymbol (this.extend (request, params));
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        // Returns the most recent closed or canceled orders up to circa two weeks ago
+        const response = await this.privatePostAuthROrdersSymbolHist (this.extend (request, params));
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchOrderTrades (id, symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'id': id,
+            'symbol': market['id'],
+        };
+        // Valid for trades upto 10 days old
+        const response = await this.privatePostAuthROrderSymbolIdTrades (this.extend (request, params));
+        return this.parseTrades (response, market);
     }
 
     async fetchDepositAddress (currency, params = {}) {
@@ -644,5 +875,31 @@ module.exports = class bitfinex2 extends bitfinex {
             throw new ExchangeError (this.id + ' returned empty response');
         }
         return response;
+    }
+
+    handleErrors(statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
+        if (statusCode === 500) {
+            // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
+            const errorCode = response[1];
+            const errorText = response[2];
+            if (errorCode === 10100) {
+                throw new AuthenticationError (this.id + ' ' + errorText);
+            }
+            else if (errorCode === 20060) {
+                throw new OnMaintenance (this.id + ' Exchange on maintenance');
+            }
+            else if (/^Invalid order: not enough exchange balance/.test(errorText)) {
+                throw new InsufficientFunds (this.id + ' ' + errorText);
+            }
+            else if (/^Invalid order/.test(errorText)) {
+                throw new InvalidOrder (this.id + ' ' + errorText);
+            }
+            else if (/^Order not found/.test(errorText)) {
+                throw new OrderNotFound (this.id + ' ' + errorText);
+            }
+            else {
+                throw new ExchangeError (this.id + ' ' + errorText + ' (#' + errorCode + ')');
+            }
+        }
     }
 };
