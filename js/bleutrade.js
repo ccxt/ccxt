@@ -155,7 +155,7 @@ module.exports = class bleutrade extends bittrex {
                 'id': id,
                 'code': code,
                 'name': this.safeString (item, 'AssetLong'),
-                'active': this.safeValue (item, 'IsActive') && this.safeValue (item, 'MaintenanceMode') === false,
+                'active': this.safeValue (item, 'IsActive') && !this.safeValue (item, 'MaintenanceMode'),
                 'fee': this.safeFloat (item, 'WithdrawTxFee'),
                 'precision': this.safeFloat (item, 'DecimalPlaces'),
                 'info': item,
