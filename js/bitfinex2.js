@@ -709,7 +709,7 @@ module.exports = class bitfinex2 extends bitfinex {
             throw new ExchangeError (this.id + ' ' + response[6] + ': ' + errorText + ' (#' + errorCode + ')');
         }
         const order = this.parseOrder (response[4][0]);
-        if (this.options['fetchOrderOnCreate'] !== true) return order;
+        if (this.options['fetchOrderOnCreate'] === false) return order;
         return await this.fetchOrder (order['id'], order['symbol']);
     }
 
