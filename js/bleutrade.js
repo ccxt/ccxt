@@ -57,8 +57,6 @@ module.exports = class bleutrade extends bittrex {
             'api': {
                 'account': {
                     'get': [
-                        'balance',
-                        'balances',
                         'depositaddress',
                         'deposithistory',
                         'order',
