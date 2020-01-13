@@ -192,6 +192,7 @@ module.exports = class bleutrade extends bittrex {
             } else {
                 active = false;
             }
+            const fee = 0.25 / 100;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -202,6 +203,8 @@ module.exports = class bleutrade extends bittrex {
                 'active': active,
                 'info': market,
                 'precision': precision,
+                'maker': fee,
+                'taker': fee,
                 'limits': {
                     'amount': {
                         'min': this.safeFloat (market, 'MinTradeSize'),
