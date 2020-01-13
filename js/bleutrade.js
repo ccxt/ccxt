@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const bittrex = require ('./bittrex.js');
-const { ExchangeError, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, AuthenticationError } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -161,6 +161,7 @@ module.exports = class bleutrade extends bittrex {
                 'exact': {},
                 'broad': {
                     'Order is not open': InvalidOrder,
+                    'Invalid Account / Api KEY / Api Secret': AuthenticationError,
                 },
             },
             'options': {
