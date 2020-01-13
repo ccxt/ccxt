@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const bitfinex = require ('./bitfinex.js');
-const { ExchangeError, NotSupported, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, OnMaintenance } = require ('./base/errors');
+const { ExchangeError, NotSupported, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadSymbol, OnMaintenance } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -638,10 +638,19 @@ module.exports = class bitfinex2 extends bitfinex {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderTypes = this.options['orderTypes'];
+        let orderType = undefined;
+        const nativeOrderTypes = Object.keys (orderTypes);
+        for (let i = 0; i < nativeOrderTypes.length; i++) {
+            const key = nativeOrderTypes[i];
+            if (orderTypes[key] !== undefined && orderTypes[key] === type) {
+                orderType = key;
+                break;
+            }
+        }
         // Amount and price should be strings (not numbers)
         const request = {
             'symbol': market['id'],
-            'type': Object.keys (orderTypes).find (key => orderTypes[key] === type),
+            'type': orderType,
             'amount': side === 'buy' ? String (amount) : String (-amount),
         };
         if (type !== 'market') {
@@ -886,6 +895,8 @@ module.exports = class bitfinex2 extends bitfinex {
                 throw new InvalidOrder (this.id + ' ' + errorText);
             } else if (/^Order not found/.test (errorText)) {
                 throw new OrderNotFound (this.id + ' ' + errorText);
+            } else if (/^symbol: invalid/.test (errorText)) {
+                throw new BadSymbol (this.id + ' Invalid symbol');
             } else {
                 throw new ExchangeError (this.id + ' ' + errorText + ' (#' + errorCode + ')');
             }
