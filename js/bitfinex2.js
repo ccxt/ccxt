@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const bitfinex = require ('./bitfinex.js');
-const { ExchangeError, NotSupported, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadSymbol, OnMaintenance } = require ('./base/errors');
+const { ExchangeError, NotSupported, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadSymbol, OnMaintenance } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -728,10 +728,9 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        const request = {};
-        if (id !== undefined) {
-            request['id'] = id;
-        }
+        const request = {
+            'id': id,
+        };
         // Also can cancel order by Client Order ID and Client Order ID Date (cid and cid_date in params)
         const response = await this.privatePostAuthWOrderCancel (this.extend (request, params));
         const order = response[4];
@@ -755,6 +754,9 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+        }
         const filter = this.extend ({ 'id': [id] }, params);
         const openOrders = await this.fetchOpenOrders (symbol, undefined, undefined, filter);
         if ((this.isArray (openOrders)) && (openOrders.length > 0)) {
