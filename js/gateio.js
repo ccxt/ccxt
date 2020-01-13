@@ -38,7 +38,8 @@ module.exports = class gateio extends ccxt.gateio {
             throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 1, 5, 10, 20, or 30');
         }
         const interval = this.safeString (params, 'interval', '0.00000001');
-        const precision = -1 * Math.log10 (interval);
+        const floatInterval = parseFloat (interval);
+        const precision = -1 * Math.log10 (floatInterval);
         if (precision < 0 || precision > 8 || precision % 1 !== 0) {
             throw new ExchangeError (this.id + ' invalid interval');
         }
@@ -199,7 +200,7 @@ module.exports = class gateio extends ccxt.gateio {
     async watchBalance (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
-        if (!client.subscriptions['authenticated']) {
+        if (!(this.safeValue (client.subscriptions, 'authenticated', false))) {
             await this.authenticate ();
         }
         const requestId = this.nonce ();
@@ -232,7 +233,7 @@ module.exports = class gateio extends ccxt.gateio {
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
         const client = this.client (url);
-        if (!client.subscriptions['authenticated']) {
+        if (!(this.safeValue (client.subscriptions, 'authenticated', false))) {
             await this.authenticate ();
         }
         const requestId = this.nonce ();
