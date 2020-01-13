@@ -33,6 +33,7 @@ module.exports = class bleutrade extends bittrex {
                 'CORS': true,
                 'fetchTickers': true,
                 'fetchOrders': false,
+                'fetchOrders': false,
                 'fetchClosedOrders': false,
                 'fetchOrderTrades': false,
                 'fetchLedger': true,
@@ -59,7 +60,6 @@ module.exports = class bleutrade extends bittrex {
                     'get': [
                         'depositaddress',
                         'deposithistory',
-                        'order',
                         'withdrawhistory',
                         'withdraw',
                     ],
@@ -264,6 +264,30 @@ module.exports = class bleutrade extends bittrex {
         return this.parseBalance (result);
     }
 
+    // async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    //     if (type !== 'limit') {
+    //         // todo: STOP-LIMIT and AMI order types are supported
+    //         throw new InvalidOrder (this.id + ' allows limit orders only');
+    //     }
+    //     await this.loadMarkets ();
+    //     const request = {
+    //         'rate': this.priceToPrecision (symbol, price),
+    //         'quantity': this.amountToPrecision (symbol, amount),
+    //         'tradeType': (side === 'buy') ? '1' : '0',
+    //         'market': this.marketId (symbol),
+    //     };
+    //     let response = undefined;
+    //     if (side === 'buy') {
+    //         response = await this.v3PrivatePostBuylimit (this.extend (request, params));
+    //     } else {
+    //         response = await this.v3PrivatePostSelllimit (this.extend (request, params));
+    //     }
+    //     return {
+    //         'info': response,
+    //         'id': response['id'],
+    //     };
+    // }
+
     getOrderIdField () {
         return 'orderid';
     }
@@ -294,7 +318,7 @@ module.exports = class bleutrade extends bittrex {
 
     async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const method = (type === 'deposit') ? 'accountGetDeposithistory' : 'accountGetWithdrawhistory';
+        const method = (type === 'deposit') ? 'v3PrivatePostGetdeposithistory' : 'v3PrivatePostGetwithdrawhistory';
         const response = await this[method] (params);
         const result = this.parseTransactions (response['result']);
         return this.filterByCurrencySinceLimit (result, code, since, limit);
@@ -645,14 +669,14 @@ module.exports = class bleutrade extends bittrex {
         //
         // withdrawal:
         //
-        //     {
-        //         Id: '98009125',
-        //         Coin: 'DOGE',
-        //         Amount: '-483858.64312050',
-        //         TimeStamp: '2017-11-22 22:29:05',
-        //         Label: '483848.64312050;DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT;10.00000000',
-        //         TransactionId: '8563105276cf798385fee7e5a563c620fea639ab132b089ea880d4d1f4309432',
-        //     }
+        //   { ID: 689281,
+        //     Timestamp: '2019-07-05 13:14:43',
+        //     Asset: 'BTC',
+        //     Amount: -0.108959,
+        //     TransactionID: 'da48d6901fslfjsdjflsdjfls852b87e362cad1',
+        //     Status: 'CONFIRMED',
+        //     Label: '0.1089590;35wztHPMgrebFvvlisuhfasuf;0.00100000',
+        //     Symbol: 'BTC' }
         //
         //     {
         //         "Id": "95820181",
@@ -663,18 +687,18 @@ module.exports = class bleutrade extends bittrex {
         //         "TransactionId": "CANCELED"
         //     }
         //
-        const id = this.safeString (transaction, 'Id');
+        const id = this.safeString (transaction, 'ID');
         let amount = this.safeFloat (transaction, 'Amount');
         let type = 'deposit';
         if (amount < 0) {
             amount = Math.abs (amount);
             type = 'withdrawal';
         }
-        const currencyId = this.safeString (transaction, 'Coin');
+        const currencyId = this.safeString (transaction, 'Asset');
         const code = this.safeCurrencyCode (currencyId, currency);
         const label = this.safeString (transaction, 'Label');
-        const timestamp = this.parse8601 (this.safeString (transaction, 'TimeStamp'));
-        let txid = this.safeString (transaction, 'TransactionId');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'Timestamp'));
+        let txid = this.safeString (transaction, 'TransactionID');
         let address = undefined;
         let feeCost = undefined;
         const labelParts = label.split (';');
