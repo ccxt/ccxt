@@ -33,7 +33,7 @@ module.exports = class bleutrade extends bittrex {
                 'CORS': true,
                 'fetchTickers': true,
                 'fetchOrders': false,
-                'fetchClosedOrders': true,
+                'fetchClosedOrders': false,
                 'fetchOrderTrades': false,
                 'fetchLedger': true,
             },
@@ -262,11 +262,6 @@ module.exports = class bleutrade extends bittrex {
             result[code] = account;
         }
         return this.parseBalance (result);
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const response = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (response, 'status', 'closed');
     }
 
     getOrderIdField () {
