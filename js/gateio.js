@@ -170,13 +170,14 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     async authenticate () {
+        this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const requestId = this.milliseconds ();
         const signature = this.hmac (requestId.toString (), this.secret, 'sha512', 'base64');
         const authenticateMessage = {
             'id': requestId,
             'method': 'server.sign',
-            'params': [this.apiKey, signature, requestId],
+            'params': [ this.apiKey, signature, requestId ],
         };
         return await this.watch (url, requestId, authenticateMessage, 'authenticated');
     }
