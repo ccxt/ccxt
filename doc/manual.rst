@@ -769,7 +769,12 @@ Each market is an associative array (aka dictionary) with the following keys:
 -  ``quoteId``. An exchange-specific id of the quote currency, not unified.
 -  ``active``. A boolean indicating whether or not trading this market is currently possible. Often, when a market is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that market. The user should check if the market is active and `reload market cache periodically, as explained below <#market-cache-force-reload>`__.
 -  ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
--  ``precision``. Precision accepted in order values by exchanges upon order placement for price, amount and cost. The values inside this market property depend on the ``exchange.precisionMode``. If ``exchange.precisionMode`` is either ``DECIMAL_DIGITS`` or ``SIGNIFICAT_DIGITS`` – then the market ``precision`` designates the number of decimal digits after the dot. When ``exchange.precisionMode`` is ``TICK_SIZE``, then the market ``precision`` designates the smallest possible float fractions.
+-  ``precision``. Precision accepted in order values by exchanges upon order placement for price, amount and cost. The values inside this market property depend on the ``exchange.precisionMode``.
+
+   -  If ``exchange.precisionMode`` is ``DECIMAL_DIGITS`` then the ``market['precision']`` designates the number of decimal digits after the dot.
+   -  If ``exchange.precisionMode`` is ``SIGNIFICANT_DIGITS`` then the ``market['precision']`` designates the number of non-zero digits after the dot.
+   -  When ``exchange.precisionMode`` is ``TICK_SIZE`` then the ``market['precision']`` designates the smallest possible float fractions.
+
 -  ``limits``. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price \* amount).
 
 Precision And Limits
