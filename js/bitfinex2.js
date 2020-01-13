@@ -203,8 +203,9 @@ module.exports = class bitfinex2 extends bitfinex {
                     'JPY': 'JPY',
                     'GBP': 'GBP',
                 },
-                'fetchOrderOnCreate': false, // call fetchOrder after creating to update status, trades, fees, etc
-                                             // If set true strongly recommend set enableRateLimit:true
+                // If set true strongly recommend set enableRateLimit:true
+                // Call fetchOrder after creating to update status, trades, fees, etc
+                'fetchOrderOnCreate': false,
             },
         });
     }
@@ -222,7 +223,7 @@ module.exports = class bitfinex2 extends bitfinex {
         const response = await this.publicGetPlatformStatus (params);
         this.status = {
             'status': response[0] === 1 ? 'ok' : 'maintenance',
-            'updated': this.microseconds(),
+            'updated': this.microseconds (),
         };
         return this.status;
     }
@@ -574,31 +575,25 @@ module.exports = class bitfinex2 extends bitfinex {
     parseOrderStatus (status) {
         if (status === 'ACTIVE') {
             return 'open';
-        }
-        // PARTIALLY FILLED @ 107.6(-0.2)
-        else if (/^PARTIALLY FILLED/.test(status)) {
+        } else if (/^PARTIALLY FILLED/.test (status)) {
+            // PARTIALLY FILLED @ 107.6(-0.2)
             return 'open';
-        }
-        // EXECUTED @ 107.6(-0.2)
-        else if (/^EXECUTED/.test(status)) {
+        } else if (/^EXECUTED/.test (status)) {
+            // EXECUTED @ 107.6(-0.2)
             return 'closed';
-        }
-        else if (/^CANCELED/.test(status)) {
+        } else if (/^CANCELED/.test (status)) {
             return 'canceled';
-        }
-        else if (/^INSUFFICIENT MARGIN/.test(status)) {
+        } else if (/^INSUFFICIENT MARGIN/.test (status)) {
             return 'rejected';  // ???
-        }
-        else if (/^RSN_DUST/.test(status)) {
+        } else if (/^RSN_DUST/.test (status)) {
             return 'rejected';  // ???
-        }
-        else if (/^RSN_PAUSE/.test(status)) {
+        } else if (/^RSN_PAUSE/.test (status)) {
             return 'rejected';  // ???
         }
         return 'unknown';
     }
 
-    parseOrder(order, market = undefined) {
+    parseOrder (order, market = undefined) {
         const id = order[0];
         let symbol = undefined;
         const marketId = order[3];
@@ -618,7 +613,6 @@ module.exports = class bitfinex2 extends bitfinex {
         const price = order[16];
         const average = order[17];
         const cost = price * filled;
-
         return {
             'info': order,
             'id': id,
@@ -647,8 +641,8 @@ module.exports = class bitfinex2 extends bitfinex {
         // Amount and price should be strings (not numbers)
         const request = {
             'symbol': market['id'],
-            'type': Object.keys (orderTypes).find(key => orderTypes[key] === type),
-            'amount': side === 'buy' ? String (amount) : String (-amount)
+            'type': Object.keys (orderTypes).find (key => orderTypes[key] === type),
+            'amount': side === 'buy' ? String (amount) : String (-amount),
         };
         if (type !== 'market') {
             request['price'] = String (price);
@@ -711,7 +705,7 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async cancelAllOrders (params = {}) {
         const request = {
-            'all': 1
+            'all': 1,
         };
         const response = await this.privatePostAuthWOrderCancelMulti (this.extend (request, params));
         const orders = response[4];
@@ -729,7 +723,7 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.parseOrder (order);
     }
 
-    calculateOrderFee(order) {
+    calculateOrderFee (order) {
         const trades = order.trades;
         if (this.isArray (trades) && trades.length > 0) {
             const symbol = trades[0].fee.currency;
@@ -745,7 +739,7 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        const openOrders = await this.fetchOpenOrders (symbol, undefined, undefined, {id: [id]});
+        const openOrders = await this.fetchOpenOrders (symbol, undefined, undefined, { 'id': [id] });
         if (this.isArray (openOrders) && openOrders.length > 0) {
             const order = openOrders[0];
             const trades = await this.fetchOrderTrades (id, symbol);
@@ -753,10 +747,10 @@ module.exports = class bitfinex2 extends bitfinex {
             this.calculateOrderFee (order);
             return order;
         }
-        const closedOrders = await this.fetchClosedOrders (symbol, undefined, undefined, {id: [id]})
+        const closedOrders = await this.fetchClosedOrders (symbol, undefined, undefined, { 'id': [id] });
         if (this.isArray (closedOrders) && closedOrders.length > 0) {
             const order = closedOrders[0];
-            const trades = await this.fetchOrderTrades (id, symbol)
+            const trades = await this.fetchOrderTrades (id, symbol);
             order['trades'] = trades;
             this.calculateOrderFee (order);
             return order;
@@ -877,27 +871,22 @@ module.exports = class bitfinex2 extends bitfinex {
         return response;
     }
 
-    handleErrors(statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
+    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
         if (statusCode === 500) {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
             const errorCode = response[1];
             const errorText = response[2];
             if (errorCode === 10100) {
                 throw new AuthenticationError (this.id + ' ' + errorText);
-            }
-            else if (errorCode === 20060) {
+            } else if (errorCode === 20060) {
                 throw new OnMaintenance (this.id + ' Exchange on maintenance');
-            }
-            else if (/^Invalid order: not enough exchange balance/.test(errorText)) {
+            } else if (/^Invalid order: not enough exchange balance/.test (errorText)) {
                 throw new InsufficientFunds (this.id + ' ' + errorText);
-            }
-            else if (/^Invalid order/.test(errorText)) {
+            } else if (/^Invalid order/.test (errorText)) {
                 throw new InvalidOrder (this.id + ' ' + errorText);
-            }
-            else if (/^Order not found/.test(errorText)) {
+            } else if (/^Order not found/.test (errorText)) {
                 throw new OrderNotFound (this.id + ' ' + errorText);
-            }
-            else {
+            } else {
                 throw new ExchangeError (this.id + ' ' + errorText + ' (#' + errorCode + ')');
             }
         }
