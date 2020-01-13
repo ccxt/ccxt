@@ -37,6 +37,7 @@ module.exports = class bleutrade extends bittrex {
                 'fetchClosedOrders': false,
                 'fetchOrderTrades': false,
                 'fetchLedger': true,
+                'fetchDepositAddress': true,
             },
             'timeframes': timeframes,
             'hostname': 'bleutrade.com',
@@ -330,6 +331,31 @@ module.exports = class bleutrade extends bittrex {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchTransactionsByType ('withdrawal', code, since, limit, params);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+        };
+        const response = await this.v3PrivatePostGetdepositaddress (this.extend (request, params));
+        // { success: true,
+        //     message: '',
+        //     result:
+        //     { Asset: 'ETH',
+        //         AssetName: 'Ethereum',
+        //         DepositAddress: '0x748c5c8jhksjdfhd507d3aa9',
+        //         Currency: 'ETH',
+        //         CurrencyName: 'Ethereum' } }
+        const item = response['result'];
+        const address = this.safeString (item, 'DepositAddress');
+        return {
+            'currency': code,
+            'address': this.checkAddress (address),
+            // 'tag': tag,
+            'info': item,
+        };
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
