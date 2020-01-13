@@ -222,7 +222,7 @@ module.exports = class bitfinex2 extends bitfinex {
         // [1]=operative, [0]=maintenance
         const response = await this.publicGetPlatformStatus (params);
         const status = {
-            'status': response[0] === 1 ? 'ok' : 'maintenance',
+            'status': (response[0] === 1) ? 'ok' : 'maintenance',
             'updated': this.microseconds (),
         };
         this['status'] = status;
@@ -608,7 +608,7 @@ module.exports = class bitfinex2 extends bitfinex {
         const remaining = Math.abs (order[6]);
         const amount = Math.abs (order[7]);
         const filled = amount - remaining;
-        const side = order[7] < 0 ? 'sell' : 'buy';
+        const side = (order[7] < 0) ? 'sell' : 'buy';
         const type = this.safeString (this.options.orderTypes, order[8]);
         const status = this.parseOrderStatus (order[13]);
         const price = order[16];
@@ -652,7 +652,7 @@ module.exports = class bitfinex2 extends bitfinex {
         const request = {
             'symbol': market['id'],
             'type': orderType,
-            'amount': side === 'buy' ? String (amount) : String (-amount),
+            'amount': (side === 'buy') ? String (amount) : String (-amount),
         };
         if (type !== 'market') {
             request['price'] = String (price);
@@ -740,7 +740,9 @@ module.exports = class bitfinex2 extends bitfinex {
                 'currency': symbol,
                 'cost': 0,
             };
-            for (let i = 0; i < order['trades'].length; i++) fee['cost'] += order['trades'][i]['fee']['cost'];
+            for (let i = 0; i < order['trades'].length; i++) {
+                fee['cost'] += order['trades'][i]['fee']['cost'];
+            }
             fee['cost'] = parseFloat (this.feeToPrecision (order['symbol'], fee['cost']));
             order['fee'] = fee;
         }
@@ -748,19 +750,18 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        const openOrders = await this.fetchOpenOrders (symbol, undefined, undefined, { 'id': [id] });
+        const filter = this.extend ({ 'id': [id] }, params);
+        const openOrders = await this.fetchOpenOrders (symbol, undefined, undefined, filter);
         if ((this.isArray (openOrders)) && (openOrders.length > 0)) {
             const order = openOrders[0];
-            const trades = await this.fetchOrderTrades (id, symbol);
-            order['trades'] = trades;
+            order['trades'] = await this.fetchOrderTrades (id, symbol);
             this.calculateOrderFee (order);
             return order;
         }
-        const closedOrders = await this.fetchClosedOrders (symbol, undefined, undefined, { 'id': [id] });
+        const closedOrders = await this.fetchClosedOrders (symbol, undefined, undefined, filter);
         if ((this.isArray (closedOrders)) && (closedOrders.length > 0)) {
             const order = closedOrders[0];
-            const trades = await this.fetchOrderTrades (id, symbol);
-            order['trades'] = trades;
+            order['trades'] = await this.fetchOrderTrades (id, symbol);
             this.calculateOrderFee (order);
             return order;
         }
