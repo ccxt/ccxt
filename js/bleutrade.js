@@ -158,9 +158,10 @@ module.exports = class bleutrade extends bittrex {
                 'EPC': 'Epacoin',
             },
             'exceptions': {
-                'Insufficient funds!': InsufficientFunds,
-                'Invalid Order ID': InvalidOrder,
-                'Invalid apikey or apisecret': AuthenticationError,
+                'exact': {},
+                'broad': {
+                    'Order is not open': InvalidOrder,
+                },
             },
             'options': {
                 // price precision by quote currency code
@@ -279,6 +280,14 @@ module.exports = class bleutrade extends bittrex {
     //         'id': response['id'],
     //     };
     // }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        const request = {
+            'orderid': id,
+        }
+        const response = await this.v3PrivatePostOrdercancel (this.extend (request, params));
+        console.log(response)
+    }
 
     getOrderIdField () {
         return 'orderid';
@@ -781,5 +790,27 @@ module.exports = class bleutrade extends bittrex {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return; // fallback to default error handler
+        }
+        //
+        //     {"success":false,"message":"Erro: Order is not open.","result":""}
+        //
+        if (body[0] === '{') {
+            const success = this.safeValue (response, 'success');
+            if (success === undefined) {
+                throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
+            }
+            if (!success) {
+                const message = this.safeString (response, 'message');
+                const feedback = this.id + ' ' + body;
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                throw new ExchangeError (feedback);
+            }
+        }
     }
 };
