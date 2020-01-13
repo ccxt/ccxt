@@ -33,7 +33,7 @@ module.exports = class bleutrade extends bittrex {
                 'CORS': true,
                 'fetchTickers': true,
                 'fetchOrders': false,
-                'fetchOrders': false,
+                'fetchWithdrawals': true,
                 'fetchClosedOrders': false,
                 'fetchOrderTrades': false,
                 'fetchLedger': true,
