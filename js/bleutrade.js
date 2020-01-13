@@ -491,21 +491,13 @@ module.exports = class bleutrade extends bittrex {
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
-        //
-        //     if (code === undefined) {
-        //         throw new ExchangeError (this.id + ' fetchClosedOrders requires a `symbol` argument');
-        //     }
-        //
         await this.loadMarkets ();
-        const request = {};
-        //
-        //     if (code !== undefined) {
-        //         const currency = this.market (code);
-        //         request['asset'] = currency['id'];
-        //     }
-        //
-        const response = await this.v3PrivateGetGetmytransactions (this.extend (request, params));
-        return this.parseLedger (response['result'], code, since, limit);
+        // only seems to return 100 items and there is no documented way to change page size or offset
+        const request = {
+        };
+        const response = await this.v3PrivatePostGetmytransactions (this.extend (request, params));
+        const items = response['result'];
+        return this.parseLedger (items, code, since, limit);
     }
 
     parseOrder (order, market = undefined) {
