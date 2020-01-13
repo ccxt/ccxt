@@ -406,13 +406,31 @@ module.exports = class bitbns extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const tradingSymbol = market['id'];
-        const request = {
-            'symbol': tradingSymbol,
-            'page': 0,
-            'since': since,
-        };
-        const resp = await this.private1PostListExecutedOrders (this.extend (request, params));
-        const trades = this.safeValue (resp, 'data');
+        let allTrades = [];
+        let page = 0;
+        while (true) {
+            const request = {
+                'symbol': tradingSymbol,
+                'page': page,
+                'since': since,
+            };
+            // console.log(request);
+            const resp = await this.private1PostListExecutedOrders (this.extend (request, params));
+            // console.log("resp: ",resp.data);
+            if (resp.data.length === 0) {
+                // console.log ("All trades fetched");
+                break;
+            }
+            page = page + 1;
+            allTrades = allTrades.concat (resp.data);
+            // console.log("int alltrades:", allTra÷des);
+        }
+        // if (limit !== undefined && allTrades.length > limit) {
+        //     allTrades.length = limit;
+        // }
+        // const trades = this.safeValue (resp, 'data');
+        const trades = allTrades;
+        // console.log("alltrades:", allTrades);
         const result = [];
         for (let i = 0; i < trades.length; i += 1) {
             const tradeObj = {
