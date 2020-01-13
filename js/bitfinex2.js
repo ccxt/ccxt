@@ -718,7 +718,7 @@ module.exports = class bitfinex2 extends bitfinex {
         return order;
     }
 
-    async cancelAllOrders (params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         const request = {
             'all': 1,
         };
