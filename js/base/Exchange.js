@@ -99,7 +99,6 @@ module.exports = class Exchange extends ccxt.Exchange {
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client
         // (connection established successfully)
-        new FulPromise ()->
         connected.then (() => {
             if (message && !client.subscriptions[subscribeHash]) {
                 client.subscriptions[subscribeHash] = subscription || true
