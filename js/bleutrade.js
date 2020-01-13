@@ -281,13 +281,12 @@ module.exports = class bleutrade extends bittrex {
     //     };
     // }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        const request = {
-            'orderid': id,
-        }
-        const response = await this.v3PrivatePostOrdercancel (this.extend (request, params));
-        console.log(response)
-    }
+    // async cancelOrder (id, symbol = undefined, params = {}) {
+    //     const request = {
+    //         'orderid': id,
+    //     }
+    //     const response = await this.v3PrivatePostOrdercancel (this.extend (request, params));
+    // }
 
     getOrderIdField () {
         return 'orderid';
