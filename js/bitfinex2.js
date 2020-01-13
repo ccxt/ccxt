@@ -221,11 +221,12 @@ module.exports = class bitfinex2 extends bitfinex {
     async fetchStatus (params = {}) {
         // [1]=operative, [0]=maintenance
         const response = await this.publicGetPlatformStatus (params);
-        this.status = {
+        const status = {
             'status': response[0] === 1 ? 'ok' : 'maintenance',
             'updated': this.microseconds (),
         };
-        return this.status;
+        this['status'] = status;
+        return status;
     }
 
     async fetchMarkets (params = {}) {
@@ -642,7 +643,7 @@ module.exports = class bitfinex2 extends bitfinex {
         const nativeOrderTypes = Object.keys (orderTypes);
         for (let i = 0; i < nativeOrderTypes.length; i++) {
             const key = nativeOrderTypes[i];
-            if (orderTypes[key] !== undefined && orderTypes[key] === type) {
+            if ((orderTypes[key] !== undefined) && (orderTypes[key] === type)) {
                 orderType = key;
                 break;
             }
@@ -709,7 +710,7 @@ module.exports = class bitfinex2 extends bitfinex {
         }
         const order = this.parseOrder (response[4][0]);
         if (this.options['fetchOrderOnCreate'] !== true) return order;
-        return await this.fetchOrder (order.id, order.symbol);
+        return await this.fetchOrder (order['id'], order['symbol']);
     }
 
     async cancelAllOrders (params = {}) {
@@ -723,7 +724,7 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         const request = {};
-        if (id) {
+        if (id !== undefined) {
             request['id'] = id;
         }
         // Also can cancel order by Client Order ID and Client Order ID Date (cid and cid_date in params)
@@ -733,15 +734,14 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     calculateOrderFee (order) {
-        const trades = order.trades;
-        if (this.isArray (trades) && trades.length > 0) {
-            const symbol = trades[0].fee.currency;
+        if ((this.isArray (order['trades'])) && (order['trades'].length > 0)) {
+            const symbol = order['trades'][0]['fee']['currency'];
             const fee = {
                 'currency': symbol,
                 'cost': 0,
             };
-            for (let i = 0; i < trades.length; i++) fee.cost += trades[i].fee.cost;
-            fee.cost = parseFloat (this.feeToPrecision (order.symbol, fee.cost));
+            for (let i = 0; i < order['trades'].length; i++) fee['cost'] += order['trades'][i]['fee']['cost'];
+            fee['cost'] = parseFloat (this.feeToPrecision (order['symbol'], fee['cost']));
             order['fee'] = fee;
         }
         return order;
@@ -749,7 +749,7 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         const openOrders = await this.fetchOpenOrders (symbol, undefined, undefined, { 'id': [id] });
-        if (this.isArray (openOrders) && openOrders.length > 0) {
+        if ((this.isArray (openOrders)) && (openOrders.length > 0)) {
             const order = openOrders[0];
             const trades = await this.fetchOrderTrades (id, symbol);
             order['trades'] = trades;
@@ -757,7 +757,7 @@ module.exports = class bitfinex2 extends bitfinex {
             return order;
         }
         const closedOrders = await this.fetchClosedOrders (symbol, undefined, undefined, { 'id': [id] });
-        if (this.isArray (closedOrders) && closedOrders.length > 0) {
+        if ((this.isArray (closedOrders)) && (closedOrders.length > 0)) {
             const order = closedOrders[0];
             const trades = await this.fetchOrderTrades (id, symbol);
             order['trades'] = trades;
