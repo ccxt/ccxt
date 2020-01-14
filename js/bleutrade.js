@@ -113,6 +113,14 @@ module.exports = class bleutrade extends bittrex {
                     'Invalid Account / Api KEY / Api Secret': AuthenticationError,
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'taker': 0.25 / 100,
+                    'maker': 0.25 / 100,
+                },
+            },
             'options': {
                 // price precision by quote currency code
                 'pricePrecisionByCode': {
@@ -195,7 +203,6 @@ module.exports = class bleutrade extends bittrex {
             } else {
                 active = false;
             }
-            const fee = 0.25 / 100;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -206,8 +213,8 @@ module.exports = class bleutrade extends bittrex {
                 'active': active,
                 'info': market,
                 'precision': precision,
-                'maker': fee,
-                'taker': fee,
+                'maker': this.fees['trading']['maker'],
+                'taker': this.fees['trading']['taker'],
                 'limits': {
                     'amount': {
                         'min': this.safeFloat (market, 'MinTradeSize'),
