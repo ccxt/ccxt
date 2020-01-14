@@ -57,12 +57,6 @@ module.exports = class bleutrade extends bittrex {
                 'fees': 'https://bleutrade.com/fees/',
             },
             'api': {
-                'public': {
-                    'get': [
-                        'markethistory',
-                        'ticker',
-                    ],
-                },
                 'v3Public': {
                     'get': [
                         'getassets',
@@ -757,15 +751,8 @@ module.exports = class bleutrade extends bittrex {
             url += path + '?' + this.urlencode (this.extend (request, params));
             const signature = this.hmac (this.encode (url), this.encode (this.secret), 'sha512');
             headers = { 'apisign': signature };
-        } else if (api === 'v3Public') {
-            const request = {
-            };
-            url += path + '?' + this.urlencode (this.extend (request, params));
         } else {
-            url += api + '/' + method.toLowerCase () + path;
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
-            }
+            url += path + '?' + this.urlencode (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
