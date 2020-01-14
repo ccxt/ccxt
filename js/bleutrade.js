@@ -99,7 +99,7 @@ module.exports = class bleutrade extends Exchange {
                 },
                 'broad': {
                     'Order is not open': InvalidOrder,
-                    'Invalid Account / Api KEY / Api Secret': AuthenticationError,
+                    'Invalid Account / Api KEY / Api Secret': AuthenticationError, // also happens when an invalid nonce is used
                 },
             },
             'fees': {
@@ -758,6 +758,10 @@ module.exports = class bleutrade extends Exchange {
             'txid': txid,
             'fee': fee,
         };
+    }
+
+    nonce () {
+        return this.milliseconds ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
