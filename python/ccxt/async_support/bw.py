@@ -889,8 +889,8 @@ class bw(Exchange):
                     content += key + sortedParams[key]
             else:
                 content = body
-            signing = self.apiKey + ms + content + self.secret
-            hash = self.hash(self.encode(signing), 'md5')
+            signature = self.apiKey + ms + content + self.secret
+            hash = self.hash(self.encode(signature), 'md5')
             if not headers:
                 headers = {}
             headers['Apiid'] = self.apiKey
