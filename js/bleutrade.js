@@ -122,10 +122,6 @@ module.exports = class bleutrade extends bittrex {
                 },
             },
             'options': {
-                // price precision by quote currency code
-                'pricePrecisionByCode': {
-                    'USD': 3,
-                },
                 'parseOrderStatus': true,
                 'disableNonce': false,
                 'symbolSeparator': '_',
@@ -200,13 +196,9 @@ module.exports = class bleutrade extends bittrex {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            let pricePrecision = 8;
-            if (quote in this.options['pricePrecisionByCode']) {
-                pricePrecision = this.options['pricePrecisionByCode'][quote];
-            }
             const precision = {
                 'amount': 8,
-                'price': pricePrecision,
+                'price': 8,
             };
             const active = this.safeValue (market, 'IsActive', false);
             result.push ({
