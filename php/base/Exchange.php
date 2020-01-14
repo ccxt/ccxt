@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.21.55';
+$version = '1.21.57';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.21.55';
+    const VERSION = '1.21.57';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -626,7 +626,7 @@ class Exchange {
 
     public function milliseconds() {
         list($msec, $sec) = explode(' ', microtime());
-        return $sec . substr($msec, 2, 3);
+        return (int) ($sec . substr($msec, 2, 3));
     }
 
     public function microseconds() {
