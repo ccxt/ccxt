@@ -61,7 +61,6 @@ module.exports = class bleutrade extends bittrex {
                     'get': [
                         'candles',
                         'markethistory',
-                        'marketsummaries',
                         'ticker',
                     ],
                 },
@@ -252,6 +251,18 @@ module.exports = class bleutrade extends bittrex {
         const response = await this.v3PublicGetGetmarketsummary (this.extend (request, params));
         const ticker = response['result'][0];
         return this.parseTicker (ticker, market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.v3PublicGetGetmarketsummaries (params);
+        const result = this.safeValue (response, 'result');
+        const tickers = [];
+        for (let i = 0; i < result.length; i++) {
+            const ticker = this.parseTicker (result[i]);
+            tickers.push (ticker);
+        }
+        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
