@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const bittrex = require ('./bittrex.js');
-const { ExchangeError, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, AuthenticationError, InsufficientFunds, BadRequest } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -104,7 +104,10 @@ module.exports = class bleutrade extends bittrex {
                 'EPC': 'Epacoin',
             },
             'exceptions': {
-                'exact': {},
+                'exact': {
+                    'ERR_INSUFICIENT_BALANCE': InsufficientFunds,
+                    'ERR_LOW_VOLUME': BadRequest,
+                },
                 'broad': {
                     'Order is not open': InvalidOrder,
                     'Invalid Account / Api KEY / Api Secret': AuthenticationError,
@@ -751,8 +754,10 @@ module.exports = class bleutrade extends bittrex {
         if (response === undefined) {
             return; // fallback to default error handler
         }
-        //
-        //     {"success":false,"message":"Erro: Order is not open.","result":""}
+        //    examples...
+        //    {"success":false,"message":"Erro: Order is not open.","result":""} <-- 'error' is spelt wrong
+        //    {"success":false,"message":"Error: Very low volume.","result":"ERR_LOW_VOLUME"}
+        //    {"success":false,"message":"Error: Insuficient Balance","result":"ERR_INSUFICIENT_BALANCE"}
         //
         if (body[0] === '{') {
             const success = this.safeValue (response, 'success');
@@ -760,10 +765,13 @@ module.exports = class bleutrade extends bittrex {
                 throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
             }
             if (!success) {
-                const message = this.safeString (response, 'message');
                 const feedback = this.id + ' ' + body;
-                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                const errorCode = this.safeString (response, 'result');
+                this.throwBroadlyMatchedException (this.exceptions['broad'], errorCode, feedback);
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+                const errorMessage = this.safeString (response, 'message');
+                this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
                 throw new ExchangeError (feedback);
             }
         }
