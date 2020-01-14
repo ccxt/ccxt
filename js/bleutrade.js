@@ -32,6 +32,7 @@ module.exports = class bleutrade extends bittrex {
             'has': {
                 'CORS': true,
                 'fetchTickers': true,
+                'fetchTicker': true,
                 'fetchOrders': false,
                 'fetchWithdrawals': true,
                 'fetchClosedOrders': false,
@@ -227,43 +228,6 @@ module.exports = class bleutrade extends bittrex {
         return result;
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
-            'OK': 'closed',
-            'OPEN': 'open',
-            'CANCELED': 'canceled',
-        };
-        return this.safeString (statuses, status, status);
-    }
-
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.v3PrivatePostGetbalances (params);
-        const result = { 'info': response };
-        const items = response['result'];
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            const currencyId = this.safeString (item, 'Asset');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeFloat (item, 'Available');
-            account['total'] = this.safeFloat (item, 'Balance');
-            result[code] = account;
-        }
-        return this.parseBalance (result);
-    }
-
-    getOrderIdField () {
-        return 'orderid';
-    }
-
-    parseSymbol (id) {
-        let [ base, quote ] = id.split (this.options['symbolSeparator']);
-        base = this.safeCurrencyCode (base);
-        quote = this.safeCurrencyCode (quote);
-        return base + '/' + quote;
-    }
-
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -279,47 +243,6 @@ module.exports = class bleutrade extends bittrex {
             throw new ExchangeError (this.id + ' publicGetOrderbook() returneded no result ' + this.json (response));
         }
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
-    }
-
-    async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const method = (type === 'deposit') ? 'v3PrivatePostGetdeposithistory' : 'v3PrivatePostGetwithdrawhistory';
-        const response = await this[method] (params);
-        const result = this.parseTransactions (response['result']);
-        return this.filterByCurrencySinceLimit (result, code, since, limit);
-    }
-
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
-    }
-
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsByType ('withdrawal', code, since, limit, params);
-    }
-
-    async fetchDepositAddress (code, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'asset': currency['id'],
-        };
-        const response = await this.v3PrivatePostGetdepositaddress (this.extend (request, params));
-        //   { success: true,
-        //     message: '',
-        //     result:
-        //     { Asset: 'ETH',
-        //         AssetName: 'Ethereum',
-        //         DepositAddress: '0x748c5c8jhksjdfhd507d3aa9',
-        //         Currency: 'ETH',
-        //         CurrencyName: 'Ethereum' } }
-        const item = response['result'];
-        const address = this.safeString (item, 'DepositAddress');
-        return {
-            'currency': code,
-            'address': this.checkAddress (address),
-            // 'tag': tag,
-            'info': item,
-        };
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
@@ -385,6 +308,75 @@ module.exports = class bleutrade extends bittrex {
             'amount': amount,
             'cost': cost,
             'fee': undefined,
+        };
+    }
+
+    parseSymbol (id) {
+        let [ base, quote ] = id.split (this.options['symbolSeparator']);
+        base = this.safeCurrencyCode (base);
+        quote = this.safeCurrencyCode (quote);
+        return base + '/' + quote;
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.v3PrivatePostGetbalances (params);
+        const result = { 'info': response };
+        const items = response['result'];
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            const currencyId = this.safeString (item, 'Asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeFloat (item, 'Available');
+            account['total'] = this.safeFloat (item, 'Balance');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
+    }
+
+    getOrderIdField () {
+        return 'orderid';
+    }
+
+    async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const method = (type === 'deposit') ? 'v3PrivatePostGetdeposithistory' : 'v3PrivatePostGetwithdrawhistory';
+        const response = await this[method] (params);
+        const result = this.parseTransactions (response['result']);
+        return this.filterByCurrencySinceLimit (result, code, since, limit);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('withdrawal', code, since, limit, params);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+        };
+        const response = await this.v3PrivatePostGetdepositaddress (this.extend (request, params));
+        //   { success: true,
+        //     message: '',
+        //     result:
+        //     { Asset: 'ETH',
+        //         AssetName: 'Ethereum',
+        //         DepositAddress: '0x748c5c8jhksjdfhd507d3aa9',
+        //         Currency: 'ETH',
+        //         CurrencyName: 'Ethereum' } }
+        const item = response['result'];
+        const address = this.safeString (item, 'DepositAddress');
+        return {
+            'currency': code,
+            'address': this.checkAddress (address),
+            // 'tag': tag,
+            'info': item,
         };
     }
 
@@ -643,6 +635,15 @@ module.exports = class bleutrade extends bittrex {
             'status': status,
             'fee': fee,
         };
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'OK': 'closed',
+            'OPEN': 'open',
+            'CANCELED': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseTransaction (transaction, currency = undefined) {
