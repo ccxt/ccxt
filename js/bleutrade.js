@@ -1,31 +1,17 @@
 'use strict';
 
 // ---------------------------------------------------------------------------
-
-const bittrex = require ('./bittrex.js');
+const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidOrder, AuthenticationError, InsufficientFunds, BadRequest } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
-module.exports = class bleutrade extends bittrex {
+module.exports = class bleutrade extends Exchange {
     describe () {
-        const timeframes = {
-            '15m': '15m',
-            '20m': '20m',
-            '30m': '30m',
-            '1h': '1h',
-            '2h': '2h',
-            '3h': '3h',
-            '4h': '4h',
-            '6h': '6h',
-            '8h': '8h',
-            '12h': '12h',
-            '1d': '1d',
-        };
-        const result = this.deepExtend (super.describe (), {
+        return this.deepExtend (super.describe (), {
             'id': 'bleutrade',
             'name': 'Bleutrade',
-            'countries': [ 'BR' ], // Brazil
+            'countries': ['BR'], // Brazil
             'rateLimit': 1000,
             'version': 'v2',
             'certified': false,
@@ -40,7 +26,19 @@ module.exports = class bleutrade extends bittrex {
                 'fetchLedger': true,
                 'fetchDepositAddress': true,
             },
-            'timeframes': timeframes,
+            'timeframes': {
+                '15m': '15m',
+                '20m': '20m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '3h': '3h',
+                '4h': '4h',
+                '6h': '6h',
+                '8h': '8h',
+                '12h': '12h',
+                '1d': '1d',
+            },
             'hostname': 'bleutrade.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
@@ -50,7 +48,7 @@ module.exports = class bleutrade extends bittrex {
                     'v3Private': 'https://{hostname}/api/v3/private',
                     'v3Public': 'https://{hostname}/api/v3/public',
                 },
-                'www': 'https://bleutrade.com',
+                'www': ['https://bleutrade.com',],
                 'doc': [
                     'https://app.swaggerhub.com/apis-docs/bleu/white-label/3.0.0',
                 ],
@@ -117,9 +115,6 @@ module.exports = class bleutrade extends bittrex {
                 'symbolSeparator': '_',
             },
         });
-        // bittrex inheritance override
-        result['timeframes'] = timeframes;
-        return result;
     }
 
     async fetchCurrencies (params = {}) {
@@ -256,6 +251,75 @@ module.exports = class bleutrade extends bittrex {
             tickers.push (ticker);
         }
         return this.filterByArray (tickers, 'symbol', symbols);
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //   { TimeStamp: '2020-01-14 14:32:28',
+        //     MarketName: 'LTC_USDT',
+        //     MarketAsset: 'LTC',
+        //     BaseAsset: 'USDT',
+        //     MarketAssetName: 'Litecoin',
+        //     BaseAssetName: 'Tether',
+        //     PrevDay: 49.2867503,
+        //     High: 56.78622664,
+        //     Low: 49.27384025,
+        //     Last: 53.94,
+        //     Average: 51.37509368,
+        //     Volume: 1.51282404,
+        //     BaseVolume: 77.72147677,
+        //     Bid: 53.62070218,
+        //     Ask: 53.94,
+        //     IsActive: 'true',
+        //     InfoMessage: '',
+        //     MarketCurrency: 'Litecoin',
+        //     BaseCurrency: 'Tether' }
+        const timestamp = this.parse8601 (this.safeString (ticker, 'TimeStamp'));
+        let symbol = undefined;
+        const marketId = this.safeString (ticker, 'MarketName');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                symbol = this.parseSymbol (marketId);
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const previous = this.safeFloat (ticker, 'PrevDay');
+        const last = this.safeFloat (ticker, 'Last');
+        let change = undefined;
+        let percentage = undefined;
+        if (last !== undefined) {
+            if (previous !== undefined) {
+                change = last - previous;
+                if (previous > 0) {
+                    percentage = (change / previous) * 100;
+                }
+            }
+        }
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'High'),
+            'low': this.safeFloat (ticker, 'Low'),
+            'bid': this.safeFloat (ticker, 'Bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'Ask'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': previous,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': undefined,
+            'baseVolume': this.safeFloat (ticker, 'Volume'),
+            'quoteVolume': this.safeFloat (ticker, 'BaseVolume'),
+            'info': ticker,
+        };
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
