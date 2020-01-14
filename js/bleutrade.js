@@ -123,7 +123,6 @@ module.exports = class bleutrade extends bittrex {
             },
             'options': {
                 'parseOrderStatus': true,
-                'disableNonce': false,
                 'symbolSeparator': '_',
             },
         });
