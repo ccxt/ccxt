@@ -408,10 +408,6 @@ module.exports = class bleutrade extends Exchange {
         return this.parseBalance (result);
     }
 
-    getOrderIdField () {
-        return 'orderid';
-    }
-
     async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const method = (type === 'deposit') ? 'v3PrivatePostGetdeposithistory' : 'v3PrivatePostGetwithdrawhistory';
