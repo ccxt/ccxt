@@ -2001,12 +2001,12 @@ class okex3(Exchange):
             'amount': self.number_to_string(amount),
             'fee': fee,  # String. Network transaction fee ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set as 0. Withdrawal to external digital asset address requires network transaction fee.
         }
-        if self.password:
-            request['trade_pwd'] = self.password
-        elif 'password' in params:
+        if 'password' in params:
             request['trade_pwd'] = params['password']
         elif 'trade_pwd' in params:
             request['trade_pwd'] = params['trade_pwd']
+        elif self.password:
+            request['trade_pwd'] = self.password
         query = self.omit(params, ['fee', 'password', 'trade_pwd'])
         if not ('trade_pwd' in request):
             raise ExchangeError(self.id + ' withdraw() requires self.password set on the exchange instance or a password / trade_pwd parameter')
