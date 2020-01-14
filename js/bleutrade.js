@@ -346,44 +346,6 @@ module.exports = class bleutrade extends Exchange {
         return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
-        const timestamp = this.parse8601 (trade['TimeStamp'] + '+00:00');
-        let side = undefined;
-        if (trade['OrderType'] === 'BUY') {
-            side = 'buy';
-        } else if (trade['OrderType'] === 'SELL') {
-            side = 'sell';
-        }
-        const id = this.safeString2 (trade, 'TradeID', 'ID');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        let cost = undefined;
-        const price = this.safeFloat (trade, 'Price');
-        const amount = this.safeFloat (trade, 'Quantity');
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = price * amount;
-            }
-        }
-        return {
-            'id': id,
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'type': 'limit',
-            'side': side,
-            'order': undefined,
-            'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': undefined,
-        };
-    }
-
     parseSymbol (id) {
         let [ base, quote ] = id.split (this.options['symbolSeparator']);
         base = this.safeCurrencyCode (base);
