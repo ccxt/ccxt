@@ -542,6 +542,7 @@ Thank you!
 
 - [Follow us on Twitter](https://twitter.com/ccxt_official)
 - [Read our blog on Medium](https://medium.com/@ccxt)
+- [![Gitter](https://badges.gitter.im/ccxt-dev/ccxt.svg)](https://gitter.im/ccxt-dev/ccxt)
 
 ## Team
 
