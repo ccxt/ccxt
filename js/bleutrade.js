@@ -62,7 +62,6 @@ module.exports = class bleutrade extends bittrex {
                         'candles',
                         'markethistory',
                         'marketsummaries',
-                        'marketsummary',
                         'ticker',
                     ],
                 },
@@ -242,6 +241,17 @@ module.exports = class bleutrade extends bittrex {
             throw new ExchangeError (this.id + ' no orderbook data in ' + this.json (response));
         }
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.v3PublicGetGetmarketsummary (this.extend (request, params));
+        const ticker = response['result'][0];
+        return this.parseTicker (ticker, market);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
