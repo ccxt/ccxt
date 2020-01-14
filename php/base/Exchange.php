@@ -626,7 +626,7 @@ class Exchange {
 
     public function milliseconds() {
         list($msec, $sec) = explode(' ', microtime());
-        return $sec . substr($msec, 2, 3);
+        return (int) ($sec . substr($msec, 2, 3));
     }
 
     public function microseconds() {
