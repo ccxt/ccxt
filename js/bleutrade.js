@@ -59,7 +59,6 @@ module.exports = class bleutrade extends bittrex {
             'api': {
                 'public': {
                     'get': [
-                        'candles',
                         'markethistory',
                         'ticker',
                     ],
@@ -285,12 +284,8 @@ module.exports = class bleutrade extends bittrex {
             'market': market['id'],
             'count': limit,
         };
-        const response = await this.publicGetCandles (this.extend (request, params));
-        if ('result' in response) {
-            if (response['result']) {
-                return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
-            }
-        }
+        const response = await this.v3PublicGetGetcandles (this.extend (request, params));
+        return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
