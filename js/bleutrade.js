@@ -182,6 +182,18 @@ module.exports = class bleutrade extends bittrex {
         const markets = this.safeValue (response, 'result');
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
+            //   { MarketName: 'LTC_USDT',
+            //     MarketAsset: 'LTC',
+            //     BaseAsset: 'USDT',
+            //     MarketAssetLong: 'Litecoin',
+            //     BaseAssetLong: 'Tether',
+            //     IsActive: true,
+            //     MinTradeSize: 0.0001,
+            //     InfoMessage: '',
+            //     MarketCurrency: 'LTC',
+            //     BaseCurrency: 'USDT',
+            //     MarketCurrencyLong: 'Litecoin',
+            //     BaseCurrencyLong: 'Tether' }
             const id = this.safeString (market, 'MarketName');
             const baseId = this.safeString (market, 'MarketCurrency');
             const quoteId = this.safeString (market, 'BaseCurrency');
