@@ -46,6 +46,8 @@ class binance(Exchange):
                 'fetchDeposits': True,
                 'fetchWithdrawals': True,
                 'fetchTransactions': False,
+                'fetchTradingFee': True,
+                'fetchTradingFees': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -1504,6 +1506,72 @@ class binance(Exchange):
             'info': response,
             'id': self.safe_string(response, 'id'),
         }
+
+    def parse_trading_fee(self, fee, market=None):
+        #
+        #     {
+        #         "symbol": "ADABNB",
+        #         "maker": 0.9000,
+        #         "taker": 1.0000
+        #     }
+        #
+        marketId = self.safe_string(fee, 'symbol')
+        symbol = marketId
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+            symbol = market['symbol']
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': self.safe_float(fee, 'maker'),
+            'taker': self.safe_float(fee, 'taker'),
+        }
+
+    async def fetch_trading_fee(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.wapiGetTradeFee(self.extend(request, params))
+        #
+        #     {
+        #         "tradeFee": [
+        #             {
+        #                 "symbol": "ADABNB",
+        #                 "maker": 0.9000,
+        #                 "taker": 1.0000
+        #             }
+        #         ],
+        #         "success": True
+        #     }
+        #
+        tradeFee = self.safe_value(response, 'tradeFee', [])
+        first = self.safe_value(tradeFee, 0, {})
+        return self.parse_trading_fee(first)
+
+    async def fetch_trading_fees(self, params={}):
+        await self.load_markets()
+        response = await self.wapiGetTradeFee(params)
+        #
+        #     {
+        #         "tradeFee": [
+        #             {
+        #                 "symbol": "ADABNB",
+        #                 "maker": 0.9000,
+        #                 "taker": 1.0000
+        #             }
+        #         ],
+        #         "success": True
+        #     }
+        #
+        tradeFee = self.safe_value(response, 'tradeFee', [])
+        result = {}
+        for i in range(0, len(tradeFee)):
+            fee = self.parse_trading_fee(tradeFee[i])
+            symbol = fee['symbol']
+            result[symbol] = fee
+        return result
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
