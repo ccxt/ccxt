@@ -191,7 +191,7 @@ module.exports = class gateio extends ccxt.gateio {
             'id': requestId,
         };
         if (!('authenticate' in client.subscriptions)) {
-            this.watch (url, requestId, authenticateMessage, 'authenticate', subscribe);
+            await this.watch (url, requestId, authenticateMessage, 'authenticate', subscribe);
         }
         return await future;
     }
