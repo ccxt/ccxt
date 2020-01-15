@@ -179,7 +179,8 @@ module.exports = class gateio extends ccxt.gateio {
         const future = client.future ('authenticated');
         const requestId = this.milliseconds ();
         const requestIdString = requestId.toString ();
-        const signature = this.hmac (requestIdString, this.secret, 'sha512', 'base64');
+        let signature = this.hmac (this.encode (requestIdString), this.encode (this.secret), 'sha512', 'base64');
+        signature = this.decode (signature);
         const authenticateMessage = {
             'id': requestId,
             'method': 'server.sign',
@@ -269,7 +270,7 @@ module.exports = class gateio extends ccxt.gateio {
     handleAuthenticationMessage (client, message) {
         const result = this.safeValue (message, 'result');
         if (this.safeString (result, 'status') === 'success') {
-            client.resolve (true, 'authenticated');
+            client.resolve (1, 'authenticated');
         } else {
             // delete authenticate subscribeHash to release the "subscribe lock"
             // allows subsequent calls to subscribe to reauthenticate
