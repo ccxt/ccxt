@@ -16,8 +16,8 @@ module.exports = class whitebit extends Exchange {
             'countries': [ 'EE' ],
             'rateLimit': 1000,
             'has': {
-                'cancelOrder': true,
                 'CORS': false,
+                'cancelOrder': true,
                 'createDepositAddress': false,
                 'createLimitOrder': true,
                 'createMarketOrder': false,
@@ -25,12 +25,13 @@ module.exports = class whitebit extends Exchange {
                 'deposit': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOrderBook': true,
                 'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
+                'fetchOrderBook': true,
                 'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -103,6 +104,7 @@ module.exports = class whitebit extends Exchange {
                         'account/balances',
                         'account/order',
                         'account/order_history',
+                        'account/executed_history',
                     ],
                 },
             },
@@ -526,6 +528,25 @@ module.exports = class whitebit extends Exchange {
         //         "isBuyerMaker":false
         //     }
         //
+        // fetchMyTrades
+        //
+        //     {
+        //         "success": true,
+        //         "message": "",
+        //         "result": [
+        //             {
+        //                 "id": 8390380,
+        //                 "time": 1575452423.536664,
+        //                 "side": "sell",
+        //                 "role": 2,
+        //                 "amount": "0.001",
+        //                 "price": "9999",
+        //                 "deal": "9.999",
+        //                 "fee": "0.009999"
+        //             }
+        //         ]
+        //     }
+        //
         let timestamp = this.safeValue (trade, 'time');
         if (typeof timestamp === 'string') {
             timestamp = this.parse8601 (timestamp);
@@ -535,18 +556,39 @@ module.exports = class whitebit extends Exchange {
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat2 (trade, 'amount', 'volume');
         const id = this.safeString2 (trade, 'id', 'tradeId');
-        let side = this.safeString (trade, 'type');
-        if (side === undefined) {
+        let side = undefined;
+        if ('type' in trade) {
+            side = this.safeString (trade, 'type');
+        } else if ('isBuyerMaker' in trade) {
             const isBuyerMaker = this.safeValue (trade, 'isBuyerMaker');
             side = isBuyerMaker ? 'buy' : 'sell';
+        } else if ('side' in trade) {
+            side = this.safeString (trade, 'side');
         }
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
         let cost = undefined;
-        if (amount !== undefined && price !== undefined) {
+        if ('deal' in trade) {
+            cost = this.safeFloat (trade, 'deal');
+        } else if (amount !== undefined && price !== undefined) {
             cost = amount * price;
+        }
+        const feeCost = this.safeFloat (trade, 'fee');
+        const fee = {
+            'cost': feeCost,
+            'currency': undefined,
+            'rate': undefined,
+        };
+        let takerOrMaker = undefined;
+        if ('role' in trade) {
+            const roleInt = this.safeInteger (trade, 'role');
+            if (roleInt === 1) {
+                takerOrMaker = 'maker';
+            } else if (roleInt === 2) {
+                takerOrMaker = 'taker';
+            }
         }
         return {
             'info': trade,
@@ -556,12 +598,12 @@ module.exports = class whitebit extends Exchange {
             'id': id,
             'order': undefined,
             'type': undefined,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -840,6 +882,39 @@ module.exports = class whitebit extends Exchange {
         };
         const order = await this.privateV1PostOrderCancel (this.extend (request, params));
         return this.parseOrder (order, market);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'offset': 0,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateV1PostAccountExecutedHistory (this.extend (request, params));
+        //
+        // {
+        //     "success": true,
+        //     "message": "",
+        //     "result": [
+        //         {
+        //             "id": 8390380,
+        //             "time": 1575452423.536664,
+        //             "side": "sell",
+        //             "role": 2,
+        //             "amount": "0.001",
+        //             "price": "9999",
+        //             "deal": "9.999",
+        //             "fee": "0.009999"
+        //         }
+        //     ]
+        // }
+        //
+        const result = this.safeValue (response, 'result', []);
+        return this.parseTrades (result, market, since, limit);
     }
 
     sign (path, api = 'publicV1', method = 'GET', params = {}, headers = undefined, body = undefined) {
