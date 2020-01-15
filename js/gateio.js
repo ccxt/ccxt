@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError } = require ('ccxt/js/base/errors');
+const { ExchangeError, AuthenticationError } = require ('ccxt/js/base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -143,6 +143,9 @@ module.exports = class gateio extends ccxt.gateio {
         if (normalMarketId in this.markets_by_id) {
             market = this.markets_by_id[normalMarketId];
         }
+        if (!(marketId in this.trades)) {
+            this.trades[marketId] = [];
+        }
         const trades = result[1];
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
@@ -172,6 +175,8 @@ module.exports = class gateio extends ccxt.gateio {
 
     async authenticate () {
         const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        const future = client.future ('authenticated');
         const requestId = this.milliseconds ();
         const requestIdString = requestId.toString ();
         const signature = this.hmac (requestIdString, this.secret, 'sha512', 'base64');
@@ -180,7 +185,13 @@ module.exports = class gateio extends ccxt.gateio {
             'method': 'server.sign',
             'params': [ this.apiKey, signature, requestId ],
         };
-        return await this.watch (url, requestId, authenticateMessage, 'authenticated');
+        const subscribe = {
+            'id': requestId,
+        };
+        if (!('authenticate' in client.subscriptions)) {
+            await this.watch (url, requestId, authenticateMessage, 'authenticate', subscribe);
+        }
+        return await future;
     }
 
     handleOHLCV (client, message) {
@@ -200,11 +211,7 @@ module.exports = class gateio extends ccxt.gateio {
     async watchBalance (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
-        const client = this.client (url);
-        let future = undefined;
-        if (!(this.safeValue (client.subscriptions, 'authenticated', false))) {
-            future = this.authenticate ();
-        }
+        const future = this.authenticate ();
         const requestId = this.nonce ();
         const method = 'balance.update';
         const subscribeMessage = {
@@ -235,11 +242,7 @@ module.exports = class gateio extends ccxt.gateio {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
-        const client = this.client (url);
-        let future = undefined;
-        if (!(this.safeValue (client.subscriptions, 'authenticated', false))) {
-            future = this.authenticate ();
-        }
+        const future = this.authenticate ();
         const requestId = this.nonce ();
         const method = 'order.update';
         const subscribeMessage = {
@@ -248,12 +251,6 @@ module.exports = class gateio extends ccxt.gateio {
             'params': [],
         };
         return await this.afterDropped (future, this.watch, url, method, subscribeMessage, method);
-    }
-
-    watch (url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
-        // needed for the transpilation of this.watch -> array($this, 'watch')
-        // delete me in php to make it work ;)
-        return super.watch (url, messageHash, message, subscribeHash, subscription);
     }
 
     handleOrder (client, message) {
@@ -269,7 +266,38 @@ module.exports = class gateio extends ccxt.gateio {
         client.resolve (parsed, messageHash);
     }
 
+    handleAuthenticationMessage (client, message) {
+        const result = this.safeValue (message, 'result');
+        if (this.safeString (result, 'status') === 'success') {
+            client.resolve (true, 'authenticated');
+        } else {
+            // delete authenticate subscribeHash to release the "subscribe lock"
+            // allows subsequent calls to subscribe to reauthenticate
+            // avoids sending two authentication messages before receiving a reply
+            const error = new AuthenticationError ('not success');
+            client.reject (error, 'autheticated');
+            delete client.subscriptions['authenticate'];
+        }
+    }
+
+    handleErrorMessage (client, message) {
+        const error = this.safeValue (message, 'error', {});
+        const code = this.safeInteger (error, 'code');
+        if (code === 11 || code === 6) {
+            const error = new AuthenticationError ('invalid credentials');
+            client.reject (error, message['id']);
+            client.reject (error, 'authenticated');
+        }
+    }
+
+    watch () {
+        // DELET me
+        // only exist to transpile closures in php
+    }
+
     handleMessage (client, message) {
+        console.log (message);
+        this.handleErrorMessage (client, message);
         const methods = {
             'depth.update': this.handleOrderBook,
             'ticker.update': this.handleTicker,
@@ -283,7 +311,12 @@ module.exports = class gateio extends ccxt.gateio {
         if (method) {
             method.call (this, client, message);
         } else if ('id' in message) {
+            // used to resolve authentication messages
             client.resolve (message, message['id']);
+            const subscription = this.safeValue (client.subscriptions, 'authenticate', {});
+            if (this.safeValue (subscription, 'id') === message['id']) {
+                this.handleAuthenticationMessage (client, message);
+            }
         }
     }
 };
