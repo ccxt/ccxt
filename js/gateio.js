@@ -297,7 +297,6 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     handleMessage (client, message) {
-        console.log (message);
         this.handleErrorMessage (client, message);
         const methods = {
             'depth.update': this.handleOrderBook,
