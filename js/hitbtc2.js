@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const hitbtc = require ('./hitbtc');
-const { BadSymbol, PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, RequestTimeout } = require ('./base/errors');
+const { BadSymbol, PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, RequestTimeout, AuthenticationError } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 // ---------------------------------------------------------------------------
 
