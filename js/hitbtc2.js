@@ -544,6 +544,7 @@ module.exports = class hitbtc2 extends hitbtc {
             },
             'exceptions': {
                 '504': RequestTimeout, // {"error":{"code":504,"message":"Gateway Timeout"}}
+                '1002': AuthenticationError, // {"error":{"code":1002,"message":"Authorization failed","description":""}}
                 '1003': PermissionDenied, // "Action is forbidden for this API key"
                 '2010': InvalidOrder, // "Quantity not a valid number"
                 '2001': BadSymbol, // "Symbol not found"
