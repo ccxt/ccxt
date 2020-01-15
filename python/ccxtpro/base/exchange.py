@@ -62,7 +62,7 @@ class Exchange(BaseExchange):
     async def afterDropped(self, future, method, *args):
         if future:
             await future
-        return method(*args)
+        return await method(*args)
 
     async def spawnAsync(self, method, *args):
         try:
@@ -90,6 +90,7 @@ class Exchange(BaseExchange):
         # todo: calculate the backoff using the clients cache
         backoff_delay = 0
         try:
+            self.open()
             await client.connect(self.session, backoff_delay)
             if message and (subscribe_hash not in client.subscriptions):
                 client.subscriptions[subscribe_hash] = subscription or True

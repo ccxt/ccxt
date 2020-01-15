@@ -83,7 +83,8 @@ module.exports = class gateio extends ccxt.gateio {
                 const bookSide = book[side];
                 for (let i = 0; i < bookSide.length; i++) {
                     const order = bookSide[i];
-                    orderBook[side].store (parseFloat (order[0]), parseFloat (order[1]));
+                    const orderBookSide = orderBook[side];
+                    orderBookSide.store (parseFloat (order[0]), parseFloat (order[1]));
                 }
             }
         }
@@ -190,7 +191,7 @@ module.exports = class gateio extends ccxt.gateio {
             'id': requestId,
         };
         if (!('authenticate' in client.subscriptions)) {
-            await this.watch (url, requestId, authenticateMessage, 'authenticate', subscribe);
+            this.watch (url, requestId, authenticateMessage, 'authenticate', subscribe);
         }
         return await future;
     }
