@@ -48,7 +48,7 @@ module.exports = class Exchange extends ccxt.Exchange {
         if (future) {
             await future
         }
-        return method.call (this, ... args)
+        return await method.call (this, ... args)
     }
 
     spawn (method, ... args) {
@@ -95,6 +95,14 @@ module.exports = class Exchange extends ccxt.Exchange {
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject with
         //  a proper exception class instance
+        if (client.isOpen ()) {
+            if (message && !client.subscriptions[subscribeHash]) {
+                client.subscriptions[subscribeHash] = subscription || true
+                message = this.signMessage (client, messageHash, message)
+                client.send (message)
+            }
+            return future
+        }
         const connected = client.connect (backoffDelay)
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client
