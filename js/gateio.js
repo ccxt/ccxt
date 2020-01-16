@@ -75,12 +75,12 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     handleOrderBook (client, message) {
-        const params = message['params'];
-        const clean = params[0];
-        const book = params[1];
-        const marketId = params[2];
-        const methodType = message['method'];
-        const messageHash = methodType + ':' + marketId;
+        const params = this.safeValue (message, 'params', []);
+        const clean = this.safeValue (params, 0);
+        const book = this.safValue (params, 1);
+        const marketId = this.safeString (params, 2);
+        const method = this.safeString (message, 'method');
+        const messageHash = method + ':' + marketId;
         let orderBook = undefined;
         if (clean) {
             orderBook = this.orderBook ({});
