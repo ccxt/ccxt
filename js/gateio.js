@@ -178,20 +178,21 @@ module.exports = class gateio extends ccxt.gateio {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const future = client.future ('authenticated');
-        const requestId = this.milliseconds ();
-        const requestIdString = requestId.toString ();
-        let signature = this.hmac (this.encode (requestIdString), this.encode (this.secret), 'sha512', 'base64');
-        signature = this.decode (signature);
-        const authenticateMessage = {
-            'id': requestId,
-            'method': 'server.sign',
-            'params': [ this.apiKey, signature, requestId ],
-        };
-        const subscribe = {
-            'id': requestId,
-        };
-        if (!('authenticate' in client.subscriptions)) {
-            await this.watch (url, requestId, authenticateMessage, 'authenticate', subscribe);
+        const method = 'server.sign';
+        const authenticate = this.safeValue (client.subscriptions, method);
+        if (authenticate === undefined) {
+            const requestId = this.milliseconds ();
+            const requestIdString = requestId.toString ();
+            const signature = this.hmac (this.encode (requestIdString), this.encode (this.secret), 'sha512', 'base64');
+            const authenticateMessage = {
+                'id': requestId,
+                'method': method,
+                'params': [ this.apiKey, this.decode (signature), requestId ],
+            };
+            const subscribe = {
+                'id': requestId,
+            };
+            this.spawn (this.watch, url, requestId, authenticateMessage, method, subscribe);
         }
         return await future;
     }
@@ -211,6 +212,7 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     async watchBalance (params = {}) {
+        await this.loadMarkets ();
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const future = this.authenticate ();
@@ -270,15 +272,18 @@ module.exports = class gateio extends ccxt.gateio {
 
     handleAuthenticationMessage (client, message) {
         const result = this.safeValue (message, 'result');
-        if (this.safeString (result, 'status') === 'success') {
-            client.resolve (1, 'authenticated');
+        const status = this.safeString (result, 'status');
+        if (status === 'success') {
+            client.resolve (true, 'authenticated');
         } else {
             // delete authenticate subscribeHash to release the "subscribe lock"
             // allows subsequent calls to subscribe to reauthenticate
             // avoids sending two authentication messages before receiving a reply
             const error = new AuthenticationError ('not success');
             client.reject (error, 'autheticated');
-            delete client.subscriptions['authenticate'];
+            if ('server.sign' in client.subscriptions) {
+                delete client.subscriptions['server.sign'];
+            }
         }
     }
 
@@ -306,12 +311,16 @@ module.exports = class gateio extends ccxt.gateio {
         const method = this.safeValue (methods, methodType);
         if (method) {
             method.call (this, client, message);
-        } else if ('id' in message) {
-            // used to resolve authentication messages
-            client.resolve (message, message['id']);
-            const subscription = this.safeValue (client.subscriptions, 'authenticate', {});
-            if (this.safeValue (subscription, 'id') === message['id']) {
-                this.handleAuthenticationMessage (client, message);
+        } else {
+            const messageId = this.safeInteger (message, 'id');
+            if (messageId !== undefined) {
+                client.resolve (message, messageId);
+                // used to resolve authentication messages
+                const subscription = this.safeValue (client.subscriptions, 'server.sign', {});
+                const subscriptionId = this.safeInteger (subscription, 'id');
+                if (messageId === subscriptionId) {
+                    this.handleAuthenticationMessage (client, message);
+                }
             }
         }
     }
