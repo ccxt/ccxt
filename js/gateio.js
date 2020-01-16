@@ -62,6 +62,18 @@ module.exports = class gateio extends ccxt.gateio {
         return orderbook.limit (limit);
     }
 
+    handleDelta (bookside, delta) {
+        const price = this.safeFloat (delta, 0);
+        const amount = this.safeFloat (delta, 1);
+        bookside.store (price, amount);
+    }
+
+    handleDeltas (bookside, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (bookside, deltas[i]);
+        }
+    }
+
     handleOrderBook (client, message) {
         const params = message['params'];
         const clean = params[0];
@@ -76,18 +88,8 @@ module.exports = class gateio extends ccxt.gateio {
         } else {
             orderBook = this.orderbooks[marketId];
         }
-        const sides = ['bids', 'asks'];
-        for (let j = 0; j < 2; j++) {
-            const side = sides[j];
-            if (side in book) {
-                const bookSide = book[side];
-                for (let i = 0; i < bookSide.length; i++) {
-                    const order = bookSide[i];
-                    const orderBookSide = orderBook[side];
-                    orderBookSide.store (parseFloat (order[0]), parseFloat (order[1]));
-                }
-            }
-        }
+        this.handleDeltas (orderBook['asks'], this.safeValue (book, 'asks', []));
+        this.handleDeltas (orderBook['bids'], this.safeValue (book, 'bids', []));
         client.resolve (orderBook, messageHash);
     }
 
@@ -314,6 +316,7 @@ module.exports = class gateio extends ccxt.gateio {
         } else {
             const messageId = this.safeInteger (message, 'id');
             if (messageId !== undefined) {
+                // used to resolve subscriptions
                 client.resolve (message, messageId);
                 // used to resolve authentication messages
                 const subscription = this.safeValue (client.subscriptions, 'server.sign', {});
