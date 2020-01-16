@@ -48,7 +48,7 @@ module.exports = class Exchange extends ccxt.Exchange {
         if (future) {
             await future
         }
-        return await method.call (this, ... args)
+        return await method.apply (this, args)
     }
 
     spawn (method, ... args) {
