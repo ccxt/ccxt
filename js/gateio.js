@@ -290,6 +290,7 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     handleErrorMessage (client, message) {
+        // todo use error map here
         const error = this.safeValue (message, 'error', {});
         const code = this.safeInteger (error, 'code');
         if (code === 11 || code === 6) {
