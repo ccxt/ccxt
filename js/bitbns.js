@@ -406,37 +406,47 @@ module.exports = class bitbns extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const tradingSymbol = market['id'];
-        let allTrades = [];
-        let page = 0;
-        while (true) {
-            const request = {
-                'symbol': tradingSymbol,
-                'page': page,
-                'since': since,
-            };
-            // console.log(request);
-            const resp = await this.private1PostListExecutedOrders (this.extend (request, params));
-            // console.log("resp: ",resp.data);
-            if (resp.data.length === 0) {
-                // console.log ("All trades fetched");
-                break;
-            }
-            page = page + 1;
-            allTrades = allTrades.concat (resp.data);
-            // console.log("int alltrades:", allTra÷des);
-        }
-        // if (limit !== undefined && allTrades.length > limit) {
-        //     allTrades.length = limit;
+        limit = limit === undefined ? 0 : limit;
+        // for (;allTrades.length < limit;) {
+        //     const request = {
+        //         'symbol': tradingSymbol,
+        //         'page': page,
+        //         'since': since,
+        //     };
+        //     // console.log(request);
+        //     const resp = await this.private1PostListExecutedOrders (this.extend (request, params));
+        //     // console.log("resp: ",resp.data);
+        //     if (resp.data.length === 0) {
+        //         // console.log ("All trades fetched");
+        //         break;
+        //     }
+        //     page = page + 1;
+        //     allTrades = allTrades.concat (resp.data);
+        //     // console.log("int alltrades:", allTra÷des);
         // }
-        // const trades = this.safeValue (resp, 'data');
-        const trades = allTrades;
-        // console.log("alltrades:", allTrades);
+        if (since !== undefined) {
+            since = this.iso8601 (since);
+        }
+        const request = {
+            'symbol': tradingSymbol,
+            'page': 0,
+            'since': since,
+        };
+        // console.log(request);
+        const resp = await this.private1PostListExecutedOrders (this.extend (request, params));
+        const trades = resp.data;
         const result = [];
-        for (let i = 0; i < trades.length; i += 1) {
+        let numOfTrades = trades.length;
+        // console.log("numoftrades", numOfTrades);
+        if (limit && trades.length > limit) {
+            numOfTrades = limit;
+        }
+        // console.log("numoftrades", numOfTrades);
+        for (let i = 0; i < numOfTrades; i += 1) {
             const tradeObj = {
                 'info': trades[i],
                 'id': undefined,
-                'timestamp': this.iso8601 (trades[i].date),
+                'timestamp': trades[i].date,
                 'datetime': this.parse8601 (trades[i].date),
                 'symbol': symbol,
                 'order': undefined,
