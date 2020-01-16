@@ -65,7 +65,6 @@ trait ClientTrait {
                 $method(... $args);
             } catch (\Exception $e) {
                 // todo: handle spawned errors
-                throw $e;
             }
         });
     }
