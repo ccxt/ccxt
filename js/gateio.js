@@ -292,11 +292,6 @@ module.exports = class gateio extends ccxt.gateio {
         }
     }
 
-    watch () {
-        // DELET me
-        // only exist to transpile closures in php
-    }
-
     handleMessage (client, message) {
         this.handleErrorMessage (client, message);
         const methods = {
