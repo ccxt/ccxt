@@ -506,7 +506,7 @@ class deribit(Exchange):
         # closed orders ------------------------------------------------------
         #         "tstamp": 1494492913288,     # timestamp of the last order state change, documented, but may be missing in the actual response
         #         "modified": 1494492913289,   # timestamp of the last db write operation, e.g. trade that doesn't change order status, documented, but may missing in the actual response
-        #         "adv": False                 # advanced type(false, or "usd" or "implv")
+        #         "adv": False                 # advanced type(False, or "usd" or "implv")
         #         "trades": [],                # not documented, injected from the outside of the parseOrder method into the order
         #     }
         #
