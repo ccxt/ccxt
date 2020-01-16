@@ -32,6 +32,7 @@ class bigone(Exchange):
                 'fetchDeposits': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
