@@ -311,9 +311,7 @@ module.exports = class gateio extends ccxt.gateio {
         };
         const methodType = this.safeString (message, 'method');
         const method = this.safeValue (methods, methodType);
-        if (method) {
-            method.call (this, client, message);
-        } else {
+        if (method === undefined) {
             const messageId = this.safeInteger (message, 'id');
             if (messageId !== undefined) {
                 // used to resolve subscriptions
@@ -325,6 +323,8 @@ module.exports = class gateio extends ccxt.gateio {
                     this.handleAuthenticationMessage (client, message);
                 }
             }
+        } else {
+            method.call (this, client, message);
         }
     }
 };
