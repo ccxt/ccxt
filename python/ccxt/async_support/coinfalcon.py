@@ -8,7 +8,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
-from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 
 
 class coinfalcon(Exchange):
@@ -381,6 +381,6 @@ class coinfalcon(Exchange):
             return
         ErrorClass = self.safe_value({
             '401': AuthenticationError,
-            '429': DDoSProtection,
+            '429': RateLimitExceeded,
         }, code, ExchangeError)
         raise ErrorClass(body)
