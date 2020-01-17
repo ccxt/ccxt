@@ -18,6 +18,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import RateLimitExceeded
 
 # -----------------------------------------------------------------------------
 
@@ -185,7 +186,7 @@ class Exchange(object):
     httpExceptions = {
         '422': ExchangeError,
         '418': DDoSProtection,
-        '429': DDoSProtection,
+        '429': RateLimitExceeded,
         '404': ExchangeNotAvailable,
         '409': ExchangeNotAvailable,
         '500': ExchangeNotAvailable,
