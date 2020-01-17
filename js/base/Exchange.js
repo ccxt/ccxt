@@ -945,6 +945,8 @@ module.exports = class Exchange {
         balance['used'] = {}
         balance['total'] = {}
 
+        const accounts = [ 'free', 'used', 'total' ]
+
         for (const currency of currencies) {
             if (currency === 'free' || currency === 'used' || currency === 'total') {
                 continue
@@ -966,9 +968,9 @@ module.exports = class Exchange {
                 }
             }
 
-            [ 'free', 'used', 'total' ].forEach ((account) => {
+            for (const account of accounts) {
                 balance[account][currency] = balance[currency][account]
-            })
+            }
         }
 
         return balance
