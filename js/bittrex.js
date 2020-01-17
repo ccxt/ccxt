@@ -94,7 +94,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         if (authenticate === undefined) {
             const requestId = this.milliseconds ();
             const request = {
-                'H': hub,
+                // 'H': hub,
                 'M': method, // request method
                 'A': [
                     this.apiKey,
@@ -263,12 +263,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         const A0 = this.safeString (A, 0);
         if (A0 !== undefined) {
             console.log (A);
-            console.log (zlib.inflateRawSync (Buffer.from (A0, 'base64')).toString ());
-            // inflateRaw (Buffer.from (A0, 'base64'), (error, buffer) => {
-            //     console.log (buffer.toString ())
-            // })
-            // console.log (.toString ())
-            // console.log (this.base64ToBinary (A0));
+            console.log (this.inflate (A0));
         }
         // const type = this.safeString (message, 'type');
         // const methods = {
