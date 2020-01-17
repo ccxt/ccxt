@@ -17,8 +17,8 @@ module.exports = class phemex extends Exchange {
         return ev * (Math.pow (10, -scale));
     }
 
-    convertEp (ev) {
-        return ev * (Math.pow (10, -4));
+    convertEp (ep) {
+        return ep * (Math.pow (10, -4));
     }
 
     convertToEp (price) {
@@ -131,22 +131,53 @@ module.exports = class phemex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'phemex',
             'name': 'Phemex',
-            'countries': ['SC'], // Seychelles
+            'countries': ['SC'],
             'version': 'v1',
             'userAgent': undefined,
             'rateLimit': 2000,
             'has': {
+                'cancelAllOrders': false,
+                'cancelOrder': true,
+                'cancelOrders': false,
                 'CORS': false,
-                'fetchOHLCV': true,
-                'withdraw': true,
-                'editOrder': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
+                'createDepositAddress': false,
+                'createLimitBuyOrder': true,
+                'createLimitSellOrder': true,
+                'createMarketBuyOrder': true,
+                'createMarketSellOrder': true,
+                'createOrder': true,
+                'deposit': false,
+                'editOrder': false,
+                'fetchBalance': true,
+                'fetchBidsAsks': false,
                 'fetchClosedOrders': true,
-                'fetchMyTrades': true,
-                'fetchLedger': true,
-                'fetchTransactions': 'emulated',
+                'fetchCurrencies': false,
+                'fetchDepositAddress': false,
+                'fetchDeposits': false,
+                'fetchFundingFees': false,
+                'fetchL2OrderBook': false,
+                'fetchLedger': false,
+                'fetchMarkets': true,
+                'fetchMyTrades': false,
+                'fetchOHLCV': false,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': false,
+                'fetchOrderBooks': false,
+                'fetchOrders': true,
+                'fetchStatus': false,
+                'fetchTicker': false,
+                'fetchTickers': false,
+                'fetchTime': false,
+                'fetchTrades': false,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
+                'fetchTradingLimits': false,
+                'fetchTransactions': false,
+                'fetchWithdrawals': false,
+                'privateAPI': false,
+                'publicAPI': false,
+                'withdraw': false,
             },
             'timeframes': {
                 '1m': '1m',
@@ -155,18 +186,15 @@ module.exports = class phemex extends Exchange {
                 '1d': '1d',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
+                'logo': 'https://user-images.githubusercontent.com/7397642/72579020-cd03e300-3912-11ea-9371-04cbd58c31f8.png',
                 'www': 'https://phemex.com',
                 'test': {
                     'public': 'https://testnet.phemex.com/api',
                     'private': 'https://testnet-api.phemex.com',
                 },
-                // TODO: remove testnet
                 'api': {
-                    // 'public': 'https://phemex.com/api',
-                    // 'private': 'https://api.phemex.com',
-                    'public': 'https://testnet.phemex.com/api',
-                    'private': 'https://testnet-api.phemex.com',
+                    'public': 'https://phemex.com/api',
+                    'private': 'https://api.phemex.com',
                 },
                 'doc': [
                     'https://github.com/phemex/phemex-api-docs',
@@ -303,40 +331,6 @@ module.exports = class phemex extends Exchange {
         };
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        if (limit !== undefined) {
-            request['depth'] = limit;
-        }
-        const response = await this.publicGetOrderBookL2 (this.extend (request, params));
-        const result = {
-            'bids': [],
-            'asks': [],
-            'timestamp': undefined,
-            'datetime': undefined,
-            'nonce': undefined,
-        };
-        for (let i = 0; i < response.length; i++) {
-            const order = response[i];
-            const side = (order['side'] === 'Sell') ? 'asks' : 'bids';
-            const amount = this.safeFloat (order, 'size');
-            const price = this.safeFloat (order, 'price');
-            // https://github.com/ccxt/ccxt/issues/4926
-            // https://github.com/ccxt/ccxt/issues/4927
-            // the exchange sometimes returns null price in the orderbook
-            if (price !== undefined) {
-                result[side].push ([price, amount]);
-            }
-        }
-        result['bids'] = this.sortBy (result['bids'], 0, true);
-        result['asks'] = this.sortBy (result['asks'], 0);
-        return result;
-    }
-
     async fetchOrder (id, symbol = undefined, params = {}) {
         const method = 'privateGetPhemexUserOrder';
         const response = await this[method] ({ 'orderID': id, 'symbol': symbol });
@@ -350,7 +344,6 @@ module.exports = class phemex extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // const method = 'privateGetPhemexUserOrderOrderList';
         const method = 'privateGetPhemexUserOrderList';
         const response = await this[method] ({ 'symbol': market['id'], 'start': since, 'limit': limit });
         const data = this.parseResponse (response);
@@ -365,7 +358,8 @@ module.exports = class phemex extends Exchange {
         const method = 'privateGetOrdersActiveList';
         try {
             const response = await this[method] ({ 'symbol': marketID });
-            return this.parseResponse (response);
+            const orders = this.parseResponse (response);
+            return this.parseOrders (orders, market);
         } catch (e) {
             return [];
         }
@@ -400,7 +394,7 @@ module.exports = class phemex extends Exchange {
         }
         const method = 'privatePostOrders';
         const response = await this[method] (this.extend (request, params));
-        const order = this.parseOrder (response);
+        const order = this.parseOrder (response, market);
         const id = this.safeString (order, 'id');
         this.orders[id] = order;
         return this.extend ({ 'info': response }, order);
@@ -415,7 +409,7 @@ module.exports = class phemex extends Exchange {
             const response = await this[method] ({ 'orderID': id, 'symbol': marketID });
             const orders = this.parseResponse (response);
             if (orders.length > 0) {
-                return orders[0];
+                return this.parseOrder (orders[0], market);
             }
         } catch (e) {
             throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
@@ -423,8 +417,7 @@ module.exports = class phemex extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        console.log (url, httpCode);
-        if ((httpCode === 418) || (httpCode === 429)) {
+        if (httpCode === 429) {
             throw new DDoSProtection (this.id + ' ' + httpCode.toString () + ' ' + reason + ' ' + body);
         }
         const code = this.safeValue (response, 'code', 0);
