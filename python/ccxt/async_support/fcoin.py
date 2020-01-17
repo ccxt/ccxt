@@ -14,7 +14,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
@@ -156,7 +156,7 @@ class fcoin(Exchange):
                 '400': NotSupported,  # Bad Request
                 '401': AuthenticationError,
                 '405': NotSupported,
-                '429': DDoSProtection,  # Too Many Requests, exceed api request limit
+                '429': RateLimitExceeded,  # Too Many Requests, exceed api request limit
                 '1002': ExchangeNotAvailable,  # System busy
                 '1016': InsufficientFunds,
                 '2136': AuthenticationError,  # The API key is expired
