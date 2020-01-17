@@ -1,6 +1,7 @@
 "use strict";
 
 const ccxt = require ('ccxt')
+    , { inflateRawSync } = require ('zlib')
     , WsClient = require ('./WsClient')
     , {
         OrderBook,
@@ -9,6 +10,10 @@ const ccxt = require ('ccxt')
     } = require ('./OrderBook')
 
 module.exports = class Exchange extends ccxt.Exchange {
+    
+    inflate (string) {
+        return inflateRawSync (Buffer.from (string, 'base64')).toString ()
+    }
 
     orderBook (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
         return new OrderBook (snapshot, depth)
@@ -45,10 +50,16 @@ module.exports = class Exchange extends ccxt.Exchange {
         return method.apply (this, args)
     }
 
+    async afterAsync (future, method, ... args) {
+        const result = await future
+        // call it as an instance method on this
+        return await method.call (this, result, ... args)
+    }
+    
     async after (future, method, ... args) {
         const result = await future
         // call it as an instance method on this
-        return method.apply (this, [ result, ... args ])
+        return method.call (this, result, ... args)
     }
 
     spawn (method, ... args) {
