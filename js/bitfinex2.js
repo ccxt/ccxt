@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const bitfinex = require ('./bitfinex.js');
-const { ExchangeError, NotSupported, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadSymbol, OnMaintenance } = require ('./base/errors');
+const { ExchangeError, NotSupported, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -206,6 +206,20 @@ module.exports = class bitfinex2 extends bitfinex {
                 // If set true strongly recommend set enableRateLimit:true
                 // Call fetchOrder after creating to update status, trades, fees, etc
                 'fetchOrderOnCreate': false,
+            },
+            'exceptions': {
+                'exact': {
+                    '10020': BadRequest,
+                    '10100': AuthenticationError,
+                    '10114': InvalidNonce,
+                    '20060': OnMaintenance,
+                },
+                'broad': {
+                    'not enough exchange balance': InsufficientFunds,
+                    'Order not found': OrderNotFound,
+                    'symbol: invalid': BadSymbol,
+                    'Invalid order': InvalidOrder,
+                },
             },
         });
     }
@@ -889,23 +903,13 @@ module.exports = class bitfinex2 extends bitfinex {
     handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
         if (statusCode === 500) {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
-            const errorCode = response[1];
+            const errorCode = this.numberToString (response[1]);
             const errorText = response[2];
-            if (errorCode === 10100) {
-                throw new AuthenticationError (this.id + ' ' + errorText);
-            } else if (errorCode === 20060) {
-                throw new OnMaintenance (this.id + ' Exchange on maintenance');
-            } else if (errorText.indexOf ('Invalid order: not enough exchange balance') === 0) {
-                throw new InsufficientFunds (this.id + ' ' + errorText);
-            } else if (errorText.indexOf ('Invalid order') === 0) {
-                throw new InvalidOrder (this.id + ' ' + errorText);
-            } else if (errorText.indexOf ('Order not found') === 0) {
-                throw new OrderNotFound (this.id + ' ' + errorText);
-            } else if (errorText.indexOf ('symbol: invalid') === 0) {
-                throw new BadSymbol (this.id + ' Invalid symbol');
-            } else {
-                throw new ExchangeError (this.id + ' ' + errorText + ' (#' + errorCode + ')');
-            }
+            const feedback = this.id + ' ' + errorText;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorText, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorText, feedback);
+            throw new ExchangeError (this.id + ' ' + errorText + ' (#' + errorCode + ')');
         }
     }
 };
