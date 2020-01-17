@@ -1,6 +1,7 @@
 "use strict";
 
 const ccxt = require ('ccxt')
+    , { inflateRawSync } = require ('zlib')
     , WsClient = require ('./WsClient')
     , {
         OrderBook,
@@ -9,6 +10,10 @@ const ccxt = require ('ccxt')
     } = require ('./OrderBook')
 
 module.exports = class Exchange extends ccxt.Exchange {
+    
+    gunzip (string) {
+        return inflateRawSync (Buffer.from (string, 'base64')).toString ()
+    }
 
     orderBook (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
         return new OrderBook (snapshot, depth)
