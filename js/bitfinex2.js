@@ -755,9 +755,13 @@ module.exports = class bitfinex2 extends bitfinex {
         const orderId = parseInt (id);
         const filter = this.extend ({ 'id': [orderId] }, params);
         const openOrders = await this.fetchOpenOrders (symbol, undefined, undefined, filter);
-        if ((this.isArray (openOrders)) && (openOrders.length > 0)) return openOrders[0];
+        if ((this.isArray (openOrders)) && (openOrders.length > 0)) {
+            return openOrders[0];
+        }
         const closedOrders = await this.fetchClosedOrders (symbol, undefined, undefined, filter);
-        if ((this.isArray (closedOrders)) && (closedOrders.length > 0)) return closedOrders[0];
+        if ((this.isArray (closedOrders)) && (closedOrders.length > 0)) {
+            return closedOrders[0];
+        }
         throw new OrderNotFound (this.id + ' Order not found.');
     }
 
