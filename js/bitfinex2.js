@@ -588,43 +588,47 @@ module.exports = class bitfinex2 extends bitfinex {
     parseOrderStatus (status) {
         if (status === 'ACTIVE') {
             return 'open';
-        } else if (status.indexOf ('PARTIALLY FILLED') === 0) {
-            // PARTIALLY FILLED @ 107.6(-0.2)
+        } else if (status === 'PARTIALLY FILLED') {
             return 'open';
-        } else if (status.indexOf ('EXECUTED') === 0) {
-            // EXECUTED @ 107.6(-0.2)
+        } else if (status === 'EXECUTED') {
             return 'closed';
-        } else if (status.indexOf ('CANCELED') === 0) {
+        } else if (status === 'CANCELED') {
             return 'canceled';
-        } else if (status.indexOf ('INSUFFICIENT MARGIN') === 0) {
+        } else if (status === 'INSUFFICIENT MARGIN') {
             return 'rejected';  // ???
-        } else if (status.indexOf ('RSN_DUST') === 0) {
+        } else if (status === 'RSN_DUST') {
             return 'rejected';  // ???
-        } else if (status.indexOf ('RSN_PAUSE') === 0) {
+        } else if (status === 'RSN_PAUSE') {
             return 'rejected';  // ???
         }
         return status;
     }
 
     parseOrder (order, market = undefined) {
-        const id = order[0];
+        const id = this.safeString (order, 0);
         let symbol = undefined;
-        const marketId = order[3];
+        const marketId = this.safeFloat (order, 3);
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
         }
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const timestamp = order[5];
-        const remaining = Math.abs (order[6]);
-        const amount = Math.abs (order[7]);
+        const timestamp = this.safeTimestamp (order, 5);
+        const remaining = Math.abs (this.safeFloat (order, 6));
+        const amount = Math.abs (this.safeFloat (order, 7));
         const filled = amount - remaining;
         const side = (order[7] < 0) ? 'sell' : 'buy';
-        const type = this.safeString (this.options.orderTypes, order[8]);
-        const status = this.parseOrderStatus (order[13]);
-        const price = order[16];
-        const average = order[17];
+        const orderType = this.safeString (order, 8);
+        const type = this.safeString (this.safeString (this.options, 'orderTypes'), orderType);
+        let status = undefined;
+        const statusString = this.safeString (order, 13);
+        if (statusString !== undefined) {
+            const parts = statusString.split (' @ ');
+            status = this.parseOrderStatus (this.safeString (parts, 0));
+        }
+        const price = this.safeFloat (order, 16);
+        const average = this.safeFloat (order, 17);
         const cost = price * filled;
         return {
             'info': order,
