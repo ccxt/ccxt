@@ -40,7 +40,7 @@ module.exports = class gateio extends ccxt.gateio {
         const interval = this.safeString (params, 'interval', '0.00000001');
         const floatInterval = parseFloat (interval);
         const precision = -1 * Math.log10 (floatInterval);
-        if (precision < 0 || precision > 8 || precision % 1 !== 0) {
+        if ((precision < 0) || (precision > 8) || (precision % 1 !== 0)) {
             throw new ExchangeError (this.id + ' invalid interval');
         }
         const messageHash = 'depth.update' + ':' + marketId;
@@ -228,6 +228,9 @@ module.exports = class gateio extends ccxt.gateio {
         return await this.afterDropped (future, this.watch, url, method, subscribeMessage, method);
     }
 
+    async fetchBalanceSnapshot (params = {}) {
+    }
+
     handleBalance (client, message) {
         const messageHash = message['method'];
         const result = message['params'][0];
@@ -276,7 +279,10 @@ module.exports = class gateio extends ccxt.gateio {
         const result = this.safeValue (message, 'result');
         const status = this.safeString (result, 'status');
         if (status === 'success') {
-            client.resolve (true, 'authenticated');
+            // client.resolve (true, 'authenticated') will delete the future
+            // we want to remember that we are authenticated in subsequent call to private methods
+            const future = client.futures['authenticated'];
+            future.resolve (true);
         } else {
             // delete authenticate subscribeHash to release the "subscribe lock"
             // allows subsequent calls to subscribe to reauthenticate
