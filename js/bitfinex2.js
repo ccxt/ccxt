@@ -607,7 +607,7 @@ module.exports = class bitfinex2 extends bitfinex {
     parseOrder (order, market = undefined) {
         const id = this.safeString (order, 0);
         let symbol = undefined;
-        const marketId = this.safeFloat (order, 3);
+        const marketId = this.safeString (order, 3);
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
         }
@@ -620,7 +620,7 @@ module.exports = class bitfinex2 extends bitfinex {
         const filled = amount - remaining;
         const side = (order[7] < 0) ? 'sell' : 'buy';
         const orderType = this.safeString (order, 8);
-        const type = this.safeString (this.safeString (this.options, 'orderTypes'), orderType);
+        const type = this.safeString (this.safeValue (this.options, 'orderTypes'), orderType);
         let status = undefined;
         const statusString = this.safeString (order, 13);
         if (statusString !== undefined) {
@@ -738,8 +738,9 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        const orderId = parseInt (id);
         const request = {
-            'id': id,
+            'id': orderId,
         };
         // Also can cancel order by Client Order ID and Client Order ID Date (cid and cid_date in params)
         const response = await this.privatePostAuthWOrderCancel (this.extend (request, params));
@@ -751,7 +752,8 @@ module.exports = class bitfinex2 extends bitfinex {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         }
-        const filter = this.extend ({ 'id': [id] }, params);
+        const orderId = parseInt (id);
+        const filter = this.extend ({ 'id': [orderId] }, params);
         const openOrders = await this.fetchOpenOrders (symbol, undefined, undefined, filter);
         if ((this.isArray (openOrders)) && (openOrders.length > 0)) return openOrders[0];
         const closedOrders = await this.fetchClosedOrders (symbol, undefined, undefined, filter);
@@ -783,8 +785,9 @@ module.exports = class bitfinex2 extends bitfinex {
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const orderId = parseInt (id);
         const request = {
-            'id': id,
+            'id': orderId,
             'symbol': market['id'],
         };
         // Valid for trades upto 10 days old
