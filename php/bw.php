@@ -940,8 +940,8 @@ class bw extends Exchange {
             } else {
                 $content = $body;
             }
-            $signing = $this->apiKey . $ms . $content . $this->secret;
-            $hash = $this->hash ($this->encode ($signing), 'md5');
+            $signature = $this->apiKey . $ms . $content . $this->secret;
+            $hash = $this->hash ($this->encode ($signature), 'md5');
             if (!$headers) {
                 $headers = array();
             }
