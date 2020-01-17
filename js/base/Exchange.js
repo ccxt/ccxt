@@ -11,7 +11,7 @@ const ccxt = require ('ccxt')
 
 module.exports = class Exchange extends ccxt.Exchange {
     
-    gunzip (string) {
+    inflate (string) {
         return inflateRawSync (Buffer.from (string, 'base64')).toString ()
     }
 
