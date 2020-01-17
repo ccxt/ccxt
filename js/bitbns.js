@@ -430,8 +430,12 @@ module.exports = class bitbns extends Exchange {
         const request = {
             'symbol': tradingSymbol,
             'page': 0,
-            'since': since,
+            // 'since': since,
         };
+        if (since !== undefined) {
+            request['since'] = since;
+        }
+        // if(since === )
         // console.log(request);
         const resp = await this.private1PostListExecutedOrders (this.extend (request, params));
         const trades = resp.data;
