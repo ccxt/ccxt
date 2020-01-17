@@ -1419,6 +1419,9 @@ class Exchange(object):
         balance['total'] = {}
 
         for currency in currencies:
+            if currency == 'free' or currency == 'used' or currency == 'total':
+                continue
+
             if balance[currency].get('total') is None:
                 if balance[currency].get('free') is not None and balance[currency].get('used') is not None:
                     balance[currency]['total'] = self.sum(balance[currency].get('free'), balance[currency].get('used'))
@@ -1431,9 +1434,7 @@ class Exchange(object):
                 if balance[currency].get('total') is not None and balance[currency].get('free') is not None:
                     balance[currency]['used'] = self.sum(balance[currency]['total'], -balance[currency]['free'])
 
-        for account in ['free', 'used', 'total']:
-            balance[account] = {}
-            for currency in currencies:
+            for account in ['free', 'used', 'total']:
                 balance[account][currency] = balance[currency][account]
         return balance
 
