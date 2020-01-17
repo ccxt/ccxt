@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import json
-from asyncio import sleep
+from asyncio import sleep, ensure_future
 from aiohttp import WSMsgType
 from ccxt.async_support import Exchange
 from ccxtpro.base.client import Client
@@ -16,7 +16,7 @@ class AiohttpClient(Client):
     def receive(self):
         return self.connection.receive()
 
-    async def handle_message(self, message):
+    def handle_message(self, message):
         # print(Exchange.iso8601(Exchange.milliseconds()), message)
         if message.type == WSMsgType.TEXT:
             # print(Exchange.iso8601(Exchange.milliseconds()), 'message', message)
@@ -32,7 +32,7 @@ class AiohttpClient(Client):
         # otherwise aiohttp's websockets client won't trigger WSMsgType.PONG
         elif message.type == WSMsgType.PING:
             print(Exchange.iso8601(Exchange.milliseconds()), 'ping', message)
-            await self.connection.pong()
+            ensure_future(self.connection.pong())
         elif message.type == WSMsgType.PONG:
             self.lastPong = Exchange.milliseconds()
             print(Exchange.iso8601(Exchange.milliseconds()), 'pong', message)

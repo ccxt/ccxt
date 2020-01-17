@@ -19,7 +19,7 @@ class WebsocketsClient(Client):
     def receive(self):
         return self.connection.receive()
 
-    async def handle_message(self, message):
+    def handle_message(self, message):
         raise NotSupported('handle_message() not implemented in websockets-version yet')
 
     def create_connection(self, session):
