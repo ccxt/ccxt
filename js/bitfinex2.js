@@ -32,6 +32,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': 'emulated', // no endpoint for a single open-or-closed order (just for an open/closed orders only)
+                'fetchOrderTrades': true,
                 'fetchStatus': true,
                 'fetchTickers': true,
                 'fetchTradingFee': false,
@@ -808,7 +809,7 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
