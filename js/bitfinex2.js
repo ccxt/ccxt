@@ -204,11 +204,6 @@ module.exports = class bitfinex2 extends bitfinex {
                     'JPY': 'JPY',
                     'GBP': 'GBP',
                 },
-                // If set true strongly recommend set enableRateLimit:true
-                // Call fetchOrder after creating to update status, trades, fees, etc
-                'fetchOrderOnCreate': false,
-                // Call fetchOrderTrades after fetch order to get trades and calculate order fee
-                'fetchOrderTradesOnFetchOrder': false,
             },
             'exceptions': {
                 'exact': {
@@ -726,11 +721,7 @@ module.exports = class bitfinex2 extends bitfinex {
             const errorText = response[7];
             throw new ExchangeError (this.id + ' ' + response[6] + ': ' + errorText + ' (#' + errorCode + ')');
         }
-        const order = this.parseOrder (response[4][0]);
-        if (this.options['fetchOrderOnCreate']) {
-            return await this.fetchOrder (order['id'], order['symbol']);
-        }
-        return order;
+        return this.parseOrder (response[4][0]);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -752,45 +743,15 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.parseOrder (order);
     }
 
-    calculateOrderFee (order) {
-        if ((this.isArray (order['trades'])) && (order['trades'].length > 0)) {
-            const symbol = order['trades'][0]['fee']['currency'];
-            const fee = {
-                'currency': symbol,
-                'cost': 0,
-            };
-            for (let i = 0; i < order['trades'].length; i++) {
-                fee['cost'] += order['trades'][i]['fee']['cost'];
-            }
-            fee['cost'] = parseFloat (this.feeToPrecision (order['symbol'], fee['cost']));
-            order['fee'] = fee;
-        }
-        return order;
-    }
-
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         }
         const filter = this.extend ({ 'id': [id] }, params);
         const openOrders = await this.fetchOpenOrders (symbol, undefined, undefined, filter);
-        if ((this.isArray (openOrders)) && (openOrders.length > 0)) {
-            const order = openOrders[0];
-            if (this.options['fetchOrderTradesOnFetchOrder']) {
-                order['trades'] = await this.fetchOrderTrades (id, symbol);
-                return this.calculateOrderFee (order);
-            }
-            return order;
-        }
+        if ((this.isArray (openOrders)) && (openOrders.length > 0)) return openOrders[0];
         const closedOrders = await this.fetchClosedOrders (symbol, undefined, undefined, filter);
-        if ((this.isArray (closedOrders)) && (closedOrders.length > 0)) {
-            const order = closedOrders[0];
-            if (this.options['fetchOrderTradesOnFetchOrder']) {
-                order['trades'] = await this.fetchOrderTrades (id, symbol);
-                return this.calculateOrderFee (order);
-            }
-            return order;
-        }
+        if ((this.isArray (closedOrders)) && (closedOrders.length > 0)) return closedOrders[0];
         throw new OrderNotFound (this.id + ' Order not found.');
     }
 
