@@ -207,6 +207,8 @@ module.exports = class bitfinex2 extends bitfinex {
                 // If set true strongly recommend set enableRateLimit:true
                 // Call fetchOrder after creating to update status, trades, fees, etc
                 'fetchOrderOnCreate': false,
+                // Call fetchOrderTrades after fetch order to get trades and calculate order fee
+                'fetchOrderTradesOnFetchOrder': false,
             },
             'exceptions': {
                 'exact': {
@@ -774,15 +776,19 @@ module.exports = class bitfinex2 extends bitfinex {
         const openOrders = await this.fetchOpenOrders (symbol, undefined, undefined, filter);
         if ((this.isArray (openOrders)) && (openOrders.length > 0)) {
             const order = openOrders[0];
-            order['trades'] = await this.fetchOrderTrades (id, symbol);
-            this.calculateOrderFee (order);
+            if (this.options['fetchOrderTradesOnFetchOrder']) {
+                order['trades'] = await this.fetchOrderTrades (id, symbol);
+                return this.calculateOrderFee (order);
+            }
             return order;
         }
         const closedOrders = await this.fetchClosedOrders (symbol, undefined, undefined, filter);
         if ((this.isArray (closedOrders)) && (closedOrders.length > 0)) {
             const order = closedOrders[0];
-            order['trades'] = await this.fetchOrderTrades (id, symbol);
-            this.calculateOrderFee (order);
+            if (this.options['fetchOrderTradesOnFetchOrder']) {
+                order['trades'] = await this.fetchOrderTrades (id, symbol);
+                return this.calculateOrderFee (order);
+            }
             return order;
         }
         throw new OrderNotFound (this.id + ' Order not found.');
