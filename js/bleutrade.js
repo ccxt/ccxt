@@ -13,15 +13,20 @@ module.exports = class bleutrade extends Exchange {
             'name': 'Bleutrade',
             'countries': ['BR'], // Brazil
             'rateLimit': 1000,
-            'version': 'v2',
             'certified': false,
             'has': {
                 'CORS': true,
+                'cancelOrder': false, // todo
+                'createLimitOrder': false, // todo
+                'createMarketOrder': false, // todo
+                'createOrder': false, // todo
+                'editOrder': false, // todo
+                'withdraw': false, // todo
+                'fetchTrades': false,
                 'fetchTickers': true,
                 'fetchTicker': true,
                 'fetchOrders': false,
                 'fetchWithdrawals': true,
-                'fetchClosedOrders': false,
                 'fetchOrderTrades': false,
                 'fetchLedger': true,
                 'fetchDepositAddress': true,
@@ -43,8 +48,6 @@ module.exports = class bleutrade extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
                 'api': {
-                    'public': 'https://{hostname}/api/v2',
-                    'market': 'https://{hostname}/api/v2',
                     'v3Private': 'https://{hostname}/api/v3/private',
                     'v3Public': 'https://{hostname}/api/v3/public',
                 },
