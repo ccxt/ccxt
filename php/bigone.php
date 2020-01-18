@@ -25,6 +25,7 @@ class bigone extends Exchange {
                 'fetchDeposits' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOrder' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,

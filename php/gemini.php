@@ -105,7 +105,7 @@ class gemini extends Exchange {
                 '403' => '\\ccxt\\PermissionDenied', // The API key is missing the role necessary to access this private API endpoint
                 '404' => '\\ccxt\\OrderNotFound', // Unknown API entry point or Order not found
                 '406' => '\\ccxt\\InsufficientFunds', // Insufficient Funds
-                '429' => '\\ccxt\\DDoSProtection', // Rate Limiting was applied
+                '429' => '\\ccxt\\RateLimitExceeded', // Rate Limiting was applied
                 '500' => '\\ccxt\\ExchangeError', // The server encountered an error
                 '502' => '\\ccxt\\ExchangeError', // Technical issues are preventing the request from being satisfied
                 '503' => '\\ccxt\\OnMaintenance', // The exchange is down for maintenance
@@ -148,7 +148,7 @@ class gemini extends Exchange {
                     'NoSSL' => '\\ccxt\\AuthenticationError', // You must use HTTPS to access the API
                     'OptionsMustBeArray' => '\\ccxt\\BadRequest', // The options parameter must be an array.
                     'OrderNotFound' => '\\ccxt\\OrderNotFound', // The order specified was not found
-                    'RateLimit' => '\\ccxt\\DDoSProtection', // Requests were made too frequently. See Rate Limits below.
+                    'RateLimit' => '\\ccxt\\RateLimitExceeded', // Requests were made too frequently. See Rate Limits below.
                     'System' => '\\ccxt\\ExchangeError', // We are experiencing technical issues
                     'UnsupportedOption' => '\\ccxt\\BadRequest', // This order execution option is not supported.
                 ),

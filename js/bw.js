@@ -937,8 +937,8 @@ module.exports = class bw extends Exchange {
             } else {
                 content = body;
             }
-            const signing = this.apiKey + ms + content + this.secret;
-            const hash = this.hash (this.encode (signing), 'md5');
+            const signature = this.apiKey + ms + content + this.secret;
+            const hash = this.hash (this.encode (signature), 'md5');
             if (!headers) {
                 headers = {};
             }

@@ -172,9 +172,11 @@ class bleutrade extends bittrex {
                 'EPC' => 'Epacoin',
             ),
             'exceptions' => array(
-                'Insufficient funds!' => '\\ccxt\\InsufficientFunds',
-                'Invalid Order ID' => '\\ccxt\\InvalidOrder',
-                'Invalid apikey or apisecret' => '\\ccxt\\AuthenticationError',
+                'exact' => array(
+                    'Insufficient funds!' => '\\ccxt\\InsufficientFunds',
+                    'Invalid Order ID' => '\\ccxt\\InvalidOrder',
+                    'Invalid apikey or apisecret' => '\\ccxt\\AuthenticationError',
+                ),
             ),
             'options' => array(
                 // price precision by quote currency code

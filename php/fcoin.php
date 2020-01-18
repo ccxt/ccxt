@@ -147,7 +147,7 @@ class fcoin extends Exchange {
                 '400' => '\\ccxt\\NotSupported', // Bad Request
                 '401' => '\\ccxt\\AuthenticationError',
                 '405' => '\\ccxt\\NotSupported',
-                '429' => '\\ccxt\\DDoSProtection', // Too Many Requests, exceed api request limit
+                '429' => '\\ccxt\\RateLimitExceeded', // Too Many Requests, exceed api request limit
                 '1002' => '\\ccxt\\ExchangeNotAvailable', // System busy
                 '1016' => '\\ccxt\\InsufficientFunds',
                 '2136' => '\\ccxt\\AuthenticationError', // The API key is expired

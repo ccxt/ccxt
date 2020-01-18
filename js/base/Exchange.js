@@ -38,7 +38,8 @@ const {
     , AuthenticationError
     , DDoSProtection
     , RequestTimeout
-    , ExchangeNotAvailable } = require ('./errors')
+    , ExchangeNotAvailable
+    , RateLimitExceeded } = require ('./errors')
 
 const { TRUNCATE, ROUND, DECIMAL_PLACES } = functions.precisionConstants
 
@@ -164,7 +165,7 @@ module.exports = class Exchange {
             'httpExceptions': {
                 '422': ExchangeError,
                 '418': DDoSProtection,
-                '429': DDoSProtection,
+                '429': RateLimitExceeded,
                 '404': ExchangeNotAvailable,
                 '409': ExchangeNotAvailable,
                 '500': ExchangeNotAvailable,

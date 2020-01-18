@@ -16,7 +16,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
@@ -156,7 +155,7 @@ class kucoin(Exchange):
                     '403': NotSupported,
                     '404': NotSupported,
                     '405': NotSupported,
-                    '429': DDoSProtection,
+                    '429': RateLimitExceeded,
                     '500': ExchangeError,
                     '503': ExchangeNotAvailable,
                     '200004': InsufficientFunds,

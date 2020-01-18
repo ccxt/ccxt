@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
 
 module.exports = class timex extends Exchange {
     describe () {
@@ -158,7 +158,7 @@ module.exports = class timex extends Exchange {
                     '401': AuthenticationError,
                     '403': PermissionDenied,
                     '404': OrderNotFound,
-                    '429': DDoSProtection,
+                    '429': RateLimitExceeded,
                     '500': ExchangeError,
                     '503': ExchangeNotAvailable,
                 },

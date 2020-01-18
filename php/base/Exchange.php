@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.21.56';
+$version = '1.21.71';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.21.56';
+    const VERSION = '1.21.71';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -626,7 +626,7 @@ class Exchange {
 
     public function milliseconds() {
         list($msec, $sec) = explode(' ', microtime());
-        return $sec . substr($msec, 2, 3);
+        return (int) ($sec . substr($msec, 2, 3));
     }
 
     public function microseconds() {
@@ -865,7 +865,7 @@ class Exchange {
         $this->httpExceptions = array(
             '422' => 'ExchangeError',
             '418' => 'DDoSProtection',
-            '429' => 'DDoSProtection',
+            '429' => 'RateLimitExceeded',
             '404' => 'ExchangeNotAvailable',
             '409' => 'ExchangeNotAvailable',
             '500' => 'ExchangeNotAvailable',

@@ -2084,12 +2084,12 @@ class okex3 extends Exchange {
             'amount' => $this->number_to_string($amount),
             'fee' => $fee, // String. Network transaction $fee ≥ 0. Withdrawals to OKCoin or OKEx are $fee-free, please set as 0. Withdrawal to external digital asset $address requires network transaction $fee->
         );
-        if ($this->password) {
-            $request['trade_pwd'] = $this->password;
-        } else if (is_array($params) && array_key_exists('password', $params)) {
+        if (is_array($params) && array_key_exists('password', $params)) {
             $request['trade_pwd'] = $params['password'];
         } else if (is_array($params) && array_key_exists('trade_pwd', $params)) {
             $request['trade_pwd'] = $params['trade_pwd'];
+        } else if ($this->password) {
+            $request['trade_pwd'] = $this->password;
         }
         $query = $this->omit ($params, array( 'fee', 'password', 'trade_pwd' ));
         if (!(is_array($request) && array_key_exists('trade_pwd', $request))) {
