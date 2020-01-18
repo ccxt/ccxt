@@ -26,6 +26,7 @@ module.exports = class bleutrade extends Exchange {
                 'fetchTickers': true,
                 'fetchTicker': true,
                 'fetchOrders': false,
+                'fetchClosedOrders': true,
                 'fetchWithdrawals': true,
                 'fetchOrderTrades': false,
                 'fetchLedger': true,
@@ -82,6 +83,7 @@ module.exports = class bleutrade extends Exchange {
                         'sellstoplimit',
                         'ordercancel',
                         'getopenorders',
+                        'getcloseorders',
                         'getdeposithistory',
                         'getdepositaddress',
                         'getmytransactions',
@@ -373,6 +375,19 @@ module.exports = class bleutrade extends Exchange {
         return this.parseBalance (result);
     }
 
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        const response = await this.v3PrivatePostGetcloseorders (this.extend (request, params));
+        const orders = this.safeValue (response, 'result', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
     async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const method = (type === 'deposit') ? 'v3PrivatePostGetdeposithistory' : 'v3PrivatePostGetwithdrawhistory';
@@ -542,45 +557,21 @@ module.exports = class bleutrade extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // fetchOrders
+        // fetchClosedOrders
         //
-        //     {
-        //         OrderId: '107220258',
-        //         Exchange: 'LTC_BTC',
-        //         Type: 'SELL',
-        //         Quantity: '2.13040000',
-        //         QuantityRemaining: '0.00000000',
-        //         Price: '0.01332672',
-        //         Status: 'OK',
-        //         Created: '2018-06-30 04:55:50',
-        //         QuantityBaseTraded: '0.02839125',
-        //         Comments: ''
-        //     }
+        //   { OrderID: 89742658,
+        //     Exchange: 'DOGE_BTC',
+        //     Type: 'BUY',
+        //     Quantity: 10000,
+        //     QuantityRemaining: 0,
+        //     QuantityBaseTraded: 0,
+        //     Price: 6.6e-7,
+        //     Status: 'OK',
+        //     Created: '2018-02-16 08:55:36',
+        //     Comments: '' }
         //
-        let side = this.safeString2 (order, 'OrderType', 'Type');
-        const isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
-        const isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL');
-        if (isBuyOrder) {
-            side = 'buy';
-        }
-        if (isSellOrder) {
-            side = 'sell';
-        }
-        // We parse different fields in a very specific order.
-        // Order might well be closed and then canceled.
-        let status = undefined;
-        if (('Opened' in order) && order['Opened']) {
-            status = 'open';
-        }
-        if (('Closed' in order) && order['Closed']) {
-            status = 'closed';
-        }
-        if (('CancelInitiated' in order) && order['CancelInitiated']) {
-            status = 'canceled';
-        }
-        if (('Status' in order) && this.options['parseOrderStatus']) {
-            status = this.parseOrderStatus (this.safeString (order, 'Status'));
-        }
+        const side = this.safeString (order, 'Type');
+        const status = this.parseOrderStatus (this.safeString (order, 'Status'));
         let symbol = undefined;
         const marketId = this.safeString (order, 'Exchange');
         if (marketId === undefined) {
@@ -596,40 +587,8 @@ module.exports = class bleutrade extends Exchange {
             }
         }
         let timestamp = undefined;
-        if ('Opened' in order) {
-            timestamp = this.parse8601 (order['Opened'] + '+00:00');
-        }
         if ('Created' in order) {
             timestamp = this.parse8601 (order['Created'] + '+00:00');
-        }
-        let lastTradeTimestamp = undefined;
-        if (('TimeStamp' in order) && (order['TimeStamp'] !== undefined)) {
-            lastTradeTimestamp = this.parse8601 (order['TimeStamp'] + '+00:00');
-        }
-        if (('Closed' in order) && (order['Closed'] !== undefined)) {
-            lastTradeTimestamp = this.parse8601 (order['Closed'] + '+00:00');
-        }
-        if (timestamp === undefined) {
-            timestamp = lastTradeTimestamp;
-        }
-        let fee = undefined;
-        let commission = undefined;
-        if ('Commission' in order) {
-            commission = 'Commission';
-        } else if ('CommissionPaid' in order) {
-            commission = 'CommissionPaid';
-        }
-        if (commission) {
-            fee = {
-                'cost': this.safeFloat (order, commission),
-            };
-            if (market !== undefined) {
-                fee['currency'] = market['quote'];
-            } else if (symbol !== undefined) {
-                const currencyIds = symbol.split ('/');
-                const quoteCurrencyId = currencyIds[1];
-                fee['currency'] = this.safeCurrencyCode (quoteCurrencyId);
-            }
         }
         let price = this.safeFloat (order, 'Price');
         let cost = undefined;
@@ -650,13 +609,13 @@ module.exports = class bleutrade extends Exchange {
             }
         }
         const average = this.safeFloat (order, 'PricePerUnit');
-        const id = this.safeString2 (order, 'OrderUuid', 'OrderId');
+        const id = this.safeString (order, 'OrderID');
         return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': 'limit',
             'side': side,
@@ -667,7 +626,7 @@ module.exports = class bleutrade extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': fee,
+            'fee': undefined,
         };
     }
 
