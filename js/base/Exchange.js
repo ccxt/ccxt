@@ -105,6 +105,7 @@ module.exports = class Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
+                'fetchOrderTrades': false,
                 'fetchStatus': 'emulated',
                 'fetchTicker': true,
                 'fetchTickers': false,
