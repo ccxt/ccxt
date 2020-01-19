@@ -939,18 +939,13 @@ module.exports = class Exchange {
 
     parseBalance (balance) {
 
-        const currencies = Object.keys (this.omit (balance, 'info'));
+        const currencies = Object.keys (this.omit (balance, [ 'info', 'free', 'used', 'total' ]));
 
         balance['free'] = {}
         balance['used'] = {}
         balance['total'] = {}
 
-        const accounts = [ 'free', 'used', 'total' ]
-
         for (const currency of currencies) {
-            if (currency === 'free' || currency === 'used' || currency === 'total') {
-                continue
-            }
 
             if (balance[currency].total === undefined) {
                 if (balance[currency].free !== undefined && balance[currency].used !== undefined) {
@@ -968,9 +963,9 @@ module.exports = class Exchange {
                 }
             }
 
-            for (const account of accounts) {
-                balance[account][currency] = balance[currency][account]
-            }
+            balance.free[currency] = balance[currency].free
+            balance.used[currency] = balance[currency].used
+            balance.total[currency] = balance[currency].total
         }
 
         return balance
