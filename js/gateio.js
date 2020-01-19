@@ -50,7 +50,10 @@ module.exports = class gateio extends ccxt.gateio {
             'method': 'depth.subscribe',
             'params': [wsMarketId, limit, interval],
         };
-        const future = this.watch (url, messageHash, subscribeMessage, messageHash);
+        const subscription = {
+            'id': requestId,
+        };
+        const future = this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
@@ -113,8 +116,11 @@ module.exports = class gateio extends ccxt.gateio {
             'method': 'ticker.subscribe',
             'params': [wsMarketId],
         };
+        const subscription = {
+            'id': requestId,
+        };
         const messageHash = 'ticker.update' + ':' + marketId;
-        return await this.watch (url, messageHash, subscribeMessage, messageHash);
+        return await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
     }
 
     handleTicker (client, message) {
@@ -142,8 +148,11 @@ module.exports = class gateio extends ccxt.gateio {
             'method': 'trades.subscribe',
             'params': [marketId],
         };
+        const subscription = {
+            'id': requestId,
+        };
         const messageHash = 'trades.update' + ':' + marketId;
-        return await this.watch (url, messageHash, subscribeMessage, messageHash);
+        return await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
     }
 
     handleTrades (client, messsage) {
@@ -180,8 +189,11 @@ module.exports = class gateio extends ccxt.gateio {
             'method': 'kline.subscribe',
             'params': [marketId, interval],
         };
+        const subscription = {
+            'id': requestId,
+        };
         const messageHash = 'kline.update' + ':' + marketId;
-        return await this.watch (url, messageHash, subscribeMessage, messageHash);
+        return await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
     }
 
     async authenticate () {
