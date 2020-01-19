@@ -120,6 +120,12 @@ module.exports = class bleutrade extends Exchange {
                 'symbolSeparator': '_',
             },
         });
+        // undocumented api calls
+        // https://bleutrade.com/api/v3/public/tradingview/symbols?symbol=ETH_BTC
+        // https://bleutrade.com/api/v3/public/tradingview/config
+        // https://bleutrade.com/api/v3/public/tradingview/time
+        // https://bleutrade.com/api/v3/private/getcloseorders?market=ETH_BTC
+        // https://bleutrade.com/config contains the fees
     }
 
     async fetchCurrencies (params = {}) {
