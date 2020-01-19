@@ -78,15 +78,22 @@ module.exports = class gateio extends ccxt.gateio {
         const params = this.safeValue (message, 'params', []);
         const clean = this.safeValue (params, 0);
         const book = this.safeValue (params, 1);
-        const marketId = this.safeString (params, 2);
+        const marketId = this.safeStringLower (params, 2);
+        let symbol = undefined;
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        } else {
+            symbol = marketId;
+        }
         const method = this.safeString (message, 'method');
         const messageHash = method + ':' + marketId;
         let orderBook = undefined;
         if (clean) {
             orderBook = this.orderBook ({});
-            this.orderbooks[marketId] = orderBook;
+            this.orderbooks[symbol] = orderBook;
         } else {
-            orderBook = this.orderbooks[marketId];
+            orderBook = this.orderbooks[symbol];
         }
         this.handleDeltas (orderBook['asks'], this.safeValue (book, 'asks', []));
         this.handleDeltas (orderBook['bids'], this.safeValue (book, 'bids', []));
@@ -229,6 +236,9 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     async fetchBalanceSnapshot (params = {}) {
+    }
+
+    watch () {
     }
 
     handleBalance (client, message) {
