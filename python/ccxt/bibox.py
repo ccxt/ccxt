@@ -17,6 +17,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -69,7 +70,7 @@ class bibox(Exchange):
                 'api': 'https://api.bibox.com',
                 'www': 'https://www.bibox.com',
                 'doc': [
-                    'https://github.com/Biboxcom/API_Docs_en/wiki',
+                    'https://biboxcom.github.io/en/',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
                 'referral': 'https://www.bibox.com/signPage?id=11114745&lang=en',
@@ -112,8 +113,9 @@ class bibox(Exchange):
                 },
             },
             'exceptions': {
-                '2021': InsufficientFunds,  # Insufficient balance available for withdrawal
+                '2011': AccountSuspended,  # Account is locked
                 '2015': AuthenticationError,  # Google authenticator is wrong
+                '2021': InsufficientFunds,  # Insufficient balance available for withdrawal
                 '2027': InsufficientFunds,  # Insufficient balance available(for trade)
                 '2033': OrderNotFound,  # operation failednot  Orders have been completed or revoked
                 '2067': InvalidOrder,  # Does not support market orders
@@ -786,9 +788,9 @@ class bibox(Exchange):
         self.load_markets()
         currency = self.currency(code)
         if self.password is None:
-            if not ('trade_pwd' in list(params.keys())):
+            if not ('trade_pwd' in params):
                 raise ExchangeError(self.id + ' withdraw() requires self.password set on the exchange instance or a trade_pwd parameter')
-        if not ('totp_code' in list(params.keys())):
+        if not ('totp_code' in params):
             raise ExchangeError(self.id + ' withdraw() requires a totp_code parameter for 2FA authentication')
         request = {
             'trade_pwd': self.password,
@@ -869,13 +871,10 @@ class bibox(Exchange):
             if 'code' in response['error']:
                 code = self.safe_string(response['error'], 'code')
                 feedback = self.id + ' ' + body
-                exceptions = self.exceptions
-                if code in exceptions:
-                    raise exceptions[code](feedback)
-                else:
-                    raise ExchangeError(feedback)
+                self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                raise ExchangeError(feedback)
             raise ExchangeError(self.id + ' ' + body)
-        if not ('result' in list(response.keys())):
+        if not ('result' in response):
             raise ExchangeError(self.id + ' ' + body)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

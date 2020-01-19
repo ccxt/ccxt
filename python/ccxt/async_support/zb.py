@@ -9,6 +9,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -71,7 +72,7 @@ class zb(Exchange):
                 '3002': InvalidOrder,  # 'Invalid price',
                 '3003': InvalidOrder,  # 'Invalid amount',
                 '3004': AuthenticationError,  # 'User does not exist',
-                '3005': ExchangeError,  # 'Invalid parameter',
+                '3005': BadRequest,  # 'Invalid parameter',
                 '3006': AuthenticationError,  # 'Invalid IP or inconsistent with the bound IP',
                 '3007': AuthenticationError,  # 'The request time has expired',
                 '3008': OrderNotFound,  # 'Transaction records not found',
@@ -582,10 +583,8 @@ class zb(Exchange):
             feedback = self.id + ' ' + body
             if 'code' in response:
                 code = self.safe_string(response, 'code')
-                if code in self.exceptions:
-                    ExceptionClass = self.exceptions[code]
-                    raise ExceptionClass(feedback)
-                elif code != '1000':
+                self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                if code != '1000':
                     raise ExchangeError(feedback)
             # special case for {"result":false,"message":"服务端忙碌"}(a "Busy Server" reply)
             result = self.safe_value(response, 'result')

@@ -405,13 +405,8 @@ class btcalpha(Exchange):
         error = self.safe_string(response, 'error')
         feedback = self.id + ' ' + body
         if error is not None:
-            exact = self.exceptions['exact']
-            if error in exact:
-                raise exact[error](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, error)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
         if code == 401 or code == 403:
             raise AuthenticationError(feedback)
         elif code == 429:

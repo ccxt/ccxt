@@ -149,11 +149,10 @@ class bithumb(Exchange):
             code = codes[i]
             account = self.account()
             currency = self.currency(code)
-            currencyId = currency['id']
-            lowercase = currencyId.lower()
-            account['total'] = self.safe_float(balances, 'total_' + lowercase)
-            account['used'] = self.safe_float(balances, 'in_use_' + lowercase)
-            account['free'] = self.safe_float(balances, 'available_' + lowercase)
+            lowerCurrencyId = self.safe_string_lower(currency, 'id')
+            account['total'] = self.safe_float(balances, 'total_' + lowerCurrencyId)
+            account['used'] = self.safe_float(balances, 'in_use_' + lowerCurrencyId)
+            account['free'] = self.safe_float(balances, 'available_' + lowerCurrencyId)
             result[code] = account
         return self.parse_balance(result)
 
@@ -251,7 +250,7 @@ class bithumb(Exchange):
         if len(transaction_time) < 8:
             transaction_time = '0' + transaction_time
         timestamp = self.parse8601(transaction_date + ' ' + transaction_time)
-        timestamp -= 9 * 3600000  # they report UTC + 9 hours(server in list(Korean timezone.keys()))
+        timestamp -= 9 * 3600000  # they report UTC + 9 hours(server in Korean timezone)
         type = None
         side = self.safe_string(trade, 'type')
         side = 'sell' if (side == 'ask') else 'buy'
@@ -320,7 +319,7 @@ class bithumb(Exchange):
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
-        side_in_params = ('side' in list(params.keys()))
+        side_in_params = ('side' in params)
         if not side_in_params:
             raise ExchangeError(self.id + ' cancelOrder requires a `side` parameter(sell or buy) and a `currency` parameter')
         currency = self.safe_string(params, 'currency')
@@ -396,14 +395,10 @@ class bithumb(Exchange):
             if status is not None:
                 if status == '0000':
                     return  # no error
-                feedback = self.id + ' ' + self.json(response)
-                exceptions = self.exceptions
-                if status in exceptions:
-                    raise exceptions[status](feedback)
-                elif message in exceptions:
-                    raise exceptions[message](feedback)
-                else:
-                    raise ExchangeError(feedback)
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions, status, feedback)
+                self.throw_exactly_matched_exception(self.exceptions, message, feedback)
+                raise ExchangeError(feedback)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)

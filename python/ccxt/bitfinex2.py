@@ -207,7 +207,7 @@ class bitfinex2(bitfinex):
         })
 
     def is_fiat(self, code):
-        return(code in list(self.options['fiat'].keys()))
+        return(code in self.options['fiat'])
 
     def get_currency_id(self, code):
         return 'f' + code

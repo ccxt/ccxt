@@ -411,7 +411,7 @@ class cex(Exchange):
             since = self.milliseconds() - 86400000  # yesterday
         else:
             if self.options['fetchOHLCVWarning']:
-                raise ExchangeError(self.id + " fetchOHLCV warning: CEX can return historical candles for a certain date only, self might produce an empty or null reply. Set exchange.options['fetchOHLCVWarning'] = False or add({'options': {'fetchOHLCVWarning': False}}) to constructor params to suppress self warning message.")
+                raise ExchangeError(self.id + " fetchOHLCV warning: CEX can return historical candles for a certain date only, self might produce an empty or None reply. Set exchange.options['fetchOHLCVWarning'] = False or add({'options': {'fetchOHLCVWarning': False}}) to constructor params to suppress self warning message.")
         ymd = self.ymd(since)
         ymd = ymd.split('-')
         ymd = ''.join(ymd)
@@ -601,14 +601,14 @@ class cex(Exchange):
                 feeRate = self.safe_float(order, 'tradingFeeTaker', feeRate)
             if feeRate:
                 feeRate /= 100.0  # convert to mathematically-correct percentage coefficients: 1.0 = 100%
-            if (baseFee in list(order.keys())) or (baseTakerFee in list(order.keys())):
+            if (baseFee in order) or (baseTakerFee in order):
                 baseFeeCost = self.safe_float_2(order, baseFee, baseTakerFee)
                 fee = {
                     'currency': market['base'],
                     'rate': feeRate,
                     'cost': baseFeeCost,
                 }
-            elif (quoteFee in list(order.keys())) or (quoteTakerFee in list(order.keys())):
+            elif (quoteFee in order) or (quoteTakerFee in order):
                 quoteFeeCost = self.safe_float_2(order, quoteFee, quoteTakerFee)
                 fee = {
                     'currency': market['quote'],
@@ -625,7 +625,7 @@ class cex(Exchange):
             for i in range(0, len(order['vtx'])):
                 item = order['vtx'][i]
                 tradeSide = self.safe_string(item, 'type')
-                if item['type'] == 'cancel':
+                if tradeSide == 'cancel':
                     # looks like self might represent the cancelled part of an order
                     #   {id: '4426729543',
                     #     type: 'cancel',
@@ -645,7 +645,8 @@ class cex(Exchange):
                     #     cs: '0.42580261',
                     #     ds: 0}
                     continue
-                if not item['price']:
+                tradePrice = self.safe_float(item, 'price')
+                if tradePrice is None:
                     # self represents the order
                     #   {
                     #     "a": "0.47000000",
@@ -666,10 +667,8 @@ class cex(Exchange):
                     #     "symbol": "EUR",
                     #     "balance": "1432.93000000"}
                     continue
-                # if item['type'] == 'costsNothing':
-                #     print(item)
                 # todo: deal with these
-                if item['type'] == 'costsNothing':
+                if tradeSide == 'costsNothing':
                     continue
                 # --
                 # if side != tradeSide:
@@ -747,10 +746,8 @@ class cex(Exchange):
                 #     "symbol2": "BTC",
                 #     "fee_amount": "0.03"
                 #   }
-                tradeTime = self.safe_string(item, 'time')
-                tradeTimestamp = self.parse8601(tradeTime)
+                tradeTimestamp = self.parse8601(self.safe_string(item, 'time'))
                 tradeAmount = self.safe_float(item, 'amount')
-                tradePrice = self.safe_float(item, 'price')
                 feeCost = self.safe_float(item, 'fee_amount')
                 absTradeAmount = -tradeAmount if (tradeAmount < 0) else tradeAmount
                 tradeCost = None
@@ -782,7 +779,7 @@ class cex(Exchange):
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': None,
+            'type': 'market' if (price is None) else 'limit',
             'side': side,
             'price': price,
             'cost': cost,
@@ -970,17 +967,20 @@ class cex(Exchange):
             #     "lastTxTime": "2018-05-23T12:42:58.315Z",
             #     "tradingFeeTaker": "0.25",
             #     "tradingFeeUserVolumeAmount": "56294576"}
-            item = response[i]
-            status = self.parse_order_status(self.safe_string(item, 'status'))
-            baseId = item['symbol1']
-            quoteId = item['symbol2']
-            side = item['type']
-            baseAmount = self.safe_float(item, 'a:' + baseId + ':cds')
-            quoteAmount = self.safe_float(item, 'a:' + quoteId + ':cds')
-            fee = self.safe_float(item, 'f:' + quoteId + ':cds')
-            amount = self.safe_float(item, 'amount')
-            price = self.safe_float(item, 'price')
-            remaining = self.safe_float(item, 'remains')
+            order = response[i]
+            status = self.parse_order_status(self.safe_string(order, 'status'))
+            baseId = self.safe_string(order, 'symbol1')
+            quoteId = self.safe_string(order, 'symbol2')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
+            side = self.safe_string(order, 'type')
+            baseAmount = self.safe_float(order, 'a:' + baseId + ':cds')
+            quoteAmount = self.safe_float(order, 'a:' + quoteId + ':cds')
+            fee = self.safe_float(order, 'f:' + quoteId + ':cds')
+            amount = self.safe_float(order, 'amount')
+            price = self.safe_float(order, 'price')
+            remaining = self.safe_float(order, 'remains')
             filled = amount - remaining
             orderAmount = None
             cost = None
@@ -992,27 +992,27 @@ class cex(Exchange):
                 cost = quoteAmount
                 average = orderAmount / cost
             else:
-                ta = self.safe_float(item, 'ta:' + quoteId, 0)
-                tta = self.safe_float(item, 'tta:' + quoteId, 0)
-                fa = self.safe_float(item, 'fa:' + quoteId, 0)
-                tfa = self.safe_float(item, 'tfa:' + quoteId, 0)
+                ta = self.safe_float(order, 'ta:' + quoteId, 0)
+                tta = self.safe_float(order, 'tta:' + quoteId, 0)
+                fa = self.safe_float(order, 'fa:' + quoteId, 0)
+                tfa = self.safe_float(order, 'tfa:' + quoteId, 0)
                 if side == 'sell':
-                    cost = ta + tta + (fa + tfa)
+                    cost = self.sum(self.sum(ta, tta), self.sum(fa, tfa))
                 else:
-                    cost = ta + tta - (fa + tfa)
+                    cost = self.sum(ta, tta) - self.sum(fa, tfa)
                 type = 'limit'
                 orderAmount = amount
                 average = cost / filled
-            time = self.safe_string(item, 'time')
-            lastTxTime = self.safe_string(item, 'lastTxTime')
+            time = self.safe_string(order, 'time')
+            lastTxTime = self.safe_string(order, 'lastTxTime')
             timestamp = self.parse8601(time)
             results.append({
-                'id': item['id'],
+                'id': self.safe_string(order, 'id'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
                 'lastUpdated': self.parse8601(lastTxTime),
                 'status': status,
-                'symbol': self.find_symbol(baseId + '/' + quoteId),
+                'symbol': symbol,
                 'side': side,
                 'price': price,
                 'amount': orderAmount,
@@ -1023,9 +1023,9 @@ class cex(Exchange):
                 'remaining': remaining,
                 'fee': {
                     'cost': fee,
-                    'currency': self.currencyId(quoteId),
+                    'currency': quote,
                 },
-                'info': item,
+                'info': order,
             })
         return results
 
@@ -1096,7 +1096,7 @@ class cex(Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if isinstance(response, list):
             return response  # public endpoints may return []-arrays
-        if not response:
+        if response is None:
             raise NullResponse(self.id + ' returned ' + self.json(response))
         if response is True or response == 'true':
             return
@@ -1107,11 +1107,6 @@ class cex(Exchange):
         if 'error' in response:
             message = self.safe_string(response, 'error')
             feedback = self.id + ' ' + body
-            exact = self.exceptions['exact']
-            if message in exact:
-                raise exact[message](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)

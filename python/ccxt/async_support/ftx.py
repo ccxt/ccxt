@@ -57,7 +57,7 @@ class ftx(Exchange):
                 '15m': '900',
                 '1h': '3600',
                 '4h': '14400',
-                '24h': '86400',
+                '1d': '86400',
             },
             'api': {
                 'public': {
@@ -90,11 +90,14 @@ class ftx(Exchange):
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'conditional_orders',  # ?market={market}
+                        'conditional_orders/history',  # ?market={market}
                         'fills',  # ?market={market}
                         'funding_payments',
                         'lt/balances',
                         'lt/creations',
                         'lt/redemptions',
+                        'subaccounts',
+                        'subaccounts/{nickname}/balances',
                     ],
                     'post': [
                         'account/leverage',
@@ -103,12 +106,16 @@ class ftx(Exchange):
                         'conditional_orders',
                         'lt/{token_name}/create',
                         'lt/{token_name}/redeem',
+                        'subaccounts',
+                        'subaccounts/update_name',
+                        'subaccounts/transfer',
                     ],
                     'delete': [
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'orders',
                         'conditional_orders/{order_id}',
+                        'subaccounts',
                     ],
                 },
             },
@@ -157,7 +164,7 @@ class ftx(Exchange):
                     'An unexpected error occurred': ExchangeError,  # {"error":"An unexpected error occurred, please try again later(58BC21C795).","success":false}
                 },
             },
-            'roundingMode': TICK_SIZE,
+            'precisionMode': TICK_SIZE,
         })
 
     async def fetch_currencies(self, params={}):
@@ -190,22 +197,10 @@ class ftx(Exchange):
                 'fee': None,
                 'precision': None,
                 'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
+                    'withdraw': {'min': None, 'max': None},
+                    'amount': {'min': None, 'max': None},
+                    'price': {'min': None, 'max': None},
+                    'cost': {'min': None, 'max': None},
                 },
             }
         return result
@@ -440,12 +435,14 @@ class ftx(Exchange):
         tickers = self.safe_value(response, 'result', [])
         return self.parse_tickers(tickers, symbols)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'market_name': market['id'],
         }
+        if limit is not None:
+            request['depth'] = limit  # max 100, default 20
         response = await self.publicGetMarketsMarketNameOrderbook(self.extend(request, params))
         #
         #     {
@@ -566,7 +563,7 @@ class ftx(Exchange):
         symbol = None
         if marketId is not None:
             if marketId in self.markets_by_id:
-                market = self.markets_by_id
+                market = self.markets_by_id[marketId]
                 symbol = market['symbol']
             else:
                 base = self.safe_currency_code(self.safe_string(trade, 'baseCurrency'))
@@ -1289,13 +1286,8 @@ class ftx(Exchange):
         #
         success = self.safe_value(response, 'success')
         if not success:
-            feedback = self.id + ' ' + self.json(response)
+            feedback = self.id + ' ' + body
             error = self.safe_string(response, 'error')
-            exact = self.exceptions['exact']
-            if error in exact:
-                raise exact[error](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, error)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             raise ExchangeError(feedback)  # unknown message

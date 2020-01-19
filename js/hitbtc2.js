@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const hitbtc = require ('./hitbtc');
-const { PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { BadSymbol, PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, RequestTimeout, AuthenticationError } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 // ---------------------------------------------------------------------------
 
@@ -543,8 +543,11 @@ module.exports = class hitbtc2 extends hitbtc {
                 'defaultTimeInForce': 'FOK',
             },
             'exceptions': {
+                '504': RequestTimeout, // {"error":{"code":504,"message":"Gateway Timeout"}}
+                '1002': AuthenticationError, // {"error":{"code":1002,"message":"Authorization failed","description":""}}
                 '1003': PermissionDenied, // "Action is forbidden for this API key"
                 '2010': InvalidOrder, // "Quantity not a valid number"
+                '2001': BadSymbol, // "Symbol not found"
                 '2011': InvalidOrder, // "Quantity too low"
                 '2020': InvalidOrder, // "Price not a valid number"
                 '20002': OrderNotFound, // canceling non-existent order
@@ -1486,11 +1489,8 @@ module.exports = class hitbtc2 extends hitbtc {
             // {"error":{"code":20002,"message":"Order not found","description":""}}
             if (body[0] === '{') {
                 if ('error' in response) {
-                    const code = this.safeString (response['error'], 'code');
-                    const exceptions = this.exceptions;
-                    if (code in exceptions) {
-                        throw new exceptions[code] (feedback);
-                    }
+                    const errorCode = this.safeString (response['error'], 'code');
+                    this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
                     const message = this.safeString (response['error'], 'message');
                     if (message === 'Duplicate clientOrderId') {
                         throw new InvalidOrder (feedback);

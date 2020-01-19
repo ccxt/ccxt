@@ -23,12 +23,6 @@ const {
     , throttle
     , capitalize
     , now
-    , microseconds
-    , seconds
-    , iso8601
-    , parse8601
-    , parseDate
-    , sleep
     , timeout
     , TimedOut
     , buildOHLCVC
@@ -44,7 +38,8 @@ const {
     , AuthenticationError
     , DDoSProtection
     , RequestTimeout
-    , ExchangeNotAvailable } = require ('./errors')
+    , ExchangeNotAvailable
+    , RateLimitExceeded } = require ('./errors')
 
 const { TRUNCATE, ROUND, DECIMAL_PLACES } = functions.precisionConstants
 
@@ -170,7 +165,7 @@ module.exports = class Exchange {
             'httpExceptions': {
                 '422': ExchangeError,
                 '418': DDoSProtection,
-                '429': DDoSProtection,
+                '429': RateLimitExceeded,
                 '404': ExchangeNotAvailable,
                 '409': ExchangeNotAvailable,
                 '500': ExchangeNotAvailable,
@@ -205,18 +200,9 @@ module.exports = class Exchange {
             },
             'precisionMode': DECIMAL_PLACES,
             'limits': {
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
+                'amount': { 'min': undefined, 'max': undefined },
+                'price': { 'min': undefined, 'max': undefined },
+                'cost': { 'min': undefined, 'max': undefined },
             },
         } // return
     } // describe ()
@@ -233,7 +219,11 @@ module.exports = class Exchange {
         // }
 
         this.options = {} // exchange-specific options, if any
-        this.fetchOptions = {} // fetch implementation options (JS only)
+
+        // fetch implementation options (JS only)
+        this.fetchOptions = {
+            // keepalive: true, // does not work in Chrome, https://github.com/ccxt/ccxt/issues/6368
+        }
 
         this.userAgents = {
             'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -245,12 +235,6 @@ module.exports = class Exchange {
         // prepended to URL, like https://proxy.com/https://exchange.com/api...
         this.proxy = ''
         this.origin = '*' // CORS origin
-
-        this.iso8601      = iso8601
-        this.parse8601    = parse8601
-        this.parseDate    = parseDate
-        this.microseconds = microseconds
-        this.seconds      = seconds
 
         this.minFundingAddressLength = 1 // used in checkAddress
         this.substituteCommonCurrencyCodes = true  // reserved
@@ -309,6 +293,14 @@ module.exports = class Exchange {
         for (const [property, value] of Object.entries (config))
             this[property] = deepExtend (this[property], value)
 
+        if (!this.httpAgent) {
+            this.httpAgent = defaultFetch.http ? new defaultFetch.http.Agent ({ 'keepAlive': true }) : undefined
+        }
+
+        if (!this.httpsAgent) {
+            this.httpsAgent = defaultFetch.https ? new defaultFetch.https.Agent ({ 'keepAlive': true }) : undefined
+        }
+
         // generate old metainfo interface
         for (const k in this.has) {
             this['has' + capitalize (k)] = !!this.has[k] // converts 'emulated' to true
@@ -336,16 +328,14 @@ module.exports = class Exchange {
         return this.seconds ()
     }
 
-    milliseconds () {
-        return now ()
-    }
-
     encodeURIComponent (...args) {
         return encodeURIComponent (...args)
     }
 
     checkRequiredCredentials (error = true) {
-        Object.keys (this.requiredCredentials).forEach ((key) => {
+        const keys = Object.keys (this.requiredCredentials)
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i]
             if (this.requiredCredentials[key] && !this[key]) {
                 if (error) {
                     throw new AuthenticationError (this.id + ' requires `' + key + '` credential')
@@ -353,7 +343,8 @@ module.exports = class Exchange {
                     return error
                 }
             }
-        })
+        }
+        return true
     }
 
     checkAddress (address) {
@@ -391,16 +382,13 @@ module.exports = class Exchange {
 
             const params = { method, headers, body, timeout: this.timeout }
 
-            if (this.httpAgent && url.indexOf ('http://') === 0) {
-                params['agent'] = this.httpAgent;
+            if (this.agent) {
+                this.agent.keepAlive = true
+                params['agent'] = this.agent
+            } else if (this.httpAgent && url.indexOf ('http://') === 0) {
+                params['agent'] = this.httpAgent
             } else if (this.httpsAgent && url.indexOf ('https://') === 0) {
-                params['agent'] = this.httpsAgent;
-            } else if (this.agent) {
-                const [ protocol, ... rest ] = url.split ('//')
-                // this.agent.protocol contains a colon ('https:' or 'http:')
-                if (protocol === this.agent.protocol) {
-                    params['agent'] = this.agent;
-                }
+                params['agent'] = this.httpsAgent
             }
 
             const promise =
@@ -538,15 +526,29 @@ module.exports = class Exchange {
         }
     }
 
+    throwExactlyMatchedException (exact, string, message) {
+        if (string in exact) {
+            throw new exact[string] (message)
+        }
+    }
+
+    throwBroadlyMatchedException (broad, string, message) {
+        const broadKey = this.findBroadlyMatchedKey (broad, string)
+        if (broadKey !== undefined) {
+            throw new broad[broadKey] (message)
+        }
+    }
+
     // a helper for matching error strings exactly vs broadly
     findBroadlyMatchedKey (broad, string) {
-        const keys = Object.keys (broad);
+        const keys = Object.keys (broad)
         for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (string.indexOf (key) >= 0)
-                return key;
+            const key = keys[i]
+            if (string.indexOf (key) >= 0) {
+                return key
+            }
         }
-        return undefined;
+        return undefined
     }
 
     handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
@@ -876,34 +878,6 @@ module.exports = class Exchange {
         throw new ExchangeError (this.id + ' does not have currency code ' + code)
     }
 
-    findMarket (string) {
-
-        if (this.markets === undefined)
-            throw new ExchangeError (this.id + ' markets not loaded')
-
-        if (typeof string === 'string') {
-
-            if (string in this.markets_by_id)
-                return this.markets_by_id[string]
-
-            if (string in this.markets)
-                return this.markets[string]
-        }
-
-        return string
-    }
-
-    findSymbol (string, market = undefined) {
-
-        if (market === undefined)
-            market = this.findMarket (string)
-
-        if (typeof market === 'object')
-            return market['symbol']
-
-        return string
-    }
-
     market (symbol) {
 
         if (this.markets === undefined)
@@ -962,21 +936,6 @@ module.exports = class Exchange {
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
         }
-    }
-
-    getCurrencyUsedOnOpenOrders (currency) {
-        return Object.values (this.orders).filter (order => (order['status'] === 'open')).reduce ((total, order) => {
-            const symbol = order['symbol']
-            const market = this.markets[symbol]
-            const remaining = order['remaining']
-            if (currency === market['base'] && order['side'] === 'sell') {
-                return total + remaining
-            } else if (currency === market['quote'] && order['side'] === 'buy') {
-                return total + (order['price'] * remaining)
-            } else {
-                return total
-            }
-        }, 0)
     }
 
     parseBalance (balance) {

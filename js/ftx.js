@@ -51,7 +51,7 @@ module.exports = class ftx extends Exchange {
                 '15m': '900',
                 '1h': '3600',
                 '4h': '14400',
-                '24h': '86400',
+                '1d': '86400',
             },
             'api': {
                 'public': {
@@ -84,11 +84,14 @@ module.exports = class ftx extends Exchange {
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'conditional_orders', // ?market={market}
+                        'conditional_orders/history', // ?market={market}
                         'fills', // ?market={market}
                         'funding_payments',
                         'lt/balances',
                         'lt/creations',
                         'lt/redemptions',
+                        'subaccounts',
+                        'subaccounts/{nickname}/balances',
                     ],
                     'post': [
                         'account/leverage',
@@ -97,12 +100,16 @@ module.exports = class ftx extends Exchange {
                         'conditional_orders',
                         'lt/{token_name}/create',
                         'lt/{token_name}/redeem',
+                        'subaccounts',
+                        'subaccounts/update_name',
+                        'subaccounts/transfer',
                     ],
                     'delete': [
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'orders',
                         'conditional_orders/{order_id}',
+                        'subaccounts',
                     ],
                 },
             },
@@ -151,7 +158,7 @@ module.exports = class ftx extends Exchange {
                     'An unexpected error occurred': ExchangeError, // {"error":"An unexpected error occurred, please try again later (58BC21C795).","success":false}
                 },
             },
-            'roundingMode': TICK_SIZE,
+            'precisionMode': TICK_SIZE,
         });
     }
 
@@ -185,22 +192,10 @@ module.exports = class ftx extends Exchange {
                 'fee': undefined,
                 'precision': undefined,
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                    'withdraw': { 'min': undefined, 'max': undefined },
+                    'amount': { 'min': undefined, 'max': undefined },
+                    'price': { 'min': undefined, 'max': undefined },
+                    'cost': { 'min': undefined, 'max': undefined },
                 },
             };
         }
@@ -447,12 +442,15 @@ module.exports = class ftx extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'market_name': market['id'],
         };
+        if (limit !== undefined) {
+            request['depth'] = limit; // max 100, default 20
+        }
         const response = await this.publicGetMarketsMarketNameOrderbook (this.extend (request, params));
         //
         //     {
@@ -578,7 +576,7 @@ module.exports = class ftx extends Exchange {
         let symbol = undefined;
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
-                market = this.markets_by_id;
+                market = this.markets_by_id[marketId];
                 symbol = market['symbol'];
             } else {
                 const base = this.safeCurrencyCode (this.safeString (trade, 'baseCurrency'));
@@ -865,7 +863,7 @@ module.exports = class ftx extends Exchange {
             request['price'] = priceToPrecision;
         } else if (type === 'market') {
             method = 'privatePostOrders';
-            request['price'] = undefined;
+            request['price'] = null;
         } else if ((type === 'stop') || (type === 'takeProfit')) {
             request['triggerPrice'] = priceToPrecision;
             // request['orderPrice'] = number; // optional, order type is limit if this is specified, otherwise market
@@ -1348,17 +1346,10 @@ module.exports = class ftx extends Exchange {
         //
         const success = this.safeValue (response, 'success');
         if (!success) {
-            const feedback = this.id + ' ' + this.json (response);
+            const feedback = this.id + ' ' + body;
             const error = this.safeString (response, 'error');
-            const exact = this.exceptions['exact'];
-            if (error in exact) {
-                throw new exact[error] (feedback);
-            }
-            const broad = this.exceptions['broad'];
-            const broadKey = this.findBroadlyMatchedKey (broad, error);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

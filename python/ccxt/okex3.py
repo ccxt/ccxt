@@ -470,6 +470,7 @@ class okex3(Exchange):
                 },
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': True,
                 'fetchMarkets': ['spot', 'futures', 'swap'],
                 'defaultType': 'spot',  # 'account', 'spot', 'margin', 'futures', 'swap'
                 'auth': {
@@ -935,7 +936,7 @@ class okex3(Exchange):
         if feeCost is not None:
             feeCurrency = None
             if market is not None:
-                feeCurrency = side == market['base'] if 'buy' else market['quote']
+                feeCurrency = market['base'] if (side == 'buy') else market['quote']
             fee = {
                 # fee is either a positive number(invitation rebate)
                 # or a negative number(transaction fee deduction)
@@ -1206,6 +1207,8 @@ class okex3(Exchange):
                 'product_id',
                 'risk_rate',
                 'margin_ratio',
+                'maint_margin_ratio',
+                'tiers',
             ])
             keys = list(omittedBalance.keys())
             accounts = {}
@@ -1222,7 +1225,7 @@ class okex3(Exchange):
                     account['free'] = self.safe_float(marketBalance, 'available')
                     accounts[code] = account
                 else:
-                    raise NotSupported(self.id + ' margin balance response format has changednot ')
+                    raise NotSupported(self.id + ' margin balance response format has changed!')
             result[symbol] = self.parse_balance(accounts)
         return result
 
@@ -1554,7 +1557,7 @@ class okex3(Exchange):
             request['order_id'] = id
         query = self.omit(params, 'type')
         response = getattr(self, method)(self.extend(request, query))
-        result = response if ('result' in list(response.keys())) else self.safe_value(response, market['id'], {})
+        result = response if ('result' in response) else self.safe_value(response, market['id'], {})
         #
         # spot, margin
         #
@@ -1998,14 +2001,14 @@ class okex3(Exchange):
             'amount': self.number_to_string(amount),
             'fee': fee,  # String. Network transaction fee ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set as 0. Withdrawal to external digital asset address requires network transaction fee.
         }
-        if self.password:
-            request['trade_pwd'] = self.password
-        elif 'password' in params:
+        if 'password' in params:
             request['trade_pwd'] = params['password']
         elif 'trade_pwd' in params:
             request['trade_pwd'] = params['trade_pwd']
+        elif self.password:
+            request['trade_pwd'] = self.password
         query = self.omit(params, ['fee', 'password', 'trade_pwd'])
-        if not ('trade_pwd' in list(request.keys())):
+        if not ('trade_pwd' in request):
             raise ExchangeError(self.id + ' withdraw() requires self.password set on the exchange instance or a password / trade_pwd parameter')
         response = self.accountPostWithdrawal(self.extend(request, query))
         #
@@ -2129,6 +2132,7 @@ class okex3(Exchange):
             id = withdrawalId
             address = addressTo
         else:
+            # the payment_id will appear on new deposits but appears to be removed from the response after 2 months
             id = self.safe_string(transaction, 'payment_id')
             type = 'deposit'
             address = addressTo
@@ -2585,7 +2589,7 @@ class okex3(Exchange):
 
     def get_path_authentication_type(self, path):
         auth = self.safe_value(self.options, 'auth', {})
-        key = self.findBroadlyMatchedKey(auth, path)
+        key = self.find_broadly_matched_key(auth, path)
         return self.safe_string(auth, key, 'private')
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
@@ -2594,17 +2598,11 @@ class okex3(Exchange):
             raise ExchangeError(feedback)
         if not response:
             return  # fallback to default error handler
-        exact = self.exceptions['exact']
         message = self.safe_string(response, 'message')
         errorCode = self.safe_string_2(response, 'code', 'error_code')
         if message is not None:
-            if message in exact:
-                raise exact[message](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
-        if errorCode in exact:
-            raise exact[errorCode](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         if message is not None:
             raise ExchangeError(feedback)  # unknown message

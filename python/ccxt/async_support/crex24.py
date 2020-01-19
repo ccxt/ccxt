@@ -156,6 +156,7 @@ class crex24(Exchange):
                     'Failed to verify request signature.': AuthenticationError,  # eslint-disable-quotes
                     "Nonce error. Make sure that the value passed in the 'X-CREX24-API-NONCE' header is greater in each consecutive request than in the previous one for the corresponding API-Key provided in 'X-CREX24-API-KEY' header.": InvalidNonce,
                     'Market orders are not supported by the instrument currently.': InvalidOrder,
+                    "Parameter 'instrument' contains invalid value.": BadSymbol,
                 },
                 'broad': {
                     'API Key': AuthenticationError,  # "API Key '9edc48de-d5b0-4248-8e7e-f59ffcd1c7f1' doesn't exist."
@@ -607,7 +608,7 @@ class crex24(Exchange):
             'partiallyFilledCancelled': 'canceled',  # part of the order has been filled, the other part has been cancelled either by the trader or by the system(see the value of cancellationReason of an Order for more details on the reason of cancellation)
             'unfilledCancelled': 'canceled',  # order has been cancelled, no trades have taken place(see the value of cancellationReason of an Order for more details on the reason of cancellation)
         }
-        return statuses[status] if (status in list(statuses.keys())) else status
+        return statuses[status] if (status in statuses) else status
 
     def parse_order(self, order, market=None):
         #
@@ -632,7 +633,18 @@ class crex24(Exchange):
         #     }
         #
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = self.find_symbol(self.safe_string(order, 'instrument'), market)
+        symbol = None
+        marketId = self.safe_string(order, 'instrument')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('-')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'volume')
@@ -1196,14 +1208,9 @@ class crex24(Exchange):
         if (code >= 200) and (code < 300):
             return  # no error
         message = self.safe_string(response, 'errorDescription')
-        feedback = self.id + ' ' + self.json(response)
-        exact = self.exceptions['exact']
-        if message in exact:
-            raise exact[message](feedback)
-        broad = self.exceptions['broad']
-        broadKey = self.findBroadlyMatchedKey(broad, message)
-        if broadKey is not None:
-            raise broad[broadKey](feedback)
+        feedback = self.id + ' ' + body
+        self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+        self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
         if code == 400:
             raise BadRequest(feedback)
         elif code == 401:

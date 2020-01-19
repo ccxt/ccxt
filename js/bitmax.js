@@ -109,8 +109,8 @@ module.exports = class bitmax extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.0004,
-                    'maker': 0.0004,
+                    'taker': 0.001,
+                    'maker': 0.001,
                 },
             },
             'options': {
@@ -228,7 +228,7 @@ module.exports = class bitmax extends Exchange {
             };
             const status = this.safeString (market, 'status');
             const active = (status === 'Normal');
-            const entry = {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -243,17 +243,13 @@ module.exports = class bitmax extends Exchange {
                         'min': this.safeFloat (market, 'minQty'),
                         'max': this.safeFloat (market, 'maxQty'),
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                    'price': { 'min': undefined, 'max': undefined },
                     'cost': {
                         'min': this.safeFloat (market, 'minNotional'),
                         'max': this.safeFloat (market, 'maxNotional'),
                     },
                 },
-            };
-            result.push (entry);
+            });
         }
         return result;
     }
@@ -317,8 +313,7 @@ module.exports = class bitmax extends Exchange {
         //                 "totalAmount": "20.03", // total balance amount
         //                 "availableAmount": "20.03", // balance amount available to trade
         //                 "inOrderAmount": "0.000", // in order amount
-        //                 "btcValue": "70.81"     // the current BTC value of the balance
-        //                                                 // ("btcValue" might not be available when price is missing)
+        //                 "btcValue": "70.81"     // the current BTC value of the balance, may be missing
         //             },
         //         ]
         //     }
@@ -341,7 +336,7 @@ module.exports = class bitmax extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['symbol'],
+            'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['n'] = limit; // default = maximum = 100
@@ -433,7 +428,7 @@ module.exports = class bitmax extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['symbol'],
+            'symbol': market['id'],
         };
         const response = await this.publicGetTicker24hr (this.extend (request, params));
         return this.parseTicker (response, market);
@@ -447,21 +442,19 @@ module.exports = class bitmax extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         //
-        //     [
-        //         {
-        //             "m":"bar",
-        //             "s":"ETH/BTC",
-        //             "ba":"ETH",
-        //             "qa":"BTC",
-        //             "i":"1",
-        //             "t":1570867020000,
-        //             "o":"0.022023",
-        //             "c":"0.022018",
-        //             "h":"0.022023",
-        //             "l":"0.022018",
-        //             "v":"2.510",
-        //         }
-        //     ]
+        //     {
+        //         "m":"bar",
+        //         "s":"ETH/BTC",
+        //         "ba":"ETH",
+        //         "qa":"BTC",
+        //         "i":"1",
+        //         "t":1570867020000,
+        //         "o":"0.022023",
+        //         "c":"0.022018",
+        //         "h":"0.022023",
+        //         "l":"0.022018",
+        //         "v":"2.510",
+        //     }
         //
         return [
             this.safeInteger (ohlcv, 't'),
@@ -477,7 +470,7 @@ module.exports = class bitmax extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['symbol'],
+            'symbol': market['id'],
             'interval': this.timeframes[timeframe],
         };
         // if since and limit are not specified
@@ -486,7 +479,7 @@ module.exports = class bitmax extends Exchange {
         if (since !== undefined) {
             request['from'] = since;
             if (limit !== undefined) {
-                request['to'] = this.sum (request['from'], limit * duration * 1000, 1);
+                request['to'] = this.sum (since, limit * duration * 1000, 1);
             }
         } else if (limit !== undefined) {
             request['to'] = this.milliseconds ();
@@ -540,6 +533,10 @@ module.exports = class bitmax extends Exchange {
         const timestamp = this.safeInteger (trade, 't');
         const price = this.safeFloat (trade, 'p');
         const amount = this.safeFloat (trade, 'q');
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
+        }
         const buyerIsMaker = this.safeValue (trade, 'bm');
         let symbol = undefined;
         const marketId = this.safeString (trade, 's');
@@ -585,7 +582,7 @@ module.exports = class bitmax extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': fee,
         };
     }
@@ -670,7 +667,21 @@ module.exports = class bitmax extends Exchange {
         //     }
         //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
+        const marketId = this.safeString (order, 'symbol');
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('/');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         const timestamp = this.safeInteger (order, 'sendingTime');
         let price = this.safeFloat (order, 'orderPrice');
         const amount = this.safeFloat (order, 'orderQty');
@@ -705,10 +716,7 @@ module.exports = class bitmax extends Exchange {
                 }
             }
         }
-        let side = this.safeString (order, 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (order, 'side');
         const fee = {
             'cost': this.safeFloat (order, 'fee'),
             'currency': this.safeString (order, 'feeAsset'),
@@ -1072,7 +1080,7 @@ module.exports = class bitmax extends Exchange {
         //         "status": "success",
         //     }
         //
-        // v2 (not supported yet)
+        // v2
         //
         //     {
         //         "code": 0,
@@ -1090,12 +1098,18 @@ module.exports = class bitmax extends Exchange {
         //         "status": "success" // the request has been submitted to the server
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const address = this.safeString (data, 'address');
+        let addressData = this.safeValue (response, 'data');
+        if (Array.isArray (addressData)) {
+            const firstElement = this.safeValue (addressData, 0, {});
+            addressData = this.safeValue (firstElement, 'addressData', {});
+        }
+        const address = this.safeString (addressData, 'address');
+        const tag = this.safeString (addressData, 'destTag');
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
+            'tag': tag,
             'info': response,
         };
     }
@@ -1158,18 +1172,9 @@ module.exports = class bitmax extends Exchange {
         const error = (code !== undefined) && (code !== '0');
         if (error || (message !== undefined)) {
             const feedback = this.id + ' ' + body;
-            const exact = this.exceptions['exact'];
-            if (code in exact) {
-                throw new exact[code] (feedback);
-            }
-            if (message in exact) {
-                throw new exact[message] (feedback);
-            }
-            const broad = this.exceptions['broad'];
-            const broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

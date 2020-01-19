@@ -50,17 +50,18 @@ class bitz(Exchange):
                 '1w': '1week',
                 '1M': '1mon',
             },
+            'hostname': 'apiv2.bitz.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
                 'api': {
-                    'market': 'https://apiv2.bit-z.pro',
-                    'trade': 'https://apiv2.bit-z.pro',
-                    'assets': 'https://apiv2.bit-z.pro',
+                    'market': 'https://{hostname}',
+                    'trade': 'https://{hostname}',
+                    'assets': 'https://{hostname}',
                 },
-                'www': 'https://www.bit-z.com',
-                'doc': 'https://apidoc.bit-z.com/en/',
-                'fees': 'https://www.bit-z.com/fee?type=1',
-                'referral': 'https://u.bit-z.com/register?invite_code=1429193',
+                'www': 'https://www.bitz.com',
+                'doc': 'https://apidoc.bitz.com/en/',
+                'fees': 'https://www.bitz.com/fee?type=1',
+                'referral': 'https://u.bitz.com/register?invite_code=1429193',
             },
             'api': {
                 'market': {
@@ -1102,7 +1103,8 @@ class bitz(Exchange):
         return self.options['lastNonce']
 
     def sign(self, path, api='market', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api] + '/' + self.capitalize(api) + '/' + path
+        baseUrl = self.implode_params(self.urls['api'][api], {'hostname': self.hostname})
+        url = baseUrl + '/' + self.capitalize(api) + '/' + path
         query = None
         if api == 'market':
             query = self.urlencode(params)
@@ -1125,7 +1127,6 @@ class bitz(Exchange):
         status = self.safe_string(response, 'status')
         if status is not None:
             feedback = self.id + ' ' + body
-            exceptions = self.exceptions
             #
             #     {"status":-107,"msg":"","data":"","time":1535968848,"microtime":"0.89092200 1535968848","source":"api"}
             #
@@ -1135,13 +1136,9 @@ class bitz(Exchange):
                 #
                 code = self.safe_integer(response, 'data')
                 if code is not None:
-                    if code in exceptions:
-                        raise exceptions[code](feedback)
-                    else:
-                        raise ExchangeError(feedback)
+                    self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                    raise ExchangeError(feedback)
                 else:
                     return  # no error
-            if status in exceptions:
-                raise exceptions[status](feedback)
-            else:
-                raise ExchangeError(feedback)
+            self.throw_exactly_matched_exception(self.exceptions, status, feedback)
+            raise ExchangeError(feedback)

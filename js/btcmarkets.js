@@ -745,13 +745,9 @@ module.exports = class btcmarkets extends Exchange {
         if ('success' in response) {
             if (!response['success']) {
                 const error = this.safeString (response, 'errorCode');
-                const message = this.id + ' ' + this.json (response);
-                if (error in this.exceptions) {
-                    const ExceptionClass = this.exceptions[error];
-                    throw new ExceptionClass (message);
-                } else {
-                    throw new ExchangeError (message);
-                }
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (this.exceptions, error, feedback);
+                throw new ExchangeError (feedback);
             }
         }
     }

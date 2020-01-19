@@ -117,8 +117,8 @@ class bitmax(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'taker': 0.0004,
-                    'maker': 0.0004,
+                    'taker': 0.001,
+                    'maker': 0.001,
                 },
             },
             'options': {
@@ -233,7 +233,7 @@ class bitmax(Exchange):
             }
             status = self.safe_string(market, 'status')
             active = (status == 'Normal')
-            entry = {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -248,17 +248,13 @@ class bitmax(Exchange):
                         'min': self.safe_float(market, 'minQty'),
                         'max': self.safe_float(market, 'maxQty'),
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
+                    'price': {'min': None, 'max': None},
                     'cost': {
                         'min': self.safe_float(market, 'minNotional'),
                         'max': self.safe_float(market, 'maxNotional'),
                     },
                 },
-            }
-            result.append(entry)
+            })
         return result
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
@@ -316,8 +312,7 @@ class bitmax(Exchange):
         #                 "totalAmount": "20.03",  # total balance amount
         #                 "availableAmount": "20.03",  # balance amount available to trade
         #                 "inOrderAmount": "0.000",  # in order amount
-        #                 "btcValue": "70.81"     # the current BTC value of the balance
-        #                                                 #("btcValue" might not be available when price is missing)
+        #                 "btcValue": "70.81"     # the current BTC value of the balance, may be missing
         #             },
         #         ]
         #     }
@@ -338,7 +333,7 @@ class bitmax(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['symbol'],
+            'symbol': market['id'],
         }
         if limit is not None:
             request['n'] = limit  # default = maximum = 100
@@ -423,7 +418,7 @@ class bitmax(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['symbol'],
+            'symbol': market['id'],
         }
         response = await self.publicGetTicker24hr(self.extend(request, params))
         return self.parse_ticker(response, market)
@@ -435,21 +430,19 @@ class bitmax(Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         #
-        #     [
-        #         {
-        #             "m":"bar",
-        #             "s":"ETH/BTC",
-        #             "ba":"ETH",
-        #             "qa":"BTC",
-        #             "i":"1",
-        #             "t":1570867020000,
-        #             "o":"0.022023",
-        #             "c":"0.022018",
-        #             "h":"0.022023",
-        #             "l":"0.022018",
-        #             "v":"2.510",
-        #         }
-        #     ]
+        #     {
+        #         "m":"bar",
+        #         "s":"ETH/BTC",
+        #         "ba":"ETH",
+        #         "qa":"BTC",
+        #         "i":"1",
+        #         "t":1570867020000,
+        #         "o":"0.022023",
+        #         "c":"0.022018",
+        #         "h":"0.022023",
+        #         "l":"0.022018",
+        #         "v":"2.510",
+        #     }
         #
         return [
             self.safe_integer(ohlcv, 't'),
@@ -464,7 +457,7 @@ class bitmax(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['symbol'],
+            'symbol': market['id'],
             'interval': self.timeframes[timeframe],
         }
         # if since and limit are not specified
@@ -473,7 +466,7 @@ class bitmax(Exchange):
         if since is not None:
             request['from'] = since
             if limit is not None:
-                request['to'] = self.sum(request['from'], limit * duration * 1000, 1)
+                request['to'] = self.sum(since, limit * duration * 1000, 1)
         elif limit is not None:
             request['to'] = self.milliseconds()
             request['from'] = request['to'] - limit * duration * 1000 - 1
@@ -524,6 +517,9 @@ class bitmax(Exchange):
         timestamp = self.safe_integer(trade, 't')
         price = self.safe_float(trade, 'p')
         amount = self.safe_float(trade, 'q')
+        cost = None
+        if (price is not None) and (amount is not None):
+            cost = price * amount
         buyerIsMaker = self.safe_value(trade, 'bm')
         symbol = None
         marketId = self.safe_string(trade, 's')
@@ -564,7 +560,7 @@ class bitmax(Exchange):
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': fee,
         }
 
@@ -645,7 +641,18 @@ class bitmax(Exchange):
         #     }
         #
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = self.find_symbol(self.safe_string(order, 'symbol'), market)
+        marketId = self.safe_string(order, 'symbol')
+        symbol = None
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('/')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
         timestamp = self.safe_integer(order, 'sendingTime')
         price = self.safe_float(order, 'orderPrice')
         amount = self.safe_float(order, 'orderQty')
@@ -670,9 +677,7 @@ class bitmax(Exchange):
                     if (cost is not None) and (filled is not None):
                         if (cost > 0) and (filled > 0):
                             price = cost / filled
-        side = self.safe_string(order, 'side')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(order, 'side')
         fee = {
             'cost': self.safe_float(order, 'fee'),
             'currency': self.safe_string(order, 'feeAsset'),
@@ -1018,7 +1023,7 @@ class bitmax(Exchange):
         #         "status": "success",
         #     }
         #
-        # v2(not supported yet)
+        # v2
         #
         #     {
         #         "code": 0,
@@ -1036,12 +1041,17 @@ class bitmax(Exchange):
         #         "status": "success"  # the request has been submitted to the server
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        address = self.safe_string(data, 'address')
+        addressData = self.safe_value(response, 'data')
+        if isinstance(addressData, list):
+            firstElement = self.safe_value(addressData, 0, {})
+            addressData = self.safe_value(firstElement, 'addressData', {})
+        address = self.safe_string(addressData, 'address')
+        tag = self.safe_string(addressData, 'destTag')
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
+            'tag': tag,
             'info': response,
         }
 
@@ -1093,13 +1103,7 @@ class bitmax(Exchange):
         error = (code is not None) and (code != '0')
         if error or (message is not None):
             feedback = self.id + ' ' + body
-            exact = self.exceptions['exact']
-            if code in exact:
-                raise exact[code](feedback)
-            if message in exact:
-                raise exact[message](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

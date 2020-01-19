@@ -14,7 +14,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
@@ -156,7 +156,7 @@ class fcoin(Exchange):
                 '400': NotSupported,  # Bad Request
                 '401': AuthenticationError,
                 '405': NotSupported,
-                '429': DDoSProtection,  # Too Many Requests, exceed api request limit
+                '429': RateLimitExceeded,  # Too Many Requests, exceed api request limit
                 '1002': ExchangeNotAvailable,  # System busy
                 '1016': InsufficientFunds,
                 '2136': AuthenticationError,  # The API key is expired
@@ -376,19 +376,19 @@ class fcoin(Exchange):
                 if id in self.markets_by_id:
                     market = self.markets_by_id[id]
         values = ticker['ticker']
-        last = float(values[0])
+        last = self.safe_float(values, 0)
         if market is not None:
             symbol = market['symbol']
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(values[7]),
-            'low': float(values[8]),
-            'bid': float(values[2]),
-            'bidVolume': float(values[3]),
-            'ask': float(values[4]),
-            'askVolume': float(values[5]),
+            'high': self.safe_float(values, 7),
+            'low': self.safe_float(values, 8),
+            'bid': self.safe_float(values, 2),
+            'bidVolume': self.safe_float(values, 3),
+            'ask': self.safe_float(values, 4),
+            'askVolume': self.safe_float(values, 5),
             'vwap': None,
             'open': None,
             'close': last,
@@ -397,8 +397,8 @@ class fcoin(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(values[9]),
-            'quoteVolume': float(values[10]),
+            'baseVolume': self.safe_float(values, 9),
+            'quoteVolume': self.safe_float(values, 10),
             'info': ticker,
         }
 
@@ -518,10 +518,18 @@ class fcoin(Exchange):
             elif (cost > 0) and (filled > 0):
                 price = cost / filled
         feeCurrency = None
-        if market is not None:
-            symbol = market['symbol']
-            feeCurrency = market['base'] if (side == 'buy') else market['quote']
-        feeCost = self.safe_float(order, 'fill_fees')
+        feeCost = None
+        feeRebate = self.safe_float(order, 'fees_income')
+        if (feeRebate is not None) and (feeRebate > 0):
+            if market is not None:
+                symbol = market['symbol']
+                feeCurrency = market['quote'] if (side == 'buy') else market['base']
+            feeCost = -feeRebate
+        else:
+            feeCost = self.safe_float(order, 'fill_fees')
+            if market is not None:
+                symbol = market['symbol']
+                feeCurrency = market['base'] if (side == 'buy') else market['quote']
         return {
             'info': order,
             'id': id,
@@ -651,7 +659,5 @@ class fcoin(Exchange):
         status = self.safe_string(response, 'status')
         if status != '0' and status != 'ok':
             feedback = self.id + ' ' + body
-            if status in self.exceptions:
-                exceptions = self.exceptions
-                raise exceptions[status](feedback)
+            self.throw_exactly_matched_exception(self.exceptions, status, feedback)
             raise ExchangeError(feedback)

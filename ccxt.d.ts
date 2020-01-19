@@ -491,6 +491,7 @@ declare module 'ccxt' {
     export class btctradeua extends Exchange {}
     export class btcturk extends Exchange {}
     export class buda extends Exchange {}
+    export class bw extends Exchange {}
     export class bytetrade extends Exchange {}
     export class cex extends Exchange {}
     export class chilebit extends foxbit {}
@@ -501,7 +502,6 @@ declare module 'ccxt' {
     export class coincheck extends Exchange {}
     export class coinegg extends Exchange {}
     export class coinex extends Exchange {}
-    export class coinexchange extends Exchange {}
     export class coinfalcon extends Exchange {}
     export class coinfloor extends Exchange {}
     export class coingi extends Exchange {}
@@ -509,14 +509,12 @@ declare module 'ccxt' {
     export class coinmate extends Exchange {}
     export class coinone extends Exchange {}
     export class coinspot extends Exchange {}
-    export class cointiger extends huobipro {}
     export class coolcoin extends coinegg {}
     export class coss extends Exchange {}
     export class crex24 extends Exchange {}
     export class deribit extends Exchange {}
     export class digifinex extends Exchange {}
     export class dsx extends Exchange {}
-    export class dx extends Exchange {}
     export class exmo extends Exchange {}
     export class exx extends Exchange {}
     export class fcoin extends Exchange {}
@@ -547,10 +545,8 @@ declare module 'ccxt' {
     export class livecoin extends Exchange {}
     export class luno extends Exchange {}
     export class lykke extends Exchange {}
-    export class mandala extends Exchange {}
     export class mercado extends Exchange {}
     export class mixcoins extends Exchange {}
-    export class negociecoins extends Exchange {}
     export class oceanex extends Exchange {}
     export class okcoincny extends okcoinusd {}
     export class okcoinusd extends Exchange {}
@@ -560,16 +556,17 @@ declare module 'ccxt' {
     export class poloniex extends Exchange {}
     export class rightbtc extends Exchange {}
     export class southxchange extends Exchange {}
+    export class stex extends Exchange {}
     export class stronghold extends Exchange {}
     export class surbitcoin extends foxbit {}
     export class theocean extends Exchange {}
     export class therock extends Exchange {}
     export class tidebit extends Exchange {}
     export class tidex extends Exchange {}
+    export class timex extends Exchange {}
     export class upbit extends Exchange {}
     export class vaultoro extends Exchange {}
     export class vbtc extends foxbit {}
-    export class virwox extends Exchange {}
     export class whitebit extends Exchange {}
     export class xbtce extends Exchange {}
     export class yobit extends Exchange {}

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, NotSupported } = require ('./base/errors');
+const { BadSymbol, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, NotSupported } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -176,6 +176,7 @@ module.exports = class kraken extends Exchange {
                         'DepositMethods',
                         'DepositStatus',
                         'ExportStatus',
+                        'GetWebSocketsToken',
                         'Ledgers',
                         'OpenOrders',
                         'OpenPositions',
@@ -206,6 +207,7 @@ module.exports = class kraken extends Exchange {
                 'inactiveCurrencies': [ 'CAD', 'USD', 'JPY', 'GBP' ],
             },
             'exceptions': {
+                'EQuery:Invalid asset pair': BadSymbol, // {"error":["EQuery:Invalid asset pair"]}
                 'EAPI:Invalid key': AuthenticationError,
                 'EFunding:Unknown withdraw key': ExchangeError,
                 'EFunding:Invalid amount': InsufficientFunds,
@@ -1415,11 +1417,10 @@ module.exports = class kraken extends Exchange {
                 if ('error' in response) {
                     const numErrors = response['error'].length;
                     if (numErrors) {
-                        const message = this.id + ' ' + this.json (response);
+                        const message = this.id + ' ' + body;
                         for (let i = 0; i < response['error'].length; i++) {
-                            if (response['error'][i] in this.exceptions) {
-                                throw new this.exceptions[response['error'][i]] (message);
-                            }
+                            const error = response['error'][i];
+                            this.throwExactlyMatchedException (this.exceptions, error, message);
                         }
                         throw new ExchangeError (message);
                     }

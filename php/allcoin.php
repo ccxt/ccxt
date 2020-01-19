@@ -10,17 +10,17 @@ use Exception; // a common import
 class allcoin extends okcoinusd {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'allcoin',
             'name' => 'Allcoin',
-            'countries' => array ( 'CA' ),
-            'has' => array (
+            'countries' => array( 'CA' ),
+            'has' => array(
                 'CORS' => false,
             ),
             'extension' => '',
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg',
-                'api' => array (
+                'api' => array(
                     'web' => 'https://www.allcoin.com',
                     'public' => 'https://api.allcoin.com/api',
                     'private' => 'https://api.allcoin.com/api',
@@ -29,28 +29,28 @@ class allcoin extends okcoinusd {
                 'doc' => 'https://www.allcoin.com/api_market/market',
                 'referral' => 'https://www.allcoin.com',
             ),
-            'status' => array (
+            'status' => array(
                 'status' => 'error',
                 'updated' => null,
                 'eta' => null,
                 'url' => null,
             ),
-            'api' => array (
-                'web' => array (
-                    'get' => array (
+            'api' => array(
+                'web' => array(
+                    'get' => array(
                         'Home/MarketOverViewDetail/',
                     ),
                 ),
-                'public' => array (
-                    'get' => array (
+                'public' => array(
+                    'get' => array(
                         'depth',
                         'kline',
                         'ticker',
                         'trades',
                     ),
                 ),
-                'private' => array (
-                    'post' => array (
+                'private' => array(
+                    'post' => array(
                         'batch_trade',
                         'cancel_order',
                         'order_history',
@@ -70,9 +70,9 @@ class allcoin extends okcoinusd {
         $result = array();
         $response = $this->webGetHomeMarketOverViewDetail ($params);
         $coins = $response['marketCoins'];
-        for ($j = 0; $j < count ($coins); $j++) {
+        for ($j = 0; $j < count($coins); $j++) {
             $markets = $coins[$j]['Markets'];
-            for ($k = 0; $k < count ($markets); $k++) {
+            for ($k = 0; $k < count($markets); $k++) {
                 $market = $markets[$k]['Market'];
                 $base = $this->safe_string($market, 'Primary');
                 $quote = $this->safe_string($market, 'Secondary');
@@ -83,7 +83,7 @@ class allcoin extends okcoinusd {
                 $id = $baseId . '_' . $quoteId;
                 $symbol = $base . '/' . $quote;
                 $active = $market['TradeEnabled'] && $market['BuyEnabled'] && $market['SellEnabled'];
-                $result[] = array (
+                $result[] = array(
                     'id' => $id,
                     'symbol' => $symbol,
                     'base' => $base,
@@ -96,23 +96,20 @@ class allcoin extends okcoinusd {
                     'future' => false,
                     'maker' => $this->safe_float($market, 'AskFeeRate'), // BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
                     'taker' => $this->safe_float($market, 'AskFeeRate'), // BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
-                    'precision' => array (
+                    'precision' => array(
                         'amount' => $this->safe_integer($market, 'PrimaryDigits'),
                         'price' => $this->safe_integer($market, 'SecondaryDigits'),
                     ),
-                    'limits' => array (
-                        'amount' => array (
+                    'limits' => array(
+                        'amount' => array(
                             'min' => $this->safe_float($market, 'MinTradeAmount'),
                             'max' => $this->safe_float($market, 'MaxTradeAmount'),
                         ),
-                        'price' => array (
+                        'price' => array(
                             'min' => $this->safe_float($market, 'MinOrderPrice'),
                             'max' => $this->safe_float($market, 'MaxOrderPrice'),
                         ),
-                        'cost' => array (
-                            'min' => null,
-                            'max' => null,
-                        ),
+                        'cost' => array( 'min' => null, 'max' => null ),
                     ),
                     'info' => $market,
                 );
@@ -122,7 +119,7 @@ class allcoin extends okcoinusd {
     }
 
     public function parse_order_status ($status) {
-        $statuses = array (
+        $statuses = array(
             '-1' => 'canceled',
             '0' => 'open',
             '1' => 'open',

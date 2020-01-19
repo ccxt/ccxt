@@ -260,7 +260,7 @@ class bcex(Exchange):
         #                   min_trade: "0.01500000",
         #                   max_trade: "100.00000000",
         #                number_float: "4",
-        #                 price_float: "8"             }} }
+        #                 price_float: "8"             }}}
         #
         return self.parse_trading_limits(self.safe_value(response, 'data', {}))
 
@@ -325,18 +325,9 @@ class bcex(Exchange):
                     },
                     # overrided by defaults from self.options['limits']
                     'limits': {
-                        'amount': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'price': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'cost': {
-                            'min': None,
-                            'max': None,
-                        },
+                        'amount': {'min': None, 'max': None},
+                        'price': {'min': None, 'max': None},
+                        'cost': {'min': None, 'max': None},
                     },
                     'info': market,
                 }, defaults))
@@ -397,7 +388,7 @@ class bcex(Exchange):
             currencyId = parts[0]
             lockOrOver = parts[1]
             code = self.safe_currency_code(currencyId)
-            if not (code in list(result.keys())):
+            if not (code in result):
                 result[code] = self.account()
             if lockOrOver == 'lock':
                 result[code]['used'] = float(amount)
@@ -630,10 +621,8 @@ class bcex(Exchange):
                 #
                 message = self.safe_string(response, 'msg')
                 feedback = self.id + ' ' + message
-                exceptions = self.exceptions
-                if message in exceptions:
-                    raise exceptions[message](feedback)
-                elif message.find('请您重新挂单') >= 0:  # minimum limit
+                self.throw_exactly_matched_exception(self.exceptions, message, feedback)
+                if message.find('请您重新挂单') >= 0:  # minimum limit
                     raise InvalidOrder(feedback)
                 else:
                     raise ExchangeError(feedback)

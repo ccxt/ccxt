@@ -138,6 +138,7 @@ class anxpro(Exchange):
                     'Order Engine is offline': ExchangeNotAvailable,
                     'No executed order with that identifer found': OrderNotFound,
                     'Unknown server error, please contact support.': ExchangeError,
+                    'Not available': ExchangeNotAvailable,  # {"status": "Not available"}
                 },
             },
             'fees': {
@@ -443,12 +444,18 @@ class anxpro(Exchange):
         amount = self.safe_float(trade, 'tradedCurrencyFillAmount')
         cost = self.safe_float(trade, 'settlementCurrencyFillAmount')
         side = self.safe_string_lower(trade, 'side')
+        symbol = None
+        marketId = self.safe_string(trade, 'ccyPair')
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
         return {
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': self.find_symbol(self.safe_string(trade, 'ccyPair')),
+            'symbol': symbol,
             'type': None,
             'side': side,
             'price': price,
@@ -913,11 +920,10 @@ class anxpro(Exchange):
         #         ]
         #     }
         #
-        tradedCurrency = self.safe_string(order, 'tradedCurrency')
-        orderStatus = self.safe_string(order, 'orderStatus')
-        status = self.parse_order_status(orderStatus)
-        settlementCurrency = self.safe_string(order, 'settlementCurrency')
-        symbol = self.find_symbol(tradedCurrency + '/' + settlementCurrency)
+        status = self.parse_order_status(self.safe_string(order, 'orderStatus'))
+        base = self.safe_currency_code(self.safe_string(order, 'tradedCurrency'))
+        quote = self.safe_currency_code(self.safe_string(order, 'settlementCurrency'))
+        symbol = base + '/' + quote
         buyTradedCurrency = self.safe_string(order, 'buyTradedCurrency')
         side = 'buy' if (buyTradedCurrency == 'true') else 'sell'
         timestamp = self.safe_integer(order, 'timestamp')
@@ -1152,16 +1158,12 @@ class anxpro(Exchange):
             return
         result = self.safe_string(response, 'result')
         code = self.safe_string(response, 'resultCode')
-        if ((result is not None) and (result != 'success')) or ((code is not None) and (code != 'OK')):
+        status = self.safe_string(response, 'status')
+        if ((result is not None) and (result != 'success')) or ((code is not None) and (code != 'OK')) or (status is not None):
             message = self.safe_string(response, 'error')
             feedback = self.id + ' ' + body
-            exact = self.exceptions['exact']
-            if code in exact:
-                raise exact[code](feedback)
-            elif message in exact:
-                raise exact[message](feedback)
-            broad = self.safe_value(self.exceptions, 'broad', {})
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], status, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

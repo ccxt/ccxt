@@ -6,21 +6,24 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
+use \ccxt\InvalidOrder;
 
 class fcoin extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'fcoin',
             'name' => 'FCoin',
-            'countries' => array ( 'CN' ),
+            'countries' => array( 'CN' ),
             'rateLimit' => 2000,
             'userAgent' => $this->userAgents['chrome39'],
             'version' => 'v2',
             'accounts' => null,
             'accountsById' => null,
             'hostname' => 'fcoin.com',
-            'has' => array (
+            'has' => array(
                 'CORS' => false,
                 'fetchDepositAddress' => false,
                 'fetchOHLCV' => true,
@@ -34,7 +37,7 @@ class fcoin extends Exchange {
                 'withdraw' => false,
                 'fetchCurrencies' => false,
             ),
-            'timeframes' => array (
+            'timeframes' => array(
                 '1m' => 'M1',
                 '3m' => 'M3',
                 '5m' => 'M5',
@@ -45,9 +48,9 @@ class fcoin extends Exchange {
                 '1w' => 'W1',
                 '1M' => 'MN',
             ),
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/42244210-c8c42e1e-7f1c-11e8-8710-a5fb63b165c4.jpg',
-                'api' => array (
+                'api' => array(
                     'public' => 'https://api.{hostname}',
                     'private' => 'https://api.{hostname}',
                     'market' => 'https://api.{hostname}',
@@ -58,29 +61,29 @@ class fcoin extends Exchange {
                 'doc' => 'https://developer.fcoin.com',
                 'fees' => 'https://fcoinjp.zendesk.com/hc/en-us/articles/360018727371',
             ),
-            'api' => array (
-                'openapi' => array (
-                    'get' => array (
+            'api' => array(
+                'openapi' => array(
+                    'get' => array(
                         'symbols',
                     ),
                 ),
-                'market' => array (
-                    'get' => array (
+                'market' => array(
+                    'get' => array(
                         'ticker/{symbol}',
                         'depth/{level}/{symbol}',
                         'trades/{symbol}',
                         'candles/{timeframe}/{symbol}',
                     ),
                 ),
-                'public' => array (
-                    'get' => array (
+                'public' => array(
+                    'get' => array(
                         'symbols',
                         'currencies',
                         'server-time',
                     ),
                 ),
-                'private' => array (
-                    'get' => array (
+                'private' => array(
+                    'get' => array(
                         'accounts/balance',
                         'assets/accounts/balance',
                         'broker/otc/suborders',
@@ -95,7 +98,7 @@ class fcoin extends Exchange {
                         'orders/{order_id}',
                         'orders/{order_id}/match-results', // check order result
                     ),
-                    'post' => array (
+                    'post' => array(
                         'assets/accounts/assets-to-spot',
                         'accounts/spot-to-assets',
                         'broker/otc/assets/transfer/in',
@@ -110,21 +113,21 @@ class fcoin extends Exchange {
                     ),
                 ),
             ),
-            'fees' => array (
-                'trading' => array (
+            'fees' => array(
+                'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
                     'maker' => -0.0002,
                     'taker' => 0.0003,
                 ),
             ),
-            'limits' => array (
+            'limits' => array(
                 'amount' => array( 'min' => 0.01, 'max' => 100000 ),
             ),
-            'options' => array (
+            'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
                 'fetchMarketsMethod' => 'fetch_markets_from_open_api', // or 'fetch_markets_from_api'
-                'limits' => array (
+                'limits' => array(
                     'BTM/USDT' => array( 'amount' => array( 'min' => 0.1, 'max' => 10000000 )),
                     'ETC/USDT' => array( 'amount' => array( 'min' => 0.001, 'max' => 400000 )),
                     'ETH/USDT' => array( 'amount' => array( 'min' => 0.001, 'max' => 10000 )),
@@ -140,11 +143,11 @@ class fcoin extends Exchange {
                     'FT/ETH' => array( 'amount' => array( 'min' => 1, 'max' => 10000000 )),
                 ),
             ),
-            'exceptions' => array (
+            'exceptions' => array(
                 '400' => '\\ccxt\\NotSupported', // Bad Request
                 '401' => '\\ccxt\\AuthenticationError',
                 '405' => '\\ccxt\\NotSupported',
-                '429' => '\\ccxt\\DDoSProtection', // Too Many Requests, exceed api request limit
+                '429' => '\\ccxt\\RateLimitExceeded', // Too Many Requests, exceed api request limit
                 '1002' => '\\ccxt\\ExchangeNotAvailable', // System busy
                 '1016' => '\\ccxt\\InsufficientFunds',
                 '2136' => '\\ccxt\\AuthenticationError', // The API key is expired
@@ -153,7 +156,7 @@ class fcoin extends Exchange {
                 '6005' => '\\ccxt\\AuthenticationError', // Illegal API Signature
                 '40003' => '\\ccxt\\BadSymbol',
             ),
-            'commonCurrencies' => array (
+            'commonCurrencies' => array(
                 'DAG' => 'DAGX',
                 'PAI' => 'PCHAIN',
                 'MT' => 'Mariana Token',
@@ -173,9 +176,9 @@ class fcoin extends Exchange {
         //     {
         //         "status":"ok",
         //         "$data":{
-        //             "categories":array ( "fone::coinforce", ... ),
+        //             "categories":array( "fone::coinforce", ... ),
         //             "symbols":{
-        //                 "mdaeth":array (
+        //                 "mdaeth":array(
         //                     "price_decimal":8,
         //                     "amount_decimal":2,
         //                     "base_currency":"mda",
@@ -193,7 +196,7 @@ class fcoin extends Exchange {
         //                 ),
         //             }
         //             "category_ref":{
-        //                 "fone::coinforce":array ( "btcusdt", ... ),
+        //                 "fone::coinforce":array( "btcusdt", ... ),
         //             }
         //         }
         //     }
@@ -202,7 +205,7 @@ class fcoin extends Exchange {
         $markets = $this->safe_value($data, 'symbols', array());
         $keys = is_array($markets) ? array_keys($markets) : array();
         $result = array();
-        for ($i = 0; $i < count ($keys); $i++) {
+        for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             $market = $markets[$key];
             $id = $this->safe_string($market, 'symbol');
@@ -211,26 +214,26 @@ class fcoin extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $precision = array (
+            $precision = array(
                 'price' => $this->safe_integer($market, 'price_decimal'),
                 'amount' => $this->safe_integer($market, 'amount_decimal'),
             );
-            $limits = array (
-                'amount' => array (
+            $limits = array(
+                'amount' => array(
                     'min' => $this->safe_float($market, 'limit_amount_min'),
                     'max' => $this->safe_float($market, 'limit_amount_max'),
                 ),
-                'price' => array (
+                'price' => array(
                     'min' => pow(10, -$precision['price']),
                     'max' => pow(10, $precision['price']),
                 ),
-                'cost' => array (
+                'cost' => array(
                     'min' => null,
                     'max' => null,
                 ),
             );
             $active = $this->safe_value($market, 'tradeable', false);
-            $result[] = array (
+            $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -251,8 +254,8 @@ class fcoin extends Exchange {
         //
         //     {
         //         "status":0,
-        //         "data":array (
-        //             array (
+        //         "data":array(
+        //             array(
         //                 "name":"dapusdt",
         //                 "base_currency":"dap",
         //                 "quote_currency":"usdt",
@@ -265,7 +268,7 @@ class fcoin extends Exchange {
         //
         $result = array();
         $markets = $this->safe_value($response, 'data');
-        for ($i = 0; $i < count ($markets); $i++) {
+        for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'name');
             $baseId = $this->safe_string($market, 'base_currency');
@@ -273,21 +276,21 @@ class fcoin extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $precision = array (
+            $precision = array(
                 'price' => $market['price_decimal'],
                 'amount' => $market['amount_decimal'],
             );
-            $limits = array (
-                'price' => array (
+            $limits = array(
+                'price' => array(
                     'min' => pow(10, -$precision['price']),
                     'max' => pow(10, $precision['price']),
                 ),
             );
             $active = $this->safe_value($market, 'tradable', false);
             if (is_array($this->options['limits']) && array_key_exists($symbol, $this->options['limits'])) {
-                $limits = array_merge ($this->options['limits'][$symbol], $limits);
+                $limits = array_merge($this->options['limits'][$symbol], $limits);
             }
-            $result[] = array (
+            $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -308,7 +311,7 @@ class fcoin extends Exchange {
         $response = $this->privateGetAccountsBalance ($params);
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response, 'data');
-        for ($i = 0; $i < count ($balances); $i++) {
+        for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
@@ -323,14 +326,14 @@ class fcoin extends Exchange {
 
     public function parse_bids_asks ($orders, $priceKey = 0, $amountKey = 1) {
         $result = array();
-        $length = is_array ($orders) ? count ($orders) : 0;
+        $length = is_array($orders) ? count($orders) : 0;
         $halfLength = intval ($length / 2);
         // .= 2 in the for loop below won't transpile
         for ($i = 0; $i < $halfLength; $i++) {
             $index = $i * 2;
             $priceField = $this->sum ($index, $priceKey);
             $amountField = $this->sum ($index, $amountKey);
-            $result[] = array (
+            $result[] = array(
                 $this->safe_float($orders, $priceField),
                 $this->safe_float($orders, $amountField),
             );
@@ -349,11 +352,11 @@ class fcoin extends Exchange {
         } else {
             $limit = 'L20';
         }
-        $request = array (
+        $request = array(
             'symbol' => $this->market_id($symbol),
             'level' => $limit, // L20, L150
         );
-        $response = $this->marketGetDepthLevelSymbol (array_merge ($request, $params));
+        $response = $this->marketGetDepthLevelSymbol (array_merge($request, $params));
         $orderbook = $this->safe_value($response, 'data');
         return $this->parse_order_book($orderbook, $orderbook['ts'], 'bids', 'asks', 0, 1);
     }
@@ -361,10 +364,10 @@ class fcoin extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'symbol' => $market['id'],
         );
-        $ticker = $this->marketGetTickerSymbol (array_merge ($request, $params));
+        $ticker = $this->marketGetTickerSymbol (array_merge($request, $params));
         return $this->parse_ticker($ticker['data'], $market);
     }
 
@@ -382,20 +385,20 @@ class fcoin extends Exchange {
             }
         }
         $values = $ticker['ticker'];
-        $last = floatval ($values[0]);
+        $last = $this->safe_float($values, 0);
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($values[7]),
-            'low' => floatval ($values[8]),
-            'bid' => floatval ($values[2]),
-            'bidVolume' => floatval ($values[3]),
-            'ask' => floatval ($values[4]),
-            'askVolume' => floatval ($values[5]),
+            'high' => $this->safe_float($values, 7),
+            'low' => $this->safe_float($values, 8),
+            'bid' => $this->safe_float($values, 2),
+            'bidVolume' => $this->safe_float($values, 3),
+            'ask' => $this->safe_float($values, 4),
+            'askVolume' => $this->safe_float($values, 5),
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -404,8 +407,8 @@ class fcoin extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($values[9]),
-            'quoteVolume' => floatval ($values[10]),
+            'baseVolume' => $this->safe_float($values, 9),
+            'quoteVolume' => $this->safe_float($values, 10),
             'info' => $ticker,
         );
     }
@@ -427,7 +430,7 @@ class fcoin extends Exchange {
             }
         }
         $fee = null;
-        return array (
+        return array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -447,20 +450,20 @@ class fcoin extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = 50, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'symbol' => $market['id'],
             'limit' => $limit,
         );
         if ($since !== null) {
             $request['timestamp'] = intval ($since / 1000);
         }
-        $response = $this->marketGetTradesSymbol (array_merge ($request, $params));
+        $response = $this->marketGetTradesSymbol (array_merge($request, $params));
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'symbol' => $this->market_id($symbol),
             'side' => $side,
             'type' => $type,
@@ -482,8 +485,8 @@ class fcoin extends Exchange {
         if (($type === 'limit') || ($type === 'ioc') || ($type === 'fok')) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $response = $this->privatePostOrders (array_merge ($request, $params));
-        return array (
+        $response = $this->privatePostOrders (array_merge($request, $params));
+        return array(
             'info' => $response,
             'id' => $response['data'],
         );
@@ -491,19 +494,19 @@ class fcoin extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'order_id' => $id,
         );
-        $response = $this->privatePostOrdersOrderIdSubmitCancel (array_merge ($request, $params));
+        $response = $this->privatePostOrdersOrderIdSubmitCancel (array_merge($request, $params));
         $order = $this->parse_order($response);
-        return array_merge ($order, array (
+        return array_merge($order, array(
             'id' => $id,
             'status' => 'canceled',
         ));
     }
 
     public function parse_order_status ($status) {
-        $statuses = array (
+        $statuses = array(
             'submitted' => 'open',
             'canceled' => 'canceled',
             'partial_filled' => 'open',
@@ -545,12 +548,22 @@ class fcoin extends Exchange {
             }
         }
         $feeCurrency = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-            $feeCurrency = ($side === 'buy') ? $market['base'] : $market['quote'];
+        $feeCost = null;
+        $feeRebate = $this->safe_float($order, 'fees_income');
+        if (($feeRebate !== null) && ($feeRebate > 0)) {
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+                $feeCurrency = ($side === 'buy') ? $market['quote'] : $market['base'];
+            }
+            $feeCost = -$feeRebate;
+        } else {
+            $feeCost = $this->safe_float($order, 'fill_fees');
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+                $feeCurrency = ($side === 'buy') ? $market['base'] : $market['quote'];
+            }
         }
-        $feeCost = $this->safe_float($order, 'fill_fees');
-        return array (
+        return array(
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -566,7 +579,7 @@ class fcoin extends Exchange {
             'filled' => $filled,
             'average' => null,
             'status' => $status,
-            'fee' => array (
+            'fee' => array(
                 'cost' => $feeCost,
                 'currency' => $feeCurrency,
             ),
@@ -576,21 +589,21 @@ class fcoin extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'order_id' => $id,
         );
-        $response = $this->privateGetOrdersOrderId (array_merge ($request, $params));
+        $response = $this->privateGetOrdersOrderId (array_merge($request, $params));
         return $this->parse_order($response['data']);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array( 'states' => 'submitted,partial_filled' );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array( 'states' => 'partial_canceled,filled' );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -599,19 +612,19 @@ class fcoin extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'symbol' => $market['id'],
             'states' => 'submitted,partial_filled,partial_canceled,filled,canceled',
         );
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOrders (array_merge ($request, $params));
+        $response = $this->privateGetOrders (array_merge($request, $params));
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return array (
+        return array(
             $this->safe_timestamp($ohlcv, 'id'),
             $this->safe_float($ohlcv, 'open'),
             $this->safe_float($ohlcv, 'high'),
@@ -627,7 +640,7 @@ class fcoin extends Exchange {
         if ($limit === null) {
             $limit = 20; // default is 20
         }
-        $request = array (
+        $request = array(
             'symbol' => $market['id'],
             'timeframe' => $this->timeframes[$timeframe],
             'limit' => $limit,
@@ -637,7 +650,7 @@ class fcoin extends Exchange {
             $timerange = $limit * $this->parse_timeframe($timeframe);
             $request['before'] = $this->sum ($sinceInSeconds, $timerange) - 1;
         }
-        $response = $this->marketGetCandlesTimeframeSymbol (array_merge ($request, $params));
+        $response = $this->marketGetCandlesTimeframeSymbol (array_merge($request, $params));
         return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
     }
 
@@ -654,7 +667,7 @@ class fcoin extends Exchange {
         $request .= ($privateAPI || $openAPI) ? '' : ($api . '/');
         $request .= $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        $url = $this->implode_params($this->urls['api'][$api], array (
+        $url = $this->implode_params($this->urls['api'][$api], array(
             'hostname' => $this->hostname,
         ));
         $url .= $request;
@@ -675,10 +688,10 @@ class fcoin extends Exchange {
                     $auth .= $this->urlencode ($query);
                 }
             }
-            $payload = base64_encode ($this->encode ($auth));
+            $payload = base64_encode($this->encode ($auth));
             $signature = $this->hmac ($payload, $this->encode ($this->secret), 'sha1', 'binary');
-            $signature = $this->decode (base64_encode ($signature));
-            $headers = array (
+            $signature = $this->decode (base64_encode($signature));
+            $headers = array(
                 'FC-ACCESS-KEY' => $this->apiKey,
                 'FC-ACCESS-SIGNATURE' => $signature,
                 'FC-ACCESS-TIMESTAMP' => $timestamp,
@@ -699,10 +712,7 @@ class fcoin extends Exchange {
         $status = $this->safe_string($response, 'status');
         if ($status !== '0' && $status !== 'ok') {
             $feedback = $this->id . ' ' . $body;
-            if (is_array($this->exceptions) && array_key_exists($status, $this->exceptions)) {
-                $exceptions = $this->exceptions;
-                throw new $exceptions[$status]($feedback);
-            }
+            $this->throw_exactly_matched_exception($this->exceptions, $status, $feedback);
             throw new ExchangeError($feedback);
         }
     }

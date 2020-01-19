@@ -288,9 +288,9 @@ class indodax(Exchange):
             symbol = market['symbol']
             quoteId = market['quoteId']
             baseId = market['baseId']
-            if (market['quoteId'] == 'idr') and ('order_rp' in list(order.keys())):
+            if (market['quoteId'] == 'idr') and ('order_rp' in order):
                 quoteId = 'rp'
-            if (market['baseId'] == 'idr') and ('remain_rp' in list(order.keys())):
+            if (market['baseId'] == 'idr') and ('remain_rp' in order):
                 baseId = 'rp'
             cost = self.safe_float(order, 'order_' + quoteId)
             if cost:
@@ -458,7 +458,7 @@ class indodax(Exchange):
         #     }
         #
         id = None
-        if ('txid' in list(response.keys())) and (len(response['txid']) > 0):
+        if ('txid' in response) and (len(response['txid']) > 0):
             id = response['txid']
         return {
             'info': response,
@@ -491,20 +491,15 @@ class indodax(Exchange):
         if isinstance(response, list):
             return  # public endpoints may return []-arrays
         error = self.safe_value(response, 'error', '')
-        if not ('success' in list(response.keys())) and error == '':
+        if not ('success' in response) and error == '':
             return  # no 'success' property on public responses
         if self.safe_integer(response, 'success', 0) == 1:
             # {success: 1, return: {orders: []}}
-            if not ('return' in list(response.keys())):
+            if not ('return' in response):
                 raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
             else:
                 return
         feedback = self.id + ' ' + body
-        exact = self.exceptions['exact']
-        if error in exact:
-            raise exact[error](feedback)
-        broad = self.exceptions['broad']
-        broadKey = self.findBroadlyMatchedKey(broad, error)
-        if broadKey is not None:
-            raise broad[broadKey](feedback)
+        self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
+        self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
         raise ExchangeError(feedback)  # unknown message

@@ -682,14 +682,8 @@ module.exports = class oceanex extends Exchange {
         const message = this.safeString (response, 'message');
         if ((errorCode !== undefined) && (errorCode !== '0')) {
             const feedback = this.id + ' ' + body;
-            const codes = this.exceptions['codes'];
-            const exact = this.exceptions['exact'];
-            if (errorCode in codes) {
-                throw new codes[errorCode] (feedback);
-            }
-            if (message in exact) {
-                throw new exact[message] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['codes'], errorCode, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             throw new ExchangeError (response);
         }
     }

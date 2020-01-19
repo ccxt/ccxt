@@ -125,7 +125,7 @@ class bitflyer(Exchange):
             spot = True
             future = False
             type = 'spot'
-            if ('alias' in list(market.keys())) or (currencies[0] == 'FX'):
+            if ('alias' in market) or (currencies[0] == 'FX'):
                 type = 'future'
                 future = True
                 spot = False

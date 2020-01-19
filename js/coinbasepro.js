@@ -42,11 +42,17 @@ module.exports = class coinbasepro extends Exchange {
                 '1d': 86400,
             },
             'urls': {
-                'test': 'https://api-public.sandbox.pro.coinbase.com',
+                'test': {
+                    'public': 'https://api-public.sandbox.pro.coinbase.com',
+                    'private': 'https://api-public.sandbox.pro.coinbase.com',
+                },
                 'logo': 'https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg',
-                'api': 'https://api.pro.coinbase.com',
+                'api': {
+                    'public': 'https://api.pro.coinbase.com',
+                    'private': 'https://api.pro.coinbase.com',
+                },
                 'www': 'https://pro.coinbase.com/',
-                'doc': 'https://docs.pro.coinbase.com/',
+                'doc': 'https://docs.pro.coinbase.com',
                 'fees': [
                     'https://docs.pro.coinbase.com/#fees',
                     'https://support.pro.coinbase.com/customer/en/portal/articles/2945310-fees',
@@ -81,6 +87,7 @@ module.exports = class coinbasepro extends Exchange {
                         'coinbase-accounts/{id}/addresses',
                         'fills',
                         'funding',
+                        'fees',
                         'orders',
                         'orders/{id}',
                         'otc/orders',
@@ -260,12 +267,32 @@ module.exports = class coinbasepro extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        // level 1 - only the best bid and ask
+        // level 2 - top 50 bids and asks (aggregated)
+        // level 3 - full order book (non aggregated)
         const request = {
             'id': this.marketId (symbol),
             'level': 2, // 1 best bidask, 2 aggregated, 3 full
         };
         const response = await this.publicGetProductsIdBook (this.extend (request, params));
-        return this.parseOrderBook (response);
+        //
+        //     {
+        //         "sequence":1924393896,
+        //         "bids":[
+        //             ["0.01825","24.34811287",2],
+        //             ["0.01824","72.5463",3],
+        //             ["0.01823","424.54298049",6],
+        //         ],
+        //         "asks":[
+        //             ["0.01826","171.10414904",4],
+        //             ["0.01827","22.60427028",1],
+        //             ["0.01828","397.46018784",7],
+        //         ]
+        //     }
+        //
+        const orderbook = this.parseOrderBook (response);
+        orderbook['nonce'] = this.safeInteger (response, 'sequence');
+        return orderbook;
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -448,8 +475,8 @@ module.exports = class coinbasepro extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'size');
         const filled = this.safeFloat (order, 'filled_size');
+        const amount = this.safeFloat (order, 'size', filled);
         let remaining = undefined;
         if (amount !== undefined) {
             if (filled !== undefined) {
@@ -748,7 +775,7 @@ module.exports = class coinbasepro extends Exchange {
                 request += '?' + this.urlencode (query);
             }
         }
-        const url = this.urls['api'] + request;
+        const url = this.urls['api'][api] + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
@@ -836,15 +863,8 @@ module.exports = class coinbasepro extends Exchange {
             if (body[0] === '{') {
                 const message = response['message'];
                 const feedback = this.id + ' ' + message;
-                const exact = this.exceptions['exact'];
-                if (message in exact) {
-                    throw new exact[message] (feedback);
-                }
-                const broad = this.exceptions['broad'];
-                const broadKey = this.findBroadlyMatchedKey (broad, message);
-                if (broadKey !== undefined) {
-                    throw new broad[broadKey] (feedback);
-                }
+                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
                 throw new ExchangeError (feedback); // unknown message
             }
             throw new ExchangeError (this.id + ' ' + body);

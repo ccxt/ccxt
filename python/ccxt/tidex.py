@@ -283,7 +283,7 @@ class tidex(Exchange):
         if limit is not None:
             request['limit'] = limit  # default = 150, max = 2000
         response = self.publicGetDepthPair(self.extend(request, params))
-        market_id_in_reponse = (market['id'] in list(response.keys()))
+        market_id_in_reponse = (market['id'] in response)
         if not market_id_in_reponse:
             raise ExchangeError(self.id + ' ' + market['symbol'] + ' order book is empty or not available')
         orderbook = response[market['id']]
@@ -589,7 +589,7 @@ class tidex(Exchange):
         response = self.privatePostOrderInfo(self.extend(request, params))
         id = str(id)
         newOrder = self.parse_order(self.extend({'id': id}, response['return'][id]))
-        oldOrder = self.orders[id] if (id in list(self.orders.keys())) else {}
+        oldOrder = self.orders[id] if (id in self.orders) else {}
         self.orders[id] = self.extend(oldOrder, newOrder)
         return self.orders[id]
 
@@ -608,7 +608,7 @@ class tidex(Exchange):
             # - symbol mismatch(e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
             cachedOrderId = cachedOrderIds[k]
             cachedOrder = self.orders[cachedOrderId]
-            if not (cachedOrderId in list(openOrdersIndexedById.keys())):
+            if not (cachedOrderId in openOrdersIndexedById):
                 # cached order is not in open orders array
                 # if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
                 if symbol is not None and symbol != cachedOrder['symbol']:
@@ -769,14 +769,8 @@ class tidex(Exchange):
             if not success:
                 code = self.safe_string(response, 'code')
                 message = self.safe_string(response, 'error')
-                feedback = self.id + ' ' + self.json(response)
-                exact = self.exceptions['exact']
-                if code in exact:
-                    raise exact[code](feedback)
-                elif message in exact:
-                    raise exact[message](feedback)
-                broad = self.exceptions['broad']
-                broadKey = self.findBroadlyMatchedKey(broad, message)
-                if broadKey is not None:
-                    raise broad[broadKey](feedback)
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 raise ExchangeError(feedback)  # unknown message

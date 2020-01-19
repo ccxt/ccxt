@@ -147,6 +147,7 @@ class bitmart(Exchange):
                     'Unknown symbol': BadSymbol,  # {"message":"Unknown symbol"}
                 },
                 'broad': {
+                    'Invalid limit. limit must be in the range': InvalidOrder,
                     'Maximum price is': InvalidOrder,  # {"message":"Maximum price is 0.112695"}
                     # {"message":"Required Integer parameter 'status' is not present"}
                     # {"message":"Required String parameter 'symbol' is not present"}
@@ -156,6 +157,9 @@ class bitmart(Exchange):
                     # {"message":"Required Long parameter 'to' is not present"}
                     'is not present': BadRequest,
                 },
+            },
+            'commonCurrencies': {
+                'ONE': 'Menlo One',
             },
         })
 
@@ -387,20 +391,23 @@ class bitmart(Exchange):
         # fetchMyTrades(private)
         #
         #     {
-        #         "symbol": "BMX_ETH",
-        #         "amount": "1.0",
-        #         "fees": "0.0005000000",
-        #         "trade_id": 2734956,
-        #         "price": "0.00013737",
-        #         "active": True,
-        #         "entrust_id": 5576623,
-        #         "timestamp": 1545292334000
-        #     }
+        #         active: True,
+        #             amount: '0.2000',
+        #             entrustType: 1,
+        #             entrust_id: 979648824,
+        #             fees: '0.0000085532',
+        #             price: '0.021383',
+        #             symbol: 'ETH_BTC',
+        #             timestamp: 1574343514000,
+        #             trade_id: 329418828
+        #     },
         #
         id = self.safe_string(trade, 'trade_id')
         timestamp = self.safe_integer_2(trade, 'timestamp', 'order_time')
         type = None
         side = self.safe_string_lower(trade, 'type')
+        if (side is None) and ('entrustType' in trade):
+            side = 'sell' if trade['entrustType'] else 'buy'
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         cost = None
@@ -425,8 +432,9 @@ class bitmart(Exchange):
         feeCost = self.safe_float(trade, 'fees')
         fee = None
         if feeCost is not None:
-            # is it always quote, always base, or base-quote depending on the side?
             feeCurrencyCode = None
+            if market is not None:
+                feeCurrencyCode = market['base'] if (side == 'buy') else market['quote']
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -472,12 +480,14 @@ class bitmart(Exchange):
             raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
+        # limit is required, must be in the range(0, 50)
+        maxLimit = 50
+        limit = maxLimit if (limit is None) else min(limit, maxLimit)
         request = {
             'symbol': market['id'],
-            # 'offset': 0,  # current page, starts from 0
+            'offset': 0,  # current page, starts from 0
+            'limit': limit,  # required
         }
-        if limit is not None:
-            request['limit'] = limit  # default 500, max 1000
         response = await self.privateGetTrades(self.extend(request, params))
         #
         #     {
@@ -605,7 +615,18 @@ class bitmart(Exchange):
         id = self.safe_string(order, 'entrust_id')
         timestamp = self.milliseconds()
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = self.find_symbol(self.safe_string(order, 'symbol'), market)
+        symbol = None
+        marketId = self.safe_string(order, 'symbol')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'original_amount')
         cost = None
@@ -663,8 +684,8 @@ class bitmart(Exchange):
         request = {
             'symbol': market['id'],
             'side': side.lower(),
-            'amount': float(self.amount_to_precision(symbol, amount)),
-            'price': float(self.price_to_precision(symbol, price)),
+            'amount': self.amount_to_precision(symbol, amount),
+            'price': self.price_to_precision(symbol, price),
         }
         response = await self.privatePostOrders(self.extend(request, params))
         #
@@ -834,11 +855,6 @@ class bitmart(Exchange):
         feedback = self.id + ' ' + body
         message = self.safe_string_2(response, 'message', 'msg')
         if message is not None:
-            exact = self.exceptions['exact']
-            if message in exact:
-                raise exact[message](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

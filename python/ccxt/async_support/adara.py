@@ -151,8 +151,8 @@ class adara(Exchange):
         #                                            name: "XRPUSD",
         #                                        takerFee: "0.0250",
         #                                       updatedAt: "2018-10-23T09:31:06.830Z"  },
-        #                     relationships: {from: {data: {id: "XRP", type: "currency"} },
-        #                                        to: {data: {id: "USD", type: "currency"} }  }},
+        #                     relationships: {from: {data: {id: "XRP", type: "currency"}},
+        #                                        to: {data: {id: "USD", type: "currency"}}  }},
         #                   {           id:   "XRPETH",
         #                              type:   "symbol",
         #                        attributes: {allowTrade:  True,
@@ -163,8 +163,8 @@ class adara(Exchange):
         #                                            name: "XRPETH",
         #                                        takerFee: "0.0025",
         #                                       updatedAt: "2018-10-09T22:34:28.268Z"  },
-        #                     relationships: {from: {data: {id: "XRP", type: "currency"} },
-        #                                        to: {data: {id: "ETH", type: "currency"} }  }}  ],
+        #                     relationships: {from: {data: {id: "XRP", type: "currency"}},
+        #                                        to: {data: {id: "ETH", type: "currency"}}  }}  ],
         #       included: [{           id:   "XRP",
         #                              type:   "currency",
         #                        attributes: {              accuracy:  4,
@@ -356,8 +356,8 @@ class adara(Exchange):
         #                                          normalizedOnOrders: 0,
         #                                                  percentage: 3.004116443856034,
         #                                                serializedAt: 1543324487949      },
-        #                     relationships: {          currency: {data: {type: "currency", id: "ETH"} },
-        #                                      normalizedCurrency: {data: {type: "currency", id: "BTC"} }  }}  ],
+        #                     relationships: {          currency: {data: {type: "currency", id: "ETH"}},
+        #                                      normalizedCurrency: {data: {type: "currency", id: "BTC"}}  }}  ],
         #       included: [{         type:   "currency",
         #                                id:   "BTC",
         #                        attributes: {         name: "Bitcoin",
@@ -380,7 +380,7 @@ class adara(Exchange):
         #                                   allowWithdraw:  True,
         #                                     allowWallet:  True,
         #                                      allowTrade:  True,
-        #                                    serializedAt:  1543324487948} }      ]                                  }
+        #                                    serializedAt:  1543324487948}}      ]                                  }
         #
         result = {'info': response}
         data = self.safe_value(response, 'data')
@@ -448,12 +448,12 @@ class adara(Exchange):
         #                         id:   "OBID0SLTCETHS0",
         #                 attributes: {       price: 1,
         #                                     amount: 4,
-        #                               serializedAt: 1543116143473} },
+        #                               serializedAt: 1543116143473}},
         #               {      type:   "orderBook",
         #                         id:   "OSID3SLTCETHS0",
         #                 attributes: {       price: 12,
         #                                     amount: 12,
-        #                               serializedAt: 1543116143474} }  ]}
+        #                               serializedAt: 1543116143474}}  ]}
         #
         return self.parse_order_book(response['data'], None, 'bids', 'asks', 'price', 'amount')
 
@@ -469,7 +469,7 @@ class adara(Exchange):
         #                               change: 0,
         #                        percentChange: 0,
         #                         serializedAt: 1543109275996},
-        #       relationships: {symbol: {data: {type: "symbol", id: "ETHBTC"} }} }
+        #       relationships: {symbol: {data: {type: "symbol", id: "ETHBTC"}}}}
         #
         symbol = self.get_symbol_from_market_id(self.safe_string(ticker, 'id'), market)
         attributes = self.safe_value(ticker, 'attributes', {})
@@ -519,7 +519,7 @@ class adara(Exchange):
         #                                             change: 0,
         #                                      percentChange: 0,
         #                                       serializedAt: 1543109275996},
-        #                     relationships: {symbol: {data: {type: "symbol", id: "ETHBTC"} }} }  ],
+        #                     relationships: {symbol: {data: {type: "symbol", id: "ETHBTC"}}}}  ],
         #       included: [{         type:   "currency",
         #                                id:   "XRP",
         #                        attributes: {         name: "Ripple",
@@ -538,8 +538,8 @@ class adara(Exchange):
         #                                            digits:  8,
         #                                        allowTrade:  True,
         #                                      serializedAt:  1543109275996},
-        #                     relationships: {from: {data: {type: "currency", id: "XRP"} },
-        #                                        to: {data: {type: "currency", id: "ETH"} }  }}  ]    }
+        #                     relationships: {from: {data: {type: "currency", id: "XRP"}},
+        #                                        to: {data: {type: "currency", id: "ETH"}}  }}  ]    }
         #
         result = {}
         for t in range(0, len(data)):
@@ -566,7 +566,7 @@ class adara(Exchange):
         #                                   allowWithdraw:  True,
         #                                     allowWallet:  True,
         #                                      allowTrade:  True,
-        #                                    serializedAt:  1543111444033} },
+        #                                    serializedAt:  1543111444033}},
         #                   {      type:   "currency",
         #                             id:   "BTC",
         #                     attributes: {         name: "Bitcoin",
@@ -577,15 +577,15 @@ class adara(Exchange):
         #                                   allowWithdraw:  True,
         #                                     allowWallet:  True,
         #                                      allowTrade:  True,
-        #                                    serializedAt:  1543111444033} },
+        #                                    serializedAt:  1543111444033}},
         #                   {         type:   "symbol",
         #                                id:   "ETHBTC",
         #                        attributes: {    fullName: "ETHBTC",
         #                                            digits:  6,
         #                                        allowTrade:  True,
         #                                      serializedAt:  1543111444033},
-        #                     relationships: {from: {data: {type: "currency", id: "ETH"} },
-        #                                        to: {data: {type: "currency", id: "BTC"} }  }}],
+        #                     relationships: {from: {data: {type: "currency", id: "ETH"}},
+        #                                        to: {data: {type: "currency", id: "BTC"}}  }}],
         #           data: {         type:   "quote",
         #                              id:   "ETHBTC",
         #                      attributes: { currentPrice: 34,
@@ -596,7 +596,7 @@ class adara(Exchange):
         #                                           change: 0,
         #                                    percentChange: 0,
         #                                     serializedAt: 1543111444033},
-        #                   relationships: {symbol: {data: {type: "symbol", id: "ETHBTC"} }} }    }(fetchTicker @ adara.js:546)
+        #                   relationships: {symbol: {data: {type: "symbol", id: "ETHBTC"}}}}    }(fetchTicker @ adara.js:546)
         #
         return self.parse_ticker(response['data'])
 
@@ -613,7 +613,7 @@ class adara(Exchange):
         #                             operation: "buy",
         #                             createdAt: "2018-11-23T16:02:44.359Z",
         #                          serializedAt:  1543112364995              },
-        #         relationships: {symbol: {data: {type: "symbol", id: "ETHBTC"} }} }],
+        #         relationships: {symbol: {data: {type: "symbol", id: "ETHBTC"}}}}],
         #
         id = self.safe_string(trade, 'id', 'uuid')
         attributes = self.safe_value(trade, 'attributes', {})
@@ -686,7 +686,7 @@ class adara(Exchange):
         #                                         operation: "buy",
         #                                         createdAt: "2018-11-23T16:02:44.359Z",
         #                                      serializedAt:  1543112364995              },
-        #                     relationships: {symbol: {data: {type: "symbol", id: "ETHBTC"} }} }],
+        #                     relationships: {symbol: {data: {type: "symbol", id: "ETHBTC"}}}}],
         #       included: [{         type:   "currency",
         #                                id:   "ETH",
         #                        attributes: {         name: "Ethereum",
@@ -711,8 +711,8 @@ class adara(Exchange):
         #                                            digits:  6,
         #                                        allowTrade:  True,
         #                                      serializedAt:  1543112364995},
-        #                     relationships: {from: {data: {type: "currency", id: "ETH"} },
-        #                                        to: {data: {type: "currency", id: "BTC"} }  }} }
+        #                     relationships: {from: {data: {type: "currency", id: "ETH"}},
+        #                                        to: {data: {type: "currency", id: "BTC"}}  }}}
         #
         return self.parse_trades(response['data'], market, since, limit)
 
@@ -756,7 +756,7 @@ class adara(Exchange):
         #                                   allowWithdraw:  True,
         #                                     allowWallet:  True,
         #                                      allowTrade:  False,
-        #                                    serializedAt:  1543434477449} },
+        #                                    serializedAt:  1543434477449}},
         #                   {      type:   "currency",
         #                             id:   "BTC",
         #                     attributes: {         name: "Bitcoin",
@@ -767,15 +767,15 @@ class adara(Exchange):
         #                                   allowWithdraw:  True,
         #                                     allowWallet:  True,
         #                                      allowTrade:  True,
-        #                                    serializedAt:  1543434477449} },
+        #                                    serializedAt:  1543434477449}},
         #                   {         type:   "symbol",
         #                                id:   "XLMBTC",
         #                        attributes: {    fullName: "XLMBTC",
         #                                            digits:  6,
         #                                        allowTrade:  True,
         #                                      serializedAt:  1543434477449},
-        #                     relationships: {from: {data: {type: "currency", id: "XLM"} },
-        #                                        to: {data: {type: "currency", id: "BTC"} }  }}],
+        #                     relationships: {from: {data: {type: "currency", id: "XLM"}},
+        #                                        to: {data: {type: "currency", id: "BTC"}}  }}],
         #           data: {         type:   "order",
         #                              id:   "34793",
         #                      attributes: {serializedAt:    1543434477449,
@@ -791,7 +791,7 @@ class adara(Exchange):
         #                                          status:   "open",
         #                                          filled:    0,
         #                                           flags: []                                        },
-        #                   relationships: {symbol: {data: {type: "symbol", id: "XLMBTC"} }}       }}
+        #                   relationships: {symbol: {data: {type: "symbol", id: "XLMBTC"}}}       }}
         #
         return self.parse_order(response['data'])
 
@@ -817,7 +817,7 @@ class adara(Exchange):
         #                                   allowWithdraw:  True,
         #                                     allowWallet:  True,
         #                                      allowTrade:  False,
-        #                                    serializedAt:  1543437874742} },
+        #                                    serializedAt:  1543437874742}},
         #                   {      type:   "currency",
         #                             id:   "BTC",
         #                     attributes: {         name: "Bitcoin",
@@ -828,15 +828,15 @@ class adara(Exchange):
         #                                   allowWithdraw:  True,
         #                                     allowWallet:  True,
         #                                      allowTrade:  True,
-        #                                    serializedAt:  1543437874742} },
+        #                                    serializedAt:  1543437874742}},
         #                   {         type:   "symbol",
         #                                id:   "XLMBTC",
         #                        attributes: {    fullName: "XLMBTC",
         #                                            digits:  6,
         #                                        allowTrade:  True,
         #                                      serializedAt:  1543437874742},
-        #                     relationships: {from: {data: {type: "currency", id: "XLM"} },
-        #                                        to: {data: {type: "currency", id: "BTC"} }  }}],
+        #                     relationships: {from: {data: {type: "currency", id: "XLM"}},
+        #                                        to: {data: {type: "currency", id: "BTC"}}  }}],
         #           data: {         type:   "order",
         #                              id:   "34794",
         #                      attributes: {serializedAt:    1543437874742,
@@ -852,7 +852,7 @@ class adara(Exchange):
         #                                          status:   "canceled",
         #                                          filled:    0,
         #                                           flags: []                                        },
-        #                   relationships: {symbol: {data: {type: "symbol", id: "XLMBTC"} }}       }}
+        #                   relationships: {symbol: {data: {type: "symbol", id: "XLMBTC"}}}       }}
         #
         return self.parse_order(response['data'])
 
@@ -881,7 +881,7 @@ class adara(Exchange):
         #                                  status: "closed",
         #                                  filled:  220,
         #                                   flags:  null                                   },
-        #           relationships: {symbol: {data: {type: "symbol", id: "XLMBTC"} }} }
+        #           relationships: {symbol: {data: {type: "symbol", id: "XLMBTC"}}}}
         #
         id = self.safe_string(order, 'id')
         attributes = self.safe_value(order, 'attributes', {})
@@ -981,8 +981,8 @@ class adara(Exchange):
         #                                            status: "closed",
         #                                            filled:  220,
         #                                             flags:  null                       },
-        #                     relationships: {symbol: {data: {type: "symbol", id: "XLMBTC"} },
-        #                                      trades: {data: [{type: "trade", id: "34789_34793"}]} }}],
+        #                     relationships: {symbol: {data: {type: "symbol", id: "XLMBTC"}},
+        #                                      trades: {data: [{type: "trade", id: "34789_34793"}]}}}],
         #       included: [{      type:   "currency",
         #                             id:   "XLM",
         #                     attributes: {         name: "Stellar",
@@ -993,7 +993,7 @@ class adara(Exchange):
         #                                   allowWithdraw:  True,
         #                                     allowWallet:  True,
         #                                      allowTrade:  False,
-        #                                    serializedAt:  1543436770259} },
+        #                                    serializedAt:  1543436770259}},
         #                   {      type:   "currency",
         #                             id:   "BTC",
         #                     attributes: {         name: "Bitcoin",
@@ -1004,15 +1004,15 @@ class adara(Exchange):
         #                                   allowWithdraw:  True,
         #                                     allowWallet:  True,
         #                                      allowTrade:  True,
-        #                                    serializedAt:  1543436770259} },
+        #                                    serializedAt:  1543436770259}},
         #                   {         type:   "symbol",
         #                                id:   "XLMBTC",
         #                        attributes: {    fullName: "XLMBTC",
         #                                            digits:  6,
         #                                        allowTrade:  True,
         #                                      serializedAt:  1543436770259},
-        #                     relationships: {from: {data: {type: "currency", id: "XLM"} },
-        #                                        to: {data: {type: "currency", id: "BTC"} }  }},
+        #                     relationships: {from: {data: {type: "currency", id: "XLM"}},
+        #                                        to: {data: {type: "currency", id: "BTC"}}  }},
         #                   {      type:   "trade",
         #                             id:   "34789_34793",
         #                     attributes: {      fee:  0.0001925,
@@ -1020,7 +1020,7 @@ class adara(Exchange):
         #                                      amount:  220,
         #                                       total:  0.0077,
         #                                   operation: "buy",
-        #                                   createdAt: "2018-11-28T19:47:57.451Z"} }                ],
+        #                                   createdAt: "2018-11-28T19:47:57.451Z"}}                ],
         #           meta: {total: 1}                                                                         }
         #
         return self.parse_orders_response(response, market, since, limit)
@@ -1087,7 +1087,7 @@ class adara(Exchange):
         #                                   allowWithdraw:  True,
         #                                     allowWallet:  True,
         #                                      allowTrade:  False,
-        #                                    serializedAt:  1543436451996} },
+        #                                    serializedAt:  1543436451996}},
         #                   {      type:   "currency",
         #                             id:   "BTC",
         #                     attributes: {         name: "Bitcoin",
@@ -1098,15 +1098,15 @@ class adara(Exchange):
         #                                   allowWithdraw:  True,
         #                                     allowWallet:  True,
         #                                      allowTrade:  True,
-        #                                    serializedAt:  1543436451996} },
+        #                                    serializedAt:  1543436451996}},
         #                   {         type:   "symbol",
         #                                id:   "XLMBTC",
         #                        attributes: {    fullName: "XLMBTC",
         #                                            digits:  6,
         #                                        allowTrade:  True,
         #                                      serializedAt:  1543436451996},
-        #                     relationships: {from: {data: {type: "currency", id: "XLM"} },
-        #                                        to: {data: {type: "currency", id: "BTC"} }  }},
+        #                     relationships: {from: {data: {type: "currency", id: "XLM"}},
+        #                                        to: {data: {type: "currency", id: "BTC"}}  }},
         #                   {      type:   "trade",
         #                             id:   "34789_34793",
         #                     attributes: {      fee:  0.0001925,
@@ -1114,7 +1114,7 @@ class adara(Exchange):
         #                                      amount:  220,
         #                                       total:  0.0077,
         #                                   operation: "buy",
-        #                                   createdAt: "2018-11-28T19:47:57.451Z"} }                ],
+        #                                   createdAt: "2018-11-28T19:47:57.451Z"}}                ],
         #           data: {         type:   "order",
         #                              id:   "34793",
         #                      attributes: {serializedAt:  1543436451996,
@@ -1130,8 +1130,8 @@ class adara(Exchange):
         #                                          status: "closed",
         #                                          filled:  220,
         #                                           flags:  null                                   },
-        #                   relationships: {symbol: {data: {type: "symbol", id: "XLMBTC"} },
-        #                                    trades: {data: [{type: "trade", id: "34789_34793"}]} }} }
+        #                   relationships: {symbol: {data: {type: "symbol", id: "XLMBTC"}},
+        #                                    trades: {data: [{type: "trade", id: "34789_34793"}]}}}}
         #
         data = self.safe_value(response, 'data')
         response['data'] = []
@@ -1188,17 +1188,9 @@ class adara(Exchange):
             title = self.safe_string(error, 'title')
             detail = self.safe_string(error, 'detail')
             feedback = self.id + ' ' + self.json(response)
-            exact = self.exceptions['exact']
-            if code in exact:
-                raise exact[code](feedback)
-            if status in exact:
-                raise exact[status](feedback)
-            if title in exact:
-                raise exact[title](feedback)
-            if detail in exact:
-                raise exact[detail](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, body)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], status, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], title, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], detail, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(feedback)  # unknown message

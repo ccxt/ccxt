@@ -12,7 +12,7 @@ walletAddress = os.environ['WALLET_ADDRESS']
 privateKey = os.environ['PRIVATE_KEY']
 apiKey = os.environ['API_KEY']
 secret = os.environ['SECRET']
-ocean = ccxt.theocean1({
+ocean = ccxt.theocean({
     'walletAddress': walletAddress,
     'privateKey': privateKey,
     'apiKey': apiKey,

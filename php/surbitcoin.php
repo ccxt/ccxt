@@ -10,23 +10,23 @@ use Exception; // a common import
 class surbitcoin extends foxbit {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'surbitcoin',
             'name' => 'SurBitcoin',
-            'countries' => array ( 'VE' ),
-            'has' => array (
+            'countries' => array( 'VE' ),
+            'has' => array(
                 'CORS' => false,
             ),
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27991511-f0a50194-6481-11e7-99b5-8f02932424cc.jpg',
-                'api' => array (
+                'api' => array(
                     'public' => 'https://api.blinktrade.com/api',
                     'private' => 'https://api.blinktrade.com/tapi',
                 ),
                 'www' => 'https://surbitcoin.com',
                 'doc' => 'https://blinktrade.com/docs',
             ),
-            'options' => array (
+            'options' => array(
                 'brokerId' => '1', // https://blinktrade.com/docs/#brokers
             ),
         ));

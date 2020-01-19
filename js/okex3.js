@@ -444,6 +444,7 @@ module.exports = class okex3 extends Exchange {
                 },
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarkets': [ 'spot', 'futures', 'swap' ],
                 'defaultType': 'spot', // 'account', 'spot', 'margin', 'futures', 'swap'
                 'auth': {
@@ -939,7 +940,7 @@ module.exports = class okex3 extends Exchange {
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
             if (market !== undefined) {
-                feeCurrency = side === 'buy' ? market['base'] : market['quote'];
+                feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
             }
             fee = {
                 // fee is either a positive number (invitation rebate)
@@ -1223,6 +1224,8 @@ module.exports = class okex3 extends Exchange {
                 'product_id',
                 'risk_rate',
                 'margin_ratio',
+                'maint_margin_ratio',
+                'tiers',
             ]);
             const keys = Object.keys (omittedBalance);
             const accounts = {};
@@ -2075,12 +2078,12 @@ module.exports = class okex3 extends Exchange {
             'amount': this.numberToString (amount),
             'fee': fee, // String. Network transaction fee ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set as 0. Withdrawal to external digital asset address requires network transaction fee.
         };
-        if (this.password) {
-            request['trade_pwd'] = this.password;
-        } else if ('password' in params) {
+        if ('password' in params) {
             request['trade_pwd'] = params['password'];
         } else if ('trade_pwd' in params) {
             request['trade_pwd'] = params['trade_pwd'];
+        } else if (this.password) {
+            request['trade_pwd'] = this.password;
         }
         const query = this.omit (params, [ 'fee', 'password', 'trade_pwd' ]);
         if (!('trade_pwd' in request)) {
@@ -2214,6 +2217,7 @@ module.exports = class okex3 extends Exchange {
             id = withdrawalId;
             address = addressTo;
         } else {
+            // the payment_id will appear on new deposits but appears to be removed from the response after 2 months
             id = this.safeString (transaction, 'payment_id');
             type = 'deposit';
             address = addressTo;
@@ -2704,22 +2708,13 @@ module.exports = class okex3 extends Exchange {
         if (!response) {
             return; // fallback to default error handler
         }
-        const exact = this.exceptions['exact'];
         const message = this.safeString (response, 'message');
         const errorCode = this.safeString2 (response, 'code', 'error_code');
         if (message !== undefined) {
-            if (message in exact) {
-                throw new exact[message] (feedback);
-            }
-            const broad = this.exceptions['broad'];
-            const broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
         }
-        if (errorCode in exact) {
-            throw new exact[errorCode] (feedback);
-        }
+        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         if (message !== undefined) {
             throw new ExchangeError (feedback); // unknown message
         }
