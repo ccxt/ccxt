@@ -304,9 +304,6 @@ module.exports = class phemex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const method = 'publicGetExchangePublicProducts';
-        const response = await this[method] (params);
-        const products = this.safeValue (response, 'data');
         const precisions = {
             'BTCUSD': {
                 'amount': 0,
@@ -324,8 +321,12 @@ module.exports = class phemex extends Exchange {
                 'value': 2,
             },
         };
+        const method = 'publicGetExchangePublicProducts';
+        const response = await this[method] (params);
+        const products = this.safeValue (response, 'data');
+        const productsCount = products.length;
         const result = [];
-        for (let i = 0; i < products.length; i++) {
+        for (let i = 0; i < productsCount; i++) {
             const market = this.parseMarket (products[i], precisions);
             result.push (market);
         }
