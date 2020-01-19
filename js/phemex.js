@@ -3,62 +3,110 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { TICK_SIZE } = require ('./base/functions/number');
+const { DECIMAL_PLACES, PAD_WITH_ZERO, ROUND } = require ('./base/functions/number');
 const { AuthenticationError, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class phemex extends Exchange {
     convertTimeNs (ns) {
-        return ns * (Math.pow (10, -6));
+        return Math.floor (ns * Math.pow (10, -6));
     }
 
-    convertEv (ev, scale) {
-        return ev * (Math.pow (10, -scale));
+    convertENumber (eNum, scale, precision, roundType) {
+        return this.decimalToPrecision (eNum * Math.pow (10, -scale), roundType, precision, DECIMAL_PLACES, PAD_WITH_ZERO);
     }
 
-    convertEp (ep) {
-        return ep * (Math.pow (10, -4));
+    convertEv (ev, scale, precision) {
+        return this.convertENumber (ev, scale, precision, ROUND);
+    }
+
+    convertEp (ep, scale, precision) {
+        if (ep === undefined) {
+            return undefined;
+        }
+        return this.convertENumber (ep, scale, precision, ROUND);
     }
 
     convertToEp (price) {
-        return price * (Math.pow (10, 4));
+        return price * Math.pow (10, 4);
     }
 
-    parseAverage (filledValue, filled, contractSide) {
-        if (filled === undefined) {
+    calcAverageEp (filledEv, valueScale, priceScale, filled, contractSide) {
+        if (filled === 0) {
             return undefined;
         }
-        if (filledValue === undefined) {
+        if (filledEv === 0) {
             return undefined;
         }
-        if (contractSide > 0) {
-            return filledValue / filled;
-        }
-        return filled / filledValue;
+        const priceFactor = Math.pow (10, priceScale);
+        const valueFactor = Math.pow (10, valueScale);
+        return Math.pow (filledEv / (valueFactor * filled), contractSide) * priceFactor;
     }
 
-    parseCost (filled, average, price, contractSide) {
-        if (filled === undefined) {
+    calcCostEv (filled, averageEp, priceEp, priceScale, valueScale, contractSide) {
+        if (filled === 0) {
+            return 0;
+        }
+        let ep = undefined;
+        if (averageEp !== undefined) {
+            ep = averageEp;
+        } else if (priceEp !== undefined) {
+            ep = priceEp;
+        }
+        if (ep === undefined) {
             return undefined;
         }
-        if (average !== undefined) {
-            if (contractSide > 0) {
-                return filled * average;
-            }
-            return filled / average;
-        }
-        if (price !== undefined) {
-            if (contractSide > 0) {
-                return filled * price;
-            }
-            return filled / price;
-        }
-        return undefined;
+        const priceFactor = Math.pow (10, priceScale);
+        const valueFactor = Math.pow (10, valueScale);
+        return filled * Math.pow (ep / priceFactor, contractSide) * valueFactor;
     }
 
     parseResponse (response) {
-        return response.data;
+        return this.safeValue (response, 'data', null);
+    }
+
+    parseMarket (product, precisions) {
+        const id = this.safeString (product, 'symbol');
+        const quoteCurrency = this.safeString (product, 'quoteCurrency');
+        const settlementCurrency = this.safeString (product, 'settlementCurrency');
+        const underlyingSymbol = this.safeString (product, 'underlyingSymbol');
+        const baseId = underlyingSymbol.split ('.')[1];
+        const quoteId = quoteCurrency;
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'contractSide': (quoteCurrency === settlementCurrency) ? 1 : -1,
+            'type': 'future',
+            'spot': false,
+            'future': true,
+            'active': true,
+            'priceScale': this.safeInteger (product, 'priceScale', 1),
+            'ratioScale': this.safeInteger (product, 'ratioScale', 1),
+            'valueScale': this.safeInteger (product, 'valueScale', 1),
+            'precision': this.safeValue (precisions, id),
+            'limits': {
+                'amount': {
+                    'min': 1,
+                    'max': product['maxOrderQty'],
+                },
+                'price': {
+                    'min': undefined,
+                    'max': product['maxPriceEp'],
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': product,
+        };
     }
 
     parseOrderStatus (status) {
@@ -77,51 +125,59 @@ module.exports = class phemex extends Exchange {
 
     parseOrder (order, market = undefined) {
         const marketID = market['id'];
-        const contractSides = this.safeString (this.options, 'contractSides');
-        const contractSide = this.safeInteger (contractSides, marketID, 1);
-        const price = this.convertEp (order.priceEp);
-        const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
-        const timestamp = this.parse8601 (this.convertTimeNs (this.safeInteger (order, 'actionTimeNs')));
-        const lastTradeTimestamp = this.parse8601 (this.convertTimeNs (this.safeInteger (order, 'transactTimeNs')));
-        const priceEp = this.safeInteger (order, 'priceEp');
-        const amount = this.safeInteger (order, 'orderQty');
-        const filled = this.safeInteger (order, 'cumQty');
-        const filledValue = this.convertEv (this.safeInteger (order, 'cumValueEv'), market['valueScale']);
-        let remaining = undefined;
-        if (amount !== undefined) {
-            if (filled !== undefined) {
-                remaining = Math.max (amount - filled, 0);
-            }
-        }
-        const average = this.parseAverage (filledValue, filled, contractSide);
-        const cost = this.parseCost (filled, average, price, contractSide);
+        // market data
+        const contractSide = this.safeInteger (market, marketID, 1);
+        const precisions = this.safeValue (market, 'precision');
+        const priceScale = this.safeInteger (market, 'priceScale');
+        const pricePrecision = this.safeInteger (precisions, 'price');
+        const valueScale = this.safeInteger (market, 'valueScale');
+        const valuePrecision = this.safeInteger (precisions, 'value');
+        // order data
         const id = this.safeString (order, 'orderID');
         const type = this.safeStringLower (order, 'ordType');
         const side = this.safeStringLower (order, 'side');
+        const ordStatus = this.safeString (order, 'ordStatus');
+        const actionTimeNs = this.safeInteger (order, 'actionTimeNs', 0);
+        const transactTimeNs = this.safeInteger (order, 'transactTimeNs', 0);
+        const priceEp = this.safeInteger (order, 'priceEp', 0);
+        const amount = this.safeInteger (order, 'orderQty', 0);
+        const filled = this.safeInteger (order, 'cumQty', 0);
+        const filledEv = this.safeInteger (order, 'cumValueEv', 0);
+        // derived data
+        const timestamp = this.convertTimeNs (actionTimeNs);
+        let remaining = 0;
+        if (amount !== 0) {
+            if (filled !== 0) {
+                remaining = Math.max (amount - filled, 0);
+            }
+        }
+        const averageEp = this.calcAverageEp (filledEv, valueScale, priceScale, filled, contractSide);
+        const average = this.convertEp (averageEp, priceScale, pricePrecision);
+        const costEv = this.calcCostEv (filled, averageEp, priceEp, priceScale, valueScale, contractSide);
         return {
             'info': order,
             'id': id,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': marketID,
+            'lastTradeTimestamp': this.convertTimeNs (transactTimeNs),
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
-            'price': this.convertEp (priceEp),
+            'price': this.convertEp (priceEp, priceScale, pricePrecision),
             'amount': amount,
-            'cost': cost,
+            'cost': this.convertEv (costEv, valueScale, valuePrecision),
             'average': average,
             'filled': filled,
             'remaining': remaining,
-            'status': status,
+            'status': this.parseOrderStatus (ordStatus),
             'fee': undefined,
         };
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
         const result = [];
-        const count = orders.length;
-        for (let i = 0; i < count; i++) {
+        const ordersCount = orders.length;
+        for (let i = 0; i < ordersCount; i++) {
             result.push (this.parseOrder (orders[i], market));
         }
         return result;
@@ -243,68 +299,35 @@ module.exports = class phemex extends Exchange {
                     'Service unavailable': ExchangeNotAvailable, // {"error":{"message":"Service unavailable","name":"HTTPError"}}
                 },
             },
-            'precisionMode': TICK_SIZE,
-            'options': {
-                'contractSides': {
-                    'BTCUSD': -1,
-                    'ETHUSD': 1,
-                    'XRPUSD': 1,
-                },
-            },
+            'precisionMode': DECIMAL_PLACES,
         });
     }
 
     async fetchMarkets (params = {}) {
         const method = 'publicGetExchangePublicProducts';
         const response = await this[method] (params);
-        const markets = this.safeValue (response, 'data');
+        const products = this.safeValue (response, 'data');
+        const precisions = {
+            'BTCUSD': {
+                'amount': 0,
+                'price': 1,
+                'value': 8,
+            },
+            'ETHUSD': {
+                'amount': 0,
+                'price': 2,
+                'value': 2,
+            },
+            'XRPUSD': {
+                'amount': 0,
+                'price': 4,
+                'value': 2,
+            },
+        };
         const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString (market, 'symbol');
-            const baseId = market['underlyingSymbol'].split ('.')[1];
-            const quoteId = market['quoteCurrency'];
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const priceScale = this.safeInteger (market, 'priceScale', 1);
-            const ratioScale = this.safeInteger (market, 'ratioScale', 1);
-            const valueScale = this.safeInteger (market, 'valueScale', 1);
-            const entry = {
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'info': market,
-                'type': 'future',
-                'spot': false,
-                'future': true,
-                'active': true,
-                'priceScale': priceScale,
-                'ratioScale': ratioScale,
-                'valueScale': valueScale,
-                'precision': {
-                    'amount': 0,
-                    'price': market['quotePrecision'],
-                },
-                'limits': {
-                    'amount': {
-                        'min': 1,
-                        'max': market['maxOrderQty'],
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': market['maxPriceEp'],
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
-            result.push (entry);
+        for (let i = 0; i < products.length; i++) {
+            const market = this.parseMarket (products[i], precisions);
+            result.push (market);
         }
         return result;
     }
@@ -315,28 +338,36 @@ module.exports = class phemex extends Exchange {
         const btcResponse = await this[method] ({ 'currency': 'BTC' });
         const usdResponse = await this[method] ({ 'currency': 'USD' });
         const btcAccount = this.safeValue (this.parseResponse (btcResponse), 'account');
+        const btcBalanceEv = this.safeValue (btcAccount, 'accountBalanceEv');
+        const btcTotalUsedBalanceEv = this.safeValue (btcAccount, 'totalUsedBalanceEv');
         const usdAccount = this.safeValue (this.parseResponse (usdResponse), 'account');
+        const usdBalanceEv = this.safeValue (usdAccount, 'accountBalanceEv');
+        const usdTotalUsedBalanceEv = this.safeValue (usdAccount, 'totalUsedBalanceEv');
         return {
             'BTC': {
-                'free': this.convertEv (btcAccount.accountBalanceEv - btcAccount.totalUsedBalanceEv, 8),
-                'used': this.convertEv (btcAccount.totalUsedBalanceEv, 8),
-                'total': this.convertEv (btcAccount.accountBalanceEv, 8),
+                'free': this.convertEv (btcBalanceEv - btcTotalUsedBalanceEv, 8, 8),
+                'used': this.convertEv (btcTotalUsedBalanceEv, 8, 8),
+                'total': this.convertEv (btcBalanceEv, 8, 8),
             },
             'USD': {
-                'free': this.convertEv (usdAccount.accountBalanceEv - usdAccount.totalUsedBalanceEv, 8),
-                'used': this.convertEv (usdAccount.totalUsedBalanceEv, 8),
-                'total': this.convertEv (usdAccount.accountBalanceEv, 4),
+                'free': this.convertEv (usdBalanceEv - usdTotalUsedBalanceEv, 4, 2),
+                'used': this.convertEv (usdTotalUsedBalanceEv, 4, 2),
+                'total': this.convertEv (usdBalanceEv, 4, 2),
             },
             'info': {},
         };
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketID = market['id'];
         const method = 'privateGetPhemexUserOrder';
-        const response = await this[method] ({ 'orderID': id, 'symbol': symbol });
+        const response = await this[method] ({ 'orderID': id, 'symbol': marketID });
         const orders = this.parseResponse (response);
-        if (orders.length > 0) {
-            return orders[0];
+        const orderCount = orders.length;
+        if (orderCount > 0) {
+            return this.parseOrder (orders[0], market);
         }
         throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
     }
@@ -344,8 +375,9 @@ module.exports = class phemex extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const marketID = market['id'];
         const method = 'privateGetPhemexUserOrderList';
-        const response = await this[method] ({ 'symbol': market['id'], 'start': since, 'limit': limit });
+        const response = await this[method] ({ 'symbol': marketID, 'start': since, 'limit': limit });
         const data = this.parseResponse (response);
         const orders = this.safeValue (data, 'rows', []);
         return this.parseOrders (orders, market);
@@ -358,7 +390,8 @@ module.exports = class phemex extends Exchange {
         const method = 'privateGetOrdersActiveList';
         try {
             const response = await this[method] ({ 'symbol': marketID });
-            const orders = this.parseResponse (response);
+            const data = this.parseResponse (response);
+            const orders = this.safeValue (data, 'rows');
             return this.parseOrders (orders, market);
         } catch (e) {
             return [];
@@ -369,10 +402,21 @@ module.exports = class phemex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketID = market['id'];
-        const method = 'privateGetPhemexUserOrderOrderList';
-        const response = await this[method] ({ 'symbol': marketID, 'limit': limit });
-        const closedOrders = this.parseResponse (response);
-        return this.parseOrders (closedOrders);
+        const method = 'privateGetPhemexUserOrderList';
+        const response = await this[method] ({ 'symbol': marketID, 'start': since, 'limit': limit });
+        const data = this.parseResponse (response);
+        const rawOrders = this.safeValue (data, 'rows');
+        const orders = this.parseOrders (rawOrders, market);
+        const orderCount = orders.length;
+        const result = [];
+        for (let i = 0; i < orderCount; i++) {
+            const order = orders[i];
+            const status = this.safeString (order, 'status');
+            if (status === 'closed') {
+                result.push (order);
+            }
+        }
+        return result;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -407,10 +451,8 @@ module.exports = class phemex extends Exchange {
         const method = 'privateDeleteOrdersCancel';
         try {
             const response = await this[method] ({ 'orderID': id, 'symbol': marketID });
-            const orders = this.parseResponse (response);
-            if (orders.length > 0) {
-                return this.parseOrder (orders[0], market);
-            }
+            const order = this.parseResponse (response);
+            return this.parseOrder (order, market);
         } catch (e) {
             throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
         }
@@ -435,8 +477,21 @@ module.exports = class phemex extends Exchange {
         const urlPath = '/' + path;
         let querystring = '';
         if (method === 'GET' || method === 'DELETE') {
-            if (Object.keys (params).length) {
-                querystring = this.urlencode (params);
+            const keys = Object.keys (params);
+            const keysCount = keys.length;
+            if (keysCount > 0) {
+                const cleanParams = {};
+                for (let i = 0; i < keysCount; i++) {
+                    const key = keys[i];
+                    if (params[key] !== undefined) {
+                        cleanParams[key] = params[key];
+                    }
+                }
+                const cleanKeys = Object.keys (cleanParams);
+                const cleanKeysCount = cleanKeys.length;
+                if (cleanKeysCount > 0) {
+                    querystring = this.urlencodeWithArrayRepeat (cleanParams);
+                }
             }
         } else {
             body = this.json (params);
@@ -446,7 +501,7 @@ module.exports = class phemex extends Exchange {
             url += '?' + querystring;
         }
         if (this.apiKey && this.secret) {
-            const expiry = Math.floor (this.now () / 1000) + 2 * 60;
+            const expiry = this.numberToString (this.seconds () + 2 * 60);
             let content = urlPath + querystring + expiry;
             if (body) {
                 content += body;
