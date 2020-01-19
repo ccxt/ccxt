@@ -944,6 +944,7 @@ class Exchange {
             'fetchOHLCV' => 'emulated',
             'fetchOpenOrders' => false,
             'fetchOrder' => false,
+            'fetchOrderTrades' => false,
             'fetchOrderBook' => true,
             'fetchOrderBooks' => false,
             'fetchOrders' => false,
