@@ -175,14 +175,14 @@ module.exports = class bittrex extends ccxt.bittrex {
         // subsequent updates
         //
         //     {
-        //         M: 'BTC-ETH',
-        //         N: 2322248,
-        //         Z: [],
-        //         S: [
-        //             { TY: 0, R: 0.01938852, Q: 29.32758526 },
-        //             { TY: 1, R: 0.02322822, Q: 0 }
+        //         'M': 'BTC-ETH',
+        //         'N': 2322248,
+        //         'Z': [],
+        //         'S': [
+        //             { 'TY': 0, 'R': 0.01938852, 'Q': 29.32758526 },
+        //             { 'TY': 1, 'R': 0.02322822, 'Q': 0 }
         //         ],
-        //         f: []
+        //         'f': []
         //     }
         //
         const type = this.safeString (message, 'type');
@@ -275,32 +275,60 @@ module.exports = class bittrex extends ccxt.bittrex {
         };
         const future = this.watch (url, requestId, request, requestId, subscription);
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
-
-        // // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
-        // // todo: this is a synch blocking call in ccxt.php - make it async
-        // const snapshot = await this.fetchOrderBook (symbol);
-        // const orderbook = this.orderbooks[symbol];
-        // orderbook.reset (snapshot);
-        // // unroll the accumulated deltas
-        // const messages = orderbook.cache;
-        // for (let i = 0; i < messages.length; i++) {
-        //     const message = messages[i];
-        //     this.handleOrderBookMessage (client, message, orderbook);
-        // }
-        // this.orderbooks[symbol] = orderbook;
-        // client.resolve (orderbook, messageHash);
     }
 
     handleExchangeState (client, message, subscription) {
         const R = JSON.parse (this.inflate (this.safeValue (message, 'R')));
-        console.log ('--------------------------------------------------------');
-        console.log (message);
-        console.log ('--------------------------------------------------------');
-        console.log (R);
-        console.log ('--------------------------------------------------------');
-        console.log (subscription);
-        console.log ('--------------------------------------------------------');
-        process.exit ();
+        //
+        //     {
+        //         'M': 'BTC-ETH',
+        //         'N': 2571953,
+        //         'Z': [ // bids
+        //             { 'Q': 2.38619729, 'R': 0.01964739 },
+        //             { 'Q': 6, 'R': 0.01964738 },
+        //             { 'Q': 0.0257, 'R': 0.01964736 },
+        //         ],
+        //         'S': [ // asks
+        //             { 'Q': 1.84253634, 'R': 0.01965675 },
+        //             { 'Q': 3.61380271, 'R': 0.01965677 },
+        //             { 'Q': 5.6518, 'R': 0.01965678 },
+        //         ],
+        //         'f': [ // last fills
+        //             {
+        //                 'I': 49355896,
+        //                 'T': 1579380036860,
+        //                 'Q': 0.06966562,
+        //                 'P': 0.01964993,
+        //                 't': 0.0013689245564066,
+        //                 'F': 'FILL',
+        //                 'OT': 'SELL',
+        //                 'U': '421c649f-82fa-437b-b8f2-2a6a55bbecbc'
+        //             },
+        //         ]
+        //     }
+        //
+        const marketId = this.safeString (R, 'M');
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            const symbol = market['symbol'];
+            const orderbook = this.safeValue (this.orderbooks, symbol);
+            if (orderbook !== undefined) {
+                const snapshot = this.parseOrderBook (R, undefined, 'Z', 'S', 'R', 'Q');
+                snapshot['nonce'] = this.safeInteger (R, 'N');
+                orderbook.reset (snapshot);
+                // unroll the accumulated deltas
+                const messages = orderbook.cache;
+                for (let i = 0; i < messages.length; i++) {
+                    const message = messages[i];
+                    this.handleOrderBookMessage (client, message, orderbook);
+                }
+                this.orderbooks[symbol] = orderbook;
+                const messageHash = 'orderbook:' + symbol;
+                client.resolve (orderbook, messageHash);
+                const requestId = this.safeString (subscription, 'id');
+                client.resolve (orderbook, requestId);
+            }
+        }
     }
 
     handleSubscribeToExchangeDeltas (client, message, subscription) {
@@ -317,7 +345,7 @@ module.exports = class bittrex extends ccxt.bittrex {
 
     handleSubscriptionStatus (client, message) {
         //
-        //     { R: true, I: '1579299273251' }
+        //     { 'R': true, I: '1579299273251' }
         //
         const I = this.safeString (message, 'I');
         let subscription = this.safeValue (client.subscriptions, I);
@@ -366,18 +394,6 @@ module.exports = class bittrex extends ccxt.bittrex {
         if ('S' in message) {
             this.handleSystemStatus (client, message);
         }
-        // const type = this.safeString (message, 'type');
-        // const methods = {
-        //     'snapshot': this.handleOrderBook,
-        //     'l2update': this.handleOrderBook,
-        //     'subscribe': this.handleSubscriptionStatus,
-        // };
-        // const method = this.safeValue (methods, type);
-        // if (method === undefined) {
-        //     return message;
-        // } else {
-        //     return method.call (this, client, message);
-        // }
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
