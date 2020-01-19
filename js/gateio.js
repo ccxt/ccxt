@@ -29,7 +29,8 @@ module.exports = class gateio extends ccxt.gateio {
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketId = market['id'].toUpperCase ();
+        const marketId = market['id'];
+        const wsMarketId = marketId.toUpperCase ();
         const requestId = this.nonce ();
         const url = this.urls['api']['ws'];
         if (!limit) {
@@ -40,14 +41,14 @@ module.exports = class gateio extends ccxt.gateio {
         const interval = this.safeString (params, 'interval', '0.00000001');
         const floatInterval = parseFloat (interval);
         const precision = -1 * Math.log10 (floatInterval);
-        if ((precision < 0) || (precision > 8) || (precision % 1 !== 0)) {
+        if ((precision < 0) || (precision > 8) || (precision % 1 !== 0.0)) {
             throw new ExchangeError (this.id + ' invalid interval');
         }
         const messageHash = 'depth.update' + ':' + marketId;
         const subscribeMessage = {
             'id': requestId,
             'method': 'depth.subscribe',
-            'params': [marketId, limit, interval],
+            'params': [wsMarketId, limit, interval],
         };
         const future = this.watch (url, messageHash, subscribeMessage, messageHash);
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
@@ -103,13 +104,14 @@ module.exports = class gateio extends ccxt.gateio {
     async watchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketId = market['id'].toUpperCase ();
+        const marketId = market['id'];
+        const wsMarketId = marketId.toUpperCase ();
         const requestId = this.nonce ();
         const url = this.urls['api']['ws'];
         const subscribeMessage = {
             'id': requestId,
             'method': 'ticker.subscribe',
-            'params': [marketId],
+            'params': [wsMarketId],
         };
         const messageHash = 'ticker.update' + ':' + marketId;
         return await this.watch (url, messageHash, subscribeMessage, messageHash);
@@ -117,11 +119,10 @@ module.exports = class gateio extends ccxt.gateio {
 
     handleTicker (client, message) {
         const result = message['params'];
-        const marketId = result[0];
-        const normalMarketId = marketId.toLowerCase ();
+        const marketId = this.safeStringLower (result, 0);
         let market = undefined;
-        if (normalMarketId in this.markets_by_id) {
-            market = this.markets_by_id[normalMarketId];
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
         }
         const ticker = result[1];
         const parsed = this.parseTicker (ticker, market);
@@ -200,6 +201,7 @@ module.exports = class gateio extends ccxt.gateio {
             };
             const subscribe = {
                 'id': requestId,
+                'method': this.handleAuthenticationMessage,
             };
             this.spawn (this.watch, url, requestId, authenticateMessage, method, subscribe);
         }
@@ -232,18 +234,46 @@ module.exports = class gateio extends ccxt.gateio {
             'method': 'balance.subscribe',
             'params': [],
         };
-        return await this.afterDropped (future, this.watch, url, method, subscribeMessage, method);
+        const subscription = {
+            'id': requestId,
+            'method': this.handleBalanceSubscription,
+        };
+        return await this.afterDropped (future, this.watch, url, method, subscribeMessage, method, subscription);
     }
 
-    async fetchBalanceSnapshot (params = {}) {
+    async fetchBalanceSnapshot () {
+        await this.loadMarkets ();
+        this.checkRequiredCredentials ();
+        const url = this.urls['api']['ws'];
+        const future = this.authenticate ();
+        const requestId = this.nonce ();
+        const method = 'balance.query';
+        const subscribeMessage = {
+            'id': requestId,
+            'method': method,
+            'params': [],
+        };
+        const subscription = {
+            'id': requestId,
+            'method': this.handleBalanceSnapshot,
+        };
+        return await this.afterDropped (future, this.watch, url, requestId, subscribeMessage, method, subscription);
     }
 
-    watch () {
+    handleBalanceSnapshot (client, message) {
+        const messageHash = message['id'];
+        const result = message['result'];
+        this.handleBalanceMessage (client, messageHash, result);
+        delete client.subscriptions['balance.query'];
     }
 
     handleBalance (client, message) {
         const messageHash = message['method'];
         const result = message['params'][0];
+        this.handleBalanceMessage (client, messageHash, result);
+    }
+
+    handleBalanceMessage (client, messageHash, result) {
         const keys = Object.keys (result);
         for (let i = 0; i < keys.length; i++) {
             const account = this.account ();
@@ -285,7 +315,7 @@ module.exports = class gateio extends ccxt.gateio {
         client.resolve (parsed, messageHash);
     }
 
-    handleAuthenticationMessage (client, message) {
+    handleAuthenticationMessage (client, message, subscription) {
         const result = this.safeValue (message, 'result');
         const status = this.safeString (result, 'status');
         if (status === 'success') {
@@ -316,6 +346,25 @@ module.exports = class gateio extends ccxt.gateio {
         }
     }
 
+    handleBalanceSubscription (client, message, subcription) {
+        this.spawn (this.fetchBalanceSnapshot);
+    }
+
+    handleSubscriptionStatus (client, message) {
+        const messageId = message['id'];
+        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+        const subscription = this.safeValue (subscriptionsById, messageId, {});
+        if ('method' in subscription) {
+            const method = subscription['method'];
+            method.call (this, client, message, subscription);
+        }
+        client.resolve (message, messageId);
+    }
+
+    async watch () {
+        process.exit (69);
+    }
+
     handleMessage (client, message) {
         this.handleErrorMessage (client, message);
         const methods = {
@@ -331,14 +380,7 @@ module.exports = class gateio extends ccxt.gateio {
         if (method === undefined) {
             const messageId = this.safeInteger (message, 'id');
             if (messageId !== undefined) {
-                // used to resolve subscriptions
-                client.resolve (message, messageId);
-                // used to resolve authentication messages
-                const subscription = this.safeValue (client.subscriptions, 'server.sign', {});
-                const subscriptionId = this.safeInteger (subscription, 'id');
-                if (messageId === subscriptionId) {
-                    this.handleAuthenticationMessage (client, message);
-                }
+                this.handleSubscriptionStatus (client, message);
             }
         } else {
             method.call (this, client, message);
