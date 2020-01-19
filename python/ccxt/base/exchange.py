@@ -1412,15 +1412,13 @@ class Exchange(object):
         }
 
     def parse_balance(self, balance):
-        currencies = self.omit(balance, 'info').keys()
+        currencies = self.omit(balance, ['info', 'free', 'used', 'total']).keys()
 
         balance['free'] = {}
         balance['used'] = {}
         balance['total'] = {}
 
         for currency in currencies:
-            if currency == 'free' or currency == 'used' or currency == 'total':
-                continue
 
             if balance[currency].get('total') is None:
                 if balance[currency].get('free') is not None and balance[currency].get('used') is not None:
@@ -1434,8 +1432,10 @@ class Exchange(object):
                 if balance[currency].get('total') is not None and balance[currency].get('free') is not None:
                     balance[currency]['used'] = self.sum(balance[currency]['total'], -balance[currency]['free'])
 
-            for account in ['free', 'used', 'total']:
-                balance[account][currency] = balance[currency][account]
+            balance['free'][currency] = balance[currency]['free']
+            balance['used'][currency] = balance[currency]['used']
+            balance['total'][currency] = balance[currency]['total']
+                
         return balance
 
     def fetch_partial_balance(self, part, params={}):
