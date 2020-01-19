@@ -125,4 +125,28 @@ trait ClientTrait {
     public function sign_message($client, $messag_hash, $message, $params = array()) {
         throw new \ccxt\NotSupported ($this->id . ' signMessage () not implemented yet');
     }
+
+    public function subscribe_balance($resolved, $rejected, ...$args) {
+        $this->subscribe_to('watch_balance', $resolved, $rejected, $args);
+    }
+
+    public function subscribe_trades($resolved, $rejected, ...$args) {
+        $this->subscribe_to('watch_trades', $resolved, $rejected, $args);
+    }
+
+    public function subscribe_orders($resolved, $rejected, ...$args) {
+        $this->subscribe_to('watch_orders', $resolved, $rejected, $args);
+    }
+
+    public function subscribe_order_book($resolved, $rejected, ...$args) {
+        $this->subscribe_to('watch_order_book', $resolved, $rejected, $args);
+    }
+
+    public function subscribe_to($watch_function, $resolved, $rejected, $args) {
+        $promise = $this->$watch_function(...$args);
+        $promise->then(function ($result) use ($resolved, $rejected, $args) {
+            $resolved($result);
+            $this->subscribe_balance($resolved, $rejected, ...$args);
+        }, $rejected);
+    }
 }
