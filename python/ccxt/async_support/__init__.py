@@ -294,6 +294,7 @@ exchanges = [
     'yobit',
     'zaif',
     'zb',
+    'coinbenespot',
 ]
 
 base = [
