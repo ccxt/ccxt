@@ -1435,7 +1435,7 @@ class Exchange(object):
             balance['free'][currency] = balance[currency]['free']
             balance['used'][currency] = balance[currency]['used']
             balance['total'][currency] = balance[currency]['total']
-                
+ 
         return balance
 
     def fetch_partial_balance(self, part, params={}):
