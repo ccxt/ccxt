@@ -1632,7 +1632,7 @@ class Exchange {
     }
 
     public function parse_balance($balance) {
-        $currencies = $this->omit($balance, 'info');
+        $currencies = $this->omit($balance, array('info', 'free', 'used', 'total'));
 
         $balance['free'] = array();
         $balance['used'] = array();
@@ -1641,28 +1641,22 @@ class Exchange {
         foreach ($currencies as $code => $value) {
             if (!isset($value['total'])) {
                 if (isset($value['free']) && isset($value['used'])) {
-                    $currencies[$code]['total'] = static::sum($value['free'], $value['used']);
+                    $balance[$code]['total'] = static::sum($value['free'], $value['used']);
                 }
             }
             if (!isset($value['used'])) {
                 if (isset($value['total']) && isset($value['free'])) {
-                    $currencies[$code]['used'] = static::sum($value['total'], -$value['free']);
+                    $balance[$code]['used'] = static::sum($value['total'], -$value['free']);
                 }
             }
             if (!isset($value['free'])) {
                 if (isset($value['total']) && isset($value['used'])) {
-                    $currencies[$code]['free'] = static::sum($value['total'], -$value['used']);
+                    $balance[$code]['free'] = static::sum($value['total'], -$value['used']);
                 }
             }
-        }
-
-        $accounts = array('free', 'used', 'total');
-        foreach ($accounts as $account) {
-            $balance[$account] = array();
-            foreach ($currencies as $code => $value) {
-                $balance[$code] = isset($balance[$code]) ? $balance[$code] : array();
-                $balance[$code][$account] = $balance[$account][$code] = $value[$account];
-            }
+            $balance['free'][$code] = $balance[$code]['free'];
+            $balance['used'][$code] = $balance[$code]['used'];
+            $balance['total'][$code] = $balance[$code]['total'];
         }
         return $balance;
     }
