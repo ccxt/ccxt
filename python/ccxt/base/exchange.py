@@ -263,6 +263,7 @@ class Exchange(object):
         'fetchOrderBook': True,
         'fetchOrderBooks': False,
         'fetchOrders': False,
+        'fetchOrderTrades': False,
         'fetchStatus': 'emulated',
         'fetchTicker': True,
         'fetchTickers': False,
