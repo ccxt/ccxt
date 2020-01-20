@@ -601,36 +601,36 @@ module.exports = class binance extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.safeInteger (ticker, 'closeTime');
+        const timestamp = this.safeInteger2 (ticker, 'closeTime', 'C');
         let symbol = undefined;
-        const marketId = this.safeString (ticker, 'symbol');
+        const marketId = this.safeString2 (ticker, 'symbol', 's');
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
         }
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'lastPrice');
+        const last = this.safeFloat2 (ticker, 'lastPrice', 'c');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'highPrice'),
-            'low': this.safeFloat (ticker, 'lowPrice'),
-            'bid': this.safeFloat (ticker, 'bidPrice'),
-            'bidVolume': this.safeFloat (ticker, 'bidQty'),
-            'ask': this.safeFloat (ticker, 'askPrice'),
-            'askVolume': this.safeFloat (ticker, 'askQty'),
-            'vwap': this.safeFloat (ticker, 'weightedAvgPrice'),
-            'open': this.safeFloat (ticker, 'openPrice'),
+            'high': this.safeFloat2 (ticker, 'highPrice', 'h'),
+            'low': this.safeFloat2 (ticker, 'lowPrice', 'l'),
+            'bid': this.safeFloat2 (ticker, 'bidPrice', 'b'),
+            'bidVolume': this.safeFloat2 (ticker, 'bidQty', 'B'),
+            'ask': this.safeFloat2 (ticker, 'askPrice', 'a'),
+            'askVolume': this.safeFloat2 (ticker, 'askQty', 'A'),
+            'vwap': this.safeFloat2 (ticker, 'weightedAvgPrice', 'w'),
+            'open': this.safeFloat2 (ticker, 'openPrice', 'o'),
             'close': last,
             'last': last,
             'previousClose': this.safeFloat (ticker, 'prevClosePrice'), // previous day close
-            'change': this.safeFloat (ticker, 'priceChange'),
-            'percentage': this.safeFloat (ticker, 'priceChangePercent'),
+            'change': this.safeFloat2 (ticker, 'priceChange', 'p'),
+            'percentage': this.safeFloat2 (ticker, 'priceChangePercent', 'P'),
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': this.safeFloat (ticker, 'quoteVolume'),
+            'baseVolume': this.safeFloat2 (ticker, 'volume', 'v'),
+            'quoteVolume': this.safeFloat2 (ticker, 'quoteVolume', 'q'),
             'info': ticker,
         };
     }
