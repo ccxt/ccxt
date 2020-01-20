@@ -24,6 +24,7 @@ module.exports = class binance extends ccxt.binance {
             'options': {
                 'watchOrderBookRate': 100, // get updates every 100ms or 1000ms
             },
+            'tradesLimit': 1000,
         });
     }
 
@@ -268,14 +269,22 @@ module.exports = class binance extends ccxt.binance {
         // }
         const marketId = this.safeString (message, 's');
         let market = undefined;
+        let symbol = marketId;
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
         }
         const lowerCaseId = this.safeStringLower (message, 's');
         const event = this.safeString (message, 'e');
         const messageHash = lowerCaseId + '@' + event;
         const parsed = this.parseTrade (message, market);
-        client.resolve (parsed, messageHash);
+        const array = this.safeValue (this.trades, symbol, []);
+        array.push (parsed);
+        if (array.length > this.tradesLimit) {
+            array.shift ();
+        }
+        this.trades[symbol] = array;
+        client.resolve (array, messageHash);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
