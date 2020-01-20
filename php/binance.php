@@ -1045,6 +1045,18 @@ class binance extends Exchange {
             'type' => $uppercaseType,
             'side' => strtoupper($side),
         );
+        if ($type === 'market') {
+            $quoteOrderQty = $this->safe_float($params, 'quoteOrderQty');
+            if ($quoteOrderQty !== null) {
+                $request['quoteOrderQty'] = $this->cost_to_precision($symbol, $quoteOrderQty);
+            } else if ($price !== null) {
+                $request['quoteOrderQty'] = $this->cost_to_precision($symbol, $amount * $price);
+            } else {
+                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+            }
+        } else {
+            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+        }
         if ($market['spot']) {
             $request['newOrderRespType'] = $this->safe_value($this->options['newOrderRespType'], $type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         }
