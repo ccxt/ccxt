@@ -405,8 +405,43 @@ module.exports = class binance extends ccxt.binance {
         const event = 'ticker'; // message['e'] === 24hrTicker
         const marketId = this.safeStringLower (message, 's');
         const messageHash = marketId + '@' + event;
-        const parsed = this.parseTicker (message, undefined);
+        const parsed = this.parseWsTicker (message, undefined);
         client.resolve (parsed, messageHash);
+    }
+
+    parseWsTicker (ticker, market = undefined) {
+        const timestamp = this.safeInteger (ticker, 'C');
+        let symbol = undefined;
+        const marketId = this.safeString (ticker, 's');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const last = this.safeFloat (ticker, 'c');
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'h'),
+            'low': this.safeFloat (ticker, 'l'),
+            'bid': this.safeFloat (ticker, 'b'),
+            'bidVolume': this.safeFloat (ticker, 'B'),
+            'ask': this.safeFloat (ticker, 'a'),
+            'askVolume': this.safeFloat (ticker, 'A'),
+            'vwap': this.safeFloat (ticker, 'w'),
+            'open': this.safeFloat (ticker, 'o'),
+            'close': last,
+            'last': last,
+            'previousClose': this.safeFloat (ticker, 'x'), // previous day close
+            'change': this.safeFloat (ticker, 'p'),
+            'percentage': this.safeFloat (ticker, 'P'),
+            'average': undefined,
+            'baseVolume': this.safeFloat (ticker, 'v'),
+            'quoteVolume': this.safeFloat (ticker, 'q'),
+            'info': ticker,
+        };
     }
 
     handleMessage (client, message) {
