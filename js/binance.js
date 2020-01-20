@@ -330,19 +330,13 @@ module.exports = class binance extends ccxt.binance {
         const kline = this.safeValue (message, 'k');
         const interval = this.safeString (kline, 'i');
         const messageHash = lowercaseMarketId + '@' + event + '_' + interval;
-        const parsed = this.parseWsOHLCV (message, undefined, undefined, undefined, undefined);
-        client.resolve (parsed, messageHash);
-    }
-
-    parseWsOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
-        const kline = this.safeValue (ohlcv, 'k');
         const timestamp = this.safeInteger (kline, 't');
         const open = this.safeFloat (kline, 'o');
         const high = this.safeFloat (kline, 'h');
         const low = this.safeFloat (kline, 'l');
         const close = this.safeFloat (kline, 'c');
         const volume = this.safeFloat (kline, 'v');
-        return [
+        const parsed = [
             timestamp,
             open,
             high,
@@ -350,6 +344,7 @@ module.exports = class binance extends ccxt.binance {
             close,
             volume,
         ];
+        client.resolve (parsed, messageHash);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -403,45 +398,39 @@ module.exports = class binance extends ccxt.binance {
         //   n: 163222
         // }
         const event = 'ticker'; // message['e'] === 24hrTicker
-        const marketId = this.safeStringLower (message, 's');
-        const messageHash = marketId + '@' + event;
-        const parsed = this.parseWsTicker (message, undefined);
-        client.resolve (parsed, messageHash);
-    }
-
-    parseWsTicker (ticker, market = undefined) {
-        const timestamp = this.safeInteger (ticker, 'C');
+        const wsMarketId = this.safeStringLower (message, 's');
+        const messageHash = wsMarketId + '@' + event;
+        const timestamp = this.safeInteger (message, 'C');
         let symbol = undefined;
-        const marketId = this.safeString (ticker, 's');
+        const marketId = this.safeString (message, 's');
         if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if (market !== undefined) {
+            const market = this.markets_by_id[marketId];
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'c');
-        return {
+        const last = this.safeFloat (message, 'c');
+        const parsed = {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'h'),
-            'low': this.safeFloat (ticker, 'l'),
-            'bid': this.safeFloat (ticker, 'b'),
-            'bidVolume': this.safeFloat (ticker, 'B'),
-            'ask': this.safeFloat (ticker, 'a'),
-            'askVolume': this.safeFloat (ticker, 'A'),
-            'vwap': this.safeFloat (ticker, 'w'),
-            'open': this.safeFloat (ticker, 'o'),
+            'high': this.safeFloat (message, 'h'),
+            'low': this.safeFloat (message, 'l'),
+            'bid': this.safeFloat (message, 'b'),
+            'bidVolume': this.safeFloat (message, 'B'),
+            'ask': this.safeFloat (message, 'a'),
+            'askVolume': this.safeFloat (message, 'A'),
+            'vwap': this.safeFloat (message, 'w'),
+            'open': this.safeFloat (message, 'o'),
             'close': last,
             'last': last,
-            'previousClose': this.safeFloat (ticker, 'x'), // previous day close
-            'change': this.safeFloat (ticker, 'p'),
-            'percentage': this.safeFloat (ticker, 'P'),
+            'previousClose': this.safeFloat (message, 'x'), // previous day close
+            'change': this.safeFloat (message, 'p'),
+            'percentage': this.safeFloat (message, 'P'),
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'v'),
-            'quoteVolume': this.safeFloat (ticker, 'q'),
-            'info': ticker,
+            'baseVolume': this.safeFloat (message, 'v'),
+            'quoteVolume': this.safeFloat (message, 'q'),
+            'info': message,
         };
+        client.resolve (parsed, messageHash);
     }
 
     handleMessage (client, message) {
