@@ -12,6 +12,9 @@ module.exports = class binance extends ccxt.binance {
         return this.deepExtend (super.describe (), {
             'has': {
                 'watchOrderBook': true,
+                'watchTrades': true,
+                'watchOHLCV': true,
+                'watchTicker': true,
             },
             'urls': {
                 'api': {
@@ -226,9 +229,192 @@ module.exports = class binance extends ccxt.binance {
         return message;
     }
 
+    async watchTrades (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const name = 'trade';
+        const messageHash = market['lowercaseId'] + '@' + name;
+        const url = this.urls['api']['ws']; // + '/' + messageHash;
+        const requestId = this.nonce ();
+        const request = {
+            'method': 'SUBSCRIBE',
+            'params': [
+                messageHash,
+            ],
+            'id': requestId,
+        };
+        const subscribe = {
+            'id': requestId,
+        };
+        return await this.watch (url, messageHash, request, messageHash, subscribe);
+    }
+
+    handleTrade (client, message) {
+        // The Trade Streams push raw trade information; each trade has a unique buyer and seller.
+        // Update Speed: Real-time
+        //
+        // {
+        //   e: 'trade',
+        //   E: 1579481530911,
+        //   s: 'ETHBTC',
+        //   t: 158410082,
+        //   p: '0.01914100',
+        //   q: '0.00700000',
+        //   b: 586187049,
+        //   a: 586186710,
+        //   T: 1579481530910,
+        //   m: false,
+        //   M: true
+        // }
+        const marketId = this.safeString (message, 's');
+        let market = undefined;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        const lowerCaseId = this.safeStringLower (message, 's');
+        const event = this.safeString (message, 'e');
+        const messageHash = lowerCaseId + '@' + event;
+        const parsed = this.parseTrade (message, market);
+        client.resolve (parsed, messageHash);
+    }
+
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const url = this.urls['api']['ws'];
+        const market = this.market (symbol);
+        const marketId = market['lowercaseId'];
+        const interval = this.timeframes[timeframe];
+        const name = 'kline_';
+        const messageHash = marketId + '@' + name + interval;
+        const requestId = this.nonce ();
+        const request = {
+            'method': 'SUBSCRIBE',
+            'params': [
+                messageHash,
+            ],
+            'id': requestId,
+        };
+        const subscribe = {
+            'id': requestId,
+        };
+        return await this.watch (url, messageHash, request, messageHash, subscribe);
+    }
+
+    handleOHCLV (client, message) {
+        // {
+        //   e: 'kline',
+        //   E: 1579482921215,
+        //   s: 'ETHBTC',
+        //   k: {
+        //     t: 1579482900000,
+        //     T: 1579482959999,
+        //     s: 'ETHBTC',
+        //     i: '1m',
+        //     f: 158411535,
+        //     L: 158411550,
+        //     o: '0.01913200',
+        //     c: '0.01913500',
+        //     h: '0.01913700',
+        //     l: '0.01913200',
+        //     v: '5.08400000',
+        //     n: 16,
+        //     x: false,
+        //     q: '0.09728060',
+        //     V: '3.30200000',
+        //     Q: '0.06318500',
+        //     B: '0'
+        //   }
+        // }
+        const lowercaseMarketId = this.safeStringLower (message, 's');
+        const event = this.safeString (message, 'e');
+        const kline = this.safeValue (message, 'k');
+        const interval = this.safeString (kline, 'i');
+        const messageHash = lowercaseMarketId + '@' + event + '_' + interval;
+        const parsed = this.parseWsOHLCV (message, undefined, undefined, undefined, undefined);
+        client.resolve (parsed, messageHash);
+    }
+
+    parseWsOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+        const kline = this.safeValue (ohlcv, 'k');
+        const timestamp = this.safeInteger (kline, 't');
+        const open = this.safeFloat (kline, 'o');
+        const high = this.safeFloat (kline, 'h');
+        const low = this.safeFloat (kline, 'l');
+        const close = this.safeFloat (kline, 'c');
+        const volume = this.safeFloat (kline, 'v');
+        return [
+            timestamp,
+            open,
+            high,
+            low,
+            close,
+            volume,
+        ];
+    }
+
+    async watchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const url = this.urls['api']['ws'];
+        const market = this.market (symbol);
+        const marketId = market['lowercaseId'];
+        const name = 'ticker';
+        const messageHash = marketId + '@' + name;
+        const requestId = this.nonce ();
+        const request = {
+            'method': 'SUBSCRIBE',
+            'params': [
+                messageHash,
+            ],
+            'id': requestId,
+        };
+        const subscribe = {
+            'id': requestId,
+        };
+        return await this.watch (url, messageHash, request, messageHash, subscribe);
+    }
+
+    handleTicker (client, message) {
+        // 24hr rolling window ticker statistics for a single symbol. These are NOT the statistics of the UTC day, but a 24hr rolling window for the previous 24hrs.
+        //
+        // Update Speed: 1000ms
+        // {
+        //   e: '24hrTicker',
+        //   E: 1579485598569,
+        //   s: 'ETHBTC',
+        //   p: '-0.00004000',
+        //   P: '-0.209',
+        //   w: '0.01920495',
+        //   x: '0.01916500',
+        //   c: '0.01912500',
+        //   Q: '0.10400000',
+        //   b: '0.01912200',
+        //   B: '4.10400000',
+        //   a: '0.01912500',
+        //   A: '0.00100000',
+        //   o: '0.01916500',
+        //   h: '0.01956500',
+        //   l: '0.01887700',
+        //   v: '173518.11900000',
+        //   q: '3332.40703994',
+        //   O: 1579399197842,
+        //   C: 1579485597842,
+        //   F: 158251292,
+        //   L: 158414513,
+        //   n: 163222
+        // }
+        const event = 'ticker'; // message['e'] === 24hrTicker
+        const marketId = this.safeStringLower (message, 's');
+        const messageHash = marketId + '@' + event;
+        const parsed = this.parseTicker (message, undefined);
+        client.resolve (parsed, messageHash);
+    }
+
     handleMessage (client, message) {
         const methods = {
             'depthUpdate': this.handleOrderBook,
+            'trade': this.handleTrade,
+            'kline': this.handleOHCLV,
+            '24hrTicker': this.handleTicker,
         };
         const event = this.safeString (message, 'e');
         const method = this.safeValue (methods, event);
@@ -243,4 +429,3 @@ module.exports = class binance extends ccxt.binance {
         }
     }
 };
-
