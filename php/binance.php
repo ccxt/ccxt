@@ -1041,7 +1041,6 @@ class binance extends Exchange {
         }
         $request = array(
             'symbol' => $market['id'],
-            'quantity' => $this->amount_to_precision($symbol, $amount),
             'type' => $uppercaseType,
             'side' => strtoupper($side),
         );
