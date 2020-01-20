@@ -154,8 +154,8 @@ module.exports = class bhex extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
-                'price': Math.floor (Math.log10 (1 / this.safeFloat (market, 'baseAssetPrecision'))),
-                'amount': Math.floor (Math.log10 (1 / this.safeFloat (market, 'quotePrecision'))),
+                'price': Math.floor (Math.log10 (1 / this.safeFloat (market, 'quotePrecision'))),
+                'amount': Math.floor (Math.log10 (1 / this.safeFloat (market, 'baseAssetPrecision'))),
             };
             // get limits
             let amountMin = undefined;
