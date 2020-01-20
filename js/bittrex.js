@@ -338,6 +338,15 @@ module.exports = class bittrex extends ccxt.bittrex {
         return message;
     }
 
+    async fetchBalanceSnapshot (client, message, subscription) {
+        // console.log (new Date (), 'fetchBalanceSnapshot');
+        // todo: this is a synch blocking call in ccxt.php - make it async
+        const response = await this.fetchBalance ();
+        this.balance = this.deepExtend (this.balance, response);
+        // const messageHash = this.safeString (subscription, 'messageHash');
+        client.resolve (this.balance, 'balance');
+    }
+
     async fetchBalanceState (params = {}) {
         // console.log (new Date (), 'fetchBalanceState');
         await this.loadMarkets ();
@@ -399,11 +408,19 @@ module.exports = class bittrex extends ccxt.bittrex {
         //     2020-01-20T16:20:57.035Z onMessage { R: true, I: '1579537256217' }
         //     2020-01-20T16:20:57.037Z sending { H: 'c2', M: 'QueryBalanceState', A: [], I: '1579537257037' }
         //     2020-01-20T16:20:57.772Z onMessage { I: '1579537257037' }
+        //                                                  ↑
+        //                                                  |
+        //                       :( no 'R' here ------------+
         //
         // The last message in the sequence above has no resulting 'R' field
         // which is present in the WebInspector and should contain the snapshot.
+        // Since the balance snapshot is returned and observed in WebInspector
+        // this is not caused by low balances. Apparently, a 'Query*' over WS
+        // requires a different authentication sequence that involves
+        // headers and cookies from reCaptcha and Cloudflare.
         //
         // console.log (new Date (), 'queryBalanceState');
+        //
         await this.loadMarkets ();
         const connectionToken = this.safeString (negotiation['response'], 'ConnectionToken');
         const query = this.extend (negotiation['request'], {
@@ -555,9 +572,10 @@ module.exports = class bittrex extends ccxt.bittrex {
 
     handleSubscribeToUserDeltas (client, message, subscription) {
         // console.log (new Date (), 'handleSubscribeToUserDeltas');
-        const params = this.safeValue (subscription, 'params');
         // fetch the snapshot in a separate async call
-        this.spawn (this.fetchBalanceState, params);
+        this.spawn (this.fetchBalanceSnapshot, client, message, subscription);
+        // const params = this.safeValue (subscription, 'params');
+        // this.spawn (this.fetchBalanceState, params);
     }
 
     handleSubscribeToExchangeDeltas (client, message, subscription) {
@@ -614,6 +632,8 @@ module.exports = class bittrex extends ccxt.bittrex {
     handleMessage (client, message) {
         const methods = {
             'uE': this.handleExchangeDelta,
+            'uO': this.handleOrderDelta,
+            'uB': this.handleBalanceDelta,
         };
         const M = this.safeValue (message, 'M', []);
         for (let i = 0; i < M.length; i++) {
