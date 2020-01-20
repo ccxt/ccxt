@@ -982,6 +982,16 @@ class binance(Exchange):
             'type': uppercaseType,
             'side': side.upper(),
         }
+        if type == 'market':
+            quoteOrderQty = self.safe_float(params, 'quoteOrderQty')
+            if quoteOrderQty is not None:
+                request['quoteOrderQty'] = self.cost_to_precision(symbol, quoteOrderQty)
+            elif price is not None:
+                request['quoteOrderQty'] = self.cost_to_precision(symbol, amount * price)
+            else:
+                request['quantity'] = self.amount_to_precision(symbol, amount)
+        else:
+            request['quantity'] = self.amount_to_precision(symbol, amount)
         if market['spot']:
             request['newOrderRespType'] = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         timeInForceIsRequired = False
