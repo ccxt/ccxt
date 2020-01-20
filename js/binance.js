@@ -1036,7 +1036,6 @@ module.exports = class binance extends Exchange {
         }
         const request = {
             'symbol': market['id'],
-            'quantity': this.amountToPrecision (symbol, amount),
             'type': uppercaseType,
             'side': side.toUpperCase (),
         };
