@@ -8,7 +8,7 @@ __version__ = '1.0.0'
 
 from zlib import decompress, MAX_WBITS
 from base64 import b64decode
-from asyncio import ensure_future, isfuture
+from asyncio import ensure_future
 from ccxtpro.base.aiohttp_client import AiohttpClient
 from ccxt.async_support import Exchange as BaseExchange
 from ccxt import NotSupported
@@ -68,10 +68,7 @@ class Exchange(BaseExchange):
         return method(await future, *args)
 
     async def afterAsync(self, future, method, *args):
-        result = await future
-        # if isfuture(result):
-        #     result = result.result()
-        return await method(result.result(), *args)
+        return await method(await future, *args)
 
     async def afterDropped(self, future, method, *args):
         if future:
