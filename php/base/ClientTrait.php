@@ -44,14 +44,6 @@ trait ClientTrait {
         return $this->clients[$url];
     }
 
-    public function call($method, ... $args) {
-        return $method(... $args);
-    }
-
-    public function callAsync($method, ... $args) {
-        return $method(... $args);
-    }
-
     // the ellipsis packing/unpacking requires PHP 5.6+ :(
     public function after($future, callable $method, ... $args) {
         return $future->then (function($result) use ($method, $args) {
@@ -59,13 +51,24 @@ trait ClientTrait {
         });
     }
 
+    // the ellipsis packing/unpacking requires PHP 5.6+ :(
+    public function afterDropped($future, callable $method, ... $args) {
+        if ($future) {
+            return $future->then (function($result) use ($method, $args) {
+                return $method(... $args);
+            });
+        } else {
+            return $method(... $args);
+        }
+    }
+
+
     public function spawn($method, ... $args) {
         $this->loop->futureTick(function () use ($method, $args) {
             try {
                 $method(... $args);
             } catch (\Exception $e) {
                 // todo: handle spawned errors
-                throw $e;
             }
         });
     }

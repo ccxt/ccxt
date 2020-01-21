@@ -59,12 +59,6 @@ class Exchange(BaseExchange):
             self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, self.streaming)
         return self.clients[url]
 
-    def call(self, method, *args):
-        return method(*args)
-
-    async def callAsync(self, method, *args):
-        return await method(*args)
-
     async def after(self, future, method, *args):
         result = await future
         # method is bound to self instance
@@ -73,6 +67,11 @@ class Exchange(BaseExchange):
     async def afterAsync(self, future, method, *args):
         result = await future
         return await method(result, *args)
+
+    async def afterDropped(self, future, method, *args):
+        if future:
+            await future
+        return await method(*args)
 
     async def spawnAsync(self, method, *args):
         try:
@@ -100,6 +99,7 @@ class Exchange(BaseExchange):
         # todo: calculate the backoff using the clients cache
         backoff_delay = 0
         try:
+            self.open()
             await client.connect(self.session, backoff_delay)
             if message and (subscribe_hash not in client.subscriptions):
                 client.subscriptions[subscribe_hash] = subscription or True
