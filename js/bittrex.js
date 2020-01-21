@@ -126,7 +126,7 @@ module.exports = class bittrex extends ccxt.bittrex {
             };
             this.spawn (this.watch, url, requestId, request, method, subscription);
         }
-        return await future;
+        return future;
     }
 
     handleGetAuthContext (client, message, subscription) {

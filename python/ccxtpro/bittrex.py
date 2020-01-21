@@ -123,7 +123,7 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
                 'future': future,
             }
             self.spawn(self.watch, url, requestId, request, method, subscription)
-        return await future
+        return future
 
     def handle_get_auth_context(self, client, message, subscription):
         #

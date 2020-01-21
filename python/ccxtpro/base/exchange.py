@@ -69,9 +69,9 @@ class Exchange(BaseExchange):
 
     async def afterAsync(self, future, method, *args):
         result = await future
-        if isfuture(result):
-            result = result.result()
-        return await method(result, *args)
+        # if isfuture(result):
+        #     result = result.result()
+        return await method(result.result(), *args)
 
     async def afterDropped(self, future, method, *args):
         if future:
