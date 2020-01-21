@@ -3,14 +3,17 @@
 error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set ('UTC');
 
-require_once '../../vendor/autoload.php';
-
-$argv = array('lol', 'gateio');
+require_once 'vendor/autoload.php';
 
 if (count($argv) < 2) {
     echo "Exchange id not specified\n";
     exit();
 }
+
+$args = array_slice($argv, 2);
+$verbose = count(array_filter($args, function ($option) {
+    return strstr ($option, '--verbose') !== false;
+})) > 0;
 
 $loop = \React\EventLoop\Factory::create();
 
@@ -19,7 +22,7 @@ $exchange_class = '\\ccxtpro\\' . $id;
 $exchange = new $exchange_class(array(
     'enableRateLimit' => true,
     'loop' => $loop,
-    'verbose' => true,
+    'verbose' => $verbose,
     // 'urls' => array(
     //     'api' => array(
     //         'ws' => 'ws://127.0.0.1:8080',
@@ -36,6 +39,30 @@ $keys_file = file_exists($keys_local) ? $keys_local : $keys_global;
 $config = json_decode(file_get_contents($keys_file), true);
 
 $symbol = 'ETH/BTC';
+$delay = 5000;
+
+$tick = function ($method, ... $args) use ($loop, &$tick, $delay) {
+    $promise = $method(... $args);
+    $promise->then(function ($result) use ($tick, $method, $args) {
+        echo date('c '),
+            count($result['asks']), ' asks [', $result['asks'][0][0], ', ', $result['asks'][0][1], '] ',
+            count($result['bids']), ' bids [', $result['bids'][0][0], ', ', $result['bids'][0][1], ']', "\n";
+        // exit();
+        var_dump(json_encode($result));
+        $tick($method, ...$args);
+    }, function ($error) use ($loop, $delay, $tick, $method, $args) {
+        echo date('c'), ' ERROR ', $error->getMessage (), "\n";
+        var_dump($error);
+        // delay 1 sec before repeating
+        $loop->addTimer($delay, function () {
+            $tick($method, ...$args);
+        });
+    });
+};
+
+$tick(array($exchange, 'watch_order_book'), $symbol);
+$loop->run ();
+exit();
 
 function subscribe ($exchange, $resolved, $rejected, ...$args) {
     $promise = $exchange->watch_order_book(...$args);
