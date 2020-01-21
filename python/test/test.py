@@ -3,12 +3,12 @@
 # import aiohttp
 import argparse
 import asyncio
-# import json
+import json
 import os
 import sys
 # import time
 # from traceback import format_tb
-# from pprint import pprint
+from pprint import pprint
 # from ccxt import NetworkError, RequestTimeout
 
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -59,9 +59,26 @@ if 'site-packages' in os.path.dirname(ccxtpro.__file__):
 
 # -----------------------------------------------------------------------------
 
+# def hide_zero_balances(balance):
+
+
+# prefer local testing keys to global keys
+keys_folder = os.path.dirname(root)
+keys_global = os.path.join(keys_folder, 'keys.json')
+keys_local = os.path.join(keys_folder, 'keys.local.json')
+keys_file = keys_local if os.path.exists(keys_local) else keys_global
+
+# load the api keys from config
+with open(keys_file) as file:
+    config = json.load(file)
+
+
+# -----------------------------------------------------------------------------
+
 async def test():
     symbol = 'ETH/BTC'
-    exchange = getattr(ccxtpro, argv.exchange_id)({
+    keys = config.get(argv.exchange_id, {})
+    exchange = getattr(ccxtpro, argv.exchange_id)(Exchange.deep_extend({
         'enableRateLimit': True,
         'urls': {
             # 'api': {
@@ -69,9 +86,18 @@ async def test():
             # },
         },
         'verbose': argv.verbose,
-    })
+    }, keys))
     while True:
         try:
+            # this is a dirty wip
+            # -----------------------------------------------------------------
+            # balance
+            response = await exchange.watch_balance()
+            pprint(response)
+            print('Done.')
+            sys.exit()
+            # -----------------------------------------------------------------
+            # orderbook
             response = await exchange.watch_order_book(symbol)
             print(Exchange.iso8601(Exchange.milliseconds()), len(response['asks']), 'asks', response['asks'][0], len(response['bids']), 'bids', response['bids'][0])
         except Exception as e:
