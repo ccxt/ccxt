@@ -68,6 +68,7 @@ async def test():
             #     'ws': 'ws://127.0.0.1:8080',
             # },
         },
+        'verbose': argv.verbose,
     })
     while True:
         try:

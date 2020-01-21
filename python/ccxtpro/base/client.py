@@ -23,7 +23,7 @@ class Client(object):
     heartbeat = True
     maxPingPongMisses = 2.0  # how many missed pongs to raise a timeout
     lastPong = None
-    ping = None
+    ping = None  # ping-function if defined
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
         defaults = {
@@ -33,6 +33,7 @@ class Client(object):
             'on_message_callback': on_message_callback,
             'on_error_callback': on_error_callback,
             'on_close_callback': on_close_callback,
+            'ping': None,  # ping-function if defined
             'connectionStarted': None,  # initiation timestamp, ms
             'connectionEstablished': None,  # success timestamp, ms
             'connectionTimeout': 10000,  # milliseconds, false to disable
@@ -101,7 +102,7 @@ class Client(object):
                 # print(Exchange.iso8601(Exchange.milliseconds()), 'received', message)
                 self.handle_message(message)
             except Exception as e:
-                error = NetworkError(e)
+                error = NetworkError(str(e))
                 print(Exchange.iso8601(Exchange.milliseconds()), 'receive_loop', 'Exception', error)
                 self.reset(error)
 

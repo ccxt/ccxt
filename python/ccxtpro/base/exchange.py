@@ -8,7 +8,7 @@ __version__ = '1.0.0'
 
 from zlib import decompress, MAX_WBITS
 from base64 import b64decode
-from asyncio import ensure_future
+from asyncio import ensure_future, isfuture
 from ccxtpro.base.aiohttp_client import AiohttpClient
 from ccxt.async_support import Exchange as BaseExchange
 from ccxt import NotSupported
@@ -57,16 +57,20 @@ class Exchange(BaseExchange):
             on_error = self.on_error
             on_close = self.on_close
             # decide client type here: aiohttp ws / websockets / signalr / socketio
-            self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, self.streaming)
+            options = self.extend(self.streaming, {
+                'ping': getattr(self, 'ping', None)
+            })
+            self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, options)
         return self.clients[url]
 
     async def after(self, future, method, *args):
-        result = await future
         # method is bound to self instance
-        return method(result, *args)
+        return method(await future, *args)
 
     async def afterAsync(self, future, method, *args):
         result = await future
+        if isfuture(result):
+            result = result.result()
         return await method(result, *args)
 
     async def afterDropped(self, future, method, *args):
