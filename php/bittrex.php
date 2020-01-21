@@ -97,6 +97,7 @@ class bittrex extends \ccxt\bittrex {
     }
 
     public function authenticate ($params = array ()) {
+        $this->check_required_credentials();
         $future = $this->negotiate ();
         return $this->afterAsync ($future, array($this, 'get_auth_context'), $params);
     }
@@ -141,6 +142,7 @@ class bittrex extends \ccxt\bittrex {
         //         'I' => '1579474528471'
         //     }
         //
+        // var_dump ($this->iso8601 ($this->milliseconds ()), 'handleGetAuthContext');
         $negotiation = $this->safe_value($subscription, 'negotiation', array());
         $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');
         $query = array_merge($negotiation['request'], array(
@@ -219,6 +221,7 @@ class bittrex extends \ccxt\bittrex {
     }
 
     public function subscribe_to_exchange_deltas ($negotiation, $symbol, $limit = null, $params = array ()) {
+        // var_dump ($negotiation);
         $this->load_markets();
         $market = $this->market ($symbol);
         $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');

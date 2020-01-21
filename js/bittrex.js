@@ -79,7 +79,7 @@ module.exports = class bittrex extends ccxt.bittrex {
             };
             client.resolve (result, messageHash);
         }
-        return future;
+        return await future;
     }
 
     async start (negotiation, params = {}) {
@@ -92,6 +92,7 @@ module.exports = class bittrex extends ccxt.bittrex {
     }
 
     async authenticate (params = {}) {
+        this.checkRequiredCredentials ();
         const future = this.negotiate ();
         return await this.afterAsync (future, this.getAuthContext, params);
     }
@@ -126,7 +127,7 @@ module.exports = class bittrex extends ccxt.bittrex {
             };
             this.spawn (this.watch, url, requestId, request, method, subscription);
         }
-        return future;
+        return await future;
     }
 
     handleGetAuthContext (client, message, subscription) {
@@ -136,6 +137,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         //         'I': '1579474528471'
         //     }
         //
+        // console.log (this.iso8601 (this.milliseconds ()), 'handleGetAuthContext');
         const negotiation = this.safeValue (subscription, 'negotiation', {});
         const connectionToken = this.safeString (negotiation['response'], 'ConnectionToken');
         const query = this.extend (negotiation['request'], {
@@ -214,6 +216,7 @@ module.exports = class bittrex extends ccxt.bittrex {
     }
 
     async subscribeToExchangeDeltas (negotiation, symbol, limit = undefined, params = {}) {
+        // console.log (negotiation);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const connectionToken = this.safeString (negotiation['response'], 'ConnectionToken');

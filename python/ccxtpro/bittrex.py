@@ -80,7 +80,7 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
                 'response': response,
             }
             client.resolve(result, messageHash)
-        return future
+        return await future
 
     async def start(self, negotiation, params={}):
         connectionToken = self.safe_string(negotiation['response'], 'ConnectionToken')
@@ -91,6 +91,7 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
         return response
 
     async def authenticate(self, params={}):
+        self.check_required_credentials()
         future = self.negotiate()
         return await self.afterAsync(future, self.get_auth_context, params)
 
@@ -123,7 +124,7 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
                 'future': future,
             }
             self.spawn(self.watch, url, requestId, request, method, subscription)
-        return future
+        return await future
 
     def handle_get_auth_context(self, client, message, subscription):
         #
@@ -132,6 +133,7 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
         #         'I': '1579474528471'
         #     }
         #
+        # print(self.iso8601(self.milliseconds()), 'handleGetAuthContext')
         negotiation = self.safe_value(subscription, 'negotiation', {})
         connectionToken = self.safe_string(negotiation['response'], 'ConnectionToken')
         query = self.extend(negotiation['request'], {
@@ -204,6 +206,7 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
         return await self.afterAsync(future, self.subscribe_to_user_deltas, params)
 
     async def subscribe_to_exchange_deltas(self, negotiation, symbol, limit=None, params={}):
+        # print(negotiation)
         await self.load_markets()
         market = self.market(symbol)
         connectionToken = self.safe_string(negotiation['response'], 'ConnectionToken')
