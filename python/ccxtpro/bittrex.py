@@ -49,7 +49,7 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
             'connectionData': self.json(hubs),
             'clientProtocol': 1.5,
             '_': ms,  # no cache
-            'tid': ms % 10,
+            'tid': self.sum(ms % 10, 1),
         }, params)
 
     async def negotiate(self, params={}):
@@ -123,8 +123,11 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
                 'negotiation': negotiation,
                 'future': future,
             }
-            self.spawn(self.watch, url, requestId, request, method, subscription)
+            self.spawn(self.watch_get_auth_context, url, requestId, request, method, subscription)
         return await future
+
+    async def watch_get_auth_context(self, url, requestId, request, method, subscription):
+        return await self.watch(url, requestId, request, method, subscription)
 
     def handle_get_auth_context(self, client, message, subscription):
         #
@@ -156,8 +159,11 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
             'method': self.handle_authenticate,
             'negotiation': negotiation,
         }
-        self.spawn(self.watch, url, requestId, request, requestId, authenticateSubscription)
+        self.spawn(self.watch_authenticate, url, requestId, request, requestId, authenticateSubscription)
         return message
+
+    async def watch_authenticate(self, url, requestId, request, method, subscription):
+        return await self.watch(url, requestId, request, method, subscription)
 
     def handle_authenticate(self, client, message, subscription):
         #
@@ -606,9 +612,12 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
     def handle_system_status(self, client, message):
         # send signalR protocol start() call
         future = self.negotiate()
-        self.spawn(self.afterAsync, future, self.start)
+        self.spawn(self.fetch_start, future, self.start)
         # print(new Date(), 'handleSystemStatus', message)
         return message
+
+    async def fetch_start(self, future, method):
+        return await self.afterAsync(future, method)
 
     def handle_heartbeat(self, client, message):
         #

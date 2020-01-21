@@ -125,9 +125,13 @@ module.exports = class bittrex extends ccxt.bittrex {
                 'negotiation': negotiation,
                 'future': future,
             };
-            this.spawn (this.watch, url, requestId, request, method, subscription);
+            this.spawn (this.watchGetAuthContext, url, requestId, request, method, subscription);
         }
         return await future;
+    }
+
+    async watchGetAuthContext (url, requestId, request, method, subscription) {
+        return await this.watch (url, requestId, request, method, subscription);
     }
 
     handleGetAuthContext (client, message, subscription) {
@@ -160,8 +164,12 @@ module.exports = class bittrex extends ccxt.bittrex {
             'method': this.handleAuthenticate,
             'negotiation': negotiation,
         };
-        this.spawn (this.watch, url, requestId, request, requestId, authenticateSubscription);
+        this.spawn (this.watchAuthenticate, url, requestId, request, requestId, authenticateSubscription);
         return message;
+    }
+
+    async watchAuthenticate (url, requestId, request, method, subscription) {
+        return await this.watch (url, requestId, request, method, subscription);
     }
 
     handleAuthenticate (client, message, subscription) {
@@ -645,9 +653,13 @@ module.exports = class bittrex extends ccxt.bittrex {
     handleSystemStatus (client, message) {
         // send signalR protocol start() call
         const future = this.negotiate ();
-        this.spawn (this.afterAsync, future, this.start);
+        this.spawn (this.fetchStart, future, this.start);
         // console.log (new Date (), 'handleSystemStatus', message);
         return message;
+    }
+
+    async fetchStart (future, method) {
+        return await this.afterAsync (future, method);
     }
 
     handleHeartbeat (client, message) {

@@ -51,7 +51,7 @@ class bittrex extends \ccxt\bittrex {
             'connectionData' => $this->json ($hubs),
             'clientProtocol' => 1.5,
             '_' => $ms, // no cache
-            'tid' => fmod($ms, 10,)
+            'tid' => $this->sum (fmod($ms, 10), 1),
         ), $params);
     }
 
@@ -130,9 +130,13 @@ class bittrex extends \ccxt\bittrex {
                 'negotiation' => $negotiation,
                 'future' => $future,
             );
-            $this->spawn ($this->watch, $url, $requestId, $request, $method, $subscription);
+            $this->spawn (array($this, 'watch_get_auth_context'), $url, $requestId, $request, $method, $subscription);
         }
         return $future;
+    }
+
+    public function watch_get_auth_context ($url, $requestId, $request, $method, $subscription) {
+        return $this->watch ($url, $requestId, $request, $method, $subscription);
     }
 
     public function handle_get_auth_context ($client, $message, $subscription) {
@@ -165,8 +169,12 @@ class bittrex extends \ccxt\bittrex {
             'method' => array($this, 'handle_authenticate'),
             'negotiation' => $negotiation,
         );
-        $this->spawn ($this->watch, $url, $requestId, $request, $requestId, $authenticateSubscription);
+        $this->spawn (array($this, 'watch_authenticate'), $url, $requestId, $request, $requestId, $authenticateSubscription);
         return $message;
+    }
+
+    public function watch_authenticate ($url, $requestId, $request, $method, $subscription) {
+        return $this->watch ($url, $requestId, $request, $method, $subscription);
     }
 
     public function handle_authenticate ($client, $message, $subscription) {
@@ -227,7 +235,7 @@ class bittrex extends \ccxt\bittrex {
         $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');
         $query = array_merge($negotiation['request'], array(
             'connectionToken' => $connectionToken,
-            // 'tid' => $this->milliseconds (fmod(), 10,)
+            // 'tid' => $this->milliseconds (fmod(), 10),
         ));
         $url = $this->urls['api']['ws'] . '?' . $this->urlencode ($query);
         $requestId = (string) $this->milliseconds ();
@@ -650,9 +658,13 @@ class bittrex extends \ccxt\bittrex {
     public function handle_system_status ($client, $message) {
         // send signalR protocol start() call
         $future = $this->negotiate ();
-        $this->spawn ($this->afterAsync, $future, array($this, 'start'));
+        $this->spawn (array($this, 'fetch_start'), $future, array($this, 'start'));
         // var_dump (new Date (), 'handleSystemStatus', $message);
         return $message;
+    }
+
+    public function fetch_start ($future, $method) {
+        return $this->afterAsync ($future, $method);
     }
 
     public function handle_heartbeat ($client, $message) {
