@@ -79,7 +79,7 @@ module.exports = class bittrex extends ccxt.bittrex {
             };
             client.resolve (result, messageHash);
         }
-        return await future;
+        return future;
     }
 
     async start (negotiation, params = {}) {
