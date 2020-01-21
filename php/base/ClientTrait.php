@@ -14,6 +14,10 @@ trait ClientTrait {
     );
 
     public $loop = null; // reactphp's loop
+    
+    public function inflate($string) {
+        return zlib_decode(base64_decode($string));
+    }
 
     public function order_book ($snapshot = array(), $depth = PHP_INT_MAX) {
         return new OrderBook($snapshot, $depth);
