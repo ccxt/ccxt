@@ -69,6 +69,10 @@ class Exchange(BaseExchange):
         result = await future
         # method is bound to self instance
         return method(result, *args)
+    
+    async def afterAsync(self, future, method, *args):
+        result = await future
+        return await method(result, *args)
 
     async def spawnAsync(self, method, *args):
         try:
