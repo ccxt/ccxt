@@ -799,6 +799,9 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderId = parseInt (id);
