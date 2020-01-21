@@ -100,7 +100,7 @@ class Client(object):
             try:
                 message = await self.receive()
                 # print(Exchange.iso8601(Exchange.milliseconds()), 'received', message)
-                await self.handle_message(message)
+                self.handle_message(message)
             except Exception as e:
                 error = NetworkError(str(e))
                 print(Exchange.iso8601(Exchange.milliseconds()), 'receive_loop', 'Exception', error)

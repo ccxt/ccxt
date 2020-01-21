@@ -3,61 +3,61 @@
 error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set ('UTC');
 
-require_once 'vendor/autoload.php';
+require_once '../../vendor/autoload.php';
+
+$argv = array('lol', 'gateio');
 
 if (count($argv) < 2) {
     echo "Exchange id not specified\n";
     exit();
-} else {
-
-    $loop = \React\EventLoop\Factory::create();
-
-    $id = $argv[1];
-    $exchange_class = '\\ccxtpro\\' . $id;
-    $exchange = new $exchange_class(array(
-        'enableRateLimit' => true,
-        'loop' => $loop,
-        'verbose' => true,
-        // 'urls' => array(
-        //     'api' => array(
-        //         'ws' => 'ws://127.0.0.1:8080',
-        //     ),
-        // ),
-    ));
-
-    echo 'Testing ', $exchange->id, "\n";
-
-    $keys_global = './keys.json';
-    $keys_local = './keys.local.json';
-    $keys_file = file_exists($keys_local) ? $keys_local : $keys_global;
-
-    $config = json_decode(file_get_contents($keys_file), true);
-
-    $symbol = 'ETH/BTC';
-
-    $tick = null;
-
-    //*
-    $tick = function () use ($loop, $exchange, $symbol, &$tick) {
-
-        $promise = $exchange->watch_order_book($symbol);
-        $promise->then(
-            function ($response) use ($loop, $tick) {
-                echo date('c '), count($response['asks']), ' asks [', $response['asks'][0][0], ', ', $response['asks'][0][1], '] ', count($response['bids']), ' bids [', $response['bids'][0][0], ', ', $response['bids'][0][1], ']', "\n";
-                // exit();
-                $loop->futureTick($tick); // repeat immediately
-            },
-            function ($error) use ($loop, $tick) {
-                echo date('c'), ' ERROR ', $error->getMessage (), "\n";
-                $loop->addTimer(1, $tick); // delay 1 sec before repeating
-            }
-        );
-    };
-
-    $loop->futureTick($tick);
-    $loop->run ();
-
 }
+
+$loop = \React\EventLoop\Factory::create();
+
+$id = $argv[1];
+$exchange_class = '\\ccxtpro\\' . $id;
+$exchange = new $exchange_class(array(
+    'enableRateLimit' => true,
+    'loop' => $loop,
+    'verbose' => true,
+    // 'urls' => array(
+    //     'api' => array(
+    //         'ws' => 'ws://127.0.0.1:8080',
+    //     ),
+    // ),
+));
+
+echo 'Testing ', $exchange->id, "\n";
+
+$keys_global = './keys.json';
+$keys_local = './keys.local.json';
+$keys_file = file_exists($keys_local) ? $keys_local : $keys_global;
+
+$config = json_decode(file_get_contents($keys_file), true);
+
+$symbol = 'ETH/BTC';
+
+function subscribe ($exchange, $resolved, $rejected, ...$args) {
+    $promise = $exchange->watch_order_book(...$args);
+    $promise->then(function ($result) use ($exchange, $resolved, $rejected, $args) {
+        $resolved($result);
+        subscribe($exchange, $resolved, $rejected, ...$args);
+    }, $rejected);
+}
+
+subscribe(
+    $exchange,
+    function ($result) {
+        var_dump(json_encode($result));
+    },
+    function ($error) {
+        echo "error\n";
+        var_dump($error);
+    },
+    $symbol,
+);
+
+$loop->run ();
 
 //*/
 /*

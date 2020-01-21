@@ -8,7 +8,7 @@ __version__ = '1.0.0'
 
 from zlib import decompress, MAX_WBITS
 from base64 import b64decode
-from asyncio import ensure_future
+from asyncio import ensure_future, isfuture
 from ccxtpro.base.aiohttp_client import AiohttpClient
 from ccxt.async_support import Exchange as BaseExchange
 from ccxt import NotSupported
@@ -63,18 +63,20 @@ class Exchange(BaseExchange):
             self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, options)
         return self.clients[url]
 
-    def call(self, method, *args):
-        return method(*args)
-
-    async def callAsync(self, method, *args):
-        return await method(*args)
-
     async def after(self, future, method, *args):
         # method is bound to self instance
         return method(await future, *args)
 
     async def afterAsync(self, future, method, *args):
-        return await method((await future).result(), *args)
+        result = await future
+        if isfuture(result):
+            result = result.result()
+        return await method(result, *args)
+
+    async def afterDropped(self, future, method, *args):
+        if future:
+            await future
+        return await method(*args)
 
     async def spawnAsync(self, method, *args):
         try:
@@ -102,6 +104,7 @@ class Exchange(BaseExchange):
         # todo: calculate the backoff using the clients cache
         backoff_delay = 0
         try:
+            self.open()
             await client.connect(self.session, backoff_delay)
             if message and (subscribe_hash not in client.subscriptions):
                 client.subscriptions[subscribe_hash] = subscription or True
