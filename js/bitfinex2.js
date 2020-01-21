@@ -107,8 +107,10 @@ module.exports = class bitfinex2 extends bitfinex {
                     'post': [
                         'auth/r/wallets',
                         'auth/r/orders/{symbol}',
+                        'auth/r/orders',
                         'auth/r/orders/{symbol}/new',
                         'auth/r/orders/{symbol}/hist',
+                        'auth/r/orders/hist',
                         'auth/r/order/{symbol}:{id}/trades',
                         'auth/w/order/submit',
                         'auth/w/order/cancel',
@@ -749,9 +751,6 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
-        }
         const orderId = parseInt (id);
         const filter = this.extend ({ 'id': [orderId] }, params);
         const openOrders = await this.fetchOpenOrders (symbol, undefined, undefined, filter);
@@ -767,23 +766,36 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.privatePostAuthROrdersSymbol (this.extend (request, params));
-        return this.parseOrders (response, market, since, limit);
+        if (symbol === undefined) {
+            const request = {};
+            const response = await this.privatePostAuthROrders (this.extend (request, params));
+            return this.parseOrders (response, undefined, since, limit);
+        } else {
+            const market = this.market (symbol);
+            const request = {
+                'symbol': market['id'],
+            };
+            const response = await this.privatePostAuthROrdersSymbol (this.extend (request, params));
+            return this.parseOrders (response, market, since, limit);
+        }
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        // Returns the most recent closed or canceled orders up to circa two weeks ago
-        const response = await this.privatePostAuthROrdersSymbolHist (this.extend (request, params));
-        return this.parseOrders (response, market, since, limit);
+        if (symbol === undefined) {
+            const request = {};
+            // Returns the most recent closed or canceled orders up to circa two weeks ago
+            const response = await this.privatePostAuthROrdersHist (this.extend (request, params));
+            return this.parseOrders (response, undefined, since, limit);
+        } else {
+            const market = this.market (symbol);
+            const request = {
+                'symbol': market['id'],
+            };
+            // Returns the most recent closed or canceled orders up to circa two weeks ago
+            const response = await this.privatePostAuthROrdersSymbolHist (this.extend (request, params));
+            return this.parseOrders (response, market, since, limit);
+        }
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
