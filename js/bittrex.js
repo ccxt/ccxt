@@ -673,7 +673,6 @@ module.exports = class bittrex extends ccxt.bittrex {
             const method = this.safeValue (methods, methodType);
             if (method !== undefined) {
                 const A = this.safeValue (M[i], 'A', []);
-                console.log (A);
                 for (let k = 0; k < A.length; k++) {
                     const update = JSON.parse (this.inflate (A[k]));
                     method.call (this, client, update);
