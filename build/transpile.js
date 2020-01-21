@@ -21,7 +21,6 @@ class CCXTProTranspiler extends Transpiler {
 
     getCommonRegexes () {
         return super.getCommonRegexes ().concat ([
-            [ /\.callAsync\s/g, '.call_async' ],
             [ /\.orderBook\s/g, '.order_book' ],
             [ /\.limitedOrderBook\s/g, '.limited_order_book' ],
             [ /\.indexedOrderBook\s/g, '.indexed_order_book' ],
