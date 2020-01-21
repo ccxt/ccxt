@@ -46,7 +46,7 @@ module.exports = class bittrex extends ccxt.bittrex {
             'connectionData': this.json (hubs),
             'clientProtocol': 1.5,
             '_': ms, // no cache
-            'tid': ms % 10,
+            'tid': this.sum (ms % 10, 1),
         }, params);
     }
 
