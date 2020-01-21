@@ -358,7 +358,7 @@ module.exports = class gateio extends ccxt.gateio {
         }
     }
 
-    handleBalanceSubscription (client, message, subcription) {
+    handleBalanceSubscription (client, message, subscription) {
         this.spawn (this.fetchBalanceSnapshot);
     }
 
