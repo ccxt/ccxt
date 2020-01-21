@@ -14,7 +14,7 @@ trait ClientTrait {
     );
 
     public $loop = null; // reactphp's loop
-    
+
     public function inflate($string) {
         return zlib_decode(base64_decode($string));
     }
@@ -46,22 +46,36 @@ trait ClientTrait {
 
     // the ellipsis packing/unpacking requires PHP 5.6+ :(
     public function after($future, callable $method, ... $args) {
-        return $future->then (function($result) use ($method, $args) {
+        return $future->then(function($result) use ($method, $args) {
             return $method($result, ... $args);
         });
+    }
+
+    public function afterAsync($future, callable $method, ... $args) {
+        $await = new Future();
+        $future->then(function($result) use ($method, $args, $await) {
+            return $method($result, ... $args)->then(
+                function($result) use ($await) {
+                    $await->resolve($result);
+                },
+                function($error) use ($await) {
+                    $await->reject($error);
+                }
+            );
+        });
+        return $await;
     }
 
     // the ellipsis packing/unpacking requires PHP 5.6+ :(
     public function afterDropped($future, callable $method, ... $args) {
         if ($future) {
-            return $future->then (function($result) use ($method, $args) {
+            return $future->then(function($result) use ($method, $args) {
                 return $method(... $args);
             });
         } else {
             return $method(... $args);
         }
     }
-
 
     public function spawn($method, ... $args) {
         $this->loop->futureTick(function () use ($method, $args) {
