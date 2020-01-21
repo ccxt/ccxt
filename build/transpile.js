@@ -366,7 +366,7 @@ class Transpiler {
             [ /Math\.ceil\s*\(([^\)]+)\)/g, '(int) ceil($1)' ],
             [ /Math\.pow\s*\(([^\)]+)\)/g, 'pow($1)' ],
             [ /Math\.log/g, 'log' ],
-            [ /([^\(\s]+)\s+%\s+([^\s\)]+)/g, 'fmod($1, $2)' ],
+            [ /([^\(\s]+)\s+%\s+([^\s\,\;\)]+)/g, 'fmod($1, $2)' ],
             [ /\(([^\s\(]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0\)/g, '(mb_strpos($1, $2) !== false)' ],
             [ /([^\s\(]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0/g, 'mb_strpos($1, $2) !== false' ],
             [ /([^\s\(]+)\.indexOf\s*\(([^\)]+)\)/g, 'mb_strpos($1, $2)' ],
