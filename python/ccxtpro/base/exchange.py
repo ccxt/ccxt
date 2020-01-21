@@ -6,6 +6,8 @@ __version__ = '1.0.0'
 
 # -----------------------------------------------------------------------------
 
+from zlib import decompress, MAX_WBITS
+from base64 import b64decode
 from asyncio import ensure_future
 from ccxtpro.base.aiohttp_client import AiohttpClient
 from ccxt.async_support import Exchange as BaseExchange
@@ -34,6 +36,9 @@ class Exchange(BaseExchange):
         'ping': None,
         'maxPingPongMisses': 2.0,
     }
+    
+    def inflate(string):
+        return decompress(b64decode(string), -MAX_WBITS)
 
     def order_book(self, snapshot={}, depth=float('inf')):
         return OrderBook(snapshot, depth)
