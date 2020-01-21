@@ -57,7 +57,7 @@ class Exchange(BaseExchange):
             on_error = self.on_error
             on_close = self.on_close
             # decide client type here: aiohttp ws / websockets / signalr / socketio
-            options = self.extend (self.streaming, {
+            options = self.extend(self.streaming, {
                 'ping': getattr(self, 'ping', None)
             })
             self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, options)
