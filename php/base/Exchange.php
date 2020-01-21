@@ -845,6 +845,7 @@ class Exchange {
         $this->orders = array();
         $this->trades = array();
         $this->transactions = array();
+        $this->ohlcvs = array();
         $this->exceptions = array();
         $this->accounts = array();
         $this->status = array('status' => 'ok', 'updated' => null, 'eta' => null, 'url' => null);
