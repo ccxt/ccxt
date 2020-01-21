@@ -657,6 +657,10 @@ module.exports = class bittrex extends ccxt.bittrex {
         client.resolve (message, 'heartbeat');
     }
 
+    handleOrderDelta (client, message) {
+        return message;
+    }
+
     handleMessage (client, message) {
         const methods = {
             'uE': this.handleExchangeDelta,
