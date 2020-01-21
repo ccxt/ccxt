@@ -333,8 +333,35 @@ module.exports = class bittrex extends ccxt.bittrex {
         return orderbook;
     }
 
-    signMessage (client, messageHash, message, params = {}) {
-        // todo: implement coinbasepro signMessage() via parent sign()
+    handleBalanceDelta (client, message) {
+        //
+        //     {
+        //         N: 4, // nonce
+        //         d: {
+        //             U: '2832c5c6-ac7a-493e-bc16-ebca06c73670', // uuid
+        //             W: 334126, // account id (wallet)
+        //             c: 'BTC', // currency
+        //             b: 0.0181687, // balance
+        //             a: 0.0081687, // available
+        //             z: 0, // pending
+        //             p: '1cL5M4HjjoGWMA4jgHC5v6GqcjfxeeNMy', // address
+        //             r: false, // requested
+        //             u: 1579561864940, // last updated timestamp
+        //             h: null, // autosell
+        //         },
+        //     }
+        //
+        // console.log (new Date (), 'handleBalanceDelta', message);
+        const d = this.safeValue (message, 'd');
+        const account = this.account ();
+        account['free'] = this.safeFloat (d, 'a');
+        account['total'] = this.safeFloat (d, 'b');
+        const code = this.safeCurrencyCode (this.safeString (d, 'c'));
+        const result = {};
+        result[code] = account;
+        this.balance = this.deepExtend (this.balance, result);
+        this.balance = this.parseBalance (this.balance);
+        client.resolve (this.balance, 'balance');
         return message;
     }
 
@@ -626,6 +653,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         //
         //     {}
         //
+        // console.log (new Date (), 'heartbeat');
         client.resolve (message, 'heartbeat');
     }
 
@@ -641,8 +669,10 @@ module.exports = class bittrex extends ccxt.bittrex {
             const method = this.safeValue (methods, methodType);
             if (method !== undefined) {
                 const A = this.safeValue (M[i], 'A', []);
+                console.log (A);
                 for (let k = 0; k < A.length; k++) {
-                    method.call (this, client, JSON.parse (this.inflate (A[k])));
+                    const update = JSON.parse (this.inflate (A[k]));
+                    method.call (this, client, update);
                 }
             }
         }
@@ -658,6 +688,11 @@ module.exports = class bittrex extends ccxt.bittrex {
         if (numKeys < 1) {
             this.handleHeartbeat (client, message);
         }
+    }
+
+    signMessage (client, messageHash, message, params = {}) {
+        // todo: implement signMessage() if needed
+        return message;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
