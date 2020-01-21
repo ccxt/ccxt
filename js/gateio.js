@@ -373,10 +373,6 @@ module.exports = class gateio extends ccxt.gateio {
         client.resolve (message, messageId);
     }
 
-    async watch () {
-        process.exit (69);
-    }
-
     handleMessage (client, message) {
         this.handleErrorMessage (client, message);
         const methods = {
