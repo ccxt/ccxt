@@ -230,7 +230,7 @@ module.exports = class binance extends ccxt.binance {
         return message;
     }
 
-    async watchTrades (symbol, params = {}) {
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'trade';
@@ -247,7 +247,8 @@ module.exports = class binance extends ccxt.binance {
         const subscribe = {
             'id': requestId,
         };
-        return await this.watch (url, messageHash, request, messageHash, subscribe);
+        const future = this.watch (url, messageHash, request, messageHash, subscribe);
+        return await this.after (future, this.filterBySinceLimit, since, limit);
     }
 
     handleTrade (client, message) {
