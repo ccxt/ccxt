@@ -36,7 +36,8 @@ class Exchange(BaseExchange):
         'ping': None,
         'maxPingPongMisses': 2.0,
     }
-    
+
+    @staticmethod
     def inflate(string):
         return decompress(b64decode(string), -MAX_WBITS)
 
@@ -63,7 +64,7 @@ class Exchange(BaseExchange):
         result = await future
         # method is bound to self instance
         return method(result, *args)
-    
+
     async def afterAsync(self, future, method, *args):
         result = await future
         return await method(result, *args)
