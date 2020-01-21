@@ -37,6 +37,7 @@ class Exchange(BaseExchange):
         'maxPingPongMisses': 2.0,
     }
 
+    @staticmethod
     def inflate(string):
         return decompress(b64decode(string), -MAX_WBITS)
 
@@ -56,7 +57,10 @@ class Exchange(BaseExchange):
             on_error = self.on_error
             on_close = self.on_close
             # decide client type here: aiohttp ws / websockets / signalr / socketio
-            self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, self.streaming)
+            options = self.extend (self.streaming, {
+                'ping': getattr(self, 'ping', None)
+            })
+            self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, options)
         return self.clients[url]
 
     def call(self, method, *args):
@@ -66,13 +70,11 @@ class Exchange(BaseExchange):
         return await method(*args)
 
     async def after(self, future, method, *args):
-        result = await future
         # method is bound to self instance
-        return method(result, *args)
+        return method(await future, *args)
 
     async def afterAsync(self, future, method, *args):
-        result = await future
-        return await method(result, *args)
+        return await method((await future).result(), *args)
 
     async def spawnAsync(self, method, *args):
         try:
