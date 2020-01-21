@@ -81,7 +81,6 @@ from ccxt.async_support.bitmax import bitmax                              # noqa
 from ccxt.async_support.bitso import bitso                                # noqa: F401
 from ccxt.async_support.bitstamp import bitstamp                          # noqa: F401
 from ccxt.async_support.bitstamp1 import bitstamp1                        # noqa: F401
-from ccxt.async_support.bittrex import bittrex                            # noqa: F401
 from ccxt.async_support.bitz import bitz                                  # noqa: F401
 from ccxt.async_support.bl3p import bl3p                                  # noqa: F401
 from ccxt.async_support.bleutrade import bleutrade                        # noqa: F401
@@ -176,6 +175,7 @@ from ccxt.async_support.zb import zb                                      # noqa
 from ccxtpro.binance import binance                                       # noqa: F401
 from ccxtpro.bitfinex import bitfinex                                     # noqa: F401
 from ccxtpro.bitmex import bitmex                                         # noqa: F401
+from ccxtpro.bittrex import bittrex                                       # noqa: F401
 from ccxtpro.coinbasepro import coinbasepro                               # noqa: F401
 from ccxtpro.gateio import gateio                                         # noqa: F401
 from ccxtpro.kraken import kraken                                         # noqa: F401
