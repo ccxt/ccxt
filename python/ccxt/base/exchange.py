@@ -212,6 +212,7 @@ class Exchange(object):
     orders = None
     trades = None
     transactions = None
+    ohlcvs = None
     currencies = None
     options = None  # Python does not allow to define properties in run-time with setattr
     accounts = None
