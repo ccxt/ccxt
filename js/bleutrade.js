@@ -649,13 +649,14 @@ module.exports = class bleutrade extends Exchange {
         //
         //  deposit:
         //
-        //     {
-        //         Id: '96974373',
-        //         Coin: 'DOGE',
-        //         Amount: '12.05752192',
-        //         TimeStamp: '2017-09-29 08:10:09',
-        //         Label: 'DQqSjjhzCm3ozT4vAevMUHgv4vsi9LBkoE',
-        //     }
+        //   { ID: 118698752,
+        //     Timestamp: '2020-01-21 11:16:09',
+        //     Asset: 'ETH',
+        //     Amount: 1,
+        //     TransactionID: '',
+        //     Status: 'CONFIRMED',
+        //     Label: '0x748c5c8228d0c596f4d07f338blah',
+        //     Symbol: 'ETH' }
         //
         // withdrawal:
         //
@@ -665,17 +666,8 @@ module.exports = class bleutrade extends Exchange {
         //     Amount: -0.108959,
         //     TransactionID: 'da48d6901fslfjsdjflsdjfls852b87e362cad1',
         //     Status: 'CONFIRMED',
-        //     Label: '0.1089590;35wztHPMgrebFvvlisuhfasuf;0.00100000',
+        //     Label: '0.1089590;35wztHPMgrebFvvblah;0.00100000',
         //     Symbol: 'BTC' }
-        //
-        //     {
-        //         "Id": "95820181",
-        //         "Coin": "BTC",
-        //         "Amount": "-0.71300000",
-        //         "TimeStamp": "2017-07-19 17:14:24",
-        //         "Label": "0.71200000;PER9VM2txt4BTdfyWgvv3GziECRdVEPN63;0.00100000",
-        //         "TransactionId": "CANCELED"
-        //     }
         //
         const id = this.safeString (transaction, 'ID');
         let amount = this.safeFloat (transaction, 'Amount');
