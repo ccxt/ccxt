@@ -11,6 +11,7 @@ trait ClientTrait {
         'keepAlive' => 30000,
         'heartbeat' => true,
         'ping' => null,
+        'maxPingPongMisses' => 2.0,
     );
 
     public $loop = null; // reactphp's loop
