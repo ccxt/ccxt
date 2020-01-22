@@ -67,15 +67,15 @@ class Exchange(BaseExchange):
         # method is bound to self instance
         return method(await future, *args)
 
-    async def afterAsync(self, future, method, *args):
+    async def after_async(self, future, method, *args):
         return await method(await future, *args)
 
-    async def afterDropped(self, future, method, *args):
+    async def after_dropped(self, future, method, *args):
         if future:
             await future
         return await method(*args)
 
-    async def spawnAsync(self, method, *args):
+    async def spawn_async(self, method, *args):
         try:
             await method(*args)
         except Exception as e:
@@ -83,7 +83,7 @@ class Exchange(BaseExchange):
             pass
 
     def spawn(self, method, *args):
-        ensure_future(self.spawnAsync(method, *args))
+        ensure_future(self.spawn_async(method, *args))
 
     def handle_message(self, client, message):
         always = True
