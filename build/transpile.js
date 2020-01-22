@@ -29,7 +29,7 @@ class CCXTProTranspiler extends Transpiler {
             'countedOrderBook',
             'afterAsync',
             'afterDropped',
-            'watch\b',
+            'watch',
         ]
     }
 
