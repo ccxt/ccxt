@@ -548,7 +548,8 @@ class bittrex extends \ccxt\bittrex {
     }
 
     public function handle_exchange_state ($client, $message, $subscription) {
-        $R = json_decode($this->inflate ($this->safe_value($message, 'R', $as_associative_array = true)));
+        $inflated = $this->inflate ($this->safe_value($message, 'R'));
+        $R = json_decode($inflated, $as_associative_array = true);
         //
         //     {
         //         'M' => 'BTC-ETH',
@@ -679,7 +680,8 @@ class bittrex extends \ccxt\bittrex {
             if ($method !== null) {
                 $A = $this->safe_value($M[$i], 'A', array());
                 for ($k = 0; $k < count($A); $k++) {
-                    $update = json_decode($this->inflate ($A[$k], $as_associative_array = true));
+                    $inflated = $this->inflate ($A[$k]);
+                    $update = json_decode($inflated, $as_associative_array = true);
                     $method($client, $update);
                 }
             }

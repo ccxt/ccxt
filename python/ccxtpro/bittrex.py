@@ -514,7 +514,8 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
     def handle_exchange_state(self, client, message, subscription):
-        R = json.loads(self.inflate(self.safe_value(message, 'R')))
+        inflated = self.inflate(self.safe_value(message, 'R'))
+        R = json.loads(inflated)
         #
         #     {
         #         'M': 'BTC-ETH',
@@ -632,7 +633,8 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
             if method is not None:
                 A = self.safe_value(M[i], 'A', [])
                 for k in range(0, len(A)):
-                    update = json.loads(self.inflate(A[k]))
+                    inflated = self.inflate(A[k])
+                    update = json.loads(inflated)
                     method(client, update)
         # resolve invocations by request id
         if 'I' in message:
