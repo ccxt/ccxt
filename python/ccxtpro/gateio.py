@@ -221,6 +221,7 @@ class gateio(ccxtpro.Exchange, ccxt.gateio):
             int(ohlcv[0]),    # t
             float(ohlcv[1]),  # o
             float(ohlcv[3]),  # h
+            float(ohlcv[4]),  # l
             float(ohlcv[2]),  # c
             float(ohlcv[5]),  # v
         ]

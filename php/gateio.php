@@ -246,6 +246,7 @@ class gateio extends \ccxt\gateio {
             intval ($ohlcv[0]),    // t
             floatval ($ohlcv[1]),  // o
             floatval ($ohlcv[3]),  // h
+            floatval ($ohlcv[4]),  // l
             floatval ($ohlcv[2]),  // c
             floatval ($ohlcv[5]),  // v
         ];
