@@ -13,7 +13,7 @@ module.exports = class qtrade extends Exchange {
             'id': 'qtrade',
             'name': 'qTrade',
             'countries': [ 'US' ],
-            'rateLimit': Math.pow (10, 3),
+            'rateLimit': 1000,
             'version': 'v1',
             'urls': {
                 'logo': 'https://qtrade.io/images/logo.png',
@@ -31,7 +31,7 @@ module.exports = class qtrade extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
-                'fetchOrderTrades': true,
+                'fetchMyTrades': true,
                 'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
                 'fetchOHLCV': true,
@@ -98,6 +98,11 @@ module.exports = class qtrade extends Exchange {
                 'funding': {
                     'withdraw': {},
                 },
+            },
+            'requiredCredentials': {
+                'apiKey': false,
+                'secret': false,
+                'privateKey': true,
             },
         });
     }
@@ -251,7 +256,7 @@ module.exports = class qtrade extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
-        return [
+        const result = [
             this.parse8601 (this.safeString (ohlcv, 'time')),
             this.safeFloat (ohlcv, 'open'),
             this.safeFloat (ohlcv, 'high'),
@@ -259,6 +264,7 @@ module.exports = class qtrade extends Exchange {
             this.safeFloat (ohlcv, 'close'),
             this.safeFloat (ohlcv, 'volume'),
         ];
+        return result;
     }
 
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
@@ -274,7 +280,8 @@ module.exports = class qtrade extends Exchange {
         //  [ 1573948800000, 3.1e-7, 3.2e-7, 3e-7, 3e-7, 0.04184538 ],
         //  [ 1574035200000, 3e-7, 3.2e-7, 3e-7, 3.1e-7, 0.06711341 ]
         //
-        return this.parseOHLCVs (response['data']['slices'], market, timeframe, since, limit);
+        const result = this.parseOHLCVs (response['data']['slices'], market, timeframe, since, limit);
+        return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -385,6 +392,13 @@ module.exports = class qtrade extends Exchange {
         return this.parseTrades (response['data']['trades'], market, since, limit);
     }
 
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const response = await this.privateGetTrades ();
+        return this.parseTrades (response['data']['trades'], market, since, limit);
+    }
+
     parseTrade (trade, market = undefined) {
         const id = this.safeString (trade, 'id');
         const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
@@ -405,7 +419,11 @@ module.exports = class qtrade extends Exchange {
         }
         let cost = undefined;
         const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        let amount = this.safeFloat (trade, 'amount');
+        if (amount === undefined) {
+            // workaround for private trades, which use market_amount key
+            amount = this.safeFloat (trade, 'market_amount');
+        }
         if (amount !== undefined) {
             if (price !== undefined) {
                 cost = price * amount;
@@ -442,7 +460,7 @@ module.exports = class qtrade extends Exchange {
             used[bs[i]['currency']] = this.safeFloat (bs[i], 'balance');
         }
         const freeKeys = Object.keys (free);
-        const result = { 'free': free, 'used': used, 'info': response['data'] };
+        const result = { 'free': free, 'used': used, 'total': {}, 'info': response['data'] };
         for (let i = 0; i < freeKeys.length; i++) {
             const byCoin = {};
             const k = Object.keys (free)[i];
@@ -461,6 +479,7 @@ module.exports = class qtrade extends Exchange {
             byCoin['used'] = used[k];
             byCoin['total'] = byCoin['used'] + byCoin['free'];
             result[k] = byCoin;
+            result['total'][k] = byCoin['total'];
         }
         return result;
     }
@@ -490,7 +509,8 @@ module.exports = class qtrade extends Exchange {
         } else {
             result['status'] = 'closed';
         }
-        if (order['trades'] !== undefined) {
+        const t = this.safeValue (order, 'trades');
+        if (t !== undefined) {
             let side = undefined;
             if (order['order_type'] === 'buy_limit') {
                 side = 'buy';
@@ -561,35 +581,6 @@ module.exports = class qtrade extends Exchange {
             }
         }
         return result.slice (0, limit);
-    }
-
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetTrades ();
-        const ts = response['data']['trades'];
-        const result = [];
-        for (let i = 0; i < ts.length; i++) {
-            const trade = { 'info': ts[i] };
-            trade['id'] = this.safeString (ts[i], 'id');
-            trade['timestamp'] = this.parse8601 (this.safeString (ts[i], 'created_at'));
-            trade['datetime'] = this.safeString (ts[i], 'created_at');
-            // TODO: update this line to use 'market_string' in response
-            trade['symbol'] = this.markets_by_id[ts[i]['market_id']]['symbol'];
-            trade['order'] = this.safeString (ts[i], 'order_id');
-            trade['type'] = 'limit';
-            trade['side'] = undefined;
-            if (ts[i]['taker'] === true) {
-                trade['takerOrMaker'] = 'taker';
-            } else {
-                trade['takerOrMaker'] = 'maker';
-            }
-            trade['price'] = this.safeFloat (ts[i], 'price');
-            trade['amount'] = this.safeFloat (ts[i], 'market_amount');
-            trade['cost'] = this.safeFloat (ts[i], 'base_amount');
-            trade['fee'] = undefined;
-            result.push (trade);
-        }
-        return result;
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -737,7 +728,7 @@ module.exports = class qtrade extends Exchange {
         }
         const url = this.urls['api'] + endpoint;
         if (api === 'private') {
-            const split = this.apiKey.split (':');
+            const split = this.privateKey.split (':');
             const keyID = split[0];
             const key = split[1];
             const timestamp = this.milliseconds ().toString ();
