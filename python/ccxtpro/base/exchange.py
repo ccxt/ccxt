@@ -71,8 +71,7 @@ class Exchange(BaseExchange):
         return await method(await future, *args)
 
     async def after_dropped(self, future, method, *args):
-        if future:
-            await future
+        await future
         return await method(*args)
 
     async def spawn_async(self, method, *args):

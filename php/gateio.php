@@ -29,6 +29,10 @@ class gateio extends \ccxt\gateio {
                     'ws' => 'wss://ws.gate.io/v3',
                 ),
             ),
+            'options' => array(
+                'tradesLimit' => 1000,
+                'OHLCVLimit' => 1000,
+            ),
         ));
     }
 
@@ -163,24 +167,32 @@ class gateio extends \ccxt\gateio {
 
     public function handle_trades ($client, $messsage) {
         $result = $messsage['params'];
-        $marketId = $result[0];
-        $normalMarketId = strtolower($marketId);
+        $wsMarketId = $this->safe_string($result, 0);
+        $marketId = $this->safe_string_lower($result, 0);
         $market = null;
-        if (is_array($this->markets_by_id) && array_key_exists($normalMarketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$normalMarketId];
+        $symbol = $marketId;
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+            $symbol = $market['symbol'];
         }
-        if (!(is_array($this->trades) && array_key_exists($marketId, $this->trades))) {
-            $this->trades[$marketId] = array();
+        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+            $this->trades[$symbol] = array();
         }
+        $stored = $this->trades[$symbol];
         $trades = $result[1];
         for ($i = 0; $i < count($trades); $i++) {
             $trade = $trades[$i];
             $parsed = $this->parse_trade($trade, $market);
-            $this->trades[$marketId][] = $parsed;
+            $stored[] = $parsed;
+            $length = is_array($stored) ? count($stored) : 0;
+            if ($length > $this->options['tradesLimit']) {
+                array_shift($stored);
+            }
         }
+        $this->trades[$symbol] = $stored;
         $methodType = $messsage['method'];
-        $messageHash = $methodType . ':' . $marketId;
-        $client->resolve ($this->trades[$marketId], $messageHash);
+        $messageHash = $methodType . ':' . $wsMarketId;
+        $client->resolve ($stored, $messageHash);
     }
 
     public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -228,16 +240,38 @@ class gateio extends \ccxt\gateio {
 
     public function handle_ohlcv ($client, $message) {
         $ohlcv = $message['params'][0];
-        $marketId = $ohlcv[7];
-        $normalMarketId = strtolower($marketId);
+        $wsMarketId = $this->safe_string($ohlcv, 7);
+        $marketId = $this->safe_string_lower($ohlcv, 7);
+        $parsed = [
+            intval ($ohlcv[0]),    // t
+            floatval ($ohlcv[1]),  // o
+            floatval ($ohlcv[3]),  // h
+            floatval ($ohlcv[2]),  // c
+            floatval ($ohlcv[5]),  // v
+        ];
         $market = null;
-        if (is_array($this->markets_by_id) && array_key_exists($normalMarketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$normalMarketId];
+        $symbol = $marketId;
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+            $symbol = $market['symbol'];
         }
-        $parsed = $this->parse_ohlcv($ohlcv, $market);
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+            $this->ohlcvs[$symbol] = array();
+        }
+        $stored = $this->ohlcvs[$symbol];
+        $length = is_array($stored) ? count($stored) : 0;
+        if ($length && $parsed[0] === $stored[$length - 1][0]) {
+            $stored[$length - 1] = $parsed;
+        } else {
+            $stored[] = $parsed;
+            if ($length === $this->options['OHLCVLimit']) {
+                array_shift($stored);
+            }
+        }
+        $this->ohlcvs[$symbol] = $stored;
         $methodType = $message['method'];
-        $messageHash = $methodType . ':' . $marketId;
-        $client->resolve ($parsed, $messageHash);
+        $messageHash = $methodType . ':' . $wsMarketId;
+        $client->resolve ($stored, $messageHash);
     }
 
     public function watch_balance ($params = array ()) {

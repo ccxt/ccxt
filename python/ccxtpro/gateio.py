@@ -28,6 +28,10 @@ class gateio(ccxtpro.Exchange, ccxt.gateio):
                     'ws': 'wss://ws.gate.io/v3',
                 },
             },
+            'options': {
+                'tradesLimit': 1000,
+                'OHLCVLimit': 1000,
+            },
         })
 
     async def watch_order_book(self, symbol, limit=None, params={}):
@@ -146,21 +150,28 @@ class gateio(ccxtpro.Exchange, ccxt.gateio):
 
     def handle_trades(self, client, messsage):
         result = messsage['params']
-        marketId = result[0]
-        normalMarketId = marketId.lower()
+        wsMarketId = self.safe_string(result, 0)
+        marketId = self.safe_string_lower(result, 0)
         market = None
-        if normalMarketId in self.markets_by_id:
-            market = self.markets_by_id[normalMarketId]
-        if not (marketId in self.trades):
-            self.trades[marketId] = []
+        symbol = marketId
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+            symbol = market['symbol']
+        if not (symbol in self.trades):
+            self.trades[symbol] = []
+        stored = self.trades[symbol]
         trades = result[1]
         for i in range(0, len(trades)):
             trade = trades[i]
             parsed = self.parse_trade(trade, market)
-            self.trades[marketId].append(parsed)
+            stored.append(parsed)
+            length = len(stored)
+            if length > self.options['tradesLimit']:
+                stored.pop(0)
+        self.trades[symbol] = stored
         methodType = messsage['method']
-        messageHash = methodType + ':' + marketId
-        client.resolve(self.trades[marketId], messageHash)
+        messageHash = methodType + ':' + wsMarketId
+        client.resolve(stored, messageHash)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
@@ -204,15 +215,34 @@ class gateio(ccxtpro.Exchange, ccxt.gateio):
 
     def handle_ohlcv(self, client, message):
         ohlcv = message['params'][0]
-        marketId = ohlcv[7]
-        normalMarketId = marketId.lower()
+        wsMarketId = self.safe_string(ohlcv, 7)
+        marketId = self.safe_string_lower(ohlcv, 7)
+        parsed = [
+            int(ohlcv[0]),    # t
+            float(ohlcv[1]),  # o
+            float(ohlcv[3]),  # h
+            float(ohlcv[2]),  # c
+            float(ohlcv[5]),  # v
+        ]
         market = None
-        if normalMarketId in self.markets_by_id:
-            market = self.markets_by_id[normalMarketId]
-        parsed = self.parse_ohlcv(ohlcv, market)
+        symbol = marketId
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+            symbol = market['symbol']
+        if not (symbol in self.ohlcvs):
+            self.ohlcvs[symbol] = []
+        stored = self.ohlcvs[symbol]
+        length = len(stored)
+        if length and parsed[0] == stored[length - 1][0]:
+            stored[length - 1] = parsed
+        else:
+            stored.append(parsed)
+            if length == self.options['OHLCVLimit']:
+                stored.pop(0)
+        self.ohlcvs[symbol] = stored
         methodType = message['method']
-        messageHash = methodType + ':' + marketId
-        client.resolve(parsed, messageHash)
+        messageHash = methodType + ':' + wsMarketId
+        client.resolve(stored, messageHash)
 
     async def watch_balance(self, params={}):
         await self.load_markets()
