@@ -51,7 +51,7 @@ trait ClientTrait {
         });
     }
 
-    public function afterAsync($future, callable $method, ... $args) {
+    public function after_async($future, callable $method, ... $args) {
         $await = new Future();
         $future->then(function($result) use ($method, $args, $await) {
             return $method($result, ... $args)->then(
@@ -67,7 +67,7 @@ trait ClientTrait {
     }
 
     // the ellipsis packing/unpacking requires PHP 5.6+ :(
-    public function afterDropped($future, callable $method, ... $args) {
+    public function after_dropped($future, callable $method, ... $args) {
         if ($future) {
             return $future->then(function($result) use ($method, $args) {
                 return $method(... $args);
