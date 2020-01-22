@@ -156,7 +156,7 @@ module.exports = class Client {
             } else {
                 if (this.heartbeat) {
                     this.connection.ping ()
-                } else {
+                } else if (this.ping) {
                     this.send (this.ping (this))
                 }
             }

@@ -256,7 +256,7 @@ class Client {
             } else {
                 if ($this->heartbeat) {
                     $this->connection->send(new Frame('', true, Frame::OP_PING));
-                } else {
+                } else if ($this->ping) {
                     $function = $this->ping;
                     $this->send($function($this));
                 }
