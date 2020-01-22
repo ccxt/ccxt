@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import json
-from asyncio import sleep
+from asyncio import sleep, ensure_future
 from aiohttp import WSMsgType
 from ccxt.async_support import Exchange
 from ccxtpro.base.client import Client
@@ -16,7 +16,7 @@ class AiohttpClient(Client):
     def receive(self):
         return self.connection.receive()
 
-    async def handle_message(self, message):
+    def handle_message(self, message):
         # print(Exchange.iso8601(Exchange.milliseconds()), message)
         if message.type == WSMsgType.TEXT:
             # print(Exchange.iso8601(Exchange.milliseconds()), 'message', message)
@@ -32,7 +32,7 @@ class AiohttpClient(Client):
         # otherwise aiohttp's websockets client won't trigger WSMsgType.PONG
         elif message.type == WSMsgType.PING:
             print(Exchange.iso8601(Exchange.milliseconds()), 'ping', message)
-            await self.connection.pong()
+            ensure_future(self.connection.pong())
         elif message.type == WSMsgType.PONG:
             self.lastPong = Exchange.milliseconds()
             print(Exchange.iso8601(Exchange.milliseconds()), 'pong', message)
@@ -53,8 +53,7 @@ class AiohttpClient(Client):
         # to a ping incoming from a server, we have to disable autoping
         # with aiohttp's websockets and respond with pong manually
         # otherwise aiohttp's websockets client won't trigger WSMsgType.PONG
-        heartbeat = (self.keepAlive / 1000) if self.keepAlive and self.heartbeat else None
-        return session.ws_connect(self.url, autoping=False, heartbeat=heartbeat)
+        return session.ws_connect(self.url, autoping=False)
 
     def send(self, message):
         print(Exchange.iso8601(Exchange.milliseconds()), 'sending', message)
@@ -76,7 +75,8 @@ class AiohttpClient(Client):
             # however some exchanges require a text-type ping message
             # therefore we need this clause anyway
             else:
-                # await self.connection.ping()  # handled by aiohttp
                 if self.ping:
-                    await self.send(self.ping(self))
+                    await self.send(self.ping())
+                else:
+                    await self.connection.ping()
             await sleep(self.keepAlive / 1000)

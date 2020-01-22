@@ -21,6 +21,7 @@ const exchanges = {
     'binance':                 require ('./js/binance.js'),
     'bitfinex':                require ('./js/bitfinex.js'),
     'bitmex':                  require ('./js/bitmex.js'),
+    'bittrex':                 require ('./js/bittrex.js'),
     'coinbasepro':             require ('./js/coinbasepro.js'),
     'gateio':                  require ('./js/gateio.js'),
     'kraken':                  require ('./js/kraken.js'),

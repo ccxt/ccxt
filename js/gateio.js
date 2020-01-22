@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError } = require ('ccxt/js/base/errors');
+const { ExchangeError, AuthenticationError } = require ('ccxt/js/base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -15,11 +15,17 @@ module.exports = class gateio extends ccxt.gateio {
                 'watchTicker': true,
                 'watchTrades': true,
                 'watchOHLCV': true,
+                'watchBalance': true,
+                'watchOrders': true,
             },
             'urls': {
                 'api': {
                     'ws': 'wss://ws.gate.io/v3',
                 },
+            },
+            'options': {
+                'tradesLimit': 1000,
+                'OHLCVLimit': 1000,
             },
         });
     }
@@ -27,7 +33,8 @@ module.exports = class gateio extends ccxt.gateio {
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketId = market['id'].toUpperCase ();
+        const marketId = market['id'];
+        const wsMarketId = marketId.toUpperCase ();
         const requestId = this.nonce ();
         const url = this.urls['api']['ws'];
         if (!limit) {
@@ -36,17 +43,21 @@ module.exports = class gateio extends ccxt.gateio {
             throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 1, 5, 10, 20, or 30');
         }
         const interval = this.safeString (params, 'interval', '0.00000001');
-        const precision = -1 * Math.log10 (interval);
-        if (precision < 0 || precision > 8 || precision % 1 !== 0) {
+        const floatInterval = parseFloat (interval);
+        const precision = -1 * Math.log10 (floatInterval);
+        if ((precision < 0) || (precision > 8) || (precision % 1 !== 0.0)) {
             throw new ExchangeError (this.id + ' invalid interval');
         }
         const messageHash = 'depth.update' + ':' + marketId;
         const subscribeMessage = {
             'id': requestId,
             'method': 'depth.subscribe',
-            'params': [marketId, limit, interval],
+            'params': [wsMarketId, limit, interval],
         };
-        const future = this.watch (url, messageHash, subscribeMessage);
+        const subscription = {
+            'id': requestId,
+        };
+        const future = this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
@@ -59,56 +70,69 @@ module.exports = class gateio extends ccxt.gateio {
         return orderbook.limit (limit);
     }
 
+    handleDelta (bookside, delta) {
+        const price = this.safeFloat (delta, 0);
+        const amount = this.safeFloat (delta, 1);
+        bookside.store (price, amount);
+    }
+
+    handleDeltas (bookside, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (bookside, deltas[i]);
+        }
+    }
+
     handleOrderBook (client, message) {
-        const params = message['params'];
-        const clean = params[0];
-        const book = params[1];
-        const marketId = params[2];
-        const methodType = message['method'];
-        const messageHash = methodType + ':' + marketId;
+        const params = this.safeValue (message, 'params', []);
+        const clean = this.safeValue (params, 0);
+        const book = this.safeValue (params, 1);
+        const marketId = this.safeStringLower (params, 2);
+        let symbol = undefined;
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        } else {
+            symbol = marketId;
+        }
+        const method = this.safeString (message, 'method');
+        const messageHash = method + ':' + marketId;
         let orderBook = undefined;
         if (clean) {
             orderBook = this.orderBook ({});
-            this.orderbooks[marketId] = orderBook;
+            this.orderbooks[symbol] = orderBook;
         } else {
-            orderBook = this.orderbooks[marketId];
+            orderBook = this.orderbooks[symbol];
         }
-        const sides = ['bids', 'asks'];
-        for (let j = 0; j < 2; j++) {
-            const side = sides[j];
-            if (side in book) {
-                const bookSide = book[side];
-                for (let i = 0; i < bookSide.length; i++) {
-                    const order = bookSide[i];
-                    orderBook[side].store (parseFloat (order[0]), parseFloat (order[1]));
-                }
-            }
-        }
+        this.handleDeltas (orderBook['asks'], this.safeValue (book, 'asks', []));
+        this.handleDeltas (orderBook['bids'], this.safeValue (book, 'bids', []));
         client.resolve (orderBook, messageHash);
     }
 
     async watchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketId = market['id'].toUpperCase ();
+        const marketId = market['id'];
+        const wsMarketId = marketId.toUpperCase ();
         const requestId = this.nonce ();
         const url = this.urls['api']['ws'];
         const subscribeMessage = {
             'id': requestId,
             'method': 'ticker.subscribe',
-            'params': [marketId],
+            'params': [wsMarketId],
+        };
+        const subscription = {
+            'id': requestId,
         };
         const messageHash = 'ticker.update' + ':' + marketId;
-        return await this.watch (url, messageHash, subscribeMessage);
+        return await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
     }
 
     handleTicker (client, message) {
         const result = message['params'];
-        const marketId = result[0];
-        const normalMarketId = marketId.toLowerCase ();
+        const marketId = this.safeStringLower (result, 0);
         let market = undefined;
-        if (normalMarketId in this.markets_by_id) {
-            market = this.markets_by_id[normalMarketId];
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
         }
         const ticker = result[1];
         const parsed = this.parseTicker (ticker, market);
@@ -117,7 +141,7 @@ module.exports = class gateio extends ccxt.gateio {
         client.resolve (parsed, messageHash);
     }
 
-    async watchTrades (symbol, params = {}) {
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'].toUpperCase ();
@@ -128,27 +152,42 @@ module.exports = class gateio extends ccxt.gateio {
             'method': 'trades.subscribe',
             'params': [marketId],
         };
+        const subscription = {
+            'id': requestId,
+        };
         const messageHash = 'trades.update' + ':' + marketId;
-        return await this.watch (url, messageHash, subscribeMessage);
+        const future = this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        return await this.after (future, this.filterBySinceLimit, since, limit);
     }
 
     handleTrades (client, messsage) {
         const result = messsage['params'];
-        const marketId = result[0];
-        const normalMarketId = marketId.toLowerCase ();
+        const wsMarketId = this.safeString (result, 0);
+        const marketId = this.safeStringLower (result, 0);
         let market = undefined;
-        if (normalMarketId in this.markets_by_id) {
-            market = this.markets_by_id[normalMarketId];
+        let symbol = marketId;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
         }
+        if (!(symbol in this.trades)) {
+            this.trades[symbol] = [];
+        }
+        const stored = this.trades[symbol];
         const trades = result[1];
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
             const parsed = this.parseTrade (trade, market);
-            this.trades[marketId].push (parsed);
+            stored.push (parsed);
+            const length = stored.length;
+            if (length > this.options['tradesLimit']) {
+                stored.shift ();
+            }
         }
+        this.trades[symbol] = stored;
         const methodType = messsage['method'];
-        const messageHash = methodType + ':' + marketId;
-        client.resolve (this.trades[marketId], messageHash);
+        const messageHash = methodType + ':' + wsMarketId;
+        client.resolve (stored, messageHash);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -163,34 +202,231 @@ module.exports = class gateio extends ccxt.gateio {
             'method': 'kline.subscribe',
             'params': [marketId, interval],
         };
+        const subscription = {
+            'id': requestId,
+        };
         const messageHash = 'kline.update' + ':' + marketId;
-        return await this.watch (url, messageHash, subscribeMessage);
+        return await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+    }
+
+    async authenticate () {
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        const future = client.future ('authenticated');
+        const method = 'server.sign';
+        const authenticate = this.safeValue (client.subscriptions, method);
+        if (authenticate === undefined) {
+            const requestId = this.milliseconds ();
+            const requestIdString = requestId.toString ();
+            const signature = this.hmac (this.encode (requestIdString), this.encode (this.secret), 'sha512', 'base64');
+            const authenticateMessage = {
+                'id': requestId,
+                'method': method,
+                'params': [ this.apiKey, this.decode (signature), requestId ],
+            };
+            const subscribe = {
+                'id': requestId,
+                'method': this.handleAuthenticationMessage,
+            };
+            this.spawn (this.watch, url, requestId, authenticateMessage, method, subscribe);
+        }
+        return await future;
     }
 
     handleOHLCV (client, message) {
         const ohlcv = message['params'][0];
-        const marketId = ohlcv[7];
+        const wsMarketId = this.safeString (ohlcv, 7);
+        const marketId = this.safeStringLower (ohlcv, 7);
+        const parsed = [
+            parseInt (ohlcv[0]),    // t
+            parseFloat (ohlcv[1]),  // o
+            parseFloat (ohlcv[3]),  // h
+            parseFloat (ohlcv[4]),  // l
+            parseFloat (ohlcv[2]),  // c
+            parseFloat (ohlcv[5]),  // v
+        ];
+        let market = undefined;
+        let symbol = marketId;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        }
+        if (!(symbol in this.ohlcvs)) {
+            this.ohlcvs[symbol] = [];
+        }
+        const stored = this.ohlcvs[symbol];
+        const length = stored.length;
+        if (length && parsed[0] === stored[length - 1][0]) {
+            stored[length - 1] = parsed;
+        } else {
+            stored.push (parsed);
+            if (length === this.options['OHLCVLimit']) {
+                stored.shift ();
+            }
+        }
+        this.ohlcvs[symbol] = stored;
+        const methodType = message['method'];
+        const messageHash = methodType + ':' + wsMarketId;
+        client.resolve (stored, messageHash);
+    }
+
+    async watchBalance (params = {}) {
+        await this.loadMarkets ();
+        this.checkRequiredCredentials ();
+        const url = this.urls['api']['ws'];
+        const future = this.authenticate ();
+        const requestId = this.nonce ();
+        const method = 'balance.update';
+        const subscribeMessage = {
+            'id': requestId,
+            'method': 'balance.subscribe',
+            'params': [],
+        };
+        const subscription = {
+            'id': requestId,
+            'method': this.handleBalanceSubscription,
+        };
+        return await this.afterDropped (future, this.watch, url, method, subscribeMessage, method, subscription);
+    }
+
+    async fetchBalanceSnapshot () {
+        await this.loadMarkets ();
+        this.checkRequiredCredentials ();
+        const url = this.urls['api']['ws'];
+        const future = this.authenticate ();
+        const requestId = this.nonce ();
+        const method = 'balance.query';
+        const subscribeMessage = {
+            'id': requestId,
+            'method': method,
+            'params': [],
+        };
+        const subscription = {
+            'id': requestId,
+            'method': this.handleBalanceSnapshot,
+        };
+        return await this.afterDropped (future, this.watch, url, requestId, subscribeMessage, method, subscription);
+    }
+
+    handleBalanceSnapshot (client, message) {
+        const messageHash = message['id'];
+        const result = message['result'];
+        this.handleBalanceMessage (client, messageHash, result);
+        delete client.subscriptions['balance.query'];
+    }
+
+    handleBalance (client, message) {
+        const messageHash = message['method'];
+        const result = message['params'][0];
+        this.handleBalanceMessage (client, messageHash, result);
+    }
+
+    handleBalanceMessage (client, messageHash, result) {
+        const keys = Object.keys (result);
+        for (let i = 0; i < keys.length; i++) {
+            const account = this.account ();
+            const key = keys[i];
+            const code = this.safeCurrencyCode (key);
+            const balance = result[key];
+            account['free'] = this.safeFloat (balance, 'available');
+            account['used'] = this.safeFloat (balance, 'freeze');
+            this.balance[code] = account;
+        }
+        client.resolve (this.parseBalance (this.balance), messageHash);
+    }
+
+    async watchOrders (params = {}) {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const url = this.urls['api']['ws'];
+        const future = this.authenticate ();
+        const requestId = this.nonce ();
+        const method = 'order.update';
+        const subscribeMessage = {
+            'id': requestId,
+            'method': 'order.subscribe',
+            'params': [],
+        };
+        return await this.afterDropped (future, this.watch, url, method, subscribeMessage, method);
+    }
+
+    handleOrder (client, message) {
+        const messageHash = message['method'];
+        const order = message['params'][1];
+        const marketId = order['market'];
         const normalMarketId = marketId.toLowerCase ();
         let market = undefined;
         if (normalMarketId in this.markets_by_id) {
             market = this.markets_by_id[normalMarketId];
         }
-        const parsed = this.parseOHLCV (ohlcv, market);
-        const methodType = message['method'];
-        const messageHash = methodType + ':' + marketId;
+        const parsed = this.parseOrder (order, market);
         client.resolve (parsed, messageHash);
     }
 
+    handleAuthenticationMessage (client, message, subscription) {
+        const result = this.safeValue (message, 'result');
+        const status = this.safeString (result, 'status');
+        if (status === 'success') {
+            // client.resolve (true, 'authenticated') will delete the future
+            // we want to remember that we are authenticated in subsequent call to private methods
+            const future = client.futures['authenticated'];
+            future.resolve (true);
+        } else {
+            // delete authenticate subscribeHash to release the "subscribe lock"
+            // allows subsequent calls to subscribe to reauthenticate
+            // avoids sending two authentication messages before receiving a reply
+            const error = new AuthenticationError ('not success');
+            client.reject (error, 'autheticated');
+            if ('server.sign' in client.subscriptions) {
+                delete client.subscriptions['server.sign'];
+            }
+        }
+    }
+
+    handleErrorMessage (client, message) {
+        // todo use error map here
+        const error = this.safeValue (message, 'error', {});
+        const code = this.safeInteger (error, 'code');
+        if (code === 11 || code === 6) {
+            const error = new AuthenticationError ('invalid credentials');
+            client.reject (error, message['id']);
+            client.reject (error, 'authenticated');
+        }
+    }
+
+    handleBalanceSubscription (client, message, subscription) {
+        this.spawn (this.fetchBalanceSnapshot);
+    }
+
+    handleSubscriptionStatus (client, message) {
+        const messageId = message['id'];
+        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+        const subscription = this.safeValue (subscriptionsById, messageId, {});
+        if ('method' in subscription) {
+            const method = subscription['method'];
+            method.call (this, client, message, subscription);
+        }
+        client.resolve (message, messageId);
+    }
+
     handleMessage (client, message) {
+        this.handleErrorMessage (client, message);
         const methods = {
             'depth.update': this.handleOrderBook,
             'ticker.update': this.handleTicker,
             'trades.update': this.handleTrades,
             'kline.update': this.handleOHLCV,
+            'balance.update': this.handleBalance,
+            'order.update': this.handleOrder,
         };
         const methodType = this.safeString (message, 'method');
         const method = this.safeValue (methods, methodType);
-        if (method) {
+        if (method === undefined) {
+            const messageId = this.safeInteger (message, 'id');
+            if (messageId !== undefined) {
+                this.handleSubscriptionStatus (client, message);
+            }
+        } else {
             method.call (this, client, message);
         }
     }

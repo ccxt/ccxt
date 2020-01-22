@@ -15,6 +15,10 @@ trait ClientTrait {
 
     public $loop = null; // reactphp's loop
 
+    public function inflate($string) {
+        return zlib_decode(base64_decode($string));
+    }
+
     public function order_book ($snapshot = array(), $depth = PHP_INT_MAX) {
         return new OrderBook($snapshot, $depth);
     }
@@ -40,18 +44,32 @@ trait ClientTrait {
         return $this->clients[$url];
     }
 
-    public function call($method, ... $args) {
-        return $method(... $args);
+    // the ellipsis packing/unpacking requires PHP 5.6+ :(
+    public function after($future, callable $method, ... $args) {
+        return $future->then(function($result) use ($method, $args) {
+            return $method($result, ... $args);
+        });
     }
 
-    public function callAsync($method, ... $args) {
-        return $method(... $args);
+    public function after_async($future, callable $method, ... $args) {
+        $await = new Future();
+        $future->then(function($result) use ($method, $args, $await) {
+            return $method($result, ... $args)->then(
+                function($result) use ($await) {
+                    $await->resolve($result);
+                },
+                function($error) use ($await) {
+                    $await->reject($error);
+                }
+            );
+        });
+        return $await;
     }
 
     // the ellipsis packing/unpacking requires PHP 5.6+ :(
-    public function after($future, callable $method, ... $args) {
-        return $future->then (function($result) use ($method, $args) {
-            return $method($result, ... $args);
+    public function after_dropped($future, callable $method, ... $args) {
+        return $future->then(function($result) use ($method, $args) {
+                return $method(... $args);
         });
     }
 
@@ -61,7 +79,6 @@ trait ClientTrait {
                 $method(... $args);
             } catch (\Exception $e) {
                 // todo: handle spawned errors
-                throw $e;
             }
         });
     }

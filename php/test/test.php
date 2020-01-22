@@ -8,56 +8,99 @@ require_once 'vendor/autoload.php';
 if (count($argv) < 2) {
     echo "Exchange id not specified\n";
     exit();
-} else {
-
-    $loop = \React\EventLoop\Factory::create();
-
-    $id = $argv[1];
-    $exchange_class = '\\ccxtpro\\' . $id;
-    $exchange = new $exchange_class(array(
-        'enableRateLimit' => true,
-        'loop' => $loop,
-        'verbose' => true,
-        // 'urls' => array(
-        //     'api' => array(
-        //         'ws' => 'ws://127.0.0.1:8080',
-        //     ),
-        // ),
-    ));
-
-    echo 'Testing ', $exchange->id, "\n";
-
-    $keys_global = './keys.json';
-    $keys_local = './keys.local.json';
-    $keys_file = file_exists($keys_local) ? $keys_local : $keys_global;
-
-    $config = json_decode(file_get_contents($keys_file), true);
-
-    $symbol = 'ETH/BTC';
-
-    $tick = null;
-
-    //*
-    $tick = function () use ($loop, $exchange, $symbol, &$tick) {
-
-        $promise = $exchange->watch_order_book($symbol);
-        $promise->then(
-            function ($response) use ($loop, $tick) {
-                echo date('c '), count($response['asks']), ' asks [', $response['asks'][0][0], ', ', $response['asks'][0][1], '] ', count($response['bids']), ' bids [', $response['bids'][0][0], ', ', $response['bids'][0][1], ']', "\n";
-                // exit();
-                $loop->futureTick($tick); // repeat immediately
-            },
-            function ($error) use ($loop, $tick) {
-                echo date('c'), ' ERROR ', $error->getMessage (), "\n";
-                $loop->addTimer(1, $tick); // delay 1 sec before repeating
-            }
-        );
-    };
-
-    $loop->futureTick($tick);
-    $loop->run ();
-
 }
+
+$args = array_slice($argv, 2);
+$verbose = count(array_filter($args, function ($option) {
+    return strstr ($option, '--verbose') !== false;
+})) > 0;
+
+$keys_global = './keys.json';
+$keys_local = './keys.local.json';
+$keys_file = file_exists($keys_local) ? $keys_local : $keys_global;
+
+$config = file_exists($keys_file) ? json_decode(file_get_contents($keys_file), true) : array();
+
+$loop = \React\EventLoop\Factory::create();
+
+$id = $argv[1];
+$options = array_key_exists($id, $config) ? $config[$id] : array();
+$exchange_class = '\\ccxtpro\\' . $id;
+$exchange = new $exchange_class(array_merge_recursive(array(
+    'enableRateLimit' => true,
+    'loop' => $loop,
+    'verbose' => $verbose,
+    // 'urls' => array(
+    //     'api' => array(
+    //         'ws' => 'ws://127.0.0.1:8080',
+    //     ),
+    // ),
+), $options));
+
+echo 'Testing ', $exchange->id, "\n";
+
+$symbol = 'ETH/BTC';
+$delay = 5000;
+
+function print_balances($balance) {
+    $currencies = array_keys($balance['free']);
+    $iso8601 = date('c ');
+    foreach ($currencies as $code) {
+        $b = $balance[$code];
+        // print positive balances only
+        if (($b['free'] > 0) || ($b['used'] > 0) || ($b['total'] > 0)) {
+            echo $iso8601, ' ', $code, ': ', json_encode($b), "\n";
+        }
+    }
+}
+
+function print_orderbook($orderbook) {
+    echo date('c '),
+        count($orderbook['asks']), ' asks [', $orderbook['asks'][0][0], ', ', $orderbook['asks'][0][1], '] ',
+        count($orderbook['bids']), ' bids [', $orderbook['bids'][0][0], ', ', $orderbook['bids'][0][1], ']', "\n";
+}
+
+$tick = function ($method, ... $args) use ($loop, &$tick, $delay) {
+    $promise = $method(... $args);
+    $promise->then(function ($result) use ($tick, $method, $args) {
+        print_balances($result);
+        // print_orderbook($orderbook);
+        $tick($method, ...$args);
+    }, function ($error) use ($loop, $delay, $tick, $method, $args) {
+        echo date('c'), ' ERROR ', $error->getMessage (), "\n";
+        var_dump($error);
+        // delay 1 sec before repeating
+        $loop->addTimer($delay, function () {
+            $tick($method, ...$args);
+        });
+    });
+};
+
+$tick(array($exchange, 'watch_balance'), $symbol);
+$loop->run ();
+exit();
+
+function subscribe ($exchange, $resolved, $rejected, ...$args) {
+    $promise = $exchange->watch_order_book(...$args);
+    $promise->then(function ($result) use ($exchange, $resolved, $rejected, $args) {
+        $resolved($result);
+        subscribe($exchange, $resolved, $rejected, ...$args);
+    }, $rejected);
+}
+
+subscribe(
+    $exchange,
+    function ($result) {
+        var_dump(json_encode($result));
+    },
+    function ($error) {
+        echo "error\n";
+        var_dump($error);
+    },
+    $symbol,
+);
+
+$loop->run ();
 
 //*/
 /*

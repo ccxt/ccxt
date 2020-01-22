@@ -70,8 +70,8 @@ class Client {
         if ($message_hash) {
             if (array_key_exists($message_hash, $this->futures)) {
                 $promise = $this->futures[$message_hash];
-                $promise->resolve($result);
                 unset($this->futures[$message_hash]);
+                $promise->resolve($result);
             }
         } else {
             $message_hashes = array_keys($this->futures);
@@ -86,8 +86,8 @@ class Client {
         if ($message_hash) {
             if (array_key_exists($message_hash, $this->futures)) {
                 $promise = $this->futures[$message_hash];
-                $promise->reject($result);
                 unset($this->futures[$message_hash]);
+                $promise->reject($result);
             }
         } else {
             $message_hashes = array_keys($this->futures);

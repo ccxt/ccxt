@@ -6,6 +6,8 @@ __version__ = '1.0.0'
 
 # -----------------------------------------------------------------------------
 
+from zlib import decompress, MAX_WBITS
+from base64 import b64decode
 from asyncio import ensure_future
 from ccxtpro.base.aiohttp_client import AiohttpClient
 from ccxt.async_support import Exchange as BaseExchange
@@ -35,6 +37,10 @@ class Exchange(BaseExchange):
         'maxPingPongMisses': 2.0,
     }
 
+    @staticmethod
+    def inflate(string):
+        return decompress(b64decode(string), -MAX_WBITS)
+
     def order_book(self, snapshot={}, depth=float('inf')):
         return OrderBook(snapshot, depth)
 
@@ -51,21 +57,24 @@ class Exchange(BaseExchange):
             on_error = self.on_error
             on_close = self.on_close
             # decide client type here: aiohttp ws / websockets / signalr / socketio
-            self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, self.streaming)
+            options = self.extend(self.streaming, {
+                'ping': getattr(self, 'ping', None)
+            })
+            self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, options)
         return self.clients[url]
 
-    def call(self, method, *args):
-        return method(*args)
+    async def after(self, future, method, *args):
+        # method is bound to self instance
+        return method(await future, *args)
 
-    async def callAsync(self, method, *args):
+    async def after_async(self, future, method, *args):
+        return await method(await future, *args)
+
+    async def after_dropped(self, future, method, *args):
+        await future
         return await method(*args)
 
-    async def after(self, future, method, *args):
-        result = await future
-        # method is bound to self instance
-        return method(result, *args)
-
-    async def spawnAsync(self, method, *args):
+    async def spawn_async(self, method, *args):
         try:
             await method(*args)
         except Exception as e:
@@ -73,7 +82,7 @@ class Exchange(BaseExchange):
             pass
 
     def spawn(self, method, *args):
-        ensure_future(self.spawnAsync(method, *args))
+        ensure_future(self.spawn_async(method, *args))
 
     def handle_message(self, client, message):
         always = True
@@ -91,6 +100,7 @@ class Exchange(BaseExchange):
         # todo: calculate the backoff using the clients cache
         backoff_delay = 0
         try:
+            self.open()
             await client.connect(self.session, backoff_delay)
             if message and (subscribe_hash not in client.subscriptions):
                 client.subscriptions[subscribe_hash] = subscription or True

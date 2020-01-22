@@ -20,6 +20,7 @@ Exchange::$exchanges = array(
     'binance',
     'bitfinex',
     'bitmex',
+    'bittrex',
     'coinbasepro',
     'gateio',
     'kraken',

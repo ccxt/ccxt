@@ -73,22 +73,42 @@ if (settings && settings.skip) {
 
 (async () => {
 
+    const hideZeroBalances = function (balance) {
+        const keys = Object.keys (balance['free'])
+            .filter (k => (balance['free'][k] > 0) || (balance['used'][k] > 0) || (balance['total'][k] > 0))
+        const result = {}
+        for (const k of keys) {
+            result[k] = balance[k]
+        }
+        return result
+    }
+
     const symbol = 'ETH/BTC'
         , n = 1 // output every nth snapshot
+        , delay = 5000
         , forever = true
 
     while (forever) {
         try {
+            //*
             let response = undefined
             for (let i = 0; i < n; i++) {
+                // response = await exchange.watchBalance ()
+                // console.table (hideZeroBalances (response))
+                // process.exit ()
                 response = await exchange.watchOrderBook (symbol)
             }
             console.log (new Date (), symbol,
                 response['asks'].length, 'asks', response['asks'][0],
-                response['bids'].length, 'bids', response['bids'][0])
+                response['bids'].length, 'bids', response['bids'][0],
+            )
+            //*/
+            /*
+            const response = await exchange.watchBalance ()
+            */
         } catch (e) {
             console.log (new Date (), e)
-            await ccxtpro.sleep (1000)
+            await ccxtpro.sleep (delay)
         }
     }
 
