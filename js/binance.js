@@ -15,6 +15,8 @@ module.exports = class binance extends ccxt.binance {
                 'watchTrades': true,
                 'watchOHLCV': true,
                 'watchTicker': true,
+                'watchOrders': true,
+                'watchBalance': true,
             },
             'urls': {
                 'api': {
@@ -190,7 +192,14 @@ module.exports = class binance extends ccxt.binance {
         if (orderbook['nonce'] !== undefined) {
             // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
             // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-            this.handleOrderBookMessage (client, message, orderbook);
+            try {
+                this.handleOrderBookMessage (client, message, orderbook);
+            } catch (e) {
+                delete this.orderbooks[symbol];
+                delete client.subscriptions[messageHash];
+                client.reject (e, messageHash);
+                return;
+            }
             client.resolve (orderbook, messageHash);
         } else {
             // 2. Buffer the events you receive from the stream.
@@ -465,12 +474,155 @@ module.exports = class binance extends ccxt.binance {
         client.resolve (parsed, messageHash);
     }
 
+    async authenticate () {
+        const time = this.seconds ();
+        const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
+        if (time - lastAuthenticatedTime > 1800) {
+            const response = await this.publicPostUserDataStream ();
+            this.options['listenKey'] = this.safeString (response, 'listenKey');
+            this.options['lastAuthenticatedTime'] = time;
+        }
+    }
+
+    async watchBalance (params = {}) {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const url = this.urls['api']['ws'] + '/' + this.options['listenKey'];
+        const requestId = this.nonce ();
+        const request = {
+            'method': 'SUBSCRIBE',
+            'params': [
+            ],
+            'id': requestId,
+        };
+        const subscribe = {
+            'id': requestId,
+        };
+        const messageHash = 'outboundAccountInfo';
+        return await this.watch (url, messageHash, request, 1, subscribe);
+    }
+
+    handleBalance (client, message) {
+        // sent upon creating or filling an order
+        //
+        // {
+        //   "e": "outboundAccountInfo",   // Event type
+        //   "E": 1499405658849,           // Event time
+        //   "m": 0,                       // Maker commission rate (bips)
+        //   "t": 0,                       // Taker commission rate (bips)
+        //   "b": 0,                       // Buyer commission rate (bips)
+        //   "s": 0,                       // Seller commission rate (bips)
+        //   "T": true,                    // Can trade?
+        //   "W": true,                    // Can withdraw?
+        //   "D": true,                    // Can deposit?
+        //   "u": 1499405658848,           // Time of last account update
+        //   "B": [                        // Balances array
+        //     {
+        //       "a": "LTC",               // Asset
+        //       "f": "17366.18538083",    // Free amount
+        //       "l": "0.00000000"         // Locked amount
+        //     },
+        //     {
+        //       "a": "BTC",
+        //       "f": "10537.85314051",
+        //       "l": "2.19464093"
+        //     },
+        //     {
+        //       "a": "ETH",
+        //       "f": "17902.35190619",
+        //       "l": "0.00000000"
+        //     },
+        //     {
+        //       "a": "BNC",
+        //       "f": "1114503.29769312",
+        //       "l": "0.00000000"
+        //     },
+        //     {
+        //       "a": "NEO",
+        //       "f": "0.00000000",
+        //       "l": "0.00000000"
+        //     }
+        //   ]
+        // }
+        const balances = this.safeValue (message, 'B', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'a');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'f');
+            account['used'] = this.safeFloat (balance, 'l');
+            this.balance[code] = account;
+        }
+        const parsed = this.parseBalance (this.balance);
+        const messageHash = message['e'];
+        client.resolve (parsed, messageHash);
+    }
+
+    async watchOrders (params = {}) {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const url = this.urls['api']['ws'] + '/' + this.options['listenKey'];
+        const requestId = this.nonce ();
+        const request = {
+            'method': 'SUBSCRIBE',
+            'params': [
+            ],
+            'id': requestId,
+        };
+        const subscribe = {
+            'id': requestId,
+        };
+        const messageHash = 'executionReport';
+        return await this.watch (url, messageHash, request, 1, subscribe);
+    }
+
+    handleOrder (client, message) {
+        // {
+        //   "e": "executionReport",        // Event type
+        //   "E": 1499405658658,            // Event time
+        //   "s": "ETHBTC",                 // Symbol
+        //   "c": "mUvoqJxFIILMdfAW5iGSOW", // Client order ID
+        //   "S": "BUY",                    // Side
+        //   "o": "LIMIT",                  // Order type
+        //   "f": "GTC",                    // Time in force
+        //   "q": "1.00000000",             // Order quantity
+        //   "p": "0.10264410",             // Order price
+        //   "P": "0.00000000",             // Stop price
+        //   "F": "0.00000000",             // Iceberg quantity
+        //   "g": -1,                       // OrderListId
+        //   "C": null,                     // Original client order ID; This is the ID of the order being canceled
+        //   "x": "NEW",                    // Current execution type
+        //   "X": "NEW",                    // Current order status
+        //   "r": "NONE",                   // Order reject reason; will be an error code.
+        //   "i": 4293153,                  // Order ID
+        //   "l": "0.00000000",             // Last executed quantity
+        //   "z": "0.00000000",             // Cumulative filled quantity
+        //   "L": "0.00000000",             // Last executed price
+        //   "n": "0",                      // Commission amount
+        //   "N": null,                     // Commission asset
+        //   "T": 1499405658657,            // Transaction time
+        //   "t": -1,                       // Trade ID
+        //   "I": 8641984,                  // Ignore
+        //   "w": true,                     // Is the order on the book?
+        //   "m": false,                    // Is this trade the maker side?
+        //   "M": false,                    // Ignore
+        //   "O": 1499405658657,            // Order creation time
+        //   "Z": "0.00000000",             // Cumulative quote asset transacted quantity
+        //   "Y": "0.00000000"              // Last quote asset transacted quantity (i.e. lastPrice * lastQty),
+        //   "Q": "0.00000000"              // Quote Order Qty
+        // }
+        console.log (message)
+    }
+
     handleMessage (client, message) {
         const methods = {
             'depthUpdate': this.handleOrderBook,
             'trade': this.handleTrade,
             'kline': this.handleOHCLV,
             '24hrTicker': this.handleTicker,
+            'outboundAccountInfo': this.handleBalance,
+            'executionReport': this.handleOrder,
         };
         const event = this.safeString (message, 'e');
         const method = this.safeValue (methods, event);
