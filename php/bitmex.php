@@ -340,11 +340,11 @@ class bitmex extends \ccxt\bitmex {
                 $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
                 if ($table === 'orderBookL2') {
-                    $this->orderbooks[$symbol] = $this->indexed_order_book();
+                    $this->orderbooks[$symbol] = $this->indexed_order_book ();
                 } else if ($table === 'orderBookL2_25') {
-                    $this->orderbooks[$symbol] = $this->indexed_order_book(array(), 25);
+                    $this->orderbooks[$symbol] = $this->indexed_order_book (array(), 25);
                 } else if ($table === 'orderBook10') {
-                    $this->orderbooks[$symbol] = $this->indexed_order_book(array(), 10);
+                    $this->orderbooks[$symbol] = $this->indexed_order_book (array(), 10);
                 }
                 $orderbook = $this->orderbooks[$symbol];
                 for ($i = 0; $i < count($data); $i++) {

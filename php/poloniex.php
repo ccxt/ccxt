@@ -237,7 +237,7 @@ class poloniex extends \ccxt\poloniex {
             if ($delta[0] === 'i') {
                 $snapshot = $this->safe_value($delta[1], 'orderBook', array());
                 $sides = array( 'asks', 'bids' );
-                $this->orderbooks[$symbol] = $this->order_book();
+                $this->orderbooks[$symbol] = $this->order_book ();
                 $orderbook = $this->orderbooks[$symbol];
                 for ($j = 0; $j < count($snapshot); $j++) {
                     $side = $sides[$j];

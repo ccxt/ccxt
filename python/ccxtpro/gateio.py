@@ -230,7 +230,7 @@ class gateio(ccxtpro.Exchange, ccxt.gateio):
             'id': requestId,
             'method': self.handle_balance_subscription,
         }
-        return await self.afterDropped(future, self.watch, url, method, subscribeMessage, method, subscription)
+        return await self.after_dropped(future, self.watch, url, method, subscribeMessage, method, subscription)
 
     async def fetch_balance_snapshot(self):
         await self.load_markets()
@@ -248,7 +248,7 @@ class gateio(ccxtpro.Exchange, ccxt.gateio):
             'id': requestId,
             'method': self.handle_balance_snapshot,
         }
-        return await self.afterDropped(future, self.watch, url, requestId, subscribeMessage, method, subscription)
+        return await self.after_dropped(future, self.watch, url, requestId, subscribeMessage, method, subscription)
 
     def handle_balance_snapshot(self, client, message):
         messageHash = message['id']
@@ -285,7 +285,7 @@ class gateio(ccxtpro.Exchange, ccxt.gateio):
             'method': 'order.subscribe',
             'params': [],
         }
-        return await self.afterDropped(future, self.watch, url, method, subscribeMessage, method)
+        return await self.after_dropped(future, self.watch, url, method, subscribeMessage, method)
 
     def handle_order(self, client, message):
         messageHash = message['method']
