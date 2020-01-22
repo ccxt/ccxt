@@ -13,7 +13,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
@@ -136,7 +136,7 @@ class livecoin(Exchange):
                     '30': AuthenticationError,
                     '31': NotSupported,
                     '32': ExchangeError,
-                    '429': DDoSProtection,
+                    '429': RateLimitExceeded,
                     '503': ExchangeNotAvailable,
                 },
                 'broad': {

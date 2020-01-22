@@ -239,8 +239,8 @@ class Transpiler {
             [ /(^|\s)\/\//g, '$1#' ],
             [ /([^\n\s]) #/g, '$1  #' ],   // PEP8 E261
             [ /\.indexOf/g, '.find'],
-            [ /\strue/g, ' True'],
-            [ /\sfalse/g, ' False'],
+            [ /(\s|\()true/g, '$1True'],
+            [ /(\s|\()false/g, '$1False'],
             [ /([^\s]+\s*\(\))\.toString\s+\(\)/g, 'str($1)' ],
             [ /([^\s]+)\.toString \(\)/g, 'str($1)' ],
             [ /([^\s]+)\.join\s*\(\s*([^\)\[\]]+?)\s*\)/g, '$2.join($1)' ],
@@ -366,7 +366,7 @@ class Transpiler {
             [ /Math\.ceil\s*\(([^\)]+)\)/g, '(int) ceil($1)' ],
             [ /Math\.pow\s*\(([^\)]+)\)/g, 'pow($1)' ],
             [ /Math\.log/g, 'log' ],
-            [ /([^\(\s]+)\s+%\s+([^\s\)]+)/g, 'fmod($1, $2)' ],
+            [ /([^\(\s]+)\s+%\s+([^\s\,\;\)]+)/g, 'fmod($1, $2)' ],
             [ /\(([^\s\(]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0\)/g, '(mb_strpos($1, $2) !== false)' ],
             [ /([^\s\(]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0/g, 'mb_strpos($1, $2) !== false' ],
             [ /([^\s\(]+)\.indexOf\s*\(([^\)]+)\)/g, 'mb_strpos($1, $2)' ],
@@ -380,6 +380,14 @@ class Transpiler {
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
             [ /\~([a-zA-Z0-9_]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
         ])
+    }
+
+    getPythonBaseMethods () {
+        return []
+    }
+
+    getPHPBaseMethods () {
+        return []
     }
 
     //-------------------------------------------------------------------------
@@ -508,8 +516,10 @@ class Transpiler {
 
         header = header.concat (libraries, errorImports, precisionImports)
 
+        methods = methods.concat (this.getPythonBaseMethods ())
+
         for (let method of methods) {
-            const regex = new RegExp ('self\\.(' + method + ')([^a-zA-Z0-9])', 'g')
+            const regex = new RegExp ('self\\.(' + method + ')([^a-zA-Z0-9_])', 'g')
             bodyAsString = bodyAsString.replace (regex,
                 (match, p1, p2) => ('self.' + unCamelCase (p1) + p2))
         }
@@ -560,8 +570,10 @@ class Transpiler {
 
         header = header.concat (errorImports)
 
+        methods = methods.concat (this.getPHPBaseMethods ())
+
         for (let method of methods) {
-            const regex = new RegExp ('\\$this->(' + method + ')(\\s\\(|[^a-zA-Z0-9])', 'g')
+            const regex = new RegExp ('\\$this->(' + method + ')(\\s\\(|[^a-zA-Z0-9_])', 'g')
             bodyAsString = bodyAsString.replace (regex,
                 (match, p1, p2) => {
                     return ((p2 === ' (') ?

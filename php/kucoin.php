@@ -143,7 +143,7 @@ class kucoin extends Exchange {
                     '403' => '\\ccxt\\NotSupported',
                     '404' => '\\ccxt\\NotSupported',
                     '405' => '\\ccxt\\NotSupported',
-                    '429' => '\\ccxt\\DDoSProtection',
+                    '429' => '\\ccxt\\RateLimitExceeded',
                     '500' => '\\ccxt\\ExchangeError',
                     '503' => '\\ccxt\\ExchangeNotAvailable',
                     '200004' => '\\ccxt\\InsufficientFunds',

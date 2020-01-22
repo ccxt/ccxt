@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.21.56';
+$version = '1.21.82';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.21.56';
+    const VERSION = '1.21.82';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -626,7 +626,7 @@ class Exchange {
 
     public function milliseconds() {
         list($msec, $sec) = explode(' ', microtime());
-        return $sec . substr($msec, 2, 3);
+        return (int) ($sec . substr($msec, 2, 3));
     }
 
     public function microseconds() {
@@ -845,6 +845,7 @@ class Exchange {
         $this->orders = array();
         $this->trades = array();
         $this->transactions = array();
+        $this->ohlcvs = array();
         $this->exceptions = array();
         $this->accounts = array();
         $this->status = array('status' => 'ok', 'updated' => null, 'eta' => null, 'url' => null);
@@ -865,7 +866,7 @@ class Exchange {
         $this->httpExceptions = array(
             '422' => 'ExchangeError',
             '418' => 'DDoSProtection',
-            '429' => 'DDoSProtection',
+            '429' => 'RateLimitExceeded',
             '404' => 'ExchangeNotAvailable',
             '409' => 'ExchangeNotAvailable',
             '500' => 'ExchangeNotAvailable',
@@ -944,6 +945,7 @@ class Exchange {
             'fetchOHLCV' => 'emulated',
             'fetchOpenOrders' => false,
             'fetchOrder' => false,
+            'fetchOrderTrades' => false,
             'fetchOrderBook' => true,
             'fetchOrderBooks' => false,
             'fetchOrders' => false,
@@ -1631,7 +1633,7 @@ class Exchange {
     }
 
     public function parse_balance($balance) {
-        $currencies = $this->omit($balance, 'info');
+        $currencies = $this->omit($balance, array('info', 'free', 'used', 'total'));
 
         $balance['free'] = array();
         $balance['used'] = array();
@@ -1640,28 +1642,22 @@ class Exchange {
         foreach ($currencies as $code => $value) {
             if (!isset($value['total'])) {
                 if (isset($value['free']) && isset($value['used'])) {
-                    $currencies[$code]['total'] = static::sum($value['free'], $value['used']);
+                    $balance[$code]['total'] = static::sum($value['free'], $value['used']);
                 }
             }
             if (!isset($value['used'])) {
                 if (isset($value['total']) && isset($value['free'])) {
-                    $currencies[$code]['used'] = static::sum($value['total'], -$value['free']);
+                    $balance[$code]['used'] = static::sum($value['total'], -$value['free']);
                 }
             }
             if (!isset($value['free'])) {
                 if (isset($value['total']) && isset($value['used'])) {
-                    $currencies[$code]['free'] = static::sum($value['total'], -$value['used']);
+                    $balance[$code]['free'] = static::sum($value['total'], -$value['used']);
                 }
             }
-        }
-
-        $accounts = array('free', 'used', 'total');
-        foreach ($accounts as $account) {
-            $balance[$account] = array();
-            foreach ($currencies as $code => $value) {
-                $balance[$code] = isset($balance[$code]) ? $balance[$code] : array();
-                $balance[$code][$account] = $balance[$account][$code] = $value[$account];
-            }
+            $balance['free'][$code] = $balance[$code]['free'];
+            $balance['used'][$code] = $balance[$code]['used'];
+            $balance['total'][$code] = $balance[$code]['total'];
         }
         return $balance;
     }

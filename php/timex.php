@@ -165,7 +165,7 @@ class timex extends Exchange {
                     '401' => '\\ccxt\\AuthenticationError',
                     '403' => '\\ccxt\\PermissionDenied',
                     '404' => '\\ccxt\\OrderNotFound',
-                    '429' => '\\ccxt\\DDoSProtection',
+                    '429' => '\\ccxt\\RateLimitExceeded',
                     '500' => '\\ccxt\\ExchangeError',
                     '503' => '\\ccxt\\ExchangeNotAvailable',
                 ),
