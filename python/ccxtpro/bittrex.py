@@ -49,7 +49,7 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
             'connectionData': self.json(hubs),
             'clientProtocol': 1.5,
             '_': ms,  # no cache
-            'tid': self.sum(ms % 10, 1),
+            'tid': self.sum(ms % 10, 1),  # random
         }, params)
 
     async def negotiate(self, params={}):
@@ -87,13 +87,12 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
         request = self.create_signal_r_query(self.extend(negotiation['request'], {
             'connectionToken': connectionToken,
         }))
-        response = await self.signalrGetStart(request)
-        return response
+        return await self.signalrGetStart(request)
 
     async def authenticate(self, params={}):
         self.check_required_credentials()
         future = self.negotiate()
-        return await self.afterAsync(future, self.get_auth_context, params)
+        return await self.after_async(future, self.get_auth_context, params)
 
     async def get_auth_context(self, negotiation, params={}):
         connectionToken = self.safe_string(negotiation['response'], 'ConnectionToken')
@@ -102,11 +101,9 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
         })
         url = self.urls['api']['ws'] + '?' + self.urlencode(query)
         method = 'GetAuthContext'
-        # url = self.urls['api']['ws']
         client = self.client(url)
         authenticate = self.safe_value(client.subscriptions, method, {})
         future = self.safe_value(authenticate, 'future')
-        # future = client.future('authenticated')
         if future is None:
             future = client.future('authenticated')
             requestId = str(self.milliseconds())
@@ -123,11 +120,8 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
                 'negotiation': negotiation,
                 'future': future,
             }
-            self.spawn(self.watch_get_auth_context, url, requestId, request, method, subscription)
+            self.spawn(self.watch, url, requestId, request, method, subscription)
         return await future
-
-    async def watch_get_auth_context(self, url, requestId, request, method, subscription):
-        return await self.watch(url, requestId, request, method, subscription)
 
     def handle_get_auth_context(self, client, message, subscription):
         #
@@ -159,11 +153,8 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
             'method': self.handle_authenticate,
             'negotiation': negotiation,
         }
-        self.spawn(self.watch_authenticate, url, requestId, request, requestId, authenticateSubscription)
+        self.spawn(self.watch, url, requestId, request, requestId, authenticateSubscription)
         return message
-
-    async def watch_authenticate(self, url, requestId, request, method, subscription):
-        return await self.watch(url, requestId, request, method, subscription)
 
     def handle_authenticate(self, client, message, subscription):
         #
@@ -209,10 +200,9 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
     async def watch_balance(self, params={}):
         await self.load_markets()
         future = self.authenticate()
-        return await self.afterAsync(future, self.subscribe_to_user_deltas, params)
+        return await self.after_async(future, self.subscribe_to_user_deltas, params)
 
     async def subscribe_to_exchange_deltas(self, negotiation, symbol, limit=None, params={}):
-        # print(negotiation)
         await self.load_markets()
         market = self.market(symbol)
         connectionToken = self.safe_string(negotiation['response'], 'ConnectionToken')
@@ -247,7 +237,7 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
     async def watch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         future = self.negotiate()
-        return await self.afterAsync(future, self.subscribe_to_exchange_deltas, symbol, limit, params)
+        return await self.after_async(future, self.subscribe_to_exchange_deltas, symbol, limit, params)
 
     def limit_order_book(self, orderbook, symbol, limit=None, params={}):
         return orderbook.limit(limit)
@@ -363,7 +353,7 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
         # print(new Date(), 'fetchBalanceState')
         await self.load_markets()
         future = self.authenticate()
-        return await self.afterAsync(future, self.query_balance_state, params)
+        return await self.after_async(future, self.query_balance_state, params)
 
     async def query_balance_state(self, negotiation, params={}):
         #
@@ -496,7 +486,7 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
     async def fetch_exchange_state(self, symbol, limit=None, params={}):
         await self.load_markets()
         future = self.negotiate()
-        return await self.afterAsync(future, self.query_exchange_state, symbol, limit, params)
+        return await self.after_async(future, self.query_exchange_state, symbol, limit, params)
 
     async def query_exchange_state(self, negotiation, symbol, limit=None, params={}):
         await self.load_markets()
@@ -577,6 +567,7 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
         # print(new Date(), 'handleSubscribeToUserDeltas')
         # fetch the snapshot in a separate async call
         self.spawn(self.fetch_balance_snapshot, client, message, subscription)
+        # the two lines below may work when bittrex fixes the snapshots
         # params = self.safe_value(subscription, 'params')
         # self.spawn(self.fetch_balance_state, params)
 
@@ -612,12 +603,9 @@ class bittrex(ccxtpro.Exchange, ccxt.bittrex):
     def handle_system_status(self, client, message):
         # send signalR protocol start() call
         future = self.negotiate()
-        self.spawn(self.fetch_start, future, self.start)
+        self.spawn(self.after_async, future, self.start)
         # print(new Date(), 'handleSystemStatus', message)
         return message
-
-    async def fetch_start(self, future, method):
-        return await self.afterAsync(future, method)
 
     def handle_heartbeat(self, client, message):
         #

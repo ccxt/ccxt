@@ -51,7 +51,7 @@ class bittrex extends \ccxt\bittrex {
             'connectionData' => $this->json ($hubs),
             'clientProtocol' => 1.5,
             '_' => $ms, // no cache
-            'tid' => $this->sum (fmod($ms, 10), 1),
+            'tid' => $this->sum (fmod($ms, 10), 1), // random
         ), $params);
     }
 
@@ -92,14 +92,13 @@ class bittrex extends \ccxt\bittrex {
         $request = $this->create_signal_r_query (array_merge($negotiation['request'], array(
             'connectionToken' => $connectionToken,
         )));
-        $response = $this->signalrGetStart ($request);
-        return $response;
+        return $this->signalrGetStart ($request);
     }
 
     public function authenticate ($params = array ()) {
         $this->check_required_credentials();
         $future = $this->negotiate ();
-        return $this->afterAsync ($future, array($this, 'get_auth_context'), $params);
+        return $this->after_async ($future, array($this, 'get_auth_context'), $params);
     }
 
     public function get_auth_context ($negotiation, $params = array ()) {
@@ -109,11 +108,9 @@ class bittrex extends \ccxt\bittrex {
         ));
         $url = $this->urls['api']['ws'] . '?' . $this->urlencode ($query);
         $method = 'GetAuthContext';
-        // $url = $this->urls['api']['ws'];
         $client = $this->client ($url);
         $authenticate = $this->safe_value($client->subscriptions, $method, array());
         $future = $this->safe_value($authenticate, 'future');
-        // $future = $client->future ('authenticated');
         if ($future === null) {
             $future = $client->future ('authenticated');
             $requestId = (string) $this->milliseconds ();
@@ -130,13 +127,9 @@ class bittrex extends \ccxt\bittrex {
                 'negotiation' => $negotiation,
                 'future' => $future,
             );
-            $this->spawn (array($this, 'watch_get_auth_context'), $url, $requestId, $request, $method, $subscription);
+            $this->spawn (array($this, 'watch'), $url, $requestId, $request, $method, $subscription);
         }
         return $future;
-    }
-
-    public function watch_get_auth_context ($url, $requestId, $request, $method, $subscription) {
-        return $this->watch ($url, $requestId, $request, $method, $subscription);
     }
 
     public function handle_get_auth_context ($client, $message, $subscription) {
@@ -169,12 +162,8 @@ class bittrex extends \ccxt\bittrex {
             'method' => array($this, 'handle_authenticate'),
             'negotiation' => $negotiation,
         );
-        $this->spawn (array($this, 'watch_authenticate'), $url, $requestId, $request, $requestId, $authenticateSubscription);
+        $this->spawn (array($this, 'watch'), $url, $requestId, $request, $requestId, $authenticateSubscription);
         return $message;
-    }
-
-    public function watch_authenticate ($url, $requestId, $request, $method, $subscription) {
-        return $this->watch ($url, $requestId, $request, $method, $subscription);
     }
 
     public function handle_authenticate ($client, $message, $subscription) {
@@ -225,11 +214,10 @@ class bittrex extends \ccxt\bittrex {
     public function watch_balance ($params = array ()) {
         $this->load_markets();
         $future = $this->authenticate ();
-        return $this->afterAsync ($future, array($this, 'subscribe_to_user_deltas'), $params);
+        return $this->after_async ($future, array($this, 'subscribe_to_user_deltas'), $params);
     }
 
     public function subscribe_to_exchange_deltas ($negotiation, $symbol, $limit = null, $params = array ()) {
-        // var_dump ($negotiation);
         $this->load_markets();
         $market = $this->market ($symbol);
         $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');
@@ -265,7 +253,7 @@ class bittrex extends \ccxt\bittrex {
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $future = $this->negotiate ();
-        return $this->afterAsync ($future, array($this, 'subscribe_to_exchange_deltas'), $symbol, $limit, $params);
+        return $this->after_async ($future, array($this, 'subscribe_to_exchange_deltas'), $symbol, $limit, $params);
     }
 
     public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
@@ -394,7 +382,7 @@ class bittrex extends \ccxt\bittrex {
         // var_dump (new Date (), 'fetchBalanceState');
         $this->load_markets();
         $future = $this->authenticate ();
-        return $this->afterAsync ($future, array($this, 'query_balance_state'), $params);
+        return $this->after_async ($future, array($this, 'query_balance_state'), $params);
     }
 
     public function query_balance_state ($negotiation, $params = array ()) {
@@ -530,7 +518,7 @@ class bittrex extends \ccxt\bittrex {
     public function fetch_exchange_state ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $future = $this->negotiate ();
-        return $this->afterAsync ($future, array($this, 'query_exchange_state'), $symbol, $limit, $params);
+        return $this->after_async ($future, array($this, 'query_exchange_state'), $symbol, $limit, $params);
     }
 
     public function query_exchange_state ($negotiation, $symbol, $limit = null, $params = array ()) {
@@ -617,6 +605,7 @@ class bittrex extends \ccxt\bittrex {
         // var_dump (new Date (), 'handleSubscribeToUserDeltas');
         // fetch the snapshot in a separate async call
         $this->spawn (array($this, 'fetch_balance_snapshot'), $client, $message, $subscription);
+        // the two lines below may work when bittrex fixes the snapshots
         // $params = $this->safe_value($subscription, 'params');
         // $this->spawn (array($this, 'fetch_balance_state'), $params);
     }
@@ -628,7 +617,7 @@ class bittrex extends \ccxt\bittrex {
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
-        $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+        $this->orderbooks[$symbol] = $this->order_book (array(), $limit);
         // fetch the snapshot in a separate async call
         $this->spawn (array($this, 'fetch_exchange_state'), $symbol, $limit, $params);
     }
@@ -658,13 +647,9 @@ class bittrex extends \ccxt\bittrex {
     public function handle_system_status ($client, $message) {
         // send signalR protocol start() call
         $future = $this->negotiate ();
-        $this->spawn (array($this, 'fetch_start'), $future, array($this, 'start'));
+        $this->spawn (array($this, 'after_async'), $future, array($this, 'start'));
         // var_dump (new Date (), 'handleSystemStatus', $message);
         return $message;
-    }
-
-    public function fetch_start ($future, $method) {
-        return $this->afterAsync ($future, $method);
     }
 
     public function handle_heartbeat ($client, $message) {

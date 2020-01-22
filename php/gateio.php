@@ -104,7 +104,7 @@ class gateio extends \ccxt\gateio {
         $messageHash = $method . ':' . $marketId;
         $orderBook = null;
         if ($clean) {
-            $orderBook = $this->order_book(array());
+            $orderBook = $this->order_book (array());
             $this->orderbooks[$symbol] = $orderBook;
         } else {
             $orderBook = $this->orderbooks[$symbol];
@@ -233,7 +233,7 @@ class gateio extends \ccxt\gateio {
                 'id' => $requestId,
                 'method' => array($this, 'handle_authentication_message'),
             );
-            $this->spawn ($this->watch, $url, $requestId, $authenticateMessage, $method, $subscribe);
+            $this->spawn (array($this, 'watch'), $url, $requestId, $authenticateMessage, $method, $subscribe);
         }
         return $future;
     }
@@ -290,7 +290,7 @@ class gateio extends \ccxt\gateio {
             'id' => $requestId,
             'method' => array($this, 'handle_balance_subscription'),
         );
-        return $this->afterDropped ($future, $this->watch, $url, $method, $subscribeMessage, $method, $subscription);
+        return $this->after_dropped ($future, array($this, 'watch'), $url, $method, $subscribeMessage, $method, $subscription);
     }
 
     public function fetch_balance_snapshot () {
@@ -309,7 +309,7 @@ class gateio extends \ccxt\gateio {
             'id' => $requestId,
             'method' => array($this, 'handle_balance_snapshot'),
         );
-        return $this->afterDropped ($future, $this->watch, $url, $requestId, $subscribeMessage, $method, $subscription);
+        return $this->after_dropped ($future, array($this, 'watch'), $url, $requestId, $subscribeMessage, $method, $subscription);
     }
 
     public function handle_balance_snapshot ($client, $message) {
@@ -351,7 +351,7 @@ class gateio extends \ccxt\gateio {
             'method' => 'order.subscribe',
             'params' => array(),
         );
-        return $this->afterDropped ($future, $this->watch, $url, $method, $subscribeMessage, $method);
+        return $this->after_dropped ($future, array($this, 'watch'), $url, $method, $subscribeMessage, $method);
     }
 
     public function handle_order ($client, $message) {
