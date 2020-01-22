@@ -194,13 +194,12 @@ module.exports = class binance extends ccxt.binance {
             // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
             try {
                 this.handleOrderBookMessage (client, message, orderbook);
+                client.resolve (orderbook, messageHash);
             } catch (e) {
                 delete this.orderbooks[symbol];
                 delete client.subscriptions[messageHash];
                 client.reject (e, messageHash);
-                return;
             }
-            client.resolve (orderbook, messageHash);
         } else {
             // 2. Buffer the events you receive from the stream.
             orderbook.cache.push (message);
