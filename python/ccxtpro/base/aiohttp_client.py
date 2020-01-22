@@ -75,8 +75,8 @@ class AiohttpClient(Client):
             # however some exchanges require a text-type ping message
             # therefore we need this clause anyway
             else:
-                if self.heartbeat:
-                    await self.connection.ping()
-                elif self.ping:
+                if self.ping:
                     await self.send(self.ping())
+                else:
+                    await self.connection.ping()
             await sleep(self.keepAlive / 1000)
