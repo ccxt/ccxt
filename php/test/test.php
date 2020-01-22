@@ -15,11 +15,18 @@ $verbose = count(array_filter($args, function ($option) {
     return strstr ($option, '--verbose') !== false;
 })) > 0;
 
+$keys_global = './keys.json';
+$keys_local = './keys.local.json';
+$keys_file = file_exists($keys_local) ? $keys_local : $keys_global;
+
+$config = file_exists($keys_file) ? json_decode(file_get_contents($keys_file), true) : array();
+
 $loop = \React\EventLoop\Factory::create();
 
 $id = $argv[1];
+$options = array_key_exists($id, $config) ? $config[$id] : array();
 $exchange_class = '\\ccxtpro\\' . $id;
-$exchange = new $exchange_class(array(
+$exchange = new $exchange_class(array_merge_recursive(array(
     'enableRateLimit' => true,
     'loop' => $loop,
     'verbose' => $verbose,
@@ -28,27 +35,36 @@ $exchange = new $exchange_class(array(
     //         'ws' => 'ws://127.0.0.1:8080',
     //     ),
     // ),
-));
+), $options));
 
 echo 'Testing ', $exchange->id, "\n";
-
-$keys_global = './keys.json';
-$keys_local = './keys.local.json';
-$keys_file = file_exists($keys_local) ? $keys_local : $keys_global;
-
-$config = json_decode(file_get_contents($keys_file), true);
 
 $symbol = 'ETH/BTC';
 $delay = 5000;
 
+function print_balances($balance) {
+    $currencies = array_keys($balance['free']);
+    $iso8601 = date('c ');
+    foreach ($currencies as $code) {
+        $b = $balance[$code];
+        // print positive balances only
+        if (($b['free'] > 0) || ($b['used'] > 0) || ($b['total'] > 0)) {
+            echo $iso8601, ' ', $code, ': ', json_encode($b), "\n";
+        }
+    }
+}
+
+function print_orderbook($orderbook) {
+    echo date('c '),
+        count($orderbook['asks']), ' asks [', $orderbook['asks'][0][0], ', ', $orderbook['asks'][0][1], '] ',
+        count($orderbook['bids']), ' bids [', $orderbook['bids'][0][0], ', ', $orderbook['bids'][0][1], ']', "\n";
+}
+
 $tick = function ($method, ... $args) use ($loop, &$tick, $delay) {
     $promise = $method(... $args);
     $promise->then(function ($result) use ($tick, $method, $args) {
-        // var_dump(json_encode($result));
-        // exit();
-        echo date('c '),
-            count($result['asks']), ' asks [', $result['asks'][0][0], ', ', $result['asks'][0][1], '] ',
-            count($result['bids']), ' bids [', $result['bids'][0][0], ', ', $result['bids'][0][1], ']', "\n";
+        print_balances($result);
+        // print_orderbook($orderbook);
         $tick($method, ...$args);
     }, function ($error) use ($loop, $delay, $tick, $method, $args) {
         echo date('c'), ' ERROR ', $error->getMessage (), "\n";
@@ -60,7 +76,7 @@ $tick = function ($method, ... $args) use ($loop, &$tick, $delay) {
     });
 };
 
-$tick(array($exchange, 'watch_order_book'), $symbol);
+$tick(array($exchange, 'watch_balance'), $symbol);
 $loop->run ();
 exit();
 
