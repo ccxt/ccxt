@@ -256,11 +256,13 @@ module.exports = class coinsbit extends Exchange {
         for (let i = 0; i < symbols.length; i++) {
             const currencyId = symbols[i];
             const code = this.safeCurrencyCode (currencyId);
-            const balance = balances[code];
-            const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['total'] = this.safeFloat (balance, 'available') + this.safeFloat (balance, 'freeze');
-            result[code] = account;
+            const balance = this.safeValue (balances, code);
+            if (balance) {
+                const account = this.account ();
+                account['free'] = this.safeFloat (balance, 'available');
+                account['total'] = this.safeFloat (balance, 'available') + this.safeFloat (balance, 'freeze');
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
