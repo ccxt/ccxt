@@ -103,11 +103,9 @@ module.exports = class bittrex extends ccxt.bittrex {
         });
         const url = this.urls['api']['ws'] + '?' + this.urlencode (query);
         const method = 'GetAuthContext';
-        // const url = this.urls['api']['ws'];
         const client = this.client (url);
         const authenticate = this.safeValue (client.subscriptions, method, {});
         let future = this.safeValue (authenticate, 'future');
-        // const future = client.future ('authenticated');
         if (future === undefined) {
             future = client.future ('authenticated');
             const requestId = this.milliseconds ().toString ();
@@ -223,7 +221,6 @@ module.exports = class bittrex extends ccxt.bittrex {
     }
 
     async subscribeToExchangeDeltas (negotiation, symbol, limit = undefined, params = {}) {
-        // console.log (negotiation);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const connectionToken = this.safeString (negotiation['response'], 'ConnectionToken');
@@ -611,6 +608,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         // console.log (new Date (), 'handleSubscribeToUserDeltas');
         // fetch the snapshot in a separate async call
         this.spawn (this.fetchBalanceSnapshot, client, message, subscription);
+        // the two lines below may work when bittrex fixes the snapshots
         // const params = this.safeValue (subscription, 'params');
         // this.spawn (this.fetchBalanceState, params);
     }
