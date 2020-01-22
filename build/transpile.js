@@ -19,16 +19,38 @@ const fs = require ('fs')
 
 class CCXTProTranspiler extends Transpiler {
 
-    getCommonRegexes () {
-        return super.getCommonRegexes ().concat ([
-            [ /\.orderBook\s/g, '.order_book' ],
-            [ /\.limitedOrderBook\s/g, '.limited_order_book' ],
-            [ /\.indexedOrderBook\s/g, '.indexed_order_book' ],
-            [ /\.limitedIndexedOrderBook\s/g, '.limited_indexed_order_book' ],
-            [ /\.limitedCountedOrderBook\s/g, '.limited_counted_order_book' ],
-            [ /\.countedOrderBook\s/g, '.counted_order_book' ],
-        ])
+    getBaseMethods () {
+        return [
+            'orderBook',
+            'limitedOrderBook',
+            'indexedOrderBook',
+            'limitedIndexedOrderBook',
+            'limitedCountedOrderBook',
+            'countedOrderBook',
+            'afterAsync',
+            'afterDropped',
+            'watch',
+        ]
     }
+
+    getPythonBaseMethods () {
+        return this.getBaseMethods ()
+    }
+
+    getPHPBaseMethods () {
+        return this.getBaseMethods ()
+    }
+
+    // getCommonRegexes () {
+    //     return super.getCommonRegexes ().concat ([
+    //         [ /\.orderBook\s/g, '.order_book' ],
+    //         [ /\.limitedOrderBook\s/g, '.limited_order_book' ],
+    //         [ /\.indexedOrderBook\s/g, '.indexed_order_book' ],
+    //         [ /\.limitedIndexedOrderBook\s/g, '.limited_indexed_order_book' ],
+    //         [ /\.limitedCountedOrderBook\s/g, '.limited_counted_order_book' ],
+    //         [ /\.countedOrderBook\s/g, '.counted_order_book' ],
+    //     ])
+    // }
 
     getPHPPreamble () {
         return [
