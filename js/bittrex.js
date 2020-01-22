@@ -46,7 +46,7 @@ module.exports = class bittrex extends ccxt.bittrex {
             'connectionData': this.json (hubs),
             'clientProtocol': 1.5,
             '_': ms, // no cache
-            'tid': this.sum (ms % 10, 1),
+            'tid': this.sum (ms % 10, 1), // random
         }, params);
     }
 
@@ -87,8 +87,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         const request = this.createSignalRQuery (this.extend (negotiation['request'], {
             'connectionToken': connectionToken,
         }));
-        const response = await this.signalrGetStart (request);
-        return response;
+        return await this.signalrGetStart (request);
     }
 
     async authenticate (params = {}) {
