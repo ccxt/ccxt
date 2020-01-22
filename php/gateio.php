@@ -147,7 +147,7 @@ class gateio extends \ccxt\gateio {
         $client->resolve ($parsed, $messageHash);
     }
 
-    public function watch_trades ($symbol, $params = array ()) {
+    public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $marketId = strtoupper($market['id']);
@@ -162,7 +162,8 @@ class gateio extends \ccxt\gateio {
             'id' => $requestId,
         );
         $messageHash = 'trades.update' . ':' . $marketId;
-        return $this->watch ($url, $messageHash, $subscribeMessage, $messageHash, $subscription);
+        $future = $this->watch ($url, $messageHash, $subscribeMessage, $messageHash, $subscription);
+        return $this->after ($future, $this->filterBySinceLimit, $since, $limit);
     }
 
     public function handle_trades ($client, $messsage) {
@@ -246,6 +247,7 @@ class gateio extends \ccxt\gateio {
             intval ($ohlcv[0]),    // t
             floatval ($ohlcv[1]),  // o
             floatval ($ohlcv[3]),  // h
+            floatval ($ohlcv[4]),  // l
             floatval ($ohlcv[2]),  // c
             floatval ($ohlcv[5]),  // v
         ];

@@ -131,7 +131,7 @@ class gateio(ccxtpro.Exchange, ccxt.gateio):
         messageHash = methodType + ':' + marketId
         client.resolve(parsed, messageHash)
 
-    async def watch_trades(self, symbol, params={}):
+    async def watch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         marketId = market['id'].upper()
@@ -146,7 +146,8 @@ class gateio(ccxtpro.Exchange, ccxt.gateio):
             'id': requestId,
         }
         messageHash = 'trades.update' + ':' + marketId
-        return await self.watch(url, messageHash, subscribeMessage, messageHash, subscription)
+        future = self.watch(url, messageHash, subscribeMessage, messageHash, subscription)
+        return await self.after(future, self.filterBySinceLimit, since, limit)
 
     def handle_trades(self, client, messsage):
         result = messsage['params']
@@ -221,6 +222,7 @@ class gateio(ccxtpro.Exchange, ccxt.gateio):
             int(ohlcv[0]),    # t
             float(ohlcv[1]),  # o
             float(ohlcv[3]),  # h
+            float(ohlcv[4]),  # l
             float(ohlcv[2]),  # c
             float(ohlcv[5]),  # v
         ]

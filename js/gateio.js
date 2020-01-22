@@ -141,7 +141,7 @@ module.exports = class gateio extends ccxt.gateio {
         client.resolve (parsed, messageHash);
     }
 
-    async watchTrades (symbol, params = {}) {
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'].toUpperCase ();
@@ -156,7 +156,8 @@ module.exports = class gateio extends ccxt.gateio {
             'id': requestId,
         };
         const messageHash = 'trades.update' + ':' + marketId;
-        return await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        const future = this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        return await this.after (future, this.filterBySinceLimit, since, limit);
     }
 
     handleTrades (client, messsage) {
