@@ -543,7 +543,8 @@ module.exports = class bittrex extends ccxt.bittrex {
     }
 
     handleExchangeState (client, message, subscription) {
-        const R = JSON.parse (this.inflate (this.safeValue (message, 'R')));
+        const inflated = this.inflate (this.safeValue (message, 'R'));
+        const R = JSON.parse (inflated);
         //
         //     {
         //         'M': 'BTC-ETH',
@@ -674,7 +675,8 @@ module.exports = class bittrex extends ccxt.bittrex {
             if (method !== undefined) {
                 const A = this.safeValue (M[i], 'A', []);
                 for (let k = 0; k < A.length; k++) {
-                    const update = JSON.parse (this.inflate (A[k]));
+                    const inflated = this.inflate (A[k]);
+                    const update = JSON.parse (inflated);
                     method.call (this, client, update);
                 }
             }
