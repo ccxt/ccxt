@@ -344,17 +344,31 @@ module.exports = class phemex extends Exchange {
         const usdAccount = this.safeValue (this.parseResponse (usdResponse), 'account');
         const usdBalanceEv = this.safeValue (usdAccount, 'accountBalanceEv');
         const usdTotalUsedBalanceEv = this.safeValue (usdAccount, 'totalUsedBalanceEv');
+        const BTC = {
+            'free': this.convertEv (btcBalanceEv - btcTotalUsedBalanceEv, 8, 8),
+            'used': this.convertEv (btcTotalUsedBalanceEv, 8, 8),
+            'total': this.convertEv (btcBalanceEv, 8, 8),
+        };
+        const USD = {
+            'free': this.convertEv (usdBalanceEv - usdTotalUsedBalanceEv, 4, 2),
+            'used': this.convertEv (usdTotalUsedBalanceEv, 4, 2),
+            'total': this.convertEv (usdBalanceEv, 4, 2),
+        };
         return {
-            'BTC': {
-                'free': this.convertEv (btcBalanceEv - btcTotalUsedBalanceEv, 8, 8),
-                'used': this.convertEv (btcTotalUsedBalanceEv, 8, 8),
-                'total': this.convertEv (btcBalanceEv, 8, 8),
+            'free': {
+                'BTC': this.safeString (BTC, 'free'),
+                'USD': this.safeString (USD, 'free'),
             },
-            'USD': {
-                'free': this.convertEv (usdBalanceEv - usdTotalUsedBalanceEv, 4, 2),
-                'used': this.convertEv (usdTotalUsedBalanceEv, 4, 2),
-                'total': this.convertEv (usdBalanceEv, 4, 2),
+            'used': {
+                'BTC': this.safeString (BTC, 'used'),
+                'USD': this.safeString (USD, 'used'),
             },
+            'total': {
+                'BTC': this.safeString (BTC, 'total'),
+                'USD': this.safeString (USD, 'total'),
+            },
+            'BTC': BTC,
+            'USD': USD,
             'info': {},
         };
     }
