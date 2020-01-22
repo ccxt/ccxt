@@ -24,7 +24,7 @@ module.exports = class binance extends ccxt.binance {
             'options': {
                 'watchOrderBookRate': 100, // get updates every 100ms or 1000ms
                 'tradesLimit': 1000,
-                'OHLCVLimit': 3,
+                'OHLCVLimit': 1000,
             },
         });
     }
