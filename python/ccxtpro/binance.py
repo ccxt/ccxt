@@ -14,6 +14,9 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         return self.deep_extend(super(binance, self).describe(), {
             'has': {
                 'watchOrderBook': True,
+                'watchTrades': True,
+                'watchOHLCV': True,
+                'watchTicker': True,
             },
             'urls': {
                 'api': {
@@ -22,6 +25,8 @@ class binance(ccxtpro.Exchange, ccxt.binance):
             },
             'options': {
                 'watchOrderBookRate': 100,  # get updates every 100ms or 1000ms
+                'tradesLimit': 1000,
+                'OHLCVLimit': 3,
             },
         })
 
@@ -203,9 +208,233 @@ class binance(ccxtpro.Exchange, ccxt.binance):
             method(client, message, subscription)
         return message
 
+    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        name = 'trade'
+        messageHash = market['lowercaseId'] + '@' + name
+        url = self.urls['api']['ws']  # + '/' + messageHash
+        requestId = self.nonce()
+        request = {
+            'method': 'SUBSCRIBE',
+            'params': [
+                messageHash,
+            ],
+            'id': requestId,
+        }
+        subscribe = {
+            'id': requestId,
+        }
+        future = self.watch(url, messageHash, request, messageHash, subscribe)
+        return await self.after(future, self.filterBySinceLimit, since, limit)
+
+    def handle_trade(self, client, message):
+        # The Trade Streams push raw trade information; each trade has a unique buyer and seller.
+        # Update Speed: Real-time
+        #
+        # {
+        #   e: 'trade',
+        #   E: 1579481530911,
+        #   s: 'ETHBTC',
+        #   t: 158410082,
+        #   p: '0.01914100',
+        #   q: '0.00700000',
+        #   b: 586187049,
+        #   a: 586186710,
+        #   T: 1579481530910,
+        #   m: False,
+        #   M: True
+        # }
+        marketId = self.safe_string(message, 's')
+        market = None
+        symbol = marketId
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+            symbol = market['symbol']
+        lowerCaseId = self.safe_string_lower(message, 's')
+        event = self.safe_string(message, 'e')
+        messageHash = lowerCaseId + '@' + event
+        parsed = self.parse_trade(message, market)
+        array = self.safe_value(self.trades, symbol, [])
+        array.append(parsed)
+        length = len(array)
+        if length > self.options['tradesLimit']:
+            array.pop(0)
+        self.trades[symbol] = array
+        client.resolve(array, messageHash)
+
+    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        url = self.urls['api']['ws']
+        market = self.market(symbol)
+        marketId = market['lowercaseId']
+        interval = self.timeframes[timeframe]
+        name = 'kline_'
+        messageHash = marketId + '@' + name + interval
+        requestId = self.nonce()
+        request = {
+            'method': 'SUBSCRIBE',
+            'params': [
+                messageHash,
+            ],
+            'id': requestId,
+        }
+        subscribe = {
+            'id': requestId,
+        }
+        return await self.watch(url, messageHash, request, messageHash, subscribe)
+
+    def handle_ohclv(self, client, message):
+        # {
+        #   e: 'kline',
+        #   E: 1579482921215,
+        #   s: 'ETHBTC',
+        #   k: {
+        #     t: 1579482900000,
+        #     T: 1579482959999,
+        #     s: 'ETHBTC',
+        #     i: '1m',
+        #     f: 158411535,
+        #     L: 158411550,
+        #     o: '0.01913200',
+        #     c: '0.01913500',
+        #     h: '0.01913700',
+        #     l: '0.01913200',
+        #     v: '5.08400000',
+        #     n: 16,
+        #     x: False,
+        #     q: '0.09728060',
+        #     V: '3.30200000',
+        #     Q: '0.06318500',
+        #     B: '0'
+        #   }
+        # }
+        marketId = self.safe_string(message, 's')
+        lowercaseMarketId = self.safe_string_lower(message, 's')
+        event = self.safe_string(message, 'e')
+        kline = self.safe_value(message, 'k')
+        interval = self.safe_string(kline, 'i')
+        messageHash = lowercaseMarketId + '@' + event + '_' + interval
+        timestamp = self.safe_integer(kline, 't')
+        open = self.safe_float(kline, 'o')
+        high = self.safe_float(kline, 'h')
+        low = self.safe_float(kline, 'l')
+        close = self.safe_float(kline, 'c')
+        volume = self.safe_float(kline, 'v')
+        parsed = [
+            timestamp,
+            open,
+            high,
+            low,
+            close,
+            volume,
+        ]
+        symbol = marketId
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+            symbol = market['symbol']
+        if not (symbol in self.ohlcvs):
+            self.ohlcvs[symbol] = []
+        stored = self.ohlcvs[symbol]
+        length = len(stored)
+        if length and parsed[0] == stored[length - 1][0]:
+            stored[length - 1] = parsed
+        else:
+            stored.append(parsed)
+            if length + 1 > self.options['OHLCVLimit']:
+                stored.pop(0)
+        self.ohlcvs[symbol] = stored
+        client.resolve(stored, messageHash)
+
+    async def watch_ticker(self, symbol, params={}):
+        await self.load_markets()
+        url = self.urls['api']['ws']
+        market = self.market(symbol)
+        marketId = market['lowercaseId']
+        name = 'ticker'
+        messageHash = marketId + '@' + name
+        requestId = self.nonce()
+        request = {
+            'method': 'SUBSCRIBE',
+            'params': [
+                messageHash,
+            ],
+            'id': requestId,
+        }
+        subscribe = {
+            'id': requestId,
+        }
+        return await self.watch(url, messageHash, request, messageHash, subscribe)
+
+    def handle_ticker(self, client, message):
+        # 24hr rolling window ticker statistics for a single symbol. These are NOT the statistics of the UTC day, but a 24hr rolling window for the previous 24hrs.
+        #
+        # Update Speed: 1000ms
+        # {
+        #   e: '24hrTicker',
+        #   E: 1579485598569,
+        #   s: 'ETHBTC',
+        #   p: '-0.00004000',
+        #   P: '-0.209',
+        #   w: '0.01920495',
+        #   x: '0.01916500',
+        #   c: '0.01912500',
+        #   Q: '0.10400000',
+        #   b: '0.01912200',
+        #   B: '4.10400000',
+        #   a: '0.01912500',
+        #   A: '0.00100000',
+        #   o: '0.01916500',
+        #   h: '0.01956500',
+        #   l: '0.01887700',
+        #   v: '173518.11900000',
+        #   q: '3332.40703994',
+        #   O: 1579399197842,
+        #   C: 1579485597842,
+        #   F: 158251292,
+        #   L: 158414513,
+        #   n: 163222
+        # }
+        event = 'ticker'  # message['e'] == 24hrTicker
+        wsMarketId = self.safe_string_lower(message, 's')
+        messageHash = wsMarketId + '@' + event
+        timestamp = self.safe_integer(message, 'C')
+        symbol = None
+        marketId = self.safe_string(message, 's')
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+            symbol = market['symbol']
+        last = self.safe_float(message, 'c')
+        parsed = {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_float(message, 'h'),
+            'low': self.safe_float(message, 'l'),
+            'bid': self.safe_float(message, 'b'),
+            'bidVolume': self.safe_float(message, 'B'),
+            'ask': self.safe_float(message, 'a'),
+            'askVolume': self.safe_float(message, 'A'),
+            'vwap': self.safe_float(message, 'w'),
+            'open': self.safe_float(message, 'o'),
+            'close': last,
+            'last': last,
+            'previousClose': self.safe_float(message, 'x'),  # previous day close
+            'change': self.safe_float(message, 'p'),
+            'percentage': self.safe_float(message, 'P'),
+            'average': None,
+            'baseVolume': self.safe_float(message, 'v'),
+            'quoteVolume': self.safe_float(message, 'q'),
+            'info': message,
+        }
+        client.resolve(parsed, messageHash)
+
     def handle_message(self, client, message):
         methods = {
             'depthUpdate': self.handle_order_book,
+            'trade': self.handle_trade,
+            'kline': self.handle_ohclv,
+            '24hrTicker': self.handle_ticker,
         }
         event = self.safe_string(message, 'e')
         method = self.safe_value(methods, event)

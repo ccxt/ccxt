@@ -23,8 +23,9 @@ module.exports = class binance extends ccxt.binance {
             },
             'options': {
                 'watchOrderBookRate': 100, // get updates every 100ms or 1000ms
+                'tradesLimit': 1000,
+                'OHLCVLimit': 3,
             },
-            'tradesLimit': 1000,
         });
     }
 
@@ -281,7 +282,8 @@ module.exports = class binance extends ccxt.binance {
         const parsed = this.parseTrade (message, market);
         const array = this.safeValue (this.trades, symbol, []);
         array.push (parsed);
-        if (array.length > this.tradesLimit) {
+        const length = array.length;
+        if (length > this.options['tradesLimit']) {
             array.shift ();
         }
         this.trades[symbol] = array;
@@ -335,6 +337,7 @@ module.exports = class binance extends ccxt.binance {
         //     B: '0'
         //   }
         // }
+        const marketId = this.safeString (message, 's');
         const lowercaseMarketId = this.safeStringLower (message, 's');
         const event = this.safeString (message, 'e');
         const kline = this.safeValue (message, 'k');
@@ -354,7 +357,26 @@ module.exports = class binance extends ccxt.binance {
             close,
             volume,
         ];
-        client.resolve (parsed, messageHash);
+        let symbol = marketId;
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        }
+        if (!(symbol in this.ohlcvs)) {
+            this.ohlcvs[symbol] = [];
+        }
+        const stored = this.ohlcvs[symbol];
+        const length = stored.length;
+        if (length && parsed[0] === stored[length - 1][0]) {
+            stored[length - 1] = parsed;
+        } else {
+            stored.push (parsed);
+            if (length + 1 > this.options['OHLCVLimit']) {
+                stored.shift ();
+            }
+        }
+        this.ohlcvs[symbol] = stored;
+        client.resolve (stored, messageHash);
     }
 
     async watchTicker (symbol, params = {}) {
