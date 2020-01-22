@@ -44,11 +44,11 @@ $delay = 5000;
 $tick = function ($method, ... $args) use ($loop, &$tick, $delay) {
     $promise = $method(... $args);
     $promise->then(function ($result) use ($tick, $method, $args) {
+        var_dump(json_encode($result));
+        exit();
         echo date('c '),
             count($result['asks']), ' asks [', $result['asks'][0][0], ', ', $result['asks'][0][1], '] ',
             count($result['bids']), ' bids [', $result['bids'][0][0], ', ', $result['bids'][0][1], ']', "\n";
-        // exit();
-        var_dump(json_encode($result));
         $tick($method, ...$args);
     }, function ($error) use ($loop, $delay, $tick, $method, $args) {
         echo date('c'), ' ERROR ', $error->getMessage (), "\n";
