@@ -357,6 +357,55 @@ module.exports = class bleutrade extends Exchange {
         return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
     }
 
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type !== 'limit') {
+            // todo: STOP-LIMIT and AMI order types are supported
+            throw new InvalidOrder (this.id + ' allows limit orders only');
+        }
+        await this.loadMarkets ();
+        const request = {
+            'rate': this.priceToPrecision (symbol, price),
+            'quantity': this.amountToPrecision (symbol, amount),
+            'tradeType': (side === 'buy') ? '1' : '0',
+            'market': this.marketId (symbol),
+        };
+        let response = undefined;
+        if (side === 'buy') {
+            response = await this.v3PrivatePostBuylimit (this.extend (request, params));
+        } else {
+            response = await this.v3PrivatePostSelllimit (this.extend (request, params));
+        }
+        //   { success:  true,
+        //     message: "",
+        //     result: "161105236" },
+        return {
+            'info': response,
+            'id': this.safeString (response, 'result'),
+        };
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        const request = {
+            'orderid': id,
+        };
+        const response = await this.v3PrivatePostOrdercancel (this.extend (request, params));
+        // { success: true, message: '', result: '' }
+        return response;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        const response = await this.v3PrivatePostGetopenorders (this.extend (request, params));
+        const items = this.safeValue (response, 'result', []);
+        return this.parseOrders (items, market, since, limit);
+    }
+
     parseSymbol (id) {
         let [ base, quote ] = id.split (this.options['symbolSeparator']);
         base = this.safeCurrencyCode (base);
