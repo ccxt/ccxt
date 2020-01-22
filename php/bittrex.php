@@ -127,7 +127,7 @@ class bittrex extends \ccxt\bittrex {
                 'negotiation' => $negotiation,
                 'future' => $future,
             );
-            $this->spawn ($this->watch, $url, $requestId, $request, $method, $subscription);
+            $this->spawn (array($this, 'watch'), $url, $requestId, $request, $method, $subscription);
         }
         return $future;
     }
@@ -162,7 +162,7 @@ class bittrex extends \ccxt\bittrex {
             'method' => array($this, 'handle_authenticate'),
             'negotiation' => $negotiation,
         );
-        $this->spawn ($this->watch, $url, $requestId, $request, $requestId, $authenticateSubscription);
+        $this->spawn (array($this, 'watch'), $url, $requestId, $request, $requestId, $authenticateSubscription);
         return $message;
     }
 
