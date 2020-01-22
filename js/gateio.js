@@ -240,6 +240,7 @@ module.exports = class gateio extends ccxt.gateio {
             parseInt (ohlcv[0]),    // t
             parseFloat (ohlcv[1]),  // o
             parseFloat (ohlcv[3]),  // h
+            parseFloat (ohlcv[4]),  // l
             parseFloat (ohlcv[2]),  // c
             parseFloat (ohlcv[5]),  // v
         ];
