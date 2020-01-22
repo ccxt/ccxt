@@ -382,6 +382,14 @@ class Transpiler {
         ])
     }
 
+    getPythonBaseMethods () {
+        return []
+    }
+
+    getPHPBaseMethods () {
+        return []
+    }
+
     //-------------------------------------------------------------------------
     // the following common headers are used for transpiled tests
 
@@ -508,6 +516,8 @@ class Transpiler {
 
         header = header.concat (libraries, errorImports, precisionImports)
 
+        methods = methods.concat (this.getPythonBaseMethods ())
+
         for (let method of methods) {
             const regex = new RegExp ('self\\.(' + method + ')([^a-zA-Z0-9])', 'g')
             bodyAsString = bodyAsString.replace (regex,
@@ -559,6 +569,8 @@ class Transpiler {
         }
 
         header = header.concat (errorImports)
+
+        methods = methods.concat (this.getPHPBaseMethods ())
 
         for (let method of methods) {
             const regex = new RegExp ('\\$this->(' + method + ')(\\s\\(|[^a-zA-Z0-9])', 'g')
