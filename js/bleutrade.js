@@ -625,7 +625,19 @@ module.exports = class bleutrade extends Exchange {
         //     Created: '2018-02-16 08:55:36',
         //     Comments: '' }
         //
-        const side = this.safeString (order, 'Type');
+        //  fetchOpenOrders
+        //
+        //   { OrderID: 161105302,
+        //     Exchange: 'ETH_BTC',
+        //     Type: 'SELL',
+        //     Quantity: 0.4,
+        //     QuantityRemaining: 0.4,
+        //     QuantityBaseTraded: 0,
+        //     Price: 0.04,
+        //     Status: 'OPEN',
+        //     Created: '2020-01-22 09:21:27',
+        //     Comments: { String: '', Valid: true }
+        const side = this.safeString (order, 'Type').toLowerCase ();
         const status = this.parseOrderStatus (this.safeString (order, 'Status'));
         let symbol = undefined;
         const marketId = this.safeString (order, 'Exchange');
