@@ -777,6 +777,45 @@ Each market is an associative array (aka dictionary) with the following keys:
 
 -  ``limits``. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price \* amount).
 
+Currency Structure
+------------------
+
+.. code:: javascript
+
+   {
+       'id':       'btc',     // string literal for referencing within an exchange
+       'code':     'BTC',     // uppercase unified string literal code the currency
+       'name':     'Bitcoin', // string, human-readable name, if specified
+       'active':    true,     // boolean, currency status (tradeable and withdrawable)
+       'fee':       0.123
+       'precision': 8,       // number of decimal digits "after the dot" (depends on exchange.precisionMode)
+       'limits': {           // value limits when placing orders on this market
+           'amount': {
+               'min': 0.01,  // order amount should be > min
+               'max': 1000,  // order amount should be < max
+           },
+           'price':    { ... }, // same min/max limits for the price of the order
+           'cost':     { ... }, // same limits for order cost = price * amount
+           'withdraw': { ... }, // withdrawal limits
+       },
+       'info': { ... }, // the original unparsed currency info from the exchange
+   }
+
+Each currency is an associative array (aka dictionary) with the following keys:
+
+-  ``id``. The string or numeric ID of the currency within the exchange. Currency ids are used inside exchanges internally to identify coins during the request/response process.
+-  ``code``. An uppercase string code representation of a particular currency. Currency codes are used to reference currencies within the ccxt library (explained below).
+-  ``name``. Self-explaining.
+-  ``active``. A boolean indicating whether or not trading and funding (depositing and withdrawing) this currency is currently possible. Often, when a currency is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that currency. The user should check if the currency is active and `reload markets periodically, as explained below <#market-cache-force-reload>`__.
+-  ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
+-  ``precision``. Precision accepted in values by exchanges upon referencing this currency. The value inside this property depend on the ``exchange.precisionMode``.
+
+   -  If ``exchange.precisionMode`` is ``DECIMAL_DIGITS`` then the ``currency['precision']`` designates the number of decimal digits after the dot.
+   -  If ``exchange.precisionMode`` is ``SIGNIFICANT_DIGITS`` then the ``currency['precision']`` designates the number of non-zero digits after the dot.
+   -  When ``exchange.precisionMode`` is ``TICK_SIZE`` then the ``currency['precision']`` designates the smallest possible float fractions.
+
+-  ``limits``. The minimums and maximums for prices, amounts (volumes), costs (where cost = price \* amount) and withdrawals.
+
 Precision And Limits
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -935,6 +974,10 @@ In order to load markets manually beforehand call the ``loadMarkets ()`` / ``loa
    $markets = $huobipro->load_markets ();
    var_dump ($huobipro->id, $markets);
 
+Apart from the market info, the ``loadMarkets()`` call will also load the currencies from the exchange and will cache the info in the ``.markets`` and the ``.currencies`` properties respectively.
+
+The user can also bypass the cache and call unified methods for fetching that information from the exchange endpoints directly, ``fetchMarkets()`` and ``fetchCurrencies()``, though using these methods is not recommended. The recommended way to preload markets is by calling the ``loadMarkets()`` unified method.
+
 Symbols And Market Ids
 ----------------------
 
@@ -968,7 +1011,7 @@ Most of the time users will be working with market symbols. You will get a stand
 
        console.log (exchange.id, symbols)            // print all symbols
 
-       let currencies = exchange.currencies          // a list of currencies
+       let currencies = exchange.currencies          // a dictionary of currencies
 
        let bitfinex = new ccxt.bitfinex ()
        await bitfinex.loadMarkets ()
@@ -997,7 +1040,7 @@ Most of the time users will be working with market symbols. You will get a stand
 
    print (exchange.id, symbols)               # print all symbols
 
-   currencies = exchange.currencies           # a list of currencies
+   currencies = exchange.currencies           # a dictionary of currencies
 
    kraken = ccxt.kraken ()
    kraken.load_markets ()
@@ -1024,7 +1067,7 @@ Most of the time users will be working with market symbols. You will get a stand
 
    var_dump ($exchange->id, $symbols);             // print all symbols
 
-   $currencies = $exchange->currencies;            // a list of currencies
+   $currencies = $exchange->currencies;            // an associative array of currencies
 
    $okcoinusd = '\\ccxt\\okcoinusd';
    $okcoinusd = new $okcoinusd ();
@@ -1697,6 +1740,7 @@ The structure of a returned order book is as follows:
        ],
        'timestamp': 1499280391811, // Unix Timestamp in milliseconds (seconds * 1000)
        'datetime': '2017-07-05T18:47:14.692Z', // ISO8601 datetime string with milliseconds
+       'nonce': 1499280391811, // an increasing unique identifier of the orderbook snapshot
    }
 
 **The timestamp and datetime may be missing (``undefined/None/null``) if the exchange in question does not provide a corresponding value in the API response.**
