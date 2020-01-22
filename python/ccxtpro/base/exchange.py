@@ -32,7 +32,6 @@ class Exchange(BaseExchange):
     # streaming-specific options
     streaming = {
         'keepAlive': 30000,
-        'heartbeat': True,
         'ping': None,
         'maxPingPongMisses': 2.0,
     }
