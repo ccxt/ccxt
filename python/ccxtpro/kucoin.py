@@ -22,7 +22,6 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
                 # kucoin does not support built-in ws protocol-level ping-pong
                 # instead it requires a custom json-based text ping-pong
                 # https://docs.kucoin.com/#ping
-                'heartbeat': False,
                 'ping': self.ping,
             },
         })
