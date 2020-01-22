@@ -31,7 +31,6 @@ module.exports = class Client {
             connectionTimer: undefined, // connection-related setTimeout
             connectionTimeout: 10000, // in milliseconds, false to disable
             pingInterval: undefined, // stores the ping-related interval
-            heartbeat: true, // use built-in ws ping/pong or a custom ping text message
             ping: undefined, // ping-function (if defined)
             keepAlive: 30000, // ping-pong keep-alive rate in milliseconds
             maxPingPongMisses: 2.0, // how many missing pongs to throw a RequestTimeout
@@ -154,10 +153,10 @@ module.exports = class Client {
             if ((this.lastPong + this.keepAlive * this.maxPingPongMisses) < now) {
                 this.onError (new RequestTimeout ('Connection to ' + this.url + ' timed out due to a ping-pong keepalive missing on time'))
             } else {
-                if (this.heartbeat) {
-                    this.connection.ping ()
-                } else if (this.ping) {
+                if (this.ping) {
                     this.send (this.ping (this))
+                } else {
+                    this.connection.ping ()
                 }
             }
         }
