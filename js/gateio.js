@@ -23,6 +23,10 @@ module.exports = class gateio extends ccxt.gateio {
                     'ws': 'wss://ws.gate.io/v3',
                 },
             },
+            'options': {
+                'tradesLimit': 1000,
+                'OHLCVLimit': 1000,
+            },
         });
     }
 
@@ -157,24 +161,32 @@ module.exports = class gateio extends ccxt.gateio {
 
     handleTrades (client, messsage) {
         const result = messsage['params'];
-        const marketId = result[0];
-        const normalMarketId = marketId.toLowerCase ();
+        const wsMarketId = this.safeString (result, 0);
+        const marketId = this.safeStringLower (result, 0);
         let market = undefined;
-        if (normalMarketId in this.markets_by_id) {
-            market = this.markets_by_id[normalMarketId];
+        let symbol = marketId;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
         }
-        if (!(marketId in this.trades)) {
-            this.trades[marketId] = [];
+        if (!(symbol in this.trades)) {
+            this.trades[symbol] = [];
         }
+        const stored = this.trades[symbol];
         const trades = result[1];
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
             const parsed = this.parseTrade (trade, market);
-            this.trades[marketId].push (parsed);
+            stored.push (parsed);
+            const length = stored.length;
+            if (length > this.options['tradesLimit']) {
+                stored.shift ();
+            }
         }
+        this.trades[symbol] = stored;
         const methodType = messsage['method'];
-        const messageHash = methodType + ':' + marketId;
-        client.resolve (this.trades[marketId], messageHash);
+        const messageHash = methodType + ':' + wsMarketId;
+        client.resolve (stored, messageHash);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -222,16 +234,38 @@ module.exports = class gateio extends ccxt.gateio {
 
     handleOHLCV (client, message) {
         const ohlcv = message['params'][0];
-        const marketId = ohlcv[7];
-        const normalMarketId = marketId.toLowerCase ();
+        const wsMarketId = this.safeString (ohlcv, 7);
+        const marketId = this.safeStringLower (ohlcv, 7);
+        const parsed = [
+            parseInt (ohlcv[0]),    // t
+            parseFloat (ohlcv[1]),  // o
+            parseFloat (ohlcv[3]),  // h
+            parseFloat (ohlcv[2]),  // c
+            parseFloat (ohlcv[5]),  // v
+        ];
         let market = undefined;
-        if (normalMarketId in this.markets_by_id) {
-            market = this.markets_by_id[normalMarketId];
+        let symbol = marketId;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
         }
-        const parsed = this.parseOHLCV (ohlcv, market);
+        if (!(symbol in this.ohlcvs)) {
+            this.ohlcvs[symbol] = [];
+        }
+        const stored = this.ohlcvs[symbol];
+        const length = stored.length;
+        if (length && parsed[0] === stored[length - 1][0]) {
+            stored[length - 1] = parsed;
+        } else {
+            stored.push (parsed);
+            if (length === this.options['OHLCVLimit']) {
+                stored.shift ();
+            }
+        }
+        this.ohlcvs[symbol] = stored;
         const methodType = message['method'];
-        const messageHash = methodType + ':' + marketId;
-        client.resolve (parsed, messageHash);
+        const messageHash = methodType + ':' + wsMarketId;
+        client.resolve (stored, messageHash);
     }
 
     async watchBalance (params = {}) {

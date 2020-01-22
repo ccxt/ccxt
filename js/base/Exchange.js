@@ -10,7 +10,7 @@ const ccxt = require ('ccxt')
     } = require ('./OrderBook')
 
 module.exports = class Exchange extends ccxt.Exchange {
-    
+
     inflate (string) {
         return inflateRawSync (Buffer.from (string, 'base64')).toString ()
     }
@@ -56,9 +56,7 @@ module.exports = class Exchange extends ccxt.Exchange {
 
     async afterDropped (future, method, ... args) {
         // same as above, drop the result
-        if (future) {
-            await future
-        }
+        await future
         return await method.apply (this, args)
     }
 

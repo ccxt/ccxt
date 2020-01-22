@@ -68,13 +68,9 @@ trait ClientTrait {
 
     // the ellipsis packing/unpacking requires PHP 5.6+ :(
     public function afterDropped($future, callable $method, ... $args) {
-        if ($future) {
-            return $future->then(function($result) use ($method, $args) {
+        return $future->then(function($result) use ($method, $args) {
                 return $method(... $args);
-            });
-        } else {
-            return $method(... $args);
-        }
+        });
     }
 
     public function spawn($method, ... $args) {
