@@ -519,7 +519,7 @@ class Transpiler {
         methods = methods.concat (this.getPythonBaseMethods ())
 
         for (let method of methods) {
-            const regex = new RegExp ('self\\.(' + method + ')([^a-zA-Z0-9])', 'g')
+            const regex = new RegExp ('self\\.(' + method + ')([^a-zA-Z0-9_])', 'g')
             bodyAsString = bodyAsString.replace (regex,
                 (match, p1, p2) => ('self.' + unCamelCase (p1) + p2))
         }
@@ -573,7 +573,7 @@ class Transpiler {
         methods = methods.concat (this.getPHPBaseMethods ())
 
         for (let method of methods) {
-            const regex = new RegExp ('\\$this->(' + method + ')(\\s\\(|[^a-zA-Z0-9])', 'g')
+            const regex = new RegExp ('\\$this->(' + method + ')(\\s\\(|[^a-zA-Z0-9_])', 'g')
             bodyAsString = bodyAsString.replace (regex,
                 (match, p1, p2) => {
                     return ((p2 === ' (') ?
