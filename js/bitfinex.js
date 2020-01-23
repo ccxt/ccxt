@@ -548,7 +548,7 @@ module.exports = class bitfinex extends Exchange {
         if (currency !== undefined) {
             const precision = this.safeInteger (currency, 'precision');
             if (precision !== undefined) {
-                cost = parseFloat (this.currencyToPrecision (market[key], cost));
+                cost = parseFloat (this.currencyToPrecision (code, cost));
             }
         }
         return {
