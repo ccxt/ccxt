@@ -234,15 +234,21 @@ Exchanges' Streaming APIs can be classified into two different categories:
 
 #### Sub
 
-A *sub* interface usually allows to subscribe to a stream of data and listen for it to income. Most of exchanges that do support WebSockets will offer a *sub* type of API only. The *sub* type includes streaming public market data. Sometimes exchanges also allow subcribing to private user data. After the user subscribes to any data feed the channel effectively starts working one-way and sending updates from the exchange towards the user continuously.
+A *sub* interface usually allows to subscribe to a stream of data and listen for it. Most of exchanges that do support WebSockets will offer a *sub* type of API only. The *sub* type includes streaming public market data. Sometimes exchanges also allow subcribing to private user data. After the user subscribes to any data feed the channel effectively starts working one-way sending updates from the exchange towards the user continuously.
 
-- Commonly appearing types of public market data streams:
+Commonly appearing types of public data streams:
+
   - order book (most common) - updates on added, edited and deleted orders (aka *change deltas*)
-  - ticker- updates upon a change of 24 hour stats
+  - ticker updates upon changing of 24 hour stats
   - fills feed (also common) - a live stream of public trades
+  - ohlcv candlestick feed
+  - heartbeat
   - exchange chat
-- Less common types of private user data streams:
-  - the stream of trades of the user
+
+Less common types of private user data streams:
+
+  - the stream of private trades of the user
+  - live order updates
   - balance updates
   - custom streams
   - exchange-specific and other streams
@@ -250,7 +256,9 @@ A *sub* interface usually allows to subscribe to a stream of data and listen for
 #### Pub
 
 A *pub* interface usually allows users to send data requests towards the server. This usually includes common user actions, like:
-- placing and canceling orders
+
+- placing orders
+- canceling orders
 - placing withdrawal requests
 - posting chat messages
 - etc
@@ -297,12 +305,14 @@ A *pub* interface usually allows users to send data requests towards the server.
 > - fetchWithdrawals
 
 > The *push* interface contains all of the above methods, but works in reverse, the library pushes the updates to the user. This is done in two ways:
+
 > - callbacks (JS, Python 2 & 3, PHP)
 > - async generators (JS, Python 3.5+)
 
 > The async generators is the prefered modern way of reading and writing streams of data. They do the work of callbacks in much more natural syntax that is built into the language itself. A callback is a mechanism of an inverted flow control. An async generator, on the other hand, is a mechanism of a direct flow control. Async generators make code much cleaner and sometimes even faster in both development and production.
 
 > The *push* scenario
+
 > Instead of using the outdated principles of callbacks the  , the philosophy of the library uses async generators library This is done with async generators with direct flow control.
 
 
