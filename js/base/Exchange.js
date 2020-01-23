@@ -637,7 +637,7 @@ module.exports = class Exchange {
             'limits': this.limits,
             'precision': this.precision,
         }, this.fees['trading'], market))
-        this.markets = deepExtend (this.markets, indexBy (values, 'symbol'))
+        this.markets = indexBy (values, 'symbol')
         this.marketsById = indexBy (markets, 'id')
         this.markets_by_id = this.marketsById
         this.symbols = Object.keys (this.markets).sort ()
