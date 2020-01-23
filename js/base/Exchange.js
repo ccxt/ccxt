@@ -637,7 +637,13 @@ module.exports = class Exchange {
             'limits': this.limits,
             'precision': this.precision,
         }, this.fees['trading'], market))
-        this.markets = deepExtend (this.markets, indexBy (values, 'symbol'))
+        const newMarkets = indexBy (values, 'symbol')
+        this.markets = deepExtend (this.markets, newMarkets)
+        Object.values (this.markets).forEach (market => {
+            if (!newMarkets[market.symbol]) {
+                this.markets[market.symbol].active = false
+            }
+        })
         this.marketsById = indexBy (markets, 'id')
         this.markets_by_id = this.marketsById
         this.symbols = Object.keys (this.markets).sort ()
