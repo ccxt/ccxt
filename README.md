@@ -207,7 +207,7 @@ while (condition) {
 }
 ```
 
-That usage pattern is usually wrapped up into a core business-logic method called _"a `tick()` function"_, since it reiterates a reaction to the incoming events (aka ticks). From the two examples above it is obvious that the generic usage pattern in CCXT Pro and CCXT is identical.
+That usage pattern is usually wrapped up into a core business-logic method called _"a `tick()` function"_, since it reiterates a reaction to the incoming events (aka _ticks_). From the two examples above it is obvious that the generic usage pattern in CCXT Pro and CCXT is identical.
 
 Many of the CCXT rules and concepts also apply to CCXT Pro:
 
@@ -226,6 +226,85 @@ Upon your first call to any `watch` method CCXT Pro will establish a connection 
 The library will also watch the status of the uplink and will keep the connection alive. Upon a critical exception, a disconnect or a connection timeout/failure, the next iteration of the tick function will call the `watch` method that will trigger a reconnection. This way the library handles disconnections and reconnections for the user transparently. CCXT Pro applies the necessary rate-limiting and exponential backoff reconnection delays. All of that functionality is enabled by default and can be configured via exchange properties, as usual.
 
 Most of the exchanges only have a single base URL for streaming APIs (usually, WebSocket, starting with `ws://` or `wss://`). Some of them may have more than one URL for each stream, depending on the feed in question.
+
+Exchanges' Streaming APIs can be classified into two different categories:
+
+- *sub* or *subscribe* allows receiving only
+- *pub* or *publish* allows sending and receiving
+
+#### Sub
+
+A *sub* interface usually allows to subscribe to a stream of data and listen for it to income. Most of exchanges that do support WebSockets will offer a *sub* type of API only. The *sub* type includes streaming public market data. Sometimes exchanges also allow subcribing to private user data. After the user subscribes to any data feed the channel effectively starts working one-way and sending updates from the exchange towards the user continuously.
+
+- Commonly appearing types of public market data streams:
+  - order book (most common) - updates on added, edited and deleted orders (aka *change deltas*)
+  - ticker- updates upon a change of 24 hour stats
+  - fills feed (also common) - a live stream of public trades
+  - exchange chat
+- Less common types of private user data streams:
+  - the stream of trades of the user
+  - balance updates
+  - custom streams
+  - exchange-specific and other streams
+
+#### Pub
+
+A *pub* interface usually allows users to send data requests towards the server. This usually includes common user actions, like:
+- placing and canceling orders
+- placing withdrawal requests
+- posting chat messages
+- etc
+
+**Some exchanges do not offer a *pub* WS API, they will offer *sub* WS API only.** However, there are exchanges that have a complete Streaming API as well.
+
+> #### Unified WS API
+
+> In most cases a user cannot operate effectively having just the WebSocket API. Exchanges will stream public market data *sub*, and the REST API is still needed for the *pub* part (where missing).
+
+> The goal of ccxt is to  seamlessly combine in a unified interface all available types of networking, possibly, without introducing backward-incompatible changes.
+
+> The WebSocket API in ccxt consists of the following:
+> - the pull (on-demand) interface
+> - the push (notification-based) interface
+
+> The *pull* WebSocket interface replicates the async REST interface one-to-one. So, in order to switch from `REST` to `pull WebSocket + REST`, the user is only required to submit a { ws: true } option to constructor params. From there any call to the unified API will be switched to WebSockets, where available (whee supported by the exchange).
+
+> The *pull* interface means the user pulling data from the library by calling its methods, whereas the data is fetched and merged in background. For example, whevener the user calls the `fetchOrderBook (symbol, params)` method, the following sequence of events takes place:
+
+> 1. If the user is already subscribed to the orderbook updates feed for that particular symbol, the returned value would represent the current state of that orderbook in memory with all updates up to the moment of the call.
+> 2. If the user is not subscribed to the orderbook updates for that symbol yet, the library will subscribe the user to it upon first call.
+> 3. After subscribing, the library will receive a snapshot of current orderbook. This is returned to the caller right away.
+> 4. It will continue to receive partial updates just in time from the exchange, merging all updates with the orderbook in memory. Each incoming update is called a *delta*. Deltas represent changes to the orderbook (order added, edited or deleted) that have to be merged on top of the last known snapshot of the orderbook. These update-deltas are incoming continuously as soon as the exchange sends them.
+> 5. The ccxt library merges deltas to the orderbook in background.
+> 6. If the user calls the same `fetchOrderBook` method again – the library will return the up-to-date orderbook with all current deltas merged into it (return to step 1 at this point).
+
+> The above behaviour is the same for all methods that can get data feeds from exchanges websocket. The library will fallback to HTTP REST and will send a HTTP request if the exchange does not offer streaming of this or that type of data.
+
+> The list of related unified API methods is:
+
+> - fetchOrderBook
+> - fetchOrderBooks
+> - fetchTicker
+> - fetchTickers
+> - fetchTrades
+> - fetchBalances
+> - fetchOrders
+> - fetchOpenOrders
+> - fetchClosedOrders
+> - fetchMyTrades
+> - fetchTransactions
+> - fetchDeposits
+> - fetchWithdrawals
+
+> The *push* interface contains all of the above methods, but works in reverse, the library pushes the updates to the user. This is done in two ways:
+> - callbacks (JS, Python 2 & 3, PHP)
+> - async generators (JS, Python 3.5+)
+
+> The async generators is the prefered modern way of reading and writing streams of data. They do the work of callbacks in much more natural syntax that is built into the language itself. A callback is a mechanism of an inverted flow control. An async generator, on the other hand, is a mechanism of a direct flow control. Async generators make code much cleaner and sometimes even faster in both development and production.
+
+> The *push* scenario
+> Instead of using the outdated principles of callbacks the  , the philosophy of the library uses async generators library This is done with async generators with direct flow control.
+
 
 ### Linking Against CCXT Pro
 
@@ -277,12 +356,28 @@ $exchange = new \ccxtpro\kucoin();
 
 Every CCXT Pro instance contains all properties of the underlying CCXT instance. Apart from the standard CCXT properties, the CCXT Pro instance includes the following:
 
-- `has`: an extended associative array of extended exchange capabilities (e.g. `watchOrderBook`, `watchOHLCV`, ...)
-- `urls['api']`: will contain a streaming API base URL, depending on the underlying protocol
-    - `'ws'`: [WebSocket](https://en.wikipedia.org/wiki/WebSocket)
-    - `'signalr'`: [SignalR](https://en.wikipedia.org/wiki/SignalR)
-    - `'socketio'`: [Socket.IO](https://socket.io/)
-- `version`: ...
+```JavaScript
+{
+    'has': { ... } // an extended associative array of extended exchange capabilities (e.g. `watchOrderBook`, `watchOHLCV`, ...)
+    'urls': {
+        'api': { // will contain a streaming API base URL, depending on the underlying protocol
+            'ws': 'wss://ws.exchange.com',            // https://en.wikipedia.org/wiki/WebSocket
+            'signalr': 'https://signalr.exchange.com' // https://en.wikipedia.org/wiki/SignalR
+            'socketio': 'wss://socket.exchange.io'    // https://socket.io
+        },
+    }
+    'version': '1.21',
+    'streaming': {
+        'keepAlive': 30000, // integer keep-alive rate in milliseconds
+        'maxPingPongMisses': 2.0, // how many ping pong misses to drop and reconnect
+        ... // other streaming options
+    },
+}
+```
+
+
+
+### Keep-Alive
 
 ### Rate limiting
 
