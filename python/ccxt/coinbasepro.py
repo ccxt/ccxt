@@ -59,11 +59,17 @@ class coinbasepro(Exchange):
                 '1d': 86400,
             },
             'urls': {
-                'test': 'https://api-public.sandbox.pro.coinbase.com',
+                'test': {
+                    'public': 'https://api-public.sandbox.pro.coinbase.com',
+                    'private': 'https://api-public.sandbox.pro.coinbase.com',
+                },
                 'logo': 'https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg',
-                'api': 'https://api.pro.coinbase.com',
+                'api': {
+                    'public': 'https://api.pro.coinbase.com',
+                    'private': 'https://api.pro.coinbase.com',
+                },
                 'www': 'https://pro.coinbase.com/',
-                'doc': 'https://docs.pro.coinbase.com/',
+                'doc': 'https://docs.pro.coinbase.com',
                 'fees': [
                     'https://docs.pro.coinbase.com/#fees',
                     'https://support.pro.coinbase.com/customer/en/portal/articles/2945310-fees',
@@ -271,12 +277,32 @@ class coinbasepro(Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
+        # level 1 - only the best bid and ask
+        # level 2 - top 50 bids and asks(aggregated)
+        # level 3 - full order book(non aggregated)
         request = {
             'id': self.market_id(symbol),
             'level': 2,  # 1 best bidask, 2 aggregated, 3 full
         }
         response = self.publicGetProductsIdBook(self.extend(request, params))
-        return self.parse_order_book(response)
+        #
+        #     {
+        #         "sequence":1924393896,
+        #         "bids":[
+        #             ["0.01825","24.34811287",2],
+        #             ["0.01824","72.5463",3],
+        #             ["0.01823","424.54298049",6],
+        #         ],
+        #         "asks":[
+        #             ["0.01826","171.10414904",4],
+        #             ["0.01827","22.60427028",1],
+        #             ["0.01828","397.46018784",7],
+        #         ]
+        #     }
+        #
+        orderbook = self.parse_order_book(response)
+        orderbook['nonce'] = self.safe_integer(response, 'sequence')
+        return orderbook
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -699,7 +725,7 @@ class coinbasepro(Exchange):
         if method == 'GET':
             if query:
                 request += '?' + self.urlencode(query)
-        url = self.urls['api'] + request
+        url = self.urls['api'][api] + request
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())

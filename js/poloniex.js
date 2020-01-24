@@ -504,7 +504,19 @@ module.exports = class poloniex extends Exchange {
         //         category: 'exchange'
         //     }
         //
-        const id = this.safeString (trade, 'globalTradeID');
+        // createOrder (taker trades)
+        //
+        //     {
+        //         'amount': '200.00000000',
+        //         'date': '2019-12-15 16:04:10',
+        //         'rate': '0.00000355',
+        //         'total': '0.00071000',
+        //         'tradeID': '119871',
+        //         'type': 'buy',
+        //         'takerAdjustment': '200.00000000'
+        //     }
+        //
+        const id = this.safeString2 (trade, 'globalTradeID', 'tradeID');
         const orderId = this.safeString (trade, 'orderNumber');
         const timestamp = this.parse8601 (this.safeString (trade, 'date'));
         let symbol = undefined;
@@ -551,6 +563,11 @@ module.exports = class poloniex extends Exchange {
                 'currency': currency,
             };
         }
+        let takerOrMaker = undefined;
+        const takerAdjustment = this.safeFloat (trade, 'takerAdjustment');
+        if (takerAdjustment !== undefined) {
+            takerOrMaker = 'taker';
+        }
         return {
             'id': id,
             'info': trade,
@@ -560,7 +577,7 @@ module.exports = class poloniex extends Exchange {
             'order': orderId,
             'type': 'limit',
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -592,7 +609,7 @@ module.exports = class poloniex extends Exchange {
         const request = { 'currencyPair': pair };
         if (since !== undefined) {
             request['start'] = parseInt (since / 1000);
-            request['end'] = this.seconds () + 1; // adding 1 is a fix for #3411
+            request['end'] = this.sum (this.seconds (), 1); // adding 1 is a fix for #3411
         }
         // limit is disabled (does not really work as expected)
         if (limit !== undefined) {
@@ -723,6 +740,33 @@ module.exports = class poloniex extends Exchange {
         //         margin: 0,
         //     }
         //
+        // createOrder
+        //
+        //     {
+        //         'orderNumber': '9805453960',
+        //         'resultingTrades': [
+        //             {
+        //                 'amount': '200.00000000',
+        //                 'date': '2019-12-15 16:04:10',
+        //                 'rate': '0.00000355',
+        //                 'total': '0.00071000',
+        //                 'tradeID': '119871',
+        //                 'type': 'buy',
+        //                 'takerAdjustment': '200.00000000',
+        //             },
+        //         ],
+        //         'fee': '0.00000000',
+        //         'currencyPair': 'BTC_MANA',
+        //         // ---------------------------------------------------------
+        //         // the following fields are injected by createOrder
+        //         'timestamp': timestamp,
+        //         'status': 'open',
+        //         'type': type,
+        //         'side': side,
+        //         'price': price,
+        //         'amount': amount,
+        //     }
+        //
         let timestamp = this.safeInteger (order, 'timestamp');
         if (!timestamp) {
             timestamp = this.parse8601 (order['date']);
@@ -738,8 +782,8 @@ module.exports = class poloniex extends Exchange {
             symbol = market['symbol'];
         }
         const price = this.safeFloat2 (order, 'price', 'rate');
-        const remaining = this.safeFloat (order, 'amount');
-        const amount = this.safeFloat (order, 'startingAmount', remaining);
+        let remaining = this.safeFloat (order, 'amount');
+        let amount = this.safeFloat (order, 'startingAmount');
         let filled = undefined;
         let cost = 0;
         if (amount !== undefined) {
@@ -749,44 +793,73 @@ module.exports = class poloniex extends Exchange {
                     cost = filled * price;
                 }
             }
+        } else {
+            amount = remaining;
         }
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let average = undefined;
+        let lastTradeTimestamp = undefined;
         if (filled === undefined) {
             if (trades !== undefined) {
                 filled = 0;
                 cost = 0;
-                for (let i = 0; i < trades.length; i++) {
-                    const trade = trades[i];
-                    const tradeAmount = trade['amount'];
-                    const tradePrice = trade['price'];
-                    filled = this.sum (filled, tradeAmount);
-                    cost += tradePrice * tradeAmount;
+                const tradesLength = trades.length;
+                if (tradesLength > 0) {
+                    lastTradeTimestamp = trades[0]['timestamp'];
+                    for (let i = 0; i < tradesLength; i++) {
+                        const trade = trades[i];
+                        const tradeAmount = trade['amount'];
+                        const tradePrice = trade['price'];
+                        filled = this.sum (filled, tradeAmount);
+                        cost = this.sum (cost, tradePrice * tradeAmount);
+                        lastTradeTimestamp = Math.max (lastTradeTimestamp, trade['timestamp']);
+                    }
+                }
+                remaining = Math.max (amount - filled, 0);
+                if (filled >= amount) {
+                    status = 'closed';
                 }
             }
         }
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        if ((filled !== undefined) && (cost !== undefined) && (filled > 0)) {
+            average = cost / filled;
+        }
         let type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side', type);
         if (type === side) {
             type = undefined;
         }
         const id = this.safeString (order, 'orderNumber');
+        let fee = undefined;
+        const feeCost = this.safeFloat (order, 'fee');
+        if (feeCost !== undefined) {
+            let feeCurrencyCode = undefined;
+            if (market !== undefined) {
+                feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
+            }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
         return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
             'cost': cost,
+            'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'trades': trades,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -906,13 +979,33 @@ module.exports = class poloniex extends Exchange {
         await this.loadMarkets ();
         const method = 'privatePost' + this.capitalize (side);
         const market = this.market (symbol);
+        amount = this.amountToPrecision (symbol, amount);
         const request = {
             'currencyPair': market['id'],
             'rate': this.priceToPrecision (symbol, price),
-            'amount': this.amountToPrecision (symbol, amount),
+            'amount': amount,
         };
-        const response = await this[method] (this.extend (request, params));
+        // remember the timestamp before issuing the request
         const timestamp = this.milliseconds ();
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         'orderNumber': '9805453960',
+        //         'resultingTrades': [
+        //             {
+        //                 'amount': '200.00000000',
+        //                 'date': '2019-12-15 16:04:10',
+        //                 'rate': '0.00000355',
+        //                 'total': '0.00071000',
+        //                 'tradeID': '119871',
+        //                 'type': 'buy',
+        //                 'takerAdjustment': '200.00000000',
+        //             },
+        //         ],
+        //         'fee': '0.00000000',
+        //         'currencyPair': 'BTC_MANA',
+        //     }
+        //
         const order = this.parseOrder (this.extend ({
             'timestamp': timestamp,
             'status': 'open',

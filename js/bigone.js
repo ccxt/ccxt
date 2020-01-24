@@ -22,6 +22,7 @@ module.exports = class bigone extends Exchange {
                 'fetchDeposits': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
@@ -184,6 +185,7 @@ module.exports = class bigone extends Exchange {
                 'amount': this.safeInteger (market, 'base_scale'),
                 'price': this.safeInteger (market, 'quote_scale'),
             };
+            const minCost = this.safeInteger (market, 'min_quote_value');
             const entry = {
                 'id': id,
                 'uuid': uuid,
@@ -197,14 +199,14 @@ module.exports = class bigone extends Exchange {
                 'limits': {
                     'amount': {
                         'min': Math.pow (10, -precision['amount']),
-                        'max': Math.pow (10, precision['amount']),
+                        'max': undefined,
                     },
                     'price': {
                         'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                        'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': minCost,
                         'max': undefined,
                     },
                 },
