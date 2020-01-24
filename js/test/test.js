@@ -82,14 +82,12 @@ Object.keys (errors)
 const keysGlobal = 'keys.json'
 const keysLocal = 'keys.local.json'
 
-let keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
+const keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
 // eslint-disable-next-line import/no-dynamic-require
-let settings = require (__dirname + '/../../' + keysFile)[exchangeId]
+const settings = require (__dirname + '/../../' + keysFile)[exchangeId]
 
 if (settings) {
-    const keys = Object.keys (settings)
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i]
+    for (const key in settings) {
         if (settings[key]) {
             settings[key] = ccxt.deepExtend (exchange[key] || {}, settings[key])
         }
