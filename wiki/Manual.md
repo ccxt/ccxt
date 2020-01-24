@@ -837,6 +837,8 @@ Market structures are indexed by symbols and ids. The base exchange class also h
 
 Most of the time users will be working with market symbols. You will get a standard userland exception if you access non-existent keys in these dicts.
 
+### Methods For Markets And Currencies
+
 ```JavaScript
 // JavaScript
 
