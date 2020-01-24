@@ -234,24 +234,24 @@ Exchanges' Streaming APIs can be classified into two different categories:
 
 #### Sub
 
-A *sub* interface usually allows to subscribe to a stream of data and listen for it. Most of exchanges that do support WebSockets will offer a *sub* type of API only. The *sub* type includes streaming public market data. Sometimes exchanges also allow subcribing to private user data. After the user subscribes to any data feed the channel effectively starts working one-way sending updates from the exchange towards the user continuously.
+A *sub* interface usually allows to subscribe to a stream of data and listen for it. Most of exchanges that do support WebSockets will offer a *sub* type of API only. The *sub* type includes streaming public market data. Sometimes exchanges also allow subcribing to private user data. After the user subscribes to a data feed the channel effectively starts working one-way sending updates from the exchange towards the user continuously.
 
 Commonly appearing types of public data streams:
 
-  - order book (most common) - updates on added, edited and deleted orders (aka *change deltas*)
-  - ticker updates upon changing of 24 hour stats
-  - fills feed (also common) - a live stream of public trades
-  - ohlcv candlestick feed
-  - heartbeat
-  - exchange chat
+- order book (most common) - updates on added, edited and deleted orders (aka *change deltas*)
+- ticker updates upon changing of 24 hour stats
+- fills feed (also common) - a live stream of public trades
+- ohlcv candlestick feed
+- heartbeat
+- exchange chat/trollbox
 
 Less common types of private user data streams:
 
-  - the stream of private trades of the user
-  - live order updates
-  - balance updates
-  - custom streams
-  - exchange-specific and other streams
+- the stream of private trades of the user
+- live order updates
+- balance updates
+- custom streams
+- exchange-specific and other streams
 
 #### Pub
 
@@ -260,27 +260,32 @@ A *pub* interface usually allows users to send data requests towards the server.
 - placing orders
 - canceling orders
 - placing withdrawal requests
-- posting chat messages
+- posting chat/trollbox messages
 - etc
 
-**Some exchanges do not offer a *pub* WS API, they will offer *sub* WS API only.** However, there are exchanges that have a complete Streaming API as well.
+**Some exchanges do not offer a *pub* WS API, they will offer *sub* WS API only.** However, there are exchanges that have a complete Streaming API as well. In most cases a user cannot operate effectively having just the Streaming API. Exchanges will stream public market data *sub*, and the REST API is still needed for the *pub* part where missing.
 
-> #### Unified WS API
+#### Incremental Data Structures
 
-> In most cases a user cannot operate effectively having just the WebSocket API. Exchanges will stream public market data *sub*, and the REST API is still needed for the *pub* part (where missing).
 
-> The goal of ccxt is to  seamlessly combine in a unified interface all available types of networking, possibly, without introducing backward-incompatible changes.
 
-> The WebSocket API in ccxt consists of the following:
-> - the pull (on-demand) interface
-> - the push (notification-based) interface
+#### Unified Streaming API
 
-> The *pull* WebSocket interface replicates the async REST interface one-to-one. So, in order to switch from `REST` to `pull WebSocket + REST`, the user is only required to submit a { ws: true } option to constructor params. From there any call to the unified API will be switched to WebSockets, where available (whee supported by the exchange).
+The goal of CCXT Pro is to seamlessly combine all available types of networking in a unified interface without introducing backward-incompatible changes.
 
-> The *pull* interface means the user pulling data from the library by calling its methods, whereas the data is fetched and merged in background. For example, whevener the user calls the `fetchOrderBook (symbol, params)` method, the following sequence of events takes place:
+The Streaming API in CCXT Pro consists of two types of interfaces:
 
-> 1. If the user is already subscribed to the orderbook updates feed for that particular symbol, the returned value would represent the current state of that orderbook in memory with all updates up to the moment of the call.
-> 2. If the user is not subscribed to the orderbook updates for that symbol yet, the library will subscribe the user to it upon first call.
+- Pull (on-demand) interface
+- Push (notification-based) interface
+
+The *Pull* interface replicates the async REST interface one-to-one. So, in order to switch from `REST` to `pull WebSocket + REST`, the user is only required to submit a { ws: true } option to constructor params. From there any call to the unified API will be switched to WebSockets, where available (whee supported by the exchange).
+
+> Using the *pull* interface means pulling data from the library by calling its methods, whereas the data is fetched and merged in the background. For example, whevener the user calls the `fetchOrderBook (symbol, params)` method, the following sequence of events takes place:
+
+###
+
+> 1. If the user is not subscribed to the orderbook updates for that symbol yet, the library will subscribe the user to it upon first call.
+> 2. If the user is already subscribed to the orderbook updates feed for that particular symbol, the returned value would represent the current state of that orderbook in memory with all updates up to the moment of the call.
 > 3. After subscribing, the library will receive a snapshot of current orderbook. This is returned to the caller right away.
 > 4. It will continue to receive partial updates just in time from the exchange, merging all updates with the orderbook in memory. Each incoming update is called a *delta*. Deltas represent changes to the orderbook (order added, edited or deleted) that have to be merged on top of the last known snapshot of the orderbook. These update-deltas are incoming continuously as soon as the exchange sends them.
 > 5. The ccxt library merges deltas to the orderbook in background.
@@ -382,10 +387,14 @@ Every CCXT Pro instance contains all properties of the underlying CCXT instance.
         'maxPingPongMisses': 2.0, // how many ping pong misses to drop and reconnect
         ... // other streaming options
     },
+    'orderbooks': {}, // incremental order books indexed by symbol
+    'ohlcvs':     {}, // standard CCXT OHLCVs indexed by symbol by timeframe
+    'balance':    {}, // a standard CCXT balance structure, accounts indexed by currency code
+    'orders':     {}, // standard CCXT order structures indexed by order id
+    'trades':     {}, // arrays of CCXT trades indexed by symbol
+    ...
 }
 ```
-
-
 
 ### Keep-Alive
 
