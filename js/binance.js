@@ -849,6 +849,8 @@ module.exports = class binance extends Exchange {
         if (this.options['fetchTradesMethod'] === 'publicGetAggTrades') {
             if (since !== undefined) {
                 request['startTime'] = since;
+                // https://github.com/ccxt/ccxt/issues/6400
+                // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
                 request['endTime'] = this.sum (since, 3600000);
             }
         }
