@@ -1066,7 +1066,7 @@ class bytetrade(Exchange):
         }
         response = self.publicGetDepositaddress(request)
         address = self.safe_string(response[0], 'address')
-        tag = self.safe_string(response[0], 'addressTag')
+        tag = self.safe_string(response[0], 'tag')
         chainType = self.safe_string(response[0], 'chainType')
         self.check_address(address)
         return {
@@ -1084,21 +1084,16 @@ class bytetrade(Exchange):
         if self.apiKey is None:
             raise ArgumentsRequired('withdraw requires self.apiKey')
         addressResponse = self.fetch_deposit_address(code)
-        middleAddress = self.safe_string(addressResponse, 'address')
         chainTypeString = self.safe_string(addressResponse, 'chainType')
-        chainType = 0
-        operationId = 18
-        if chainTypeString == 'ethereum':
-            chainType = 1
-        elif chainTypeString == 'bitcoin':
-            chainType = 2
-            operationId = 26
-        elif chainTypeString == 'cmt':
-            chainType = 3
-        elif chainTypeString == 'naka':
-            chainType = 4
+        chainId = self.safe_string(addressResponse['info'][0], 'chainId')
+        middleAddress = ''
+        if chainTypeString == 'eos':
+            middleAddress = address
         else:
-            raise ExchangeError(self.id + ' ' + code + ' is not supported.')
+            middleAddress = self.safe_string(addressResponse, 'address')
+        operationId = 18
+        if chainTypeString != 'ethereum' and chainTypeString != 'etc' and chainTypeString != 'eos' and chainTypeString != 'cmt' and chainTypeString != 'naka':
+            operationId = 26
         now = self.milliseconds()
         expiration = 0
         datetime = self.iso8601(now)
@@ -1114,7 +1109,7 @@ class bytetrade(Exchange):
         eightBytes = self.integer_pow('2', '64')
         assetFee = 0
         byteStringArray = []
-        if chainTypeString == 'bitcoin':
+        if operationId == 26:
             assetFee = currency['info']['fee']
             byteStringArray = [
                 self.numberToBE(1, 32),
@@ -1180,7 +1175,7 @@ class bytetrade(Exchange):
         request = None
         operation = None
         chainContractAddress = self.safe_string(currency['info'], 'chainContractAddress')
-        if chainTypeString == 'bitcoin':
+        if operationId == 26:
             operation = {
                 'fee': feeAmount,
                 'from': self.apiKey,
@@ -1205,7 +1200,7 @@ class bytetrade(Exchange):
                 ],
             }
             request = {
-                'chainType': chainType,
+                'chainType': chainId,
                 'trObj': self.json(fatty),
                 'chainContractAddresss': chainContractAddress,
             }
@@ -1241,12 +1236,20 @@ class bytetrade(Exchange):
                     mySignature,
                 ],
             }
-            request = {
-                'chainType': chainType,
-                'toExternalAddress': address,
-                'trObj': self.json(fatty),
-                'chainContractAddresss': chainContractAddress,
-            }
+            if chainTypeString == 'eos':
+                request = {
+                    'chainType': chainId,
+                    'toExternalAddress': 'noneed',
+                    'trObj': self.json(fatty),
+                    'chainContractAddresss': chainContractAddress,
+                }
+            else:
+                request = {
+                    'chainType': chainId,
+                    'toExternalAddress': address,
+                    'trObj': self.json(fatty),
+                    'chainContractAddresss': chainContractAddress,
+                }
         response = self.publicPostTransactionWithdraw(request)
         return {
             'info': response,

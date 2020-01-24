@@ -547,11 +547,17 @@ class bitfinex(Exchange):
             cost *= price
         else:
             key = 'base'
+        code = market[key]
+        currency = self.safe_value(self.currencies, code)
+        if currency is not None:
+            precision = self.safe_integer(currency, 'precision')
+            if precision is not None:
+                cost = float(self.currency_to_precision(code, cost))
         return {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': float(self.currency_to_precision(market[key], cost)),
+            'cost': cost,
         }
 
     async def fetch_balance(self, params={}):
@@ -616,16 +622,16 @@ class bitfinex(Exchange):
             symbol = market['symbol']
         elif 'pair' in ticker:
             marketId = self.safe_string(ticker, 'pair')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            if market is not None:
-                symbol = market['symbol']
-            else:
-                baseId = marketId[0:3]
-                quoteId = marketId[3:6]
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
+            if marketId is not None:
+                if marketId in self.markets_by_id:
+                    market = self.markets_by_id[marketId]
+                    symbol = market['symbol']
+                else:
+                    baseId = marketId[0:3]
+                    quoteId = marketId[3:6]
+                    base = self.safe_currency_code(baseId)
+                    quote = self.safe_currency_code(quoteId)
+                    symbol = base + '/' + quote
         last = self.safe_float(ticker, 'last_price')
         return {
             'symbol': symbol,
@@ -775,9 +781,8 @@ class bitfinex(Exchange):
             status = 'closed'
         symbol = None
         if market is None:
-            marketId = self.safe_string(order, 'symbol')
+            marketId = self.safe_string_upper(order, 'symbol')
             if marketId is not None:
-                marketId = marketId.upper()
                 if marketId in self.markets_by_id:
                     market = self.markets_by_id[marketId]
         if market is not None:

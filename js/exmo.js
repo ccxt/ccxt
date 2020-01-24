@@ -655,7 +655,11 @@ module.exports = class exmo extends Exchange {
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const symbol = (marketId in this.markets_by_id) ? this.markets_by_id[marketId] : marketId;
+            let symbol = marketId;
+            if (marketId in this.markets_by_id) {
+                const market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            }
             result[symbol] = this.parseOrderBook (response[marketId], undefined, 'bid', 'ask');
         }
         return result;

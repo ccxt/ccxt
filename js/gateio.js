@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InvalidAddress, OrderNotFound, NotSupported, DDoSProtection, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, ArgumentsRequired, InvalidAddress, OrderNotFound, NotSupported, DDoSProtection, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -102,39 +102,43 @@ module.exports = class gateio extends Exchange {
                 },
             },
             'exceptions': {
-                '4': DDoSProtection,
-                '7': NotSupported,
-                '8': NotSupported,
-                '9': NotSupported,
-                '15': DDoSProtection,
-                '16': OrderNotFound,
-                '17': OrderNotFound,
-                '20': InvalidOrder,
-                '21': InsufficientFunds,
-            },
-            // https://gate.io/api2#errCode
-            'errorCodeNames': {
-                '1': 'Invalid request',
-                '2': 'Invalid version',
-                '3': 'Invalid request',
-                '4': 'Too many attempts',
-                '5': 'Invalid sign',
-                '6': 'Invalid sign',
-                '7': 'Currency is not supported',
-                '8': 'Currency is not supported',
-                '9': 'Currency is not supported',
-                '10': 'Verified failed',
-                '11': 'Obtaining address failed',
-                '12': 'Empty params',
-                '13': 'Internal error, please report to administrator',
-                '14': 'Invalid user',
-                '15': 'Cancel order too fast, please wait 1 min and try again',
-                '16': 'Invalid order id or order is already closed',
-                '17': 'Invalid orderid',
-                '18': 'Invalid amount',
-                '19': 'Not permitted or trade is disabled',
-                '20': 'Your order size is too small',
-                '21': 'You don\'t have enough fund',
+                'exact': {
+                    '4': DDoSProtection,
+                    '5': AuthenticationError, // { result: "false", code:  5, message: "Error: invalid key or sign, please re-generate it from your account" }
+                    '6': AuthenticationError, // { result: 'false', code: 6, message: 'Error: invalid data  ' }
+                    '7': NotSupported,
+                    '8': NotSupported,
+                    '9': NotSupported,
+                    '15': DDoSProtection,
+                    '16': OrderNotFound,
+                    '17': OrderNotFound,
+                    '20': InvalidOrder,
+                    '21': InsufficientFunds,
+                },
+                // https://gate.io/api2#errCode
+                'errorCodeNames': {
+                    '1': 'Invalid request',
+                    '2': 'Invalid version',
+                    '3': 'Invalid request',
+                    '4': 'Too many attempts',
+                    '5': 'Invalid sign',
+                    '6': 'Invalid sign',
+                    '7': 'Currency is not supported',
+                    '8': 'Currency is not supported',
+                    '9': 'Currency is not supported',
+                    '10': 'Verified failed',
+                    '11': 'Obtaining address failed',
+                    '12': 'Empty params',
+                    '13': 'Internal error, please report to administrator',
+                    '14': 'Invalid user',
+                    '15': 'Cancel order too fast, please wait 1 min and try again',
+                    '16': 'Invalid order id or order is already closed',
+                    '17': 'Invalid orderid',
+                    '18': 'Invalid amount',
+                    '19': 'Not permitted or trade is disabled',
+                    '20': 'Your order size is too small',
+                    '21': 'You don\'t have enough fund',
+                },
             },
             'options': {
                 'fetchTradesMethod': 'public_get_tradehistory_id', // 'public_get_tradehistory_id_tid'
@@ -308,12 +312,14 @@ module.exports = class gateio extends Exchange {
             change = last - open;
             average = this.sum (last, open) / 2;
         }
+        open = this.safeFloat (ticker, 'open', open);
+        change = this.safeFloat (ticker, 'change', change);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high24hr'),
-            'low': this.safeFloat (ticker, 'low24hr'),
+            'high': this.safeFloat2 (ticker, 'high24hr', 'high'),
+            'low': this.safeFloat2 (ticker, 'low24hr', 'low'),
             'bid': this.safeFloat (ticker, 'highestBid'),
             'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'lowestAsk'),
@@ -367,11 +373,12 @@ module.exports = class gateio extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeTimestamp2 (trade, 'timestamp', 'time_unix');
+        let timestamp = this.safeTimestamp2 (trade, 'timestamp', 'time_unix');
+        timestamp = this.safeTimestamp (trade, 'time', timestamp);
         const id = this.safeString2 (trade, 'tradeID', 'id');
         // take either of orderid or orderId
         const orderId = this.safeString2 (trade, 'orderid', 'orderNumber');
-        const price = this.safeFloat (trade, 'rate');
+        const price = this.safeFloat2 (trade, 'rate', 'price');
         const amount = this.safeFloat (trade, 'amount');
         const type = this.safeString (trade, 'type');
         let cost = undefined;
@@ -455,7 +462,7 @@ module.exports = class gateio extends Exchange {
         //     'timestamp': 1531158583,
         //     'type': 'sell'},
         //
-        const id = this.safeString (order, 'orderNumber');
+        const id = this.safeString2 (order, 'orderNumber', 'id');
         let symbol = undefined;
         const marketId = this.safeString (order, 'currencyPair');
         if (marketId in this.markets_by_id) {
@@ -464,12 +471,19 @@ module.exports = class gateio extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const timestamp = this.safeTimestamp (order, 'timestamp');
+        const timestamp = this.safeTimestamp2 (order, 'timestamp', 'ctime');
+        const lastTradeTimestamp = this.safeTimestamp (order, 'mtime');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const side = this.safeString (order, 'type');
-        const price = this.safeFloat (order, 'initialRate');
+        let side = this.safeString (order, 'type');
+        // handling for order.update messages
+        if (side === '1') {
+            side = 'sell';
+        } else if (side === '2') {
+            side = 'buy';
+        }
+        const price = this.safeFloat2 (order, 'initialRate', 'price');
         const average = this.safeFloat (order, 'filledRate');
-        const amount = this.safeFloat (order, 'initialAmount');
+        const amount = this.safeFloat2 (order, 'initialAmount', 'amount');
         const filled = this.safeFloat (order, 'filledAmount');
         // In the order status response, this field has a different name.
         const remaining = this.safeFloat2 (order, 'leftAmount', 'left');
@@ -484,6 +498,7 @@ module.exports = class gateio extends Exchange {
             'id': id,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
             'symbol': symbol,
             'type': 'limit',
@@ -766,7 +781,7 @@ module.exports = class gateio extends Exchange {
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'message', body);
         if (errorCode !== undefined) {
-            const feedback = this.safeString (this.errorCodeNames, errorCode, message);
+            const feedback = this.safeString (this.exceptions['errorCodeNames'], errorCode, message);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         }
     }

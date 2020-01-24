@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import ExchangeNotAvailable
 
 
@@ -101,6 +102,7 @@ class bw(Exchange):
                 'exact': {
                     '999': AuthenticationError,
                     '1000': ExchangeNotAvailable,  # {"datas":null,"resMsg":{"message":"getKlines error:data not exitsts\uff0cplease wait ,dataType=4002_KLINE_1M","method":null,"code":"1000"}}
+                    '5017': BadSymbol,  # {"datas":null,"resMsg":{"message":"market not exist","method":null,"code":"5017"}}
                 },
             },
             'api': {
@@ -887,8 +889,8 @@ class bw(Exchange):
                     content += key + sortedParams[key]
             else:
                 content = body
-            signing = self.apiKey + ms + content + self.secret
-            hash = self.hash(self.encode(signing), 'md5')
+            signature = self.apiKey + ms + content + self.secret
+            hash = self.hash(self.encode(signature), 'md5')
             if not headers:
                 headers = {}
             headers['Apiid'] = self.apiKey

@@ -170,9 +170,11 @@ module.exports = class bleutrade extends bittrex {
                 'EPC': 'Epacoin',
             },
             'exceptions': {
-                'Insufficient funds!': InsufficientFunds,
-                'Invalid Order ID': InvalidOrder,
-                'Invalid apikey or apisecret': AuthenticationError,
+                'exact': {
+                    'Insufficient funds!': InsufficientFunds,
+                    'Invalid Order ID': InvalidOrder,
+                    'Invalid apikey or apisecret': AuthenticationError,
+                },
             },
             'options': {
                 // price precision by quote currency code

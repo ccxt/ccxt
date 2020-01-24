@@ -643,7 +643,10 @@ class exmo(Exchange):
         marketIds = list(response.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            symbol = self.markets_by_id[marketId] if (marketId in self.markets_by_id) else marketId
+            symbol = marketId
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
             result[symbol] = self.parse_order_book(response[marketId], None, 'bid', 'ask')
         return result
 

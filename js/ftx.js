@@ -51,7 +51,7 @@ module.exports = class ftx extends Exchange {
                 '15m': '900',
                 '1h': '3600',
                 '4h': '14400',
-                '24h': '86400',
+                '1d': '86400',
             },
             'api': {
                 'public': {
@@ -84,11 +84,14 @@ module.exports = class ftx extends Exchange {
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'conditional_orders', // ?market={market}
+                        'conditional_orders/history', // ?market={market}
                         'fills', // ?market={market}
                         'funding_payments',
                         'lt/balances',
                         'lt/creations',
                         'lt/redemptions',
+                        'subaccounts',
+                        'subaccounts/{nickname}/balances',
                     ],
                     'post': [
                         'account/leverage',
@@ -97,12 +100,16 @@ module.exports = class ftx extends Exchange {
                         'conditional_orders',
                         'lt/{token_name}/create',
                         'lt/{token_name}/redeem',
+                        'subaccounts',
+                        'subaccounts/update_name',
+                        'subaccounts/transfer',
                     ],
                     'delete': [
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'orders',
                         'conditional_orders/{order_id}',
+                        'subaccounts',
                     ],
                 },
             },
@@ -569,7 +576,7 @@ module.exports = class ftx extends Exchange {
         let symbol = undefined;
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
-                market = this.markets_by_id;
+                market = this.markets_by_id[marketId];
                 symbol = market['symbol'];
             } else {
                 const base = this.safeCurrencyCode (this.safeString (trade, 'baseCurrency'));
