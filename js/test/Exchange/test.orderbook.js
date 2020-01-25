@@ -17,7 +17,7 @@ const printOrderBookOneLiner = (orderbook, method, symbol) => {
 
     log (symbol.toString ().green,
         method,
-        orderbook['datetime'] || orderbook['nonce'],
+        orderbook['nonce'] || orderbook['datetime'],
         'bid: '       + ((bids.length > 0) ? bids[0][0] : 'N/A'),
         'bidVolume: ' + ((bids.length > 0) ? bids[0][1] : 'N/A'),
         'ask: '       + ((asks.length > 0) ? asks[0][0] : 'N/A'),
