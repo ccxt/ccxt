@@ -331,6 +331,8 @@ class tidex(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
+            if not market['active']:
+                timestamp = None
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,

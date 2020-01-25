@@ -335,6 +335,9 @@ class tidex extends Exchange {
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
+            if (!$market['active']) {
+                $timestamp = null;
+            }
         }
         $last = $this->safe_float($ticker, 'last');
         return array(
