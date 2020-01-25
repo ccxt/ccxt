@@ -1,7 +1,7 @@
 'use strict';
 
 const fs = require ('fs')
-    , log = require ('ololog')
+    , log = require ('ololog').handleNodeErrors ()
     // eslint-disable-next-line import/no-dynamic-require
     , ccxtpro = require (__dirname + '/../../ccxt.pro.js')
 
@@ -85,17 +85,18 @@ async function testPublic (exchange, symbol) {
 }
 
 async function testPrivate (exchange, symbol, code) {
-    exchange.checkRequiredCredentials ()
-    await tests['watchBalance']      (exchange)
-    // await tests['watchOrders']       (exchange, symbol)
-    // await tests['watchOpenOrders']   (exchange, symbol)
-    // await tests['watchClosedOrders'] (exchange, symbol)
-    // await tests['watchMyTrades']     (exchange, symbol)
-    // const code = exchange.markets[symbol]['quote']
-    // await tests['watchLedger']       (exchange, code)
-    // await tests['watchTransactions'] (exchange, code)
-    // await tests['watchDeposits']     (exchange, code)
-    // await tests['watchWithdrawals']  (exchange, code)
+    if (exchange.checkRequiredCredentials (false)) {
+        await tests['watchBalance']      (exchange)
+        // await tests['watchOrders']       (exchange, symbol)
+        // await tests['watchOpenOrders']   (exchange, symbol)
+        // await tests['watchClosedOrders'] (exchange, symbol)
+        // await tests['watchMyTrades']     (exchange, symbol)
+        // const code = exchange.markets[symbol]['quote']
+        // await tests['watchLedger']       (exchange, code)
+        // await tests['watchTransactions'] (exchange, code)
+        // await tests['watchDeposits']     (exchange, code)
+        // await tests['watchWithdrawals']  (exchange, code)
+    }
 }
 
 //-----------------------------------------------------------------------------
