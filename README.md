@@ -213,6 +213,7 @@ Many of the CCXT rules and concepts also apply to CCXT Pro:
 
 - CCXT Pro will load markets and will cache markets upon the first call to a unified API method
 - CCXT Pro will call CCXT RESTful methods under the hood if necessary
+- CCXT Pro will throw standard CCXT exceptions where necessary
 - ...
 
 ### Streaming Specifics
@@ -221,7 +222,7 @@ Despite of the numerous commonalities, streaming-based APIs have their own speci
 
 Having a connection-based interface implies connection-handling mechanisms. Connections are managed by CCXT Pro transparently to the user. Each exchange instance manages its own set of connections.
 
-Upon your first call to any `watch` method CCXT Pro will establish a connection to a specific stream/resource of the exchange and will maintain it. In case the connection exists – it is reused. The library will handle the subscription request/response messaging sequences as well as the authentication/signing if the requested stream is private.
+Upon your first call to any `watch*()` method the library will establish a connection to a specific stream/resource of the exchange and will maintain it. If the connection already exists – it is reused. The library will handle the subscription request/response messaging sequences as well as the authentication/signing if the requested stream is private.
 
 The library will also watch the status of the uplink and will keep the connection alive. Upon a critical exception, a disconnect or a connection timeout/failure, the next iteration of the tick function will call the `watch` method that will trigger a reconnection. This way the library handles disconnections and reconnections for the user transparently. CCXT Pro applies the necessary rate-limiting and exponential backoff reconnection delays. All of that functionality is enabled by default and can be configured via exchange properties, as usual.
 
@@ -267,59 +268,11 @@ A *pub* interface usually allows users to send data requests towards the server.
 
 #### Incremental Data Structures
 
+In many cases due to a unidirectional nature of the underlying data feeds, the application listening on the client-side has to keep a local snapshot of the data in memory and merge the updates received from the exchange server into the local snapshot. The updates coming from the exchange are also often called _deltas_, because in most cases those updates will contain just the changes between two states of the data and will not include the data that has not changed making it necessary to store the locally cached current state S of all relevant data objects.
 
+All of that functionality is handled by CCXT Pro for the user. To work with CCXT Pro, the user does not have to track or manage subscriptions and related data. CCXT Pro will keep a cache of structures in memory to handle the underlying hassle.
 
-#### Unified Streaming API
-
-The goal of CCXT Pro is to seamlessly combine all available types of networking in a unified interface without introducing backward-incompatible changes.
-
-The Streaming API in CCXT Pro consists of two types of interfaces:
-
-- Pull (on-demand) interface
-- Push (notification-based) interface
-
-The *Pull* interface replicates the async REST interface one-to-one. So, in order to switch from `REST` to `pull WebSocket + REST`, the user is only required to submit a { ws: true } option to constructor params. From there any call to the unified API will be switched to WebSockets, where available (whee supported by the exchange).
-
-> Using the *pull* interface means pulling data from the library by calling its methods, whereas the data is fetched and merged in the background. For example, whevener the user calls the `fetchOrderBook (symbol, params)` method, the following sequence of events takes place:
-
-###
-
-> 1. If the user is not subscribed to the orderbook updates for that symbol yet, the library will subscribe the user to it upon first call.
-> 2. If the user is already subscribed to the orderbook updates feed for that particular symbol, the returned value would represent the current state of that orderbook in memory with all updates up to the moment of the call.
-> 3. After subscribing, the library will receive a snapshot of current orderbook. This is returned to the caller right away.
-> 4. It will continue to receive partial updates just in time from the exchange, merging all updates with the orderbook in memory. Each incoming update is called a *delta*. Deltas represent changes to the orderbook (order added, edited or deleted) that have to be merged on top of the last known snapshot of the orderbook. These update-deltas are incoming continuously as soon as the exchange sends them.
-> 5. The ccxt library merges deltas to the orderbook in background.
-> 6. If the user calls the same `fetchOrderBook` method again – the library will return the up-to-date orderbook with all current deltas merged into it (return to step 1 at this point).
-
-> The above behaviour is the same for all methods that can get data feeds from exchanges websocket. The library will fallback to HTTP REST and will send a HTTP request if the exchange does not offer streaming of this or that type of data.
-
-> The list of related unified API methods is:
-
-> - fetchOrderBook
-> - fetchOrderBooks
-> - fetchTicker
-> - fetchTickers
-> - fetchTrades
-> - fetchBalances
-> - fetchOrders
-> - fetchOpenOrders
-> - fetchClosedOrders
-> - fetchMyTrades
-> - fetchTransactions
-> - fetchDeposits
-> - fetchWithdrawals
-
-> The *push* interface contains all of the above methods, but works in reverse, the library pushes the updates to the user. This is done in two ways:
-
-> - callbacks (JS, Python 2 & 3, PHP)
-> - async generators (JS, Python 3.5+)
-
-> The async generators is the prefered modern way of reading and writing streams of data. They do the work of callbacks in much more natural syntax that is built into the language itself. A callback is a mechanism of an inverted flow control. An async generator, on the other hand, is a mechanism of a direct flow control. Async generators make code much cleaner and sometimes even faster in both development and production.
-
-> The *push* scenario
-
-> Instead of using the outdated principles of callbacks the  , the philosophy of the library uses async generators library This is done with async generators with direct flow control.
-
+Each incoming update says which parts of the data have changed and the receiving side "increments" local state S by merging the update on top of current state S and moves to next local state S'. In terms CCXT Pro that is called _"incremental state"_ and the structures involved in the process of storing and updating the cached state are called _"incremental structures"_. CCXT Pro introduces several new base classes to handle the incremental state where necessary.
 
 ### Linking Against CCXT Pro
 
@@ -387,11 +340,14 @@ Every CCXT Pro instance contains all properties of the underlying CCXT instance.
         'maxPingPongMisses': 2.0, // how many ping pong misses to drop and reconnect
         ... // other streaming options
     },
-    'orderbooks': {}, // incremental order books indexed by symbol
-    'ohlcvs':     {}, // standard CCXT OHLCVs indexed by symbol by timeframe
-    'balance':    {}, // a standard CCXT balance structure, accounts indexed by currency code
-    'orders':     {}, // standard CCXT order structures indexed by order id
-    'trades':     {}, // arrays of CCXT trades indexed by symbol
+    // incremental data structures
+    'orderbooks':   {}, // incremental order books indexed by symbol
+    'ohlcvs':       {}, // standard CCXT OHLCVs indexed by symbol by timeframe
+    'balance':      {}, // a standard CCXT balance structure, accounts indexed by currency code
+    'orders':       {}, // standard CCXT order structures indexed by order id
+    'trades':       {}, // arrays of CCXT trades indexed by symbol
+    'tickers':      {}, // standard CCXT tickers indexed by symbol
+    'transactions': {}, // standard CCXT deposits and withdrawals indexed by id or txid
     ...
 }
 ```
@@ -403,4 +359,3 @@ Every CCXT Pro instance contains all properties of the underlying CCXT instance.
 ### API Methods
 
 ### Error Handling
-
