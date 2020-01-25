@@ -222,7 +222,6 @@ let testExchange = async exchange => {
 
     await loadExchange (exchange)
 
-    let delay = exchange.rateLimit
     let symbol = exchange.symbols[0]
     const symbols = [
         'BTC/USD',
