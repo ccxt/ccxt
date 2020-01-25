@@ -29,8 +29,8 @@ class WebsocketsClient(Client):
         print(Exchange.iso8601(Exchange.milliseconds()), 'sending', message)
         return self.connection.send(json.dumps(message, separators=(',', ':')))
 
-    def close(self, code):
-        return self.connection.close(code)
+    async def close(self, code):
+        return await self.connection.close(code)
 
 
 # -----------------------------------------------------------------------------
