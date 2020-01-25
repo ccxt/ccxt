@@ -172,7 +172,7 @@ class Client(object):
     def send(self, message):
         raise NotSupported('send() not implemented')
 
-    def close(self, code=1000):
+    async def close(self, code=1000):
         raise NotSupported('close() not implemented')
 
     def create_connection(self, session):
