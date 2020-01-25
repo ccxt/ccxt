@@ -59,9 +59,9 @@ class AiohttpClient(Client):
         print(Exchange.iso8601(Exchange.milliseconds()), 'sending', message)
         return self.connection.send_str(json.dumps(message, separators=(',', ':')))
 
-    def close(self, code=1000):
+    async def close(self, code=1000):
         print(Exchange.iso8601(Exchange.milliseconds()), 'closing', code)
-        return self.connection.close()
+        return await self.connection.close()
 
     async def ping_loop(self):
         print(Exchange.iso8601(Exchange.milliseconds()), 'ping loop')
