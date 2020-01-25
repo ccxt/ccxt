@@ -13,7 +13,7 @@ const log       = require ('ololog')
 module.exports = async (exchange) => {
 
     if (!(exchange.has.watchBalance)) {
-        log (exchange.id.green, ' does not have watchBalance')
+        log (exchange.id.green, 'does not have watchBalance')
         return
     }
 
