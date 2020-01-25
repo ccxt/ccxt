@@ -311,6 +311,7 @@ module.exports = class yobit extends Exchange {
         }
         const request = {
             'pair': ids,
+            // 'ignore_invalid': true,
         };
         if (limit !== undefined) {
             request['limit'] = limit;

@@ -829,9 +829,9 @@ module.exports = class bibox extends Exchange {
         let address = result;
         let tag = undefined;
         if (this.isJsonEncodedObject (result)) {
-            const json = JSON.parse (result);
-            address = this.safeString (json, 'account');
-            tag = this.safeString (json, 'memo');
+            const parsed = JSON.parse (result);
+            address = this.safeString (parsed, 'account');
+            tag = this.safeString (parsed, 'memo');
         }
         return {
             'currency': code,
