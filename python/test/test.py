@@ -9,7 +9,6 @@ import sys
 # import time
 from os import _exit
 from traceback import format_tb
-from pprint import pprint
 # from ccxt import NetworkError, RequestTimeout
 from exchange.test_watch_order_book import test_watch_order_book
 
@@ -42,7 +41,6 @@ if not argv.exchange_id:
 else:
     print('Testing', {'exchange': argv.exchange_id, 'symbol': None})
 
-exchanges = {}
 
 # ------------------------------------------------------------------------------
 
@@ -62,8 +60,7 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 # -----------------------------------------------------------------------------
 
-# def hide_zero_balances(balance):
-
+config = {}
 
 # prefer local testing keys to global keys
 keys_folder = os.path.dirname(root)
@@ -72,8 +69,9 @@ keys_local = os.path.join(keys_folder, 'keys.local.json')
 keys_file = keys_local if os.path.exists(keys_local) else keys_global
 
 # load the api keys from config
-with open(keys_file) as file:
-    config = json.load(file)
+if os.path.exists(keys_local):
+    with open(keys_file) as file:
+        config = json.load(file)
 
 
 # -----------------------------------------------------------------------------
@@ -89,8 +87,6 @@ async def test_public(exchange, symbol):
 
 async def test_private(exchange, symbol, code):
     print(exchange.id, symbol, 'test_private')
-    # # ..........................................................................
-    # # private API
     # if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
     #     return
     # # move to testnet/sandbox if possible before accessing the balance if possible
@@ -141,7 +137,7 @@ async def test_exchange(exchange):
 
 async def test():
     symbol = 'ETH/BTC'
-    keys = config.get(argv.exchange_id, {})
+    apiKeys = config.get(argv.exchange_id, {})
     exchange = getattr(ccxtpro, argv.exchange_id)(Exchange.deep_extend({
         'enableRateLimit': True,
         'urls': {
@@ -150,33 +146,13 @@ async def test():
             # },
         },
         'verbose': argv.verbose,
-    }, keys))
+    }, apiKeys))
 
     print(exchange.id, symbol, argv.verbose)
     await exchange.load_markets()
     await test_exchange(exchange)
-
-    print('This test is a work in progress, come back later.')
-    sys.exit()
-
-    while True:
-        try:
-            # this is a dirty wip
-            # -----------------------------------------------------------------
-            # balance
-            response = await exchange.watch_balance()
-            pprint(response)
-
-            sys.exit()
-            # -----------------------------------------------------------------
-            # orderbook
-            response = await exchange.watch_order_book(symbol)
-            print(Exchange.iso8601(Exchange.milliseconds()), len(response['asks']), 'asks', response['asks'][0], len(response['bids']), 'bids', response['bids'][0])
-        except Exception as e:
-            print('Error', e)
-            await asyncio.sleep(1)
-            raise e
     await exchange.close()
+
 
 # -----------------------------------------------------------------------------
 
@@ -282,3 +258,23 @@ if __name__ == '__main__':
 #                 print(green(exchange.id), 'skipped')
 #             else:
 #                 await try_all_proxies(exchange, proxies)
+# ------------------------------------------------------------------------------
+# print('The private test is a work in progress, come back later.')
+# sys.exit()
+
+# while True:
+#     try:
+#         # this is a dirty wip
+#         # -----------------------------------------------------------------
+#         # balance
+#         response = await exchange.watch_balance()
+#         pprint(response)
+#         sys.exit()
+#         # -----------------------------------------------------------------
+#         # orderbook
+#         response = await exchange.watch_order_book(symbol)
+#         print(Exchange.iso8601(Exchange.milliseconds()), len(response['asks']), 'asks', response['asks'][0], len(response['bids']), 'bids', response['bids'][0])
+#     except Exception as e:
+#         print('Error', e)
+#         await asyncio.sleep(1)
+#         raise e
