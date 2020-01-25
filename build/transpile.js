@@ -127,7 +127,9 @@ class CCXTProTranspiler extends Transpiler {
             [ /function equals \([\S\s]+?return true\n}\n/g, '' ],
         ])
 
-        let { python3Body, python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+        const options = { js, removeEmptyLines: false }
+        const transpiled = this.transpileJavaScriptToPythonAndPHP (options)
+        const { python3Body, python2Body, phpBody } = transpiled
 
         const pythonHeader = [
             "",
