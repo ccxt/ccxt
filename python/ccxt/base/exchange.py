@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.20.69'
+__version__ = '1.21.89'
 
 # -----------------------------------------------------------------------------
 
@@ -18,6 +18,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import RateLimitExceeded
 
 # -----------------------------------------------------------------------------
 
@@ -185,7 +186,7 @@ class Exchange(object):
     httpExceptions = {
         '422': ExchangeError,
         '418': DDoSProtection,
-        '429': DDoSProtection,
+        '429': RateLimitExceeded,
         '404': ExchangeNotAvailable,
         '409': ExchangeNotAvailable,
         '500': ExchangeNotAvailable,
@@ -212,6 +213,7 @@ class Exchange(object):
     orders = None
     trades = None
     transactions = None
+    ohlcvs = None
     currencies = None
     options = None  # Python does not allow to define properties in run-time with setattr
     accounts = None
@@ -262,6 +264,7 @@ class Exchange(object):
         'fetchOrderBook': True,
         'fetchOrderBooks': False,
         'fetchOrders': False,
+        'fetchOrderTrades': False,
         'fetchStatus': 'emulated',
         'fetchTicker': True,
         'fetchTickers': False,
@@ -315,8 +318,9 @@ class Exchange(object):
         self.balance = dict() if self.balance is None else self.balance
         self.orderbooks = dict() if self.orderbooks is None else self.orderbooks
         self.orders = dict() if self.orders is None else self.orders
-        self.trades = list() if self.trades is None else self.trades
+        self.trades = dict() if self.trades is None else self.trades
         self.transactions = dict() if self.transactions is None else self.transactions
+        self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
         self.currencies = dict() if self.currencies is None else self.currencies
         self.options = dict() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
         self.decimal_to_precision = decimal_to_precision
@@ -1412,29 +1416,23 @@ class Exchange(object):
         }
 
     def parse_balance(self, balance):
-        currencies = self.omit(balance, 'info').keys()
-
+        currencies = self.omit(balance, ['info', 'free', 'used', 'total']).keys()
         balance['free'] = {}
         balance['used'] = {}
         balance['total'] = {}
-
         for currency in currencies:
             if balance[currency].get('total') is None:
                 if balance[currency].get('free') is not None and balance[currency].get('used') is not None:
                     balance[currency]['total'] = self.sum(balance[currency].get('free'), balance[currency].get('used'))
-
             if balance[currency].get('free') is None:
                 if balance[currency].get('total') is not None and balance[currency].get('used') is not None:
                     balance[currency]['free'] = self.sum(balance[currency]['total'], -balance[currency]['used'])
-
             if balance[currency].get('used') is None:
                 if balance[currency].get('total') is not None and balance[currency].get('free') is not None:
                     balance[currency]['used'] = self.sum(balance[currency]['total'], -balance[currency]['free'])
-
-        for account in ['free', 'used', 'total']:
-            balance[account] = {}
-            for currency in currencies:
-                balance[account][currency] = balance[currency][account]
+            balance['free'][currency] = balance[currency]['free']
+            balance['used'][currency] = balance[currency]['used']
+            balance['total'][currency] = balance[currency]['total']
         return balance
 
     def fetch_partial_balance(self, part, params={}):

@@ -53,14 +53,13 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 
 # Exchanges
 
-The ccxt library currently supports the following 124 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 121 cryptocurrency exchange markets and trading APIs:
 
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;logo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                                                                                       | id                 | name                                                                                    | ver | doc                                                                                          | certified                                                                                                                  |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|-----------------------------------------------------------------------------------------|:---:|:--------------------------------------------------------------------------------------------:|----------------------------------------------------------------------------------------------------------------------------|
 |[![_1btcxe](https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg)](https://1btcxe.com)                                                          | _1btcxe            | [1BTCXE](https://1btcxe.com)                                                            | *   | [API](https://1btcxe.com/api-docs.php)                                                       |                                                                                                                             | Panama                                  |
 |[![acx](https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg)](https://acx.io)                                                                  | acx                | [ACX](https://acx.io)                                                                   | 2   | [API](https://acx.io/documents/api_v2)                                                       |                                                                                                                             | Australia                               |
 |[![adara](https://user-images.githubusercontent.com/1294454/49189583-0466a780-f380-11e8-9248-57a631aad2d6.jpg)](https://adara.io)                                                              | adara              | [Adara](https://adara.io)                                                               | 1   | [API](https://api.adara.io/v1)                                                               |                                                                                                                             | Malta                                   |
-|[![allcoin](https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg)](https://www.allcoin.com)                                                     | allcoin            | [Allcoin](https://www.allcoin.com)                                                      | 1   | [API](https://www.allcoin.com/api_market/market)                                             |                                                                                                                             | Canada                                  |
 |[![anxpro](https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg)](https://anxpro.com)                                                           | anxpro             | [ANXPro](https://anxpro.com)                                                            | *   | [API](https://anxv2.docs.apiary.io)                                                          |                                                                                                                             | Japan, Singapore, Hong Kong, New Zealand|
 |[![bcex](https://user-images.githubusercontent.com/1294454/43362240-21c26622-92ee-11e8-9464-5801ec526d77.jpg)](https://www.bcex.top/register?invite_code=758978&lang=en)                       | bcex               | [BCEX](https://www.bcex.top/register?invite_code=758978&lang=en)                        | 1   | [API](https://github.com/BCEX-TECHNOLOGY-LIMITED/API_Docs/wiki/Interface)                    |                                                                                                                             | China, Canada                           |
 |[![bequant](https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg)](https://bequant.io)                                                          | bequant            | [Bequant](https://bequant.io)                                                           | 2   | [API](https://api.bequant.io/)                                                               |                                                                                                                             | Malta                                   |
@@ -86,7 +85,7 @@ The ccxt library currently supports the following 124 cryptocurrency exchange ma
 |[![bitstamp](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)](https://www.bitstamp.net)                                                   | bitstamp           | [Bitstamp](https://www.bitstamp.net)                                                    | 2   | [API](https://www.bitstamp.net/api)                                                          |                                                                                                                             | UK                                      |
 |[![bitstamp1](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)](https://www.bitstamp.net)                                                  | bitstamp1          | [Bitstamp](https://www.bitstamp.net)                                                    | 1   | [API](https://www.bitstamp.net/api)                                                          |                                                                                                                             | UK                                      |
 |[![bittrex](https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg)](https://bittrex.com)                                                         | bittrex            | [Bittrex](https://bittrex.com)                                                          | 1.1 | [API](https://bittrex.github.io/api/)                                                        | [![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | US                                      |
-|[![bitz](https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg)](https://u.bit-z.com/register?invite_code=1429193)                               | bitz               | [Bit-Z](https://u.bit-z.com/register?invite_code=1429193)                               | 2   | [API](https://apidoc.bit-z.com/en/)                                                          |                                                                                                                             | Hong Kong                               |
+|[![bitz](https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg)](https://u.bitz.com/register?invite_code=1429193)                                | bitz               | [Bit-Z](https://u.bitz.com/register?invite_code=1429193)                                | 2   | [API](https://apidoc.bitz.com/en/)                                                           |                                                                                                                             | Hong Kong                               |
 |[![bl3p](https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg)](https://bl3p.eu)                                                                | bl3p               | [BL3P](https://bl3p.eu)                                                                 | 1   | [API](https://github.com/BitonicNL/bl3p-api/tree/master/docs)                                |                                                                                                                             | Netherlands, EU                         |
 |[![bleutrade](https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg)](https://bleutrade.com)                                                     | bleutrade          | [Bleutrade](https://bleutrade.com)                                                      | 2   | [API](https://app.swaggerhub.com/apis-docs/bleu/white-label/3.0.0)                           |                                                                                                                             | Brazil                                  |
 |[![braziliex](https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg)](https://braziliex.com/?ref=5FE61AB6F6D67DA885BC98BA27223465)               | braziliex          | [Braziliex](https://braziliex.com/?ref=5FE61AB6F6D67DA885BC98BA27223465)                | *   | [API](https://braziliex.com/exchange/api.php)                                                |                                                                                                                             | Brazil                                  |
@@ -105,7 +104,7 @@ The ccxt library currently supports the following 124 cryptocurrency exchange ma
 |[![cobinhood](https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg)](https://cobinhood.com?referrerId=a9d57842-99bb-4d7c-b668-0479a15a458b)     | cobinhood          | [COBINHOOD](https://cobinhood.com?referrerId=a9d57842-99bb-4d7c-b668-0479a15a458b)      | 1   | [API](https://cobinhood.github.io/api-public)                                                |                                                                                                                             | Taiwan                                  |
 |[![coinbase](https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg)](https://www.coinbase.com/join/58cbe25a355148797479dbd2)                     | coinbase           | [Coinbase](https://www.coinbase.com/join/58cbe25a355148797479dbd2)                      | 2   | [API](https://developers.coinbase.com/api/v2)                                                |                                                                                                                             | US                                      |
 |[![coinbaseprime](https://user-images.githubusercontent.com/1294454/44539184-29f26e00-a70c-11e8-868f-e907fc236a7c.jpg)](https://prime.coinbase.com)                                            | coinbaseprime      | [Coinbase Prime](https://prime.coinbase.com)                                            | *   | [API](https://docs.prime.coinbase.com)                                                       |                                                                                                                             | US                                      |
-|[![coinbasepro](https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg)](https://pro.coinbase.com/)                                               | coinbasepro        | [Coinbase Pro](https://pro.coinbase.com/)                                               | *   | [API](https://docs.pro.coinbase.com/)                                                        |                                                                                                                             | US                                      |
+|[![coinbasepro](https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg)](https://pro.coinbase.com/)                                               | coinbasepro        | [Coinbase Pro](https://pro.coinbase.com/)                                               | *   | [API](https://docs.pro.coinbase.com)                                                         |                                                                                                                             | US                                      |
 |[![coincheck](https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg)](https://coincheck.com)                                                     | coincheck          | [coincheck](https://coincheck.com)                                                      | *   | [API](https://coincheck.com/documents/exchange/api)                                          |                                                                                                                             | Japan, Indonesia                        |
 |[![coinegg](https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg)](https://www.coinegg.com/user/register?invite=523218)                         | coinegg            | [CoinEgg](https://www.coinegg.com/user/register?invite=523218)                          | *   | [API](https://www.coinegg.com/explain.api.html)                                              |                                                                                                                             | China, UK                               |
 |[![coinex](https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg)](https://www.coinex.com/register?refer_code=yw5fz)                             | coinex             | [CoinEx](https://www.coinex.com/register?refer_code=yw5fz)                              | 1   | [API](https://github.com/coinexcom/coinex_exchange_api/wiki)                                 |                                                                                                                             | China                                   |
@@ -117,7 +116,7 @@ The ccxt library currently supports the following 124 cryptocurrency exchange ma
 |[![coinone](https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg)](https://coinone.co.kr)                                                       | coinone            | [CoinOne](https://coinone.co.kr)                                                        | 2   | [API](https://doc.coinone.co.kr)                                                             |                                                                                                                             | South Korea                             |
 |[![coinspot](https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg)](https://www.coinspot.com.au/register?code=PJURCU)                           | coinspot           | [CoinSpot](https://www.coinspot.com.au/register?code=PJURCU)                            | *   | [API](https://www.coinspot.com.au/api)                                                       |                                                                                                                             | Australia                               |
 |[![coolcoin](https://user-images.githubusercontent.com/1294454/36770529-be7b1a04-1c5b-11e8-9600-d11f1996b539.jpg)](https://www.coolcoin.com/user/register?invite_code=bhaega)                  | coolcoin           | [CoolCoin](https://www.coolcoin.com/user/register?invite_code=bhaega)                   | *   | [API](https://www.coolcoin.com/help.api.html)                                                |                                                                                                                             | Hong Kong                               |
-|[![coss](https://user-images.githubusercontent.com/1294454/50328158-22e53c00-0503-11e9-825c-c5cfd79bfa74.jpg)](https://www.coss.io/c/reg?r=OWCMHQVW2Q)                                         | coss               | [COSS](https://www.coss.io/c/reg?r=OWCMHQVW2Q)                                          | 1   | [API](https://api.coss.io/v1/spec)                                                           | [![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | Singapore, Netherlands                  |
+|[![coss](https://user-images.githubusercontent.com/1294454/50328158-22e53c00-0503-11e9-825c-c5cfd79bfa74.jpg)](https://www.coss.io/c/reg?r=OWCMHQVW2Q)                                         | coss               | [COSS](https://www.coss.io/c/reg?r=OWCMHQVW2Q)                                          | 1   | [API](https://api.coss.io/v1/spec)                                                           |                                                                                                                             | Singapore, Netherlands                  |
 |[![crex24](https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg)](https://crex24.com/?refid=slxsjsjtil8xexl9hksr)                               | crex24             | [CREX24](https://crex24.com/?refid=slxsjsjtil8xexl9hksr)                                | 2   | [API](https://docs.crex24.com/trade-api/v2)                                                  |                                                                                                                             | Estonia                                 |
 |[![deribit](https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg)](https://www.deribit.com/reg-1189.4038)                                       | deribit            | [Deribit](https://www.deribit.com/reg-1189.4038)                                        | 1   | [API](https://docs.deribit.com)                                                              |                                                                                                                             | Netherlands                             |
 |[![digifinex](https://user-images.githubusercontent.com/1294454/62184319-304e8880-b366-11e9-99fe-8011d6929195.jpg)](https://www.digifinex.vip/en-ww/from/DhOzBg/3798****5114)                  | digifinex          | [DigiFinex](https://www.digifinex.vip/en-ww/from/DhOzBg/3798****5114)                   | 3   | [API](https://docs.digifinex.vip)                                                            |                                                                                                                             | Singapore                               |
@@ -152,7 +151,6 @@ The ccxt library currently supports the following 124 cryptocurrency exchange ma
 |[![livecoin](https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg)](https://livecoin.net/?from=Livecoin-CQ1hfx44)                               | livecoin           | [LiveCoin](https://livecoin.net/?from=Livecoin-CQ1hfx44)                                | *   | [API](https://www.livecoin.net/api?lang=en)                                                  |                                                                                                                             | US, UK, Russia                          |
 |[![luno](https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg)](https://www.luno.com/invite/44893A)                                             | luno               | [luno](https://www.luno.com/invite/44893A)                                              | 1   | [API](https://www.luno.com/en/api)                                                           |                                                                                                                             | UK, Singapore, South Africa             |
 |[![lykke](https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg)](https://www.lykke.com)                                                         | lykke              | [Lykke](https://www.lykke.com)                                                          | 1   | [API](https://hft-api.lykke.com/swagger/ui/)                                                 |                                                                                                                             | Switzerland                             |
-|[![mandala](https://user-images.githubusercontent.com/1294454/54686665-df629400-4b2a-11e9-84d3-d88856367dd7.jpg)](https://trade.mandalaex.com/?ref=564377)                                     | mandala            | [Mandala](https://trade.mandalaex.com/?ref=564377)                                      | 2   | [API](https://apidocs.mandalaex.com)                                                         |                                                                                                                             | Malta                                   |
 |[![mercado](https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg)](https://www.mercadobitcoin.com.br)                                           | mercado            | [Mercado Bitcoin](https://www.mercadobitcoin.com.br)                                    | 3   | [API](https://www.mercadobitcoin.com.br/api-doc)                                             |                                                                                                                             | Brazil                                  |
 |[![mixcoins](https://user-images.githubusercontent.com/1294454/30237212-ed29303c-9535-11e7-8af8-fcd381cfa20c.jpg)](https://mixcoins.com)                                                       | mixcoins           | [MixCoins](https://mixcoins.com)                                                        | 1   | [API](https://mixcoins.com/help/api/)                                                        |                                                                                                                             | UK, Hong Kong                           |
 |[![oceanex](https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg)](https://oceanex.pro/signup?referral=VE24QX)                                  | oceanex            | [OceanEx](https://oceanex.pro/signup?referral=VE24QX)                                   | 1   | [API](https://api.oceanex.pro/doc/v1)                                                        |                                                                                                                             | US                                      |
@@ -175,7 +173,6 @@ The ccxt library currently supports the following 124 cryptocurrency exchange ma
 |[![upbit](https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg)](https://upbit.com)                                                             | upbit              | [Upbit](https://upbit.com)                                                              | 1   | [API](https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C)           | [![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | South Korea                             |
 |[![vaultoro](https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg)](https://www.vaultoro.com)                                                   | vaultoro           | [Vaultoro](https://www.vaultoro.com)                                                    | 1   | [API](https://api.vaultoro.com)                                                              |                                                                                                                             | Switzerland                             |
 |[![vbtc](https://user-images.githubusercontent.com/1294454/27991481-1f53d1d8-6481-11e7-884e-21d17e7939db.jpg)](https://vbtc.exchange)                                                          | vbtc               | [VBTC](https://vbtc.exchange)                                                           | 1   | [API](https://blinktrade.com/docs)                                                           |                                                                                                                             | Vietnam                                 |
-|[![virwox](https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg)](https://www.virwox.com)                                                       | virwox             | [VirWoX](https://www.virwox.com)                                                        | *   | [API](https://www.virwox.com/developers.php)                                                 |                                                                                                                             | Austria, EU                             |
 |[![whitebit](https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg)](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)         | whitebit           | [WhiteBit](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)          | 2   | [API](https://documenter.getpostman.com/view/7473075/SVSPomwS?version=latest#intro)          |                                                                                                                             | Estonia                                 |
 |[![xbtce](https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg)](https://xbtce.com/?agent=XX97BTCXXXG687021000B)                                | xbtce              | [xBTCe](https://xbtce.com/?agent=XX97BTCXXXG687021000B)                                 | 1   | [API](https://www.xbtce.com/tradeapi)                                                        |                                                                                                                             | Russia                                  |
 |[![yobit](https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg)](https://www.yobit.net)                                                         | yobit              | [YoBit](https://www.yobit.net)                                                          | 3   | [API](https://www.yobit.net/en/api/)                                                         |                                                                                                                             | Russia                                  |
@@ -367,7 +364,7 @@ Here's an overview of base exchange properties with values added for example:
         'fetchTrades': true,
         'withdraw': false,
     },
-    'timeframes': {                     // empty if the exchange !has.fetchOHLCV
+    'timeframes': {                     // empty if the exchange.has['fetchOHLCV'] !== true
         '1m': '1minute',
         '1h': '1hour',
         '1d': '1day',
@@ -634,8 +631,47 @@ Each market is an associative array (aka dictionary) with the following keys:
 - `quoteId`. An exchange-specific id of the quote currency, not unified.
 - `active`. A boolean indicating whether or not trading this market is currently possible. Often, when a market is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that market. The user should check if the market is active and [reload market cache periodically, as explained below](#market-cache-force-reload).
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
-- `precision`. The amounts of decimal digits accepted in order values by exchanges upon order placement for price, amount and cost.
+- `precision`. Precision accepted in order values by exchanges upon order placement for price, amount and cost. The values inside this market property depend on the `exchange.precisionMode`.
+    - If `exchange.precisionMode` is `DECIMAL_DIGITS` then the `market['precision']` designates the number of decimal digits after the dot.
+    - If `exchange.precisionMode` is `SIGNIFICANT_DIGITS` then the `market['precision']` designates the number of non-zero digits after the dot.
+    - When `exchange.precisionMode` is `TICK_SIZE` then the `market['precision']` designates the smallest possible float fractions.
 - `limits`. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price * amount).
+
+## Currency Structure
+
+```JavaScript
+{
+    'id':       'btc',     // string literal for referencing within an exchange
+    'code':     'BTC',     // uppercase unified string literal code the currency
+    'name':     'Bitcoin', // string, human-readable name, if specified
+    'active':    true,     // boolean, currency status (tradeable and withdrawable)
+    'fee':       0.123
+    'precision': 8,       // number of decimal digits "after the dot" (depends on exchange.precisionMode)
+    'limits': {           // value limits when placing orders on this market
+        'amount': {
+            'min': 0.01,  // order amount should be > min
+            'max': 1000,  // order amount should be < max
+        },
+        'price':    { ... }, // same min/max limits for the price of the order
+        'cost':     { ... }, // same limits for order cost = price * amount
+        'withdraw': { ... }, // withdrawal limits
+    },
+    'info': { ... }, // the original unparsed currency info from the exchange
+}
+```
+
+Each currency is an associative array (aka dictionary) with the following keys:
+
+- `id`. The string or numeric ID of the currency within the exchange. Currency ids are used inside exchanges internally to identify coins during the request/response process.
+- `code`. An uppercase string code representation of a particular currency. Currency codes are used to reference currencies within the ccxt library (explained below).
+- `name`. Self-explaining.
+- `active`. A boolean indicating whether or not trading and funding (depositing and withdrawing) this currency is currently possible. Often, when a currency is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that currency. The user should check if the currency is active and [reload markets periodically, as explained below](#market-cache-force-reload).
+- `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
+- `precision`. Precision accepted in values by exchanges upon referencing this currency. The value inside this property depend on the `exchange.precisionMode`.
+    - If `exchange.precisionMode` is `DECIMAL_DIGITS` then the `currency['precision']` designates the number of decimal digits after the dot.
+    - If `exchange.precisionMode` is `SIGNIFICANT_DIGITS` then the `currency['precision']` designates the number of non-zero digits after the dot.
+    - When `exchange.precisionMode` is `TICK_SIZE` then the `currency['precision']` designates the smallest possible float fractions.
+- `limits`. The minimums and maximums for prices, amounts (volumes), costs (where cost = price * amount) and withdrawals.
 
 ### Precision And Limits
 
@@ -652,7 +688,7 @@ Examples:
     + good: 0.05, 0.051, 0.0501, 0.0502, ..., 0.0599, 0.06, 0.0601, ...
     - bad: 0.04, 0.049, 0.0499
     ```
-  - *Precision of the amount* should up to 4 decimal digits:
+  - *Precision of the amount* should be up to 4 decimal digits:
     ```diff
     + good: 0.05, 0.051, 0.052, ..., 0.0531, ..., 0.06, ... 0.0719, ...
     - bad: 0.05001, 0.05000, 0.06001
@@ -675,7 +711,7 @@ Examples:
 
 3. `(market['limits']['amount']['min'] == 50) && (market['precision']['amount'] == -1)`
 
-  - The *amount value* should be greater than 50:
+  - The *amount value* should be greater than or equal to 50:
     ```diff
     + good: 50, 60, 70, 80, 90, 100, ... 2000, ...
     - bad: 1, 2, 3, ..., 9
@@ -692,12 +728,12 @@ Examples:
 
 The user is required to stay within all limits and precision! The values of the order should satisfy the following conditions:
 
-- Order `amount` > `limits['min']['amount']`
-- Order `amount` < `limits['max']['amount']`
-- Order `price` > `limits['min']['price']`
-- Order `price` < `limits['max']['price']`
-- Order `cost` (`amount * price`) > `limits['min']['cost']`
-- Order `cost` (`amount * price`) < `limits['max']['cost']`
+- Order `amount` >= `limits['min']['amount']`
+- Order `amount` <= `limits['max']['amount']`
+- Order `price` >= `limits['min']['price']`
+- Order `price` <= `limits['max']['price']`
+- Order `cost` (`amount * price`) >= `limits['min']['cost']`
+- Order `cost` (`amount * price`) <= `limits['max']['cost']`
 - Precision of `amount` must be <= `precision['amount']`
 - Precision of `price` must be <= `precision['price']`
 
@@ -714,11 +750,11 @@ Supported rounding modes are:
 
 The decimal precision counting mode is available in the `exchange.precisionMode` property.
 
-Supported counting modes are:
+Supported precision modes are:
 
-- `DECIMAL_PLACES` – counts all digits, 99% of exchanges use this counting mode
-- `SIGNIFICANT_DIGITS` – counts non-zero digits only, some exchanges (`bitfinex` and maybe a few other) implement this mode of counting decimals
-- `TICK_SIZE` – some exchanges only allow a multiple of a specific value (`bitmex` uses this mode)
+- `DECIMAL_PLACES` – counts all digits, 99% of exchanges use this counting mode. With this mode of precision, the numbers in `market['precision']` designate the number of decimal digits after the dot for further rounding or truncation.
+- `SIGNIFICANT_DIGITS` – counts non-zero digits only, some exchanges (`bitfinex` and maybe a few other) implement this mode of counting decimals. With this mode of precision, the numbers in `market['precision']` designate the Nth place of the last significant (non-zero) decimal digit after the dot.
+- `TICK_SIZE` – some exchanges only allow a multiple of a specific value (`bitmex` and `ftx` use this mode, for example). In this mode, the numbers in `market['precision']` designate the minimal precision fractions (floats) for rounding or truncating.
 
 Supported padding modes are:
 
@@ -782,6 +818,10 @@ $markets = $huobipro->load_markets ();
 var_dump ($huobipro->id, $markets);
 ```
 
+Apart from the market info, the `loadMarkets()` call will also load the currencies from the exchange and will cache the info in the `.markets` and the `.currencies` properties respectively.
+
+The user can also bypass the cache and call unified methods for fetching that information from the exchange endpoints directly, `fetchMarkets()` and `fetchCurrencies()`, though using these methods is not recommended. The recommended way to preload markets is by calling the `loadMarkets()` unified method.
+
 ## Symbols And Market Ids
 
 Market ids are used during the REST request-response process to reference trading pairs within exchanges. The set of market ids is unique per exchange and cannot be used across exchanges. For example, the BTC/USD pair/market may have different ids on various popular exchanges, like `btcusd`, `BTCUSD`, `XBTUSD`, `btc/usd`, `42` (numeric id), `BTC/USD`, `Btc/Usd`, `tBTCUSD`, `XXBTZUSD`. You don't need to remember or use market ids, they are there for internal HTTP request-response purposes inside exchange implementations.
@@ -795,6 +835,8 @@ Sometimes the user might notice a symbol like `'XBTM18'` or `'.XRPUSDM20180101'`
 Market structures are indexed by symbols and ids. The base exchange class also has builtin methods for accessing markets by symbols. Most API methods require a symbol to be passed in their first argument. You are often required to specify a symbol when querying current prices, making orders, etc.
 
 Most of the time users will be working with market symbols. You will get a standard userland exception if you access non-existent keys in these dicts.
+
+### Methods For Markets And Currencies
 
 ```JavaScript
 // JavaScript
@@ -813,7 +855,7 @@ Most of the time users will be working with market symbols. You will get a stand
 
     console.log (exchange.id, symbols)            // print all symbols
 
-    let currencies = exchange.currencies          // a list of currencies
+    let currencies = exchange.currencies          // a dictionary of currencies
 
     let bitfinex = new ccxt.bitfinex ()
     await bitfinex.loadMarkets ()
@@ -842,7 +884,7 @@ symbols2 = list (exchange.markets.keys ()) # same as previous line
 
 print (exchange.id, symbols)               # print all symbols
 
-currencies = exchange.currencies           # a list of currencies
+currencies = exchange.currencies           # a dictionary of currencies
 
 kraken = ccxt.kraken ()
 kraken.load_markets ()
@@ -869,7 +911,7 @@ $symbols2 = array_keys ($exchange->markets);    // same as previous line
 
 var_dump ($exchange->id, $symbols);             // print all symbols
 
-$currencies = $exchange->currencies;            // a list of currencies
+$currencies = $exchange->currencies;            // an associative array of currencies
 
 $okcoinusd = '\\ccxt\\okcoinusd';
 $okcoinusd = new $okcoinusd ();
@@ -1056,7 +1098,7 @@ To get a list of all available methods with an exchange instance, you can simply
 
 ```
 console.log (new ccxt.kraken ())   // JavaScript
-print (dir (ccxt.hitbtc ()))        # Python
+print(dir(ccxt.hitbtc()))           # Python
 var_dump (new \ccxt\okcoinusd ()); // PHP
 ```
 
@@ -1127,14 +1169,14 @@ The ccxt library supports both camelcase notation (preferred in JavaScript) and 
 
 ```
 exchange.methodName ()  // camelcase pseudocode
-exchange.method_name () // underscore pseudocode
+exchange.method_name()  // underscore pseudocode
 ```
 
 To get a list of all available methods with an exchange instance, you can simply do the following:
 
 ```
 console.log (new ccxt.kraken ())   // JavaScript
-print (dir (ccxt.hitbtc ()))        # Python
+print(dir(ccxt.hitbtc()))           # Python
 var_dump (new \ccxt\okcoinusd ()); // PHP
 ```
 
@@ -1165,7 +1207,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 
 ### Overriding Unified API Params
 
-Note, that most of methods of the unified API accept an optional `params` parameter. It is an associative array (a dictionary, empty by default) containing the params you want to override. The contents of `params` are exchange-specific, consult the exchanges' API documentation for supported fields and values. Use the `params` dictionary if you need to pass a custom setting or an optional parameter to your unified query.
+Note, that most of methods of the unified API accept an optional `params` argument. It is an associative array (a dictionary, empty by default) containing the params you want to override. The contents of `params` are exchange-specific, consult the exchanges' API documentation for supported fields and values. Use the `params` dictionary if you need to pass a custom setting or an optional parameter to your unified query.
 
 ```JavaScript
 // JavaScript
@@ -1508,6 +1550,7 @@ The structure of a returned order book is as follows:
     ],
     'timestamp': 1499280391811, // Unix Timestamp in milliseconds (seconds * 1000)
     'datetime': '2017-07-05T18:47:14.692Z', // ISO8601 datetime string with milliseconds
+    'nonce': 1499280391811, // an increasing unique identifier of the orderbook snapshot
 }
 ```
 

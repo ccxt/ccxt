@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.20.69';
+$version = '1.21.89';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.20.69';
+    const VERSION = '1.21.89';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -87,7 +87,6 @@ class Exchange {
         '_1btcxe',
         'acx',
         'adara',
-        'allcoin',
         'anxpro',
         'bcex',
         'bequant',
@@ -179,7 +178,6 @@ class Exchange {
         'livecoin',
         'luno',
         'lykke',
-        'mandala',
         'mercado',
         'mixcoins',
         'oceanex',
@@ -202,7 +200,6 @@ class Exchange {
         'upbit',
         'vaultoro',
         'vbtc',
-        'virwox',
         'whitebit',
         'xbtce',
         'yobit',
@@ -628,7 +625,7 @@ class Exchange {
 
     public function milliseconds() {
         list($msec, $sec) = explode(' ', microtime());
-        return $sec . substr($msec, 2, 3);
+        return (int) ($sec . substr($msec, 2, 3));
     }
 
     public function microseconds() {
@@ -802,6 +799,8 @@ class Exchange {
         $this->defined_rest_api = array();
         $this->curl = null;
         $this->curl_options = array(); // overrideable by user, empty by default
+        $this->curl_reset = true;
+        $this->curl_close = false;
 
         $this->id = null;
 
@@ -845,6 +844,7 @@ class Exchange {
         $this->orders = array();
         $this->trades = array();
         $this->transactions = array();
+        $this->ohlcvs = array();
         $this->exceptions = array();
         $this->accounts = array();
         $this->status = array('status' => 'ok', 'updated' => null, 'eta' => null, 'url' => null);
@@ -865,7 +865,7 @@ class Exchange {
         $this->httpExceptions = array(
             '422' => 'ExchangeError',
             '418' => 'DDoSProtection',
-            '429' => 'DDoSProtection',
+            '429' => 'RateLimitExceeded',
             '404' => 'ExchangeNotAvailable',
             '409' => 'ExchangeNotAvailable',
             '500' => 'ExchangeNotAvailable',
@@ -944,6 +944,7 @@ class Exchange {
             'fetchOHLCV' => 'emulated',
             'fetchOpenOrders' => false,
             'fetchOrder' => false,
+            'fetchOrderTrades' => false,
             'fetchOrderBook' => true,
             'fetchOrderBooks' => false,
             'fetchOrders' => false,
@@ -1139,7 +1140,7 @@ class Exchange {
             $digest = static::hash($request, $hash, 'hex');
         }
         $ec = new EC(strtolower($algorithm));
-        $key = $ec->keyFromPrivate($secret);
+        $key = $ec->keyFromPrivate(ltrim($secret, '0x'));
         $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true));
         $count = new BN ('0');
         $minimumSize = (new BN ('1'))->shln (8 * 31)->sub (new BN ('1'));
@@ -1147,10 +1148,11 @@ class Exchange {
             $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true, 'extraEntropy' => $count->toArray('le', 32)));
             $count = $count->add(new BN('1'));
         }
-        $signature = array();
-        $signature['r'] = $ellipticSignature->r->bi->toHex();
-        $signature['s'] = $ellipticSignature->s->bi->toHex();
-        $signature['v'] = $ellipticSignature->recoveryParam;
+        $signature = array(
+            'r' =>  $ellipticSignature->r->bi->toHex(),
+            's' => $ellipticSignature->s->bi->toHex(),
+            'v' => $ellipticSignature->recoveryParam,
+        );
         return $signature;
     }
 
@@ -1249,14 +1251,16 @@ class Exchange {
         $verbose_headers = $headers;
 
         // https://github.com/ccxt/ccxt/issues/5914
-        // we don't do a reset here to save those cookies in between the calls
-        // if the user wants to reset the curl handle between his requests
-        // then curl_reset can be called manually in userland
-        // curl_reset($this->curl); // this was removed because it kills cookies
         if ($this->curl) {
-            curl_close($this->curl); // we properly close the curl channel here to save cookies
+            if ($this->curl_close) {
+                curl_close($this->curl); // we properly close the curl channel here to save cookies
+                $this->curl = curl_init();
+            } else if ($this->curl_reset) {
+                curl_reset($this->curl); // this is the default
+            }
+        } else {
+            $this->curl = curl_init();
         }
-        $this->curl = curl_init(); // we need a "clean" curl object for additional calls, so we initialize curl again
 
         curl_setopt($this->curl, CURLOPT_URL, $url);
 
@@ -1628,7 +1632,7 @@ class Exchange {
     }
 
     public function parse_balance($balance) {
-        $currencies = $this->omit($balance, 'info');
+        $currencies = $this->omit($balance, array('info', 'free', 'used', 'total'));
 
         $balance['free'] = array();
         $balance['used'] = array();
@@ -1637,28 +1641,22 @@ class Exchange {
         foreach ($currencies as $code => $value) {
             if (!isset($value['total'])) {
                 if (isset($value['free']) && isset($value['used'])) {
-                    $currencies[$code]['total'] = static::sum($value['free'], $value['used']);
+                    $balance[$code]['total'] = static::sum($value['free'], $value['used']);
                 }
             }
             if (!isset($value['used'])) {
                 if (isset($value['total']) && isset($value['free'])) {
-                    $currencies[$code]['used'] = static::sum($value['total'], -$value['free']);
+                    $balance[$code]['used'] = static::sum($value['total'], -$value['free']);
                 }
             }
             if (!isset($value['free'])) {
                 if (isset($value['total']) && isset($value['used'])) {
-                    $currencies[$code]['free'] = static::sum($value['total'], -$value['used']);
+                    $balance[$code]['free'] = static::sum($value['total'], -$value['used']);
                 }
             }
-        }
-
-        $accounts = array('free', 'used', 'total');
-        foreach ($accounts as $account) {
-            $balance[$account] = array();
-            foreach ($currencies as $code => $value) {
-                $balance[$code] = isset($balance[$code]) ? $balance[$code] : array();
-                $balance[$code][$account] = $balance[$account][$code] = $value[$account];
-            }
+            $balance['free'][$code] = $balance[$code]['free'];
+            $balance['used'][$code] = $balance[$code]['used'];
+            $balance['total'][$code] = $balance[$code]['total'];
         }
         return $balance;
     }
@@ -2737,9 +2735,10 @@ class Exchange {
     }
 
     public static function hashMessage($message) {
-        $buffer = unpack('C*', hex2bin($message));
+        $trimmed = ltrim($message, '0x');
+        $buffer = unpack('C*', hex2bin($trimmed));
         $prefix = bin2hex("\u{0019}Ethereum Signed Message:\n" . sizeof($buffer));
-        return '0x' . Keccak::hash(hex2bin($prefix . $message), 256);
+        return '0x' . Keccak::hash(hex2bin($prefix . $trimmed), 256);
     }
 
     public static function signHash($hash, $privateKey) {

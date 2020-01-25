@@ -57,7 +57,7 @@ class ftx(Exchange):
                 '15m': '900',
                 '1h': '3600',
                 '4h': '14400',
-                '24h': '86400',
+                '1d': '86400',
             },
             'api': {
                 'public': {
@@ -90,11 +90,14 @@ class ftx(Exchange):
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'conditional_orders',  # ?market={market}
+                        'conditional_orders/history',  # ?market={market}
                         'fills',  # ?market={market}
                         'funding_payments',
                         'lt/balances',
                         'lt/creations',
                         'lt/redemptions',
+                        'subaccounts',
+                        'subaccounts/{nickname}/balances',
                     ],
                     'post': [
                         'account/leverage',
@@ -103,12 +106,16 @@ class ftx(Exchange):
                         'conditional_orders',
                         'lt/{token_name}/create',
                         'lt/{token_name}/redeem',
+                        'subaccounts',
+                        'subaccounts/update_name',
+                        'subaccounts/transfer',
                     ],
                     'delete': [
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'orders',
                         'conditional_orders/{order_id}',
+                        'subaccounts',
                     ],
                 },
             },
@@ -556,7 +563,7 @@ class ftx(Exchange):
         symbol = None
         if marketId is not None:
             if marketId in self.markets_by_id:
-                market = self.markets_by_id
+                market = self.markets_by_id[marketId]
                 symbol = market['symbol']
             else:
                 base = self.safe_currency_code(self.safe_string(trade, 'baseCurrency'))

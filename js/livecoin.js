@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, NotSupported, InvalidOrder, OrderNotFound, ExchangeNotAvailable, DDoSProtection, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, NotSupported, InvalidOrder, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, InsufficientFunds } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -124,7 +124,7 @@ module.exports = class livecoin extends Exchange {
                     '30': AuthenticationError,
                     '31': NotSupported,
                     '32': ExchangeError,
-                    '429': DDoSProtection,
+                    '429': RateLimitExceeded,
                     '503': ExchangeNotAvailable,
                 },
                 'broad': {

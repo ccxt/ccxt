@@ -13,7 +13,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 
 
@@ -173,7 +173,7 @@ class timex(Exchange):
                     '401': AuthenticationError,
                     '403': PermissionDenied,
                     '404': OrderNotFound,
-                    '429': DDoSProtection,
+                    '429': RateLimitExceeded,
                     '500': ExchangeError,
                     '503': ExchangeNotAvailable,
                 },
@@ -466,7 +466,7 @@ class timex(Exchange):
             expireIn = self.safe_value(params, 'expireIn', defaultExpireIn)
             if expireTime is not None:
                 request['expireTime'] = expireTime
-            elif expireIn is None:
+            elif expireIn is not None:
                 request['expireIn'] = expireIn
             else:
                 raise InvalidOrder(self.id + ' createOrder method requires a expireTime or expireIn param for a ' + type + ' order, you can also set the expireIn exchange-wide option')
@@ -1063,7 +1063,7 @@ class timex(Exchange):
             self.safe_float(ohlcv, 'high'),
             self.safe_float(ohlcv, 'low'),
             self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_float(ohlcv, 'volumeQuote'),
         ]
 
     def parse_order(self, order, market=None):

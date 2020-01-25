@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, AccountSuspended, ArgumentsRequired, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -93,8 +93,9 @@ module.exports = class bibox extends Exchange {
                 },
             },
             'exceptions': {
-                '2021': InsufficientFunds, // Insufficient balance available for withdrawal
+                '2011': AccountSuspended, // Account is locked
                 '2015': AuthenticationError, // Google authenticator is wrong
+                '2021': InsufficientFunds, // Insufficient balance available for withdrawal
                 '2027': InsufficientFunds, // Insufficient balance available (for trade)
                 '2033': OrderNotFound, // operation failed! Orders have been completed or revoked
                 '2067': InvalidOrder, // Does not support market orders
@@ -399,7 +400,7 @@ module.exports = class bibox extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'symbol');
-            const name = this.safeString (currency, 'name');
+            const name = currency['name']; // contains hieroglyphs causing python ASCII bug
             const code = this.safeCurrencyCode (id);
             const precision = 8;
             const deposit = this.safeValue (currency, 'enable_deposit');
@@ -817,12 +818,21 @@ module.exports = class bibox extends Exchange {
         const response = await this.privatePostTransfer (request);
         //
         //     {
+        //         "result":"3Jx6RZ9TNMsAoy9NUzBwZf68QBppDruSKW","cmd":"transfer/transferIn"
+        //     }
+        //
+        //     {
         //         "result":"{\"account\":\"PERSONALLY OMITTED\",\"memo\":\"PERSONALLY OMITTED\"}","cmd":"transfer/transferIn"
         //     }
         //
-        const result = JSON.parse (this.safeString (response, 'result'));
-        const address = this.safeString (result, 'account');
-        const tag = this.safeString (result, 'memo');
+        const result = this.safeString (response, 'result');
+        let address = result;
+        let tag = undefined;
+        if (this.isJsonEncodedObject (result)) {
+            const parsed = JSON.parse (result);
+            address = this.safeString (parsed, 'account');
+            tag = this.safeString (parsed, 'memo');
+        }
         return {
             'currency': code,
             'address': address,

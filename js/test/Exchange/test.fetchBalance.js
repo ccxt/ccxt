@@ -10,7 +10,7 @@ const log       = require ('ololog')
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = async (exchange, symbol) => {
+module.exports = async (exchange) => {
 
     if (!(exchange.has.fetchBalance)) {
         log (exchange.id.green, ' does not have fetchBalance')
@@ -42,38 +42,32 @@ module.exports = async (exchange, symbol) => {
     assert (typeof balance['free'] === 'object')
     assert (typeof balance['used'] === 'object')
 
-    if ('info' in balance) {
-        for (let currency of Object.keys (balance['total'])) {
-            let total = balance['total'][currency]
-            let free = balance['free'][currency]
-            let used = balance['used'][currency]
-            if (total !== undefined && free !== undefined && used !== undefined) {
-                assert (total === free + used, 'free and used do not sum to total ' + exchange.id)
-            }
+    for (let currency of Object.keys (balance['total'])) {
+        let total = balance['total'][currency]
+        let free = balance['free'][currency]
+        let used = balance['used'][currency]
+        if (total !== undefined && free !== undefined && used !== undefined) {
+            assert (total === free + used, 'free and used do not sum to total ' + exchange.id)
         }
+    }
 
-        let result = currencies
-            .filter (currency => (currency in balance) &&
-                (balance[currency]['total'] !== undefined))
+    let result = currencies
+        .filter (currency => (currency in balance) &&
+            (balance[currency]['total'] !== undefined))
 
-        if (result.length > 0) {
-            result = result.map (currency => currency + ': ' + balance[currency]['total'])
-            if (exchange.currencies.length > result.length)
-                result = result.join (', ') + ' + more...'
-            else
-                result = result.join (', ')
-
-        } else {
-
-            result = 'zero balance'
-        }
-
-        log (result)
+    if (result.length > 0) {
+        result = result.map (currency => currency + ': ' + balance[currency]['total'])
+        if (exchange.currencies.length > result.length)
+            result = result.join (', ') + ' + more...'
+        else
+            result = result.join (', ')
 
     } else {
 
-        log (exchange.omit (balance, 'info'))
+        result = 'zero balance'
     }
+
+    log (result)
 
     return balance
 }

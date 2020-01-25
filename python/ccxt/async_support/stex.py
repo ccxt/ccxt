@@ -1444,9 +1444,9 @@ class stex(Exchange):
         if (code is None) and (currency is not None):
             code = currency['code']
         type = 'deposit' if ('depositId' in transaction) else 'withdrawal'
-        amount = self.safe_float_2(transaction, 'amount')
+        amount = self.safe_float(transaction, 'amount')
         status = self.parse_transaction_status(self.safe_string_lower(transaction, 'status'))
-        timestamp = self.safe_timestamp(transaction, 'timestamp', 'created_ts')
+        timestamp = self.safe_timestamp_2(transaction, 'timestamp', 'created_ts')
         updated = self.safe_timestamp(transaction, 'updated_ts')
         txid = self.safe_string(transaction, 'txid')
         fee = None

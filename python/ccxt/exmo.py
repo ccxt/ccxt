@@ -623,7 +623,7 @@ class exmo(Exchange):
         result = self.safe_value(response, market['id'])
         return self.parse_order_book(result, None, 'bid', 'ask')
 
-    def fetch_order_books(self, symbols=None, params={}):
+    def fetch_order_books(self, symbols=None, limit=None, params={}):
         self.load_markets()
         ids = None
         if symbols is None:
@@ -638,12 +638,17 @@ class exmo(Exchange):
         request = {
             'pair': ids,
         }
+        if limit is not None:
+            request['limit'] = limit
         response = self.publicGetOrderBook(self.extend(request, params))
         result = {}
         marketIds = list(response.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            symbol = self.markets_by_id[marketId] if (marketId in self.markets_by_id) else marketId
+            symbol = marketId
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
             result[symbol] = self.parse_order_book(response[marketId], None, 'bid', 'ask')
         return result
 

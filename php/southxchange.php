@@ -10,27 +10,27 @@ use Exception; // a common import
 class southxchange extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        return array_replace_recursive(parent::describe (), array(
             'id' => 'southxchange',
             'name' => 'SouthXchange',
-            'countries' => array ( 'AR' ), // Argentina
+            'countries' => array( 'AR' ), // Argentina
             'rateLimit' => 1000,
-            'has' => array (
+            'has' => array(
                 'CORS' => true,
                 'createDepositAddress' => true,
                 'fetchOpenOrders' => true,
                 'fetchTickers' => true,
                 'withdraw' => true,
             ),
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg',
                 'api' => 'https://www.southxchange.com/api',
                 'www' => 'https://www.southxchange.com',
                 'doc' => 'https://www.southxchange.com/Home/Api',
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
+            'api' => array(
+                'public' => array(
+                    'get' => array(
                         'markets',
                         'price/{symbol}',
                         'prices',
@@ -38,8 +38,8 @@ class southxchange extends Exchange {
                         'trades/{symbol}',
                     ),
                 ),
-                'private' => array (
-                    'post' => array (
+                'private' => array(
+                    'post' => array(
                         'cancelMarketOrders',
                         'cancelOrder',
                         'getOrder',
@@ -52,15 +52,15 @@ class southxchange extends Exchange {
                     ),
                 ),
             ),
-            'fees' => array (
-                'trading' => array (
+            'fees' => array(
+                'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
                     'maker' => 0.1 / 100,
                     'taker' => 0.3 / 100,
                 ),
             ),
-            'commonCurrencies' => array (
+            'commonCurrencies' => array(
                 'SMT' => 'SmartNode',
                 'MTC' => 'Marinecoin',
             ),
@@ -70,7 +70,7 @@ class southxchange extends Exchange {
     public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetMarkets ($params);
         $result = array();
-        for ($i = 0; $i < count ($markets); $i++) {
+        for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $baseId = $market[0];
             $quoteId = $market[1];
@@ -78,7 +78,7 @@ class southxchange extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $id = $baseId . '/' . $quoteId;
-            $result[] = array (
+            $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -96,7 +96,7 @@ class southxchange extends Exchange {
         $this->load_markets();
         $response = $this->privatePostListBalances ($params);
         $result = array( 'info' => $response );
-        for ($i = 0; $i < count ($response); $i++) {
+        for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'Currency');
             $code = $this->safe_currency_code($currencyId);
@@ -112,10 +112,10 @@ class southxchange extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'symbol' => $this->market_id($symbol),
         );
-        $response = $this->publicGetBookSymbol (array_merge ($request, $params));
+        $response = $this->publicGetBookSymbol (array_merge($request, $params));
         return $this->parse_order_book($response, null, 'BuyOrders', 'SellOrders', 'Price', 'Amount');
     }
 
@@ -126,7 +126,7 @@ class southxchange extends Exchange {
             $symbol = $market['symbol'];
         }
         $last = $this->safe_float($ticker, 'Last');
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -156,7 +156,7 @@ class southxchange extends Exchange {
         $tickers = $this->index_by($response, 'Market');
         $ids = is_array($tickers) ? array_keys($tickers) : array();
         $result = array();
-        for ($i = 0; $i < count ($ids); $i++) {
+        for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $symbol = $id;
             $market = null;
@@ -173,10 +173,10 @@ class southxchange extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetPriceSymbol (array_merge ($request, $params));
+        $response = $this->publicGetPriceSymbol (array_merge($request, $params));
         return $this->parse_ticker($response, $market);
     }
 
@@ -195,7 +195,7 @@ class southxchange extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        return array (
+        return array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -215,10 +215,10 @@ class southxchange extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetTradesSymbol (array_merge ($request, $params));
+        $response = $this->publicGetTradesSymbol (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -244,7 +244,7 @@ class southxchange extends Exchange {
         $type = 'limit';
         $side = $this->safe_string_lower($order, 'Type');
         $id = $this->safe_string($order, 'Code');
-        $result = array (
+        $result = array(
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -277,7 +277,7 @@ class southxchange extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $request = array(
             'listingCurrency' => $market['base'],
             'referenceCurrency' => $market['quote'],
             'type' => $side,
@@ -286,8 +286,8 @@ class southxchange extends Exchange {
         if ($type === 'limit') {
             $request['limitPrice'] = $price;
         }
-        $response = $this->privatePostPlaceOrder (array_merge ($request, $params));
-        return array (
+        $response = $this->privatePostPlaceOrder (array_merge($request, $params));
+        return array(
             'info' => $response,
             'id' => (string) $response,
         );
@@ -295,28 +295,28 @@ class southxchange extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'orderCode' => $id,
         );
-        return $this->privatePostCancelOrder (array_merge ($request, $params));
+        return $this->privatePostCancelOrder (array_merge($request, $params));
     }
 
     public function create_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $request = array (
+        $request = array(
             'currency' => $currency['id'],
         );
-        $response = $this->privatePostGeneratenewaddress (array_merge ($request, $params));
+        $response = $this->privatePostGeneratenewaddress (array_merge($request, $params));
         $parts = explode('|', $response);
-        $numParts = is_array ($parts) ? count ($parts) : 0;
+        $numParts = is_array($parts) ? count($parts) : 0;
         $address = $parts[0];
         $this->check_address($address);
         $tag = null;
         if ($numParts > 1) {
             $tag = $parts[1];
         }
-        return array (
+        return array(
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
@@ -328,7 +328,7 @@ class southxchange extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
-        $request = array (
+        $request = array(
             'currency' => $currency['id'],
             'address' => $address,
             'amount' => $amount,
@@ -336,8 +336,8 @@ class southxchange extends Exchange {
         if ($tag !== null) {
             $request['address'] = $address . '|' . $tag;
         }
-        $response = $this->privatePostWithdraw (array_merge ($request, $params));
-        return array (
+        $response = $this->privatePostWithdraw (array_merge($request, $params));
+        return array(
             'info' => $response,
             'id' => null,
         );
@@ -349,12 +349,12 @@ class southxchange extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
-            $query = array_merge (array (
+            $query = array_merge(array(
                 'key' => $this->apiKey,
                 'nonce' => $nonce,
             ), $query);
             $body = $this->json ($query);
-            $headers = array (
+            $headers = array(
                 'Content-Type' => 'application/json',
                 'Hash' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );

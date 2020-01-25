@@ -17,6 +17,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -112,8 +113,9 @@ class bibox(Exchange):
                 },
             },
             'exceptions': {
-                '2021': InsufficientFunds,  # Insufficient balance available for withdrawal
+                '2011': AccountSuspended,  # Account is locked
                 '2015': AuthenticationError,  # Google authenticator is wrong
+                '2021': InsufficientFunds,  # Insufficient balance available for withdrawal
                 '2027': InsufficientFunds,  # Insufficient balance available(for trade)
                 '2033': OrderNotFound,  # operation failednot  Orders have been completed or revoked
                 '2067': InvalidOrder,  # Does not support market orders
@@ -389,7 +391,7 @@ class bibox(Exchange):
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'symbol')
-            name = self.safe_string(currency, 'name')
+            name = currency['name']  # contains hieroglyphs causing python ASCII bug
             code = self.safe_currency_code(id)
             precision = 8
             deposit = self.safe_value(currency, 'enable_deposit')
@@ -768,12 +770,20 @@ class bibox(Exchange):
         response = await self.privatePostTransfer(request)
         #
         #     {
+        #         "result":"3Jx6RZ9TNMsAoy9NUzBwZf68QBppDruSKW","cmd":"transfer/transferIn"
+        #     }
+        #
+        #     {
         #         "result":"{\"account\":\"PERSONALLY OMITTED\",\"memo\":\"PERSONALLY OMITTED\"}","cmd":"transfer/transferIn"
         #     }
         #
-        result = json.loads(self.safe_string(response, 'result'))
-        address = self.safe_string(result, 'account')
-        tag = self.safe_string(result, 'memo')
+        result = self.safe_string(response, 'result')
+        address = result
+        tag = None
+        if self.is_json_encoded_object(result):
+            parsed = json.loads(result)
+            address = self.safe_string(parsed, 'account')
+            tag = self.safe_string(parsed, 'memo')
         return {
             'currency': code,
             'address': address,

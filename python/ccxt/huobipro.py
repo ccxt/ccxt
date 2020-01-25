@@ -9,6 +9,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -101,6 +102,7 @@ class huobipro(Exchange):
                     'get': [
                         'account/accounts',  # 查询当前用户的所有账户(即account-id)
                         'account/accounts/{id}/balance',  # 查询指定账户的余额
+                        'account/history',
                         'order/openOrders',
                         'order/orders',
                         'order/orders/{id}',  # 查询某个订单详情
@@ -161,6 +163,7 @@ class huobipro(Exchange):
                     'base-record-invalid': OrderNotFound,  # https://github.com/ccxt/ccxt/issues/5750
                     # err-msg
                     'invalid symbol': BadSymbol,  # {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
+                    'invalid-parameter': BadRequest,  # {"ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"}
                     'base-symbol-trade-disabled': BadSymbol,  # {"status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for self symbol","data":null}
                 },
             },
