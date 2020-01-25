@@ -185,8 +185,11 @@ module.exports = class binance extends ccxt.binance {
         if (orderbook['nonce'] !== undefined) {
             // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
             // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
+            const nonce = orderbook['nonce'];
             this.handleOrderBookMessage (client, message, orderbook);
-            client.resolve (orderbook, messageHash);
+            if (nonce < orderbook['nonce']) {
+                client.resolve (orderbook, messageHash);
+            }
         } else {
             // 2. Buffer the events you receive from the stream.
             orderbook.cache.push (message);

@@ -169,8 +169,10 @@ class binance(ccxtpro.Exchange, ccxt.binance):
         if orderbook['nonce'] is not None:
             # 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
             # 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
+            nonce = orderbook['nonce']
             self.handle_order_book_message(client, message, orderbook)
-            client.resolve(orderbook, messageHash)
+            if nonce < orderbook['nonce']:
+                client.resolve(orderbook, messageHash)
         else:
             # 2. Buffer the events you receive from the stream.
             orderbook.cache.append(message)
