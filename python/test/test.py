@@ -7,9 +7,11 @@ import json
 import os
 import sys
 # import time
-# from traceback import format_tb
+from os import _exit
+from traceback import format_tb
 from pprint import pprint
 # from ccxt import NetworkError, RequestTimeout
+from exchange.test_watch_order_book import test_watch_order_book
 
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(root)
@@ -48,14 +50,15 @@ path = os.path.dirname(ccxtpro.__file__)
 if 'site-packages' in os.path.dirname(ccxtpro.__file__):
     raise Exception('\n\nYou are running test.py against a globally-installed version of the library!\nIt was previously installed into your site-packages folder by pip or pip3.\n\nTo ensure testing against the local folder uninstall it first by running the following commands:\npip uninstall ccxtpro\npip3 uninstall ccxtpro\n\n')
 
+
 # ------------------------------------------------------------------------------
 
-# def handle_all_unhandled_exceptions(type, value, traceback):
-#     dump_error(yellow(type), yellow(value), '\n\n' + yellow('\n'.join(format_tb(traceback))))
-#     _exit(1)  # unrecoverable crash
+def handle_all_unhandled_exceptions(type, value, traceback):
+    print('handle_all_unhandled_exceptions', type, value, '\n\n' + '\n'.join(format_tb(traceback)))
+    _exit(1)  # unrecoverable crash
 
 
-# sys.excepthook = handle_all_unhandled_exceptions
+sys.excepthook = handle_all_unhandled_exceptions
 
 # -----------------------------------------------------------------------------
 
@@ -75,6 +78,67 @@ with open(keys_file) as file:
 
 # -----------------------------------------------------------------------------
 
+async def test_public(exchange, symbol):
+    print(exchange.id, symbol, 'test_public')
+    await test_watch_order_book(exchange, symbol)
+    # await test_watch_ticker(exchange, symbol)
+    # await test_watch_trades(exchange, symbol)
+    # await test_watch_ohlcv(exchange, symbol)
+    # await test_watch_tickers(exchange, symbol)
+
+
+async def test_private(exchange, symbol, code):
+    print(exchange.id, symbol, 'test_private')
+    # # ..........................................................................
+    # # private API
+    # if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
+    #     return
+    # # move to testnet/sandbox if possible before accessing the balance if possible
+    # # if 'test' in exchange.urls:
+    # #     exchange.urls['api'] = exchange.urls['test']
+    # await exchange.fetch_balance()
+    # print(green(exchange.id), 'fetched balance')
+    # await asyncio.sleep(exchange.rateLimit / 1000)
+    # if exchange.has['fetchOrders']:
+    #     try:
+    #         orders = await exchange.fetch_orders(symbol)
+    #         print(green(exchange.id), 'fetched', green(str(len(orders))), 'orders')
+    #     except (ccxt.ExchangeError, ccxt.NotSupported) as e:
+    #         dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
+    #     # except ccxt.NotSupported as e:
+    #     #     print(yellow(type(e).__name__), e.args)
+
+
+# -----------------------------------------------------------------------------
+
+async def test_exchange(exchange):
+    print(exchange.id)
+    # delay = 2
+    keys = list(exchange.markets.keys())
+    symbol = keys[0]
+    symbols = [
+        'BTC/USD',
+        'BTC/USDT',
+        'BTC/CNY',
+        'BTC/EUR',
+        'BTC/ETH',
+        'ETH/BTC',
+        'BTC/JPY',
+        'LTC/BTC',
+        'USD/SLL',
+    ]
+    for s in symbols:
+        if s in keys:
+            symbol = s
+            break
+    code = 'ETH'
+    if symbol.find('.d') < 0:
+        await test_public(exchange, symbol)
+        await test_private(exchange, symbol, code)
+
+
+# -----------------------------------------------------------------------------
+
 async def test():
     symbol = 'ETH/BTC'
     keys = config.get(argv.exchange_id, {})
@@ -87,6 +151,14 @@ async def test():
         },
         'verbose': argv.verbose,
     }, keys))
+
+    print(exchange.id, symbol, argv.verbose)
+    await exchange.load_markets()
+    await test_exchange(exchange)
+
+    print('This test is a work in progress, come back later.')
+    sys.exit()
+
     while True:
         try:
             # this is a dirty wip
@@ -94,7 +166,7 @@ async def test():
             # balance
             response = await exchange.watch_balance()
             pprint(response)
-            print('Done.')
+
             sys.exit()
             # -----------------------------------------------------------------
             # orderbook
@@ -113,44 +185,6 @@ if __name__ == '__main__':
 
 
 # ------------------------------------------------------------------------------
-
-# ------------------------------------------------------------------------------
-
-# def get_active_symbols(exchange):
-#     return [symbol for symbol in exchange.symbols if is_active_symbol(exchange, symbol)]
-
-
-# def is_active_symbol(exchange, symbol):
-#     return ('.' not in symbol) and (('active' not in exchange.markets[symbol]) or (exchange.markets[symbol]['active']))
-
-
-# async def test_tickers_async(exchange):
-#     print('Activated here')
-#     dump(green(exchange.id), 'fetching all tickers by simultaneous multiple concurrent requests')
-#     symbols_to_load = get_active_symbols(exchange)
-#     input_coroutines = [exchange.fetchTicker(symbol) for symbol in symbols_to_load]
-#     tickers = await asyncio.gather(*input_coroutines, return_exceptions=True)
-#     for ticker, symbol in zip(tickers, symbols_to_load):
-#         if not isinstance(ticker, dict):
-#             dump_error(red('[Error with symbol loading ticker]'),
-#                        ' Symbol failed to load: {0}, ERROR: {1}'.format(symbol, ticker))
-#     dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'tickers')
-
-
-# async def test_l2_order_books_async(exchange):
-#     dump(green(exchange.id), 'fetching all order books by simultaneous multiple concurrent requests')
-#     symbols_to_load = get_active_symbols(exchange)
-#     input_coroutines = [exchange.fetch_l2_order_book(symbol) for symbol in symbols_to_load]
-#     orderbooks = await asyncio.gather(*input_coroutines, return_exceptions=True)
-#     for orderbook, symbol in zip(orderbooks, symbols_to_load):
-#         if not isinstance(orderbook, dict):
-#             dump_error(red('[Error with symbol loading l2 order book]'),
-#                        ' Symbol failed to load: {0}, ERROR: {1}'.format(symbol, orderbook))
-#     dump(green(exchange.id), 'fetched', green(len(list(orderbooks))), 'order books')
-
-# # ------------------------------------------------------------------------------
-
-
 # async def test_ticker(exchange, symbol):
 #     ignored_exchanges = [
 #         'digifinex',  # requires apiKey to call v2 tickers
@@ -161,7 +195,7 @@ if __name__ == '__main__':
 #         delay = int(exchange.rateLimit / 1000)
 #         await asyncio.sleep(delay)
 #         ticker = await exchange.fetch_ticker(symbol)
-#         dump(
+#         print(
 #             green(exchange.id),
 #             green(symbol),
 #             'ticker',
@@ -172,102 +206,18 @@ if __name__ == '__main__':
 #             'ask: ' + str(ticker['ask']),
 #             'volume: ' + str(ticker['quoteVolume']))
 #     else:
-#         dump(green(exchange.id), green(symbol), 'fetch_ticker() not supported')
-
-# # ------------------------------------------------------------------------------
-
-
+#         print(green(exchange.id), green(symbol), 'fetch_ticker() not supported')
+# ------------------------------------------------------------------------------
 # async def test_trades(exchange, symbol):
 #     if exchange.has['fetchTrades']:
 #         delay = int(exchange.rateLimit / 1000)
 #         await asyncio.sleep(delay)
-#         # dump(green(exchange.id), green(symbol), 'fetching trades...')
+#         # print(green(exchange.id), green(symbol), 'fetching trades...')
 #         trades = await exchange.fetch_trades(symbol)
-#         dump(green(exchange.id), green(symbol), 'fetched', green(len(list(trades))), 'trades')
+#         print(green(exchange.id), green(symbol), 'fetched', green(len(list(trades))), 'trades')
 #     else:
-#         dump(green(exchange.id), green(symbol), 'fetch_trades() not supported')
-
-# # ------------------------------------------------------------------------------
-
-
-# async def test_symbol(exchange, symbol):
-#     dump(green('SYMBOL: ' + symbol))
-#     await test_ticker(exchange, symbol)
-
-#     if exchange.id == 'coinmarketcap':
-#         response = await exchange.fetchGlobal()
-#         dump(green(response))
-#     else:
-#         await test_order_book(exchange, symbol)
-#         await test_trades(exchange, symbol)
-
-#     await test_tickers(exchange, symbol)
-#     await test_ohlcv(exchange, symbol)
-
-# # ------------------------------------------------------------------------------
-
-
-# async def load_exchange(exchange):
-#     await exchange.load_markets()
-
-
-# async def test_exchange(exchange):
-
-#     dump(green('EXCHANGE: ' + exchange.id))
-#     # delay = 2
-#     keys = list(exchange.markets.keys())
-
-#     # ..........................................................................
-#     # public API
-
-#     symbol = keys[0]
-#     symbols = [
-#         'BTC/USD',
-#         'BTC/USDT',
-#         'BTC/CNY',
-#         'BTC/EUR',
-#         'BTC/ETH',
-#         'ETH/BTC',
-#         'BTC/JPY',
-#         'LTC/BTC',
-#         'USD/SLL',
-#     ]
-
-#     for s in symbols:
-#         if s in keys:
-#             symbol = s
-#             break
-
-#     if symbol.find('.d') < 0:
-#         await test_symbol(exchange, symbol)
-
-#     # ..........................................................................
-#     # private API
-
-#     if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
-#         return
-
-#     # move to testnet/sandbox if possible before accessing the balance if possible
-#     # if 'test' in exchange.urls:
-#     #     exchange.urls['api'] = exchange.urls['test']
-
-#     await exchange.fetch_balance()
-#     dump(green(exchange.id), 'fetched balance')
-
-#     await asyncio.sleep(exchange.rateLimit / 1000)
-
-#     if exchange.has['fetchOrders']:
-#         try:
-#             orders = await exchange.fetch_orders(symbol)
-#             dump(green(exchange.id), 'fetched', green(str(len(orders))), 'orders')
-#         except (ccxt.ExchangeError, ccxt.NotSupported) as e:
-#             dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
-#         # except ccxt.NotSupported as e:
-#         #     dump(yellow(type(e).__name__), e.args)
-
-# # ------------------------------------------------------------------------------
-
-
+#         print(green(exchange.id), green(symbol), 'fetch_trades() not supported')
+# ------------------------------------------------------------------------------
 # async def try_all_proxies(exchange, proxies=['']):
 #     current_proxy = 0
 #     max_retries = len(proxies)
@@ -279,7 +229,7 @@ if __name__ == '__main__':
 #     for num_retries in range(0, max_retries):
 #         try:
 #             exchange.proxy = proxies[current_proxy]
-#             dump(green(exchange.id), 'using proxy', '`' + exchange.proxy + '`')
+#             print(green(exchange.id), 'using proxy', '`' + exchange.proxy + '`')
 #             current_proxy = (current_proxy + 1) % len(proxies)
 #             await load_exchange(exchange)
 #             await test_exchange(exchange)
@@ -292,20 +242,15 @@ if __name__ == '__main__':
 #             return True
 #     # exception
 #     return False
-
-
-# # ------------------------------------------------------------------------------
-
+# ------------------------------------------------------------------------------
 # # prefer local testing keys to global keys
 # keys_folder = os.path.dirname(root)
 # keys_global = os.path.join(keys_folder, 'keys.json')
 # keys_local = os.path.join(keys_folder, 'keys.local.json')
 # keys_file = keys_local if os.path.exists(keys_local) else keys_global
-
 # # load the api keys from config
 # with open(keys_file) as file:
 #     config = json.load(file)
-
 # # instantiate all exchanges
 # for id in ccxt.exchanges:
 #     if id == 'theocean' or id == 'theocean1':
@@ -317,31 +262,23 @@ if __name__ == '__main__':
 #     if id in config:
 #         exchange_config = ccxt.Exchange.deep_extend(exchange_config, config[id])
 #     exchanges[id] = exchange(exchange_config)
-
-# # ------------------------------------------------------------------------------
-
-
+# ------------------------------------------------------------------------------
 # async def main():
-
 #     if argv.exchange:
-
 #         if argv.exchange != 'theocean' and argv.exchange != 'theocean1':
-
 #             exchange = exchanges[argv.exchange]
 #             symbol = argv.symbol
-
 #             if hasattr(exchange, 'skip') and exchange.skip:
-#                 dump(green(exchange.id), 'skipped')
+#                 print(green(exchange.id), 'skipped')
 #             else:
 #                 if symbol:
 #                     await load_exchange(exchange)
 #                     await test_symbol(exchange, symbol)
 #                 else:
 #                     await try_all_proxies(exchange, proxies)
-
 #     else:
 #         for exchange in sorted(exchanges.values(), key=lambda x: x.id):
 #             if hasattr(exchange, 'skip') and exchange.skip:
-#                 dump(green(exchange.id), 'skipped')
+#                 print(green(exchange.id), 'skipped')
 #             else:
 #                 await try_all_proxies(exchange, proxies)
