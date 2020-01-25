@@ -38,6 +38,7 @@ parser.parse_args(namespace=argv)
 
 if not argv.exchange_id:
     print('Exchange id not specified')
+    _exit(1)
 else:
     print('Testing', {'exchange': argv.exchange_id, 'symbol': None})
 
