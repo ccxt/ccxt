@@ -295,7 +295,7 @@ module.exports = class yobit extends Exchange {
         return this.parseOrderBook (orderbook);
     }
 
-    async fetchOrderBooks (symbols = undefined, params = {}) {
+    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
         if (symbols === undefined) {
@@ -312,6 +312,9 @@ module.exports = class yobit extends Exchange {
         const request = {
             'pair': ids,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const response = await this.publicGetDepthPair (this.extend (request, params));
         const result = {};
         ids = Object.keys (response);
