@@ -404,6 +404,7 @@ module.exports = class kraken extends ccxt.kraken {
                 timestamp = this.handleDeltas (bookside, deltas, timestamp);
             }
             orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
             // the .limit () operation will be moved to the watchOrderBook
             client.resolve (orderbook, messageHash);
         } else {
@@ -428,6 +429,7 @@ module.exports = class kraken extends ccxt.kraken {
                 timestamp = this.handleDeltas (orderbook['bids'], b, timestamp);
             }
             orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
             // the .limit () operation will be moved to the watchOrderBook
             client.resolve (orderbook, messageHash);
         }
