@@ -289,7 +289,7 @@ class tidex(Exchange):
         orderbook = response[market['id']]
         return self.parse_order_book(orderbook)
 
-    async def fetch_order_books(self, symbols=None, params={}):
+    async def fetch_order_books(self, symbols=None, limit=None, params={}):
         await self.load_markets()
         ids = None
         if symbols is None:
@@ -304,6 +304,8 @@ class tidex(Exchange):
         request = {
             'pair': ids,
         }
+        if limit is not None:
+            request['limit'] = limit  # default = 150, max = 2000
         response = await self.publicGetDepthPair(self.extend(request, params))
         result = {}
         ids = list(response.keys())

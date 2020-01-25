@@ -445,7 +445,7 @@ class upbit extends Exchange {
         return $base . '/' . $quote;
     }
 
-    public function fetch_order_books ($symbols = null, $params = array ()) {
+    public function fetch_order_books ($symbols = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $ids = null;
         if ($symbols === null) {
@@ -508,7 +508,7 @@ class upbit extends Exchange {
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
-        $orderbooks = $this->fetch_order_books (array( $symbol ), $params);
+        $orderbooks = $this->fetch_order_books (array( $symbol ), $limit, $params);
         return $this->safe_value($orderbooks, $symbol);
     }
 
