@@ -157,7 +157,8 @@ async def test():
 # -----------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    print(asyncio.get_event_loop().run_until_complete(test()))
+    asyncio.get_event_loop().run_until_complete(test())
+    print('Done.')
 
 
 # ------------------------------------------------------------------------------
