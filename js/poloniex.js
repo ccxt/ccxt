@@ -14,6 +14,7 @@ module.exports = class poloniex extends ccxt.poloniex {
                 'ws': true,
                 'watchTicker': true,
                 'watchOrderBook': true,
+                'watchBalance': false, // not implemented yet
             },
             'urls': {
                 'api': {
@@ -256,6 +257,7 @@ module.exports = class poloniex extends ccxt.poloniex {
                 const amount = parseFloat (delta[3]);
                 bookside.store (price, amount);
                 orderbookUpdatesCount += 1;
+                orderbook['nonce'] = nonce;
             } else if (delta[0] === 't') {
                 // todo: add max limit to the dequeue of trades, unshift and push
                 // const trade = this.handleTrade (client, delta, market);
