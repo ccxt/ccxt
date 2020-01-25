@@ -135,5 +135,6 @@ class Exchange(BaseExchange):
         keys = list(self.clients.keys())
         for key in keys:
             await self.clients[key].close()
-            del self.clients[key]
+            if key in self.clients:
+                del self.clients[key]
         return await super(Exchange, self).close()
