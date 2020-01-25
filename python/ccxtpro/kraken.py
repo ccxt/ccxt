@@ -385,6 +385,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
                 deltas = self.safe_value(message[1], key, [])
                 timestamp = self.handle_deltas(bookside, deltas, timestamp)
             orderbook['timestamp'] = timestamp
+            orderbook['datetime'] = self.iso8601(timestamp)
             # the .limit() operation will be moved to the watchOrderBook
             client.resolve(orderbook, messageHash)
         else:
@@ -405,6 +406,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
             if b is not None:
                 timestamp = self.handle_deltas(orderbook['bids'], b, timestamp)
             orderbook['timestamp'] = timestamp
+            orderbook['datetime'] = self.iso8601(timestamp)
             # the .limit() operation will be moved to the watchOrderBook
             client.resolve(orderbook, messageHash)
 

@@ -409,6 +409,7 @@ class kraken extends \ccxt\kraken {
                 $timestamp = $this->handle_deltas ($bookside, $deltas, $timestamp);
             }
             $orderbook['timestamp'] = $timestamp;
+            $orderbook['datetime'] = $this->iso8601 ($timestamp);
             // the .limit () operation will be moved to the watchOrderBook
             $client->resolve ($orderbook, $messageHash);
         } else {
@@ -433,6 +434,7 @@ class kraken extends \ccxt\kraken {
                 $timestamp = $this->handle_deltas ($orderbook['bids'], $b, $timestamp);
             }
             $orderbook['timestamp'] = $timestamp;
+            $orderbook['datetime'] = $this->iso8601 ($timestamp);
             // the .limit () operation will be moved to the watchOrderBook
             $client->resolve ($orderbook, $messageHash);
         }
