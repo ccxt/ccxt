@@ -153,8 +153,17 @@ const printHumanReadable = (exchange, result) => {
     }
 }
 
-//-----------------------------------------------------------------------------
+const hideZeroBalances = function (balance) {
+    const keys = Object.keys (balance['free'])
+        .filter (k => (balance['free'][k] > 0) || (balance['used'][k] > 0) || (balance['total'][k] > 0))
+    const result = {}
+    for (const k of keys) {
+        result[k] = balance[k]
+    }
+    return result
+}
 
+//-----------------------------------------------------------------------------
 
 async function main () {
 
