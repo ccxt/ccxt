@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from test_order_book import test_order_book
+from exchange.test_order_book import test_order_book
 
 
 async def test_watch_order_book(exchange, symbol):
@@ -10,10 +10,6 @@ async def test_watch_order_book(exchange, symbol):
         orderbook = None
         for i in range(0, 10):
             orderbook = await getattr(exchange, method)(symbol)
-            # console.log (new Date (), symbol,
-            #     orderbook['asks'].length, 'asks', orderbook['asks'][0],
-            #     orderbook['bids'].length, 'bids', orderbook['bids'][0],
-            # )
             test_order_book(exchange, orderbook, method, symbol)
         return orderbook
     else:
