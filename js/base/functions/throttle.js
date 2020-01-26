@@ -43,11 +43,18 @@ module.exports = {
                                     }
                                 }
                             }
+                            let timeToSleep = cfg.delay;
+                            let nextCost = (queue.length > 0 && queue[0]['cost']) ? queue[0]['cost'] : cfg.defaultCost;
+                            let neededTokens = nextCost - numTokens
+                            if (neededTokens > 0) {
+                                timeToSleep = Math.max (cfg.delay, neededTokens / cfg.refillRate);
+                            }
+                            await sleep (timeToSleep);
+                            //update numTokens AFTER sleep.
                             const t = now ()
                                 , elapsed = t - lastTimestamp
                             lastTimestamp = t
-                            numTokens = Math.min (cfg.capacity, numTokens + elapsed * cfg.refillRate)
-                            await sleep (cfg.delay)
+                            numTokens = Math.min (cfg.capacity, numTokens + elapsed * cfg.refillRate);
                         }
                         running = false
                     }
