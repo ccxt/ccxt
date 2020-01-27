@@ -18,7 +18,7 @@ class kucoin extends Exchange {
             'countries' => array( 'SC' ),
             'rateLimit' => 334,
             'version' => 'v2',
-            'certified' => true,
+            'certified' => false,
             'comment' => 'Platform 2.0',
             'has' => array(
                 'fetchTime' => true,
