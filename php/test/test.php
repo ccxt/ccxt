@@ -30,26 +30,35 @@ $id = $argv[1];
 
 function test_public($exchange, $symbol) {
     echo "test_public\n";
-    return \React\Promise\reduce(array(
-        test_watch_order_book($exchange, $symbol),
-        // test_watch_ticker($exchange, $symbol),
-        // test_watch_trades($exchange, $symbol),
-    ), function($c, $i) { $c[] = $i; return $c; }, array());
+    $future = new \ccxtpro\Future();
+    return test_watch_order_book($exchange, $symbol)->then(function() use ($exchange, $symbol, &$future) {
+        // test_watch_ticker($exchange, $symbol)->then(function() use ($exchange, $symbol, &$future) {
+        //     test_watch_trades($exchange, $symbol)->then(function() use ($exchange, $symbol, &$future) {
+                $future->resolve(true);
+        //     });
+        // });
+    });
+    return $future;
 };
 
 function test_private($exchange, $symbol, $code) {
     echo "test_private\n";
+    $future = new \ccxtpro\Future();
     if ($exchange->check_required_credentials(false)) {
-        return \React\Promise\reduce(array(
-            // test_watch_balance($exchange),
-        ), function($c, $i) { $c[] = $i; return $c; }, array());
+        // test_watch_balance($exchange)->then(function() use (&$future) {
+            $future->resolve(true);
+        // });
+    } else {
+        $future->resolve(true);
     }
+    return $future;
 };
 
 function test_exchange($exchange) {
     $delay = $exchange->rateLimit * 1000;
     $symbol = is_array($exchange->symbols) ? current($exchange->symbols) : '';
     $symbols = array(
+        'BTC/USDT',
         'BTC/USD',
         'BTC/CNY',
         'BTC/EUR',
@@ -65,12 +74,17 @@ function test_exchange($exchange) {
         }
     }
     $code = 'BTC'; // wip
+    $future = new \ccxtpro\Future();
     if (strpos($symbol, '.d') === false) {
-        return \React\Promise\reduce(array(
-            test_public($exchange, $symbol),
-            test_private($exchange, $symbol, $code),
-        ), function($c, $i) { $c[] = $i; return $c; }, array());
+        test_public($exchange, $symbol)->then(function() use ($exchange, $symbol, $code, &$future) {
+            test_private($exchange, $symbol, $code)->then(function () use (&$future) {
+                $future->resolve(true);
+            });
+        });
+    } else {
+        $future->resolve(true);
     }
+    return $future;
 };
 
 // ----------------------------------------------------------------------------
