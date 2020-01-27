@@ -1041,7 +1041,7 @@ module.exports = class binance extends Exchange {
             'type': uppercaseType,
             'side': side.toUpperCase (),
         };
-        if (type === 'market') {
+        if (uppercaseType === 'MARKET') {
             const quoteOrderQty = this.safeFloat (params, 'quoteOrderQty');
             if (quoteOrderQty !== undefined) {
                 request['quoteOrderQty'] = this.costToPrecision (symbol, quoteOrderQty);
