@@ -983,7 +983,7 @@ class binance(Exchange):
             'type': uppercaseType,
             'side': side.upper(),
         }
-        if type == 'market':
+        if uppercaseType == 'MARKET':
             quoteOrderQty = self.safe_float(params, 'quoteOrderQty')
             if quoteOrderQty is not None:
                 request['quoteOrderQty'] = self.cost_to_precision(symbol, quoteOrderQty)
