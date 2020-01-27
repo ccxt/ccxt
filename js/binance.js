@@ -1709,16 +1709,24 @@ module.exports = class binance extends Exchange {
         }
         const userDataStream = ((path === 'userDataStream') || (path === 'listenKey'));
         if (path === 'historicalTrades') {
-            headers = {
-                'X-MBX-APIKEY': this.apiKey,
-            };
+            if (this.apiKey) {
+                headers = {
+                    'X-MBX-APIKEY': this.apiKey,
+                };
+            } else {
+                throw new AuthenticationError (this.id + ' historicalTrades endpoint requires `apiKey` credential');
+            }
         } else if (userDataStream) {
-            // v1 special case for userDataStream
-            body = this.urlencode (params);
-            headers = {
-                'X-MBX-APIKEY': this.apiKey,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            };
+            if (this.apiKey) {
+                // v1 special case for userDataStream
+                body = this.urlencode (params);
+                headers = {
+                    'X-MBX-APIKEY': this.apiKey,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                };
+            } else {
+                throw new AuthenticationError (this.id + ' historicalTrades endpoint requires `apiKey` credential');
+            }
         }
         if ((api === 'private') || (api === 'sapi') || (api === 'wapi' && path !== 'systemStatus') || (api === 'fapiPrivate')) {
             this.checkRequiredCredentials ();
