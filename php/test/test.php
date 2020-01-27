@@ -1,13 +1,14 @@
 <?php
 
 error_reporting(E_ALL | E_STRICT);
-date_default_timezone_set ('UTC');
+date_default_timezone_set('UTC');
 
 require_once 'vendor/autoload.php';
+include_once 'php/test/Exchange/test_watch_order_book.php';
 
 if (count($argv) < 2) {
     echo "Exchange id not specified\n";
-    exit();
+    exit(1);
 }
 
 $args = array_slice($argv, 2);
@@ -24,20 +25,87 @@ $config = file_exists($keys_file) ? json_decode(file_get_contents($keys_file), t
 $loop = \React\EventLoop\Factory::create();
 
 $id = $argv[1];
-$options = array_key_exists($id, $config) ? $config[$id] : array();
-$exchange_class = '\\ccxtpro\\' . $id;
-$exchange = new $exchange_class(array_merge_recursive(array(
-    'enableRateLimit' => true,
-    'loop' => $loop,
-    'verbose' => $verbose,
-    // 'urls' => array(
-    //     'api' => array(
-    //         'ws' => 'ws://127.0.0.1:8080',
-    //     ),
-    // ),
-), $options));
 
-echo 'Testing ', $exchange->id, "\n";
+// ----------------------------------------------------------------------------
+
+function test_public($exchange, $symbol) {
+    echo "test_public\n";
+    return \React\Promise\reduce(array(
+        // test_watch_order_book($exchange, $symbol),
+        // test_watch_ticker($exchange, $symbol),
+        // test_watch_trades($exchange, $symbol),
+    ), function($c, $i) { $c[] = $i; return $c; }, array());
+};
+
+function test_private($exchange, $symbol, $code) {
+    echo "test_private\n";
+    if ($exchange->check_required_credentials(false)) {
+        return \React\Promise\reduce(array(
+            // test_watch_balance($exchange),
+        ), function($c, $i) { $c[] = $i; return $c; }, array());
+    }
+};
+
+function test_exchange($exchange) {
+    $delay = $exchange->rateLimit * 1000;
+    $symbol = is_array($exchange->symbols) ? current($exchange->symbols) : '';
+    $symbols = array(
+        'BTC/USD',
+        'BTC/CNY',
+        'BTC/EUR',
+        'BTC/ETH',
+        'ETH/BTC',
+        'BTC/JPY',
+        'LTC/BTC',
+    );
+    foreach ($symbols as $s) {
+        if (in_array ($s, $exchange->symbols) && (array_key_exists ('active', $exchange->markets[$s]) ? $exchange->markets[$s]['active'] : true)) {
+            $symbol = $s;
+            break;
+        }
+    }
+    $code = 'BTC'; // wip
+    if (strpos($symbol, '.d') === false) {
+        return \React\Promise\reduce(array(
+            test_public($exchange, $symbol),
+            test_private($exchange, $symbol, $code),
+        ), function($c, $i) { $c[] = $i; return $c; }, array());
+    }
+};
+
+// ----------------------------------------------------------------------------
+
+$test = function () use ($id, $config, $loop, $verbose) {
+
+    $options = array_key_exists($id, $config) ? $config[$id] : array();
+    $exchange_class = '\\ccxtpro\\' . $id;
+    $exchange = new $exchange_class(array_merge_recursive(array(
+        'enableRateLimit' => true,
+        'loop' => $loop,
+        'verbose' => $verbose,
+        // 'urls' => array(
+        //     'api' => array(
+        //         'ws' => 'ws://127.0.0.1:8080',
+        //     ),
+        // ),
+    ), $options));
+
+    echo 'Testing ', $exchange->id, "\n";
+
+    $exchange->load_markets();
+
+    test_exchange($exchange)->then(function() {
+        echo "Done.\n";
+        exit ();
+    });
+};
+
+// ----------------------------------------------------------------------------
+
+$loop->futureTick($test);
+$loop->run ();
+
+/*
 
 $symbol = 'ETH/BTC';
 $delay = 5000;
@@ -54,30 +122,7 @@ function print_balances($balance) {
     }
 }
 
-function print_orderbook($orderbook) {
-    echo date('c '),
-        count($orderbook['asks']), ' asks [', $orderbook['asks'][0][0], ', ', $orderbook['asks'][0][1], '] ',
-        count($orderbook['bids']), ' bids [', $orderbook['bids'][0][0], ', ', $orderbook['bids'][0][1], ']', "\n";
-}
 
-$tick = function ($method, ... $args) use ($loop, &$tick, $delay) {
-    $promise = $method(... $args);
-    $promise->then(function ($result) use ($tick, $method, $args) {
-        print_balances($result);
-        // print_orderbook($orderbook);
-        $tick($method, ...$args);
-    }, function ($error) use ($loop, $delay, $tick, $method, $args) {
-        echo date('c'), ' ERROR ', $error->getMessage (), "\n";
-        var_dump($error);
-        // delay 1 sec before repeating
-        $loop->addTimer($delay, function () {
-            $tick($method, ...$args);
-        });
-    });
-};
-
-$tick(array($exchange, 'watch_balance'), $symbol);
-$loop->run ();
 exit();
 
 function subscribe ($exchange, $resolved, $rejected, ...$args) {
@@ -102,8 +147,6 @@ subscribe(
 
 $loop->run ();
 
-//*/
-/*
 $tick = function () use ($loop, $exchange, &$tick) {
 
     $promise = $exchange->watch_heartbeat();
@@ -264,4 +307,9 @@ $proxies = array(
 
 */
 
-?>
+
+
+
+
+
+
