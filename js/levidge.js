@@ -1,23 +1,16 @@
 'use strict';
-
 //  ---------------------------------------------------------------------------
-
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, InvalidAddress } = require ('./base/errors');
-const { ROUND } = require ('./base/functions/number');
-
+const { ExchangeError,ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, InvalidNonce, AuthenticationError} = require ('./base/errors');
 //  ---------------------------------------------------------------------------
-
 module.exports = class levidge extends Exchange {
-   
 	describe () {
         return this.deepExtend (super.describe (), {
             'id': 'levidge',
             'name': 'Levidge',
-            'countries': [ 'US'], // USA
-            'rateLimit': 500,
-            'certified': false,
-            // new metainfo interface
+            'countries': ['US'],
+            'rateLimit':500,
+            'certified':false,
             'has': {
                 'fetchDepositAddress': false,
                 'CORS': false,
@@ -66,14 +59,14 @@ module.exports = class levidge extends Exchange {
                 ],
             },
             'api': {
-            	'fpublic': {
+         'fpublic': {
                     'get': [
                         'Instruments',
                         'InstrumentPairs',
                         'OrderBook',
                         'TradeHistory',
                         'Chart',
-                    ],
+                ],
                 },
                 'public': {
                     'get': [
@@ -106,7 +99,6 @@ module.exports = class levidge extends Exchange {
             },
         });
     }
-
     async fetchInstruments (params = {})
     {
     	const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
@@ -114,33 +106,29 @@ module.exports = class levidge extends Exchange {
         const method = (type === 'spot') ? 'publicGetInstruments' : 'fpublicGetInstruments';
         const response = await this[method] (params);
         return response;
-
     }
-
-    async fetchInstrumentPairs (params = {}) 
-    {
-    	const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+    async fetchInstrumentPairs (params = {})
+        {
+    	const defaultType = this.safeString2(this.options,'fetchTickers','defaultType','spot');
+        const type = this.safeString(params,'type',defaultType);
         const method = (type === 'spot') ? 'publicGetInstrumentPairs' : 'fpublicGetInstrumentPairs';
         const response = await this[method] (params);
         return response;
     }
-
-    async fetchOrderBookSnap(id, params = {})
+    async fetchOrderBookSnap (id,params = {})
     {
     	console.log(id);
     	const request = {
-            'pairId': id,
+           'pairId': id,
         };
-    	const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+    	const defaultType = this.safeString2 (this.options,'fetchOrder','defaultType','spot');
+        const type = this.safeString (params,'type',defaultType);
         const method = (type === 'spot') ? 'publicGetOrderBook' : 'fpublicGetOrderBook';
         const response = await this[method] (this.extend (request, params));
         return response;
     }
-
-    async fetchTradeHistory(id, params = {})
-    {
+    async fetchTradeHistory (id, params = {})
+       {
     	console.log(id);
     	const request = {
             'pairId': id,
@@ -152,8 +140,6 @@ module.exports = class levidge extends Exchange {
         const response = await this[method] (this.extend (request, params));
         return response;
     }
-
-
     async fetchChart(id,timestamp, params = {})
     {
         console.log(timestamp);
@@ -167,12 +153,10 @@ module.exports = class levidge extends Exchange {
         const response = await this[method] (this.extend (request, params));
         return response;
     }
-
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) 
     {
         let url = this.urls['api'][api];
         path = 'get' + path;
-        // console.log(path);
         url += '/' + path;
         if (api === 'wapi') {
             url += '.html';
@@ -202,26 +186,18 @@ module.exports = class levidge extends Exchange {
                 'X-MBX-APIKEY': this.apiKey,
             };
             if ((method === 'GET') || (method === 'DELETE') || (api === 'wapi')) {
-            	// console.log("test" + query);
                 url += '?' + query;
             } else {
                 body = query;
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
-            // userDataStream endpoints are public, but POST, PUT, DELETE
-            // therefore they don't accept URL query arguments
-            // https://github.com/ccxt/ccxt/issues/5224
             if (!userDataStream) {
                 if (Object.keys (params).length) {
                     url += '?' + this.urlencode (params);
                 }
             }
         }
-        // console.log(url);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-
-
-
 };
