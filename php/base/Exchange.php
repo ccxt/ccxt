@@ -757,6 +757,10 @@ class Exchange {
         return true;
     }
 
+    public function checkRequiredCredentials($error = true) {
+        return $this->check_required_credentials($error);
+    }
+
     public function check_address($address) {
         if (empty($address) || !is_string($address)) {
             throw new InvalidAddress($this->id . ' address is undefined');
