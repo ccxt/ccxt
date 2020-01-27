@@ -73,7 +73,7 @@ module.exports = class levidge extends Exchange {
                         'OrderBook',
                         'TradeHistory',
                         'Chart',
-                        ],
+                    ],
                 },
                 'public': {
                     'get': [
@@ -82,9 +82,9 @@ module.exports = class levidge extends Exchange {
                         'OrderBook',
                         'TradeHistory',
                         'Chart',
-                        ],
+                    ],
                 },
-                },
+            },
             // exchange-specific options
             'exceptions': {
                 'API key does not exist': AuthenticationError,
@@ -107,11 +107,10 @@ module.exports = class levidge extends Exchange {
         });
     }
 
-    async fetchInstruments (params = {}) 
+    async fetchInstruments (params = {})
     {
     	const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
         const method = (type === 'spot') ? 'publicGetInstruments' : 'fpublicGetInstruments';
         const response = await this[method] (params);
         return response;
@@ -122,7 +121,6 @@ module.exports = class levidge extends Exchange {
     {
     	const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
         const method = (type === 'spot') ? 'publicGetInstrumentPairs' : 'fpublicGetInstrumentPairs';
         const response = await this[method] (params);
         return response;
@@ -136,7 +134,6 @@ module.exports = class levidge extends Exchange {
         };
     	const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
         const method = (type === 'spot') ? 'publicGetOrderBook' : 'fpublicGetOrderBook';
         const response = await this[method] (this.extend (request, params));
         return response;
@@ -166,7 +163,6 @@ module.exports = class levidge extends Exchange {
         };
         const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
         const method = (type === 'spot') ? 'publicGetChart' : 'fpublicGetChart';
         const response = await this[method] (this.extend (request, params));
         return response;
