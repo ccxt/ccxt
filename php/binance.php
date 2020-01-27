@@ -7,6 +7,7 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidAddress;
 use \ccxt\InvalidOrder;
@@ -1714,16 +1715,24 @@ class binance extends Exchange {
         }
         $userDataStream = (($path === 'userDataStream') || ($path === 'listenKey'));
         if ($path === 'historicalTrades') {
-            $headers = array(
-                'X-MBX-APIKEY' => $this->apiKey,
-            );
+            if ($this->apiKey) {
+                $headers = array(
+                    'X-MBX-APIKEY' => $this->apiKey,
+                );
+            } else {
+                throw new AuthenticationError($this->id . ' historicalTrades endpoint requires `apiKey` credential');
+            }
         } else if ($userDataStream) {
-            // v1 special case for $userDataStream
-            $body = $this->urlencode ($params);
-            $headers = array(
-                'X-MBX-APIKEY' => $this->apiKey,
-                'Content-Type' => 'application/x-www-form-urlencoded',
-            );
+            if ($this->apiKey) {
+                // v1 special case for $userDataStream
+                $body = $this->urlencode ($params);
+                $headers = array(
+                    'X-MBX-APIKEY' => $this->apiKey,
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                );
+            } else {
+                throw new AuthenticationError($this->id . ' historicalTrades endpoint requires `apiKey` credential');
+            }
         }
         if (($api === 'private') || ($api === 'sapi') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'fapiPrivate')) {
             $this->check_required_credentials();
