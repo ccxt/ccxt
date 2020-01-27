@@ -137,7 +137,6 @@ async def test_exchange(exchange):
 # -----------------------------------------------------------------------------
 
 async def test():
-    symbol = 'ETH/BTC'
     apiKeys = config.get(argv.exchange_id, {})
     exchange = getattr(ccxtpro, argv.exchange_id)(Exchange.deep_extend({
         'enableRateLimit': True,
@@ -149,7 +148,7 @@ async def test():
         'verbose': argv.verbose,
     }, apiKeys))
 
-    print(exchange.id, symbol, argv.verbose)
+    print(exchange.id, argv.verbose)
     await exchange.load_markets()
     await test_exchange(exchange)
     await exchange.close()
