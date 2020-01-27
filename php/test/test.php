@@ -31,7 +31,7 @@ $id = $argv[1];
 function test_public($exchange, $symbol) {
     echo "test_public\n";
     return \React\Promise\reduce(array(
-        // test_watch_order_book($exchange, $symbol),
+        test_watch_order_book($exchange, $symbol),
         // test_watch_ticker($exchange, $symbol),
         // test_watch_trades($exchange, $symbol),
     ), function($c, $i) { $c[] = $i; return $c; }, array());
