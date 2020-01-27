@@ -114,8 +114,8 @@ async def test_exchange(exchange):
     keys = list(exchange.markets.keys())
     symbol = keys[0]
     symbols = [
-        'BTC/USD',
         'BTC/USDT',
+        'BTC/USD',
         'BTC/CNY',
         'BTC/EUR',
         'BTC/ETH',

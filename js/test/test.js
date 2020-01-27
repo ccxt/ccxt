@@ -144,8 +144,8 @@ async function testExchange (exchange) {
 
     let symbol = exchange.symbols[0]
     const symbols = [
-        'BTC/USD',
         'BTC/USDT',
+        'BTC/USD',
         'BTC/CNY',
         'BTC/EUR',
         'BTC/ETH',
