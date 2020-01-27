@@ -1046,7 +1046,7 @@ class binance extends Exchange {
             'type' => $uppercaseType,
             'side' => strtoupper($side),
         );
-        if ($type === 'market') {
+        if ($uppercaseType === 'MARKET') {
             $quoteOrderQty = $this->safe_float($params, 'quoteOrderQty');
             if ($quoteOrderQty !== null) {
                 $request['quoteOrderQty'] = $this->cost_to_precision($symbol, $quoteOrderQty);
