@@ -18,13 +18,13 @@ before_install:
 - pip2 install requests[security]
 - git pull --tags
 script:
-- travis_terminate 0
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
 - cp package.json LICENSE.txt keys.json python
 - npm run build
 - cd python
 - tox -e doc
 - cd ..
+- travis_terminate 0
 - npm run test-base
 - set +e # (we deactivate set -e here, to prevent sudden log truncation in Travis, as it was suggested by the support team)
 - node run-tests --js --python 5; export TESTS_FAILED=$?
