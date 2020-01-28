@@ -213,8 +213,8 @@ const ccxt = require ('ccxt')
 let exchange = new ccxt.kraken () // default id
 let kraken1 = new ccxt.kraken ({ id: 'kraken1' })
 let kraken2 = new ccxt.kraken ({ id: 'kraken2' })
-let id = 'gdax'
-let gdax = new ccxt[id] ();
+let id = 'coinbasepro'
+let coinbasepro = new ccxt[id] ();
 
 // from variable id
 const exchangeId = 'binance'
@@ -235,7 +235,7 @@ okcoin1 = ccxt.okcoinusd ({ 'id': 'okcoin1' })
 okcoin2 = ccxt.okcoinusd ({ 'id': 'okcoin2' })
 id = 'btcchina'
 btcchina = eval ('ccxt.%s ()' % id)
-gdax = getattr (ccxt, 'gdax') ()
+coinbasepro = getattr (ccxt, 'coinbasepro') ()
 
 # from variable id
 exchange_id = 'binance'
@@ -3283,7 +3283,7 @@ In Python and PHP you can do the same by subclassing and overriding nonce functi
 # Python
 
 # A: the shortest
-gdax = ccxt.gdax({'nonce': ccxt.Exchange.milliseconds})
+coinbasepro = ccxt.coinbasepro({'nonce': ccxt.Exchange.milliseconds})
 
 # B: custom nonce
 class MyKraken(ccxt.kraken):
