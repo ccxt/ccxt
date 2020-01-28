@@ -301,32 +301,56 @@ module.exports = class coinbasepro extends Exchange {
         const request = {
             'id': market['id'],
         };
-        const ticker = await this.publicGetProductsIdTicker (this.extend (request, params));
-        const timestamp = this.parse8601 (this.safeValue (ticker, 'time'));
-        const bid = this.safeFloat (ticker, 'bid');
-        const ask = this.safeFloat (ticker, 'ask');
-        const last = this.safeFloat (ticker, 'price');
+        // publicGetProductsIdTicker or publicGetProductsIdStats
+        const method = this.safeString (this.options, 'fetchTickerMethod', 'publicGetProductsIdTicker');
+        const response = await this[method] (this.extend (request, params));
+        //
+        // publicGetProductsIdTicker
+        //
+        //     {
+        //         "trade_id":843439,
+        //         "price":"0.997999",
+        //         "size":"80.29769",
+        //         "time":"2020-01-28T02:13:33.012523Z",
+        //         "bid":"0.997094",
+        //         "ask":"0.998",
+        //         "volume":"1903188.03750000"
+        //     }
+        //
+        // publicGetProductsIdStats
+        //
+        //     {
+        //         "open": "34.19000000",
+        //         "high": "95.70000000",
+        //         "low": "7.06000000",
+        //         "volume": "2.41000000"
+        //     }
+        //
+        const timestamp = this.parse8601 (this.safeValue (response, 'time'));
+        const bid = this.safeFloat (response, 'bid');
+        const ask = this.safeFloat (response, 'ask');
+        const last = this.safeFloat (response, 'price');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
+            'high': this.safeFloat (response, 'high'),
+            'low': this.safeFloat (response, 'low'),
             'bid': bid,
             'bidVolume': undefined,
             'ask': ask,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': this.safeFloat (response, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': this.safeFloat (response, 'volume'),
             'quoteVolume': undefined,
-            'info': ticker,
+            'info': response,
         };
     }
 
