@@ -870,11 +870,12 @@ module.exports = class bw extends Exchange {
         const market = this.market (symbol);
         const request = {
             'marketId': market['id'],
-            // 'pageSize': limit, // documented as required, but it works without it
-            // 'pageIndex': 0, // also works without it, most likely a typo in the docs
         };
         if (limit !== undefined) {
             request['pageSize'] = limit; // default limit is 20
+        }
+        if (since !== undefined) {
+            request['startDateTime'] = since;
         }
         const response = await this.privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustList (this.extend (request, params));
         const data = this.safeValue (response, 'datas', {});
