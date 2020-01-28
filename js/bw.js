@@ -28,7 +28,7 @@ module.exports = class bw extends Exchange {
                 'editOrder': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -119,6 +119,7 @@ module.exports = class bw extends Exchange {
                         'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
                         'exchange/fund/controller/website/fundwebsitecontroller/getwithdrawaddress',
                         'exchange/fund/controller/website/fundwebsitecontroller/getpayoutcoinrecord',
+                        'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
                         // the docs say that the following URLs are HTTP POST
                         // in the docs header and HTTP GET in the docs body
                         // the docs contradict themselves, a typo most likely
@@ -856,6 +857,26 @@ module.exports = class bw extends Exchange {
         //         "resMsg": { "message": "success !", "method": null, "code": "1" },
         //     }
         //
+        const data = this.safeValue (response, 'datas', {});
+        const orders = this.safeValue (data, 'entrustList', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketId': market['id'],
+            // 'pageSize': limit, // documented as required, but it works without it
+            // 'pageIndex': 0, // also works without it, most likely a typo in the docs
+        };
+        if (limit !== undefined) {
+            request['pageSize'] = limit; // default limit is 20
+        }
+        const response = await this.privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustList (this.extend (request, params));
         const data = this.safeValue (response, 'datas', {});
         const orders = this.safeValue (data, 'entrustList', []);
         return this.parseOrders (orders, market, since, limit);
