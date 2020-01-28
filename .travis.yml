@@ -18,10 +18,6 @@ before_install:
 - git pull --tags
 - pecl install ds
 - php -i | grep php.ini
-# - sudo echo "extension=ds" >> /home/travis/.phpenv/versions/$(phpenv version-name)/etc/php.ini
-# - sudo cp /usr/lib/php/20151012/ds.so /home/travis/.phpenv/versions/$(phpenv version-name)/lib/php/extensions/no-debug-zts-20170718/
-# - sudo chown travis:travis /home/travis/.phpenv/versions/$(phpenv version-name)/lib/php/extensions/no-debug-zts-20170718/ds.so
-# - sudo chmod +x /home/travis/.phpenv/versions/$(phpenv version-name)/lib/php/extensions/no-debug-zts-20170718/ds.so
 - sudo ls -alh /home/travis/.phpenv/versions/$(phpenv version-name)/lib/php/extensions/no-debug-zts-20170718/
 - sudo tail /home/travis/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 - composer install
@@ -30,10 +26,9 @@ script:
   npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
 - cp package.json LICENSE.txt keys.json python
 - npm run build
-- travis_terminate 0
-- npm run test-base
+# - npm run test-base
 - set +e
-- node run-tests --js --python 5; export TESTS_FAILED=$?
+- node run-tests --js --python --php; export TESTS_FAILED=$?
 - set -e
 - if [ "$TESTS_FAILED" -ne 0 ]; then exit 1; fi
 after_failure:
