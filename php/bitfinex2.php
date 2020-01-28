@@ -37,6 +37,7 @@ class bitfinex2 extends bitfinex {
                 'fetchTickers' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransactions' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
