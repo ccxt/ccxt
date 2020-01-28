@@ -1731,7 +1731,7 @@ class binance extends Exchange {
                     'Content-Type' => 'application/x-www-form-urlencoded',
                 );
             } else {
-                throw new AuthenticationError($this->id . ' historicalTrades endpoint requires `apiKey` credential');
+                throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
             }
         }
         if (($api === 'private') || ($api === 'sapi') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'fapiPrivate')) {

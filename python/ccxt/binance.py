@@ -1606,7 +1606,7 @@ class binance(Exchange):
                     'Content-Type': 'application/x-www-form-urlencoded',
                 }
             else:
-                raise AuthenticationError(self.id + ' historicalTrades endpoint requires `apiKey` credential')
+                raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
         if (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus') or (api == 'fapiPrivate'):
             self.check_required_credentials()
             query = self.urlencode(self.extend({
