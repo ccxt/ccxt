@@ -24,6 +24,8 @@ before_install:
 - sudo echo "extension=ds.so" >> /home/travis/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 - sudo cp /usr/lib/php/20151012/ds.so /home/travis/.phpenv/versions/$(phpenv version-name)/lib/php/extensions/no-debug-zts-20170718/
 - sudo ls -alh /home/travis/.phpenv/versions/$(phpenv version-name)/lib/php/extensions/no-debug-zts-20170718/
+- sudo chown travis:travis /home/travis/.phpenv/versions/$(phpenv version-name)/lib/php/extensions/no-debug-zts-20170718/ds.so
+- sudo chmod +x /home/travis/.phpenv/versions/$(phpenv version-name)/lib/php/extensions/no-debug-zts-20170718/ds.so
 - sudo tail /home/travis/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 - composer install
 script:
