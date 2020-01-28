@@ -14,6 +14,7 @@ before_install:
 - sudo -H pip install --upgrade tox twine
 - pip install --upgrade setuptools
 - pip install --upgrade web3 aiohttp requests cryptography pyopenssl
+- pip install ccxt
 - pip2 install requests[security]
 - git pull --tags
 - pecl install ds
