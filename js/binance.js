@@ -614,7 +614,7 @@ module.exports = class binance extends ccxt.binance {
         //   "Y": "0.00000000"              // Last quote asset transacted quantity (i.e. lastPrice * lastQty),
         //   "Q": "0.00000000"              // Quote Order Qty
         // }
-        console.log (message)
+        console.log (message);
     }
 
     handleMessage (client, message) {
