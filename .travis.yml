@@ -1,31 +1,35 @@
-matrix:
-  include:
-    - language: python
-      python:
-        - 3.7
-      before_install:
-        - echo "python before_install"
-      install:
-        - echo "python install"
-      script:
-        - echo "python test"
+language: python
+python:
+  - "3.7"
 
-    - language: node_js
-      node_js:
-        - 13.5.0
-      before_install:
-        - echo "node_js before_install"
-      install:
-        - npm install
-      script:
-        - echo "node_js test"
-
-    - language: php
-      php:
-        - 7.4.0
-      before_install:
-        - echo "php before_install"
-      install:
-        - echo "php install"
-      script:
-        - echo "php test"
+before_install:
+- set -e
+- . $HOME/.nvm/nvm.sh
+- nvm install 13.7.0
+- nvm use 13.7.0
+- rm -rf node_modules
+- npm install
+- sudo -H pip install --upgrade setuptools
+- sudo -H pip install --upgrade pip wheel requests pyopenssl
+- sudo -H pip install --ignore-installed six
+- sudo -H pip install --upgrade tox twine
+- pip install --upgrade setuptools
+- pip install --upgrade web3 aiohttp requests cryptography pyopenssl
+- pip2 install requests[security]
+- git pull --tags
+script:
+- travis_terminate 0
+- if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
+- cp package.json LICENSE.txt keys.json python
+- npm run build
+- cd python
+- tox -e doc
+- cd ..
+- npm run test-base
+- set +e # (we deactivate set -e here, to prevent sudden log truncation in Travis, as it was suggested by the support team)
+- node run-tests --js --python 5; export TESTS_FAILED=$?
+- set -e # activate it again!
+- if [ "$TESTS_FAILED" -ne 0 ]; then exit 1; fi
+after_failure:
+- dmesg | grep -i kill
+- sleep 4 # to prevent sudden log truncation, as it was suggested by someone on the internetz (doesn't seem to work...)
