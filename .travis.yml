@@ -21,7 +21,7 @@ before_install:
 - sudo apt-get install php-dev
 - sudo apt-get install libcurl4-openssl-dev
 - sudo pecl install ds
-- sudo cat /etc/php/7.0/mods-available/ds.ini
+- php -r 'phpinfo();'
 - composer install
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
