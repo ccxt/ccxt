@@ -2,24 +2,22 @@
 
 // ----------------------------------------------------------------------------
 
-const log       = require ('ololog')
-    , ansi      = require ('ansicolor').nice
-    , chai      = require ('chai')
-    , expect    = chai.expect
-    , assert    = chai.assert
+const log = require ('ololog')
 
 /*  ------------------------------------------------------------------------ */
 
 module.exports = async (exchange) => {
 
-    if (!(exchange.has.watchBalance)) {
-        log (exchange.id.green, 'does not have watchBalance')
+    const method = 'watchBalance'
+
+    if (!exchange.has[method]) {
+        log (exchange.id, 'does not support', method + '() method')
         return
     }
 
     log ('watching balance...')
 
-    let balance = await exchange.watchBalance ()
+    let balance = await exchange[method] ()
 
     let currencies = [
         'USD',
