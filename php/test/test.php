@@ -31,7 +31,7 @@ $id = $argv[1];
 function test_public($exchange, $symbol) {
     echo "test_public\n";
     $future = new \ccxtpro\Future();
-    return test_watch_order_book($exchange, $symbol)->then(function() use ($exchange, $symbol, &$future) {
+    return test_watch_order_book($exchange, $symbol)->then(function() use ($exchange, $symbol, $future) {
         // test_watch_ticker($exchange, $symbol)->then(function() use ($exchange, $symbol, &$future) {
         //     test_watch_trades($exchange, $symbol)->then(function() use ($exchange, $symbol, &$future) {
                 $future->resolve(true);
@@ -76,7 +76,7 @@ function test_exchange($exchange) {
     $code = 'BTC'; // wip
     $future = new \ccxtpro\Future();
     if (strpos($symbol, '.d') === false) {
-        test_public($exchange, $symbol)->then(function() use ($exchange, $symbol, $code, &$future) {
+        test_public($exchange, $symbol)->then(function() use ($exchange, $symbol, $code, $future) {
             test_private($exchange, $symbol, $code)->then(function () use (&$future) {
                 $future->resolve(true);
             });
