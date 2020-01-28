@@ -16,6 +16,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
                 'ws': True,
                 'watchTicker': True,
                 'watchOrderBook': True,
+                'watchBalance': False,  # not implemented yet
             },
             'urls': {
                 'api': {
@@ -239,6 +240,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
                 amount = float(delta[3])
                 bookside.store(price, amount)
                 orderbookUpdatesCount += 1
+                orderbook['nonce'] = nonce
             elif delta[0] == 't':
                 # todo: add max limit to the dequeue of trades, unshift and push
                 # trade = self.handle_trade(client, delta, market)

@@ -31,7 +31,6 @@ class Client {
     public $connectionTimeout = 30000;
     public $pingInterval;
     public $keepAlive = 30000;
-    public $heartbeat = true;
     public $maxPingPongMisses = 2.0;
     public $lastPong = null;
     public $ping = null;
@@ -254,11 +253,11 @@ class Client {
             if (($this->lastPong + $this->keepAlive * $this->maxPingPongMisses) < $now) {
                 $this->on_error(new RequestTimeout('Connection to ' . $this->url . ' timed out due to a ping-pong keepalive missing on time'));
             } else {
-                if ($this->heartbeat) {
-                    $this->connection->send(new Frame('', true, Frame::OP_PING));
-                } else {
+                if ($this->ping) {
                     $function = $this->ping;
                     $this->send($function($this));
+                } else {
+                    $this->connection->send(new Frame('', true, Frame::OP_PING));
                 }
             }
         }

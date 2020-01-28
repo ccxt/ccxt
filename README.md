@@ -207,12 +207,13 @@ while (condition) {
 }
 ```
 
-That usage pattern is usually wrapped up into a core business-logic method called _"a `tick()` function"_, since it reiterates a reaction to the incoming events (aka ticks). From the two examples above it is obvious that the generic usage pattern in CCXT Pro and CCXT is identical.
+That usage pattern is usually wrapped up into a core business-logic method called _"a `tick()` function"_, since it reiterates a reaction to the incoming events (aka _ticks_). From the two examples above it is obvious that the generic usage pattern in CCXT Pro and CCXT is identical.
 
 Many of the CCXT rules and concepts also apply to CCXT Pro:
 
 - CCXT Pro will load markets and will cache markets upon the first call to a unified API method
 - CCXT Pro will call CCXT RESTful methods under the hood if necessary
+- CCXT Pro will throw standard CCXT exceptions where necessary
 - ...
 
 ### Streaming Specifics
@@ -221,11 +222,57 @@ Despite of the numerous commonalities, streaming-based APIs have their own speci
 
 Having a connection-based interface implies connection-handling mechanisms. Connections are managed by CCXT Pro transparently to the user. Each exchange instance manages its own set of connections.
 
-Upon your first call to any `watch` method CCXT Pro will establish a connection to a specific stream/resource of the exchange and will maintain it. In case the connection exists – it is reused. The library will handle the subscription request/response messaging sequences as well as the authentication/signing if the requested stream is private.
+Upon your first call to any `watch*()` method the library will establish a connection to a specific stream/resource of the exchange and will maintain it. If the connection already exists – it is reused. The library will handle the subscription request/response messaging sequences as well as the authentication/signing if the requested stream is private.
 
 The library will also watch the status of the uplink and will keep the connection alive. Upon a critical exception, a disconnect or a connection timeout/failure, the next iteration of the tick function will call the `watch` method that will trigger a reconnection. This way the library handles disconnections and reconnections for the user transparently. CCXT Pro applies the necessary rate-limiting and exponential backoff reconnection delays. All of that functionality is enabled by default and can be configured via exchange properties, as usual.
 
 Most of the exchanges only have a single base URL for streaming APIs (usually, WebSocket, starting with `ws://` or `wss://`). Some of them may have more than one URL for each stream, depending on the feed in question.
+
+Exchanges' Streaming APIs can be classified into two different categories:
+
+- *sub* or *subscribe* allows receiving only
+- *pub* or *publish* allows sending and receiving
+
+#### Sub
+
+A *sub* interface usually allows to subscribe to a stream of data and listen for it. Most of exchanges that do support WebSockets will offer a *sub* type of API only. The *sub* type includes streaming public market data. Sometimes exchanges also allow subcribing to private user data. After the user subscribes to a data feed the channel effectively starts working one-way sending updates from the exchange towards the user continuously.
+
+Commonly appearing types of public data streams:
+
+- order book (most common) - updates on added, edited and deleted orders (aka *change deltas*)
+- ticker updates upon changing of 24 hour stats
+- fills feed (also common) - a live stream of public trades
+- ohlcv candlestick feed
+- heartbeat
+- exchange chat/trollbox
+
+Less common types of private user data streams:
+
+- the stream of private trades of the user
+- live order updates
+- balance updates
+- custom streams
+- exchange-specific and other streams
+
+#### Pub
+
+A *pub* interface usually allows users to send data requests towards the server. This usually includes common user actions, like:
+
+- placing orders
+- canceling orders
+- placing withdrawal requests
+- posting chat/trollbox messages
+- etc
+
+**Some exchanges do not offer a *pub* WS API, they will offer *sub* WS API only.** However, there are exchanges that have a complete Streaming API as well. In most cases a user cannot operate effectively having just the Streaming API. Exchanges will stream public market data *sub*, and the REST API is still needed for the *pub* part where missing.
+
+#### Incremental Data Structures
+
+In many cases due to a unidirectional nature of the underlying data feeds, the application listening on the client-side has to keep a local snapshot of the data in memory and merge the updates received from the exchange server into the local snapshot. The updates coming from the exchange are also often called _deltas_, because in most cases those updates will contain just the changes between two states of the data and will not include the data that has not changed making it necessary to store the locally cached current state S of all relevant data objects.
+
+All of that functionality is handled by CCXT Pro for the user. To work with CCXT Pro, the user does not have to track or manage subscriptions and related data. CCXT Pro will keep a cache of structures in memory to handle the underlying hassle.
+
+Each incoming update says which parts of the data have changed and the receiving side "increments" local state S by merging the update on top of current state S and moves to next local state S'. In terms CCXT Pro that is called _"incremental state"_ and the structures involved in the process of storing and updating the cached state are called _"incremental structures"_. CCXT Pro introduces several new base classes to handle the incremental state where necessary.
 
 ### Linking Against CCXT Pro
 
@@ -277,16 +324,38 @@ $exchange = new \ccxtpro\kucoin();
 
 Every CCXT Pro instance contains all properties of the underlying CCXT instance. Apart from the standard CCXT properties, the CCXT Pro instance includes the following:
 
-- `has`: an extended associative array of extended exchange capabilities (e.g. `watchOrderBook`, `watchOHLCV`, ...)
-- `urls['api']`: will contain a streaming API base URL, depending on the underlying protocol
-    - `'ws'`: [WebSocket](https://en.wikipedia.org/wiki/WebSocket)
-    - `'signalr'`: [SignalR](https://en.wikipedia.org/wiki/SignalR)
-    - `'socketio'`: [Socket.IO](https://socket.io/)
-- `version`: ...
+```JavaScript
+{
+    'has': { ... } // an extended associative array of extended exchange capabilities (e.g. `watchOrderBook`, `watchOHLCV`, ...)
+    'urls': {
+        'api': { // will contain a streaming API base URL, depending on the underlying protocol
+            'ws': 'wss://ws.exchange.com',            // https://en.wikipedia.org/wiki/WebSocket
+            'signalr': 'https://signalr.exchange.com' // https://en.wikipedia.org/wiki/SignalR
+            'socketio': 'wss://socket.exchange.io'    // https://socket.io
+        },
+    }
+    'version': '1.21',
+    'streaming': {
+        'keepAlive': 30000, // integer keep-alive rate in milliseconds
+        'maxPingPongMisses': 2.0, // how many ping pong misses to drop and reconnect
+        ... // other streaming options
+    },
+    // incremental data structures
+    'orderbooks':   {}, // incremental order books indexed by symbol
+    'ohlcvs':       {}, // standard CCXT OHLCVs indexed by symbol by timeframe
+    'balance':      {}, // a standard CCXT balance structure, accounts indexed by currency code
+    'orders':       {}, // standard CCXT order structures indexed by order id
+    'trades':       {}, // arrays of CCXT trades indexed by symbol
+    'tickers':      {}, // standard CCXT tickers indexed by symbol
+    'transactions': {}, // standard CCXT deposits and withdrawals indexed by id or txid
+    ...
+}
+```
+
+### Keep-Alive
 
 ### Rate limiting
 
 ### API Methods
 
 ### Error Handling
-

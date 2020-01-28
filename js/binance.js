@@ -193,8 +193,11 @@ module.exports = class binance extends ccxt.binance {
             // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
             // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
             try {
+                const nonce = orderbook['nonce'];
                 this.handleOrderBookMessage (client, message, orderbook);
-                client.resolve (orderbook, messageHash);
+                if (nonce < orderbook['nonce']) {
+                    client.resolve (orderbook, messageHash);
+                }
             } catch (e) {
                 delete this.orderbooks[symbol];
                 delete client.subscriptions[messageHash];

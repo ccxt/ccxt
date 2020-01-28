@@ -18,6 +18,7 @@ class poloniex extends \ccxt\poloniex {
                 'ws' => true,
                 'watchTicker' => true,
                 'watchOrderBook' => true,
+                'watchBalance' => false, // not implemented yet
             ),
             'urls' => array(
                 'api' => array(
@@ -260,6 +261,7 @@ class poloniex extends \ccxt\poloniex {
                 $amount = floatval ($delta[3]);
                 $bookside->store ($price, $amount);
                 $orderbookUpdatesCount .= 1;
+                $orderbook['nonce'] = $nonce;
             } else if ($delta[0] === 't') {
                 // todo => add max limit to the dequeue of trades, unshift and push
                 // $trade = $this->handle_trade ($client, $delta, $market);

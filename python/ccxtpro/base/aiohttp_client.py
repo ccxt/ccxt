@@ -11,7 +11,7 @@ from ccxt import NetworkError, RequestTimeout
 class AiohttpClient(Client):
 
     def closed(self):
-        return self.connection.closed
+        return (self.connection is None) or self.connection.closed
 
     def receive(self):
         return self.connection.receive()
@@ -59,9 +59,10 @@ class AiohttpClient(Client):
         print(Exchange.iso8601(Exchange.milliseconds()), 'sending', message)
         return self.connection.send_str(json.dumps(message, separators=(',', ':')))
 
-    def close(self, code=1000):
+    async def close(self, code=1000):
         print(Exchange.iso8601(Exchange.milliseconds()), 'closing', code)
-        return self.connection.close()
+        if not self.closed():
+            await self.connection.close()
 
     async def ping_loop(self):
         print(Exchange.iso8601(Exchange.milliseconds()), 'ping loop')
@@ -76,7 +77,7 @@ class AiohttpClient(Client):
             # therefore we need this clause anyway
             else:
                 if self.ping:
-                    await self.send(self.ping())
+                    await self.send(self.ping(self))
                 else:
                     await self.connection.ping()
             await sleep(self.keepAlive / 1000)
