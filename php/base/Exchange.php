@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.21.82';
+$version = '1.21.98';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.21.82';
+    const VERSION = '1.21.98';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -87,7 +87,6 @@ class Exchange {
         '_1btcxe',
         'acx',
         'adara',
-        'allcoin',
         'anxpro',
         'bcex',
         'bequant',
@@ -756,6 +755,10 @@ class Exchange {
             }
         }
         return true;
+    }
+
+    public function checkRequiredCredentials($error = true) {
+        return $this->check_required_credentials($error);
     }
 
     public function check_address($address) {

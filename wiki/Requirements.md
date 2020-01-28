@@ -7,7 +7,7 @@ The exchange is required to implement the following list of methods and structur
 #### Exchange Information, Fee Schedule and Trading Rules
 
 - [`fetchMarkets`](https://github.com/ccxt/ccxt/wiki/Manual#markets) – a list of trading pairs and their statuses + [market structure](https://github.com/ccxt/ccxt/wiki/Manual#market-structure)
-- `fetchCurrencies` – a list of tokens or assets and their statuses
+- [`fetchCurrencies`] – a list of tokens or assets and their statuses + [currency structure](https://github.com/ccxt/ccxt/wiki/Manual#currency-structure)
 - `fetchTradingLimits` – min/max order volume, price, cost, precision, etc...
 - `fetchTradingFees` – trading fees, either public or personal
 - `fetchFundingLimits` – a list of withdrawal limits

@@ -543,11 +543,19 @@ module.exports = class bitfinex extends Exchange {
         } else {
             key = 'base';
         }
+        const code = market[key];
+        const currency = this.safeValue (this.currencies, code);
+        if (currency !== undefined) {
+            const precision = this.safeInteger (currency, 'precision');
+            if (precision !== undefined) {
+                cost = parseFloat (this.currencyToPrecision (code, cost));
+            }
+        }
         return {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': parseFloat (this.currencyToPrecision (market[key], cost)),
+            'cost': cost,
         };
     }
 

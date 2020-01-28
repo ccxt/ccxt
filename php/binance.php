@@ -7,6 +7,7 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidAddress;
 use \ccxt\InvalidOrder;
@@ -854,6 +855,8 @@ class binance extends Exchange {
         if ($this->options['fetchTradesMethod'] === 'publicGetAggTrades') {
             if ($since !== null) {
                 $request['startTime'] = $since;
+                // https://github.com/ccxt/ccxt/issues/6400
+                // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
                 $request['endTime'] = $this->sum ($since, 3600000);
             }
         }
@@ -1044,7 +1047,7 @@ class binance extends Exchange {
             'type' => $uppercaseType,
             'side' => strtoupper($side),
         );
-        if ($type === 'market') {
+        if ($uppercaseType === 'MARKET') {
             $quoteOrderQty = $this->safe_float($params, 'quoteOrderQty');
             if ($quoteOrderQty !== null) {
                 $request['quoteOrderQty'] = $this->cost_to_precision($symbol, $quoteOrderQty);
@@ -1712,16 +1715,24 @@ class binance extends Exchange {
         }
         $userDataStream = (($path === 'userDataStream') || ($path === 'listenKey'));
         if ($path === 'historicalTrades') {
-            $headers = array(
-                'X-MBX-APIKEY' => $this->apiKey,
-            );
+            if ($this->apiKey) {
+                $headers = array(
+                    'X-MBX-APIKEY' => $this->apiKey,
+                );
+            } else {
+                throw new AuthenticationError($this->id . ' historicalTrades endpoint requires `apiKey` credential');
+            }
         } else if ($userDataStream) {
-            // v1 special case for $userDataStream
-            $body = $this->urlencode ($params);
-            $headers = array(
-                'X-MBX-APIKEY' => $this->apiKey,
-                'Content-Type' => 'application/x-www-form-urlencoded',
-            );
+            if ($this->apiKey) {
+                // v1 special case for $userDataStream
+                $body = $this->urlencode ($params);
+                $headers = array(
+                    'X-MBX-APIKEY' => $this->apiKey,
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                );
+            } else {
+                throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
+            }
         }
         if (($api === 'private') || ($api === 'sapi') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'fapiPrivate')) {
             $this->check_required_credentials();

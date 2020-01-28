@@ -820,6 +820,8 @@ class binance(Exchange):
         if self.options['fetchTradesMethod'] == 'publicGetAggTrades':
             if since is not None:
                 request['startTime'] = since
+                # https://github.com/ccxt/ccxt/issues/6400
+                # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
                 request['endTime'] = self.sum(since, 3600000)
         if limit is not None:
             request['limit'] = limit  # default = 500, maximum = 1000
@@ -981,7 +983,7 @@ class binance(Exchange):
             'type': uppercaseType,
             'side': side.upper(),
         }
-        if type == 'market':
+        if uppercaseType == 'MARKET':
             quoteOrderQty = self.safe_float(params, 'quoteOrderQty')
             if quoteOrderQty is not None:
                 request['quoteOrderQty'] = self.cost_to_precision(symbol, quoteOrderQty)
@@ -1589,16 +1591,22 @@ class binance(Exchange):
             url += '.html'
         userDataStream = ((path == 'userDataStream') or (path == 'listenKey'))
         if path == 'historicalTrades':
-            headers = {
-                'X-MBX-APIKEY': self.apiKey,
-            }
+            if self.apiKey:
+                headers = {
+                    'X-MBX-APIKEY': self.apiKey,
+                }
+            else:
+                raise AuthenticationError(self.id + ' historicalTrades endpoint requires `apiKey` credential')
         elif userDataStream:
-            # v1 special case for userDataStream
-            body = self.urlencode(params)
-            headers = {
-                'X-MBX-APIKEY': self.apiKey,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            }
+            if self.apiKey:
+                # v1 special case for userDataStream
+                body = self.urlencode(params)
+                headers = {
+                    'X-MBX-APIKEY': self.apiKey,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+            else:
+                raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
         if (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus') or (api == 'fapiPrivate'):
             self.check_required_credentials()
             query = self.urlencode(self.extend({

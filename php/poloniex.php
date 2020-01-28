@@ -330,16 +330,14 @@ class poloniex extends Exchange {
         return $orderbook;
     }
 
-    public function fetch_order_books ($symbols = null, $params = array ()) {
+    public function fetch_order_books ($symbols = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'currencyPair' => 'all',
         );
-        //
-        //     if (limit !== null) {
-        //         $request['depth'] = limit; // 100
-        //     }
-        //
+        if ($limit !== null) {
+            $request['depth'] = $limit; // 100
+        }
         $response = $this->publicGetReturnOrderBook (array_merge($request, $params));
         $marketIds = is_array($response) ? array_keys($response) : array();
         $result = array();

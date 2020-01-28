@@ -435,7 +435,7 @@ class dsx(Exchange):
         orderbook = response[market['id']]
         return self.parse_order_book(orderbook)
 
-    def fetch_order_books(self, symbols=None, params={}):
+    def fetch_order_books(self, symbols=None, limit=None, params={}):
         self.load_markets()
         ids = None
         if symbols is None:
@@ -450,6 +450,8 @@ class dsx(Exchange):
         request = {
             'pair': ids,
         }
+        if limit is not None:
+            request['limit'] = limit  # default = 150, max = 2000
         response = self.publicGetDepthPair(self.extend(request, params))
         result = {}
         ids = list(response.keys())

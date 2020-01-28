@@ -638,7 +638,7 @@ class exmo extends Exchange {
         return $this->parse_order_book($result, null, 'bid', 'ask');
     }
 
-    public function fetch_order_books ($symbols = null, $params = array ()) {
+    public function fetch_order_books ($symbols = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $ids = null;
         if ($symbols === null) {
@@ -655,6 +655,9 @@ class exmo extends Exchange {
         $request = array(
             'pair' => $ids,
         );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
         $response = $this->publicGetOrderBook (array_merge($request, $params));
         $result = array();
         $marketIds = is_array($response) ? array_keys($response) : array();

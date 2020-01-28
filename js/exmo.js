@@ -633,7 +633,7 @@ module.exports = class exmo extends Exchange {
         return this.parseOrderBook (result, undefined, 'bid', 'ask');
     }
 
-    async fetchOrderBooks (symbols = undefined, params = {}) {
+    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
         if (symbols === undefined) {
@@ -650,6 +650,9 @@ module.exports = class exmo extends Exchange {
         const request = {
             'pair': ids,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const response = await this.publicGetOrderBook (this.extend (request, params));
         const result = {};
         const marketIds = Object.keys (response);

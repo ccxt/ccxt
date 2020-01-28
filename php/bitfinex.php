@@ -546,11 +546,19 @@ class bitfinex extends Exchange {
         } else {
             $key = 'base';
         }
+        $code = $market[$key];
+        $currency = $this->safe_value($this->currencies, $code);
+        if ($currency !== null) {
+            $precision = $this->safe_integer($currency, 'precision');
+            if ($precision !== null) {
+                $cost = floatval ($this->currency_to_precision($code, $cost));
+            }
+        }
         return array(
             'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
-            'cost' => floatval ($this->currency_to_precision($market[$key], $cost)),
+            'cost' => $cost,
         );
     }
 

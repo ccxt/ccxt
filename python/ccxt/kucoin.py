@@ -30,7 +30,7 @@ class kucoin(Exchange):
             'countries': ['SC'],
             'rateLimit': 334,
             'version': 'v2',
-            'certified': True,
+            'certified': False,
             'comment': 'Platform 2.0',
             'has': {
                 'fetchTime': True,
