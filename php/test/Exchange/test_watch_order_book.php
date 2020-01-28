@@ -10,8 +10,8 @@ function test_watch_order_book($exchange, $symbol) {
 
     $future = new \ccxtpro\Future();
 
-    function tick($iteration, $maxIterations, &$future, $method, ... $args) {
-        $method(... $args)->then(function($result) use ($iteration, $maxIterations, &$future, $method, $args) {
+    function tick($iteration, $maxIterations, $future, $method, ... $args) {
+        $method(... $args)->then(function($result) use ($iteration, $maxIterations, $future, $method, $args) {
             print_orderbook($result);
             if ($iteration < $maxIterations) {
                 tick(++$iteration, $maxIterations, $future, $method, ...$args);
