@@ -17,7 +17,11 @@ before_install:
 - pip install --upgrade web3 aiohttp requests cryptography pyopenssl
 - pip2 install requests[security]
 - git pull --tags
+- sudo apt-get install php-pear
+- sudo apt-get install php-dev
+- sudo apt-get install libcurl4-openssl-dev
 - sudo pecl install ds
+- sudo cat /etc/php/7.0/mods-available/ds.ini
 - composer install
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
