@@ -21,8 +21,8 @@ before_install:
 - sudo apt-get install libcurl4-openssl-dev
 - sudo pecl install ds
 - php -i | grep php.ini
-- echo "extension=/usr/lib/php/20151012/ds.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
-- sudo cat !/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+- sudo echo "extension=/usr/lib/php/20151012/ds.so" >> /home/travis/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+- sudo cat /home/travis/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 - composer install
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
