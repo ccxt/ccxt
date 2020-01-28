@@ -12,7 +12,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchTicker': true,
+                'watchTicker': false,
                 'watchOrderBook': true,
                 'watchBalance': false, // not implemented yet
             },
