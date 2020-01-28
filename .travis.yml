@@ -22,7 +22,7 @@ before_install:
 - sudo pecl install ds
 - php -i | grep php.ini
 - sudo echo "extension=ds.so" >> /home/travis/.phpenv/versions/$(phpenv version-name)/etc/php.ini
-- sudo copy /usr/lib/php/20151012/ds.so /home/travis/.phpenv/versions/$(phpenv version-name)/lib/php/extensions/no-debug-zts-20170718/
+- sudo cp /usr/lib/php/20151012/ds.so /home/travis/.phpenv/versions/$(phpenv version-name)/lib/php/extensions/no-debug-zts-20170718/
 - sudo tail /home/travis/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 - composer install
 script:
