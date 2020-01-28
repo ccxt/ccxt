@@ -65,6 +65,7 @@
     "lakebtc":       { "skip": true },
     "latoken":       { "skip": true },
     "lbank":         { "skip": true },
+    "liquid":        { "skip": true },
     "livecoin":      { "skip": true },
     "luno":          { "skip": true },
     "mandala":       { "skip": true },
