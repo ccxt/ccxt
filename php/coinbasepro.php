@@ -306,32 +306,56 @@ class coinbasepro extends Exchange {
         $request = array(
             'id' => $market['id'],
         );
-        $ticker = $this->publicGetProductsIdTicker (array_merge($request, $params));
-        $timestamp = $this->parse8601 ($this->safe_value($ticker, 'time'));
-        $bid = $this->safe_float($ticker, 'bid');
-        $ask = $this->safe_float($ticker, 'ask');
-        $last = $this->safe_float($ticker, 'price');
+        // publicGetProductsIdTicker or publicGetProductsIdStats
+        $method = $this->safe_string($this->options, 'fetchTickerMethod', 'publicGetProductsIdTicker');
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // publicGetProductsIdTicker
+        //
+        //     {
+        //         "trade_id":843439,
+        //         "price":"0.997999",
+        //         "size":"80.29769",
+        //         "time":"2020-01-28T02:13:33.012523Z",
+        //         "$bid":"0.997094",
+        //         "$ask":"0.998",
+        //         "volume":"1903188.03750000"
+        //     }
+        //
+        // publicGetProductsIdStats
+        //
+        //     {
+        //         "open" => "34.19000000",
+        //         "high" => "95.70000000",
+        //         "low" => "7.06000000",
+        //         "volume" => "2.41000000"
+        //     }
+        //
+        $timestamp = $this->parse8601 ($this->safe_value($response, 'time'));
+        $bid = $this->safe_float($response, 'bid');
+        $ask = $this->safe_float($response, 'ask');
+        $last = $this->safe_float($response, 'price');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => null,
-            'low' => null,
+            'high' => $this->safe_float($response, 'high'),
+            'low' => $this->safe_float($response, 'low'),
             'bid' => $bid,
             'bidVolume' => null,
             'ask' => $ask,
             'askVolume' => null,
             'vwap' => null,
-            'open' => null,
+            'open' => $this->safe_float($response, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'volume'),
+            'baseVolume' => $this->safe_float($response, 'volume'),
             'quoteVolume' => null,
-            'info' => $ticker,
+            'info' => $response,
         );
     }
 
