@@ -30,9 +30,6 @@ script:
   npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
 - cp package.json LICENSE.txt keys.json python
 - npm run build
-- cd python
-- tox -e doc
-- cd ..
 - travis_terminate 0
 - npm run test-base
 - set +e
