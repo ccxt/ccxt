@@ -22,15 +22,90 @@ class bitfinex extends \ccxt\bitfinex {
             'urls' => array(
                 'api' => array(
                     'ws' => array(
-                        'public' => 'wss://api-pub.bitfinex.com/ws/2',
-                        'private' => 'wss://api.bitfinex.com',
+                        'public' => 'wss://api.bitfinex.com/ws/1',
+                        'private' => 'wss://api.bitfinex.com/ws/1',
                     ),
                 ),
             ),
-            'options' => array(
-                'subscriptionsByChannelId' => array(),
-            ),
         ));
+    }
+
+    public function watch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $marketId = $market['id'];
+        $url = $this->urls['api']['ws']['public'];
+        $channel = 'ticker';
+        $request = array(
+            'event' => 'subscribe',
+            'channel' => $channel,
+            'symbol' => $marketId,
+        );
+        $messageHash = $channel . ':' . $marketId;
+        return $this->watch ($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
+    }
+
+    public function handle_ticker ($client, $message, $subscription) {
+        //
+        //     array(
+        //         1231,
+        //         'hb',
+        //     )
+        //
+        if ($message[1] === 'hb') {
+            return; // skip ticker heartbeats
+        }
+        //
+        //     array(
+        //         2,             // 0 CHANNEL_ID integer Channel ID
+        //         236.62,        // 1 BID float Price of $last highest bid
+        //         9.0029,        // 2 BID_SIZE float Size of the $last highest bid
+        //         236.88,        // 3 ASK float Price of $last lowest ask
+        //         7.1138,        // 4 ASK_SIZE float Size of the $last lowest ask
+        //         -1.02,         // 5 DAILY_CHANGE float Amount that the $last price has changed since yesterday
+        //         0,             // 6 DAILY_CHANGE_PERC float Amount that the price has changed expressed in percentage terms
+        //         236.52,        // 7 LAST_PRICE float Price of the $last trade.
+        //         5191.36754297, // 8 VOLUME float Daily volume
+        //         250.01,        // 9 HIGH float Daily high
+        //         220.05,        // 10 LOW float Daily low
+        //     )
+        //
+        $timestamp = $this->milliseconds ();
+        $marketId = $this->safe_string($subscription, 'pair');
+        $market = $this->markets_by_id[$marketId];
+        $symbol = $market['symbol'];
+        $channel = 'ticker';
+        $messageHash = $channel . ':' . $marketId;
+        $last = $this->safe_float($message, 7);
+        $change = $this->safe_float($message, 5);
+        $open = null;
+        if (($last !== null) && ($change !== null)) {
+            $open = $last - $change;
+        }
+        $result = array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => $this->safe_float($message, 9),
+            'low' => $this->safe_float($message, 10),
+            'bid' => $this->safe_float($message, 1),
+            'bidVolume' => null,
+            'ask' => $this->safe_float($message, 3),
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => $open,
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
+            'change' => $change,
+            'percentage' => $this->safe_float($message, 6),
+            'average' => null,
+            'baseVolume' => $this->safe_float($message, 8),
+            'quoteVolume' => null,
+            'info' => $message,
+        );
+        $this->tickers[$symbol] = $result;
+        $client->resolve ($result, $messageHash);
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
@@ -59,12 +134,12 @@ class bitfinex extends \ccxt\bitfinex {
         return $this->watch ($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
     }
 
-    public function handle_order_book ($client, $message) {
+    public function handle_order_book ($client, $message, $subscription) {
         //
         // first $message (snapshot)
         //
         //     array(
-        //         18691, // channel id
+        //         18691, // $channel id
         //         array(
         //             array( 7364.8, 10, 4.354802 ), // price, count, size > 0 = bid
         //             array( 7364.7, 1, 0.00288831 ),
@@ -78,28 +153,15 @@ class bitfinex extends \ccxt\bitfinex {
         // subsequent updates
         //
         //     array(
-        //         39393, // channel id
+        //         39393, // $channel id
         //         array( 7138.9, 0, -1 ), // price, count, size, size > 0 = bid, size < 0 = ask
         //     )
-        //
-        $channelId = (string) $message[0];
-        $subscription = $this->safe_value($this->options['subscriptionsByChannelId'], $channelId, array());
-        //
-        //     {
-        //         event => 'subscribed',
-        //         channel => 'book',
-        //         chanId => 67473,
-        //         $symbol => 'tBTCUSD', // v2 id
-        //         prec => 'P0',
-        //         freq => 'F0',
-        //         len => '25',
-        //         pair => 'BTCUSD', // v1 id
-        //     }
         //
         $marketId = $this->safe_string($subscription, 'pair');
         $market = $this->markets_by_id[$marketId];
         $symbol = $market['symbol'];
-        $messageHash = 'book:' . $marketId;
+        $channel = 'book';
+        $messageHash = $channel . ':' . $marketId;
         // if it is an initial snapshot
         if (gettype($message[1][0]) === 'array' && count(array_filter(array_keys($message[1][0]), 'is_string')) == 0) {
             $limit = $this->safe_integer($subscription, 'len');
@@ -171,7 +233,7 @@ class bitfinex extends \ccxt\bitfinex {
         //     }
         //
         $channelId = $this->safe_string($message, 'chanId');
-        $this->options['subscriptionsByChannelId'][$channelId] = $message;
+        $client->subscriptions[$channelId] = $message;
         return $message;
     }
 
@@ -184,19 +246,19 @@ class bitfinex extends \ccxt\bitfinex {
         // var_dump (new Date (), $message);
         if (gettype($message) === 'array' && count(array_filter(array_keys($message), 'is_string')) == 0) {
             $channelId = (string) $message[0];
-            $subscription = $this->safe_value($this->options['subscriptionsByChannelId'], $channelId, array());
+            $subscription = $this->safe_value($client->subscriptions, $channelId, array());
             $channel = $this->safe_string($subscription, 'channel');
             $methods = array(
                 'book' => array($this, 'handle_order_book'),
                 // 'ohlc' => $this->handleOHLCV,
-                // 'ticker' => $this->handleTicker,
+                'ticker' => array($this, 'handle_ticker'),
                 // 'trade' => $this->handleTrades,
             );
             $method = $this->safe_value($methods, $channel);
             if ($method === null) {
                 return $message;
             } else {
-                return $method($client, $message);
+                return $method($client, $message, $subscription);
             }
         } else {
             // todo => add bitfinex handleErrorMessage

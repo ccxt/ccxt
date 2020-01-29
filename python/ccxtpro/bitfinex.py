@@ -19,15 +19,86 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
             'urls': {
                 'api': {
                     'ws': {
-                        'public': 'wss://api-pub.bitfinex.com/ws/2',
-                        'private': 'wss://api.bitfinex.com',
+                        'public': 'wss://api.bitfinex.com/ws/1',
+                        'private': 'wss://api.bitfinex.com/ws/1',
                     },
                 },
             },
-            'options': {
-                'subscriptionsByChannelId': {},
-            },
         })
+
+    async def watch_ticker(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        marketId = market['id']
+        url = self.urls['api']['ws']['public']
+        channel = 'ticker'
+        request = {
+            'event': 'subscribe',
+            'channel': channel,
+            'symbol': marketId,
+        }
+        messageHash = channel + ':' + marketId
+        return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+
+    def handle_ticker(self, client, message, subscription):
+        #
+        #     [
+        #         1231,
+        #         'hb',
+        #     ]
+        #
+        if message[1] == 'hb':
+            return  # skip ticker heartbeats
+        #
+        #     [
+        #         2,             # 0 CHANNEL_ID integer Channel ID
+        #         236.62,        # 1 BID float Price of last highest bid
+        #         9.0029,        # 2 BID_SIZE float Size of the last highest bid
+        #         236.88,        # 3 ASK float Price of last lowest ask
+        #         7.1138,        # 4 ASK_SIZE float Size of the last lowest ask
+        #         -1.02,         # 5 DAILY_CHANGE float Amount that the last price has changed since yesterday
+        #         0,             # 6 DAILY_CHANGE_PERC float Amount that the price has changed expressed in percentage terms
+        #         236.52,        # 7 LAST_PRICE float Price of the last trade.
+        #         5191.36754297,  # 8 VOLUME float Daily volume
+        #         250.01,        # 9 HIGH float Daily high
+        #         220.05,        # 10 LOW float Daily low
+        #     ]
+        #
+        timestamp = self.milliseconds()
+        marketId = self.safe_string(subscription, 'pair')
+        market = self.markets_by_id[marketId]
+        symbol = market['symbol']
+        channel = 'ticker'
+        messageHash = channel + ':' + marketId
+        last = self.safe_float(message, 7)
+        change = self.safe_float(message, 5)
+        open = None
+        if (last is not None) and (change is not None):
+            open = last - change
+        result = {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_float(message, 9),
+            'low': self.safe_float(message, 10),
+            'bid': self.safe_float(message, 1),
+            'bidVolume': None,
+            'ask': self.safe_float(message, 3),
+            'askVolume': None,
+            'vwap': None,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': change,
+            'percentage': self.safe_float(message, 6),
+            'average': None,
+            'baseVolume': self.safe_float(message, 8),
+            'quoteVolume': None,
+            'info': message,
+        }
+        self.tickers[symbol] = result
+        client.resolve(result, messageHash)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         if limit is not None:
@@ -51,7 +122,7 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
         messageHash = channel + ':' + marketId
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client, message, subscription):
         #
         # first message(snapshot)
         #
@@ -74,24 +145,11 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
         #         [7138.9, 0, -1],  # price, count, size, size > 0 = bid, size < 0 = ask
         #     ]
         #
-        channelId = str(message[0])
-        subscription = self.safe_value(self.options['subscriptionsByChannelId'], channelId, {})
-        #
-        #     {
-        #         event: 'subscribed',
-        #         channel: 'book',
-        #         chanId: 67473,
-        #         symbol: 'tBTCUSD',  # v2 id
-        #         prec: 'P0',
-        #         freq: 'F0',
-        #         len: '25',
-        #         pair: 'BTCUSD',  # v1 id
-        #     }
-        #
         marketId = self.safe_string(subscription, 'pair')
         market = self.markets_by_id[marketId]
         symbol = market['symbol']
-        messageHash = 'book:' + marketId
+        channel = 'book'
+        messageHash = channel + ':' + marketId
         # if it is an initial snapshot
         if isinstance(message[1][0], list):
             limit = self.safe_integer(subscription, 'len')
@@ -157,7 +215,7 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
         #     }
         #
         channelId = self.safe_string(message, 'chanId')
-        self.options['subscriptionsByChannelId'][channelId] = message
+        client.subscriptions[channelId] = message
         return message
 
     def sign_message(self, client, messageHash, message, params={}):
@@ -168,19 +226,19 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
         # print(new Date(), message)
         if isinstance(message, list):
             channelId = str(message[0])
-            subscription = self.safe_value(self.options['subscriptionsByChannelId'], channelId, {})
+            subscription = self.safe_value(client.subscriptions, channelId, {})
             channel = self.safe_string(subscription, 'channel')
             methods = {
                 'book': self.handle_order_book,
                 # 'ohlc': self.handleOHLCV,
-                # 'ticker': self.handleTicker,
+                'ticker': self.handle_ticker,
                 # 'trade': self.handleTrades,
             }
             method = self.safe_value(methods, channel)
             if method is None:
                 return message
             else:
-                return method(client, message)
+                return method(client, message, subscription)
         else:
             # todo: add bitfinex handleErrorMessage
             #
