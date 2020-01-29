@@ -6,7 +6,7 @@ from exchange.test_order_book import test_order_book
 async def test_watch_order_book(exchange, symbol):
     # log (symbol.green, 'watching order book...')
     method = 'watchOrderBook'
-    if exchange.has[method]:
+    if (method in exchange.has) and exchange.has[method]:
         response = None
         for i in range(0, 10):
             response = await getattr(exchange, method)(symbol)
