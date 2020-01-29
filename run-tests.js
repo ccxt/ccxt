@@ -49,7 +49,8 @@ if (!exchanges.length) {
 // ----------------------------------------------------------------------------
 
 const sleep = s => new Promise (resolve => setTimeout (resolve, s))
-const timeout = (s, promise) => Promise.race ([ promise, sleep (s).then (() => { throw new Error ('timed out') }) ])
+const timeout = (s, promise) => Promise.race ([ promise, sleep (s).then (() => { throw new Error ('Test execution took longer than ' + maxTimeout.toString () + ' milliseconds, testing timed out.') }) ])
+const maxTimeout = 180000 // 3 minutes
 
 // ----------------------------------------------------------------------------
 
@@ -59,7 +60,7 @@ const exec = (bin, ...args) =>
     // stderr,  not separating them into distinct buffers — so that we can show
     // the same output as if it were running in a terminal.
 
-    timeout (120000, new Promise (return_ => {
+    timeout (maxTimeout, new Promise (return_ => {
 
         const ps = spawn (bin, args)
 
