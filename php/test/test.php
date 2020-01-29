@@ -5,6 +5,7 @@ date_default_timezone_set('UTC');
 
 require_once 'vendor/autoload.php';
 include_once 'php/test/Exchange/test_watch_order_book.php';
+include_once 'php/test/Exchange/test_watch_ticker.php';
 
 if (count($argv) < 2) {
     echo "Exchange id not specified\n";
@@ -31,13 +32,15 @@ $id = $argv[1];
 function test_public($exchange, $symbol) {
     echo "test_public\n";
     $future = new \ccxtpro\Future();
-    return test_watch_order_book($exchange, $symbol)->then(function() use ($exchange, $symbol, $future) {
-        // test_watch_ticker($exchange, $symbol)->then(function() use ($exchange, $symbol, &$future) {
-        //     test_watch_trades($exchange, $symbol)->then(function() use ($exchange, $symbol, &$future) {
+    //
+    test_watch_order_book($exchange, $symbol)->then(function() use ($exchange, $symbol, $future) {
+        test_watch_ticker($exchange, $symbol)->then(function() use ($exchange, $symbol, $future) {
+        //     test_watch_trades($exchange, $symbol)->then(function() use ($exchange, $symbol, $future) {
                 $future->resolve(true);
         //     });
-        // });
+        });
     });
+    //
     return $future;
 };
 
@@ -58,8 +61,8 @@ function test_exchange($exchange) {
     $delay = $exchange->rateLimit * 1000;
     $symbol = is_array($exchange->symbols) ? current($exchange->symbols) : '';
     $symbols = array(
-        'BTC/USDT',
         'BTC/USD',
+        'BTC/USDT',
         'BTC/CNY',
         'BTC/EUR',
         'BTC/ETH',
