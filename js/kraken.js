@@ -68,26 +68,26 @@ module.exports = class kraken extends ccxt.kraken {
         const market = this.safeValue (this.options['marketsByWsName'], wsName);
         const symbol = market['symbol'];
         const ticker = message[1];
-        const vwap = parseFloat (ticker['p'][0]);
+        const vwap = this.safeFloat (ticker['p'], 0);
         let quoteVolume = undefined;
-        const baseVolume = parseFloat (ticker['v'][0]);
+        const baseVolume = this.safeFloat (ticker['v'], 0);
         if (baseVolume !== undefined && vwap !== undefined) {
             quoteVolume = baseVolume * vwap;
         }
-        const last = parseFloat (ticker['c'][0]);
+        const last = this.safeFloat (ticker['c'], 0);
         const timestamp = this.milliseconds ();
         const result = {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['h'][0]),
-            'low': parseFloat (ticker['l'][0]),
-            'bid': parseFloat (ticker['b'][0]),
-            'bidVolume': parseFloat (ticker['b'][2]),
-            'ask': parseFloat (ticker['a'][0]),
-            'askVolume': parseFloat (ticker['a'][2]),
+            'high': this.safeFloat (ticker['h'], 0),
+            'low': this.safeFloat (ticker['l'], 0),
+            'bid': this.safeFloat (ticker['b'], 0),
+            'bidVolume': this.safeFloat (ticker['b'], 2),
+            'ask': this.safeFloat (ticker['a'], 0),
+            'askVolume': this.safeFloat (ticker['a'], 2),
             'vwap': vwap,
-            'open': parseFloat (ticker['o'][0]),
+            'open': this.safeFloat (ticker['o'], 0),
             'close': last,
             'last': last,
             'previousClose': undefined,
@@ -101,8 +101,7 @@ module.exports = class kraken extends ccxt.kraken {
         // todo: add support for multiple tickers (may be tricky)
         // kraken confirms multi-pair subscriptions separately one by one
         // trigger correct watchTickers calls upon receiving any of symbols
-        // --------------------------------------------------------------------
-        // if there's a corresponding watchTicker call - trigger it
+        this.tickers[symbol] = result;
         client.resolve (result, messageHash);
     }
 

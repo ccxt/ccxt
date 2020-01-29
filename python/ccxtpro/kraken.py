@@ -71,25 +71,25 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         market = self.safe_value(self.options['marketsByWsName'], wsName)
         symbol = market['symbol']
         ticker = message[1]
-        vwap = float(ticker['p'][0])
+        vwap = self.safe_float(ticker['p'], 0)
         quoteVolume = None
-        baseVolume = float(ticker['v'][0])
+        baseVolume = self.safe_float(ticker['v'], 0)
         if baseVolume is not None and vwap is not None:
             quoteVolume = baseVolume * vwap
-        last = float(ticker['c'][0])
+        last = self.safe_float(ticker['c'], 0)
         timestamp = self.milliseconds()
         result = {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['h'][0]),
-            'low': float(ticker['l'][0]),
-            'bid': float(ticker['b'][0]),
-            'bidVolume': float(ticker['b'][2]),
-            'ask': float(ticker['a'][0]),
-            'askVolume': float(ticker['a'][2]),
+            'high': self.safe_float(ticker['h'], 0),
+            'low': self.safe_float(ticker['l'], 0),
+            'bid': self.safe_float(ticker['b'], 0),
+            'bidVolume': self.safe_float(ticker['b'], 2),
+            'ask': self.safe_float(ticker['a'], 0),
+            'askVolume': self.safe_float(ticker['a'], 2),
             'vwap': vwap,
-            'open': float(ticker['o'][0]),
+            'open': self.safe_float(ticker['o'], 0),
             'close': last,
             'last': last,
             'previousClose': None,
@@ -103,8 +103,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         # todo: add support for multiple tickers(may be tricky)
         # kraken confirms multi-pair subscriptions separately one by one
         # trigger correct watchTickers calls upon receiving any of symbols
-        # --------------------------------------------------------------------
-        # if there's a corresponding watchTicker call - trigger it
+        self.tickers[symbol] = result
         client.resolve(result, messageHash)
 
     async def watch_balance(self, params={}):

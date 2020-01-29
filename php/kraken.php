@@ -73,26 +73,26 @@ class kraken extends \ccxt\kraken {
         $market = $this->safe_value($this->options['marketsByWsName'], $wsName);
         $symbol = $market['symbol'];
         $ticker = $message[1];
-        $vwap = floatval ($ticker['p'][0]);
+        $vwap = $this->safe_float($ticker['p'], 0);
         $quoteVolume = null;
-        $baseVolume = floatval ($ticker['v'][0]);
+        $baseVolume = $this->safe_float($ticker['v'], 0);
         if ($baseVolume !== null && $vwap !== null) {
             $quoteVolume = $baseVolume * $vwap;
         }
-        $last = floatval ($ticker['c'][0]);
+        $last = $this->safe_float($ticker['c'], 0);
         $timestamp = $this->milliseconds ();
         $result = array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['h'][0]),
-            'low' => floatval ($ticker['l'][0]),
-            'bid' => floatval ($ticker['b'][0]),
-            'bidVolume' => floatval ($ticker['b'][2]),
-            'ask' => floatval ($ticker['a'][0]),
-            'askVolume' => floatval ($ticker['a'][2]),
+            'high' => $this->safe_float($ticker['h'], 0),
+            'low' => $this->safe_float($ticker['l'], 0),
+            'bid' => $this->safe_float($ticker['b'], 0),
+            'bidVolume' => $this->safe_float($ticker['b'], 2),
+            'ask' => $this->safe_float($ticker['a'], 0),
+            'askVolume' => $this->safe_float($ticker['a'], 2),
             'vwap' => $vwap,
-            'open' => floatval ($ticker['o'][0]),
+            'open' => $this->safe_float($ticker['o'], 0),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
@@ -106,8 +106,7 @@ class kraken extends \ccxt\kraken {
         // todo => add support for multiple tickers (may be tricky)
         // kraken confirms multi-pair subscriptions separately one by one
         // trigger correct watchTickers calls upon receiving any of symbols
-        // --------------------------------------------------------------------
-        // if there's a corresponding watchTicker call - trigger it
+        $this->tickers[$symbol] = $result;
         $client->resolve ($result, $messageHash);
     }
 
