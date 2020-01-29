@@ -7,11 +7,11 @@ async def test_watch_order_book(exchange, symbol):
     # log (symbol.green, 'watching order book...')
     method = 'watchOrderBook'
     if exchange.has[method]:
-        orderbook = None
+        response = None
         for i in range(0, 10):
-            orderbook = await getattr(exchange, method)(symbol)
-            test_order_book(exchange, orderbook, method, symbol)
-        return orderbook
+            response = await getattr(exchange, method)(symbol)
+            test_order_book(exchange, response, method, symbol)
+        return response
     else:
         print(method, 'not supported')
 
