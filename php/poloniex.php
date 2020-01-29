@@ -356,23 +356,23 @@ class poloniex extends \ccxt\poloniex {
 
     public function handle_message ($client, $message) {
         $channelId = $this->safe_string($message, 0);
-        $market = $this->safe_value($this->options['marketsByNumericId'], $channelId);
-        if ($market === null) {
-            $methods = array(
-                // '<numericId>' => 'handleOrderBookAndTrades', // Price Aggregated Book
-                '1000' => array($this, 'handle_account_notifications'), // Beta
-                '1002' => array($this, 'handle_tickers'), // Ticker Data
-                // '1003' => null, // 24 Hour Exchange Volume
-                '1010' => array($this, 'handle_heartbeat'),
-            );
-            $method = $this->safe_value($methods, $channelId);
-            if ($method === null) {
+        $methods = array(
+            // '<numericId>' => 'handleOrderBookAndTrades', // Price Aggregated Book
+            '1000' => array($this, 'handle_account_notifications'), // Beta
+            '1002' => array($this, 'handle_tickers'), // Ticker Data
+            // '1003' => null, // 24 Hour Exchange Volume
+            '1010' => array($this, 'handle_heartbeat'),
+        );
+        $method = $this->safe_value($methods, $channelId);
+        if ($method === null) {
+            $market = $this->safe_value($this->options['marketsByNumericId'], $channelId);
+            if ($market === null) {
                 return $message;
             } else {
-                $method($client, $message);
+                return $this->handle_order_book_and_trades ($client, $message);
             }
         } else {
-            return $this->handle_order_book_and_trades ($client, $message);
+            $method($client, $message);
         }
     }
 }
