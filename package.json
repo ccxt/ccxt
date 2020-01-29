@@ -35,8 +35,8 @@
   },
   "types": "./ccxt.pro.d.ts",
   "dependencies": {
-    "ccxt": "^1.22.1",
-    "ws": "^7.2.0"
+    "ccxt": "^1.22.3",
+    "ws": "^7.2.1"
   },
   "devDependencies": {
     "ansicolor": "1.1.81",
