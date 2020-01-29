@@ -149,7 +149,6 @@ class Exchange(object):
         },
     }
     ids = None
-    tickers = None
     api = None
     parseJsonResponse = True
     proxy = ''
@@ -214,6 +213,7 @@ class Exchange(object):
     trades = None
     transactions = None
     ohlcvs = None
+    tickers = None
     currencies = None
     options = None  # Python does not allow to define properties in run-time with setattr
     accounts = None
@@ -318,6 +318,7 @@ class Exchange(object):
         self.balance = dict() if self.balance is None else self.balance
         self.orderbooks = dict() if self.orderbooks is None else self.orderbooks
         self.orders = dict() if self.orders is None else self.orders
+        self.tickers = dict() if self.tickers is None else self.tickers
         self.trades = dict() if self.trades is None else self.trades
         self.transactions = dict() if self.transactions is None else self.transactions
         self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
