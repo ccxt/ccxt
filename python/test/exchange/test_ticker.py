@@ -8,5 +8,6 @@ def test_ticker(exchange, ticker, method, symbol):
         exchange.id,
         symbol,
         method,
+        ticker['datetime'],
         ticker['last']
     )
