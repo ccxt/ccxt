@@ -14,7 +14,6 @@ const asTable   = require ('as-table')
     , fs        = require ('fs')
     , ccxt      = require ('../../ccxt.js')
     , chai      = require ('chai')
-    , expect    = chai.expect
     , assert    = chai.assert
 
 /*  ------------------------------------------------------------------------ */
