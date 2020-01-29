@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.22.4",
+            "version": "1.22.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "5b999aaff654ea59e810a83e32a011709d876b77"
+                "reference": "ee36d530b411812b686921eb69f6f7c96065185e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/5b999aaff654ea59e810a83e32a011709d876b77",
-                "reference": "5b999aaff654ea59e810a83e32a011709d876b77",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/ee36d530b411812b686921eb69f6f7c96065185e",
+                "reference": "ee36d530b411812b686921eb69f6f7c96065185e",
                 "shasum": ""
             },
             "require": {
@@ -269,7 +269,7 @@
                 "zec",
                 "zerocoin"
             ],
-            "time": "2020-01-29T05:49:47+00:00"
+            "time": "2020-01-29T06:27:27+00:00"
         },
         {
             "name": "evenement/evenement",
