@@ -13,6 +13,7 @@ module.exports = class kraken extends ccxt.kraken {
             'has': {
                 'ws': true,
                 'watchTicker': true,
+                'watchTickers': false, // for now
                 'watchOrderBook': true,
             },
             'urls': {

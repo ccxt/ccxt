@@ -18,6 +18,7 @@ class kraken extends \ccxt\kraken {
             'has' => array(
                 'ws' => true,
                 'watchTicker' => true,
+                'watchTickers' => false, // for now
                 'watchOrderBook' => true,
             ),
             'urls' => array(

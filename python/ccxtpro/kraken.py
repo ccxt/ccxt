@@ -17,6 +17,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
             'has': {
                 'ws': True,
                 'watchTicker': True,
+                'watchTickers': False,  # for now
                 'watchOrderBook': True,
             },
             'urls': {
