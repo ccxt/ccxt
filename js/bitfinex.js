@@ -126,7 +126,12 @@ module.exports = class bitfinex extends ccxt.bitfinex {
             request['len'] = limit.toString ();
         }
         const messageHash = channel + ':' + marketId;
-        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const future = this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+    }
+
+    limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
+        return orderbook.limit (limit);
     }
 
     handleOrderBook (client, message, subscription) {
@@ -148,8 +153,10 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         // subsequent updates
         //
         //     [
-        //         39393, // channel id
-        //         [ 7138.9, 0, -1 ], // price, count, size, size > 0 = bid, size < 0 = ask
+        //         30,     // channel id
+        //         9339.9, // price
+        //         0,      // count
+        //         -1,     // size > 0 = bid, size < 0 = ask
         //     ]
         //
         const marketId = this.safeString (subscription, 'pair');
@@ -158,34 +165,31 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         const channel = 'book';
         const messageHash = channel + ':' + marketId;
         // if it is an initial snapshot
-        if (Array.isArray (message[1][0])) {
+        if (Array.isArray (message[1])) {
             const limit = this.safeInteger (subscription, 'len');
             this.orderbooks[symbol] = this.countedOrderBook ({}, limit);
             const orderbook = this.orderbooks[symbol];
             const deltas = message[1];
             for (let i = 0; i < deltas.length; i++) {
                 const delta = deltas[i];
+                const price = delta[0];
+                const count = delta[1];
+                const amount = (delta[2] < 0) ? -delta[2] : delta[2];
                 const side = (delta[2] < 0) ? 'asks' : 'bids';
                 const bookside = orderbook[side];
-                this.handleDelta (bookside, delta);
+                bookside.store (price, amount, count);
             }
-            // the .limit () operation will be moved to the watchOrderBook
-            client.resolve (orderbook.limit (), messageHash);
+            client.resolve (orderbook, messageHash);
         } else {
             const orderbook = this.orderbooks[symbol];
-            const side = (message[1][2] < 0) ? 'asks' : 'bids';
+            const price = message[1];
+            const count = message[2];
+            const amount = (message[3] < 0) ? -message[3] : message[3];
+            const side = (message[3] < 0) ? 'asks' : 'bids';
             const bookside = orderbook[side];
-            this.handleDelta (bookside, message[1]);
-            // the .limit () operation will be moved to the watchOrderBook
-            client.resolve (orderbook.limit (), messageHash);
+            bookside.store (price, amount, count);
+            client.resolve (orderbook, messageHash);
         }
-    }
-
-    handleDelta (bookside, delta) {
-        const price = delta[0];
-        const count = delta[1];
-        const amount = (delta[2] < 0) ? -delta[2] : delta[2];
-        bookside.store (price, amount, count);
     }
 
     handleHeartbeat (client, message) {

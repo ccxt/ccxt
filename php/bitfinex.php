@@ -131,7 +131,12 @@ class bitfinex extends \ccxt\bitfinex {
             $request['len'] = (string) $limit;
         }
         $messageHash = $channel . ':' . $marketId;
-        return $this->watch ($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
+        $future = $this->watch ($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
+        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+    }
+
+    public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
+        return $orderbook->limit ($limit);
     }
 
     public function handle_order_book ($client, $message, $subscription) {
@@ -141,10 +146,10 @@ class bitfinex extends \ccxt\bitfinex {
         //     array(
         //         18691, // $channel id
         //         array(
-        //             array( 7364.8, 10, 4.354802 ), // price, count, size > 0 = bid
+        //             array( 7364.8, 10, 4.354802 ), // $price, $count, size > 0 = bid
         //             array( 7364.7, 1, 0.00288831 ),
         //             array( 7364.3, 12, 0.048 ),
-        //             array( 7364.9, 3, -0.42028976 ), // price, count, size < 0 = ask
+        //             array( 7364.9, 3, -0.42028976 ), // $price, $count, size < 0 = ask
         //             array( 7365, 1, -0.25 ),
         //             array( 7365.5, 1, -0.00371937 ),
         //         )
@@ -153,8 +158,10 @@ class bitfinex extends \ccxt\bitfinex {
         // subsequent updates
         //
         //     array(
-        //         39393, // $channel id
-        //         array( 7138.9, 0, -1 ), // price, count, size, size > 0 = bid, size < 0 = ask
+        //         30,     // $channel id
+        //         9339.9, // $price
+        //         0,      // $count
+        //         -1,     // size > 0 = bid, size < 0 = ask
         //     )
         //
         $marketId = $this->safe_string($subscription, 'pair');
@@ -163,34 +170,31 @@ class bitfinex extends \ccxt\bitfinex {
         $channel = 'book';
         $messageHash = $channel . ':' . $marketId;
         // if it is an initial snapshot
-        if (gettype($message[1][0]) === 'array' && count(array_filter(array_keys($message[1][0]), 'is_string')) == 0) {
+        if (gettype($message[1]) === 'array' && $count(array_filter(array_keys($message[1]), 'is_string')) == 0) {
             $limit = $this->safe_integer($subscription, 'len');
             $this->orderbooks[$symbol] = $this->counted_order_book (array(), $limit);
             $orderbook = $this->orderbooks[$symbol];
             $deltas = $message[1];
-            for ($i = 0; $i < count($deltas); $i++) {
+            for ($i = 0; $i < $count($deltas); $i++) {
                 $delta = $deltas[$i];
+                $price = $delta[0];
+                $count = $delta[1];
+                $amount = ($delta[2] < 0) ? -$delta[2] : $delta[2];
                 $side = ($delta[2] < 0) ? 'asks' : 'bids';
                 $bookside = $orderbook[$side];
-                $this->handle_delta ($bookside, $delta);
+                $bookside->store ($price, $amount, $count);
             }
-            // the .limit () operation will be moved to the watchOrderBook
-            $client->resolve ($orderbook->limit (), $messageHash);
+            $client->resolve ($orderbook, $messageHash);
         } else {
             $orderbook = $this->orderbooks[$symbol];
-            $side = ($message[1][2] < 0) ? 'asks' : 'bids';
+            $price = $message[1];
+            $count = $message[2];
+            $amount = ($message[3] < 0) ? -$message[3] : $message[3];
+            $side = ($message[3] < 0) ? 'asks' : 'bids';
             $bookside = $orderbook[$side];
-            $this->handle_delta ($bookside, $message[1]);
-            // the .limit () operation will be moved to the watchOrderBook
-            $client->resolve ($orderbook->limit (), $messageHash);
+            $bookside->store ($price, $amount, $count);
+            $client->resolve ($orderbook, $messageHash);
         }
-    }
-
-    public function handle_delta ($bookside, $delta) {
-        $price = $delta[0];
-        $count = $delta[1];
-        $amount = ($delta[2] < 0) ? -$delta[2] : $delta[2];
-        $bookside->store ($price, $amount, $count);
     }
 
     public function handle_heartbeat ($client, $message) {

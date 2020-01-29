@@ -120,7 +120,11 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
         if limit is not None:
             request['len'] = str(limit)
         messageHash = channel + ':' + marketId
-        return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+        future = self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+        return await self.after(future, self.limit_order_book, symbol, limit, params)
+
+    def limit_order_book(self, orderbook, symbol, limit=None, params={}):
+        return orderbook.limit(limit)
 
     def handle_order_book(self, client, message, subscription):
         #
@@ -141,8 +145,10 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
         # subsequent updates
         #
         #     [
-        #         39393,  # channel id
-        #         [7138.9, 0, -1],  # price, count, size, size > 0 = bid, size < 0 = ask
+        #         30,     # channel id
+        #         9339.9,  # price
+        #         0,      # count
+        #         -1,     # size > 0 = bid, size < 0 = ask
         #     ]
         #
         marketId = self.safe_string(subscription, 'pair')
@@ -151,31 +157,29 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
         channel = 'book'
         messageHash = channel + ':' + marketId
         # if it is an initial snapshot
-        if isinstance(message[1][0], list):
+        if isinstance(message[1], list):
             limit = self.safe_integer(subscription, 'len')
             self.orderbooks[symbol] = self.counted_order_book({}, limit)
             orderbook = self.orderbooks[symbol]
             deltas = message[1]
             for i in range(0, len(deltas)):
                 delta = deltas[i]
+                price = delta[0]
+                count = delta[1]
+                amount = -delta[2] if (delta[2] < 0) else delta[2]
                 side = 'asks' if (delta[2] < 0) else 'bids'
                 bookside = orderbook[side]
-                self.handle_delta(bookside, delta)
-            # the .limit() operation will be moved to the watchOrderBook
-            client.resolve(orderbook.limit(), messageHash)
+                bookside.store(price, amount, count)
+            client.resolve(orderbook, messageHash)
         else:
             orderbook = self.orderbooks[symbol]
-            side = 'asks' if (message[1][2] < 0) else 'bids'
+            price = message[1]
+            count = message[2]
+            amount = -message[3] if (message[3] < 0) else message[3]
+            side = 'asks' if (message[3] < 0) else 'bids'
             bookside = orderbook[side]
-            self.handle_delta(bookside, message[1])
-            # the .limit() operation will be moved to the watchOrderBook
-            client.resolve(orderbook.limit(), messageHash)
-
-    def handle_delta(self, bookside, delta):
-        price = delta[0]
-        count = delta[1]
-        amount = -delta[2] if (delta[2] < 0) else delta[2]
-        bookside.store(price, amount, count)
+            bookside.store(price, amount, count)
+            client.resolve(orderbook, messageHash)
 
     def handle_heartbeat(self, client, message):
         #
