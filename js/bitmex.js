@@ -13,6 +13,7 @@ module.exports = class bitmex extends ccxt.bitmex {
             'has': {
                 'ws': true,
                 'watchTicker': true,
+                'watchTickers': false,
                 'watchOrderBook': true,
             },
             'urls': {
@@ -39,67 +40,265 @@ module.exports = class bitmex extends ccxt.bitmex {
         });
     }
 
+    async watchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const name = 'instrument';
+        const messageHash = name + ':' + market['id'];
+        const url = this.urls['api']['ws'];
+        const request = {
+            'op': 'subscribe',
+            'args': [
+                messageHash,
+            ],
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+    }
+
     handleTicker (client, message) {
         //
-        //     [
-        //         0, // channelID
-        //         {
-        //             "a": [ "5525.40000", 1, "1.000" ], // ask, wholeAskVolume, askVolume
-        //             "b": [ "5525.10000", 1, "1.000" ], // bid, wholeBidVolume, bidVolume
-        //             "c": [ "5525.10000", "0.00398963" ], // closing price, volume
-        //             "h": [ "5783.00000", "5783.00000" ], // high price today, high price 24h ago
-        //             "l": [ "5505.00000", "5505.00000" ], // low price today, low price 24h ago
-        //             "o": [ "5760.70000", "5763.40000" ], // open price today, open price 24h ago
-        //             "p": [ "5631.44067", "5653.78939" ], // vwap today, vwap 24h ago
-        //             "t": [ 11493, 16267 ], // number of trades today, 24 hours ago
-        //             "v": [ "2634.11501494", "3591.17907851" ], // volume today, volume 24 hours ago
+        //     {
+        //         table: 'instrument',
+        //         action: 'partial',
+        //         keys: [ 'symbol' ],
+        //         types: {
+        //             symbol: 'symbol',
+        //             rootSymbol: 'symbol',
+        //             state: 'symbol',
+        //             typ: 'symbol',
+        //             listing: 'timestamp',
+        //             front: 'timestamp',
+        //             expiry: 'timestamp',
+        //             settle: 'timestamp',
+        //             relistInterval: 'timespan',
+        //             inverseLeg: 'symbol',
+        //             sellLeg: 'symbol',
+        //             buyLeg: 'symbol',
+        //             optionStrikePcnt: 'float',
+        //             optionStrikeRound: 'float',
+        //             optionStrikePrice: 'float',
+        //             optionMultiplier: 'float',
+        //             positionCurrency: 'symbol',
+        //             underlying: 'symbol',
+        //             quoteCurrency: 'symbol',
+        //             underlyingSymbol: 'symbol',
+        //             reference: 'symbol',
+        //             referenceSymbol: 'symbol',
+        //             calcInterval: 'timespan',
+        //             publishInterval: 'timespan',
+        //             publishTime: 'timespan',
+        //             maxOrderQty: 'long',
+        //             maxPrice: 'float',
+        //             lotSize: 'long',
+        //             tickSize: 'float',
+        //             multiplier: 'long',
+        //             settlCurrency: 'symbol',
+        //             underlyingToPositionMultiplier: 'long',
+        //             underlyingToSettleMultiplier: 'long',
+        //             quoteToSettleMultiplier: 'long',
+        //             isQuanto: 'boolean',
+        //             isInverse: 'boolean',
+        //             initMargin: 'float',
+        //             maintMargin: 'float',
+        //             riskLimit: 'long',
+        //             riskStep: 'long',
+        //             limit: 'float',
+        //             capped: 'boolean',
+        //             taxed: 'boolean',
+        //             deleverage: 'boolean',
+        //             makerFee: 'float',
+        //             takerFee: 'float',
+        //             settlementFee: 'float',
+        //             insuranceFee: 'float',
+        //             fundingBaseSymbol: 'symbol',
+        //             fundingQuoteSymbol: 'symbol',
+        //             fundingPremiumSymbol: 'symbol',
+        //             fundingTimestamp: 'timestamp',
+        //             fundingInterval: 'timespan',
+        //             fundingRate: 'float',
+        //             indicativeFundingRate: 'float',
+        //             rebalanceTimestamp: 'timestamp',
+        //             rebalanceInterval: 'timespan',
+        //             openingTimestamp: 'timestamp',
+        //             closingTimestamp: 'timestamp',
+        //             sessionInterval: 'timespan',
+        //             prevClosePrice: 'float',
+        //             limitDownPrice: 'float',
+        //             limitUpPrice: 'float',
+        //             bankruptLimitDownPrice: 'float',
+        //             bankruptLimitUpPrice: 'float',
+        //             prevTotalVolume: 'long',
+        //             totalVolume: 'long',
+        //             volume: 'long',
+        //             volume24h: 'long',
+        //             prevTotalTurnover: 'long',
+        //             totalTurnover: 'long',
+        //             turnover: 'long',
+        //             turnover24h: 'long',
+        //             homeNotional24h: 'float',
+        //             foreignNotional24h: 'float',
+        //             prevPrice24h: 'float',
+        //             vwap: 'float',
+        //             highPrice: 'float',
+        //             lowPrice: 'float',
+        //             lastPrice: 'float',
+        //             lastPriceProtected: 'float',
+        //             lastTickDirection: 'symbol',
+        //             lastChangePcnt: 'float',
+        //             bidPrice: 'float',
+        //             midPrice: 'float',
+        //             askPrice: 'float',
+        //             impactBidPrice: 'float',
+        //             impactMidPrice: 'float',
+        //             impactAskPrice: 'float',
+        //             hasLiquidity: 'boolean',
+        //             openInterest: 'long',
+        //             openValue: 'long',
+        //             fairMethod: 'symbol',
+        //             fairBasisRate: 'float',
+        //             fairBasis: 'float',
+        //             fairPrice: 'float',
+        //             markMethod: 'symbol',
+        //             markPrice: 'float',
+        //             indicativeTaxRate: 'float',
+        //             indicativeSettlePrice: 'float',
+        //             optionUnderlyingPrice: 'float',
+        //             settledPrice: 'float',
+        //             timestamp: 'timestamp'
         //         },
-        //         "ticker",
-        //         "XBT/USD"
-        //     ]
+        //         foreignKeys: {
+        //             inverseLeg: 'instrument',
+        //             sellLeg: 'instrument',
+        //             buyLeg: 'instrument'
+        //         },
+        //         attributes: { symbol: 'unique' },
+        //         filter: { symbol: 'XBTUSD' },
+        //         data: [
+        //             {
+        //                 symbol: 'XBTUSD',
+        //                 rootSymbol: 'XBT',
+        //                 state: 'Open',
+        //                 typ: 'FFWCSX',
+        //                 listing: '2016-05-13T12:00:00.000Z',
+        //                 front: '2016-05-13T12:00:00.000Z',
+        //                 expiry: null,
+        //                 settle: null,
+        //                 relistInterval: null,
+        //                 inverseLeg: '',
+        //                 sellLeg: '',
+        //                 buyLeg: '',
+        //                 optionStrikePcnt: null,
+        //                 optionStrikeRound: null,
+        //                 optionStrikePrice: null,
+        //                 optionMultiplier: null,
+        //                 positionCurrency: 'USD',
+        //                 underlying: 'XBT',
+        //                 quoteCurrency: 'USD',
+        //                 underlyingSymbol: 'XBT=',
+        //                 reference: 'BMEX',
+        //                 referenceSymbol: '.BXBT',
+        //                 calcInterval: null,
+        //                 publishInterval: null,
+        //                 publishTime: null,
+        //                 maxOrderQty: 10000000,
+        //                 maxPrice: 1000000,
+        //                 lotSize: 1,
+        //                 tickSize: 0.5,
+        //                 multiplier: -100000000,
+        //                 settlCurrency: 'XBt',
+        //                 underlyingToPositionMultiplier: null,
+        //                 underlyingToSettleMultiplier: -100000000,
+        //                 quoteToSettleMultiplier: null,
+        //                 isQuanto: false,
+        //                 isInverse: true,
+        //                 initMargin: 0.01,
+        //                 maintMargin: 0.005,
+        //                 riskLimit: 20000000000,
+        //                 riskStep: 10000000000,
+        //                 limit: null,
+        //                 capped: false,
+        //                 taxed: true,
+        //                 deleverage: true,
+        //                 makerFee: -0.00025,
+        //                 takerFee: 0.00075,
+        //                 settlementFee: 0,
+        //                 insuranceFee: 0,
+        //                 fundingBaseSymbol: '.XBTBON8H',
+        //                 fundingQuoteSymbol: '.USDBON8H',
+        //                 fundingPremiumSymbol: '.XBTUSDPI8H',
+        //                 fundingTimestamp: '2020-01-29T12:00:00.000Z',
+        //                 fundingInterval: '2000-01-01T08:00:00.000Z',
+        //                 fundingRate: 0.000597,
+        //                 indicativeFundingRate: 0.000652,
+        //                 rebalanceTimestamp: null,
+        //                 rebalanceInterval: null,
+        //                 openingTimestamp: '2020-01-29T11:00:00.000Z',
+        //                 closingTimestamp: '2020-01-29T12:00:00.000Z',
+        //                 sessionInterval: '2000-01-01T01:00:00.000Z',
+        //                 prevClosePrice: 9063.96,
+        //                 limitDownPrice: null,
+        //                 limitUpPrice: null,
+        //                 bankruptLimitDownPrice: null,
+        //                 bankruptLimitUpPrice: null,
+        //                 prevTotalVolume: 1989881049026,
+        //                 totalVolume: 1990196740950,
+        //                 volume: 315691924,
+        //                 volume24h: 4491824765,
+        //                 prevTotalTurnover: 27865497128425564,
+        //                 totalTurnover: 27868891594857150,
+        //                 turnover: 3394466431587,
+        //                 turnover24h: 48863390064843,
+        //                 homeNotional24h: 488633.9006484273,
+        //                 foreignNotional24h: 4491824765,
+        //                 prevPrice24h: 9091,
+        //                 vwap: 9192.8663,
+        //                 highPrice: 9440,
+        //                 lowPrice: 8886,
+        //                 lastPrice: 9287,
+        //                 lastPriceProtected: 9287,
+        //                 lastTickDirection: 'PlusTick',
+        //                 lastChangePcnt: 0.0216,
+        //                 bidPrice: 9286,
+        //                 midPrice: 9286.25,
+        //                 askPrice: 9286.5,
+        //                 impactBidPrice: 9285.9133,
+        //                 impactMidPrice: 9286.75,
+        //                 impactAskPrice: 9287.6382,
+        //                 hasLiquidity: true,
+        //                 openInterest: 967826984,
+        //                 openValue: 10432207060536,
+        //                 fairMethod: 'FundingRate',
+        //                 fairBasisRate: 0.6537149999999999,
+        //                 fairBasis: 0.33,
+        //                 fairPrice: 9277.2,
+        //                 markMethod: 'FairPrice',
+        //                 markPrice: 9277.2,
+        //                 indicativeTaxRate: 0,
+        //                 indicativeSettlePrice: 9276.87,
+        //                 optionUnderlyingPrice: null,
+        //                 settledPrice: null,
+        //                 timestamp: '2020-01-29T11:31:37.114Z'
+        //             }
+        //         ]
+        //     }
         //
-        const wsName = message[3];
-        const name = 'ticker';
-        const messageHash = wsName + ':' + name;
-        const market = this.safeValue (this.options['marketsByWsName'], wsName);
-        const symbol = market['symbol'];
-        const ticker = message[1];
-        const vwap = parseFloat (ticker['p'][0]);
-        let quoteVolume = undefined;
-        const baseVolume = parseFloat (ticker['v'][0]);
-        if (baseVolume !== undefined && vwap !== undefined) {
-            quoteVolume = baseVolume * vwap;
+        const table = this.safeString (message, 'table');
+        const data = this.safeValue (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const update = data[i];
+            const marketId = this.safeValue (update, 'symbol');
+            if (marketId in this.markets_by_id) {
+                const market = this.markets_by_id[marketId];
+                const symbol = market['symbol'];
+                const messageHash = table + ':' + marketId;
+                let ticker = this.safeValue (this.tickers, symbol, {});
+                const info = this.safeValue (ticker, 'info', {});
+                ticker = this.parseTicker (this.extend (info, update), market);
+                this.tickers[symbol] = ticker;
+                client.resolve (ticker, messageHash);
+            }
         }
-        const last = parseFloat (ticker['c'][0]);
-        const timestamp = this.milliseconds ();
-        const result = {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['h'][0]),
-            'low': parseFloat (ticker['l'][0]),
-            'bid': parseFloat (ticker['b'][0]),
-            'bidVolume': parseFloat (ticker['b'][2]),
-            'ask': parseFloat (ticker['a'][0]),
-            'askVolume': parseFloat (ticker['a'][2]),
-            'vwap': vwap,
-            'open': parseFloat (ticker['o'][0]),
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
-            'info': ticker,
-        };
-        // todo: add support for multiple tickers (may be tricky)
-        // kraken confirms multi-pair subscriptions separately one by one
-        // trigger correct watchTickers calls upon receiving any of symbols
-        // --------------------------------------------------------------------
-        // if there's a corresponding watchTicker call - trigger it
-        client.resolve (result, messageHash);
+        return message;
     }
 
     async watchBalance (params = {}) {
@@ -352,7 +551,6 @@ module.exports = class bitmex extends ccxt.bitmex {
                     bookside.store (price, size, id);
                 }
                 const messageHash = table + ':' + marketId;
-                // the .limit () operation will be moved to the watchOrderBook
                 client.resolve (orderbook, messageHash);
             }
         } else {
@@ -387,7 +585,6 @@ module.exports = class bitmex extends ccxt.bitmex {
                 const market = this.markets_by_id[marketId];
                 const symbol = market['symbol'];
                 const orderbook = this.orderbooks[symbol];
-                // the .limit () operation will be moved to the watchOrderBook
                 client.resolve (orderbook, messageHash);
             }
         }
@@ -511,6 +708,7 @@ module.exports = class bitmex extends ccxt.bitmex {
                 'orderBookL2': this.handleOrderBook,
                 'orderBookL2_25': this.handleOrderBook,
                 'orderBook10': this.handleOrderBook,
+                'instrument': this.handleTicker,
             };
             const method = this.safeValue (methods, table);
             if (method === undefined) {

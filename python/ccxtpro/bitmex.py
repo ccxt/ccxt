@@ -16,6 +16,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
             'has': {
                 'ws': True,
                 'watchTicker': True,
+                'watchTickers': False,
                 'watchOrderBook': True,
             },
             'urls': {
@@ -41,66 +42,262 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
             },
         })
 
+    async def watch_ticker(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        name = 'instrument'
+        messageHash = name + ':' + market['id']
+        url = self.urls['api']['ws']
+        request = {
+            'op': 'subscribe',
+            'args': [
+                messageHash,
+            ],
+        }
+        return await self.watch(url, messageHash, self.extend(request, params), messageHash)
+
     def handle_ticker(self, client, message):
         #
-        #     [
-        #         0,  # channelID
-        #         {
-        #             "a": ["5525.40000", 1, "1.000"],  # ask, wholeAskVolume, askVolume
-        #             "b": ["5525.10000", 1, "1.000"],  # bid, wholeBidVolume, bidVolume
-        #             "c": ["5525.10000", "0.00398963"],  # closing price, volume
-        #             "h": ["5783.00000", "5783.00000"],  # high price today, high price 24h ago
-        #             "l": ["5505.00000", "5505.00000"],  # low price today, low price 24h ago
-        #             "o": ["5760.70000", "5763.40000"],  # open price today, open price 24h ago
-        #             "p": ["5631.44067", "5653.78939"],  # vwap today, vwap 24h ago
-        #             "t": [11493, 16267],  # number of trades today, 24 hours ago
-        #             "v": ["2634.11501494", "3591.17907851"],  # volume today, volume 24 hours ago
+        #     {
+        #         table: 'instrument',
+        #         action: 'partial',
+        #         keys: ['symbol'],
+        #         types: {
+        #             symbol: 'symbol',
+        #             rootSymbol: 'symbol',
+        #             state: 'symbol',
+        #             typ: 'symbol',
+        #             listing: 'timestamp',
+        #             front: 'timestamp',
+        #             expiry: 'timestamp',
+        #             settle: 'timestamp',
+        #             relistInterval: 'timespan',
+        #             inverseLeg: 'symbol',
+        #             sellLeg: 'symbol',
+        #             buyLeg: 'symbol',
+        #             optionStrikePcnt: 'float',
+        #             optionStrikeRound: 'float',
+        #             optionStrikePrice: 'float',
+        #             optionMultiplier: 'float',
+        #             positionCurrency: 'symbol',
+        #             underlying: 'symbol',
+        #             quoteCurrency: 'symbol',
+        #             underlyingSymbol: 'symbol',
+        #             reference: 'symbol',
+        #             referenceSymbol: 'symbol',
+        #             calcInterval: 'timespan',
+        #             publishInterval: 'timespan',
+        #             publishTime: 'timespan',
+        #             maxOrderQty: 'long',
+        #             maxPrice: 'float',
+        #             lotSize: 'long',
+        #             tickSize: 'float',
+        #             multiplier: 'long',
+        #             settlCurrency: 'symbol',
+        #             underlyingToPositionMultiplier: 'long',
+        #             underlyingToSettleMultiplier: 'long',
+        #             quoteToSettleMultiplier: 'long',
+        #             isQuanto: 'boolean',
+        #             isInverse: 'boolean',
+        #             initMargin: 'float',
+        #             maintMargin: 'float',
+        #             riskLimit: 'long',
+        #             riskStep: 'long',
+        #             limit: 'float',
+        #             capped: 'boolean',
+        #             taxed: 'boolean',
+        #             deleverage: 'boolean',
+        #             makerFee: 'float',
+        #             takerFee: 'float',
+        #             settlementFee: 'float',
+        #             insuranceFee: 'float',
+        #             fundingBaseSymbol: 'symbol',
+        #             fundingQuoteSymbol: 'symbol',
+        #             fundingPremiumSymbol: 'symbol',
+        #             fundingTimestamp: 'timestamp',
+        #             fundingInterval: 'timespan',
+        #             fundingRate: 'float',
+        #             indicativeFundingRate: 'float',
+        #             rebalanceTimestamp: 'timestamp',
+        #             rebalanceInterval: 'timespan',
+        #             openingTimestamp: 'timestamp',
+        #             closingTimestamp: 'timestamp',
+        #             sessionInterval: 'timespan',
+        #             prevClosePrice: 'float',
+        #             limitDownPrice: 'float',
+        #             limitUpPrice: 'float',
+        #             bankruptLimitDownPrice: 'float',
+        #             bankruptLimitUpPrice: 'float',
+        #             prevTotalVolume: 'long',
+        #             totalVolume: 'long',
+        #             volume: 'long',
+        #             volume24h: 'long',
+        #             prevTotalTurnover: 'long',
+        #             totalTurnover: 'long',
+        #             turnover: 'long',
+        #             turnover24h: 'long',
+        #             homeNotional24h: 'float',
+        #             foreignNotional24h: 'float',
+        #             prevPrice24h: 'float',
+        #             vwap: 'float',
+        #             highPrice: 'float',
+        #             lowPrice: 'float',
+        #             lastPrice: 'float',
+        #             lastPriceProtected: 'float',
+        #             lastTickDirection: 'symbol',
+        #             lastChangePcnt: 'float',
+        #             bidPrice: 'float',
+        #             midPrice: 'float',
+        #             askPrice: 'float',
+        #             impactBidPrice: 'float',
+        #             impactMidPrice: 'float',
+        #             impactAskPrice: 'float',
+        #             hasLiquidity: 'boolean',
+        #             openInterest: 'long',
+        #             openValue: 'long',
+        #             fairMethod: 'symbol',
+        #             fairBasisRate: 'float',
+        #             fairBasis: 'float',
+        #             fairPrice: 'float',
+        #             markMethod: 'symbol',
+        #             markPrice: 'float',
+        #             indicativeTaxRate: 'float',
+        #             indicativeSettlePrice: 'float',
+        #             optionUnderlyingPrice: 'float',
+        #             settledPrice: 'float',
+        #             timestamp: 'timestamp'
         #         },
-        #         "ticker",
-        #         "XBT/USD"
-        #     ]
+        #         foreignKeys: {
+        #             inverseLeg: 'instrument',
+        #             sellLeg: 'instrument',
+        #             buyLeg: 'instrument'
+        #         },
+        #         attributes: {symbol: 'unique'},
+        #         filter: {symbol: 'XBTUSD'},
+        #         data: [
+        #             {
+        #                 symbol: 'XBTUSD',
+        #                 rootSymbol: 'XBT',
+        #                 state: 'Open',
+        #                 typ: 'FFWCSX',
+        #                 listing: '2016-05-13T12:00:00.000Z',
+        #                 front: '2016-05-13T12:00:00.000Z',
+        #                 expiry: null,
+        #                 settle: null,
+        #                 relistInterval: null,
+        #                 inverseLeg: '',
+        #                 sellLeg: '',
+        #                 buyLeg: '',
+        #                 optionStrikePcnt: null,
+        #                 optionStrikeRound: null,
+        #                 optionStrikePrice: null,
+        #                 optionMultiplier: null,
+        #                 positionCurrency: 'USD',
+        #                 underlying: 'XBT',
+        #                 quoteCurrency: 'USD',
+        #                 underlyingSymbol: 'XBT=',
+        #                 reference: 'BMEX',
+        #                 referenceSymbol: '.BXBT',
+        #                 calcInterval: null,
+        #                 publishInterval: null,
+        #                 publishTime: null,
+        #                 maxOrderQty: 10000000,
+        #                 maxPrice: 1000000,
+        #                 lotSize: 1,
+        #                 tickSize: 0.5,
+        #                 multiplier: -100000000,
+        #                 settlCurrency: 'XBt',
+        #                 underlyingToPositionMultiplier: null,
+        #                 underlyingToSettleMultiplier: -100000000,
+        #                 quoteToSettleMultiplier: null,
+        #                 isQuanto: False,
+        #                 isInverse: True,
+        #                 initMargin: 0.01,
+        #                 maintMargin: 0.005,
+        #                 riskLimit: 20000000000,
+        #                 riskStep: 10000000000,
+        #                 limit: null,
+        #                 capped: False,
+        #                 taxed: True,
+        #                 deleverage: True,
+        #                 makerFee: -0.00025,
+        #                 takerFee: 0.00075,
+        #                 settlementFee: 0,
+        #                 insuranceFee: 0,
+        #                 fundingBaseSymbol: '.XBTBON8H',
+        #                 fundingQuoteSymbol: '.USDBON8H',
+        #                 fundingPremiumSymbol: '.XBTUSDPI8H',
+        #                 fundingTimestamp: '2020-01-29T12:00:00.000Z',
+        #                 fundingInterval: '2000-01-01T08:00:00.000Z',
+        #                 fundingRate: 0.000597,
+        #                 indicativeFundingRate: 0.000652,
+        #                 rebalanceTimestamp: null,
+        #                 rebalanceInterval: null,
+        #                 openingTimestamp: '2020-01-29T11:00:00.000Z',
+        #                 closingTimestamp: '2020-01-29T12:00:00.000Z',
+        #                 sessionInterval: '2000-01-01T01:00:00.000Z',
+        #                 prevClosePrice: 9063.96,
+        #                 limitDownPrice: null,
+        #                 limitUpPrice: null,
+        #                 bankruptLimitDownPrice: null,
+        #                 bankruptLimitUpPrice: null,
+        #                 prevTotalVolume: 1989881049026,
+        #                 totalVolume: 1990196740950,
+        #                 volume: 315691924,
+        #                 volume24h: 4491824765,
+        #                 prevTotalTurnover: 27865497128425564,
+        #                 totalTurnover: 27868891594857150,
+        #                 turnover: 3394466431587,
+        #                 turnover24h: 48863390064843,
+        #                 homeNotional24h: 488633.9006484273,
+        #                 foreignNotional24h: 4491824765,
+        #                 prevPrice24h: 9091,
+        #                 vwap: 9192.8663,
+        #                 highPrice: 9440,
+        #                 lowPrice: 8886,
+        #                 lastPrice: 9287,
+        #                 lastPriceProtected: 9287,
+        #                 lastTickDirection: 'PlusTick',
+        #                 lastChangePcnt: 0.0216,
+        #                 bidPrice: 9286,
+        #                 midPrice: 9286.25,
+        #                 askPrice: 9286.5,
+        #                 impactBidPrice: 9285.9133,
+        #                 impactMidPrice: 9286.75,
+        #                 impactAskPrice: 9287.6382,
+        #                 hasLiquidity: True,
+        #                 openInterest: 967826984,
+        #                 openValue: 10432207060536,
+        #                 fairMethod: 'FundingRate',
+        #                 fairBasisRate: 0.6537149999999999,
+        #                 fairBasis: 0.33,
+        #                 fairPrice: 9277.2,
+        #                 markMethod: 'FairPrice',
+        #                 markPrice: 9277.2,
+        #                 indicativeTaxRate: 0,
+        #                 indicativeSettlePrice: 9276.87,
+        #                 optionUnderlyingPrice: null,
+        #                 settledPrice: null,
+        #                 timestamp: '2020-01-29T11:31:37.114Z'
+        #             }
+        #         ]
+        #     }
         #
-        wsName = message[3]
-        name = 'ticker'
-        messageHash = wsName + ':' + name
-        market = self.safe_value(self.options['marketsByWsName'], wsName)
-        symbol = market['symbol']
-        ticker = message[1]
-        vwap = float(ticker['p'][0])
-        quoteVolume = None
-        baseVolume = float(ticker['v'][0])
-        if baseVolume is not None and vwap is not None:
-            quoteVolume = baseVolume * vwap
-        last = float(ticker['c'][0])
-        timestamp = self.milliseconds()
-        result = {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'high': float(ticker['h'][0]),
-            'low': float(ticker['l'][0]),
-            'bid': float(ticker['b'][0]),
-            'bidVolume': float(ticker['b'][2]),
-            'ask': float(ticker['a'][0]),
-            'askVolume': float(ticker['a'][2]),
-            'vwap': vwap,
-            'open': float(ticker['o'][0]),
-            'close': last,
-            'last': last,
-            'previousClose': None,
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
-            'info': ticker,
-        }
-        # todo: add support for multiple tickers(may be tricky)
-        # kraken confirms multi-pair subscriptions separately one by one
-        # trigger correct watchTickers calls upon receiving any of symbols
-        # --------------------------------------------------------------------
-        # if there's a corresponding watchTicker call - trigger it
-        client.resolve(result, messageHash)
+        table = self.safe_string(message, 'table')
+        data = self.safe_value(message, 'data', [])
+        for i in range(0, len(data)):
+            update = data[i]
+            marketId = self.safe_value(update, 'symbol')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+                messageHash = table + ':' + marketId
+                ticker = self.safe_value(self.tickers, symbol, {})
+                info = self.safe_value(ticker, 'info', {})
+                ticker = self.parse_ticker(self.extend(info, update), market)
+                self.tickers[symbol] = ticker
+                client.resolve(ticker, messageHash)
+        return message
 
     async def watch_balance(self, params={}):
         await self.load_markets()
@@ -339,7 +536,6 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                     bookside = orderbook[side]
                     bookside.store(price, size, id)
                 messageHash = table + ':' + marketId
-                # the .limit() operation will be moved to the watchOrderBook
                 client.resolve(orderbook, messageHash)
         else:
             numUpdatesByMarketId = {}
@@ -369,7 +565,6 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                 market = self.markets_by_id[marketId]
                 symbol = market['symbol']
                 orderbook = self.orderbooks[symbol]
-                # the .limit() operation will be moved to the watchOrderBook
                 client.resolve(orderbook, messageHash)
 
     def handle_system_status(self, client, message):
@@ -484,6 +679,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                 'orderBookL2': self.handle_order_book,
                 'orderBookL2_25': self.handle_order_book,
                 'orderBook10': self.handle_order_book,
+                'instrument': self.handle_ticker,
             }
             method = self.safe_value(methods, table)
             if method is None:
