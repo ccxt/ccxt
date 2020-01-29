@@ -14,6 +14,7 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
         return self.deep_extend(super(bitfinex, self).describe(), {
             'has': {
                 'watchTicker': True,
+                'watchTickers': False,
                 'watchOrderBook': True,
             },
             'urls': {
