@@ -49,15 +49,6 @@ class bitfinex extends \ccxt\bitfinex {
     public function handle_ticker ($client, $message, $subscription) {
         //
         //     array(
-        //         1231,
-        //         'hb',
-        //     )
-        //
-        if ($message[1] === 'hb') {
-            return; // skip ticker heartbeats
-        }
-        //
-        //     array(
         //         2,             // 0 CHANNEL_ID integer Channel ID
         //         236.62,        // 1 BID float Price of $last highest bid
         //         9.0029,        // 2 BID_SIZE float Size of the $last highest bid
@@ -246,7 +237,16 @@ class bitfinex extends \ccxt\bitfinex {
     public function handle_message ($client, $message) {
         // var_dump (new Date (), $message);
         if (gettype($message) === 'array' && count(array_filter(array_keys($message), 'is_string')) == 0) {
-            $channelId = (string) $message[0];
+            $channelId = $this->safe_string($message, 0);
+            //
+            //     array(
+            //         1231,
+            //         'hb',
+            //     )
+            //
+            if ($message[1] === 'hb') {
+                return $message; // skip heartbeats within $subscription channels for now
+            }
             $subscription = $this->safe_value($client->subscriptions, $channelId, array());
             $channel = $this->safe_string($subscription, 'channel');
             $methods = array(

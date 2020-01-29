@@ -44,15 +44,6 @@ module.exports = class bitfinex extends ccxt.bitfinex {
     handleTicker (client, message, subscription) {
         //
         //     [
-        //         1231,
-        //         'hb',
-        //     ]
-        //
-        if (message[1] === 'hb') {
-            return; // skip ticker heartbeats
-        }
-        //
-        //     [
         //         2,             // 0 CHANNEL_ID integer Channel ID
         //         236.62,        // 1 BID float Price of last highest bid
         //         9.0029,        // 2 BID_SIZE float Size of the last highest bid
@@ -241,7 +232,16 @@ module.exports = class bitfinex extends ccxt.bitfinex {
     handleMessage (client, message) {
         // console.log (new Date (), message);
         if (Array.isArray (message)) {
-            const channelId = message[0].toString ();
+            const channelId = this.safeString (message, 0);
+            //
+            //     [
+            //         1231,
+            //         'hb',
+            //     ]
+            //
+            if (message[1] === 'hb') {
+                return message; // skip heartbeats within subscription channels for now
+            }
             const subscription = this.safeValue (client.subscriptions, channelId, {});
             const channel = this.safeString (subscription, 'channel');
             const methods = {

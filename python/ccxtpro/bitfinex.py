@@ -44,14 +44,6 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
     def handle_ticker(self, client, message, subscription):
         #
         #     [
-        #         1231,
-        #         'hb',
-        #     ]
-        #
-        if message[1] == 'hb':
-            return  # skip ticker heartbeats
-        #
-        #     [
         #         2,             # 0 CHANNEL_ID integer Channel ID
         #         236.62,        # 1 BID float Price of last highest bid
         #         9.0029,        # 2 BID_SIZE float Size of the last highest bid
@@ -226,7 +218,15 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
     def handle_message(self, client, message):
         # print(new Date(), message)
         if isinstance(message, list):
-            channelId = str(message[0])
+            channelId = self.safe_string(message, 0)
+            #
+            #     [
+            #         1231,
+            #         'hb',
+            #     ]
+            #
+            if message[1] == 'hb':
+                return message  # skip heartbeats within subscription channels for now
             subscription = self.safe_value(client.subscriptions, channelId, {})
             channel = self.safe_string(subscription, 'channel')
             methods = {
