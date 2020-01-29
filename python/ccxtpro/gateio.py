@@ -120,16 +120,37 @@ class gateio(ccxtpro.Exchange, ccxt.gateio):
         return await self.watch(url, messageHash, subscribeMessage, messageHash, subscription)
 
     def handle_ticker(self, client, message):
-        result = message['params']
-        marketId = self.safe_string_lower(result, 0)
-        market = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        ticker = result[1]
-        parsed = self.parse_ticker(ticker, market)
-        methodType = message['method']
-        messageHash = methodType + ':' + marketId
-        client.resolve(parsed, messageHash)
+        #
+        #     {
+        #         'method': 'ticker.update',
+        #         'params': [
+        #             'BTC_USDT',
+        #             {
+        #                 'period': 86400,  # 24 hours = 86400 seconds
+        #                 'open': '9027.96',
+        #                 'close': '9282.93',
+        #                 'high': '9428.57',
+        #                 'low': '8900',
+        #                 'last': '9282.93',
+        #                 'change': '2.8',
+        #                 'quoteVolume': '1838.9950613035',
+        #                 'baseVolume': '17032535.24172142379566994715'
+        #             }
+        #         ],
+        #         'id': null
+        #     }
+        #
+        params = self.safe_value(message, 'params', [])
+        marketId = self.safe_string_lower(params, 0)
+        market = self.safe_value(self.markets_by_id, marketId)
+        if market is not None:
+            symbol = market['symbol']
+            ticker = self.safe_value(params, 1, {})
+            result = self.parse_ticker(ticker, market)
+            methodType = message['method']
+            messageHash = methodType + ':' + marketId
+            self.tickers[symbol] = result
+            client.resolve(result, messageHash)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -363,8 +384,8 @@ class gateio(ccxtpro.Exchange, ccxt.gateio):
         messageId = message['id']
         subscriptionsById = self.index_by(client.subscriptions, 'id')
         subscription = self.safe_value(subscriptionsById, messageId, {})
-        if 'method' in subscription:
-            method = subscription['method']
+        method = self.safe_value(subscription, 'method')
+        if method is not None:
             method(client, message, subscription)
         client.resolve(message, messageId)
 

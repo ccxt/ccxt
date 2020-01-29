@@ -118,7 +118,7 @@ module.exports = class gateio extends ccxt.gateio {
         const subscribeMessage = {
             'id': requestId,
             'method': 'ticker.subscribe',
-            'params': [wsMarketId],
+            'params': [ wsMarketId ],
         };
         const subscription = {
             'id': requestId,
@@ -128,17 +128,38 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     handleTicker (client, message) {
-        const result = message['params'];
-        const marketId = this.safeStringLower (result, 0);
-        let market = undefined;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
+        //
+        //     {
+        //         'method': 'ticker.update',
+        //         'params': [
+        //             'BTC_USDT',
+        //             {
+        //                 'period': 86400, // 24 hours = 86400 seconds
+        //                 'open': '9027.96',
+        //                 'close': '9282.93',
+        //                 'high': '9428.57',
+        //                 'low': '8900',
+        //                 'last': '9282.93',
+        //                 'change': '2.8',
+        //                 'quoteVolume': '1838.9950613035',
+        //                 'baseVolume': '17032535.24172142379566994715'
+        //             }
+        //         ],
+        //         'id': null
+        //     }
+        //
+        const params = this.safeValue (message, 'params', []);
+        const marketId = this.safeStringLower (params, 0);
+        const market = this.safeValue (this.markets_by_id, marketId);
+        if (market !== undefined) {
+            const symbol = market['symbol'];
+            const ticker = this.safeValue (params, 1, {});
+            const result = this.parseTicker (ticker, market);
+            const methodType = message['method'];
+            const messageHash = methodType + ':' + marketId;
+            this.tickers[symbol] = result;
+            client.resolve (result, messageHash);
         }
-        const ticker = result[1];
-        const parsed = this.parseTicker (ticker, market);
-        const methodType = message['method'];
-        const messageHash = methodType + ':' + marketId;
-        client.resolve (parsed, messageHash);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -402,8 +423,8 @@ module.exports = class gateio extends ccxt.gateio {
         const messageId = message['id'];
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeValue (subscriptionsById, messageId, {});
-        if ('method' in subscription) {
-            const method = subscription['method'];
+        const method = this.safeValue (subscription, 'method');
+        if (method !== undefined) {
             method.call (this, client, message, subscription);
         }
         client.resolve (message, messageId);

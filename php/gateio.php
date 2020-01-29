@@ -124,7 +124,7 @@ class gateio extends \ccxt\gateio {
         $subscribeMessage = array(
             'id' => $requestId,
             'method' => 'ticker.subscribe',
-            'params' => [$wsMarketId],
+            'params' => array( $wsMarketId ),
         );
         $subscription = array(
             'id' => $requestId,
@@ -134,17 +134,38 @@ class gateio extends \ccxt\gateio {
     }
 
     public function handle_ticker ($client, $message) {
-        $result = $message['params'];
-        $marketId = $this->safe_string_lower($result, 0);
-        $market = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
+        //
+        //     {
+        //         'method' => 'ticker.update',
+        //         'params' => array(
+        //             'BTC_USDT',
+        //             {
+        //                 'period' => 86400, // 24 hours = 86400 seconds
+        //                 'open' => '9027.96',
+        //                 'close' => '9282.93',
+        //                 'high' => '9428.57',
+        //                 'low' => '8900',
+        //                 'last' => '9282.93',
+        //                 'change' => '2.8',
+        //                 'quoteVolume' => '1838.9950613035',
+        //                 'baseVolume' => '17032535.24172142379566994715'
+        //             }
+        //         ),
+        //         'id' => null
+        //     }
+        //
+        $params = $this->safe_value($message, 'params', array());
+        $marketId = $this->safe_string_lower($params, 0);
+        $market = $this->safe_value($this->markets_by_id, $marketId);
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+            $ticker = $this->safe_value($params, 1, array());
+            $result = $this->parse_ticker($ticker, $market);
+            $methodType = $message['method'];
+            $messageHash = $methodType . ':' . $marketId;
+            $this->tickers[$symbol] = $result;
+            $client->resolve ($result, $messageHash);
         }
-        $ticker = $result[1];
-        $parsed = $this->parse_ticker($ticker, $market);
-        $methodType = $message['method'];
-        $messageHash = $methodType . ':' . $marketId;
-        $client->resolve ($parsed, $messageHash);
     }
 
     public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
@@ -408,8 +429,8 @@ class gateio extends \ccxt\gateio {
         $messageId = $message['id'];
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
         $subscription = $this->safe_value($subscriptionsById, $messageId, array());
-        if (is_array($subscription) && array_key_exists('method', $subscription)) {
-            $method = $subscription['method'];
+        $method = $this->safe_value($subscription, 'method');
+        if ($method !== null) {
             $method($client, $message, $subscription);
         }
         $client->resolve ($message, $messageId);
