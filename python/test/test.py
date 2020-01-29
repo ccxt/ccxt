@@ -11,6 +11,7 @@ from os import _exit
 from traceback import format_tb
 # from ccxt import NetworkError, RequestTimeout
 from exchange.test_watch_order_book import test_watch_order_book
+from exchange.test_watch_ticker import test_watch_ticker
 
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(root)
@@ -80,7 +81,7 @@ if os.path.exists(keys_local):
 async def test_public(exchange, symbol):
     print(exchange.id, symbol, 'test_public')
     await test_watch_order_book(exchange, symbol)
-    # await test_watch_ticker(exchange, symbol)
+    await test_watch_ticker(exchange, symbol)
     # await test_watch_trades(exchange, symbol)
     # await test_watch_ohlcv(exchange, symbol)
     # await test_watch_tickers(exchange, symbol)
@@ -114,8 +115,8 @@ async def test_exchange(exchange):
     keys = list(exchange.markets.keys())
     symbol = keys[0]
     symbols = [
-        'BTC/USDT',
         'BTC/USD',
+        'BTC/USDT',
         'BTC/CNY',
         'BTC/EUR',
         'BTC/ETH',
