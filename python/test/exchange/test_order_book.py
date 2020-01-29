@@ -4,6 +4,7 @@ __all__ = ['test_order_book']
 
 
 def test_order_book(exchange, orderbook, method, symbol):
+    # todo add real order book tests here
     print(
         exchange.id,
         symbol,

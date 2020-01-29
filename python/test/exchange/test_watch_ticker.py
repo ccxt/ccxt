@@ -4,6 +4,7 @@ from exchange.test_ticker import test_ticker
 
 
 async def test_watch_ticker(exchange, symbol):
+    # todo add real ticker tests here
     # log (symbol.green, 'watching order book...')
     method = 'watchTicker'
     if exchange.has[method]:
