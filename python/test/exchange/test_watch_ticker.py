@@ -9,7 +9,7 @@ async def test_watch_ticker(exchange, symbol):
     method = 'watchTicker'
     if exchange.has[method]:
         response = None
-        for i in range(0, 10):
+        for i in range(0, 5):
             response = await getattr(exchange, method)(symbol)
             test_ticker(exchange, response, method, symbol)
         return response
@@ -17,4 +17,4 @@ async def test_watch_ticker(exchange, symbol):
         print(method, 'not supported')
 
 
-__all__ = ['test_watch_order_book']
+__all__ = ['test_watch_ticker']
