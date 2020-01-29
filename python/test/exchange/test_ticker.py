@@ -8,6 +8,5 @@ def test_ticker(exchange, ticker, method, symbol):
         exchange.id,
         symbol,
         method,
-        'last:', ticker['last'],
-        '24h vol:', ticker['baseVolume'],
+        ticker['last']
     )
