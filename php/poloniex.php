@@ -28,23 +28,75 @@ class poloniex extends \ccxt\poloniex {
         ));
     }
 
-    public function handle_tickers ($client, $response) {
-        $data = $response[2];
-        $market = $this->safe_value($this->options['marketsByNumericId'], (string) $data[0]);
+    public function handle_tickers ($client, $message) {
+        //
+        //     array(
+        //         1002,
+        //         null,
+        //         array(
+        //             50,               // currency pair id
+        //             '0.00663930',     // $last trade price
+        //             '0.00663924',     // lowest ask
+        //             '0.00663009',     // highest bid
+        //             '0.01591824',     // percent $change in $last 24 hours
+        //             '176.03923205',   // 24h base volume
+        //             '26490.59208176', // 24h quote volume
+        //             0,                // is frozen
+        //             '0.00678580',     // highest price
+        //             '0.00648216'      // lowest price
+        //         )
+        //     )
+        //
+        $channelId = $this->safe_string($message, 0);
+        $subscribed = $this->safe_value($message, 1);
+        if ($subscribed) {
+            // skip subscription confirmation
+            return;
+        }
+        $ticker = $this->safe_value($message, 2);
+        $numericId = $this->safe_string($ticker, 0);
+        $market = $this->safe_value($this->options['marketsByNumericId'], $numericId);
+        if ($market === null) {
+            // todo handle $market not found, reject corresponging futures
+            return;
+        }
         $symbol = $this->safe_string($market, 'symbol');
-        return array(
-            'info' => $response,
+        $timestamp = $this->milliseconds ();
+        $open = null;
+        $change = null;
+        $average = null;
+        $last = $this->safe_float($ticker, 1);
+        $relativeChange = $this->safe_float($ticker, 4);
+        if ($relativeChange !== -1) {
+            $open = $last / $this->sum (1, $relativeChange);
+            $change = $last - $open;
+            $average = $this->sum ($last, $open) / 2;
+        }
+        $result = array(
             'symbol' => $symbol,
-            'last' => floatval ($data[1]),
-            'ask' => floatval ($data[2]),
-            'bid' => floatval ($data[3]),
-            'change' => floatval ($data[4]),
-            'baseVolume' => floatval ($data[5]),
-            'quoteVolume' => floatval ($data[6]),
-            'active' => $data[7] ? false : true,
-            'high' => floatval ($data[8]),
-            'low' => floatval ($data[9]),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => $this->safe_float($ticker, 8),
+            'low' => $this->safe_float($ticker, 9),
+            'bid' => $this->safe_float($ticker, 3),
+            'bidVolume' => null,
+            'ask' => $this->safe_float($ticker, 2),
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => $open,
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
+            'change' => $change,
+            'percentage' => $relativeChange * 100,
+            'average' => $average,
+            'baseVolume' => $this->safe_float($ticker, 6),
+            'quoteVolume' => $this->safe_float($ticker, 5),
+            'info' => $ticker,
         );
+        $this->tickers[$symbol] = $result;
+        $messageHash = $channelId . ':' . $numericId;
+        $client->resolve ($result, $messageHash);
     }
 
     public function watch_balance ($params = array ()) {
@@ -60,17 +112,31 @@ class poloniex extends \ccxt\poloniex {
         return $this->watch ($url, $messageHash, $subscribe, $channelId);
     }
 
+    public function watch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $numericId = $this->safe_string($market, 'numericId');
+        $channelId = '1002';
+        $messageHash = $channelId . ':' . $numericId;
+        $url = $this->urls['api']['ws'];
+        $subscribe = array(
+            'command' => 'subscribe',
+            'channel' => $channelId,
+        );
+        return $this->watch ($url, $messageHash, $subscribe, $channelId);
+    }
+
     public function watch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        // rewrite
-        throw new NotImplemented($this->id . 'watchTickers not implemented yet');
-        // $market = $this->market (symbol);
-        // $numericId = (string) $market['info']['id'];
-        // $url = $this->urls['api']['websocket']['public'];
-        // return $this->WsTickerMessage ($url, '1002' . $numericId, array(
-        //     'command' => 'subscribe',
-        //     'channel' => 1002,
-        // ));
+        $channelId = '1002';
+        $messageHash = $channelId;
+        $url = $this->urls['api']['ws'];
+        $subscribe = array(
+            'command' => 'subscribe',
+            'channel' => $channelId,
+        );
+        $future = $this->watch ($url, $messageHash, $subscribe, $channelId);
+        return $this->after ($future, $this->filterByArray, 'symbol', $symbols);
     }
 
     public function load_markets ($reload = false, $params = array ()) {
@@ -305,7 +371,7 @@ class poloniex extends \ccxt\poloniex {
             if ($method === null) {
                 return $message;
             } else {
-                $method->apply (this, $client, $message);
+                $method($client, $message);
             }
         } else {
             return $this->handle_order_book_and_trades ($client, $message);

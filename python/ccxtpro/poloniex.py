@@ -25,23 +25,72 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
             },
         })
 
-    def handle_tickers(self, client, response):
-        data = response[2]
-        market = self.safe_value(self.options['marketsByNumericId'], str(data[0]))
+    def handle_tickers(self, client, message):
+        #
+        #     [
+        #         1002,
+        #         null,
+        #         [
+        #             50,               # currency pair id
+        #             '0.00663930',     # last trade price
+        #             '0.00663924',     # lowest ask
+        #             '0.00663009',     # highest bid
+        #             '0.01591824',     # percent change in last 24 hours
+        #             '176.03923205',   # 24h base volume
+        #             '26490.59208176',  # 24h quote volume
+        #             0,                # is frozen
+        #             '0.00678580',     # highest price
+        #             '0.00648216'      # lowest price
+        #         ]
+        #     ]
+        #
+        channelId = self.safe_string(message, 0)
+        subscribed = self.safe_value(message, 1)
+        if subscribed:
+            # skip subscription confirmation
+            return
+        ticker = self.safe_value(message, 2)
+        numericId = self.safe_string(ticker, 0)
+        market = self.safe_value(self.options['marketsByNumericId'], numericId)
+        if market is None:
+            # todo handle market not found, reject corresponging futures
+            return
         symbol = self.safe_string(market, 'symbol')
-        return {
-            'info': response,
+        timestamp = self.milliseconds()
+        open = None
+        change = None
+        average = None
+        last = self.safe_float(ticker, 1)
+        relativeChange = self.safe_float(ticker, 4)
+        if relativeChange != -1:
+            open = last / self.sum(1, relativeChange)
+            change = last - open
+            average = self.sum(last, open) / 2
+        result = {
             'symbol': symbol,
-            'last': float(data[1]),
-            'ask': float(data[2]),
-            'bid': float(data[3]),
-            'change': float(data[4]),
-            'baseVolume': float(data[5]),
-            'quoteVolume': float(data[6]),
-            'active': False if data[7] else True,
-            'high': float(data[8]),
-            'low': float(data[9]),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_float(ticker, 8),
+            'low': self.safe_float(ticker, 9),
+            'bid': self.safe_float(ticker, 3),
+            'bidVolume': None,
+            'ask': self.safe_float(ticker, 2),
+            'askVolume': None,
+            'vwap': None,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': change,
+            'percentage': relativeChange * 100,
+            'average': average,
+            'baseVolume': self.safe_float(ticker, 6),
+            'quoteVolume': self.safe_float(ticker, 5),
+            'info': ticker,
         }
+        self.tickers[symbol] = result
+        messageHash = channelId + ':' + numericId
+        client.resolve(result, messageHash)
 
     async def watch_balance(self, params={}):
         await self.load_markets()
@@ -55,17 +104,30 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
         url = self.urls['api']['ws']
         return await self.watch(url, messageHash, subscribe, channelId)
 
+    async def watch_ticker(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        numericId = self.safe_string(market, 'numericId')
+        channelId = '1002'
+        messageHash = channelId + ':' + numericId
+        url = self.urls['api']['ws']
+        subscribe = {
+            'command': 'subscribe',
+            'channel': channelId,
+        }
+        return await self.watch(url, messageHash, subscribe, channelId)
+
     async def watch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        # rewrite
-        raise NotImplemented(self.id + 'watchTickers not implemented yet')
-        # market = self.market(symbol)
-        # numericId = str(market['info']['id'])
-        # url = self.urls['api']['websocket']['public']
-        # return await self.WsTickerMessage(url, '1002' + numericId, {
-        #     'command': 'subscribe',
-        #     'channel': 1002,
-        # })
+        channelId = '1002'
+        messageHash = channelId
+        url = self.urls['api']['ws']
+        subscribe = {
+            'command': 'subscribe',
+            'channel': channelId,
+        }
+        future = self.watch(url, messageHash, subscribe, channelId)
+        return await self.after(future, self.filterByArray, 'symbol', symbols)
 
     async def load_markets(self, reload=False, params={}):
         markets = await super(poloniex, self).load_markets(reload, params)
@@ -278,6 +340,6 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
             if method is None:
                 return message
             else:
-                method.apply(self, client, message)
+                method(client, message)
         else:
             return self.handle_order_book_and_trades(client, message)
