@@ -20,7 +20,7 @@ module.exports = async (exchange, symbol) => {
 
     let response = undefined
 
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 5; i++) {
 
         response = await exchange[method] (symbol)
         testTicker (exchange, response, method, symbol)
