@@ -164,21 +164,17 @@ class bitfinex(ccxtpro.Exchange, ccxt.bitfinex):
             deltas = message[1]
             for i in range(0, len(deltas)):
                 delta = deltas[i]
-                price = delta[0]
-                count = delta[1]
                 amount = -delta[2] if (delta[2] < 0) else delta[2]
                 side = 'asks' if (delta[2] < 0) else 'bids'
                 bookside = orderbook[side]
-                bookside.store(price, amount, count)
+                bookside.store(delta[0], amount, delta[1])
             client.resolve(orderbook, messageHash)
         else:
             orderbook = self.orderbooks[symbol]
-            price = message[1]
-            count = message[2]
             amount = -message[3] if (message[3] < 0) else message[3]
             side = 'asks' if (message[3] < 0) else 'bids'
             bookside = orderbook[side]
-            bookside.store(price, amount, count)
+            bookside.store(message[1], amount, message[2])
             client.resolve(orderbook, messageHash)
 
     def handle_heartbeat(self, client, message):

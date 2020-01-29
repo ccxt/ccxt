@@ -146,10 +146,10 @@ class bitfinex extends \ccxt\bitfinex {
         //     array(
         //         18691, // $channel id
         //         array(
-        //             array( 7364.8, 10, 4.354802 ), // $price, $count, size > 0 = bid
+        //             array( 7364.8, 10, 4.354802 ), // price, count, size > 0 = bid
         //             array( 7364.7, 1, 0.00288831 ),
         //             array( 7364.3, 12, 0.048 ),
-        //             array( 7364.9, 3, -0.42028976 ), // $price, $count, size < 0 = ask
+        //             array( 7364.9, 3, -0.42028976 ), // price, count, size < 0 = ask
         //             array( 7365, 1, -0.25 ),
         //             array( 7365.5, 1, -0.00371937 ),
         //         )
@@ -159,8 +159,8 @@ class bitfinex extends \ccxt\bitfinex {
         //
         //     array(
         //         30,     // $channel id
-        //         9339.9, // $price
-        //         0,      // $count
+        //         9339.9, // price
+        //         0,      // count
         //         -1,     // size > 0 = bid, size < 0 = ask
         //     )
         //
@@ -170,29 +170,25 @@ class bitfinex extends \ccxt\bitfinex {
         $channel = 'book';
         $messageHash = $channel . ':' . $marketId;
         // if it is an initial snapshot
-        if (gettype($message[1]) === 'array' && $count(array_filter(array_keys($message[1]), 'is_string')) == 0) {
+        if (gettype($message[1]) === 'array' && count(array_filter(array_keys($message[1]), 'is_string')) == 0) {
             $limit = $this->safe_integer($subscription, 'len');
             $this->orderbooks[$symbol] = $this->counted_order_book (array(), $limit);
             $orderbook = $this->orderbooks[$symbol];
             $deltas = $message[1];
-            for ($i = 0; $i < $count($deltas); $i++) {
+            for ($i = 0; $i < count($deltas); $i++) {
                 $delta = $deltas[$i];
-                $price = $delta[0];
-                $count = $delta[1];
                 $amount = ($delta[2] < 0) ? -$delta[2] : $delta[2];
                 $side = ($delta[2] < 0) ? 'asks' : 'bids';
                 $bookside = $orderbook[$side];
-                $bookside->store ($price, $amount, $count);
+                $bookside->store ($delta[0], $amount, $delta[1]);
             }
             $client->resolve ($orderbook, $messageHash);
         } else {
             $orderbook = $this->orderbooks[$symbol];
-            $price = $message[1];
-            $count = $message[2];
             $amount = ($message[3] < 0) ? -$message[3] : $message[3];
             $side = ($message[3] < 0) ? 'asks' : 'bids';
             $bookside = $orderbook[$side];
-            $bookside->store ($price, $amount, $count);
+            $bookside->store ($message[1], $amount, $message[2]);
             $client->resolve ($orderbook, $messageHash);
         }
     }
