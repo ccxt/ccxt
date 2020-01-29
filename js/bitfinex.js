@@ -17,15 +17,90 @@ module.exports = class bitfinex extends ccxt.bitfinex {
             'urls': {
                 'api': {
                     'ws': {
-                        'public': 'wss://api-pub.bitfinex.com/ws/2',
-                        'private': 'wss://api.bitfinex.com',
+                        'public': 'wss://api.bitfinex.com/ws/1',
+                        'private': 'wss://api.bitfinex.com/ws/1',
                     },
                 },
             },
-            'options': {
-                'subscriptionsByChannelId': {},
-            },
         });
+    }
+
+    async watchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        const url = this.urls['api']['ws']['public'];
+        const channel = 'ticker';
+        const request = {
+            'event': 'subscribe',
+            'channel': channel,
+            'symbol': marketId,
+        };
+        const messageHash = channel + ':' + marketId;
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+    }
+
+    handleTicker (client, message, subscription) {
+        //
+        //     [
+        //         1231,
+        //         'hb',
+        //     ]
+        //
+        if (message[1] === 'hb') {
+            return; // skip ticker heartbeats
+        }
+        //
+        //     [
+        //         2,             // 0 CHANNEL_ID integer Channel ID
+        //         236.62,        // 1 BID float Price of last highest bid
+        //         9.0029,        // 2 BID_SIZE float Size of the last highest bid
+        //         236.88,        // 3 ASK float Price of last lowest ask
+        //         7.1138,        // 4 ASK_SIZE float Size of the last lowest ask
+        //         -1.02,         // 5 DAILY_CHANGE float Amount that the last price has changed since yesterday
+        //         0,             // 6 DAILY_CHANGE_PERC float Amount that the price has changed expressed in percentage terms
+        //         236.52,        // 7 LAST_PRICE float Price of the last trade.
+        //         5191.36754297, // 8 VOLUME float Daily volume
+        //         250.01,        // 9 HIGH float Daily high
+        //         220.05,        // 10 LOW float Daily low
+        //     ]
+        //
+        const timestamp = this.milliseconds ();
+        const marketId = this.safeString (subscription, 'pair');
+        const market = this.markets_by_id[marketId];
+        const symbol = market['symbol'];
+        const channel = 'ticker';
+        const messageHash = channel + ':' + marketId;
+        const last = this.safeFloat (message, 7);
+        const change = this.safeFloat (message, 5);
+        let open = undefined;
+        if ((last !== undefined) && (change !== undefined)) {
+            open = last - change;
+        }
+        const result = {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (message, 9),
+            'low': this.safeFloat (message, 10),
+            'bid': this.safeFloat (message, 1),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (message, 3),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': this.safeFloat (message, 6),
+            'average': undefined,
+            'baseVolume': this.safeFloat (message, 8),
+            'quoteVolume': undefined,
+            'info': message,
+        };
+        this.tickers[symbol] = result;
+        client.resolve (result, messageHash);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -54,7 +129,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client, message, subscription) {
         //
         // first message (snapshot)
         //
@@ -77,24 +152,11 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         //         [ 7138.9, 0, -1 ], // price, count, size, size > 0 = bid, size < 0 = ask
         //     ]
         //
-        const channelId = message[0].toString ();
-        const subscription = this.safeValue (this.options['subscriptionsByChannelId'], channelId, {});
-        //
-        //     {
-        //         event: 'subscribed',
-        //         channel: 'book',
-        //         chanId: 67473,
-        //         symbol: 'tBTCUSD', // v2 id
-        //         prec: 'P0',
-        //         freq: 'F0',
-        //         len: '25',
-        //         pair: 'BTCUSD', // v1 id
-        //     }
-        //
         const marketId = this.safeString (subscription, 'pair');
         const market = this.markets_by_id[marketId];
         const symbol = market['symbol'];
-        const messageHash = 'book:' + marketId;
+        const channel = 'book';
+        const messageHash = channel + ':' + marketId;
         // if it is an initial snapshot
         if (Array.isArray (message[1][0])) {
             const limit = this.safeInteger (subscription, 'len');
@@ -166,7 +228,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         //     }
         //
         const channelId = this.safeString (message, 'chanId');
-        this.options['subscriptionsByChannelId'][channelId] = message;
+        client.subscriptions[channelId] = message;
         return message;
     }
 
@@ -179,19 +241,19 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         // console.log (new Date (), message);
         if (Array.isArray (message)) {
             const channelId = message[0].toString ();
-            const subscription = this.safeValue (this.options['subscriptionsByChannelId'], channelId, {});
+            const subscription = this.safeValue (client.subscriptions, channelId, {});
             const channel = this.safeString (subscription, 'channel');
             const methods = {
                 'book': this.handleOrderBook,
                 // 'ohlc': this.handleOHLCV,
-                // 'ticker': this.handleTicker,
+                'ticker': this.handleTicker,
                 // 'trade': this.handleTrades,
             };
             const method = this.safeValue (methods, channel);
             if (method === undefined) {
                 return message;
             } else {
-                return method.call (this, client, message);
+                return method.call (this, client, message, subscription);
             }
         } else {
             // todo: add bitfinex handleErrorMessage
