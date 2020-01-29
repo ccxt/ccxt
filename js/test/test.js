@@ -74,7 +74,7 @@ if (settings && settings.skip) {
 
 async function testPublic (exchange, symbol) {
     await tests['watchOrderBook']   (exchange, symbol)
-    // await tests['watchTicker']      (exchange, symbol)
+    await tests['watchTicker']      (exchange, symbol)
     // await tests['watchStatus']      (exchange)
     // await tests['watchHeartbeat']   (exchange)
     // await tests['watchOHLCV']       (exchange, symbol)
@@ -86,7 +86,7 @@ async function testPublic (exchange, symbol) {
 
 async function testPrivate (exchange, symbol, code) {
     if (exchange.checkRequiredCredentials (false)) {
-        await tests['watchBalance']      (exchange)
+        // await tests['watchBalance']      (exchange)
         // await tests['watchOrders']       (exchange, symbol)
         // await tests['watchOpenOrders']   (exchange, symbol)
         // await tests['watchClosedOrders'] (exchange, symbol)
@@ -144,8 +144,8 @@ async function testExchange (exchange) {
 
     let symbol = exchange.symbols[0]
     const symbols = [
-        'BTC/USDT',
         'BTC/USD',
+        'BTC/USDT',
         'BTC/CNY',
         'BTC/EUR',
         'BTC/ETH',
