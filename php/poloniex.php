@@ -339,7 +339,6 @@ class poloniex extends \ccxt\poloniex {
             // resolve the $orderbook future
             $messageHash = 'orderbook:' . $marketId;
             $orderbook = $this->orderbooks[$symbol];
-            // the .limit () operation will be moved to the watchOrderBook
             $client->resolve ($orderbook, $messageHash);
         }
         if ($tradesCount) {
@@ -352,7 +351,6 @@ class poloniex extends \ccxt\poloniex {
 
     public function handle_account_notifications ($client, $message) {
         // not implemented yet
-        // throw new NotImplemented($this->id . 'watchTickers not implemented yet');
         return $message;
     }
 

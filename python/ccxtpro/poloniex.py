@@ -312,7 +312,6 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
             # resolve the orderbook future
             messageHash = 'orderbook:' + marketId
             orderbook = self.orderbooks[symbol]
-            # the .limit() operation will be moved to the watchOrderBook
             client.resolve(orderbook, messageHash)
         if tradesCount:
             # resolve the trades future
@@ -322,7 +321,6 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
 
     def handle_account_notifications(self, client, message):
         # not implemented yet
-        # raise NotImplemented(self.id + 'watchTickers not implemented yet')
         return message
 
     def handle_message(self, client, message):

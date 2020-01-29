@@ -334,7 +334,6 @@ module.exports = class poloniex extends ccxt.poloniex {
             // resolve the orderbook future
             const messageHash = 'orderbook:' + marketId;
             const orderbook = this.orderbooks[symbol];
-            // the .limit () operation will be moved to the watchOrderBook
             client.resolve (orderbook, messageHash);
         }
         if (tradesCount) {
@@ -347,7 +346,6 @@ module.exports = class poloniex extends ccxt.poloniex {
 
     handleAccountNotifications (client, message) {
         // not implemented yet
-        // throw new NotImplemented (this.id + 'watchTickers not implemented yet');
         return message;
     }
 
