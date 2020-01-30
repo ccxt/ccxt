@@ -14,7 +14,7 @@ module.exports = class bitmex extends ccxt.bitmex {
                 'ws': true,
                 'watchTicker': true,
                 'watchTickers': false,
-                'watchTrades': false,
+                'watchTrades': true,
                 'watchOrderBook': true,
             },
             'urls': {
@@ -26,8 +26,8 @@ module.exports = class bitmex extends ccxt.bitmex {
                 'ws': '0.2.0',
             },
             'options': {
-                'subscriptionStatusByChannelId': {},
                 'watchOrderBookLevel': 'orderBookL2', // 'orderBookL2' = L2 full order book, 'orderBookL2_25' = L2 top 25, 'orderBook10' L3 top 10
+                'tradesLimit': 1000,
             },
             'exceptions': {
                 'ws': {
@@ -307,48 +307,105 @@ module.exports = class bitmex extends ccxt.bitmex {
         throw new NotImplemented (this.id + ' watchBalance() not implemented yet');
     }
 
-    handleTrades (client, message) {
+    handleTrade (client, message) {
         //
-        //     [
-        //         0, // channelID
-        //         [ //     price        volume         time             side type misc
-        //             [ "5541.20000", "0.15850568", "1534614057.321597", "s", "l", "" ],
-        //             [ "6060.00000", "0.02455000", "1534614057.324998", "b", "l", "" ],
-        //         ],
-        //         "trade",
-        //         "XBT/USD"
-        //     ]
+        // initial snapshot
         //
-        // todo: incremental trades – add max limit to the dequeue of trades, unshift and push
+        //     {
+        //         table: 'trade',
+        //         action: 'partial',
+        //         keys: [],
+        //         types: {
+        //             timestamp: 'timestamp',
+        //             symbol: 'symbol',
+        //             side: 'symbol',
+        //             size: 'long',
+        //             price: 'float',
+        //             tickDirection: 'symbol',
+        //             trdMatchID: 'guid',
+        //             grossValue: 'long',
+        //             homeNotional: 'float',
+        //             foreignNotional: 'float'
+        //         },
+        //         foreignKeys: { symbol: 'instrument', side: 'side' },
+        //         attributes: { timestamp: 'sorted', symbol: 'grouped' },
+        //         filter: { symbol: 'XBTUSD' },
+        //         data: [
+        //             {
+        //                 timestamp: '2020-01-30T17:03:07.854Z',
+        //                 symbol: 'XBTUSD',
+        //                 side: 'Buy',
+        //                 size: 15000,
+        //                 price: 9378,
+        //                 tickDirection: 'ZeroPlusTick',
+        //                 trdMatchID: '5b426e7f-83d1-2c80-295d-ee995b8ceb4a',
+        //                 grossValue: 159945000,
+        //                 homeNotional: 1.59945,
+        //                 foreignNotional: 15000
+        //             }
+        //         ]
+        //     }
         //
-        //     const trade = this.handleTrade (client, delta, market);
-        //     this.trades.push (trade);
-        //     tradesCount += 1;
+        // updates
         //
-        const wsName = message[3];
-        // const name = 'ticker';
-        // const messageHash = wsName + ':' + name;
-        const market = this.safeValue (this.options['marketsByWsName'], wsName);
-        const symbol = market['symbol'];
-        // for (let i = 0; i < message[1].length; i++)
-        const timestamp = parseInt (message[2]);
-        const result = {
-            'id': undefined,
-            'order': undefined,
-            'info': message,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            // 'type': type,
-            // 'side': side,
-            'takerOrMaker': undefined,
-            // 'price': price,
-            // 'amount': amount,
-            // 'cost': price * amount,
-            // 'fee': fee,
+        //     {
+        //         table: 'trade',
+        //         action: 'insert',
+        //         data: [
+        //             {
+        //                 timestamp: '2020-01-30T17:31:40.160Z',
+        //                 symbol: 'XBTUSD',
+        //                 side: 'Sell',
+        //                 size: 37412,
+        //                 price: 9521.5,
+        //                 tickDirection: 'ZeroMinusTick',
+        //                 trdMatchID: 'a4bfc6bc-6cf1-1a11-622e-270eef8ca5c7',
+        //                 grossValue: 392938236,
+        //                 homeNotional: 3.92938236,
+        //                 foreignNotional: 37412
+        //             }
+        //         ]
+        //     }
+        //
+        const table = 'trade';
+        const data = this.safeValue (message, 'data', []);
+        const dataByMarketIds = this.groupBy (data, 'symbol');
+        const marketIds = Object.keys (dataByMarketIds);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            if (marketId in this.markets_by_id) {
+                const market = this.markets_by_id[marketId];
+                const messageHash = table + ':' + marketId;
+                const symbol = market['symbol'];
+                const trades = this.parseTrades (dataByMarketIds[marketId], market);
+                const stored = this.safeValue (this.trades, symbol, []);
+                for (let j = 0; j < trades.length; j++) {
+                    stored.push (trades[i]);
+                    const storedLength = stored.length;
+                    if (storedLength > this.options['tradesLimit']) {
+                        stored.shift ();
+                    }
+                }
+                this.trades[symbol] = stored;
+                client.resolve (stored, messageHash);
+            }
+        }
+    }
+
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const table = 'trade';
+        const messageHash = table + ':' + market['id'];
+        const url = this.urls['api']['ws'];
+        const request = {
+            'op': 'subscribe',
+            'args': [
+                messageHash,
+            ],
         };
-        result['id'] = undefined;
-        throw new NotImplemented (this.id + ' handleTrades() not implemented yet (wip)');
+        const future = this.watch (url, messageHash, this.extend (request, params), messageHash);
+        return await this.after (future, this.filterBySinceLimit, since, limit);
     }
 
     handleOHLCV (client, message) {
@@ -395,19 +452,19 @@ module.exports = class bitmex extends ccxt.bitmex {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
-        let name = undefined;
+        let table = undefined;
         if (limit === undefined) {
-            name = this.safeString (this.options, 'watchOrderBookLevel', 'orderBookL2');
+            table = this.safeString (this.options, 'watchOrderBookLevel', 'orderBookL2');
         } else if (limit === 25) {
-            name = 'orderBookL2_25';
+            table = 'orderBookL2_25';
         } else if (limit === 10) {
-            name = 'orderBookL10';
+            table = 'orderBookL10';
         } else {
             throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined (L2), 25 (L2) or 10 (L3)');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const messageHash = name + ':' + market['id'];
+        const messageHash = table + ':' + market['id'];
         const url = this.urls['api']['ws'];
         const request = {
             'op': 'subscribe',
@@ -444,45 +501,6 @@ module.exports = class bitmex extends ccxt.bitmex {
     signMessage (client, messageHash, message, params = {}) {
         // todo: bitmex signMessage not implemented yet
         return message;
-    }
-
-    handleTrade (client, trade, market = undefined) {
-        //
-        // public trades
-        //
-        //     [
-        //         "t", // trade
-        //         "42706057", // id
-        //         1, // 1 = buy, 0 = sell
-        //         "0.05567134", // price
-        //         "0.00181421", // amount
-        //         1522877119, // timestamp
-        //     ]
-        //
-        const id = trade[1].toString ();
-        const side = trade[2] ? 'buy' : 'sell';
-        const price = parseFloat (trade[3]);
-        const amount = parseFloat (trade[4]);
-        const timestamp = trade[5] * 1000;
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        return {
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'id': id,
-            'order': undefined,
-            'type': undefined,
-            'takerOrMaker': undefined,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': price * amount,
-            'fee': undefined,
-        };
     }
 
     handleOrderBook (client, message) {
@@ -562,7 +580,7 @@ module.exports = class bitmex extends ccxt.bitmex {
                     if (!(marketId in numUpdatesByMarketId)) {
                         numUpdatesByMarketId[marketId] = 0;
                     }
-                    numUpdatesByMarketId[marketId] += 1;
+                    numUpdatesByMarketId[marketId] = this.sum (numUpdatesByMarketId, 1);
                     const market = this.markets_by_id[marketId];
                     const symbol = market['symbol'];
                     const orderbook = this.orderbooks[symbol];
@@ -611,15 +629,6 @@ module.exports = class bitmex extends ccxt.bitmex {
         //         subscribe: 'orderBookL2:XBTUSD',
         //         request: { op: 'subscribe', args: [ 'orderBookL2:XBTUSD' ] }
         //     }
-        //
-        // --------------------------------------------------------------------
-        //
-        // const channelId = this.safeString (message, 'channelID');
-        // this.options['subscriptionStatusByChannelId'][channelId] = message;
-        // const requestId = this.safeString (message, 'reqid');
-        // if (client.futures[requestId]) {
-        //     delete client.futures[requestId];
-        // }
         //
         return message;
     }
@@ -705,6 +714,7 @@ module.exports = class bitmex extends ccxt.bitmex {
                 'orderBookL2_25': this.handleOrderBook,
                 'orderBook10': this.handleOrderBook,
                 'instrument': this.handleTicker,
+                'trade': this.handleTrade,
             };
             const method = this.safeValue (methods, table);
             if (method === undefined) {
