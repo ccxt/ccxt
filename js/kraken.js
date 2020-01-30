@@ -168,25 +168,16 @@ module.exports = class kraken extends ccxt.kraken {
         //         'ETH/XBT', // Asset pair
         //     ]
         //
-        const wsName = message[3];
+        const wsName = this.safeString (message, 3);
         const name = 'ohlc';
-        const candle = message[1];
-        // console.log (
-        //     this.iso8601 (parseInt (parseFloat (candle[0]) * 1000)), '-',
-        //     this.iso8601 (parseInt (parseFloat (candle[1]) * 1000)), ': [',
-        //     parseFloat (candle[2]),
-        //     parseFloat (candle[3]),
-        //     parseFloat (candle[4]),
-        //     parseFloat (candle[5]),
-        //     parseFloat (candle[7]), ']'
-        // );
+        const candle = this.safeValue (message, 1);
         const result = [
-            parseInt (parseFloat (candle[0]) * 1000),
-            parseFloat (candle[2]),
-            parseFloat (candle[3]),
-            parseFloat (candle[4]),
-            parseFloat (candle[5]),
-            parseFloat (candle[7]),
+            parseInt (this.safeFloat (candle, 0) * 1000),
+            this.safeFloat (candle, 2),
+            this.safeFloat (candle, 3),
+            this.safeFloat (candle, 4),
+            this.safeFloat (candle, 5),
+            this.safeFloat (candle, 7),
         ];
         const messageHash = name + ':' + wsName;
         client.resolve (result, messageHash);
@@ -224,8 +215,10 @@ module.exports = class kraken extends ccxt.kraken {
         return await this.watchPublic ('ticker', symbol, params);
     }
 
-    async watchTrades (symbol, params = {}) {
-        return await this.watchPublic ('trade', symbol, params);
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        const name = 'trade';
+        const future = this.watchPublic (name, symbol, params);
+        return await this.after (future, this.filterBySinceLimit, since, limit);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
