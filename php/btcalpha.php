@@ -170,8 +170,19 @@ class btcalpha extends Exchange {
             $request['limit_sell'] = $limit;
             $request['limit_buy'] = $limit;
         }
-        $reponse = $this->publicGetOrderbookPairName (array_merge($request, $params));
-        return $this->parse_order_book($reponse, null, 'buy', 'sell', 'price', 'amount');
+        $response = $this->publicGetOrderbookPairName (array_merge($request, $params));
+        return $this->parse_order_book($response, null, 'buy', 'sell', 'price', 'amount');
+    }
+
+    public function parse_bids_asks ($bidasks, $priceKey = 0, $amountKey = 1) {
+        $result = array();
+        for ($i = 0; $i < count($bidasks); $i++) {
+            $bidask = $bidasks[$i];
+            if ($bidask) {
+                $result[] = $this->parse_bid_ask($bidask, $priceKey, $amountKey);
+            }
+        }
+        return $result;
     }
 
     public function parse_trade ($trade, $market = null) {
