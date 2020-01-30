@@ -124,12 +124,6 @@ module.exports = class kraken extends ccxt.kraken {
         //         "XBT/USD"
         //     ]
         //
-        // todo: incremental trades – add max limit to the dequeue of trades, unshift and push
-        //
-        //     const trade = this.handleTrade (client, delta, market);
-        //     this.trades.push (trade);
-        //     tradesCount += 1;
-        //
         const wsName = this.safeString (message, 3);
         const name = this.safeString (message, 2);
         const messageHash = name + ':' + wsName;
@@ -281,45 +275,6 @@ module.exports = class kraken extends ccxt.kraken {
         //
         const event = this.safeString (message, 'event');
         client.resolve (message, event);
-    }
-
-    handleTrade (client, trade, market = undefined) {
-        //
-        // public trades
-        //
-        //     [
-        //         "t", // trade
-        //         "42706057", // id
-        //         1, // 1 = buy, 0 = sell
-        //         "0.05567134", // price
-        //         "0.00181421", // amount
-        //         1522877119, // timestamp
-        //     ]
-        //
-        const id = trade[1].toString ();
-        const side = trade[2] ? 'buy' : 'sell';
-        const price = parseFloat (trade[3]);
-        const amount = parseFloat (trade[4]);
-        const timestamp = trade[5] * 1000;
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        return {
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'id': id,
-            'order': undefined,
-            'type': undefined,
-            'takerOrMaker': undefined,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': price * amount,
-            'fee': undefined,
-        };
     }
 
     handleOrderBook (client, message) {
