@@ -163,6 +163,7 @@ class coinbasepro extends Exchange {
                     'order not found' => '\\ccxt\\OrderNotFound',
                     'price too small' => '\\ccxt\\InvalidOrder',
                     'price too precise' => '\\ccxt\\InvalidOrder',
+                    'under maintenance' => '\\ccxt\\OnMaintenance',
                 ),
             ),
         ));

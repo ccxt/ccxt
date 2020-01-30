@@ -21,6 +21,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import OnMaintenance
 
 
 class coinbasepro(Exchange):
@@ -175,6 +176,7 @@ class coinbasepro(Exchange):
                     'order not found': OrderNotFound,
                     'price too small': InvalidOrder,
                     'price too precise': InvalidOrder,
+                    'under maintenance': OnMaintenance,
                 },
             },
         })

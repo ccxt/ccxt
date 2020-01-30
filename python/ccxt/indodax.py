@@ -79,11 +79,13 @@ class indodax(Exchange):
                 'ATOM/IDR': {'id': 'atom_idr', 'symbol': 'ATOM/IDR', 'base': 'ATOM', 'quote': 'IDR', 'baseId': 'atom', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
                 'BAT/IDR': {'id': 'bat_idr', 'symbol': 'BAT/IDR', 'base': 'BAT', 'quote': 'IDR', 'baseId': 'bat', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
                 'BCD/IDR': {'id': 'bcd_idr', 'symbol': 'BCD/IDR', 'base': 'BCD', 'quote': 'IDR', 'baseId': 'bcd', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
-                'BCH/IDR': {'id': 'bch_idr', 'symbol': 'BCH/IDR', 'base': 'BCH', 'quote': 'IDR', 'baseId': 'bch', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.001, 'max': None}}},
-                'BSV/IDR': {'id': 'bsv_idr', 'symbol': 'BSV/IDR', 'base': 'BSV', 'quote': 'IDR', 'baseId': 'bsv', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.001, 'max': None}}},
+                'BCH/IDR': {'id': 'bchabc_idr', 'symbol': 'BCH/IDR', 'base': 'BCH', 'quote': 'IDR', 'baseId': 'bchabc', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.001, 'max': None}}},
+                'BSV/IDR': {'id': 'bchsv_idr', 'symbol': 'BSV/IDR', 'base': 'BSV', 'quote': 'IDR', 'baseId': 'bchsv', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.001, 'max': None}}},
                 'BNB/IDR': {'id': 'bnb_idr', 'symbol': 'BNB/IDR', 'base': 'BNB', 'quote': 'IDR', 'baseId': 'bnb', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.001, 'max': None}}},
                 'BTG/IDR': {'id': 'btg_idr', 'symbol': 'BTG/IDR', 'base': 'BTG', 'quote': 'IDR', 'baseId': 'btg', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'BTS/IDR': {'id': 'bts_idr', 'symbol': 'BTS/IDR', 'base': 'BTS', 'quote': 'IDR', 'baseId': 'bts', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
+                'BTT/IDR': {'id': 'btt_idr', 'symbol': 'BTT/IDR', 'base': 'BTT', 'quote': 'IDR', 'baseId': 'btt', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 1000, 'max': None}}},
+                'COAL/IDR': {'id': 'coal_idr', 'symbol': 'COAL/IDR', 'base': 'COAL', 'quote': 'IDR', 'baseId': 'coal', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 50, 'max': None}}},
                 'CRO/IDR': {'id': 'cro_idr', 'symbol': 'CRO/IDR', 'base': 'CRO', 'quote': 'IDR', 'baseId': 'cro', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'DASH/IDR': {'id': 'drk_idr', 'symbol': 'DASH/IDR', 'base': 'DASH', 'quote': 'IDR', 'baseId': 'drk', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'DAX/IDR': {'id': 'dax_idr', 'symbol': 'DAX/IDR', 'base': 'DAX', 'quote': 'IDR', 'baseId': 'dax', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
@@ -93,15 +95,18 @@ class indodax(Exchange):
                 'ETC/IDR': {'id': 'etc_idr', 'symbol': 'ETC/IDR', 'base': 'ETC', 'quote': 'IDR', 'baseId': 'etc', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.1, 'max': None}}},
                 'GARD/IDR': {'id': 'gard_idr', 'symbol': 'GARD/IDR', 'base': 'GARD', 'quote': 'IDR', 'baseId': 'gard', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.1, 'max': None}}},
                 'GSC/IDR': {'id': 'gsc_idr', 'symbol': 'GSC/IDR', 'base': 'GSC', 'quote': 'IDR', 'baseId': 'gsc', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.1, 'max': None}}},
-                'GXC/IDR': {'id': 'gxc_idr', 'symbol': 'GXC/IDR', 'base': 'GXC', 'quote': 'IDR', 'baseId': 'gxc', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.1, 'max': None}}},
+                'GXC/IDR': {'id': 'gxs_idr', 'symbol': 'GXC/IDR', 'base': 'GXC', 'quote': 'IDR', 'baseId': 'gxs', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.1, 'max': None}}},
+                'HPB/IDR': {'id': 'hpb_idr', 'symbol': 'HPB/IDR', 'base': 'HPB', 'quote': 'IDR', 'baseId': 'hpb', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 5, 'max': None}}},
                 'IGNIS/IDR': {'id': 'ignis_idr', 'symbol': 'IGNIS/IDR', 'base': 'IGNIS', 'quote': 'IDR', 'baseId': 'ignis', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 1, 'max': None}}},
                 'INX/IDR': {'id': 'inx_idr', 'symbol': 'INX/IDR', 'base': 'INX', 'quote': 'IDR', 'baseId': 'inx', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 1, 'max': None}}},
+                'IOTA/IDR': {'id': 'iota_idr', 'symbol': 'IOTA/IDR', 'base': 'IOTA', 'quote': 'IDR', 'baseId': 'iota', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 5, 'max': None}}},
                 'LINK/IDR': {'id': 'link_idr', 'symbol': 'LINK/IDR', 'base': 'LINK', 'quote': 'IDR', 'baseId': 'link', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 1, 'max': None}}},
                 'LTC/IDR': {'id': 'ltc_idr', 'symbol': 'LTC/IDR', 'base': 'LTC', 'quote': 'IDR', 'baseId': 'ltc', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'MBL/IDR': {'id': 'mbl_idr', 'symbol': 'MBL/IDR', 'base': 'MBL', 'quote': 'IDR', 'baseId': 'mbl', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'NEO/IDR': {'id': 'neo_idr', 'symbol': 'NEO/IDR', 'base': 'NEO', 'quote': 'IDR', 'baseId': 'neo', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'NPXS/IDR': {'id': 'npxs_idr', 'symbol': 'NPXS/IDR', 'base': 'NPXS', 'quote': 'IDR', 'baseId': 'npxs', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 1, 'max': None}}},
                 'NXT/IDR': {'id': 'nxt_idr', 'symbol': 'NXT/IDR', 'base': 'NXT', 'quote': 'IDR', 'baseId': 'nxt', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 5, 'max': None}}},
+                'OKB/IDR': {'id': 'okb_idr', 'symbol': 'OKB/IDR', 'base': 'OKB', 'quote': 'IDR', 'baseId': 'okb', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.5, 'max': None}}},
                 'ONT/IDR': {'id': 'ont_idr', 'symbol': 'ONT/IDR', 'base': 'ONT', 'quote': 'IDR', 'baseId': 'ont', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 5, 'max': None}}},
                 'PXG/IDR': {'id': 'pxg_idr', 'symbol': 'PXG/IDR', 'base': 'PXG', 'quote': 'IDR', 'baseId': 'pxg', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 5, 'max': None}}},
                 'QTUM/IDR': {'id': 'qtum_idr', 'symbol': 'QTUM/IDR', 'base': 'QTUM', 'quote': 'IDR', 'baseId': 'qtum', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 5, 'max': None}}},
@@ -113,13 +118,16 @@ class indodax(Exchange):
                 'USDC/IDR': {'id': 'usdc_idr', 'symbol': 'USDC/IDR', 'base': 'USDC', 'quote': 'IDR', 'baseId': 'usdc', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
                 'USDT/IDR': {'id': 'usdt_idr', 'symbol': 'USDT/IDR', 'base': 'USDT', 'quote': 'IDR', 'baseId': 'usdt', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
                 'VEX/IDR': {'id': 'vex_idr', 'symbol': 'VEX/IDR', 'base': 'VEX', 'quote': 'IDR', 'baseId': 'vex', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
+                'VIDY/IDR': {'id': 'vidy_idr', 'symbol': 'VIDY/IDR', 'base': 'VIDY', 'quote': 'IDR', 'baseId': 'vidy', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 100, 'max': None}}},
                 'WAVES/IDR': {'id': 'waves_idr', 'symbol': 'WAVES/IDR', 'base': 'WAVES', 'quote': 'IDR', 'baseId': 'waves', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.1, 'max': None}}},
                 'XEM/IDR': {'id': 'nem_idr', 'symbol': 'XEM/IDR', 'base': 'XEM', 'quote': 'IDR', 'baseId': 'nem', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 1, 'max': None}}},
                 'XLM/IDR': {'id': 'str_idr', 'symbol': 'XLM/IDR', 'base': 'XLM', 'quote': 'IDR', 'baseId': 'str', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 20, 'max': None}}},
                 'XDCE/IDR': {'id': 'xdce_idr', 'symbol': 'XDCE/IDR', 'base': 'XDCE', 'quote': 'IDR', 'baseId': 'xdce', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 10, 'max': None}}},
+                'XMR/IDR': {'id': 'xmr_idr', 'symbol': 'XMR/IDR', 'base': 'XMR', 'quote': 'IDR', 'baseId': 'xmr', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'XRP/IDR': {'id': 'xrp_idr', 'symbol': 'XRP/IDR', 'base': 'XRP', 'quote': 'IDR', 'baseId': 'xrp', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 10, 'max': None}}},
                 'XZC/IDR': {'id': 'xzc_idr', 'symbol': 'XZC/IDR', 'base': 'XZC', 'quote': 'IDR', 'baseId': 'xzc', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.1, 'max': None}}},
                 'VSYS/IDR': {'id': 'vsys_idr', 'symbol': 'VSYS/IDR', 'base': 'VSYS', 'quote': 'IDR', 'baseId': 'vsys', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.1, 'max': None}}},
+                'ZEC/IDR': {'id': 'zec_idr', 'symbol': 'ZEC/IDR', 'base': 'ZEC', 'quote': 'IDR', 'baseId': 'zec', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 # BTC markets
                 'BTS/BTC': {'id': 'bts_btc', 'symbol': 'BTS/BTC', 'base': 'BTS', 'quote': 'BTC', 'baseId': 'bts', 'quoteId': 'btc', 'precision': {'amount': 8, 'price': 8}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'DASH/BTC': {'id': 'drk_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'drk', 'quoteId': 'btc', 'precision': {'amount': 8, 'price': 6}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
@@ -276,7 +284,7 @@ class indodax(Exchange):
         status = self.safe_string(order, 'status', 'open')
         if status == 'filled':
             status = 'closed'
-        elif status == 'calcelled':
+        elif status == 'cancelled':
             status = 'canceled'
         symbol = None
         cost = None

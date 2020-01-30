@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.21.98';
+$version = '1.22.13';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.21.98';
+    const VERSION = '1.22.13';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -843,6 +843,7 @@ class Exchange {
         $this->currencies = array();
         $this->balance = array();
         $this->orderbooks = array();
+        $this->tickers = array();
         $this->fees = array('trading' => array(), 'funding' => array());
         $this->precision = array();
         $this->orders = array();

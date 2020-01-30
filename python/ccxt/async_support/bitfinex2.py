@@ -38,6 +38,7 @@ class bitfinex2(bitfinex):
                 'fetchTickers': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransactions': False,
                 'withdraw': True,
             },
             'timeframes': {

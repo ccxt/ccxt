@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, NotSupported, OrderNotFound } = require ('./base/errors');
+const { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, NotSupported, OrderNotFound, OnMaintenance } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -158,6 +158,7 @@ module.exports = class coinbasepro extends Exchange {
                     'order not found': OrderNotFound,
                     'price too small': InvalidOrder,
                     'price too precise': InvalidOrder,
+                    'under maintenance': OnMaintenance,
                 },
             },
         });

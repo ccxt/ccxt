@@ -31,7 +31,7 @@ class bw extends Exchange {
                 'editOrder' => false,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => false,
-                'fetchClosedOrders' => false,
+                'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
@@ -122,6 +122,7 @@ class bw extends Exchange {
                         'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
                         'exchange/fund/controller/website/fundwebsitecontroller/getwithdrawaddress',
                         'exchange/fund/controller/website/fundwebsitecontroller/getpayoutcoinrecord',
+                        'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
                         // the docs say that the following URLs are HTTP POST
                         // in the docs header and HTTP GET in the docs body
                         // the docs contradict themselves, a typo most likely
@@ -864,6 +865,27 @@ class bw extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array(
+            'marketId' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['pageSize'] = $limit; // default $limit is 20
+        }
+        if ($since !== null) {
+            $request['startDateTime'] = $since;
+        }
+        $response = $this->privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustList (array_merge($request, $params));
+        $data = $this->safe_value($response, 'datas', array());
+        $orders = $this->safe_value($data, 'entrustList', array());
+        return $this->parse_orders($orders, $market, $since, $limit);
+    }
+
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
@@ -935,7 +957,7 @@ class bw extends Exchange {
                 $keys = is_array($sortedParams) ? array_keys($sortedParams) : array();
                 for ($i = 0; $i < count($keys); $i++) {
                     $key = $keys[$i];
-                    $content .= $key . $sortedParams[$key];
+                    $content .= $key . (string) $sortedParams[$key];
                 }
             } else {
                 $content = $body;
