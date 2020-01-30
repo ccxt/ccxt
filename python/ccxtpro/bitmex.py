@@ -17,6 +17,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                 'ws': True,
                 'watchTicker': True,
                 'watchTickers': False,
+                'watchTrades': False,
                 'watchOrderBook': True,
             },
             'urls': {
@@ -554,10 +555,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                     side = self.safe_string(data[i], 'side')
                     side = 'bids' if (side == 'Buy') else 'asks'
                     bookside = orderbook[side]
-                    if action == 'insert':
-                        bookside.store(price, size, id)
-                    else:
-                        bookside.restore(price, size, id)
+                    bookside.store(price, size, id)
             marketIds = list(numUpdatesByMarketId.keys())
             for i in range(0, len(marketIds)):
                 marketId = marketIds[i]
@@ -633,7 +631,6 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                     exception = ExchangeError(error)
                 else:
                     exception = broad[broadKey](error)
-                # print(requestId, exception)
                 client.reject(exception, messageHash)
                 return False
         return True
@@ -683,7 +680,6 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
             }
             method = self.safe_value(methods, table)
             if method is None:
-                print(message)
                 return message
             else:
                 return method(client, message)

@@ -19,6 +19,7 @@ class bitmex extends \ccxt\bitmex {
                 'ws' => true,
                 'watchTicker' => true,
                 'watchTickers' => false,
+                'watchTrades' => false,
                 'watchOrderBook' => true,
             ),
             'urls' => array(
@@ -576,11 +577,7 @@ class bitmex extends \ccxt\bitmex {
                     $side = $this->safe_string($data[$i], 'side');
                     $side = ($side === 'Buy') ? 'bids' : 'asks';
                     $bookside = $orderbook[$side];
-                    if ($action === 'insert') {
-                        $bookside->store ($price, $size, $id);
-                    } else {
-                        $bookside->restore ($price, $size, $id);
-                    }
+                    $bookside->store ($price, $size, $id);
                 }
             }
             $marketIds = is_array($numUpdatesByMarketId) ? array_keys($numUpdatesByMarketId) : array();
@@ -664,7 +661,6 @@ class bitmex extends \ccxt\bitmex {
                 } else {
                     $exception = new $broad[$broadKey] ($error);
                 }
-                // var_dump (requestId, $exception);
                 $client->reject ($exception, $messageHash);
                 return false;
             }
@@ -717,7 +713,6 @@ class bitmex extends \ccxt\bitmex {
             );
             $method = $this->safe_value($methods, $table);
             if ($method === null) {
-                var_dump ($message);
                 return $message;
             } else {
                 return $method($client, $message);

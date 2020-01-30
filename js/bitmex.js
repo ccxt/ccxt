@@ -14,6 +14,7 @@ module.exports = class bitmex extends ccxt.bitmex {
                 'ws': true,
                 'watchTicker': true,
                 'watchTickers': false,
+                'watchTrades': false,
                 'watchOrderBook': true,
             },
             'urls': {
@@ -571,11 +572,7 @@ module.exports = class bitmex extends ccxt.bitmex {
                     let side = this.safeString (data[i], 'side');
                     side = (side === 'Buy') ? 'bids' : 'asks';
                     const bookside = orderbook[side];
-                    if (action === 'insert') {
-                        bookside.store (price, size, id);
-                    } else {
-                        bookside.restore (price, size, id);
-                    }
+                    bookside.store (price, size, id);
                 }
             }
             const marketIds = Object.keys (numUpdatesByMarketId);
@@ -659,7 +656,6 @@ module.exports = class bitmex extends ccxt.bitmex {
                 } else {
                     exception = new broad[broadKey] (error);
                 }
-                // console.log (requestId, exception);
                 client.reject (exception, messageHash);
                 return false;
             }
@@ -712,7 +708,6 @@ module.exports = class bitmex extends ccxt.bitmex {
             };
             const method = this.safeValue (methods, table);
             if (method === undefined) {
-                console.log (message);
                 return message;
             } else {
                 return method.call (this, client, message);
