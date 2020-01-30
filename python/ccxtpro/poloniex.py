@@ -26,7 +26,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
                 },
             },
             'options': {
-                'tradesLimit': 5,
+                'tradesLimit': 1000,
             },
         })
 
