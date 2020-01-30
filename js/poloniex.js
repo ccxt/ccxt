@@ -12,6 +12,8 @@ module.exports = class poloniex extends ccxt.poloniex {
             'has': {
                 'ws': true,
                 'watchTicker': true,
+                'watchTickers': false, // for now
+                'watchTrades': true,
                 'watchOrderBook': true,
                 'watchBalance': false, // not implemented yet
             },
@@ -19,6 +21,9 @@ module.exports = class poloniex extends ccxt.poloniex {
                 'api': {
                     'ws': 'wss://api2.poloniex.com',
                 },
+            },
+            'options': {
+                'tradesLimit': 5,
             },
         });
     }
@@ -228,11 +233,12 @@ module.exports = class poloniex extends ccxt.poloniex {
         //         1522877119, // timestamp
         //     ]
         //
-        const id = trade[1].toString ();
-        const side = trade[2] ? 'buy' : 'sell';
-        const price = parseFloat (trade[3]);
-        const amount = parseFloat (trade[4]);
-        const timestamp = trade[5] * 1000;
+        const id = this.safeString (trade, 1);
+        const isBuy = this.safeInteger (trade, 2);
+        const side = isBuy ? 'buy' : 'sell';
+        const price = this.safeFloat (trade, 3);
+        const amount = this.safeFloat (trade, 4);
+        const timestamp = this.safeTimestamp (trade, 5);
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -294,6 +300,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         const symbol = this.safeString (market, 'symbol');
         let orderbookUpdatesCount = 0;
         let tradesCount = 0;
+        const stored = this.safeValue (this.trades, symbol, []);
         for (let i = 0; i < data.length; i++) {
             const delta = data[i];
             if (delta[0] === 'i') {
@@ -313,7 +320,7 @@ module.exports = class poloniex extends ccxt.poloniex {
                     }
                 }
                 orderbook['nonce'] = nonce;
-                orderbookUpdatesCount += 1;
+                orderbookUpdatesCount = this.sum (orderbookUpdatesCount, 1);
             } else if (delta[0] === 'o') {
                 const orderbook = this.orderbooks[symbol];
                 const side = delta[1] ? 'bids' : 'asks';
@@ -321,13 +328,16 @@ module.exports = class poloniex extends ccxt.poloniex {
                 const price = parseFloat (delta[2]);
                 const amount = parseFloat (delta[3]);
                 bookside.store (price, amount);
-                orderbookUpdatesCount += 1;
+                orderbookUpdatesCount = this.sum (orderbookUpdatesCount, 1);
                 orderbook['nonce'] = nonce;
             } else if (delta[0] === 't') {
-                // todo: add max limit to the dequeue of trades, unshift and push
-                // const trade = this.handleTrade (client, delta, market);
-                // this.trades.push (trade);
-                tradesCount += 1;
+                const trade = this.handleTrade (client, delta, market);
+                stored.push (trade);
+                const storedLength = stored.length;
+                if (storedLength > this.options['tradesLimit']) {
+                    stored.shift ();
+                }
+                tradesCount = this.sum (tradesCount, 1);
             }
         }
         if (orderbookUpdatesCount) {
@@ -337,10 +347,11 @@ module.exports = class poloniex extends ccxt.poloniex {
             client.resolve (orderbook, messageHash);
         }
         if (tradesCount) {
+            this.trades[symbol] = stored;
             // resolve the trades future
             const messageHash = 'trades:' + marketId;
             // todo: incremental trades
-            client.resolve (this.trades, messageHash);
+            client.resolve (this.trades[symbol], messageHash);
         }
     }
 

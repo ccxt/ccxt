@@ -23,14 +23,14 @@ module.exports = async (exchange, symbol) => {
 
     let response = undefined
 
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 30; i++) {
 
         response = await exchange[method] (symbol)
 
-        log (asTable (response))
+        log.noLocate (asTable (response))
 
         assert (response instanceof Array)
-        log (symbol.green, 'received', Object.values (response).length.toString ().green, 'trades')
+        log (symbol.green, method, 'returned', Object.values (response).length.toString ().green, 'trades')
         let now = Date.now ()
         for (let i = 0; i < response.length; i++) {
             testTrade (exchange, response[i], symbol, now)
