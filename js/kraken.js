@@ -14,6 +14,7 @@ module.exports = class kraken extends ccxt.kraken {
                 'ws': true,
                 'watchTicker': true,
                 'watchTickers': false, // for now
+                'watchTrades': true,
                 'watchOrderBook': true,
             },
             'urls': {
@@ -29,7 +30,7 @@ module.exports = class kraken extends ccxt.kraken {
                 'ws': '0.2.0',
             },
             'options': {
-                'subscriptionStatusByChannelId': {},
+                'tradesLimit': 1000,
             },
             'exceptions': {
                 'ws': {
@@ -129,30 +130,23 @@ module.exports = class kraken extends ccxt.kraken {
         //     this.trades.push (trade);
         //     tradesCount += 1;
         //
-        const wsName = message[3];
-        // const name = 'ticker';
-        // const messageHash = name + ':' + wsName;
+        const wsName = this.safeString (message, 3);
+        const name = this.safeString (message, 2);
+        const messageHash = name + ':' + wsName;
         const market = this.safeValue (this.options['marketsByWsName'], wsName);
         const symbol = market['symbol'];
-        // for (let i = 0; i < message[1].length; i++)
-        const timestamp = parseInt (message[2]);
-        const result = {
-            'id': undefined,
-            'order': undefined,
-            'info': message,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            // 'type': type,
-            // 'side': side,
-            'takerOrMaker': undefined,
-            // 'price': price,
-            // 'amount': amount,
-            // 'cost': price * amount,
-            // 'fee': fee,
-        };
-        result['id'] = undefined;
-        throw NotImplemented (this.id + ' handleTrades() not implemented yet (wip)');
+        const stored = this.safeValue (this.trades, symbol, []);
+        const trades = this.safeValue (message, 1, []);
+        const parsed = this.parseTrades (trades, market);
+        for (let i = 0; i < parsed.length; i++) {
+            stored.push (parsed[i]);
+            const storedLength = stored.length;
+            if (storedLength > this.options['tradesLimit']) {
+                stored.shift ();
+            }
+        }
+        this.trades[symbol] = stored;
+        client.resolve (stored, messageHash);
     }
 
     handleOHLCV (client, message) {
@@ -224,10 +218,6 @@ module.exports = class kraken extends ccxt.kraken {
         };
         const request = this.deepExtend (subscribe, params);
         return await this.watch (url, messageHash, request, messageHash);
-        // const future = this.watch (url, [ messageHash, requestId ], request, messageHash);
-        // const client = this.clients[url];
-        // client['futures'][requestId] = future;
-        // return await future;
     }
 
     async watchTicker (symbol, params = {}) {
@@ -475,7 +465,7 @@ module.exports = class kraken extends ccxt.kraken {
         //     }
         //
         const channelId = this.safeString (message, 'channelID');
-        this.options['subscriptionStatusByChannelId'][channelId] = message;
+        client.subscriptions[channelId] = message;
         // const requestId = this.safeString (message, 'reqid');
         // if (requestId in client.futures) {
         //     delete client.futures[requestId];
@@ -523,7 +513,7 @@ module.exports = class kraken extends ccxt.kraken {
         if (Array.isArray (message)) {
             // todo: move this branch and the 'method' property – to the client.subscriptions
             const channelId = message[0].toString ();
-            const subscriptionStatus = this.safeValue (this.options['subscriptionStatusByChannelId'], channelId, {});
+            const subscriptionStatus = this.safeValue (client.subscriptions, channelId, {});
             const subscription = this.safeValue (subscriptionStatus, 'subscription', {});
             const name = this.safeString (subscription, 'name');
             const methods = {

@@ -18,6 +18,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
                 'ws': True,
                 'watchTicker': True,
                 'watchTickers': False,  # for now
+                'watchTrades': True,
                 'watchOrderBook': True,
             },
             'urls': {
@@ -33,7 +34,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
                 'ws': '0.2.0',
             },
             'options': {
-                'subscriptionStatusByChannelId': {},
+                'tradesLimit': 1000,
             },
             'exceptions': {
                 'ws': {
@@ -129,30 +130,21 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         #     self.trades.append(trade)
         #     tradesCount += 1
         #
-        wsName = message[3]
-        # name = 'ticker'
-        # messageHash = name + ':' + wsName
+        wsName = self.safe_string(message, 3)
+        name = self.safe_string(message, 2)
+        messageHash = name + ':' + wsName
         market = self.safe_value(self.options['marketsByWsName'], wsName)
         symbol = market['symbol']
-        # for(i = 0; i < len(message[1]); i++)
-        timestamp = int(message[2])
-        result = {
-            'id': None,
-            'order': None,
-            'info': message,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
-            # 'type': type,
-            # 'side': side,
-            'takerOrMaker': None,
-            # 'price': price,
-            # 'amount': amount,
-            # 'cost': price * amount,
-            # 'fee': fee,
-        }
-        result['id'] = None
-        raise NotImplemented(self.id + ' handleTrades() not implemented yet(wip)')
+        stored = self.safe_value(self.trades, symbol, [])
+        trades = self.safe_value(message, 1, [])
+        parsed = self.parse_trades(trades, market)
+        for i in range(0, len(parsed)):
+            stored.append(parsed[i])
+            storedLength = len(stored)
+            if storedLength > self.options['tradesLimit']:
+                stored.pop(0)
+        self.trades[symbol] = stored
+        client.resolve(stored, messageHash)
 
     def handle_ohlcv(self, client, message):
         #
@@ -221,10 +213,6 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         }
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
-        # future = self.watch(url, [messageHash, requestId], request, messageHash)
-        # client = self.clients[url]
-        # client['futures'][requestId] = future
-        # return await future
 
     async def watch_ticker(self, symbol, params={}):
         return await self.watch_public('ticker', symbol, params)
@@ -447,7 +435,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         #     }
         #
         channelId = self.safe_string(message, 'channelID')
-        self.options['subscriptionStatusByChannelId'][channelId] = message
+        client.subscriptions[channelId] = message
         # requestId = self.safe_string(message, 'reqid')
         # if requestId in client.futures:
         #     del client.futures[requestId]
@@ -489,7 +477,7 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         if isinstance(message, list):
             # todo: move self branch and the 'method' property – to the client.subscriptions
             channelId = str(message[0])
-            subscriptionStatus = self.safe_value(self.options['subscriptionStatusByChannelId'], channelId, {})
+            subscriptionStatus = self.safe_value(client.subscriptions, channelId, {})
             subscription = self.safe_value(subscriptionStatus, 'subscription', {})
             name = self.safe_string(subscription, 'name')
             methods = {

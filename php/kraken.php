@@ -19,6 +19,7 @@ class kraken extends \ccxt\kraken {
                 'ws' => true,
                 'watchTicker' => true,
                 'watchTickers' => false, // for now
+                'watchTrades' => true,
                 'watchOrderBook' => true,
             ),
             'urls' => array(
@@ -34,7 +35,7 @@ class kraken extends \ccxt\kraken {
                 'ws' => '0.2.0',
             ),
             'options' => array(
-                'subscriptionStatusByChannelId' => array(),
+                'tradesLimit' => 1000,
             ),
             'exceptions' => array(
                 'ws' => array(
@@ -128,36 +129,29 @@ class kraken extends \ccxt\kraken {
         //         "XBT/USD"
         //     )
         //
-        // todo => incremental trades – add max limit to the dequeue of trades, unshift and push
+        // todo => incremental $trades – add max limit to the dequeue of $trades, unshift and push
         //
         //     $trade = $this->handle_trade ($client, delta, $market);
         //     $this->trades[] = $trade;
         //     tradesCount .= 1;
         //
-        $wsName = $message[3];
-        // $name = 'ticker';
-        // $messageHash = $name . ':' . $wsName;
+        $wsName = $this->safe_string($message, 3);
+        $name = $this->safe_string($message, 2);
+        $messageHash = $name . ':' . $wsName;
         $market = $this->safe_value($this->options['marketsByWsName'], $wsName);
         $symbol = $market['symbol'];
-        // for ($i = 0; $i < is_array($message[1]) ? count($message[1]) : 0; $i++)
-        $timestamp = intval ($message[2]);
-        $result = array(
-            'id' => null,
-            'order' => null,
-            'info' => $message,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $symbol,
-            // 'type' => type,
-            // 'side' => side,
-            'takerOrMaker' => null,
-            // 'price' => price,
-            // 'amount' => amount,
-            // 'cost' => price * amount,
-            // 'fee' => fee,
-        );
-        $result['id'] = null;
-        throw NotImplemented ($this->id . ' handleTrades() not implemented yet (wip)');
+        $stored = $this->safe_value($this->trades, $symbol, array());
+        $trades = $this->safe_value($message, 1, array());
+        $parsed = $this->parse_trades($trades, $market);
+        for ($i = 0; $i < count($parsed); $i++) {
+            $stored[] = $parsed[$i];
+            $storedLength = is_array($stored) ? count($stored) : 0;
+            if ($storedLength > $this->options['tradesLimit']) {
+                array_shift($stored);
+            }
+        }
+        $this->trades[$symbol] = $stored;
+        $client->resolve ($stored, $messageHash);
     }
 
     public function handle_ohlcv ($client, $message) {
@@ -229,10 +223,6 @@ class kraken extends \ccxt\kraken {
         );
         $request = array_replace_recursive($subscribe, $params);
         return $this->watch ($url, $messageHash, $request, $messageHash);
-        // $future = $this->watch ($url, array( $messageHash, $requestId ), $request, $messageHash);
-        // $client = $this->clients[$url];
-        // $client['futures'][$requestId] = $future;
-        // return $future;
     }
 
     public function watch_ticker ($symbol, $params = array ()) {
@@ -480,7 +470,7 @@ class kraken extends \ccxt\kraken {
         //     }
         //
         $channelId = $this->safe_string($message, 'channelID');
-        $this->options['subscriptionStatusByChannelId'][$channelId] = $message;
+        $client->subscriptions[$channelId] = $message;
         // $requestId = $this->safe_string($message, 'reqid');
         // if (is_array($client->futures) && array_key_exists($requestId, $client->futures)) {
         //     unset($client->futures[$requestId]);
@@ -528,7 +518,7 @@ class kraken extends \ccxt\kraken {
         if (gettype($message) === 'array' && count(array_filter(array_keys($message), 'is_string')) == 0) {
             // todo => move this branch and the 'method' property – to the $client->subscriptions
             $channelId = (string) $message[0];
-            $subscriptionStatus = $this->safe_value($this->options['subscriptionStatusByChannelId'], $channelId, array());
+            $subscriptionStatus = $this->safe_value($client->subscriptions, $channelId, array());
             $subscription = $this->safe_value($subscriptionStatus, 'subscription', array());
             $name = $this->safe_string($subscription, 'name');
             $methods = array(
