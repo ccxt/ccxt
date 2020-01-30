@@ -31,6 +31,7 @@ git add php/*.php python/ccxtpro/*.py
 git status
 echo "${LAST_COMMIT_MESSAGE}"
 echo "${COMMIT_MESSAGE}"
+git diff
 exit 0
 git commit -a -m "${COMMIT_MESSAGE}" -m '[ci skip]'
 git tag -a "${COMMIT_MESSAGE}" -m "${LAST_COMMIT_MESSAGE}" -m "" -m "[ci skip]"
