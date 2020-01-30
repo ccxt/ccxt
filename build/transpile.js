@@ -471,6 +471,7 @@ class Transpiler {
             'hashlib': 'hashlib',
             'math': 'math',
             'json.loads': 'json',
+            'sys': 'sys',
         }
 
         const baseClasses = {
@@ -492,7 +493,7 @@ class Transpiler {
         const libraries = []
 
         for (let library in pythonStandardLibraries) {
-            const regex = new RegExp ("[^\\']" + library + "[^\\'a-zA-Z]")
+            const regex = new RegExp ("[^\\'a-zA-Z]" + library + "[^\\'a-zA-Z]")
             if (bodyAsString.match (regex))
                 libraries.push ('import ' + pythonStandardLibraries[library])
         }
