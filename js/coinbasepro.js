@@ -37,8 +37,6 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
             ],
         };
         const request = this.extend (subscribe, params);
-        // console.log (request);
-        // process.exit ();
         const future = this.watch (url, messageHash, request, messageHash);
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
