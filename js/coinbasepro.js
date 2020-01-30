@@ -158,7 +158,7 @@ module.exports = class coinbasepro extends Exchange {
                     'order not found': OrderNotFound,
                     'price too small': InvalidOrder,
                     'price too precise': InvalidOrder,
-                    'under maintenance': OnMaintenance, // {"message":"Coinbase Pro is currently under maintenance. For updates please see https://status.pro.coinbase.com/"
+                    'under maintenance': OnMaintenance,
                 },
             },
         });
