@@ -173,7 +173,7 @@ module.exports = class btcalpha extends Exchange {
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
             const bidask = bidasks[i];
-            if (bidask !== null) {
+            if (bidask) {
                 result.push (this.parseBidAsk (bidask, priceKey, amountKey));
             }
         }
