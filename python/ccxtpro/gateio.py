@@ -170,28 +170,46 @@ class gateio(ccxtpro.Exchange, ccxt.gateio):
         future = self.watch(url, messageHash, subscribeMessage, messageHash, subscription)
         return await self.after(future, self.filterBySinceLimit, since, limit)
 
-    def handle_trades(self, client, messsage):
-        result = messsage['params']
-        wsMarketId = self.safe_string(result, 0)
-        marketId = self.safe_string_lower(result, 0)
+    def handle_trades(self, client, message):
+        #
+        #     [
+        #         'BTC_USDT',
+        #         [
+        #             {
+        #                 id: 221994511,
+        #                 time: 1580311438.618647,
+        #                 price: '9309',
+        #                 amount: '0.0019',
+        #                 type: 'sell'
+        #             },
+        #             {
+        #                 id: 221994501,
+        #                 time: 1580311433.842509,
+        #                 price: '9311.31',
+        #                 amount: '0.01',
+        #                 type: 'buy'
+        #             },
+        #         ]
+        #     ]
+        #
+        params = self.safe_value(message, 'params', [])
+        wsMarketId = self.safe_string(params, 0)
+        marketId = self.safe_string_lower(params, 0)
         market = None
         symbol = marketId
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
             symbol = market['symbol']
-        if not (symbol in self.trades):
-            self.trades[symbol] = []
-        stored = self.trades[symbol]
-        trades = result[1]
-        for i in range(0, len(trades)):
-            trade = trades[i]
-            parsed = self.parse_trade(trade, market)
-            stored.append(parsed)
-            length = len(stored)
-            if length > self.options['tradesLimit']:
+        stored = self.safe_value(self.trades, symbol, [])
+        trades = self.safe_value(params, 1, [])
+        parsed = self.parse_trades(trades, market)
+        for i in range(0, len(parsed)):
+            stored.append(parsed[i])
+            storedLength = len(stored)
+            if storedLength > self.options['tradesLimit']:
                 stored.pop(0)
         self.trades[symbol] = stored
-        methodType = messsage['method']
+        methodType = message['method']
         messageHash = methodType + ':' + wsMarketId
         client.resolve(stored, messageHash)
 

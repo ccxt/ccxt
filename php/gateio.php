@@ -187,32 +187,49 @@ class gateio extends \ccxt\gateio {
         return $this->after ($future, $this->filterBySinceLimit, $since, $limit);
     }
 
-    public function handle_trades ($client, $messsage) {
-        $result = $messsage['params'];
-        $wsMarketId = $this->safe_string($result, 0);
-        $marketId = $this->safe_string_lower($result, 0);
+    public function handle_trades ($client, $message) {
+        //
+        //     array(
+        //         'BTC_USDT',
+        //         array(
+        //             array(
+        //                 id => 221994511,
+        //                 time => 1580311438.618647,
+        //                 price => '9309',
+        //                 amount => '0.0019',
+        //                 type => 'sell'
+        //             ),
+        //             array(
+        //                 id => 221994501,
+        //                 time => 1580311433.842509,
+        //                 price => '9311.31',
+        //                 amount => '0.01',
+        //                 type => 'buy'
+        //             ),
+        //         )
+        //     )
+        //
+        $params = $this->safe_value($message, 'params', array());
+        $wsMarketId = $this->safe_string($params, 0);
+        $marketId = $this->safe_string_lower($params, 0);
         $market = null;
         $symbol = $marketId;
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
             $symbol = $market['symbol'];
         }
-        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
-            $this->trades[$symbol] = array();
-        }
-        $stored = $this->trades[$symbol];
-        $trades = $result[1];
-        for ($i = 0; $i < count($trades); $i++) {
-            $trade = $trades[$i];
-            $parsed = $this->parse_trade($trade, $market);
-            $stored[] = $parsed;
-            $length = is_array($stored) ? count($stored) : 0;
-            if ($length > $this->options['tradesLimit']) {
+        $stored = $this->safe_value($this->trades, $symbol, array());
+        $trades = $this->safe_value($params, 1, array());
+        $parsed = $this->parse_trades($trades, $market);
+        for ($i = 0; $i < count($parsed); $i++) {
+            $stored[] = $parsed[$i];
+            $storedLength = is_array($stored) ? count($stored) : 0;
+            if ($storedLength > $this->options['tradesLimit']) {
                 array_shift($stored);
             }
         }
         $this->trades[$symbol] = $stored;
-        $methodType = $messsage['method'];
+        $methodType = $message['method'];
         $messageHash = $methodType . ':' . $wsMarketId;
         $client->resolve ($stored, $messageHash);
     }
