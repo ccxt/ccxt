@@ -28,7 +28,7 @@ class poloniex extends \ccxt\poloniex {
                 ),
             ),
             'options' => array(
-                'tradesLimit' => 5,
+                'tradesLimit' => 1000,
             ),
         ));
     }
