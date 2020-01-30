@@ -67,7 +67,7 @@ class WebSocketServer {
         // other stuff that might be useful
         ws.on ('message', function incoming (message) {
             console.log (new Date (), 'onMessage', message)
-            ws.send (message) // echo back
+            // ws.send (message) // echo back
         })
         ws.on ('ping', function incoming (message) {
             console.log (new Date (), 'onPing', message.toString ())
