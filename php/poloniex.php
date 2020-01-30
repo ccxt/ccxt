@@ -17,6 +17,8 @@ class poloniex extends \ccxt\poloniex {
             'has' => array(
                 'ws' => true,
                 'watchTicker' => true,
+                'watchTickers' => false, // for now
+                'watchTrades' => true,
                 'watchOrderBook' => true,
                 'watchBalance' => false, // not implemented yet
             ),
@@ -24,6 +26,9 @@ class poloniex extends \ccxt\poloniex {
                 'api' => array(
                     'ws' => 'wss://api2.poloniex.com',
                 ),
+            ),
+            'options' => array(
+                'tradesLimit' => 5,
             ),
         ));
     }
@@ -233,11 +238,12 @@ class poloniex extends \ccxt\poloniex {
         //         1522877119, // $timestamp
         //     )
         //
-        $id = (string) $trade[1];
-        $side = $trade[2] ? 'buy' : 'sell';
-        $price = floatval ($trade[3]);
-        $amount = floatval ($trade[4]);
-        $timestamp = $trade[5] * 1000;
+        $id = $this->safe_string($trade, 1);
+        $isBuy = $this->safe_integer($trade, 2);
+        $side = $isBuy ? 'buy' : 'sell';
+        $price = $this->safe_float($trade, 3);
+        $amount = $this->safe_float($trade, 4);
+        $timestamp = $this->safe_timestamp($trade, 5);
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -299,6 +305,7 @@ class poloniex extends \ccxt\poloniex {
         $symbol = $this->safe_string($market, 'symbol');
         $orderbookUpdatesCount = 0;
         $tradesCount = 0;
+        $stored = $this->safe_value($this->trades, $symbol, array());
         for ($i = 0; $i < count($data); $i++) {
             $delta = $data[$i];
             if ($delta[0] === 'i') {
@@ -318,7 +325,7 @@ class poloniex extends \ccxt\poloniex {
                     }
                 }
                 $orderbook['nonce'] = $nonce;
-                $orderbookUpdatesCount .= 1;
+                $orderbookUpdatesCount = $this->sum ($orderbookUpdatesCount, 1);
             } else if ($delta[0] === 'o') {
                 $orderbook = $this->orderbooks[$symbol];
                 $side = $delta[1] ? 'bids' : 'asks';
@@ -326,13 +333,16 @@ class poloniex extends \ccxt\poloniex {
                 $price = floatval ($delta[2]);
                 $amount = floatval ($delta[3]);
                 $bookside->store ($price, $amount);
-                $orderbookUpdatesCount .= 1;
+                $orderbookUpdatesCount = $this->sum ($orderbookUpdatesCount, 1);
                 $orderbook['nonce'] = $nonce;
             } else if ($delta[0] === 't') {
-                // todo => add max limit to the dequeue of trades, unshift and push
-                // $trade = $this->handle_trade ($client, $delta, $market);
-                // $this->trades[] = $trade;
-                $tradesCount .= 1;
+                $trade = $this->handle_trade ($client, $delta, $market);
+                $stored[] = $trade;
+                $storedLength = is_array($stored) ? count($stored) : 0;
+                if ($storedLength > $this->options['tradesLimit']) {
+                    array_shift($stored);
+                }
+                $tradesCount = $this->sum ($tradesCount, 1);
             }
         }
         if ($orderbookUpdatesCount) {
@@ -342,10 +352,11 @@ class poloniex extends \ccxt\poloniex {
             $client->resolve ($orderbook, $messageHash);
         }
         if ($tradesCount) {
+            $this->trades[$symbol] = $stored;
             // resolve the trades future
             $messageHash = 'trades:' . $marketId;
             // todo => incremental trades
-            $client->resolve ($this->trades, $messageHash);
+            $client->resolve ($this->trades[$symbol], $messageHash);
         }
     }
 

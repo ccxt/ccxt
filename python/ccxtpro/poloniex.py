@@ -15,6 +15,8 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
             'has': {
                 'ws': True,
                 'watchTicker': True,
+                'watchTickers': False,  # for now
+                'watchTrades': True,
                 'watchOrderBook': True,
                 'watchBalance': False,  # not implemented yet
             },
@@ -22,6 +24,9 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
                 'api': {
                     'ws': 'wss://api2.poloniex.com',
                 },
+            },
+            'options': {
+                'tradesLimit': 5,
             },
         })
 
@@ -212,11 +217,12 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
         #         1522877119,  # timestamp
         #     ]
         #
-        id = str(trade[1])
-        side = 'buy' if trade[2] else 'sell'
-        price = float(trade[3])
-        amount = float(trade[4])
-        timestamp = trade[5] * 1000
+        id = self.safe_string(trade, 1)
+        isBuy = self.safe_integer(trade, 2)
+        side = 'buy' if isBuy else 'sell'
+        price = self.safe_float(trade, 3)
+        amount = self.safe_float(trade, 4)
+        timestamp = self.safe_timestamp(trade, 5)
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -276,6 +282,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
         symbol = self.safe_string(market, 'symbol')
         orderbookUpdatesCount = 0
         tradesCount = 0
+        stored = self.safe_value(self.trades, symbol, [])
         for i in range(0, len(data)):
             delta = data[i]
             if delta[0] == 'i':
@@ -293,7 +300,7 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
                         amount = orders[price]
                         bookside.store(float(price), float(amount))
                 orderbook['nonce'] = nonce
-                orderbookUpdatesCount += 1
+                orderbookUpdatesCount = self.sum(orderbookUpdatesCount, 1)
             elif delta[0] == 'o':
                 orderbook = self.orderbooks[symbol]
                 side = 'bids' if delta[1] else 'asks'
@@ -301,23 +308,26 @@ class poloniex(ccxtpro.Exchange, ccxt.poloniex):
                 price = float(delta[2])
                 amount = float(delta[3])
                 bookside.store(price, amount)
-                orderbookUpdatesCount += 1
+                orderbookUpdatesCount = self.sum(orderbookUpdatesCount, 1)
                 orderbook['nonce'] = nonce
             elif delta[0] == 't':
-                # todo: add max limit to the dequeue of trades, unshift and push
-                # trade = self.handle_trade(client, delta, market)
-                # self.trades.append(trade)
-                tradesCount += 1
+                trade = self.handle_trade(client, delta, market)
+                stored.append(trade)
+                storedLength = len(stored)
+                if storedLength > self.options['tradesLimit']:
+                    stored.pop(0)
+                tradesCount = self.sum(tradesCount, 1)
         if orderbookUpdatesCount:
             # resolve the orderbook future
             messageHash = 'orderbook:' + marketId
             orderbook = self.orderbooks[symbol]
             client.resolve(orderbook, messageHash)
         if tradesCount:
+            self.trades[symbol] = stored
             # resolve the trades future
             messageHash = 'trades:' + marketId
             # todo: incremental trades
-            client.resolve(self.trades, messageHash)
+            client.resolve(self.trades[symbol], messageHash)
 
     def handle_account_notifications(self, client, message):
         # not implemented yet
