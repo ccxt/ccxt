@@ -107,9 +107,6 @@ class IndexedOrderBookSide(OrderBookSide):
             if order_id in self._index:
                 del self._index[order_id]
 
-    def restore(self, price, size, order_id):  # price is presumably None
-        return self.store(price, size, order_id)
-
     def storeArray(self, delta):
         price, size, order_id = delta
         if size:
