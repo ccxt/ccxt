@@ -499,6 +499,15 @@ module.exports = class stex extends Exchange {
             symbol = market['symbol'];
         }
         const last = this.safeFloat (ticker, 'last');
+        const open = this.safeFloat (ticker, 'open');
+        let change = undefined;
+        let percentage = undefined;
+        if (last !== undefined) {
+            if (open !== undefined) {
+                change = last - open;
+                percentage = ((100 / open) * last) - 100;
+            }
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -510,12 +519,12 @@ module.exports = class stex extends Exchange {
             'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open'),
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined, // previous day close
-            'change': undefined,
-            'percentage': undefined,
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'volumeQuote'),
             'quoteVolume': this.safeFloat (ticker, 'volume'),
