@@ -32,7 +32,7 @@ git commit -a -m "${COMMIT_MESSAGE}" -m '[ci skip]'
 git tag -a "${COMMIT_MESSAGE}" -m "${LAST_COMMIT_MESSAGE}" -m "" -m "[ci skip]"
 git remote remove origin
 git remote add origin https://${GITHUB_TOKEN}@github.com/kroitor/ccxt.pro.git
-node build/cleanup-old-tags --limit
+# node build/cleanup-old-tags --limit
 git push origin --tags HEAD:master
 
 # ---------------------------------------------------------------------------------
