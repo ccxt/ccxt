@@ -76,7 +76,7 @@ const exec = (bin, ...args) =>
             output = ansi.strip (output.trim ())
             stderr = ansi.strip (stderr)
 
-            const regex = /^\[[^\]]+\]/mg
+            const regex = /^\[[^\] ]+\]/mg
 
             let match = undefined
             const warnings = []
