@@ -165,25 +165,16 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         #         'ETH/XBT',  # Asset pair
         #     ]
         #
-        wsName = message[3]
+        wsName = self.safe_string(message, 3)
         name = 'ohlc'
-        candle = message[1]
-        # print(
-        #     self.iso8601(int(float(candle[0]) * 1000)), '-',
-        #     self.iso8601(int(float(candle[1]) * 1000)), ': [',
-        #     float(candle[2]),
-        #     float(candle[3]),
-        #     float(candle[4]),
-        #     float(candle[5]),
-        #     float(candle[7]), ']'
-        # )
+        candle = self.safe_value(message, 1)
         result = [
-            int(float(candle[0]) * 1000),
-            float(candle[2]),
-            float(candle[3]),
-            float(candle[4]),
-            float(candle[5]),
-            float(candle[7]),
+            int(self.safe_float(candle, 0) * 1000),
+            self.safe_float(candle, 2),
+            self.safe_float(candle, 3),
+            self.safe_float(candle, 4),
+            self.safe_float(candle, 5),
+            self.safe_float(candle, 7),
         ]
         messageHash = name + ':' + wsName
         client.resolve(result, messageHash)
@@ -217,8 +208,10 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
     async def watch_ticker(self, symbol, params={}):
         return await self.watch_public('ticker', symbol, params)
 
-    async def watch_trades(self, symbol, params={}):
-        return await self.watch_public('trade', symbol, params)
+    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+        name = 'trade'
+        future = self.watch_public(name, symbol, params)
+        return await self.after(future, self.filterBySinceLimit, since, limit)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         name = 'book'

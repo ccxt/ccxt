@@ -173,26 +173,17 @@ class kraken extends \ccxt\kraken {
         //         'ETH/XBT', // Asset pair
         //     )
         //
-        $wsName = $message[3];
+        $wsName = $this->safe_string($message, 3);
         $name = 'ohlc';
-        $candle = $message[1];
-        // var_dump (
-        //     $this->iso8601 (intval (floatval ($candle[0]) * 1000)), '-',
-        //     $this->iso8601 (intval (floatval ($candle[1]) * 1000)), ' => [',
-        //     floatval ($candle[2]),
-        //     floatval ($candle[3]),
-        //     floatval ($candle[4]),
-        //     floatval ($candle[5]),
-        //     floatval ($candle[7]), ']'
-        // );
-        $result = [
-            intval (floatval ($candle[0]) * 1000),
-            floatval ($candle[2]),
-            floatval ($candle[3]),
-            floatval ($candle[4]),
-            floatval ($candle[5]),
-            floatval ($candle[7]),
-        ];
+        $candle = $this->safe_value($message, 1);
+        $result = array(
+            intval ($this->safe_float($candle, 0) * 1000),
+            $this->safe_float($candle, 2),
+            $this->safe_float($candle, 3),
+            $this->safe_float($candle, 4),
+            $this->safe_float($candle, 5),
+            $this->safe_float($candle, 7),
+        );
         $messageHash = $name . ':' . $wsName;
         $client->resolve ($result, $messageHash);
     }
@@ -229,8 +220,10 @@ class kraken extends \ccxt\kraken {
         return $this->watch_public ('ticker', $symbol, $params);
     }
 
-    public function watch_trades ($symbol, $params = array ()) {
-        return $this->watch_public ('trade', $symbol, $params);
+    public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $name = 'trade';
+        $future = $this->watch_public ($name, $symbol, $params);
+        return $this->after ($future, $this->filterBySinceLimit, $since, $limit);
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
