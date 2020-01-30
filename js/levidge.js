@@ -1,16 +1,19 @@
 'use strict';
+
 //  ---------------------------------------------------------------------------
+
 const Exchange = require ('./base/Exchange');
-const { ExchangeError,ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, InvalidNonce, AuthenticationError} = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, InvalidNonce, AuthenticationError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
+
 module.exports = class levidge extends Exchange {
-	describe () {
+    describe () {
         return this.deepExtend (super.describe (), {
             'id': 'levidge',
             'name': 'Levidge',
             'countries': ['US'],
-            'rateLimit':500,
-            'certified':false,
+            'rateLimit': 500,
+            'certified': false,
             'has': {
                 'fetchDepositAddress': false,
                 'CORS': false,
@@ -52,21 +55,21 @@ module.exports = class levidge extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
                 'api': {
                     'public': 'https://levidge.com/api',
-                    },
+                },
                 'www': 'https://levidge.com',
                 'doc': [
                     'https://levidge.com/api-doc/en.html#introduction',
                 ],
             },
             'api': {
-         'fpublic': {
+                'fpublic': {
                     'get': [
                         'Instruments',
                         'InstrumentPairs',
                         'OrderBook',
                         'TradeHistory',
                         'Chart',
-                ],
+                    ],
                 },
                 'public': {
                     'get': [
@@ -99,53 +102,54 @@ module.exports = class levidge extends Exchange {
             },
         });
     }
-    async fetchInstruments (params = {})
-    {
-    	const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
+
+    async fetchInstruments (params = {}) {
+        const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const method = (type === 'spot') ? 'publicGetInstruments' : 'fpublicGetInstruments';
         const response = await this[method] (params);
         return response;
     }
-    async fetchInstrumentPairs (params = {})
-        {
-    	const defaultType = this.safeString2(this.options,'fetchTickers','defaultType','spot');
-        const type = this.safeString(params,'type',defaultType);
+
+    async fetchInstrumentPairs (params = {}) {
+        const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
         const method = (type === 'spot') ? 'publicGetInstrumentPairs' : 'fpublicGetInstrumentPairs';
         const response = await this[method] (params);
         return response;
     }
-    async fetchOrderBookSnap (id,params = {})
-    {
-    	console.log(id);
-    	const request = {
-           'pairId': id,
+
+    async fetchOrderBookSnap (id, params = {}) {
+        // console.log (id);
+        const market = this.market (id);
+        const request = {
+            'pairId': market['id'],
         };
-    	const defaultType = this.safeString2 (this.options,'fetchOrder','defaultType','spot');
-        const type = this.safeString (params,'type',defaultType);
+        const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
         const method = (type === 'spot') ? 'publicGetOrderBook' : 'fpublicGetOrderBook';
         const response = await this[method] (this.extend (request, params));
         return response;
     }
-    async fetchTradeHistory (id, params = {})
-       {
-    	console.log(id);
-    	const request = {
-            'pairId': id,
+
+    async fetchTradeHistory (id, params = {}) {
+        // console.log (id);
+        const market = this.market (id);
+        const request = {
+            'pairId': market['id'],
         };
-    	const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', 'spot');
+        const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
         const method = (type === 'spot') ? 'publicGet' : 'fpublicGet';
         const response = await this[method] (this.extend (request, params));
         return response;
     }
-    async fetchChart(id,timestamp, params = {})
-    {
-        console.log(timestamp);
+
+    async fetchChart (id, timestamp, params = {}) {
+        // console.log (timestamp);
         const request = {
             'pairId': id,
-            'timespan':timestamp,
+            'timespan': timestamp,
         };
         const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
@@ -153,8 +157,8 @@ module.exports = class levidge extends Exchange {
         const response = await this[method] (this.extend (request, params));
         return response;
     }
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) 
-    {
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         path = 'get' + path;
         url += '/' + path;
