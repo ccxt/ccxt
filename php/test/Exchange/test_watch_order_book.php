@@ -1,8 +1,7 @@
 <?php
 
 function print_orderbook($orderbook) {
-    $id = isset($orderbook['nonce']) ? $orderbook['nonce'] :
-        (isset($orderbook['timestamp']) ? date('c', (int) $orderbook['timestamp'] / 1000) : '');
+    $id = isset($orderbook['nonce']) ? $orderbook['nonce'] : $orderbook['datetime'];
     echo $id, ' ',
         count($orderbook['asks']), ' asks ', json_encode($orderbook['asks'][0]), ' ',
         count($orderbook['bids']), ' bids ', json_encode($orderbook['bids'][0]), "\n";
@@ -29,7 +28,7 @@ function test_watch_order_book($exchange, $symbol) {
 
     } else {
 
-        echo $exchange->id, "watchOrderBook() is not supported or not implemented yet\n";
+        echo $exchange->id, " watchOrderBook() is not supported or not implemented yet\n";
         $future->resolve(true);
     }
 

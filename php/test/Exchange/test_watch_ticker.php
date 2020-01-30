@@ -21,7 +21,7 @@ function test_watch_ticker($exchange, $symbol) {
 
     } else {
 
-        echo $exchange->id, "watchTicker() is not supported or not implemented yet\n";
+        echo $exchange->id, " watchTicker() is not supported or not implemented yet\n";
         $future->resolve(true);
     }
 
