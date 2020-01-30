@@ -125,15 +125,9 @@ class kraken extends \ccxt\kraken {
         //             array( "5541.20000", "0.15850568", "1534614057.321597", "s", "l", "" ),
         //             array( "6060.00000", "0.02455000", "1534614057.324998", "b", "l", "" ),
         //         ),
-        //         "$trade",
+        //         "trade",
         //         "XBT/USD"
         //     )
-        //
-        // todo => incremental $trades – add max limit to the dequeue of $trades, unshift and push
-        //
-        //     $trade = $this->handle_trade ($client, delta, $market);
-        //     $this->trades[] = $trade;
-        //     tradesCount .= 1;
         //
         $wsName = $this->safe_string($message, 3);
         $name = $this->safe_string($message, 2);
@@ -286,45 +280,6 @@ class kraken extends \ccxt\kraken {
         //
         $event = $this->safe_string($message, 'event');
         $client->resolve ($message, $event);
-    }
-
-    public function handle_trade ($client, $trade, $market = null) {
-        //
-        // public trades
-        //
-        //     array(
-        //         "t", // $trade
-        //         "42706057", // $id
-        //         1, // 1 = buy, 0 = sell
-        //         "0.05567134", // $price
-        //         "0.00181421", // $amount
-        //         1522877119, // $timestamp
-        //     )
-        //
-        $id = (string) $trade[1];
-        $side = $trade[2] ? 'buy' : 'sell';
-        $price = floatval ($trade[3]);
-        $amount = floatval ($trade[4]);
-        $timestamp = $trade[5] * 1000;
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        return array(
-            'info' => $trade,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $symbol,
-            'id' => $id,
-            'order' => null,
-            'type' => null,
-            'takerOrMaker' => null,
-            'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $price * $amount,
-            'fee' => null,
-        );
     }
 
     public function handle_order_book ($client, $message) {

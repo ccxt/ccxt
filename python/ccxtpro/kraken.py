@@ -124,12 +124,6 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         #         "XBT/USD"
         #     ]
         #
-        # todo: incremental trades – add max limit to the dequeue of trades, unshift and push
-        #
-        #     trade = self.handle_trade(client, delta, market)
-        #     self.trades.append(trade)
-        #     tradesCount += 1
-        #
         wsName = self.safe_string(message, 3)
         name = self.safe_string(message, 2)
         messageHash = name + ':' + wsName
@@ -264,43 +258,6 @@ class kraken(ccxtpro.Exchange, ccxt.kraken):
         #
         event = self.safe_string(message, 'event')
         client.resolve(message, event)
-
-    def handle_trade(self, client, trade, market=None):
-        #
-        # public trades
-        #
-        #     [
-        #         "t",  # trade
-        #         "42706057",  # id
-        #         1,  # 1 = buy, 0 = sell
-        #         "0.05567134",  # price
-        #         "0.00181421",  # amount
-        #         1522877119,  # timestamp
-        #     ]
-        #
-        id = str(trade[1])
-        side = 'buy' if trade[2] else 'sell'
-        price = float(trade[3])
-        amount = float(trade[4])
-        timestamp = trade[5] * 1000
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        return {
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
-            'id': id,
-            'order': None,
-            'type': None,
-            'takerOrMaker': None,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': price * amount,
-            'fee': None,
-        }
 
     def handle_order_book(self, client, message):
         #
