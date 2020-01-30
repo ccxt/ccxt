@@ -38,8 +38,6 @@ class coinbasepro(ccxtpro.Exchange, ccxt.coinbasepro):
             ],
         }
         request = self.extend(subscribe, params)
-        # print(request)
-        # sys.exit()
         future = self.watch(url, messageHash, request, messageHash)
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 

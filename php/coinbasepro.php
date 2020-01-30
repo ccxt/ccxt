@@ -42,8 +42,6 @@ class coinbasepro extends \ccxt\coinbasepro {
             ),
         );
         $request = array_merge($subscribe, $params);
-        // var_dump ($request);
-        // exit ();
         $future = $this->watch ($url, $messageHash, $request, $messageHash);
         return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
