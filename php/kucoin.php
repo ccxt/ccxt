@@ -233,12 +233,12 @@ class kucoin extends \ccxt\kucoin {
             }
         }
         $orderbook = $this->orderbooks[$symbol];
-        if ($orderbook['nonce'] !== null) {
-            $this->handle_order_book_message ($client, $message, $orderbook);
-            $client->resolve ($orderbook, $messageHash);
-        } else {
+        if ($orderbook['nonce'] === null) {
             // 1. After receiving the websocket Level 2 $data flow, cache the $data->
             $orderbook->cache[] = $message;
+        } else {
+            $this->handle_order_book_message ($client, $message, $orderbook);
+            $client->resolve ($orderbook, $messageHash);
         }
     }
 

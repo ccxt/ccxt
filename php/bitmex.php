@@ -19,7 +19,7 @@ class bitmex extends \ccxt\bitmex {
                 'ws' => true,
                 'watchTicker' => true,
                 'watchTickers' => false,
-                'watchTrades' => false,
+                'watchTrades' => true,
                 'watchOrderBook' => true,
             ),
             'urls' => array(
@@ -31,8 +31,8 @@ class bitmex extends \ccxt\bitmex {
                 'ws' => '0.2.0',
             ),
             'options' => array(
-                'subscriptionStatusByChannelId' => array(),
                 'watchOrderBookLevel' => 'orderBookL2', // 'orderBookL2' = L2 full order book, 'orderBookL2_25' = L2 top 25, 'orderBook10' L3 top 10
+                'tradesLimit' => 1000,
             ),
             'exceptions' => array(
                 'ws' => array(
@@ -312,48 +312,105 @@ class bitmex extends \ccxt\bitmex {
         throw new NotImplemented($this->id . ' watchBalance() not implemented yet');
     }
 
-    public function handle_trades ($client, $message) {
+    public function handle_trade ($client, $message) {
         //
-        //     array(
-        //         0, // channelID
-        //         array( //     price        volume         time             side type misc
-        //             array( "5541.20000", "0.15850568", "1534614057.321597", "s", "l", "" ),
-        //             array( "6060.00000", "0.02455000", "1534614057.324998", "b", "l", "" ),
+        // initial snapshot
+        //
+        //     {
+        //         $table => 'trade',
+        //         action => 'partial',
+        //         keys => array(),
+        //         types => array(
+        //             timestamp => 'timestamp',
+        //             $symbol => 'symbol',
+        //             side => 'symbol',
+        //             size => 'long',
+        //             price => 'float',
+        //             tickDirection => 'symbol',
+        //             trdMatchID => 'guid',
+        //             grossValue => 'long',
+        //             homeNotional => 'float',
+        //             foreignNotional => 'float'
         //         ),
-        //         "$trade",
-        //         "XBT/USD"
-        //     )
+        //         foreignKeys => array( $symbol => 'instrument', side => 'side' ),
+        //         attributes => array( timestamp => 'sorted', $symbol => 'grouped' ),
+        //         filter => array( $symbol => 'XBTUSD' ),
+        //         $data => array(
+        //             {
+        //                 timestamp => '2020-01-30T17:03:07.854Z',
+        //                 $symbol => 'XBTUSD',
+        //                 side => 'Buy',
+        //                 size => 15000,
+        //                 price => 9378,
+        //                 tickDirection => 'ZeroPlusTick',
+        //                 trdMatchID => '5b426e7f-83d1-2c80-295d-ee995b8ceb4a',
+        //                 grossValue => 159945000,
+        //                 homeNotional => 1.59945,
+        //                 foreignNotional => 15000
+        //             }
+        //         )
+        //     }
         //
-        // todo => incremental trades – add max limit to the dequeue of trades, unshift and push
+        // updates
         //
-        //     $trade = $this->handle_trade ($client, delta, $market);
-        //     $this->trades[] = $trade;
-        //     tradesCount .= 1;
+        //     {
+        //         $table => 'trade',
+        //         action => 'insert',
+        //         $data => array(
+        //             {
+        //                 timestamp => '2020-01-30T17:31:40.160Z',
+        //                 $symbol => 'XBTUSD',
+        //                 side => 'Sell',
+        //                 size => 37412,
+        //                 price => 9521.5,
+        //                 tickDirection => 'ZeroMinusTick',
+        //                 trdMatchID => 'a4bfc6bc-6cf1-1a11-622e-270eef8ca5c7',
+        //                 grossValue => 392938236,
+        //                 homeNotional => 3.92938236,
+        //                 foreignNotional => 37412
+        //             }
+        //         )
+        //     }
         //
-        $wsName = $message[3];
-        // $name = 'ticker';
-        // $messageHash = $wsName . ':' . $name;
-        $market = $this->safe_value($this->options['marketsByWsName'], $wsName);
-        $symbol = $market['symbol'];
-        // for ($i = 0; $i < is_array($message[1]) ? count($message[1]) : 0; $i++)
-        $timestamp = intval ($message[2]);
-        $result = array(
-            'id' => null,
-            'order' => null,
-            'info' => $message,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $symbol,
-            // 'type' => type,
-            // 'side' => side,
-            'takerOrMaker' => null,
-            // 'price' => price,
-            // 'amount' => amount,
-            // 'cost' => price * amount,
-            // 'fee' => fee,
+        $table = 'trade';
+        $data = $this->safe_value($message, 'data', array());
+        $dataByMarketIds = $this->group_by($data, 'symbol');
+        $marketIds = is_array($dataByMarketIds) ? array_keys($dataByMarketIds) : array();
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $messageHash = $table . ':' . $marketId;
+                $symbol = $market['symbol'];
+                $trades = $this->parse_trades($dataByMarketIds[$marketId], $market);
+                $stored = $this->safe_value($this->trades, $symbol, array());
+                for ($j = 0; $j < count($trades); $j++) {
+                    $stored[] = $trades[$i];
+                    $storedLength = is_array($stored) ? count($stored) : 0;
+                    if ($storedLength > $this->options['tradesLimit']) {
+                        array_shift($stored);
+                    }
+                }
+                $this->trades[$symbol] = $stored;
+                $client->resolve ($stored, $messageHash);
+            }
+        }
+    }
+
+    public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $table = 'trade';
+        $messageHash = $table . ':' . $market['id'];
+        $url = $this->urls['api']['ws'];
+        $request = array(
+            'op' => 'subscribe',
+            'args' => array(
+                $messageHash,
+            ),
         );
-        $result['id'] = null;
-        throw new NotImplemented($this->id . ' handleTrades() not implemented yet (wip)');
+        $future = $this->watch ($url, $messageHash, array_merge($request, $params), $messageHash);
+        return $this->after ($future, $this->filterBySinceLimit, $since, $limit);
     }
 
     public function handle_ohlcv ($client, $message) {
@@ -400,19 +457,19 @@ class bitmex extends \ccxt\bitmex {
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
-        $name = null;
+        $table = null;
         if ($limit === null) {
-            $name = $this->safe_string($this->options, 'watchOrderBookLevel', 'orderBookL2');
+            $table = $this->safe_string($this->options, 'watchOrderBookLevel', 'orderBookL2');
         } else if ($limit === 25) {
-            $name = 'orderBookL2_25';
+            $table = 'orderBookL2_25';
         } else if ($limit === 10) {
-            $name = 'orderBookL10';
+            $table = 'orderBookL10';
         } else {
             throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null (L2), 25 (L2) or 10 (L3)');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $messageHash = $name . ':' . $market['id'];
+        $messageHash = $table . ':' . $market['id'];
         $url = $this->urls['api']['ws'];
         $request = array(
             'op' => 'subscribe',
@@ -449,45 +506,6 @@ class bitmex extends \ccxt\bitmex {
     public function sign_message ($client, $messageHash, $message, $params = array ()) {
         // todo => bitmex signMessage not implemented yet
         return $message;
-    }
-
-    public function handle_trade ($client, $trade, $market = null) {
-        //
-        // public trades
-        //
-        //     array(
-        //         "t", // $trade
-        //         "42706057", // $id
-        //         1, // 1 = buy, 0 = sell
-        //         "0.05567134", // $price
-        //         "0.00181421", // $amount
-        //         1522877119, // $timestamp
-        //     )
-        //
-        $id = (string) $trade[1];
-        $side = $trade[2] ? 'buy' : 'sell';
-        $price = floatval ($trade[3]);
-        $amount = floatval ($trade[4]);
-        $timestamp = $trade[5] * 1000;
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        return array(
-            'info' => $trade,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $symbol,
-            'id' => $id,
-            'order' => null,
-            'type' => null,
-            'takerOrMaker' => null,
-            'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $price * $amount,
-            'fee' => null,
-        );
     }
 
     public function handle_order_book ($client, $message) {
@@ -567,7 +585,7 @@ class bitmex extends \ccxt\bitmex {
                     if (!(is_array($numUpdatesByMarketId) && array_key_exists($marketId, $numUpdatesByMarketId))) {
                         $numUpdatesByMarketId[$marketId] = 0;
                     }
-                    $numUpdatesByMarketId[$marketId] .= 1;
+                    $numUpdatesByMarketId[$marketId] = $this->sum ($numUpdatesByMarketId, 1);
                     $market = $this->markets_by_id[$marketId];
                     $symbol = $market['symbol'];
                     $orderbook = $this->orderbooks[$symbol];
@@ -616,15 +634,6 @@ class bitmex extends \ccxt\bitmex {
         //         subscribe => 'orderBookL2:XBTUSD',
         //         request => array( op => 'subscribe', args => array( 'orderBookL2:XBTUSD' ) )
         //     }
-        //
-        // --------------------------------------------------------------------
-        //
-        // $channelId = $this->safe_string($message, 'channelID');
-        // $this->options['subscriptionStatusByChannelId'][$channelId] = $message;
-        // $requestId = $this->safe_string($message, 'reqid');
-        // if ($client->futures[$requestId]) {
-        //     unset($client->futures[$requestId]);
-        // }
         //
         return $message;
     }
@@ -710,6 +719,7 @@ class bitmex extends \ccxt\bitmex {
                 'orderBookL2_25' => array($this, 'handle_order_book'),
                 'orderBook10' => array($this, 'handle_order_book'),
                 'instrument' => array($this, 'handle_ticker'),
+                'trade' => array($this, 'handle_trade'),
             );
             $method = $this->safe_value($methods, $table);
             if ($method === null) {

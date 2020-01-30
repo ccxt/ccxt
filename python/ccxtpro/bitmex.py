@@ -17,7 +17,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                 'ws': True,
                 'watchTicker': True,
                 'watchTickers': False,
-                'watchTrades': False,
+                'watchTrades': True,
                 'watchOrderBook': True,
             },
             'urls': {
@@ -29,8 +29,8 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                 'ws': '0.2.0',
             },
             'options': {
-                'subscriptionStatusByChannelId': {},
                 'watchOrderBookLevel': 'orderBookL2',  # 'orderBookL2' = L2 full order book, 'orderBookL2_25' = L2 top 25, 'orderBook10' L3 top 10
+                'tradesLimit': 1000,
             },
             'exceptions': {
                 'ws': {
@@ -304,48 +304,100 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         await self.load_markets()
         raise NotImplemented(self.id + ' watchBalance() not implemented yet')
 
-    def handle_trades(self, client, message):
+    def handle_trade(self, client, message):
         #
-        #     [
-        #         0,  # channelID
-        #         [ #     price        volume         time             side type misc
-        #             ["5541.20000", "0.15850568", "1534614057.321597", "s", "l", ""],
-        #             ["6060.00000", "0.02455000", "1534614057.324998", "b", "l", ""],
-        #         ],
-        #         "trade",
-        #         "XBT/USD"
-        #     ]
+        # initial snapshot
         #
-        # todo: incremental trades – add max limit to the dequeue of trades, unshift and push
+        #     {
+        #         table: 'trade',
+        #         action: 'partial',
+        #         keys: [],
+        #         types: {
+        #             timestamp: 'timestamp',
+        #             symbol: 'symbol',
+        #             side: 'symbol',
+        #             size: 'long',
+        #             price: 'float',
+        #             tickDirection: 'symbol',
+        #             trdMatchID: 'guid',
+        #             grossValue: 'long',
+        #             homeNotional: 'float',
+        #             foreignNotional: 'float'
+        #         },
+        #         foreignKeys: {symbol: 'instrument', side: 'side'},
+        #         attributes: {timestamp: 'sorted', symbol: 'grouped'},
+        #         filter: {symbol: 'XBTUSD'},
+        #         data: [
+        #             {
+        #                 timestamp: '2020-01-30T17:03:07.854Z',
+        #                 symbol: 'XBTUSD',
+        #                 side: 'Buy',
+        #                 size: 15000,
+        #                 price: 9378,
+        #                 tickDirection: 'ZeroPlusTick',
+        #                 trdMatchID: '5b426e7f-83d1-2c80-295d-ee995b8ceb4a',
+        #                 grossValue: 159945000,
+        #                 homeNotional: 1.59945,
+        #                 foreignNotional: 15000
+        #             }
+        #         ]
+        #     }
         #
-        #     trade = self.handle_trade(client, delta, market)
-        #     self.trades.append(trade)
-        #     tradesCount += 1
+        # updates
         #
-        wsName = message[3]
-        # name = 'ticker'
-        # messageHash = wsName + ':' + name
-        market = self.safe_value(self.options['marketsByWsName'], wsName)
-        symbol = market['symbol']
-        # for(i = 0; i < len(message[1]); i++)
-        timestamp = int(message[2])
-        result = {
-            'id': None,
-            'order': None,
-            'info': message,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
-            # 'type': type,
-            # 'side': side,
-            'takerOrMaker': None,
-            # 'price': price,
-            # 'amount': amount,
-            # 'cost': price * amount,
-            # 'fee': fee,
+        #     {
+        #         table: 'trade',
+        #         action: 'insert',
+        #         data: [
+        #             {
+        #                 timestamp: '2020-01-30T17:31:40.160Z',
+        #                 symbol: 'XBTUSD',
+        #                 side: 'Sell',
+        #                 size: 37412,
+        #                 price: 9521.5,
+        #                 tickDirection: 'ZeroMinusTick',
+        #                 trdMatchID: 'a4bfc6bc-6cf1-1a11-622e-270eef8ca5c7',
+        #                 grossValue: 392938236,
+        #                 homeNotional: 3.92938236,
+        #                 foreignNotional: 37412
+        #             }
+        #         ]
+        #     }
+        #
+        table = 'trade'
+        data = self.safe_value(message, 'data', [])
+        dataByMarketIds = self.group_by(data, 'symbol')
+        marketIds = list(dataByMarketIds.keys())
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                messageHash = table + ':' + marketId
+                symbol = market['symbol']
+                trades = self.parse_trades(dataByMarketIds[marketId], market)
+                stored = self.safe_value(self.trades, symbol, [])
+                for j in range(0, len(trades)):
+                    stored.append(trades[i])
+                    storedLength = len(stored)
+                    if storedLength > self.options['tradesLimit']:
+                        stored.pop(0)
+                self.trades[symbol] = stored
+                client.resolve(stored, messageHash)
+
+    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        table = 'trade'
+        messageHash = table + ':' + market['id']
+        url = self.urls['api']['ws']
+        request = {
+            'op': 'subscribe',
+            'args': [
+                messageHash,
+            ],
         }
-        result['id'] = None
-        raise NotImplemented(self.id + ' handleTrades() not implemented yet(wip)')
+        future = self.watch(url, messageHash, self.extend(request, params), messageHash)
+        return await self.after(future, self.filterBySinceLimit, since, limit)
 
     def handle_ohlcv(self, client, message):
         #
@@ -390,18 +442,18 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         client.resolve(result, messageHash)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
-        name = None
+        table = None
         if limit is None:
-            name = self.safe_string(self.options, 'watchOrderBookLevel', 'orderBookL2')
+            table = self.safe_string(self.options, 'watchOrderBookLevel', 'orderBookL2')
         elif limit == 25:
-            name = 'orderBookL2_25'
+            table = 'orderBookL2_25'
         elif limit == 10:
-            name = 'orderBookL10'
+            table = 'orderBookL10'
         else:
             raise ExchangeError(self.id + ' watchOrderBook limit argument must be None(L2), 25(L2) or 10(L3)')
         await self.load_markets()
         market = self.market(symbol)
-        messageHash = name + ':' + market['id']
+        messageHash = table + ':' + market['id']
         url = self.urls['api']['ws']
         request = {
             'op': 'subscribe',
@@ -434,43 +486,6 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
     def sign_message(self, client, messageHash, message, params={}):
         # todo: bitmex signMessage not implemented yet
         return message
-
-    def handle_trade(self, client, trade, market=None):
-        #
-        # public trades
-        #
-        #     [
-        #         "t",  # trade
-        #         "42706057",  # id
-        #         1,  # 1 = buy, 0 = sell
-        #         "0.05567134",  # price
-        #         "0.00181421",  # amount
-        #         1522877119,  # timestamp
-        #     ]
-        #
-        id = str(trade[1])
-        side = 'buy' if trade[2] else 'sell'
-        price = float(trade[3])
-        amount = float(trade[4])
-        timestamp = trade[5] * 1000
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        return {
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
-            'id': id,
-            'order': None,
-            'type': None,
-            'takerOrMaker': None,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': price * amount,
-            'fee': None,
-        }
 
     def handle_order_book(self, client, message):
         #
@@ -545,7 +560,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                 if marketId in self.markets_by_id:
                     if not (marketId in numUpdatesByMarketId):
                         numUpdatesByMarketId[marketId] = 0
-                    numUpdatesByMarketId[marketId] += 1
+                    numUpdatesByMarketId[marketId] = self.sum(numUpdatesByMarketId, 1)
                     market = self.markets_by_id[marketId]
                     symbol = market['symbol']
                     orderbook = self.orderbooks[symbol]
@@ -588,15 +603,6 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
         #         subscribe: 'orderBookL2:XBTUSD',
         #         request: {op: 'subscribe', args: ['orderBookL2:XBTUSD']}
         #     }
-        #
-        # --------------------------------------------------------------------
-        #
-        # channelId = self.safe_string(message, 'channelID')
-        # self.options['subscriptionStatusByChannelId'][channelId] = message
-        # requestId = self.safe_string(message, 'reqid')
-        # if client.futures[requestId]:
-        #     del client.futures[requestId]
-        # }
         #
         return message
 
@@ -677,6 +683,7 @@ class bitmex(ccxtpro.Exchange, ccxt.bitmex):
                 'orderBookL2_25': self.handle_order_book,
                 'orderBook10': self.handle_order_book,
                 'instrument': self.handle_ticker,
+                'trade': self.handle_trade,
             }
             method = self.safe_value(methods, table)
             if method is None:

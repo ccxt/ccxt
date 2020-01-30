@@ -211,12 +211,12 @@ class kucoin(ccxtpro.Exchange, ccxt.kucoin):
                 market = self.markets_by_id[marketId]
                 symbol = market['symbol']
         orderbook = self.orderbooks[symbol]
-        if orderbook['nonce'] is not None:
-            self.handle_order_book_message(client, message, orderbook)
-            client.resolve(orderbook, messageHash)
-        else:
+        if orderbook['nonce'] is None:
             # 1. After receiving the websocket Level 2 data flow, cache the data.
             orderbook.cache.append(message)
+        else:
+            self.handle_order_book_message(client, message, orderbook)
+            client.resolve(orderbook, messageHash)
 
     def sign_message(self, client, messageHash, message, params={}):
         # todo: implement kucoin signMessage
