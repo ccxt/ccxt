@@ -123,11 +123,11 @@ class CCXTProTranspiler extends Transpiler {
     }
 
     createPHPClassDeclaration (className, baseClass) {
-        const lines = [
+        let lines = [
             'class ' + className + ' extends ' + baseClass.replace ('ccxt.', '\\ccxt\\') + ' {',
         ]
-        if (baseClass.indexOf ('ccxt.') < 0) {
-            lines.concat ([
+        if (baseClass.indexOf ('ccxt.') === 0) {
+            lines = lines.concat ([
                 '',
                 '    use ClientTrait;'
             ])
