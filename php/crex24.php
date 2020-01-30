@@ -324,9 +324,6 @@ class crex24 extends Exchange {
         //         }
         //     )
         //
-        // $log = require ('ololog').unlimited.green;
-        // $log ($response);
-        // exit ();
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
