@@ -23,7 +23,7 @@ module.exports = async (exchange, symbol) => {
 
     let response = undefined
 
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 3; i++) {
 
         response = await exchange[method] (symbol)
 
