@@ -256,23 +256,70 @@ module.exports = class binance extends ccxt.binance {
         return await this.after (future, this.filterBySinceLimit, since, limit);
     }
 
-    handleTrade (client, message) {
-        // The Trade Streams push raw trade information; each trade has a unique buyer and seller.
-        // Update Speed: Real-time
+    parseTrade (trade, market = undefined) {
         //
         //     {
-        //         e: 'trade',
-        //         E: 1579481530911,
-        //         s: 'ETHBTC',
-        //         t: 158410082,
-        //         p: '0.01914100',
-        //         q: '0.00700000',
-        //         b: 586187049,
-        //         a: 586186710,
-        //         T: 1579481530910,
-        //         m: false,
-        //         M: true
+        //         e: 'trade',       // event type
+        //         E: 1579481530911, // event time
+        //         s: 'ETHBTC',      // symbol
+        //         t: 158410082,     // trade id
+        //         p: '0.01914100',  // price
+        //         q: '0.00700000',  // quantity
+        //         b: 586187049,     // buyer order id
+        //         a: 586186710,     // seller order id
+        //         T: 1579481530910, // trade time
+        //         m: false,         // is the buyer the market maker
+        //         M: true           // binance docs say it should be ignored
         //     }
+        //
+        const event = this.safeString (trade, 'e');
+        if (event === undefined) {
+            return super.parseTrade (trade, market);
+        }
+        const id = this.safeString (trade, 't');
+        const timestamp = this.safeInteger (trade, 'T');
+        const price = this.safeFloat (trade, 'p');
+        const amount = this.safeFloat (trade, 'q');
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
+        }
+        let symbol = undefined;
+        const marketId = this.safeString (trade, 's');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        let side = undefined;
+        let takerOrMaker = undefined;
+        const orderId = undefined;
+        if ('m' in trade) {
+            side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
+            takerOrMaker = trade['m'] ? 'maker' : 'taker';
+        }
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': id,
+            'order': orderId,
+            'type': undefined,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+        };
+    }
+
+    handleTrade (client, message) {
+        //
+        // The Trade Streams push raw trade information; each trade has a unique buyer and seller.
+        // Update Speed: Real-time
         //
         const marketId = this.safeString (message, 's');
         let market = undefined;
@@ -284,9 +331,9 @@ module.exports = class binance extends ccxt.binance {
         const lowerCaseId = this.safeStringLower (message, 's');
         const event = this.safeString (message, 'e');
         const messageHash = lowerCaseId + '@' + event;
-        const parsed = this.parseTrade (message, market);
+        const trade = this.parseTrade (message, market);
         const array = this.safeValue (this.trades, symbol, []);
-        array.push (parsed);
+        array.push (trade);
         const length = array.length;
         if (length > this.options['tradesLimit']) {
             array.shift ();
