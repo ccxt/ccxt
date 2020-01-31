@@ -11,8 +11,13 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'watchOHLCV': false,
                 'watchOrderBook': true,
+                'watchTicker': false,
                 'watchTickers': false, // for now
+                'watchTrades': true,
+                'watchBalance': false,
+                'watchStatus': false, // for now
             },
             'urls': {
                 'api': {
@@ -22,10 +27,9 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         });
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async subscribe (name, symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const name = 'level2';
         const messageHash = name + ':' + market['id'];
         const url = this.urls['api']['ws'];
         const subscribe = {
@@ -38,12 +42,60 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
             ],
         };
         const request = this.extend (subscribe, params);
-        const future = this.watch (url, messageHash, request, messageHash);
+        return await this.watch (url, messageHash, request, messageHash);
+    }
+
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        const name = 'matches';
+        const future = this.subscribe (name, symbol, params);
+        return await this.after (future, this.filterBySinceLimit, since, limit);
+    }
+
+    async watchOrderBook (symbol, limit = undefined, params = {}) {
+        const name = 'level2';
+        const future = this.subscribe (name, symbol, params);
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
     limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
         return orderbook.limit (limit);
+    }
+
+    handleTrade (client, message) {
+        //
+        //     {
+        //         type: 'match',
+        //         trade_id: 82047307,
+        //         maker_order_id: '0f358725-2134-435e-be11-753912a326e0',
+        //         taker_order_id: '252b7002-87a3-425c-ac73-f5b9e23f3caf',
+        //         side: 'sell',
+        //         size: '0.00513192',
+        //         price: '9314.78',
+        //         product_id: 'BTC-USD',
+        //         sequence: 12038915443,
+        //         time: '2020-01-31T20:03:41.158814Z'
+        //     }
+        //
+        const marketId = this.safeString (message, 'product_id');
+        if (marketId !== undefined) {
+            const trade = this.parseTrade (message);
+            const symbol = trade['symbol'];
+            // the exchange sends type = 'match'
+            // but requires 'matches' upon subscribing
+            // therefore we resolve 'matches' here instead of 'match'
+            // const type = this.safeString (message, 'type');
+            const type = 'matches';
+            const messageHash = type + ':' + marketId;
+            const array = this.safeValue (this.trades, symbol, []);
+            array.push (trade);
+            const length = array.length;
+            if (length > this.options['tradesLimit']) {
+                array.shift ();
+            }
+            this.trades[symbol] = array;
+            client.resolve (array, messageHash);
+        }
+        return message;
     }
 
     handleDelta (bookside, delta) {
@@ -159,6 +211,7 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
             'snapshot': this.handleOrderBook,
             'l2update': this.handleOrderBook,
             'subscribe': this.handleSubscriptionStatus,
+            'match': this.handleTrade,
         };
         const method = this.safeValue (methods, type);
         if (method === undefined) {
