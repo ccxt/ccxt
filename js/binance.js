@@ -319,10 +319,8 @@ module.exports = class binance extends ccxt.binance {
     }
 
     handleTrade (client, message) {
-        //
-        // The Trade Streams push raw trade information; each trade has a unique buyer and seller.
-        // Update Speed: Real-time
-        //
+        // the trade streams push raw trade information in real-time
+        // each trade has a unique buyer and seller
         const marketId = this.safeString (message, 's');
         let market = undefined;
         let symbol = marketId;
