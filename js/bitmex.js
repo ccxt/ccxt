@@ -380,7 +380,7 @@ module.exports = class bitmex extends ccxt.bitmex {
                 const trades = this.parseTrades (dataByMarketIds[marketId], market);
                 const stored = this.safeValue (this.trades, symbol, []);
                 for (let j = 0; j < trades.length; j++) {
-                    stored.push (trades[i]);
+                    stored.push (trades[j]);
                     const storedLength = stored.length;
                     if (storedLength > this.options['tradesLimit']) {
                         stored.shift ();
