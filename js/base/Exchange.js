@@ -1,6 +1,6 @@
 "use strict";
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
 const functions = require ('./functions')
 
@@ -411,7 +411,7 @@ module.exports = class Exchange {
     }
 
     setSandboxMode (enabled) {
-        if (!!enabled) {
+        if (!!enabled) { // eslint-disable-line no-extra-boolean-cast
             if ('test' in this.urls) {
                 if (typeof this.urls['api'] === 'string') {
                     this.urls['api_backup'] = this.urls['api']
