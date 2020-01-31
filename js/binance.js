@@ -24,7 +24,9 @@ module.exports = class binance extends ccxt.binance {
                 },
             },
             'options': {
-                'watchOrderBookRate': 100, // get updates every 100ms or 1000ms
+                // get updates every 1000ms or 100ms
+                // or every 0ms in real-time for futures
+                'watchOrderBookRate': 100,
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
             },
@@ -57,11 +59,14 @@ module.exports = class binance extends ccxt.binance {
         // <symbol>@depth<levels>@100ms or <symbol>@depth<levels> (1000ms)
         // valid <levels> are 5, 10, or 20
         //
-        if (limit !== undefined) {
-            if ((limit !== 5) && (limit !== 10) && (limit !== 20)) {
-                throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, 10 or 20');
-            }
-        }
+        // todo add support for <levels>-snapshots (depth)
+        //
+        //     if (limit !== undefined) {
+        //         if ((limit !== 5) && (limit !== 10) && (limit !== 20)) {
+        //             throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, 10 or 20');
+        //         }
+        //     }
+        //
         await this.loadMarkets ();
         const market = this.market (symbol);
         //
@@ -269,19 +274,20 @@ module.exports = class binance extends ccxt.binance {
         // The Trade Streams push raw trade information; each trade has a unique buyer and seller.
         // Update Speed: Real-time
         //
-        // {
-        //   e: 'trade',
-        //   E: 1579481530911,
-        //   s: 'ETHBTC',
-        //   t: 158410082,
-        //   p: '0.01914100',
-        //   q: '0.00700000',
-        //   b: 586187049,
-        //   a: 586186710,
-        //   T: 1579481530910,
-        //   m: false,
-        //   M: true
-        // }
+        //     {
+        //         e: 'trade',
+        //         E: 1579481530911,
+        //         s: 'ETHBTC',
+        //         t: 158410082,
+        //         p: '0.01914100',
+        //         q: '0.00700000',
+        //         b: 586187049,
+        //         a: 586186710,
+        //         T: 1579481530910,
+        //         m: false,
+        //         M: true
+        //     }
+        //
         const marketId = this.safeString (message, 's');
         let market = undefined;
         let symbol = marketId;
@@ -406,49 +412,40 @@ module.exports = class binance extends ccxt.binance {
         const name = 'ticker';
         const messageHash = marketId + '@' + name;
         return await this.watchPublic (messageHash, params);
-        // const requestId = this.nonce ();
-        // const request = {
-        //     'method': 'SUBSCRIBE',
-        //     'params': [
-        //         messageHash,
-        //     ],
-        //     'id': requestId,
-        // };
-        // const subscribe = {
-        //     'id': requestId,
-        // };
-        // return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
     handleTicker (client, message) {
-        // 24hr rolling window ticker statistics for a single symbol. These are NOT the statistics of the UTC day, but a 24hr rolling window for the previous 24hrs.
         //
-        // Update Speed: 1000ms
-        // {
-        //   e: '24hrTicker',
-        //   E: 1579485598569,
-        //   s: 'ETHBTC',
-        //   p: '-0.00004000',
-        //   P: '-0.209',
-        //   w: '0.01920495',
-        //   x: '0.01916500',
-        //   c: '0.01912500',
-        //   Q: '0.10400000',
-        //   b: '0.01912200',
-        //   B: '4.10400000',
-        //   a: '0.01912500',
-        //   A: '0.00100000',
-        //   o: '0.01916500',
-        //   h: '0.01956500',
-        //   l: '0.01887700',
-        //   v: '173518.11900000',
-        //   q: '3332.40703994',
-        //   O: 1579399197842,
-        //   C: 1579485597842,
-        //   F: 158251292,
-        //   L: 158414513,
-        //   n: 163222
-        // }
+        // 24hr rolling window ticker statistics for a single symbol
+        // These are NOT the statistics of the UTC day, but a 24hr rolling window for the previous 24hrs
+        // Update Speed 1000ms
+        //
+        //     {
+        //         e: '24hrTicker',      // event type
+        //         E: 1579485598569,     // event time
+        //         s: 'ETHBTC',          // symbol
+        //         p: '-0.00004000',     // price change
+        //         P: '-0.209',          // price change percent
+        //         w: '0.01920495',      // weighted average price
+        //         x: '0.01916500',      // the price of the first trade before the 24hr rolling window
+        //         c: '0.01912500',      // last (closing) price
+        //         Q: '0.10400000',      // last quantity
+        //         b: '0.01912200',      // best bid
+        //         B: '4.10400000',      // best bid quantity
+        //         a: '0.01912500',      // best ask
+        //         A: '0.00100000',      // best ask quantity
+        //         o: '0.01916500',      // open price
+        //         h: '0.01956500',      // high price
+        //         l: '0.01887700',      // low price
+        //         v: '173518.11900000', // base volume
+        //         q: '3332.40703994',   // quote volume
+        //         O: 1579399197842,     // open time
+        //         C: 1579485597842,     // close time
+        //         F: 158251292,         // first trade id
+        //         L: 158414513,         // last trade id
+        //         n: 163222,            // total number of trades
+        //     }
+        //
         const event = 'ticker'; // message['e'] === 24hrTicker
         const wsMarketId = this.safeStringLower (message, 's');
         const messageHash = wsMarketId + '@' + event;
@@ -460,7 +457,7 @@ module.exports = class binance extends ccxt.binance {
             symbol = market['symbol'];
         }
         const last = this.safeFloat (message, 'c');
-        const parsed = {
+        const result = {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -482,7 +479,8 @@ module.exports = class binance extends ccxt.binance {
             'quoteVolume': this.safeFloat (message, 'q'),
             'info': message,
         };
-        client.resolve (parsed, messageHash);
+        this.tickers[symbol] = result;
+        client.resolve (result, messageHash);
     }
 
     async authenticate () {
