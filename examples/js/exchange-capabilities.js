@@ -40,6 +40,7 @@ const ccxt        = require ('../../ccxt.js')
             'fetchOpenOrders',
             'fetchClosedOrders',
             'fetchMyTrades',
+            'fetchOrderTrades',
             'fetchCurrencies',
             'fetchDepositAddress',
             'createDepositAddress',
