@@ -365,12 +365,32 @@ class coinbasepro(Exchange):
         }
 
     def parse_trade(self, trade, market=None):
+        #
+        #     {
+        #         type: 'match',
+        #         trade_id: 82047307,
+        #         maker_order_id: '0f358725-2134-435e-be11-753912a326e0',
+        #         taker_order_id: '252b7002-87a3-425c-ac73-f5b9e23f3caf',
+        #         side: 'sell',
+        #         size: '0.00513192',
+        #         price: '9314.78',
+        #         product_id: 'BTC-USD',
+        #         sequence: 12038915443,
+        #         time: '2020-01-31T20:03:41.158814Z'
+        #     }
+        #
         timestamp = self.parse8601(self.safe_string_2(trade, 'time', 'created_at'))
         symbol = None
-        if market is None:
-            marketId = self.safe_string(trade, 'product_id')
-            market = self.safe_value(self.markets_by_id, marketId)
-        if market:
+        marketId = self.safe_string(trade, 'product_id')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('-')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
             symbol = market['symbol']
         feeRate = None
         feeCurrency = None
