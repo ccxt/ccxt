@@ -11,6 +11,7 @@ module.exports = class gateio extends ccxt.gateio {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
+                'ws': true,
                 'watchOrderBook': true,
                 'watchTicker': true,
                 'watchTrades': true,

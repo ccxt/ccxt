@@ -11,6 +11,7 @@ module.exports = class kucoin extends ccxt.kucoin {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
+                'ws': true,
                 'watchOrderBook': true,
             },
             'options': {

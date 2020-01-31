@@ -11,6 +11,7 @@ module.exports = class binance extends ccxt.binance {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
+                'ws': true,
                 'watchOrderBook': true,
                 'watchTrades': true,
                 'watchOHLCV': true,

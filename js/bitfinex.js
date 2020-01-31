@@ -11,6 +11,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
+                'ws': true,
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchOrderBook': true,
