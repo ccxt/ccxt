@@ -15,8 +15,13 @@ class coinbasepro extends \ccxt\coinbasepro {
         return array_replace_recursive(parent::describe (), array(
             'has' => array(
                 'ws' => true,
+                'watchOHLCV' => false,
                 'watchOrderBook' => true,
+                'watchTicker' => false,
                 'watchTickers' => false, // for now
+                'watchTrades' => true,
+                'watchBalance' => false,
+                'watchStatus' => false, // for now
             ),
             'urls' => array(
                 'api' => array(
@@ -26,10 +31,9 @@ class coinbasepro extends \ccxt\coinbasepro {
         ));
     }
 
-    public function watch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function subscribe ($name, $symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $name = 'level2';
         $messageHash = $name . ':' . $market['id'];
         $url = $this->urls['api']['ws'];
         $subscribe = array(
@@ -42,12 +46,60 @@ class coinbasepro extends \ccxt\coinbasepro {
             ),
         );
         $request = array_merge($subscribe, $params);
-        $future = $this->watch ($url, $messageHash, $request, $messageHash);
+        return $this->watch ($url, $messageHash, $request, $messageHash);
+    }
+
+    public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $name = 'matches';
+        $future = $this->subscribe ($name, $symbol, $params);
+        return $this->after ($future, $this->filterBySinceLimit, $since, $limit);
+    }
+
+    public function watch_order_book ($symbol, $limit = null, $params = array ()) {
+        $name = 'level2';
+        $future = $this->subscribe ($name, $symbol, $params);
         return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
         return $orderbook->limit ($limit);
+    }
+
+    public function handle_trade ($client, $message) {
+        //
+        //     {
+        //         $type => 'match',
+        //         trade_id => 82047307,
+        //         maker_order_id => '0f358725-2134-435e-be11-753912a326e0',
+        //         taker_order_id => '252b7002-87a3-425c-ac73-f5b9e23f3caf',
+        //         side => 'sell',
+        //         size => '0.00513192',
+        //         price => '9314.78',
+        //         product_id => 'BTC-USD',
+        //         sequence => 12038915443,
+        //         time => '2020-01-31T20:03:41.158814Z'
+        //     }
+        //
+        $marketId = $this->safe_string($message, 'product_id');
+        if ($marketId !== null) {
+            $trade = $this->parse_trade($message);
+            $symbol = $trade['symbol'];
+            // the exchange sends $type = 'match'
+            // but requires 'matches' upon subscribing
+            // therefore we resolve 'matches' here instead of 'match'
+            // $type = $this->safe_string($message, 'type');
+            $type = 'matches';
+            $messageHash = $type . ':' . $marketId;
+            $array = $this->safe_value($this->trades, $symbol, $array());
+            $array[] = $trade;
+            $length = is_array($array) ? count($array) : 0;
+            if ($length > $this->options['tradesLimit']) {
+                array_shift($array);
+            }
+            $this->trades[$symbol] = $array;
+            $client->resolve ($array, $messageHash);
+        }
+        return $message;
     }
 
     public function handle_delta ($bookside, $delta) {
@@ -163,6 +215,7 @@ class coinbasepro extends \ccxt\coinbasepro {
             'snapshot' => array($this, 'handle_order_book'),
             'l2update' => array($this, 'handle_order_book'),
             'subscribe' => array($this, 'handle_subscription_status'),
+            'match' => array($this, 'handle_trade'),
         );
         $method = $this->safe_value($methods, $type);
         if ($method === null) {

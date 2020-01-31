@@ -323,10 +323,8 @@ class binance extends \ccxt\binance {
     }
 
     public function handle_trade ($client, $message) {
-        //
-        // The Trade Streams push raw $trade information; each $trade has a unique buyer and seller.
-        // Update Speed => Real-time
-        //
+        // the $trade streams push raw $trade information in real-time
+        // each $trade has a unique buyer and seller
         $marketId = $this->safe_string($message, 's');
         $market = null;
         $symbol = $marketId;

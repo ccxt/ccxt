@@ -289,10 +289,8 @@ class binance(Exchange, ccxt.binance):
         }
 
     def handle_trade(self, client, message):
-        #
-        # The Trade Streams push raw trade information; each trade has a unique buyer and seller.
-        # Update Speed: Real-time
-        #
+        # the trade streams push raw trade information in real-time
+        # each trade has a unique buyer and seller
         marketId = self.safe_string(message, 's')
         market = None
         symbol = marketId
