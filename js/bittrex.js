@@ -136,7 +136,6 @@ module.exports = class bittrex extends ccxt.bittrex {
         //         'I': '1579474528471'
         //     }
         //
-        // console.log (this.iso8601 (this.milliseconds ()), 'handleGetAuthContext');
         const negotiation = this.safeValue (subscription, 'negotiation', {});
         const connectionToken = this.safeString (negotiation['response'], 'ConnectionToken');
         const query = this.extend (negotiation['request'], {
@@ -355,7 +354,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         const timestamp = this.safeInteger (trade, 'T');
         const price = this.safeFloat (trade, 'R');
         const amount = this.safeFloat (trade, 'Q');
-        const side = this.safeStringLower (trade, 'OT')
+        const side = this.safeStringLower (trade, 'OT');
         let cost = undefined;
         if ((price !== undefined) && (amount !== undefined)) {
             cost = price * amount;
@@ -402,7 +401,6 @@ module.exports = class bittrex extends ccxt.bittrex {
         //         ]
         //     }
         //
-        // const nonce = this.safeInteger (message, 'N');
         const f = this.safeValue (message, 'f', []);
         const trades = this.parseTrades (f, market);
         const tradesLength = trades.length;
@@ -438,7 +436,6 @@ module.exports = class bittrex extends ccxt.bittrex {
         //     }
         //
         const nonce = this.safeInteger (message, 'N');
-        // console.log (new Date (), 'handleOrderBookMessage', nonce, orderbook['nonce']);
         if (nonce > orderbook['nonce']) {
             this.handleDeltas (orderbook['asks'], this.safeValue (message, 'S', []));
             this.handleDeltas (orderbook['bids'], this.safeValue (message, 'Z', []));
@@ -468,7 +465,6 @@ module.exports = class bittrex extends ccxt.bittrex {
         //         },
         //     }
         //
-        // console.log (new Date (), 'handleBalanceDelta', message);
         const d = this.safeValue (message, 'd');
         const account = this.account ();
         account['free'] = this.safeFloat (d, 'a');
@@ -483,16 +479,13 @@ module.exports = class bittrex extends ccxt.bittrex {
     }
 
     async fetchBalanceSnapshot (client, message, subscription) {
-        // console.log (new Date (), 'fetchBalanceSnapshot');
         // todo: this is a synch blocking call in ccxt.php - make it async
         const response = await this.fetchBalance ();
         this.balance = this.deepExtend (this.balance, response);
-        // const messageHash = this.safeString (subscription, 'messageHash');
         client.resolve (this.balance, 'balance');
     }
 
     async fetchBalanceState (params = {}) {
-        // console.log (new Date (), 'fetchBalanceState');
         await this.loadMarkets ();
         const future = this.authenticate ();
         return await this.afterAsync (future, this.queryBalanceState, params);
@@ -563,8 +556,6 @@ module.exports = class bittrex extends ccxt.bittrex {
         // requires a different authentication sequence that involves
         // headers and cookies from reCaptcha and Cloudflare.
         //
-        // console.log (new Date (), 'queryBalanceState');
-        //
         await this.loadMarkets ();
         const connectionToken = this.safeString (negotiation['response'], 'ConnectionToken');
         const query = this.extend (negotiation['request'], {
@@ -589,7 +580,6 @@ module.exports = class bittrex extends ccxt.bittrex {
     }
 
     handleBalanceState (client, message, subscription) {
-        // console.log (new Date (), 'handleBalanceState');
         const R = this.safeString (message, 'R');
         // if (R !== undefined) {
         //     //
@@ -715,7 +705,6 @@ module.exports = class bittrex extends ccxt.bittrex {
     }
 
     handleSubscribeToUserDeltas (client, message, subscription) {
-        // console.log (new Date (), 'handleSubscribeToUserDeltas');
         // fetch the snapshot in a separate async call
         this.spawn (this.fetchBalanceSnapshot, client, message, subscription);
         // the two lines below may work when bittrex fixes the snapshots
@@ -761,7 +750,6 @@ module.exports = class bittrex extends ccxt.bittrex {
         // send signalR protocol start() call
         const future = this.negotiate ();
         this.spawn (this.afterAsync, future, this.start);
-        // console.log (new Date (), 'handleSystemStatus', message);
         return message;
     }
 
@@ -771,7 +759,6 @@ module.exports = class bittrex extends ccxt.bittrex {
         //
         //     {}
         //
-        // console.log (new Date (), 'heartbeat');
         client.resolve (message, 'heartbeat');
     }
 
