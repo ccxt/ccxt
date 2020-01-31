@@ -19,6 +19,8 @@ class bittrex(Exchange, ccxt.bittrex):
                 'watchOrderBook': True,
                 'watchBalance': True,
                 'watchTrades': True,
+                'watchTicker': True,
+                'watchTickers': False,  # for now
             },
             'urls': {
                 'api': {
@@ -220,6 +222,35 @@ class bittrex(Exchange, ccxt.bittrex):
         future = self.subscribe_to_exchange_deltas('orderbook', negotiation, symbol, subscription)
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
+    async def subscribe_to_summary_deltas(self, negotiation, symbol, params={}):
+        await self.load_markets()
+        connectionToken = self.safe_string(negotiation['response'], 'ConnectionToken')
+        query = self.extend(negotiation['request'], {
+            'connectionToken': connectionToken,
+            # 'tid': self.milliseconds() % 10,
+        })
+        url = self.urls['api']['ws'] + '?' + self.urlencode(query)
+        requestId = str(self.milliseconds())
+        name = 'ticker'
+        messageHash = name + ':' + symbol
+        method = 'SubscribeToSummaryDeltas'
+        subscribeHash = method
+        hub = self.safe_string(self.options, 'hub', 'c2')
+        request = {
+            'H': hub,
+            'M': method,
+            'A': [],  # arguments
+            'I': requestId,  # invocation request id
+        }
+        subscription = {
+            'id': requestId,
+            'symbol': symbol,
+            'params': params,
+            'negotiation': negotiation,
+            'method': self.handle_subscribe_to_summary_deltas,
+        }
+        return await self.watch(url, messageHash, request, subscribeHash, subscription)
+
     async def subscribe_to_exchange_deltas(self, name, negotiation, symbol, subscription):
         await self.load_markets()
         market = self.market(symbol)
@@ -230,8 +261,8 @@ class bittrex(Exchange, ccxt.bittrex):
         })
         url = self.urls['api']['ws'] + '?' + self.urlencode(query)
         requestId = str(self.milliseconds())
-        method = 'SubscribeToExchangeDeltas'
         messageHash = name + ':' + symbol
+        method = 'SubscribeToExchangeDeltas'
         subscribeHash = method + ':' + symbol
         marketId = market['id']
         hub = self.safe_string(self.options, 'hub', 'c2')
@@ -244,10 +275,15 @@ class bittrex(Exchange, ccxt.bittrex):
         subscription = self.extend({
             'id': requestId,
             'symbol': symbol,
-            'method': self.handle_subscribe_to_exchange_deltas,
             'negotiation': negotiation,
+            'method': self.handle_subscribe_to_exchange_deltas,
         }, subscription)
         return await self.watch(url, messageHash, request, subscribeHash, subscription)
+
+    async def watch_ticker(self, symbol, params={}):
+        await self.load_markets()
+        future = self.negotiate()
+        return await self.after_async(future, self.subscribe_to_summary_deltas, symbol, params)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -414,6 +450,32 @@ class bittrex(Exchange, ccxt.bittrex):
             client.resolve(orderbook, messageHash)
         return orderbook
 
+    def handle_summary_delta(self, client, message):
+        #
+        #     {
+        #         N: 93611,
+        #         D: [
+        #             {
+        #                 M: 'BTC-WGP',
+        #                 H: 0,
+        #                 L: 0,
+        #                 V: 0,
+        #                 l: 0,
+        #                 m: 0,
+        #                 T: 1580498848980,
+        #                 B: 0.0000051,
+        #                 A: 0.0000077,
+        #                 G: 26,
+        #                 g: 68,
+        #                 PD: 0,
+        #                 x: 1573085249977
+        #             },
+        #         ]
+        #     }
+        #
+        D = self.safe_value(message, 'D', [])
+        self.handle_tickers(client, message, D)
+
     def handle_balance_delta(self, client, message):
         #
         #     {
@@ -445,12 +507,187 @@ class bittrex(Exchange, ccxt.bittrex):
         return message
 
     async def fetch_balance_snapshot(self, client, message, subscription):
-        # todo: self is a synch blocking call in ccxt.php - make it async
+        # self is a method for fetching the balance snapshot over REST
+        # todo it is a synch blocking call in ccxt.php - make it async
         response = await self.fetchBalance()
         self.balance = self.deep_extend(self.balance, response)
         client.resolve(self.balance, 'balance')
 
+    async def fetch_summary_state(self, symbol, params={}):
+        # self is a method for fetching a market ticker snapshot over WS
+        await self.load_markets()
+        future = self.negotiate()
+        return await self.after_async(future, self.query_summary_state, symbol, params)
+
+    async def query_summary_state(self, negotiation, symbol, params={}):
+        await self.load_markets()
+        connectionToken = self.safe_string(negotiation['response'], 'ConnectionToken')
+        query = self.extend(negotiation['request'], {
+            'connectionToken': connectionToken,
+        })
+        url = self.urls['api']['ws'] + '?' + self.urlencode(query)
+        method = 'QuerySummaryState'
+        requestId = str(self.milliseconds())
+        hub = self.safe_string(self.options, 'hub', 'c2')
+        request = {
+            'H': hub,
+            'M': method,
+            'A': [],  # arguments
+            'I': requestId,  # invocation request id
+        }
+        subscription = {
+            'id': requestId,
+            'symbol': symbol,
+            'params': params,
+            'method': self.handle_query_summary_state,
+        }
+        return await self.watch(url, requestId, request, requestId, subscription)
+
+    def handle_query_summary_state(self, client, message, subscription):
+        R = self.safe_string(message, 'R')
+        if R is not None:
+            #
+            #     {
+            #         N: 92752,
+            #         s: [
+            #             {
+            #                 M: 'USDT-VDX',      # market name
+            #                 H: 0.000939,        # high
+            #                 L: 0.000937,        # low
+            #                 V: 144826.07861649,  # volume
+            #                 l: 0.000937,        # last
+            #                 m: 135.78640981,    # base volume
+            #                 T: 1580494553713,   # ticker timestamp
+            #                 B: 0.000937,        # bid
+            #                 A: 0.000939,        # ask
+            #                 G: 71,              # open buy orders
+            #                 g: 122,             # open sell orders
+            #                 PD: 0.000939,       # previous day
+            #                 x: 1558572081843    # created timestamp
+            #             },
+            #         ]
+            #     }
+            #
+            response = json.loads(self.inflate(R))
+            s = self.safe_value(response, 's', [])
+            self.handle_tickers(client, message, s)
+        return R
+
+    def handle_tickers(self, client, message, tickers):
+        #
+        #     [
+        #         {
+        #             M: 'BTC-WGP',
+        #             H: 0,
+        #             L: 0,
+        #             V: 0,
+        #             l: 0,
+        #             m: 0,
+        #             T: 1580498848980,
+        #             B: 0.0000051,
+        #             A: 0.0000077,
+        #             G: 26,
+        #             g: 68,
+        #             PD: 0,
+        #             x: 1573085249977
+        #         },
+        #     ]
+        #
+        for i in range(0, len(tickers)):
+            self.handle_ticker(client, message, tickers[i])
+
+    def handle_ticker(self, client, message, ticker):
+        #
+        #     {
+        #         M: 'USDT-VDX',      # market name
+        #         H: 0.000939,        # high
+        #         L: 0.000937,        # low
+        #         V: 144826.07861649,  # volume
+        #         l: 0.000937,        # last
+        #         m: 135.78640981,    # base volume
+        #         T: 1580494553713,   # ticker timestamp
+        #         B: 0.000937,        # bid
+        #         A: 0.000939,        # ask
+        #         G: 71,              # open buy orders
+        #         g: 122,             # open sell orders
+        #         PD: 0.000939,       # previous day
+        #         x: 1558572081843    # created timestamp
+        #     }
+        #
+        result = self.parse_ticker(ticker)
+        symbol = result['symbol']
+        self.tickers[symbol] = result
+        name = 'ticker'
+        messageHash = name + ':' + symbol
+        client.resolve(result, messageHash)
+
+    def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         M: 'USDT-VDX',      # market name
+        #         H: 0.000939,        # high
+        #         L: 0.000937,        # low
+        #         V: 144826.07861649,  # volume
+        #         l: 0.000937,        # last
+        #         m: 135.78640981,    # base volume
+        #         T: 1580494553713,   # ticker timestamp
+        #         B: 0.000937,        # bid
+        #         A: 0.000939,        # ask
+        #         G: 71,              # open buy orders
+        #         g: 122,             # open sell orders
+        #         PD: 0.000939,       # previous day
+        #         x: 1558572081843    # created timestamp
+        #     }
+        #
+        previous = self.safe_float(ticker, 'PD')
+        if previous is None:
+            return self.parse_ticker(ticker, market)
+        timestamp = self.safe_integer(ticker, 'T')
+        symbol = None
+        marketId = self.safe_string(ticker, 'M')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                quoteId, baseId = marketId.split('-')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
+        last = self.safe_float(ticker, 'l')
+        change = None
+        percentage = None
+        if last is not None:
+            if previous is not None:
+                change = last - previous
+                if previous > 0:
+                    percentage = (change / previous) * 100
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_float(ticker, 'H'),
+            'low': self.safe_float(ticker, 'L'),
+            'bid': self.safe_float(ticker, 'B'),
+            'bidVolume': None,
+            'ask': self.safe_float(ticker, 'A'),
+            'askVolume': None,
+            'vwap': None,
+            'open': previous,
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': change,
+            'percentage': percentage,
+            'average': None,
+            'baseVolume': self.safe_float(ticker, 'm'),
+            'quoteVolume': self.safe_float(ticker, 'V'),
+            'info': ticker,
+        }
+
     async def fetch_balance_state(self, params={}):
+        # self is a method for fetching the balance snapshot over WS
         await self.load_markets()
         future = self.authenticate()
         return await self.after_async(future, self.query_balance_state, params)
@@ -667,6 +904,12 @@ class bittrex(Exchange, ccxt.bittrex):
         # params = self.safe_value(subscription, 'params')
         # self.spawn(self.fetch_balance_state, params)
 
+    def handle_subscribe_to_summary_deltas(self, client, message, subscription):
+        symbol = self.safe_string(subscription, 'symbol')
+        params = self.safe_string(subscription, 'params')
+        # fetch the snapshot in a separate async call
+        self.spawn(self.fetch_summary_state, symbol, params)
+
     def handle_subscribe_to_exchange_deltas(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_string(subscription, 'limit')
@@ -679,7 +922,17 @@ class bittrex(Exchange, ccxt.bittrex):
 
     def handle_subscription_status(self, client, message):
         #
+        # success
+        #
         #     {'R': True, I: '1579299273251'}
+        #
+        # failure
+        # todo add error handling and future rejections
+        #
+        #     {
+        #         I: '1580494127086',
+        #         E: "There was an error invoking Hub method 'c2.QuerySummaryState'."
+        #     }
         #
         I = self.safe_string(message, 'I')  # noqa: E741
         subscription = self.safe_value(client.subscriptions, I)
@@ -718,6 +971,7 @@ class bittrex(Exchange, ccxt.bittrex):
             'uE': self.handle_exchange_delta,
             'uO': self.handle_order_delta,
             'uB': self.handle_balance_delta,
+            'uS': self.handle_summary_delta,
         }
         M = self.safe_value(message, 'M', [])
         for i in range(0, len(M)):

@@ -19,6 +19,7 @@ class gateio extends \ccxt\gateio {
                 'ws' => true,
                 'watchOrderBook' => true,
                 'watchTicker' => true,
+                'watchTickers' => false, // for now
                 'watchTrades' => true,
                 'watchOHLCV' => true,
                 'watchBalance' => true,

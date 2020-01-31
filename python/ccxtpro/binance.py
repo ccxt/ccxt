@@ -18,6 +18,7 @@ class binance(Exchange, ccxt.binance):
                 'watchTrades': True,
                 'watchOHLCV': True,
                 'watchTicker': True,
+                'watchTickers': False,  # for now
                 'watchOrders': True,
                 'watchBalance': True,
             },

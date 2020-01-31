@@ -19,6 +19,8 @@ class bittrex extends \ccxt\bittrex {
                 'watchOrderBook' => true,
                 'watchBalance' => true,
                 'watchTrades' => true,
+                'watchTicker' => true,
+                'watchTickers' => false, // for now
             ),
             'urls' => array(
                 'api' => array(
@@ -236,6 +238,36 @@ class bittrex extends \ccxt\bittrex {
         return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
+    public function subscribe_to_summary_deltas ($negotiation, $symbol, $params = array ()) {
+        $this->load_markets();
+        $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');
+        $query = array_merge($negotiation['request'], array(
+            'connectionToken' => $connectionToken,
+            // 'tid' => $this->milliseconds (fmod(), 10),
+        ));
+        $url = $this->urls['api']['ws'] . '?' . $this->urlencode ($query);
+        $requestId = (string) $this->milliseconds ();
+        $name = 'ticker';
+        $messageHash = $name . ':' . $symbol;
+        $method = 'SubscribeToSummaryDeltas';
+        $subscribeHash = $method;
+        $hub = $this->safe_string($this->options, 'hub', 'c2');
+        $request = array(
+            'H' => $hub,
+            'M' => $method,
+            'A' => array(), // arguments
+            'I' => $requestId, // invocation $request id
+        );
+        $subscription = array(
+            'id' => $requestId,
+            'symbol' => $symbol,
+            'params' => $params,
+            'negotiation' => $negotiation,
+            'method' => array($this, 'handle_subscribe_to_summary_deltas'),
+        );
+        return $this->watch ($url, $messageHash, $request, $subscribeHash, $subscription);
+    }
+
     public function subscribe_to_exchange_deltas ($name, $negotiation, $symbol, $subscription) {
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -246,8 +278,8 @@ class bittrex extends \ccxt\bittrex {
         ));
         $url = $this->urls['api']['ws'] . '?' . $this->urlencode ($query);
         $requestId = (string) $this->milliseconds ();
-        $method = 'SubscribeToExchangeDeltas';
         $messageHash = $name . ':' . $symbol;
+        $method = 'SubscribeToExchangeDeltas';
         $subscribeHash = $method . ':' . $symbol;
         $marketId = $market['id'];
         $hub = $this->safe_string($this->options, 'hub', 'c2');
@@ -260,10 +292,16 @@ class bittrex extends \ccxt\bittrex {
         $subscription = array_merge(array(
             'id' => $requestId,
             'symbol' => $symbol,
-            'method' => array($this, 'handle_subscribe_to_exchange_deltas'),
             'negotiation' => $negotiation,
+            'method' => array($this, 'handle_subscribe_to_exchange_deltas'),
         ), $subscription);
         return $this->watch ($url, $messageHash, $request, $subscribeHash, $subscription);
+    }
+
+    public function watch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
+        $future = $this->negotiate ();
+        return $this->after_async ($future, array($this, 'subscribe_to_summary_deltas'), $symbol, $params);
     }
 
     public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
@@ -451,6 +489,33 @@ class bittrex extends \ccxt\bittrex {
         return $orderbook;
     }
 
+    public function handle_summary_delta ($client, $message) {
+        //
+        //     {
+        //         N => 93611,
+        //         $D => array(
+        //             array(
+        //                 M => 'BTC-WGP',
+        //                 H => 0,
+        //                 L => 0,
+        //                 V => 0,
+        //                 l => 0,
+        //                 m => 0,
+        //                 T => 1580498848980,
+        //                 B => 0.0000051,
+        //                 A => 0.0000077,
+        //                 G => 26,
+        //                 g => 68,
+        //                 PD => 0,
+        //                 x => 1573085249977
+        //             ),
+        //         )
+        //     }
+        //
+        $D = $this->safe_value($message, 'D', array());
+        $this->handle_tickers ($client, $message, $D);
+    }
+
     public function handle_balance_delta ($client, $message) {
         //
         //     {
@@ -483,13 +548,203 @@ class bittrex extends \ccxt\bittrex {
     }
 
     public function fetch_balance_snapshot ($client, $message, $subscription) {
-        // todo => this is a synch blocking call in ccxt.php - make it async
+        // this is a method for fetching the balance snapshot over REST
+        // todo it is a synch blocking call in ccxt.php - make it async
         $response = $this->fetchBalance ();
         $this->balance = array_replace_recursive($this->balance, $response);
         $client->resolve ($this->balance, 'balance');
     }
 
+    public function fetch_summary_state ($symbol, $params = array ()) {
+        // this is a method for fetching a market ticker snapshot over WS
+        $this->load_markets();
+        $future = $this->negotiate ();
+        return $this->after_async ($future, array($this, 'query_summary_state'), $symbol, $params);
+    }
+
+    public function query_summary_state ($negotiation, $symbol, $params = array ()) {
+        $this->load_markets();
+        $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');
+        $query = array_merge($negotiation['request'], array(
+            'connectionToken' => $connectionToken,
+        ));
+        $url = $this->urls['api']['ws'] . '?' . $this->urlencode ($query);
+        $method = 'QuerySummaryState';
+        $requestId = (string) $this->milliseconds ();
+        $hub = $this->safe_string($this->options, 'hub', 'c2');
+        $request = array(
+            'H' => $hub,
+            'M' => $method,
+            'A' => array(), // arguments
+            'I' => $requestId, // invocation $request id
+        );
+        $subscription = array(
+            'id' => $requestId,
+            'symbol' => $symbol,
+            'params' => $params,
+            'method' => array($this, 'handle_query_summary_state'),
+        );
+        return $this->watch ($url, $requestId, $request, $requestId, $subscription);
+    }
+
+    public function handle_query_summary_state ($client, $message, $subscription) {
+        $R = $this->safe_string($message, 'R');
+        if ($R !== null) {
+            //
+            //     {
+            //         N => 92752,
+            //         $s => array(
+            //             array(
+            //                 M => 'USDT-VDX',      // market name
+            //                 H => 0.000939,        // high
+            //                 L => 0.000937,        // low
+            //                 V => 144826.07861649, // volume
+            //                 l => 0.000937,        // last
+            //                 m => 135.78640981,    // base volume
+            //                 T => 1580494553713,   // ticker timestamp
+            //                 B => 0.000937,        // bid
+            //                 A => 0.000939,        // ask
+            //                 G => 71,              // open buy orders
+            //                 g => 122,             // open sell orders
+            //                 PD => 0.000939,       // previous day
+            //                 x => 1558572081843    // created timestamp
+            //             ),
+            //         )
+            //     }
+            //
+            $response = json_decode($this->inflate ($R, $as_associative_array = true));
+            $s = $this->safe_value($response, 's', array());
+            $this->handle_tickers ($client, $message, $s);
+        }
+        return $R;
+    }
+
+    public function handle_tickers ($client, $message, $tickers) {
+        //
+        //     array(
+        //         array(
+        //             M => 'BTC-WGP',
+        //             H => 0,
+        //             L => 0,
+        //             V => 0,
+        //             l => 0,
+        //             m => 0,
+        //             T => 1580498848980,
+        //             B => 0.0000051,
+        //             A => 0.0000077,
+        //             G => 26,
+        //             g => 68,
+        //             PD => 0,
+        //             x => 1573085249977
+        //         ),
+        //     )
+        //
+        for ($i = 0; $i < count($tickers); $i++) {
+            $this->handle_ticker ($client, $message, $tickers[$i]);
+        }
+    }
+
+    public function handle_ticker ($client, $message, $ticker) {
+        //
+        //     {
+        //         M => 'USDT-VDX',      // market $name
+        //         H => 0.000939,        // high
+        //         L => 0.000937,        // low
+        //         V => 144826.07861649, // volume
+        //         l => 0.000937,        // last
+        //         m => 135.78640981,    // base volume
+        //         T => 1580494553713,   // $ticker timestamp
+        //         B => 0.000937,        // bid
+        //         A => 0.000939,        // ask
+        //         G => 71,              // open buy orders
+        //         g => 122,             // open sell orders
+        //         PD => 0.000939,       // previous day
+        //         x => 1558572081843    // created timestamp
+        //     }
+        //
+        $result = $this->parse_ticker($ticker);
+        $symbol = $result['symbol'];
+        $this->tickers[$symbol] = $result;
+        $name = 'ticker';
+        $messageHash = $name . ':' . $symbol;
+        $client->resolve ($result, $messageHash);
+    }
+
+    public function parse_ticker ($ticker, $market = null) {
+        //
+        //     {
+        //         M => 'USDT-VDX',      // $market name
+        //         H => 0.000939,        // high
+        //         L => 0.000937,        // low
+        //         V => 144826.07861649, // volume
+        //         l => 0.000937,        // $last
+        //         m => 135.78640981,    // $base volume
+        //         T => 1580494553713,   // $ticker $timestamp
+        //         B => 0.000937,        // bid
+        //         A => 0.000939,        // ask
+        //         G => 71,              // open buy orders
+        //         g => 122,             // open sell orders
+        //         PD => 0.000939,       // $previous day
+        //         x => 1558572081843    // created $timestamp
+        //     }
+        //
+        $previous = $this->safe_float($ticker, 'PD');
+        if ($previous === null) {
+            return $this->parse_ticker($ticker, $market);
+        }
+        $timestamp = $this->safe_integer($ticker, 'T');
+        $symbol = null;
+        $marketId = $this->safe_string($ticker, 'M');
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            } else {
+                list($quoteId, $baseId) = explode('-', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
+        }
+        $last = $this->safe_float($ticker, 'l');
+        $change = null;
+        $percentage = null;
+        if ($last !== null) {
+            if ($previous !== null) {
+                $change = $last - $previous;
+                if ($previous > 0) {
+                    $percentage = ($change / $previous) * 100;
+                }
+            }
+        }
+        return array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => $this->safe_float($ticker, 'H'),
+            'low' => $this->safe_float($ticker, 'L'),
+            'bid' => $this->safe_float($ticker, 'B'),
+            'bidVolume' => null,
+            'ask' => $this->safe_float($ticker, 'A'),
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => $previous,
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
+            'change' => $change,
+            'percentage' => $percentage,
+            'average' => null,
+            'baseVolume' => $this->safe_float($ticker, 'm'),
+            'quoteVolume' => $this->safe_float($ticker, 'V'),
+            'info' => $ticker,
+        );
+    }
+
     public function fetch_balance_state ($params = array ()) {
+        // this is a method for fetching the balance snapshot over WS
         $this->load_markets();
         $future = $this->authenticate ();
         return $this->after_async ($future, array($this, 'query_balance_state'), $params);
@@ -716,6 +971,13 @@ class bittrex extends \ccxt\bittrex {
         // $this->spawn (array($this, 'fetch_balance_state'), $params);
     }
 
+    public function handle_subscribe_to_summary_deltas ($client, $message, $subscription) {
+        $symbol = $this->safe_string($subscription, 'symbol');
+        $params = $this->safe_string($subscription, 'params');
+        // fetch the snapshot in a separate async call
+        $this->spawn (array($this, 'fetch_summary_state'), $symbol, $params);
+    }
+
     public function handle_subscribe_to_exchange_deltas ($client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_string($subscription, 'limit');
@@ -730,7 +992,17 @@ class bittrex extends \ccxt\bittrex {
 
     public function handle_subscription_status ($client, $message) {
         //
+        // success
+        //
         //     array( 'R' => true, $I => '1579299273251' )
+        //
+        // failure
+        // todo add error handling and future rejections
+        //
+        //     {
+        //         $I => '1580494127086',
+        //         E => "There was an error invoking Hub $method 'c2.QuerySummaryState'."
+        //     }
         //
         $I = $this->safe_string($message, 'I'); // noqa => E741
         $subscription = $this->safe_value($client->subscriptions, $I);
@@ -775,6 +1047,7 @@ class bittrex extends \ccxt\bittrex {
             'uE' => array($this, 'handle_exchange_delta'),
             'uO' => array($this, 'handle_order_delta'),
             'uB' => array($this, 'handle_balance_delta'),
+            'uS' => array($this, 'handle_summary_delta'),
         );
         $M = $this->safe_value($message, 'M', array());
         for ($i = 0; $i < count($M); $i++) {
