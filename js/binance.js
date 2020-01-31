@@ -314,7 +314,7 @@ module.exports = class binance extends ccxt.binance {
         return await this.watchPublic (messageHash, params);
     }
 
-    handleOHCLV (client, message) {
+    handleOHLCV (client, message) {
         //
         //     {
         //         e: 'kline',
@@ -630,7 +630,7 @@ module.exports = class binance extends ccxt.binance {
         const methods = {
             'depthUpdate': this.handleOrderBook,
             'trade': this.handleTrade,
-            'kline': this.handleOHCLV,
+            'kline': this.handleOHLCV,
             '24hrTicker': this.handleTicker,
             'outboundAccountInfo': this.handleBalance,
             'executionReport': this.handleOrder,
