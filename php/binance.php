@@ -19,6 +19,8 @@ class binance extends \ccxt\binance {
                 'watchTrades' => true,
                 'watchOHLCV' => true,
                 'watchTicker' => true,
+                'watchOrders' => true,
+                'watchBalance' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -26,9 +28,11 @@ class binance extends \ccxt\binance {
                 ),
             ),
             'options' => array(
-                'watchOrderBookRate' => 100, // get updates every 100ms or 1000ms
+                // get updates every 1000ms or 100ms
+                // or every 0ms in real-time for futures
+                'watchOrderBookRate' => 100,
                 'tradesLimit' => 1000,
-                'OHLCVLimit' => 3,
+                'OHLCVLimit' => 1000,
             ),
         ));
     }
@@ -59,11 +63,14 @@ class binance extends \ccxt\binance {
         // <$symbol>@depth<levels>@100ms or <$symbol>@depth<levels> (1000ms)
         // valid <levels> are 5, 10, or 20
         //
-        if ($limit !== null) {
-            if (($limit !== 5) && ($limit !== 10) && ($limit !== 20)) {
-                throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 5, 10 or 20');
-            }
-        }
+        // todo add support for <levels>-snapshots (depth)
+        //
+        //     if ($limit !== null) {
+        //         if (($limit !== 5) && ($limit !== 10) && ($limit !== 20)) {
+        //             throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 5, 10 or 20');
+        //         }
+        //     }
+        //
         $this->load_markets();
         $market = $this->market ($symbol);
         //
@@ -166,7 +173,7 @@ class binance extends \ccxt\binance {
         // the feed does not include a snapshot, just the deltas
         //
         //     {
-        //         "e" => "depthUpdate", // Event type
+        //         "$e" => "depthUpdate", // Event type
         //         "E" => 1577554482280, // Event time
         //         "s" => "BNBBTC", // Symbol
         //         "U" => 157, // First update ID in event
@@ -194,10 +201,16 @@ class binance extends \ccxt\binance {
         if ($orderbook['nonce'] !== null) {
             // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
             // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-            $nonce = $orderbook['nonce'];
-            $this->handle_order_book_message ($client, $message, $orderbook);
-            if ($nonce < $orderbook['nonce']) {
-                $client->resolve ($orderbook, $messageHash);
+            try {
+                $nonce = $orderbook['nonce'];
+                $this->handle_order_book_message ($client, $message, $orderbook);
+                if ($nonce < $orderbook['nonce']) {
+                    $client->resolve ($orderbook, $messageHash);
+                }
+            } catch (Exception $e) {
+                unset($this->orderbooks[$symbol]);
+                unset($client->subscriptions[$messageHash]);
+                $client->reject ($e, $messageHash);
             }
         } else {
             // 2. Buffer the events you receive from the stream.
@@ -243,19 +256,7 @@ class binance extends \ccxt\binance {
         $market = $this->market ($symbol);
         $name = 'trade';
         $messageHash = $market['lowercaseId'] . '@' . $name;
-        $url = $this->urls['api']['ws']; // . '/' . $messageHash;
-        $requestId = $this->nonce ();
-        $request = array(
-            'method' => 'SUBSCRIBE',
-            'params' => array(
-                $messageHash,
-            ),
-            'id' => $requestId,
-        );
-        $subscribe = array(
-            'id' => $requestId,
-        );
-        $future = $this->watch ($url, $messageHash, $request, $messageHash, $subscribe);
+        $future = $this->watch_public ($messageHash, $params);
         return $this->after ($future, $this->filterBySinceLimit, $since, $limit);
     }
 
@@ -263,19 +264,20 @@ class binance extends \ccxt\binance {
         // The Trade Streams push raw trade information; each trade has a unique buyer and seller.
         // Update Speed => Real-time
         //
-        // {
-        //   e => 'trade',
-        //   E => 1579481530911,
-        //   s => 'ETHBTC',
-        //   t => 158410082,
-        //   p => '0.01914100',
-        //   q => '0.00700000',
-        //   b => 586187049,
-        //   a => 586186710,
-        //   T => 1579481530910,
-        //   m => false,
-        //   M => true
-        // }
+        //     {
+        //         e => 'trade',
+        //         E => 1579481530911,
+        //         s => 'ETHBTC',
+        //         t => 158410082,
+        //         p => '0.01914100',
+        //         q => '0.00700000',
+        //         b => 586187049,
+        //         a => 586186710,
+        //         T => 1579481530910,
+        //         m => false,
+        //         M => true
+        //     }
+        //
         $marketId = $this->safe_string($message, 's');
         $market = null;
         $symbol = $marketId;
@@ -299,51 +301,42 @@ class binance extends \ccxt\binance {
 
     public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $url = $this->urls['api']['ws'];
         $market = $this->market ($symbol);
         $marketId = $market['lowercaseId'];
         $interval = $this->timeframes[$timeframe];
         $name = 'kline_';
         $messageHash = $marketId . '@' . $name . $interval;
-        $requestId = $this->nonce ();
-        $request = array(
-            'method' => 'SUBSCRIBE',
-            'params' => array(
-                $messageHash,
-            ),
-            'id' => $requestId,
-        );
-        $subscribe = array(
-            'id' => $requestId,
-        );
-        return $this->watch ($url, $messageHash, $request, $messageHash, $subscribe);
+        // todo add filter by $since and $limit
+        return $this->watch_public ($messageHash, $params);
     }
 
-    public function handle_ohclv ($client, $message) {
-        // {
-        //   e => 'kline',
-        //   E => 1579482921215,
-        //   s => 'ETHBTC',
-        //   k => {
-        //     t => 1579482900000,
-        //     T => 1579482959999,
-        //     s => 'ETHBTC',
-        //     i => '1m',
-        //     f => 158411535,
-        //     L => 158411550,
-        //     o => '0.01913200',
-        //     c => '0.01913500',
-        //     h => '0.01913700',
-        //     l => '0.01913200',
-        //     v => '5.08400000',
-        //     n => 16,
-        //     x => false,
-        //     q => '0.09728060',
-        //     V => '3.30200000',
-        //     Q => '0.06318500',
-        //     B => '0'
-        //   }
-        // }
+    public function handle_ohlcv ($client, $message) {
+        //
+        //     {
+        //         e => 'kline',
+        //         E => 1579482921215,
+        //         s => 'ETHBTC',
+        //         k => {
+        //             t => 1579482900000,
+        //             T => 1579482959999,
+        //             s => 'ETHBTC',
+        //             i => '1m',
+        //             f => 158411535,
+        //             L => 158411550,
+        //             o => '0.01913200',
+        //             c => '0.01913500',
+        //             h => '0.01913700',
+        //             l => '0.01913200',
+        //             v => '5.08400000',
+        //             n => 16,
+        //             x => false,
+        //             q => '0.09728060',
+        //             V => '3.30200000',
+        //             Q => '0.06318500',
+        //             B => '0'
+        //         }
+        //     }
+        //
         $marketId = $this->safe_string($message, 's');
         $lowercaseMarketId = $this->safe_string_lower($message, 's');
         $event = $this->safe_string($message, 'e');
@@ -386,13 +379,7 @@ class binance extends \ccxt\binance {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_ticker ($symbol, $params = array ()) {
-        $this->load_markets();
-        $url = $this->urls['api']['ws'];
-        $market = $this->market ($symbol);
-        $marketId = $market['lowercaseId'];
-        $name = 'ticker';
-        $messageHash = $marketId . '@' . $name;
+    public function watch_public ($messageHash, $params = array ()) {
         $requestId = $this->nonce ();
         $request = array(
             'method' => 'SUBSCRIBE',
@@ -404,38 +391,51 @@ class binance extends \ccxt\binance {
         $subscribe = array(
             'id' => $requestId,
         );
-        return $this->watch ($url, $messageHash, $request, $messageHash, $subscribe);
+        $url = $this->urls['api']['ws'];
+        return $this->watch ($url, $messageHash, array_merge($request, $params), $messageHash, $subscribe);
+    }
+
+    public function watch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $marketId = $market['lowercaseId'];
+        $name = 'ticker';
+        $messageHash = $marketId . '@' . $name;
+        return $this->watch_public ($messageHash, $params);
     }
 
     public function handle_ticker ($client, $message) {
-        // 24hr rolling window ticker statistics for a single $symbol-> These are NOT the statistics of the UTC day, but a 24hr rolling window for the previous 24hrs.
         //
-        // Update Speed => 1000ms
-        // {
-        //   e => '24hrTicker',
-        //   E => 1579485598569,
-        //   s => 'ETHBTC',
-        //   p => '-0.00004000',
-        //   P => '-0.209',
-        //   w => '0.01920495',
-        //   x => '0.01916500',
-        //   c => '0.01912500',
-        //   Q => '0.10400000',
-        //   b => '0.01912200',
-        //   B => '4.10400000',
-        //   a => '0.01912500',
-        //   A => '0.00100000',
-        //   o => '0.01916500',
-        //   h => '0.01956500',
-        //   l => '0.01887700',
-        //   v => '173518.11900000',
-        //   q => '3332.40703994',
-        //   O => 1579399197842,
-        //   C => 1579485597842,
-        //   F => 158251292,
-        //   L => 158414513,
-        //   n => 163222
-        // }
+        // 24hr rolling window ticker statistics for a single $symbol
+        // These are NOT the statistics of the UTC day, but a 24hr rolling window for the previous 24hrs
+        // Update Speed 1000ms
+        //
+        //     {
+        //         e => '24hrTicker',      // $event type
+        //         E => 1579485598569,     // $event time
+        //         s => 'ETHBTC',          // $symbol
+        //         p => '-0.00004000',     // price change
+        //         P => '-0.209',          // price change percent
+        //         w => '0.01920495',      // weighted average price
+        //         x => '0.01916500',      // the price of the first trade before the 24hr rolling window
+        //         c => '0.01912500',      // $last (closing) price
+        //         Q => '0.10400000',      // $last quantity
+        //         b => '0.01912200',      // best bid
+        //         B => '4.10400000',      // best bid quantity
+        //         a => '0.01912500',      // best ask
+        //         A => '0.00100000',      // best ask quantity
+        //         o => '0.01916500',      // open price
+        //         h => '0.01956500',      // high price
+        //         l => '0.01887700',      // low price
+        //         v => '173518.11900000', // base volume
+        //         q => '3332.40703994',   // quote volume
+        //         O => 1579399197842,     // open time
+        //         C => 1579485597842,     // close time
+        //         F => 158251292,         // first trade id
+        //         L => 158414513,         // $last trade id
+        //         n => 163222,            // total number of trades
+        //     }
+        //
         $event = 'ticker'; // $message['e'] === 24hrTicker
         $wsMarketId = $this->safe_string_lower($message, 's');
         $messageHash = $wsMarketId . '@' . $event;
@@ -447,7 +447,7 @@ class binance extends \ccxt\binance {
             $symbol = $market['symbol'];
         }
         $last = $this->safe_float($message, 'c');
-        $parsed = array(
+        $result = array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -469,15 +469,149 @@ class binance extends \ccxt\binance {
             'quoteVolume' => $this->safe_float($message, 'q'),
             'info' => $message,
         );
+        $this->tickers[$symbol] = $result;
+        $client->resolve ($result, $messageHash);
+    }
+
+    public function authenticate () {
+        $time = $this->seconds ();
+        $lastAuthenticatedTime = $this->safe_integer($this->options, 'lastAuthenticatedTime', 0);
+        if ($time - $lastAuthenticatedTime > 1800) {
+            $response = $this->publicPostUserDataStream ();
+            $this->options['listenKey'] = $this->safe_string($response, 'listenKey');
+            $this->options['lastAuthenticatedTime'] = $time;
+        }
+    }
+
+    public function watch_balance ($params = array ()) {
+        $this->load_markets();
+        $this->authenticate ();
+        $url = $this->urls['api']['ws'] . '/' . $this->options['listenKey'];
+        $requestId = $this->nonce ();
+        $request = array(
+            'method' => 'SUBSCRIBE',
+            'params' => array(
+            ),
+            'id' => $requestId,
+        );
+        $subscribe = array(
+            'id' => $requestId,
+        );
+        $messageHash = 'outboundAccountInfo';
+        return $this->watch ($url, $messageHash, $request, 1, $subscribe);
+    }
+
+    public function handle_balance ($client, $message) {
+        // sent upon creating or filling an order
+        //
+        // {
+        //   "e" => "outboundAccountInfo",   // Event type
+        //   "E" => 1499405658849,           // Event time
+        //   "m" => 0,                       // Maker commission rate (bips)
+        //   "t" => 0,                       // Taker commission rate (bips)
+        //   "b" => 0,                       // Buyer commission rate (bips)
+        //   "s" => 0,                       // Seller commission rate (bips)
+        //   "T" => true,                    // Can trade?
+        //   "W" => true,                    // Can withdraw?
+        //   "D" => true,                    // Can deposit?
+        //   "u" => 1499405658848,           // Time of last $account update
+        //   "B" => array(                        // Balances array
+        //     array(
+        //       "a" => "LTC",               // Asset
+        //       "f" => "17366.18538083",    // Free amount
+        //       "l" => "0.00000000"         // Locked amount
+        //     ),
+        //     array(
+        //       "a" => "BTC",
+        //       "f" => "10537.85314051",
+        //       "l" => "2.19464093"
+        //     ),
+        //     array(
+        //       "a" => "ETH",
+        //       "f" => "17902.35190619",
+        //       "l" => "0.00000000"
+        //     ),
+        //   )
+        // }
+        $balances = $this->safe_value($message, 'B', array());
+        for ($i = 0; $i < count($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'a');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'f');
+            $account['used'] = $this->safe_float($balance, 'l');
+            $this->balance[$code] = $account;
+        }
+        $parsed = $this->parse_balance($this->balance);
+        $messageHash = $message['e'];
         $client->resolve ($parsed, $messageHash);
+    }
+
+    public function watch_orders ($params = array ()) {
+        $this->load_markets();
+        $this->authenticate ();
+        $url = $this->urls['api']['ws'] . '/' . $this->options['listenKey'];
+        $requestId = $this->nonce ();
+        $request = array(
+            'method' => 'SUBSCRIBE',
+            'params' => array(
+            ),
+            'id' => $requestId,
+        );
+        $subscribe = array(
+            'id' => $requestId,
+        );
+        $messageHash = 'executionReport';
+        return $this->watch ($url, $messageHash, $request, 1, $subscribe);
+    }
+
+    public function handle_order ($client, $message) {
+        // {
+        //   "e" => "executionReport",        // Event type
+        //   "E" => 1499405658658,            // Event time
+        //   "s" => "ETHBTC",                 // Symbol
+        //   "c" => "mUvoqJxFIILMdfAW5iGSOW", // Client order ID
+        //   "S" => "BUY",                    // Side
+        //   "o" => "LIMIT",                  // Order type
+        //   "f" => "GTC",                    // Time in force
+        //   "q" => "1.00000000",             // Order quantity
+        //   "p" => "0.10264410",             // Order price
+        //   "P" => "0.00000000",             // Stop price
+        //   "F" => "0.00000000",             // Iceberg quantity
+        //   "g" => -1,                       // OrderListId
+        //   "C" => null,                     // Original $client order ID; This is the ID of the order being canceled
+        //   "x" => "NEW",                    // Current execution type
+        //   "X" => "NEW",                    // Current order status
+        //   "r" => "NONE",                   // Order reject reason; will be an error code.
+        //   "i" => 4293153,                  // Order ID
+        //   "l" => "0.00000000",             // Last executed quantity
+        //   "z" => "0.00000000",             // Cumulative filled quantity
+        //   "L" => "0.00000000",             // Last executed price
+        //   "n" => "0",                      // Commission amount
+        //   "N" => null,                     // Commission asset
+        //   "T" => 1499405658657,            // Transaction time
+        //   "t" => -1,                       // Trade ID
+        //   "I" => 8641984,                  // Ignore
+        //   "w" => true,                     // Is the order on the book?
+        //   "m" => false,                    // Is this trade the maker side?
+        //   "M" => false,                    // Ignore
+        //   "O" => 1499405658657,            // Order creation time
+        //   "Z" => "0.00000000",             // Cumulative quote asset transacted quantity
+        //   "Y" => "0.00000000"              // Last quote asset transacted quantity (i.e. lastPrice * lastQty),
+        //   "Q" => "0.00000000"              // Quote Order Qty
+        // }
+        var_dump ($message);
     }
 
     public function handle_message ($client, $message) {
         $methods = array(
             'depthUpdate' => array($this, 'handle_order_book'),
             'trade' => array($this, 'handle_trade'),
-            'kline' => array($this, 'handle_ohclv'),
+            'kline' => array($this, 'handle_ohlcv'),
             '24hrTicker' => array($this, 'handle_ticker'),
+            'outboundAccountInfo' => array($this, 'handle_balance'),
+            'executionReport' => array($this, 'handle_order'),
         );
         $event = $this->safe_string($message, 'e');
         $method = $this->safe_value($methods, $event);
