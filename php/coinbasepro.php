@@ -361,13 +361,34 @@ class coinbasepro extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
+        //
+        //     {
+        //         $type => 'match',
+        //         trade_id => 82047307,
+        //         maker_order_id => '0f358725-2134-435e-be11-753912a326e0',
+        //         taker_order_id => '252b7002-87a3-425c-ac73-f5b9e23f3caf',
+        //         $side => 'sell',
+        //         size => '0.00513192',
+        //         $price => '9314.78',
+        //         product_id => 'BTC-USD',
+        //         sequence => 12038915443,
+        //         time => '2020-01-31T20:03:41.158814Z'
+        //     }
+        //
         $timestamp = $this->parse8601 ($this->safe_string_2($trade, 'time', 'created_at'));
         $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($trade, 'product_id');
-            $market = $this->safe_value($this->markets_by_id, $marketId);
+        $marketId = $this->safe_string($trade, 'product_id');
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            } else {
+                list($baseId, $quoteId) = explode('-', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
         }
-        if ($market) {
+        if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
         $feeRate = null;
