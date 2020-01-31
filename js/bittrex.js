@@ -15,6 +15,7 @@ module.exports = class bittrex extends ccxt.bittrex {
                 'watchOrderBook': true,
                 'watchBalance': true,
                 'watchTrades': true,
+                'watchTicker': true,
                 'watchTickers': false, // for now
             },
             'urls': {
@@ -233,6 +234,36 @@ module.exports = class bittrex extends ccxt.bittrex {
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
+    async subscribeToSummaryDeltas (negotiation, symbol, params = {}) {
+        await this.loadMarkets ();
+        const connectionToken = this.safeString (negotiation['response'], 'ConnectionToken');
+        const query = this.extend (negotiation['request'], {
+            'connectionToken': connectionToken,
+            // 'tid': this.milliseconds () % 10,
+        });
+        const url = this.urls['api']['ws'] + '?' + this.urlencode (query);
+        const requestId = this.milliseconds ().toString ();
+        const name = 'ticker';
+        const messageHash = name + ':' + symbol;
+        const method = 'SubscribeToSummaryDeltas';
+        const subscribeHash = method;
+        const hub = this.safeString (this.options, 'hub', 'c2');
+        const request = {
+            'H': hub,
+            'M': method,
+            'A': [], // arguments
+            'I': requestId, // invocation request id
+        };
+        const subscription = {
+            'id': requestId,
+            'symbol': symbol,
+            'params': params,
+            'negotiation': negotiation,
+            'method': this.handleSubscribeToSummaryDeltas,
+        };
+        return await this.watch (url, messageHash, request, subscribeHash, subscription);
+    }
+
     async subscribeToExchangeDeltas (name, negotiation, symbol, subscription) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -243,8 +274,8 @@ module.exports = class bittrex extends ccxt.bittrex {
         });
         const url = this.urls['api']['ws'] + '?' + this.urlencode (query);
         const requestId = this.milliseconds ().toString ();
-        const method = 'SubscribeToExchangeDeltas';
         const messageHash = name + ':' + symbol;
+        const method = 'SubscribeToExchangeDeltas';
         const subscribeHash = method + ':' + symbol;
         const marketId = market['id'];
         const hub = this.safeString (this.options, 'hub', 'c2');
@@ -257,10 +288,16 @@ module.exports = class bittrex extends ccxt.bittrex {
         subscription = this.extend ({
             'id': requestId,
             'symbol': symbol,
-            'method': this.handleSubscribeToExchangeDeltas,
             'negotiation': negotiation,
+            'method': this.handleSubscribeToExchangeDeltas,
         }, subscription);
         return await this.watch (url, messageHash, request, subscribeHash, subscription);
+    }
+
+    async watchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const future = this.negotiate ();
+        return await this.afterAsync (future, this.subscribeToSummaryDeltas, symbol, params);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -448,6 +485,33 @@ module.exports = class bittrex extends ccxt.bittrex {
         return orderbook;
     }
 
+    handleSummaryDelta (client, message) {
+        //
+        //     {
+        //         N: 93611,
+        //         D: [
+        //             {
+        //                 M: 'BTC-WGP',
+        //                 H: 0,
+        //                 L: 0,
+        //                 V: 0,
+        //                 l: 0,
+        //                 m: 0,
+        //                 T: 1580498848980,
+        //                 B: 0.0000051,
+        //                 A: 0.0000077,
+        //                 G: 26,
+        //                 g: 68,
+        //                 PD: 0,
+        //                 x: 1573085249977
+        //             },
+        //         ]
+        //     }
+        //
+        const D = this.safeValue (message, 'D', []);
+        this.handleTickers (client, message, D);
+    }
+
     handleBalanceDelta (client, message) {
         //
         //     {
@@ -480,13 +544,203 @@ module.exports = class bittrex extends ccxt.bittrex {
     }
 
     async fetchBalanceSnapshot (client, message, subscription) {
-        // todo: this is a synch blocking call in ccxt.php - make it async
+        // this is a method for fetching the balance snapshot over REST
+        // todo it is a synch blocking call in ccxt.php - make it async
         const response = await this.fetchBalance ();
         this.balance = this.deepExtend (this.balance, response);
         client.resolve (this.balance, 'balance');
     }
 
+    async fetchSummaryState (symbol, params = {}) {
+        // this is a method for fetching a market ticker snapshot over WS
+        await this.loadMarkets ();
+        const future = this.negotiate ();
+        return await this.afterAsync (future, this.querySummaryState, symbol, params);
+    }
+
+    async querySummaryState (negotiation, symbol, params = {}) {
+        await this.loadMarkets ();
+        const connectionToken = this.safeString (negotiation['response'], 'ConnectionToken');
+        const query = this.extend (negotiation['request'], {
+            'connectionToken': connectionToken,
+        });
+        const url = this.urls['api']['ws'] + '?' + this.urlencode (query);
+        const method = 'QuerySummaryState';
+        const requestId = this.milliseconds ().toString ();
+        const hub = this.safeString (this.options, 'hub', 'c2');
+        const request = {
+            'H': hub,
+            'M': method,
+            'A': [], // arguments
+            'I': requestId, // invocation request id
+        };
+        const subscription = {
+            'id': requestId,
+            'symbol': symbol,
+            'params': params,
+            'method': this.handleQuerySummaryState,
+        };
+        return await this.watch (url, requestId, request, requestId, subscription);
+    }
+
+    handleQuerySummaryState (client, message, subscription) {
+        const R = this.safeString (message, 'R');
+        if (R !== undefined) {
+            //
+            //     {
+            //         N: 92752,
+            //         s: [
+            //             {
+            //                 M: 'USDT-VDX',      // market name
+            //                 H: 0.000939,        // high
+            //                 L: 0.000937,        // low
+            //                 V: 144826.07861649, // volume
+            //                 l: 0.000937,        // last
+            //                 m: 135.78640981,    // base volume
+            //                 T: 1580494553713,   // ticker timestamp
+            //                 B: 0.000937,        // bid
+            //                 A: 0.000939,        // ask
+            //                 G: 71,              // open buy orders
+            //                 g: 122,             // open sell orders
+            //                 PD: 0.000939,       // previous day
+            //                 x: 1558572081843    // created timestamp
+            //             },
+            //         ]
+            //     }
+            //
+            const response = JSON.parse (this.inflate (R));
+            const s = this.safeValue (response, 's', []);
+            this.handleTickers (client, message, s);
+        }
+        return R;
+    }
+
+    handleTickers (client, message, tickers) {
+        //
+        //     [
+        //         {
+        //             M: 'BTC-WGP',
+        //             H: 0,
+        //             L: 0,
+        //             V: 0,
+        //             l: 0,
+        //             m: 0,
+        //             T: 1580498848980,
+        //             B: 0.0000051,
+        //             A: 0.0000077,
+        //             G: 26,
+        //             g: 68,
+        //             PD: 0,
+        //             x: 1573085249977
+        //         },
+        //     ]
+        //
+        for (let i = 0; i < tickers.length; i++) {
+            this.handleTicker (client, message, tickers[i]);
+        }
+    }
+
+    handleTicker (client, message, ticker) {
+        //
+        //     {
+        //         M: 'USDT-VDX',      // market name
+        //         H: 0.000939,        // high
+        //         L: 0.000937,        // low
+        //         V: 144826.07861649, // volume
+        //         l: 0.000937,        // last
+        //         m: 135.78640981,    // base volume
+        //         T: 1580494553713,   // ticker timestamp
+        //         B: 0.000937,        // bid
+        //         A: 0.000939,        // ask
+        //         G: 71,              // open buy orders
+        //         g: 122,             // open sell orders
+        //         PD: 0.000939,       // previous day
+        //         x: 1558572081843    // created timestamp
+        //     }
+        //
+        const result = this.parseTicker (ticker);
+        const symbol = result['symbol'];
+        this.tickers[symbol] = result;
+        const name = 'ticker';
+        const messageHash = name + ':' + symbol;
+        client.resolve (result, messageHash);
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         M: 'USDT-VDX',      // market name
+        //         H: 0.000939,        // high
+        //         L: 0.000937,        // low
+        //         V: 144826.07861649, // volume
+        //         l: 0.000937,        // last
+        //         m: 135.78640981,    // base volume
+        //         T: 1580494553713,   // ticker timestamp
+        //         B: 0.000937,        // bid
+        //         A: 0.000939,        // ask
+        //         G: 71,              // open buy orders
+        //         g: 122,             // open sell orders
+        //         PD: 0.000939,       // previous day
+        //         x: 1558572081843    // created timestamp
+        //     }
+        //
+        const previous = this.safeFloat (ticker, 'PD');
+        if (previous === undefined) {
+            return this.parseTicker (ticker, market);
+        }
+        const timestamp = this.safeInteger (ticker, 'T');
+        let symbol = undefined;
+        const marketId = this.safeString (ticker, 'M');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ quoteId, baseId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const last = this.safeFloat (ticker, 'l');
+        let change = undefined;
+        let percentage = undefined;
+        if (last !== undefined) {
+            if (previous !== undefined) {
+                change = last - previous;
+                if (previous > 0) {
+                    percentage = (change / previous) * 100;
+                }
+            }
+        }
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'H'),
+            'low': this.safeFloat (ticker, 'L'),
+            'bid': this.safeFloat (ticker, 'B'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'A'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': previous,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': undefined,
+            'baseVolume': this.safeFloat (ticker, 'm'),
+            'quoteVolume': this.safeFloat (ticker, 'V'),
+            'info': ticker,
+        };
+    }
+
     async fetchBalanceState (params = {}) {
+        // this is a method for fetching the balance snapshot over WS
         await this.loadMarkets ();
         const future = this.authenticate ();
         return await this.afterAsync (future, this.queryBalanceState, params);
@@ -713,6 +967,13 @@ module.exports = class bittrex extends ccxt.bittrex {
         // this.spawn (this.fetchBalanceState, params);
     }
 
+    handleSubscribeToSummaryDeltas (client, message, subscription) {
+        const symbol = this.safeString (subscription, 'symbol');
+        const params = this.safeString (subscription, 'params');
+        // fetch the snapshot in a separate async call
+        this.spawn (this.fetchSummaryState, symbol, params);
+    }
+
     handleSubscribeToExchangeDeltas (client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeString (subscription, 'limit');
@@ -727,7 +988,17 @@ module.exports = class bittrex extends ccxt.bittrex {
 
     handleSubscriptionStatus (client, message) {
         //
+        // success
+        //
         //     { 'R': true, I: '1579299273251' }
+        //
+        // failure
+        // todo add error handling and future rejections
+        //
+        //     {
+        //         I: '1580494127086',
+        //         E: "There was an error invoking Hub method 'c2.QuerySummaryState'."
+        //     }
         //
         const I = this.safeString (message, 'I'); // noqa: E741
         let subscription = this.safeValue (client.subscriptions, I);
@@ -772,6 +1043,7 @@ module.exports = class bittrex extends ccxt.bittrex {
             'uE': this.handleExchangeDelta,
             'uO': this.handleOrderDelta,
             'uB': this.handleBalanceDelta,
+            'uS': this.handleSummaryDelta,
         };
         const M = this.safeValue (message, 'M', []);
         for (let i = 0; i < M.length; i++) {
