@@ -252,22 +252,8 @@ module.exports = class binance extends ccxt.binance {
         const market = this.market (symbol);
         const name = 'trade';
         const messageHash = market['lowercaseId'] + '@' + name;
-        const future = this.watchPublic (messageHash);
+        const future = this.watchPublic (messageHash, params);
         return await this.after (future, this.filterBySinceLimit, since, limit);
-        // const url = this.urls['api']['ws'];
-        // const requestId = this.nonce ();
-        // const request = {
-        //     'method': 'SUBSCRIBE',
-        //     'params': [
-        //         messageHash,
-        //     ],
-        //     'id': requestId,
-        // };
-        // const subscribe = {
-        //     'id': requestId,
-        // };
-        // const future = this.watch (url, messageHash, request, messageHash, subscribe);
-        // return await this.after (future, this.filterBySinceLimit, since, limit);
     }
 
     handleTrade (client, message) {
@@ -541,16 +527,6 @@ module.exports = class binance extends ccxt.binance {
         //       "f": "17902.35190619",
         //       "l": "0.00000000"
         //     },
-        //     {
-        //       "a": "BNC",
-        //       "f": "1114503.29769312",
-        //       "l": "0.00000000"
-        //     },
-        //     {
-        //       "a": "NEO",
-        //       "f": "0.00000000",
-        //       "l": "0.00000000"
-        //     }
         //   ]
         // }
         const balances = this.safeValue (message, 'B', []);
