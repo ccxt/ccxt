@@ -14,6 +14,7 @@ module.exports = class bittrex extends ccxt.bittrex {
                 'ws': true,
                 'watchOrderBook': true,
                 'watchBalance': true,
+                'watchTrades': true,
             },
             'urls': {
                 'api': {
@@ -30,6 +31,7 @@ module.exports = class bittrex extends ccxt.bittrex {
                 },
             },
             'options': {
+                'tradesLimit': 1000,
                 'hub': 'c2',
             },
         });
@@ -212,7 +214,26 @@ module.exports = class bittrex extends ccxt.bittrex {
         return await this.afterAsync (future, this.subscribeToUserDeltas, params);
     }
 
-    async subscribeToExchangeDeltas (negotiation, symbol, limit = undefined, params = {}) {
+    async subscribeToTradeDeltas (negotiation, symbol, since = undefined, limit = undefined, params = {}) {
+        const subscription = {
+            'since': since,
+            'limit': limit,
+            'params': params,
+        };
+        const future = this.subscribeToExchangeDeltas ('trade', negotiation, symbol, subscription);
+        return await this.after (future, this.filterBySinceLimit, since, limit);
+    }
+
+    async subscribeToOrderBookDeltas (negotiation, symbol, limit = undefined, params = {}) {
+        const subscription = {
+            'limit': limit,
+            'params': params,
+        };
+        const future = this.subscribeToExchangeDeltas ('orderbook', negotiation, symbol, subscription);
+        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+    }
+
+    async subscribeToExchangeDeltas (name, negotiation, symbol, subscription) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const connectionToken = this.safeString (negotiation['response'], 'ConnectionToken');
@@ -223,7 +244,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         const url = this.urls['api']['ws'] + '?' + this.urlencode (query);
         const requestId = this.milliseconds ().toString ();
         const method = 'SubscribeToExchangeDeltas';
-        const messageHash = 'orderbook' + ':' + symbol;
+        const messageHash = name + ':' + symbol;
         const subscribeHash = method + ':' + symbol;
         const marketId = market['id'];
         const hub = this.safeString (this.options, 'hub', 'c2');
@@ -233,22 +254,25 @@ module.exports = class bittrex extends ccxt.bittrex {
             'A': [ marketId ], // arguments
             'I': requestId, // invocation request id
         };
-        const subscription = {
+        subscription = this.extend ({
             'id': requestId,
             'symbol': symbol,
-            'limit': limit,
-            'params': params,
             'method': this.handleSubscribeToExchangeDeltas,
             'negotiation': negotiation,
-        };
-        const future = this.watch (url, messageHash, request, subscribeHash, subscription);
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        }, subscription);
+        return await this.watch (url, messageHash, request, subscribeHash, subscription);
+    }
+
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const future = this.negotiate ();
+        return await this.afterAsync (future, this.subscribeToTradeDeltas, symbol, since, limit, params);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const future = this.negotiate ();
-        return await this.afterAsync (future, this.subscribeToExchangeDeltas, symbol, limit, params);
+        return await this.afterAsync (future, this.subscribeToOrderBookDeltas, symbol, limit, params);
     }
 
     limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
@@ -277,39 +301,130 @@ module.exports = class bittrex extends ccxt.bittrex {
         //             { 'TY': 0, 'R': 0.01938852, 'Q': 29.32758526 },
         //             { 'TY': 1, 'R': 0.02322822, 'Q': 0 }
         //         ],
-        //         'f': []
+        //         'f': [
+        //             {
+        //                 FI: 50365744,
+        //                 OT: 'SELL',
+        //                 R: 9240.432,
+        //                 Q: 0.07602962,
+        //                 T: 1580480744050
+        //             }
+        //         ]
         //     }
         //
         const marketId = this.safeString (message, 'M');
         let market = undefined;
-        let symbol = undefined;
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
-        //
-        // https://bittrex.github.io/api/v1-1#socket-connections
-        //
-        //     1 Drop existing websocket connections and flush accumulated data and state (e.g. market nonces).
-        //     2 Re-establish websocket connection.
-        //     3 Subscribe to BTC-ETH market deltas, cache received data keyed by nonce.
-        //     4 Query BTC-ETH market state.
-        //     5 Apply cached deltas sequentially, starting with nonces greater than that received in step 4.
-        //
-        if ((symbol !== undefined) && (symbol in this.orderbooks)) {
-            const orderbook = this.orderbooks[symbol];
-            if (orderbook['nonce'] !== undefined) {
-                this.handleOrderBookMessage (client, message, orderbook);
-                const name = 'orderbook';
-                const messageHash = name + ':' + symbol;
-                client.resolve (orderbook, messageHash);
-            } else {
-                orderbook.cache.push (message);
+            const symbol = market['symbol'];
+            if (symbol in this.orderbooks) {
+                const orderbook = this.orderbooks[symbol];
+                //
+                // https://bittrex.github.io/api/v1-1#socket-connections
+                //
+                //     1 Drop existing websocket connections and flush accumulated data and state (e.g. market nonces).
+                //     2 Re-establish websocket connection.
+                //     3 Subscribe to BTC-ETH market deltas, cache received data keyed by nonce.
+                //     4 Query BTC-ETH market state.
+                //     5 Apply cached deltas sequentially, starting with nonces greater than that received in step 4.
+                //
+                if (orderbook['nonce'] !== undefined) {
+                    this.handleOrderBookMessage (client, message, market, orderbook);
+                } else {
+                    orderbook.cache.push (message);
+                }
             }
+            this.handleTradesMessage (client, message, market);
         }
     }
 
-    handleOrderBookMessage (client, message, orderbook) {
+    parseTrade (trade, market = undefined) {
+        //
+        //     {
+        //         FI: 50365744,     // fill trade id
+        //         OT: 'SELL',       // order side type
+        //         R: 9240.432,      // price rate
+        //         Q: 0.07602962,    // amount quantity
+        //         T: 1580480744050, // timestamp
+        //     }
+        //
+        const id = this.safeString (trade, 'FI');
+        if (id === undefined) {
+            return super.parseTrade (trade, market);
+        }
+        const timestamp = this.safeInteger (trade, 'T');
+        const price = this.safeFloat (trade, 'R');
+        const amount = this.safeFloat (trade, 'Q');
+        const side = this.safeStringLower (trade, 'OT')
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
+        }
+        let symbol = undefined;
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': id,
+            'order': undefined,
+            'type': undefined,
+            'takerOrMaker': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+        };
+    }
+
+    handleTradesMessage (client, message, market) {
+        //
+        //     {
+        //         'M': 'BTC-ETH',
+        //         'N': 2322248,
+        //         'Z': [],
+        //         'S': [
+        //             { 'TY': 0, 'R': 0.01938852, 'Q': 29.32758526 },
+        //             { 'TY': 1, 'R': 0.02322822, 'Q': 0 }
+        //         ],
+        //         'f': [
+        //             {
+        //                 FI: 50365744,
+        //                 OT: 'SELL',
+        //                 R: 9240.432,
+        //                 Q: 0.07602962,
+        //                 T: 1580480744050
+        //             }
+        //         ]
+        //     }
+        //
+        // const nonce = this.safeInteger (message, 'N');
+        const f = this.safeValue (message, 'f', []);
+        const trades = this.parseTrades (f, market);
+        const tradesLength = trades.length;
+        if (tradesLength > 0) {
+            const symbol = market['symbol'];
+            const stored = this.safeValue (this.trades, symbol, []);
+            for (let i = 0; i < trades.length; i++) {
+                stored.push (trades[i]);
+                const storedLength = stored.length;
+                if (storedLength > this.options['tradesLimit']) {
+                    stored.shift ();
+                }
+            }
+            this.trades[symbol] = stored;
+            const name = 'trade';
+            const messageHash = name + ':' + market['symbol'];
+            client.resolve (stored, messageHash);
+        }
+        return message;
+    }
+
+    handleOrderBookMessage (client, message, market, orderbook) {
         //
         //     {
         //         'M': 'BTC-ETH',
@@ -328,6 +443,9 @@ module.exports = class bittrex extends ccxt.bittrex {
             this.handleDeltas (orderbook['asks'], this.safeValue (message, 'S', []));
             this.handleDeltas (orderbook['bids'], this.safeValue (message, 'Z', []));
             orderbook['nonce'] = nonce;
+            const name = 'orderbook';
+            const messageHash = name + ':' + market['symbol'];
+            client.resolve (orderbook, messageHash);
         }
         return orderbook;
     }
@@ -586,14 +704,13 @@ module.exports = class bittrex extends ccxt.bittrex {
                 const messages = orderbook.cache;
                 for (let i = 0; i < messages.length; i++) {
                     const message = messages[i];
-                    this.handleOrderBookMessage (client, message, orderbook);
+                    this.handleOrderBookMessage (client, message, market, orderbook);
                 }
                 this.orderbooks[symbol] = orderbook;
-                const messageHash = 'orderbook:' + symbol;
-                client.resolve (orderbook, messageHash);
                 const requestId = this.safeString (subscription, 'id');
                 client.resolve (orderbook, requestId);
             }
+            this.handleTradesMessage (client, message, market);
         }
     }
 
