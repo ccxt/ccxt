@@ -50,7 +50,7 @@ if (!exchanges.length) {
 
 const sleep = s => new Promise (resolve => setTimeout (resolve, s))
 const timeout = (s, promise) => Promise.race ([ promise, sleep (s).then (() => { throw new Error ('Test execution took longer than ' + maxTimeout.toString () + ' milliseconds, testing timed out.') }) ])
-const maxTimeout = 300000 // 5 minutes
+const maxTimeout = 600000 // 10 minutes
 
 // ----------------------------------------------------------------------------
 
