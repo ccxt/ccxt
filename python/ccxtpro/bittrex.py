@@ -18,6 +18,7 @@ class bittrex(Exchange, ccxt.bittrex):
                 'ws': True,
                 'watchOrderBook': True,
                 'watchBalance': True,
+                'watchTrades': True,
             },
             'urls': {
                 'api': {
@@ -34,6 +35,7 @@ class bittrex(Exchange, ccxt.bittrex):
                 },
             },
             'options': {
+                'tradesLimit': 1000,
                 'hub': 'c2',
             },
         })
@@ -130,7 +132,6 @@ class bittrex(Exchange, ccxt.bittrex):
         #         'I': '1579474528471'
         #     }
         #
-        # print(self.iso8601(self.milliseconds()), 'handleGetAuthContext')
         negotiation = self.safe_value(subscription, 'negotiation', {})
         connectionToken = self.safe_string(negotiation['response'], 'ConnectionToken')
         query = self.extend(negotiation['request'], {
@@ -202,7 +203,24 @@ class bittrex(Exchange, ccxt.bittrex):
         future = self.authenticate()
         return await self.after_async(future, self.subscribe_to_user_deltas, params)
 
-    async def subscribe_to_exchange_deltas(self, negotiation, symbol, limit=None, params={}):
+    async def subscribe_to_trade_deltas(self, negotiation, symbol, since=None, limit=None, params={}):
+        subscription = {
+            'since': since,
+            'limit': limit,
+            'params': params,
+        }
+        future = self.subscribe_to_exchange_deltas('trade', negotiation, symbol, subscription)
+        return await self.after(future, self.filterBySinceLimit, since, limit)
+
+    async def subscribe_to_order_book_deltas(self, negotiation, symbol, limit=None, params={}):
+        subscription = {
+            'limit': limit,
+            'params': params,
+        }
+        future = self.subscribe_to_exchange_deltas('orderbook', negotiation, symbol, subscription)
+        return await self.after(future, self.limit_order_book, symbol, limit, params)
+
+    async def subscribe_to_exchange_deltas(self, name, negotiation, symbol, subscription):
         await self.load_markets()
         market = self.market(symbol)
         connectionToken = self.safe_string(negotiation['response'], 'ConnectionToken')
@@ -213,7 +231,7 @@ class bittrex(Exchange, ccxt.bittrex):
         url = self.urls['api']['ws'] + '?' + self.urlencode(query)
         requestId = str(self.milliseconds())
         method = 'SubscribeToExchangeDeltas'
-        messageHash = 'orderbook' + ':' + symbol
+        messageHash = name + ':' + symbol
         subscribeHash = method + ':' + symbol
         marketId = market['id']
         hub = self.safe_string(self.options, 'hub', 'c2')
@@ -223,21 +241,23 @@ class bittrex(Exchange, ccxt.bittrex):
             'A': [marketId],  # arguments
             'I': requestId,  # invocation request id
         }
-        subscription = {
+        subscription = self.extend({
             'id': requestId,
             'symbol': symbol,
-            'limit': limit,
-            'params': params,
             'method': self.handle_subscribe_to_exchange_deltas,
             'negotiation': negotiation,
-        }
-        future = self.watch(url, messageHash, request, subscribeHash, subscription)
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        }, subscription)
+        return await self.watch(url, messageHash, request, subscribeHash, subscription)
+
+    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+        await self.load_markets()
+        future = self.negotiate()
+        return await self.after_async(future, self.subscribe_to_trade_deltas, symbol, since, limit, params)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         future = self.negotiate()
-        return await self.after_async(future, self.subscribe_to_exchange_deltas, symbol, limit, params)
+        return await self.after_async(future, self.subscribe_to_order_book_deltas, symbol, limit, params)
 
     def limit_order_book(self, orderbook, symbol, limit=None, params={}):
         return orderbook.limit(limit)
@@ -261,35 +281,117 @@ class bittrex(Exchange, ccxt.bittrex):
         #             {'TY': 0, 'R': 0.01938852, 'Q': 29.32758526},
         #             {'TY': 1, 'R': 0.02322822, 'Q': 0}
         #         ],
-        #         'f': []
+        #         'f': [
+        #             {
+        #                 FI: 50365744,
+        #                 OT: 'SELL',
+        #                 R: 9240.432,
+        #                 Q: 0.07602962,
+        #                 T: 1580480744050
+        #             }
+        #         ]
         #     }
         #
         marketId = self.safe_string(message, 'M')
         market = None
-        symbol = None
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
             symbol = market['symbol']
-        #
-        # https://bittrex.github.io/api/v1-1#socket-connections
-        #
-        #     1 Drop existing websocket connections and flush accumulated data and state(e.g. market nonces).
-        #     2 Re-establish websocket connection.
-        #     3 Subscribe to BTC-ETH market deltas, cache received data keyed by nonce.
-        #     4 Query BTC-ETH market state.
-        #     5 Apply cached deltas sequentially, starting with nonces greater than that received in step 4.
-        #
-        if (symbol is not None) and (symbol in self.orderbooks):
-            orderbook = self.orderbooks[symbol]
-            if orderbook['nonce'] is not None:
-                self.handle_order_book_message(client, message, orderbook)
-                name = 'orderbook'
-                messageHash = name + ':' + symbol
-                client.resolve(orderbook, messageHash)
-            else:
-                orderbook.cache.append(message)
+            if symbol in self.orderbooks:
+                orderbook = self.orderbooks[symbol]
+                #
+                # https://bittrex.github.io/api/v1-1#socket-connections
+                #
+                #     1 Drop existing websocket connections and flush accumulated data and state(e.g. market nonces).
+                #     2 Re-establish websocket connection.
+                #     3 Subscribe to BTC-ETH market deltas, cache received data keyed by nonce.
+                #     4 Query BTC-ETH market state.
+                #     5 Apply cached deltas sequentially, starting with nonces greater than that received in step 4.
+                #
+                if orderbook['nonce'] is not None:
+                    self.handle_order_book_message(client, message, market, orderbook)
+                else:
+                    orderbook.cache.append(message)
+            self.handle_trades_message(client, message, market)
 
-    def handle_order_book_message(self, client, message, orderbook):
+    def parse_trade(self, trade, market=None):
+        #
+        #     {
+        #         FI: 50365744,     # fill trade id
+        #         OT: 'SELL',       # order side type
+        #         R: 9240.432,      # price rate
+        #         Q: 0.07602962,    # amount quantity
+        #         T: 1580480744050,  # timestamp
+        #     }
+        #
+        id = self.safe_string(trade, 'FI')
+        if id is None:
+            return super(bittrex, self).parse_trade(trade, market)
+        timestamp = self.safe_integer(trade, 'T')
+        price = self.safe_float(trade, 'R')
+        amount = self.safe_float(trade, 'Q')
+        side = self.safe_string_lower(trade, 'OT')
+        cost = None
+        if (price is not None) and (amount is not None):
+            cost = price * amount
+        symbol = None
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'id': id,
+            'order': None,
+            'type': None,
+            'takerOrMaker': None,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
+        }
+
+    def handle_trades_message(self, client, message, market):
+        #
+        #     {
+        #         'M': 'BTC-ETH',
+        #         'N': 2322248,
+        #         'Z': [],
+        #         'S': [
+        #             {'TY': 0, 'R': 0.01938852, 'Q': 29.32758526},
+        #             {'TY': 1, 'R': 0.02322822, 'Q': 0}
+        #         ],
+        #         'f': [
+        #             {
+        #                 FI: 50365744,
+        #                 OT: 'SELL',
+        #                 R: 9240.432,
+        #                 Q: 0.07602962,
+        #                 T: 1580480744050
+        #             }
+        #         ]
+        #     }
+        #
+        f = self.safe_value(message, 'f', [])
+        trades = self.parse_trades(f, market)
+        tradesLength = len(trades)
+        if tradesLength > 0:
+            symbol = market['symbol']
+            stored = self.safe_value(self.trades, symbol, [])
+            for i in range(0, len(trades)):
+                stored.append(trades[i])
+                storedLength = len(stored)
+                if storedLength > self.options['tradesLimit']:
+                    stored.pop(0)
+            self.trades[symbol] = stored
+            name = 'trade'
+            messageHash = name + ':' + market['symbol']
+            client.resolve(stored, messageHash)
+        return message
+
+    def handle_order_book_message(self, client, message, market, orderbook):
         #
         #     {
         #         'M': 'BTC-ETH',
@@ -303,11 +405,13 @@ class bittrex(Exchange, ccxt.bittrex):
         #     }
         #
         nonce = self.safe_integer(message, 'N')
-        # print(new Date(), 'handleOrderBookMessage', nonce, orderbook['nonce'])
         if nonce > orderbook['nonce']:
             self.handle_deltas(orderbook['asks'], self.safe_value(message, 'S', []))
             self.handle_deltas(orderbook['bids'], self.safe_value(message, 'Z', []))
             orderbook['nonce'] = nonce
+            name = 'orderbook'
+            messageHash = name + ':' + market['symbol']
+            client.resolve(orderbook, messageHash)
         return orderbook
 
     def handle_balance_delta(self, client, message):
@@ -328,7 +432,6 @@ class bittrex(Exchange, ccxt.bittrex):
         #         },
         #     }
         #
-        # print(new Date(), 'handleBalanceDelta', message)
         d = self.safe_value(message, 'd')
         account = self.account()
         account['free'] = self.safe_float(d, 'a')
@@ -342,15 +445,12 @@ class bittrex(Exchange, ccxt.bittrex):
         return message
 
     async def fetch_balance_snapshot(self, client, message, subscription):
-        # print(new Date(), 'fetchBalanceSnapshot')
         # todo: self is a synch blocking call in ccxt.php - make it async
         response = await self.fetchBalance()
         self.balance = self.deep_extend(self.balance, response)
-        # messageHash = self.safe_string(subscription, 'messageHash')
         client.resolve(self.balance, 'balance')
 
     async def fetch_balance_state(self, params={}):
-        # print(new Date(), 'fetchBalanceState')
         await self.load_markets()
         future = self.authenticate()
         return await self.after_async(future, self.query_balance_state, params)
@@ -420,8 +520,6 @@ class bittrex(Exchange, ccxt.bittrex):
         # requires a different authentication sequence that involves
         # headers and cookies from reCaptcha and Cloudflare.
         #
-        # print(new Date(), 'queryBalanceState')
-        #
         await self.load_markets()
         connectionToken = self.safe_string(negotiation['response'], 'ConnectionToken')
         query = self.extend(negotiation['request'], {
@@ -445,7 +543,6 @@ class bittrex(Exchange, ccxt.bittrex):
         return await self.after(future, self.limit_order_book, params)
 
     def handle_balance_state(self, client, message, subscription):
-        # print(new Date(), 'handleBalanceState')
         R = self.safe_string(message, 'R')
         # if R is not None:
         #     #
@@ -557,15 +654,13 @@ class bittrex(Exchange, ccxt.bittrex):
                 messages = orderbook.cache
                 for i in range(0, len(messages)):
                     message = messages[i]
-                    self.handle_order_book_message(client, message, orderbook)
+                    self.handle_order_book_message(client, message, market, orderbook)
                 self.orderbooks[symbol] = orderbook
-                messageHash = 'orderbook:' + symbol
-                client.resolve(orderbook, messageHash)
                 requestId = self.safe_string(subscription, 'id')
                 client.resolve(orderbook, requestId)
+            self.handle_trades_message(client, message, market)
 
     def handle_subscribe_to_user_deltas(self, client, message, subscription):
-        # print(new Date(), 'handleSubscribeToUserDeltas')
         # fetch the snapshot in a separate async call
         self.spawn(self.fetch_balance_snapshot, client, message, subscription)
         # the two lines below may work when bittrex fixes the snapshots
@@ -605,7 +700,6 @@ class bittrex(Exchange, ccxt.bittrex):
         # send signalR protocol start() call
         future = self.negotiate()
         self.spawn(self.after_async, future, self.start)
-        # print(new Date(), 'handleSystemStatus', message)
         return message
 
     def handle_heartbeat(self, client, message):
@@ -614,7 +708,6 @@ class bittrex(Exchange, ccxt.bittrex):
         #
         #     {}
         #
-        # print(new Date(), 'heartbeat')
         client.resolve(message, 'heartbeat')
 
     def handle_order_delta(self, client, message):

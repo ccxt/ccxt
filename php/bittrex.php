@@ -18,6 +18,7 @@ class bittrex extends \ccxt\bittrex {
                 'ws' => true,
                 'watchOrderBook' => true,
                 'watchBalance' => true,
+                'watchTrades' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -34,6 +35,7 @@ class bittrex extends \ccxt\bittrex {
                 ),
             ),
             'options' => array(
+                'tradesLimit' => 1000,
                 'hub' => 'c2',
             ),
         ));
@@ -138,7 +140,6 @@ class bittrex extends \ccxt\bittrex {
         //         'I' => '1579474528471'
         //     }
         //
-        // var_dump ($this->iso8601 ($this->milliseconds ()), 'handleGetAuthContext');
         $negotiation = $this->safe_value($subscription, 'negotiation', array());
         $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');
         $query = array_merge($negotiation['request'], array(
@@ -216,7 +217,26 @@ class bittrex extends \ccxt\bittrex {
         return $this->after_async ($future, array($this, 'subscribe_to_user_deltas'), $params);
     }
 
-    public function subscribe_to_exchange_deltas ($negotiation, $symbol, $limit = null, $params = array ()) {
+    public function subscribe_to_trade_deltas ($negotiation, $symbol, $since = null, $limit = null, $params = array ()) {
+        $subscription = array(
+            'since' => $since,
+            'limit' => $limit,
+            'params' => $params,
+        );
+        $future = $this->subscribe_to_exchange_deltas ('trade', $negotiation, $symbol, $subscription);
+        return $this->after ($future, $this->filterBySinceLimit, $since, $limit);
+    }
+
+    public function subscribe_to_order_book_deltas ($negotiation, $symbol, $limit = null, $params = array ()) {
+        $subscription = array(
+            'limit' => $limit,
+            'params' => $params,
+        );
+        $future = $this->subscribe_to_exchange_deltas ('orderbook', $negotiation, $symbol, $subscription);
+        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+    }
+
+    public function subscribe_to_exchange_deltas ($name, $negotiation, $symbol, $subscription) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');
@@ -227,7 +247,7 @@ class bittrex extends \ccxt\bittrex {
         $url = $this->urls['api']['ws'] . '?' . $this->urlencode ($query);
         $requestId = (string) $this->milliseconds ();
         $method = 'SubscribeToExchangeDeltas';
-        $messageHash = 'orderbook' . ':' . $symbol;
+        $messageHash = $name . ':' . $symbol;
         $subscribeHash = $method . ':' . $symbol;
         $marketId = $market['id'];
         $hub = $this->safe_string($this->options, 'hub', 'c2');
@@ -237,22 +257,25 @@ class bittrex extends \ccxt\bittrex {
             'A' => array( $marketId ), // arguments
             'I' => $requestId, // invocation $request id
         );
-        $subscription = array(
+        $subscription = array_merge(array(
             'id' => $requestId,
             'symbol' => $symbol,
-            'limit' => $limit,
-            'params' => $params,
             'method' => array($this, 'handle_subscribe_to_exchange_deltas'),
             'negotiation' => $negotiation,
-        );
-        $future = $this->watch ($url, $messageHash, $request, $subscribeHash, $subscription);
-        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        ), $subscription);
+        return $this->watch ($url, $messageHash, $request, $subscribeHash, $subscription);
+    }
+
+    public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $future = $this->negotiate ();
+        return $this->after_async ($future, array($this, 'subscribe_to_trade_deltas'), $symbol, $since, $limit, $params);
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $future = $this->negotiate ();
-        return $this->after_async ($future, array($this, 'subscribe_to_exchange_deltas'), $symbol, $limit, $params);
+        return $this->after_async ($future, array($this, 'subscribe_to_order_book_deltas'), $symbol, $limit, $params);
     }
 
     public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
@@ -281,39 +304,129 @@ class bittrex extends \ccxt\bittrex {
         //             array( 'TY' => 0, 'R' => 0.01938852, 'Q' => 29.32758526 ),
         //             array( 'TY' => 1, 'R' => 0.02322822, 'Q' => 0 )
         //         ),
-        //         'f' => array()
+        //         'f' => array(
+        //             {
+        //                 FI => 50365744,
+        //                 OT => 'SELL',
+        //                 R => 9240.432,
+        //                 Q => 0.07602962,
+        //                 T => 1580480744050
+        //             }
+        //         )
         //     }
         //
         $marketId = $this->safe_string($message, 'M');
         $market = null;
-        $symbol = null;
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
             $symbol = $market['symbol'];
-        }
-        //
-        // https://bittrex.github.io/api/v1-1#socket-connections
-        //
-        //     1 Drop existing websocket connections and flush accumulated data and state (e.g. $market nonces).
-        //     2 Re-establish websocket connection.
-        //     3 Subscribe to BTC-ETH $market deltas, cache received data keyed by nonce.
-        //     4 Query BTC-ETH $market state.
-        //     5 Apply cached deltas sequentially, starting with nonces greater than that received in step 4.
-        //
-        if (($symbol !== null) && (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
-            $orderbook = $this->orderbooks[$symbol];
-            if ($orderbook['nonce'] !== null) {
-                $this->handle_order_book_message ($client, $message, $orderbook);
-                $name = 'orderbook';
-                $messageHash = $name . ':' . $symbol;
-                $client->resolve ($orderbook, $messageHash);
-            } else {
-                $orderbook->cache[] = $message;
+            if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+                $orderbook = $this->orderbooks[$symbol];
+                //
+                // https://bittrex.github.io/api/v1-1#socket-connections
+                //
+                //     1 Drop existing websocket connections and flush accumulated data and state (e.g. $market nonces).
+                //     2 Re-establish websocket connection.
+                //     3 Subscribe to BTC-ETH $market deltas, cache received data keyed by nonce.
+                //     4 Query BTC-ETH $market state.
+                //     5 Apply cached deltas sequentially, starting with nonces greater than that received in step 4.
+                //
+                if ($orderbook['nonce'] !== null) {
+                    $this->handle_order_book_message ($client, $message, $market, $orderbook);
+                } else {
+                    $orderbook->cache[] = $message;
+                }
             }
+            $this->handle_trades_message ($client, $message, $market);
         }
     }
 
-    public function handle_order_book_message ($client, $message, $orderbook) {
+    public function parse_trade ($trade, $market = null) {
+        //
+        //     {
+        //         FI => 50365744,     // fill $trade $id
+        //         OT => 'SELL',       // order $side type
+        //         R => 9240.432,      // $price rate
+        //         Q => 0.07602962,    // $amount quantity
+        //         T => 1580480744050, // $timestamp
+        //     }
+        //
+        $id = $this->safe_string($trade, 'FI');
+        if ($id === null) {
+            return parent::parse_trade($trade, $market);
+        }
+        $timestamp = $this->safe_integer($trade, 'T');
+        $price = $this->safe_float($trade, 'R');
+        $amount = $this->safe_float($trade, 'Q');
+        $side = $this->safe_string_lower($trade, 'OT');
+        $cost = null;
+        if (($price !== null) && ($amount !== null)) {
+            $cost = $price * $amount;
+        }
+        $symbol = null;
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
+        }
+        return array(
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'id' => $id,
+            'order' => null,
+            'type' => null,
+            'takerOrMaker' => null,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
+        );
+    }
+
+    public function handle_trades_message ($client, $message, $market) {
+        //
+        //     {
+        //         'M' => 'BTC-ETH',
+        //         'N' => 2322248,
+        //         'Z' => array(),
+        //         'S' => array(
+        //             array( 'TY' => 0, 'R' => 0.01938852, 'Q' => 29.32758526 ),
+        //             array( 'TY' => 1, 'R' => 0.02322822, 'Q' => 0 )
+        //         ),
+        //         'f' => array(
+        //             {
+        //                 FI => 50365744,
+        //                 OT => 'SELL',
+        //                 R => 9240.432,
+        //                 Q => 0.07602962,
+        //                 T => 1580480744050
+        //             }
+        //         )
+        //     }
+        //
+        $f = $this->safe_value($message, 'f', array());
+        $trades = $this->parse_trades($f, $market);
+        $tradesLength = is_array($trades) ? count($trades) : 0;
+        if ($tradesLength > 0) {
+            $symbol = $market['symbol'];
+            $stored = $this->safe_value($this->trades, $symbol, array());
+            for ($i = 0; $i < count($trades); $i++) {
+                $stored[] = $trades[$i];
+                $storedLength = is_array($stored) ? count($stored) : 0;
+                if ($storedLength > $this->options['tradesLimit']) {
+                    array_shift($stored);
+                }
+            }
+            $this->trades[$symbol] = $stored;
+            $name = 'trade';
+            $messageHash = $name . ':' . $market['symbol'];
+            $client->resolve ($stored, $messageHash);
+        }
+        return $message;
+    }
+
+    public function handle_order_book_message ($client, $message, $market, $orderbook) {
         //
         //     {
         //         'M' => 'BTC-ETH',
@@ -327,11 +440,13 @@ class bittrex extends \ccxt\bittrex {
         //     }
         //
         $nonce = $this->safe_integer($message, 'N');
-        // var_dump (new Date (), 'handleOrderBookMessage', $nonce, $orderbook['nonce']);
         if ($nonce > $orderbook['nonce']) {
             $this->handle_deltas ($orderbook['asks'], $this->safe_value($message, 'S', array()));
             $this->handle_deltas ($orderbook['bids'], $this->safe_value($message, 'Z', array()));
             $orderbook['nonce'] = $nonce;
+            $name = 'orderbook';
+            $messageHash = $name . ':' . $market['symbol'];
+            $client->resolve ($orderbook, $messageHash);
         }
         return $orderbook;
     }
@@ -354,7 +469,6 @@ class bittrex extends \ccxt\bittrex {
         //         ),
         //     }
         //
-        // var_dump (new Date (), 'handleBalanceDelta', $message);
         $d = $this->safe_value($message, 'd');
         $account = $this->account ();
         $account['free'] = $this->safe_float($d, 'a');
@@ -369,16 +483,13 @@ class bittrex extends \ccxt\bittrex {
     }
 
     public function fetch_balance_snapshot ($client, $message, $subscription) {
-        // var_dump (new Date (), 'fetchBalanceSnapshot');
         // todo => this is a synch blocking call in ccxt.php - make it async
         $response = $this->fetchBalance ();
         $this->balance = array_replace_recursive($this->balance, $response);
-        // $messageHash = $this->safe_string($subscription, 'messageHash');
         $client->resolve ($this->balance, 'balance');
     }
 
     public function fetch_balance_state ($params = array ()) {
-        // var_dump (new Date (), 'fetchBalanceState');
         $this->load_markets();
         $future = $this->authenticate ();
         return $this->after_async ($future, array($this, 'query_balance_state'), $params);
@@ -449,8 +560,6 @@ class bittrex extends \ccxt\bittrex {
         // requires a different authentication sequence that involves
         // headers and cookies from reCaptcha and Cloudflare.
         //
-        // var_dump (new Date (), 'queryBalanceState');
-        //
         $this->load_markets();
         $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');
         $query = array_merge($negotiation['request'], array(
@@ -475,7 +584,6 @@ class bittrex extends \ccxt\bittrex {
     }
 
     public function handle_balance_state ($client, $message, $subscription) {
-        // var_dump (new Date (), 'handleBalanceState');
         $R = $this->safe_string($message, 'R');
         // if ($R !== null) {
         //     //
@@ -590,19 +698,17 @@ class bittrex extends \ccxt\bittrex {
                 $messages = $orderbook->cache;
                 for ($i = 0; $i < count($messages); $i++) {
                     $message = $messages[$i];
-                    $this->handle_order_book_message ($client, $message, $orderbook);
+                    $this->handle_order_book_message ($client, $message, $market, $orderbook);
                 }
                 $this->orderbooks[$symbol] = $orderbook;
-                $messageHash = 'orderbook:' . $symbol;
-                $client->resolve ($orderbook, $messageHash);
                 $requestId = $this->safe_string($subscription, 'id');
                 $client->resolve ($orderbook, $requestId);
             }
+            $this->handle_trades_message ($client, $message, $market);
         }
     }
 
     public function handle_subscribe_to_user_deltas ($client, $message, $subscription) {
-        // var_dump (new Date (), 'handleSubscribeToUserDeltas');
         // fetch the snapshot in a separate async call
         $this->spawn (array($this, 'fetch_balance_snapshot'), $client, $message, $subscription);
         // the two lines below may work when bittrex fixes the snapshots
@@ -648,7 +754,6 @@ class bittrex extends \ccxt\bittrex {
         // send signalR protocol start() call
         $future = $this->negotiate ();
         $this->spawn (array($this, 'after_async'), $future, array($this, 'start'));
-        // var_dump (new Date (), 'handleSystemStatus', $message);
         return $message;
     }
 
@@ -658,7 +763,6 @@ class bittrex extends \ccxt\bittrex {
         //
         //     array()
         //
-        // var_dump (new Date (), 'heartbeat');
         $client->resolve ($message, 'heartbeat');
     }
 

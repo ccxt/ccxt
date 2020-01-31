@@ -384,7 +384,7 @@ class bitmex extends \ccxt\bitmex {
                 $trades = $this->parse_trades($dataByMarketIds[$marketId], $market);
                 $stored = $this->safe_value($this->trades, $symbol, array());
                 for ($j = 0; $j < count($trades); $j++) {
-                    $stored[] = $trades[$i];
+                    $stored[] = $trades[$j];
                     $storedLength = is_array($stored) ? count($stored) : 0;
                     if ($storedLength > $this->options['tradesLimit']) {
                         array_shift($stored);

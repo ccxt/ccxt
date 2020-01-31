@@ -377,7 +377,7 @@ class bitmex(Exchange, ccxt.bitmex):
                 trades = self.parse_trades(dataByMarketIds[marketId], market)
                 stored = self.safe_value(self.trades, symbol, [])
                 for j in range(0, len(trades)):
-                    stored.append(trades[i])
+                    stored.append(trades[j])
                     storedLength = len(stored)
                     if storedLength > self.options['tradesLimit']:
                         stored.pop(0)
