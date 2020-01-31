@@ -232,23 +232,64 @@ class binance(Exchange, ccxt.binance):
         future = self.watch_public(messageHash, params)
         return await self.after(future, self.filterBySinceLimit, since, limit)
 
-    def handle_trade(self, client, message):
-        # The Trade Streams push raw trade information; each trade has a unique buyer and seller.
-        # Update Speed: Real-time
+    def parse_trade(self, trade, market=None):
         #
         #     {
-        #         e: 'trade',
-        #         E: 1579481530911,
-        #         s: 'ETHBTC',
-        #         t: 158410082,
-        #         p: '0.01914100',
-        #         q: '0.00700000',
-        #         b: 586187049,
-        #         a: 586186710,
-        #         T: 1579481530910,
-        #         m: False,
-        #         M: True
+        #         e: 'trade',       # event type
+        #         E: 1579481530911,  # event time
+        #         s: 'ETHBTC',      # symbol
+        #         t: 158410082,     # trade id
+        #         p: '0.01914100',  # price
+        #         q: '0.00700000',  # quantity
+        #         b: 586187049,     # buyer order id
+        #         a: 586186710,     # seller order id
+        #         T: 1579481530910,  # trade time
+        #         m: False,         # is the buyer the market maker
+        #         M: True           # binance docs say it should be ignored
         #     }
+        #
+        event = self.safe_string(trade, 'e')
+        if event is None:
+            return super(binance, self).parse_trade(trade, market)
+        id = self.safe_string(trade, 't')
+        timestamp = self.safe_integer(trade, 'T')
+        price = self.safe_float(trade, 'p')
+        amount = self.safe_float(trade, 'q')
+        cost = None
+        if (price is not None) and (amount is not None):
+            cost = price * amount
+        symbol = None
+        marketId = self.safe_string(trade, 's')
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
+        side = None
+        takerOrMaker = None
+        orderId = None
+        if 'm' in trade:
+            side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
+            takerOrMaker = 'maker' if trade['m'] else 'taker'
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'id': id,
+            'order': orderId,
+            'type': None,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
+        }
+
+    def handle_trade(self, client, message):
+        #
+        # The Trade Streams push raw trade information; each trade has a unique buyer and seller.
+        # Update Speed: Real-time
         #
         marketId = self.safe_string(message, 's')
         market = None
@@ -259,9 +300,9 @@ class binance(Exchange, ccxt.binance):
         lowerCaseId = self.safe_string_lower(message, 's')
         event = self.safe_string(message, 'e')
         messageHash = lowerCaseId + '@' + event
-        parsed = self.parse_trade(message, market)
+        trade = self.parse_trade(message, market)
         array = self.safe_value(self.trades, symbol, [])
-        array.append(parsed)
+        array.append(trade)
         length = len(array)
         if length > self.options['tradesLimit']:
             array.pop(0)

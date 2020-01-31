@@ -260,23 +260,70 @@ class binance extends \ccxt\binance {
         return $this->after ($future, $this->filterBySinceLimit, $since, $limit);
     }
 
-    public function handle_trade ($client, $message) {
-        // The Trade Streams push raw trade information; each trade has a unique buyer and seller.
-        // Update Speed => Real-time
+    public function parse_trade ($trade, $market = null) {
         //
         //     {
-        //         e => 'trade',
-        //         E => 1579481530911,
-        //         s => 'ETHBTC',
-        //         t => 158410082,
-        //         p => '0.01914100',
-        //         q => '0.00700000',
-        //         b => 586187049,
-        //         a => 586186710,
-        //         T => 1579481530910,
-        //         m => false,
-        //         M => true
+        //         e => 'trade',       // $event type
+        //         E => 1579481530911, // $event time
+        //         s => 'ETHBTC',      // $symbol
+        //         t => 158410082,     // $trade $id
+        //         p => '0.01914100',  // $price
+        //         q => '0.00700000',  // quantity
+        //         b => 586187049,     // buyer order $id
+        //         a => 586186710,     // seller order $id
+        //         T => 1579481530910, // $trade time
+        //         m => false,         // is the buyer the $market maker
+        //         M => true           // binance docs say it should be ignored
         //     }
+        //
+        $event = $this->safe_string($trade, 'e');
+        if ($event === null) {
+            return parent::parse_trade($trade, $market);
+        }
+        $id = $this->safe_string($trade, 't');
+        $timestamp = $this->safe_integer($trade, 'T');
+        $price = $this->safe_float($trade, 'p');
+        $amount = $this->safe_float($trade, 'q');
+        $cost = null;
+        if (($price !== null) && ($amount !== null)) {
+            $cost = $price * $amount;
+        }
+        $symbol = null;
+        $marketId = $this->safe_string($trade, 's');
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+        }
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
+        }
+        $side = null;
+        $takerOrMaker = null;
+        $orderId = null;
+        if (is_array($trade) && array_key_exists('m', $trade)) {
+            $side = $trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
+            $takerOrMaker = $trade['m'] ? 'maker' : 'taker';
+        }
+        return array(
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'id' => $id,
+            'order' => $orderId,
+            'type' => null,
+            'takerOrMaker' => $takerOrMaker,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
+        );
+    }
+
+    public function handle_trade ($client, $message) {
+        //
+        // The Trade Streams push raw $trade information; each $trade has a unique buyer and seller.
+        // Update Speed => Real-time
         //
         $marketId = $this->safe_string($message, 's');
         $market = null;
@@ -288,9 +335,9 @@ class binance extends \ccxt\binance {
         $lowerCaseId = $this->safe_string_lower($message, 's');
         $event = $this->safe_string($message, 'e');
         $messageHash = $lowerCaseId . '@' . $event;
-        $parsed = $this->parse_trade($message, $market);
+        $trade = $this->parse_trade($message, $market);
         $array = $this->safe_value($this->trades, $symbol, $array());
-        $array[] = $parsed;
+        $array[] = $trade;
         $length = is_array($array) ? count($array) : 0;
         if ($length > $this->options['tradesLimit']) {
             array_shift($array);
