@@ -247,20 +247,22 @@ module.exports = class binance extends ccxt.binance {
         const market = this.market (symbol);
         const name = 'trade';
         const messageHash = market['lowercaseId'] + '@' + name;
-        const url = this.urls['api']['ws']; // + '/' + messageHash;
-        const requestId = this.nonce ();
-        const request = {
-            'method': 'SUBSCRIBE',
-            'params': [
-                messageHash,
-            ],
-            'id': requestId,
-        };
-        const subscribe = {
-            'id': requestId,
-        };
-        const future = this.watch (url, messageHash, request, messageHash, subscribe);
+        const future = this.watchPublic (messageHash);
         return await this.after (future, this.filterBySinceLimit, since, limit);
+        // const url = this.urls['api']['ws'];
+        // const requestId = this.nonce ();
+        // const request = {
+        //     'method': 'SUBSCRIBE',
+        //     'params': [
+        //         messageHash,
+        //     ],
+        //     'id': requestId,
+        // };
+        // const subscribe = {
+        //     'id': requestId,
+        // };
+        // const future = this.watch (url, messageHash, request, messageHash, subscribe);
+        // return await this.after (future, this.filterBySinceLimit, since, limit);
     }
 
     handleTrade (client, message) {
@@ -303,51 +305,42 @@ module.exports = class binance extends ccxt.binance {
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const url = this.urls['api']['ws'];
         const market = this.market (symbol);
         const marketId = market['lowercaseId'];
         const interval = this.timeframes[timeframe];
         const name = 'kline_';
         const messageHash = marketId + '@' + name + interval;
-        const requestId = this.nonce ();
-        const request = {
-            'method': 'SUBSCRIBE',
-            'params': [
-                messageHash,
-            ],
-            'id': requestId,
-        };
-        const subscribe = {
-            'id': requestId,
-        };
-        return await this.watch (url, messageHash, request, messageHash, subscribe);
+        // todo add filter by since and limit
+        return await this.watchPublic (messageHash, params);
     }
 
     handleOHCLV (client, message) {
-        // {
-        //   e: 'kline',
-        //   E: 1579482921215,
-        //   s: 'ETHBTC',
-        //   k: {
-        //     t: 1579482900000,
-        //     T: 1579482959999,
-        //     s: 'ETHBTC',
-        //     i: '1m',
-        //     f: 158411535,
-        //     L: 158411550,
-        //     o: '0.01913200',
-        //     c: '0.01913500',
-        //     h: '0.01913700',
-        //     l: '0.01913200',
-        //     v: '5.08400000',
-        //     n: 16,
-        //     x: false,
-        //     q: '0.09728060',
-        //     V: '3.30200000',
-        //     Q: '0.06318500',
-        //     B: '0'
-        //   }
-        // }
+        //
+        //     {
+        //         e: 'kline',
+        //         E: 1579482921215,
+        //         s: 'ETHBTC',
+        //         k: {
+        //             t: 1579482900000,
+        //             T: 1579482959999,
+        //             s: 'ETHBTC',
+        //             i: '1m',
+        //             f: 158411535,
+        //             L: 158411550,
+        //             o: '0.01913200',
+        //             c: '0.01913500',
+        //             h: '0.01913700',
+        //             l: '0.01913200',
+        //             v: '5.08400000',
+        //             n: 16,
+        //             x: false,
+        //             q: '0.09728060',
+        //             V: '3.30200000',
+        //             Q: '0.06318500',
+        //             B: '0'
+        //         }
+        //     }
+        //
         const marketId = this.safeString (message, 's');
         const lowercaseMarketId = this.safeStringLower (message, 's');
         const event = this.safeString (message, 'e');
@@ -390,13 +383,7 @@ module.exports = class binance extends ccxt.binance {
         client.resolve (stored, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const url = this.urls['api']['ws'];
-        const market = this.market (symbol);
-        const marketId = market['lowercaseId'];
-        const name = 'ticker';
-        const messageHash = marketId + '@' + name;
+    async watchPublic (messageHash, params = {}) {
         const requestId = this.nonce ();
         const request = {
             'method': 'SUBSCRIBE',
@@ -408,7 +395,29 @@ module.exports = class binance extends ccxt.binance {
         const subscribe = {
             'id': requestId,
         };
-        return await this.watch (url, messageHash, request, messageHash, subscribe);
+        const url = this.urls['api']['ws'];
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
+    }
+
+    async watchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketId = market['lowercaseId'];
+        const name = 'ticker';
+        const messageHash = marketId + '@' + name;
+        return await this.watchPublic (messageHash, params);
+        // const requestId = this.nonce ();
+        // const request = {
+        //     'method': 'SUBSCRIBE',
+        //     'params': [
+        //         messageHash,
+        //     ],
+        //     'id': requestId,
+        // };
+        // const subscribe = {
+        //     'id': requestId,
+        // };
+        // return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
     handleTicker (client, message) {
