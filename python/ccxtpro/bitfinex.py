@@ -13,6 +13,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
     def describe(self):
         return self.deep_extend(super(bitfinex, self).describe(), {
             'has': {
+                'ws': True,
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchOrderBook': True,

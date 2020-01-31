@@ -13,6 +13,7 @@ class kucoin(Exchange, ccxt.kucoin):
     def describe(self):
         return self.deep_extend(super(kucoin, self).describe(), {
             'has': {
+                'ws': True,
                 'watchOrderBook': True,
             },
             'options': {

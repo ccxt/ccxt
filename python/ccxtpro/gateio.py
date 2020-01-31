@@ -16,6 +16,7 @@ class gateio(Exchange, ccxt.gateio):
     def describe(self):
         return self.deep_extend(super(gateio, self).describe(), {
             'has': {
+                'ws': True,
                 'watchOrderBook': True,
                 'watchTicker': True,
                 'watchTrades': True,

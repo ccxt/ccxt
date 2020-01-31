@@ -16,6 +16,7 @@ class gateio extends \ccxt\gateio {
     public function describe () {
         return array_replace_recursive(parent::describe (), array(
             'has' => array(
+                'ws' => true,
                 'watchOrderBook' => true,
                 'watchTicker' => true,
                 'watchTrades' => true,

@@ -15,6 +15,7 @@ class binance extends \ccxt\binance {
     public function describe () {
         return array_replace_recursive(parent::describe (), array(
             'has' => array(
+                'ws' => true,
                 'watchOrderBook' => true,
                 'watchTrades' => true,
                 'watchOHLCV' => true,

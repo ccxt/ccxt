@@ -15,6 +15,7 @@ class kucoin extends \ccxt\kucoin {
     public function describe () {
         return array_replace_recursive(parent::describe (), array(
             'has' => array(
+                'ws' => true,
                 'watchOrderBook' => true,
             ),
             'options' => array(

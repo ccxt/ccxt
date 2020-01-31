@@ -15,6 +15,7 @@ class bitfinex extends \ccxt\bitfinex {
     public function describe () {
         return array_replace_recursive(parent::describe (), array(
             'has' => array(
+                'ws' => true,
                 'watchTicker' => true,
                 'watchTickers' => false,
                 'watchOrderBook' => true,

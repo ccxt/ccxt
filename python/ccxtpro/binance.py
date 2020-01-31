@@ -13,6 +13,7 @@ class binance(Exchange, ccxt.binance):
     def describe(self):
         return self.deep_extend(super(binance, self).describe(), {
             'has': {
+                'ws': True,
                 'watchOrderBook': True,
                 'watchTrades': True,
                 'watchOHLCV': True,
