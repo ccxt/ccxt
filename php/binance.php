@@ -16,6 +16,9 @@ class binance extends \ccxt\binance {
         return array_replace_recursive(parent::describe (), array(
             'has' => array(
                 'watchOrderBook' => true,
+                'watchTrades' => true,
+                'watchOHLCV' => true,
+                'watchTicker' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -24,6 +27,8 @@ class binance extends \ccxt\binance {
             ),
             'options' => array(
                 'watchOrderBookRate' => 100, // get updates every 100ms or 1000ms
+                'tradesLimit' => 1000,
+                'OHLCVLimit' => 3,
             ),
         ));
     }
@@ -233,9 +238,246 @@ class binance extends \ccxt\binance {
         return $message;
     }
 
+    public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $name = 'trade';
+        $messageHash = $market['lowercaseId'] . '@' . $name;
+        $url = $this->urls['api']['ws']; // . '/' . $messageHash;
+        $requestId = $this->nonce ();
+        $request = array(
+            'method' => 'SUBSCRIBE',
+            'params' => array(
+                $messageHash,
+            ),
+            'id' => $requestId,
+        );
+        $subscribe = array(
+            'id' => $requestId,
+        );
+        $future = $this->watch ($url, $messageHash, $request, $messageHash, $subscribe);
+        return $this->after ($future, $this->filterBySinceLimit, $since, $limit);
+    }
+
+    public function handle_trade ($client, $message) {
+        // The Trade Streams push raw trade information; each trade has a unique buyer and seller.
+        // Update Speed => Real-time
+        //
+        // {
+        //   e => 'trade',
+        //   E => 1579481530911,
+        //   s => 'ETHBTC',
+        //   t => 158410082,
+        //   p => '0.01914100',
+        //   q => '0.00700000',
+        //   b => 586187049,
+        //   a => 586186710,
+        //   T => 1579481530910,
+        //   m => false,
+        //   M => true
+        // }
+        $marketId = $this->safe_string($message, 's');
+        $market = null;
+        $symbol = $marketId;
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+            $symbol = $market['symbol'];
+        }
+        $lowerCaseId = $this->safe_string_lower($message, 's');
+        $event = $this->safe_string($message, 'e');
+        $messageHash = $lowerCaseId . '@' . $event;
+        $parsed = $this->parse_trade($message, $market);
+        $array = $this->safe_value($this->trades, $symbol, $array());
+        $array[] = $parsed;
+        $length = is_array($array) ? count($array) : 0;
+        if ($length > $this->options['tradesLimit']) {
+            array_shift($array);
+        }
+        $this->trades[$symbol] = $array;
+        $client->resolve ($array, $messageHash);
+    }
+
+    public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $url = $this->urls['api']['ws'];
+        $market = $this->market ($symbol);
+        $marketId = $market['lowercaseId'];
+        $interval = $this->timeframes[$timeframe];
+        $name = 'kline_';
+        $messageHash = $marketId . '@' . $name . $interval;
+        $requestId = $this->nonce ();
+        $request = array(
+            'method' => 'SUBSCRIBE',
+            'params' => array(
+                $messageHash,
+            ),
+            'id' => $requestId,
+        );
+        $subscribe = array(
+            'id' => $requestId,
+        );
+        return $this->watch ($url, $messageHash, $request, $messageHash, $subscribe);
+    }
+
+    public function handle_ohclv ($client, $message) {
+        // {
+        //   e => 'kline',
+        //   E => 1579482921215,
+        //   s => 'ETHBTC',
+        //   k => {
+        //     t => 1579482900000,
+        //     T => 1579482959999,
+        //     s => 'ETHBTC',
+        //     i => '1m',
+        //     f => 158411535,
+        //     L => 158411550,
+        //     o => '0.01913200',
+        //     c => '0.01913500',
+        //     h => '0.01913700',
+        //     l => '0.01913200',
+        //     v => '5.08400000',
+        //     n => 16,
+        //     x => false,
+        //     q => '0.09728060',
+        //     V => '3.30200000',
+        //     Q => '0.06318500',
+        //     B => '0'
+        //   }
+        // }
+        $marketId = $this->safe_string($message, 's');
+        $lowercaseMarketId = $this->safe_string_lower($message, 's');
+        $event = $this->safe_string($message, 'e');
+        $kline = $this->safe_value($message, 'k');
+        $interval = $this->safe_string($kline, 'i');
+        $messageHash = $lowercaseMarketId . '@' . $event . '_' . $interval;
+        $timestamp = $this->safe_integer($kline, 't');
+        $open = $this->safe_float($kline, 'o');
+        $high = $this->safe_float($kline, 'h');
+        $low = $this->safe_float($kline, 'l');
+        $close = $this->safe_float($kline, 'c');
+        $volume = $this->safe_float($kline, 'v');
+        $parsed = array(
+            $timestamp,
+            $open,
+            $high,
+            $low,
+            $close,
+            $volume,
+        );
+        $symbol = $marketId;
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+            $symbol = $market['symbol'];
+        }
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+            $this->ohlcvs[$symbol] = array();
+        }
+        $stored = $this->ohlcvs[$symbol];
+        $length = is_array($stored) ? count($stored) : 0;
+        if ($length && $parsed[0] === $stored[$length - 1][0]) {
+            $stored[$length - 1] = $parsed;
+        } else {
+            $stored[] = $parsed;
+            if ($length . 1 > $this->options['OHLCVLimit']) {
+                array_shift($stored);
+            }
+        }
+        $this->ohlcvs[$symbol] = $stored;
+        $client->resolve ($stored, $messageHash);
+    }
+
+    public function watch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
+        $url = $this->urls['api']['ws'];
+        $market = $this->market ($symbol);
+        $marketId = $market['lowercaseId'];
+        $name = 'ticker';
+        $messageHash = $marketId . '@' . $name;
+        $requestId = $this->nonce ();
+        $request = array(
+            'method' => 'SUBSCRIBE',
+            'params' => array(
+                $messageHash,
+            ),
+            'id' => $requestId,
+        );
+        $subscribe = array(
+            'id' => $requestId,
+        );
+        return $this->watch ($url, $messageHash, $request, $messageHash, $subscribe);
+    }
+
+    public function handle_ticker ($client, $message) {
+        // 24hr rolling window ticker statistics for a single $symbol-> These are NOT the statistics of the UTC day, but a 24hr rolling window for the previous 24hrs.
+        //
+        // Update Speed => 1000ms
+        // {
+        //   e => '24hrTicker',
+        //   E => 1579485598569,
+        //   s => 'ETHBTC',
+        //   p => '-0.00004000',
+        //   P => '-0.209',
+        //   w => '0.01920495',
+        //   x => '0.01916500',
+        //   c => '0.01912500',
+        //   Q => '0.10400000',
+        //   b => '0.01912200',
+        //   B => '4.10400000',
+        //   a => '0.01912500',
+        //   A => '0.00100000',
+        //   o => '0.01916500',
+        //   h => '0.01956500',
+        //   l => '0.01887700',
+        //   v => '173518.11900000',
+        //   q => '3332.40703994',
+        //   O => 1579399197842,
+        //   C => 1579485597842,
+        //   F => 158251292,
+        //   L => 158414513,
+        //   n => 163222
+        // }
+        $event = 'ticker'; // $message['e'] === 24hrTicker
+        $wsMarketId = $this->safe_string_lower($message, 's');
+        $messageHash = $wsMarketId . '@' . $event;
+        $timestamp = $this->safe_integer($message, 'C');
+        $symbol = null;
+        $marketId = $this->safe_string($message, 's');
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+            $symbol = $market['symbol'];
+        }
+        $last = $this->safe_float($message, 'c');
+        $parsed = array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => $this->safe_float($message, 'h'),
+            'low' => $this->safe_float($message, 'l'),
+            'bid' => $this->safe_float($message, 'b'),
+            'bidVolume' => $this->safe_float($message, 'B'),
+            'ask' => $this->safe_float($message, 'a'),
+            'askVolume' => $this->safe_float($message, 'A'),
+            'vwap' => $this->safe_float($message, 'w'),
+            'open' => $this->safe_float($message, 'o'),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => $this->safe_float($message, 'x'), // previous day close
+            'change' => $this->safe_float($message, 'p'),
+            'percentage' => $this->safe_float($message, 'P'),
+            'average' => null,
+            'baseVolume' => $this->safe_float($message, 'v'),
+            'quoteVolume' => $this->safe_float($message, 'q'),
+            'info' => $message,
+        );
+        $client->resolve ($parsed, $messageHash);
+    }
+
     public function handle_message ($client, $message) {
         $methods = array(
             'depthUpdate' => array($this, 'handle_order_book'),
+            'trade' => array($this, 'handle_trade'),
+            'kline' => array($this, 'handle_ohclv'),
+            '24hrTicker' => array($this, 'handle_ticker'),
         );
         $event = $this->safe_string($message, 'e');
         $method = $this->safe_value($methods, $event);
