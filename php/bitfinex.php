@@ -19,6 +19,8 @@ class bitfinex extends \ccxt\bitfinex {
                 'watchTicker' => true,
                 'watchTickers' => false,
                 'watchOrderBook' => true,
+                'watchTrades' => false,
+                'watchBalance' => false,
             ),
             'urls' => array(
                 'api' => array(

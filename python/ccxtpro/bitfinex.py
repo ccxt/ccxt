@@ -17,6 +17,8 @@ class bitfinex(Exchange, ccxt.bitfinex):
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchOrderBook': True,
+                'watchTrades': False,
+                'watchBalance': False,
             },
             'urls': {
                 'api': {

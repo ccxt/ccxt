@@ -16,6 +16,7 @@ class coinbasepro extends \ccxt\coinbasepro {
             'has' => array(
                 'ws' => true,
                 'watchOrderBook' => true,
+                'watchTickers' => false, // for now
             ),
             'urls' => array(
                 'api' => array(

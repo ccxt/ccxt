@@ -19,6 +19,7 @@ class gateio(Exchange, ccxt.gateio):
                 'ws': True,
                 'watchOrderBook': True,
                 'watchTicker': True,
+                'watchTickers': False,  # for now
                 'watchTrades': True,
                 'watchOHLCV': True,
                 'watchBalance': True,

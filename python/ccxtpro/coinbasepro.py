@@ -14,6 +14,7 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
             'has': {
                 'ws': True,
                 'watchOrderBook': True,
+                'watchTickers': False,  # for now
             },
             'urls': {
                 'api': {

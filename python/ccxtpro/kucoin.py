@@ -15,6 +15,10 @@ class kucoin(Exchange, ccxt.kucoin):
             'has': {
                 'ws': True,
                 'watchOrderBook': True,
+                'watchTickers': False,  # for now
+                'watchTicker': False,  # for now
+                'watchTrades': False,  # for now
+                'watchBalance': False,  # for now
             },
             'options': {
                 'watchOrderBookRate': 100,  # get updates every 100ms or 1000ms
