@@ -13,8 +13,13 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
         return self.deep_extend(super(coinbasepro, self).describe(), {
             'has': {
                 'ws': True,
+                'watchOHLCV': False,
                 'watchOrderBook': True,
+                'watchTicker': False,
                 'watchTickers': False,  # for now
+                'watchTrades': True,
+                'watchBalance': False,
+                'watchStatus': False,  # for now
             },
             'urls': {
                 'api': {
@@ -23,10 +28,9 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
             },
         })
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def subscribe(self, name, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        name = 'level2'
         messageHash = name + ':' + market['id']
         url = self.urls['api']['ws']
         subscribe = {
@@ -39,11 +43,54 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
             ],
         }
         request = self.extend(subscribe, params)
-        future = self.watch(url, messageHash, request, messageHash)
+        return await self.watch(url, messageHash, request, messageHash)
+
+    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+        name = 'matches'
+        future = self.subscribe(name, symbol, params)
+        return await self.after(future, self.filterBySinceLimit, since, limit)
+
+    async def watch_order_book(self, symbol, limit=None, params={}):
+        name = 'level2'
+        future = self.subscribe(name, symbol, params)
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
     def limit_order_book(self, orderbook, symbol, limit=None, params={}):
         return orderbook.limit(limit)
+
+    def handle_trade(self, client, message):
+        #
+        #     {
+        #         type: 'match',
+        #         trade_id: 82047307,
+        #         maker_order_id: '0f358725-2134-435e-be11-753912a326e0',
+        #         taker_order_id: '252b7002-87a3-425c-ac73-f5b9e23f3caf',
+        #         side: 'sell',
+        #         size: '0.00513192',
+        #         price: '9314.78',
+        #         product_id: 'BTC-USD',
+        #         sequence: 12038915443,
+        #         time: '2020-01-31T20:03:41.158814Z'
+        #     }
+        #
+        marketId = self.safe_string(message, 'product_id')
+        if marketId is not None:
+            trade = self.parse_trade(message)
+            symbol = trade['symbol']
+            # the exchange sends type = 'match'
+            # but requires 'matches' upon subscribing
+            # therefore we resolve 'matches' here instead of 'match'
+            # type = self.safe_string(message, 'type')
+            type = 'matches'
+            messageHash = type + ':' + marketId
+            array = self.safe_value(self.trades, symbol, [])
+            array.append(trade)
+            length = len(array)
+            if length > self.options['tradesLimit']:
+                array.pop(0)
+            self.trades[symbol] = array
+            client.resolve(array, messageHash)
+        return message
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)
@@ -148,6 +195,7 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
             'snapshot': self.handle_order_book,
             'l2update': self.handle_order_book,
             'subscribe': self.handle_subscription_status,
+            'match': self.handle_trade,
         }
         method = self.safe_value(methods, type)
         if method is None:
