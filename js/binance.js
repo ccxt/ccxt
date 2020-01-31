@@ -16,6 +16,7 @@ module.exports = class binance extends ccxt.binance {
                 'watchTrades': true,
                 'watchOHLCV': true,
                 'watchTicker': true,
+                'watchTickers': false, // for now
                 'watchOrders': true,
                 'watchBalance': true,
             },

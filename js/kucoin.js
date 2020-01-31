@@ -13,6 +13,10 @@ module.exports = class kucoin extends ccxt.kucoin {
             'has': {
                 'ws': true,
                 'watchOrderBook': true,
+                'watchTickers': false, // for now
+                'watchTicker': false, // for now
+                'watchTrades': false, // for now
+                'watchBalance': false, // for now
             },
             'options': {
                 'watchOrderBookRate': 100, // get updates every 100ms or 1000ms

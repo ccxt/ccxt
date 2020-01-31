@@ -15,6 +15,7 @@ module.exports = class bittrex extends ccxt.bittrex {
                 'watchOrderBook': true,
                 'watchBalance': true,
                 'watchTrades': true,
+                'watchTickers': false, // for now
             },
             'urls': {
                 'api': {
