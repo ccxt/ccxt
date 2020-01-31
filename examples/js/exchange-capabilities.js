@@ -29,6 +29,7 @@ const ccxt        = require ('../../ccxt.pro.js')
                         'watchTicker',
                         'watchTrades',
                         'watchOHLCV',
+                        'watchStatus',
                         'watchBalance',
 
                     ].forEach (key => {
