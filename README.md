@@ -19,7 +19,6 @@ const ccxtpro = require ('ccxt.pro');
 CCXT Pro is a professional extension to the standard CCXT that is going to include:
 - The support for unified public and private WebSockets (pub and sub) – work in progress now
 - FIX protocol adapters – planned for the future
--
 
 ## Technicalities:
 

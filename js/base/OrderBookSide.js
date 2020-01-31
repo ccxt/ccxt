@@ -126,10 +126,6 @@ class IndexedOrderBookSide extends OrderBookSide {
         }
     }
 
-    restore (price = undefined, size, id) {
-        return this.store (price, size, id)
-    }
-
     storeArray (delta) {
         const [ price, size, id ] = delta
         if (size) {

@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.0.0'
+__version__ = '0.0.10'
 
 # -----------------------------------------------------------------------------
 
@@ -98,7 +98,6 @@ from ccxt.async_support.cex import cex                                    # noqa
 from ccxt.async_support.chilebit import chilebit                          # noqa: F401
 from ccxt.async_support.cobinhood import cobinhood                        # noqa: F401
 from ccxt.async_support.coinbase import coinbase                          # noqa: F401
-from ccxt.async_support.coinbaseprime import coinbaseprime                # noqa: F401
 from ccxt.async_support.coincheck import coincheck                        # noqa: F401
 from ccxt.async_support.coinegg import coinegg                            # noqa: F401
 from ccxt.async_support.coinex import coinex                              # noqa: F401
@@ -175,6 +174,7 @@ from ccxtpro.binance import binance                                       # noqa
 from ccxtpro.bitfinex import bitfinex                                     # noqa: F401
 from ccxtpro.bitmex import bitmex                                         # noqa: F401
 from ccxtpro.bittrex import bittrex                                       # noqa: F401
+from ccxtpro.coinbaseprime import coinbaseprime                           # noqa: F401
 from ccxtpro.coinbasepro import coinbasepro                               # noqa: F401
 from ccxtpro.gateio import gateio                                         # noqa: F401
 from ccxtpro.kraken import kraken                                         # noqa: F401

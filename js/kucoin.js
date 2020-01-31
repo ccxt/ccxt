@@ -228,12 +228,12 @@ module.exports = class kucoin extends ccxt.kucoin {
             }
         }
         const orderbook = this.orderbooks[symbol];
-        if (orderbook['nonce'] !== undefined) {
-            this.handleOrderBookMessage (client, message, orderbook);
-            client.resolve (orderbook, messageHash);
-        } else {
+        if (orderbook['nonce'] === undefined) {
             // 1. After receiving the websocket Level 2 data flow, cache the data.
             orderbook.cache.push (message);
+        } else {
+            this.handleOrderBookMessage (client, message, orderbook);
+            client.resolve (orderbook, messageHash);
         }
     }
 

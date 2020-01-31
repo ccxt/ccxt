@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { NotImplemented } = require ('ccxt/js/base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -12,7 +11,9 @@ module.exports = class poloniex extends ccxt.poloniex {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchTicker': false,
+                'watchTicker': true,
+                'watchTickers': false, // for now
+                'watchTrades': true,
                 'watchOrderBook': true,
                 'watchBalance': false, // not implemented yet
             },
@@ -21,26 +22,81 @@ module.exports = class poloniex extends ccxt.poloniex {
                     'ws': 'wss://api2.poloniex.com',
                 },
             },
+            'options': {
+                'tradesLimit': 1000,
+            },
         });
     }
 
-    handleTickers (client, response) {
-        const data = response[2];
-        const market = this.safeValue (this.options['marketsByNumericId'], data[0].toString ());
+    handleTickers (client, message) {
+        //
+        //     [
+        //         1002,
+        //         null,
+        //         [
+        //             50,               // currency pair id
+        //             '0.00663930',     // last trade price
+        //             '0.00663924',     // lowest ask
+        //             '0.00663009',     // highest bid
+        //             '0.01591824',     // percent change in last 24 hours
+        //             '176.03923205',   // 24h base volume
+        //             '26490.59208176', // 24h quote volume
+        //             0,                // is frozen
+        //             '0.00678580',     // highest price
+        //             '0.00648216'      // lowest price
+        //         ]
+        //     ]
+        //
+        const channelId = this.safeString (message, 0);
+        const subscribed = this.safeValue (message, 1);
+        if (subscribed) {
+            // skip subscription confirmation
+            return;
+        }
+        const ticker = this.safeValue (message, 2);
+        const numericId = this.safeString (ticker, 0);
+        const market = this.safeValue (this.options['marketsByNumericId'], numericId);
+        if (market === undefined) {
+            // todo handle market not found, reject corresponging futures
+            return;
+        }
         const symbol = this.safeString (market, 'symbol');
-        return {
-            'info': response,
+        const timestamp = this.milliseconds ();
+        let open = undefined;
+        let change = undefined;
+        let average = undefined;
+        const last = this.safeFloat (ticker, 1);
+        const relativeChange = this.safeFloat (ticker, 4);
+        if (relativeChange !== -1) {
+            open = last / this.sum (1, relativeChange);
+            change = last - open;
+            average = this.sum (last, open) / 2;
+        }
+        const result = {
             'symbol': symbol,
-            'last': parseFloat (data[1]),
-            'ask': parseFloat (data[2]),
-            'bid': parseFloat (data[3]),
-            'change': parseFloat (data[4]),
-            'baseVolume': parseFloat (data[5]),
-            'quoteVolume': parseFloat (data[6]),
-            'active': data[7] ? false : true,
-            'high': parseFloat (data[8]),
-            'low': parseFloat (data[9]),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 8),
+            'low': this.safeFloat (ticker, 9),
+            'bid': this.safeFloat (ticker, 3),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 2),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': relativeChange * 100,
+            'average': average,
+            'baseVolume': this.safeFloat (ticker, 6),
+            'quoteVolume': this.safeFloat (ticker, 5),
+            'info': ticker,
         };
+        this.tickers[symbol] = result;
+        const messageHash = channelId + ':' + numericId;
+        client.resolve (result, messageHash);
     }
 
     async watchBalance (params = {}) {
@@ -56,17 +112,31 @@ module.exports = class poloniex extends ccxt.poloniex {
         return await this.watch (url, messageHash, subscribe, channelId);
     }
 
+    async watchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const numericId = this.safeString (market, 'numericId');
+        const channelId = '1002';
+        const messageHash = channelId + ':' + numericId;
+        const url = this.urls['api']['ws'];
+        const subscribe = {
+            'command': 'subscribe',
+            'channel': channelId,
+        };
+        return await this.watch (url, messageHash, subscribe, channelId);
+    }
+
     async watchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        // rewrite
-        throw new NotImplemented (this.id + 'watchTickers not implemented yet');
-        // const market = this.market (symbol);
-        // const numericId = market['info']['id'].toString ();
-        // const url = this.urls['api']['websocket']['public'];
-        // return await this.WsTickerMessage (url, '1002' + numericId, {
-        //     'command': 'subscribe',
-        //     'channel': 1002,
-        // });
+        const channelId = '1002';
+        const messageHash = channelId;
+        const url = this.urls['api']['ws'];
+        const subscribe = {
+            'command': 'subscribe',
+            'channel': channelId,
+        };
+        const future = this.watch (url, messageHash, subscribe, channelId);
+        return await this.after (future, this.filterByArray, 'symbol', symbols);
     }
 
     async loadMarkets (reload = false, params = {}) {
@@ -163,11 +233,12 @@ module.exports = class poloniex extends ccxt.poloniex {
         //         1522877119, // timestamp
         //     ]
         //
-        const id = trade[1].toString ();
-        const side = trade[2] ? 'buy' : 'sell';
-        const price = parseFloat (trade[3]);
-        const amount = parseFloat (trade[4]);
-        const timestamp = trade[5] * 1000;
+        const id = this.safeString (trade, 1);
+        const isBuy = this.safeInteger (trade, 2);
+        const side = isBuy ? 'buy' : 'sell';
+        const price = this.safeFloat (trade, 3);
+        const amount = this.safeFloat (trade, 4);
+        const timestamp = this.safeTimestamp (trade, 5);
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -229,6 +300,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         const symbol = this.safeString (market, 'symbol');
         let orderbookUpdatesCount = 0;
         let tradesCount = 0;
+        const stored = this.safeValue (this.trades, symbol, []);
         for (let i = 0; i < data.length; i++) {
             const delta = data[i];
             if (delta[0] === 'i') {
@@ -248,7 +320,7 @@ module.exports = class poloniex extends ccxt.poloniex {
                     }
                 }
                 orderbook['nonce'] = nonce;
-                orderbookUpdatesCount += 1;
+                orderbookUpdatesCount = this.sum (orderbookUpdatesCount, 1);
             } else if (delta[0] === 'o') {
                 const orderbook = this.orderbooks[symbol];
                 const side = delta[1] ? 'bids' : 'asks';
@@ -256,55 +328,57 @@ module.exports = class poloniex extends ccxt.poloniex {
                 const price = parseFloat (delta[2]);
                 const amount = parseFloat (delta[3]);
                 bookside.store (price, amount);
-                orderbookUpdatesCount += 1;
+                orderbookUpdatesCount = this.sum (orderbookUpdatesCount, 1);
                 orderbook['nonce'] = nonce;
             } else if (delta[0] === 't') {
-                // todo: add max limit to the dequeue of trades, unshift and push
-                // const trade = this.handleTrade (client, delta, market);
-                // this.trades.push (trade);
-                tradesCount += 1;
+                const trade = this.handleTrade (client, delta, market);
+                stored.push (trade);
+                const storedLength = stored.length;
+                if (storedLength > this.options['tradesLimit']) {
+                    stored.shift ();
+                }
+                tradesCount = this.sum (tradesCount, 1);
             }
         }
         if (orderbookUpdatesCount) {
             // resolve the orderbook future
             const messageHash = 'orderbook:' + marketId;
             const orderbook = this.orderbooks[symbol];
-            // the .limit () operation will be moved to the watchOrderBook
             client.resolve (orderbook, messageHash);
         }
         if (tradesCount) {
+            this.trades[symbol] = stored;
             // resolve the trades future
             const messageHash = 'trades:' + marketId;
             // todo: incremental trades
-            client.resolve (this.trades, messageHash);
+            client.resolve (this.trades[symbol], messageHash);
         }
     }
 
     handleAccountNotifications (client, message) {
         // not implemented yet
-        // throw new NotImplemented (this.id + 'watchTickers not implemented yet');
         return message;
     }
 
     handleMessage (client, message) {
         const channelId = this.safeString (message, 0);
-        const market = this.safeValue (this.options['marketsByNumericId'], channelId);
-        if (market === undefined) {
-            const methods = {
-                // '<numericId>': 'handleOrderBookAndTrades', // Price Aggregated Book
-                '1000': this.handleAccountNotifications, // Beta
-                '1002': this.handleTickers, // Ticker Data
-                // '1003': undefined, // 24 Hour Exchange Volume
-                '1010': this.handleHeartbeat,
-            };
-            const method = this.safeValue (methods, channelId);
-            if (method === undefined) {
+        const methods = {
+            // '<numericId>': 'handleOrderBookAndTrades', // Price Aggregated Book
+            '1000': this.handleAccountNotifications, // Beta
+            '1002': this.handleTickers, // Ticker Data
+            // '1003': undefined, // 24 Hour Exchange Volume
+            '1010': this.handleHeartbeat,
+        };
+        const method = this.safeValue (methods, channelId);
+        if (method === undefined) {
+            const market = this.safeValue (this.options['marketsByNumericId'], channelId);
+            if (market === undefined) {
                 return message;
             } else {
-                method.apply (this, client, message);
+                return this.handleOrderBookAndTrades (client, message);
             }
         } else {
-            return this.handleOrderBookAndTrades (client, message);
+            method.call (this, client, message);
         }
     }
 };

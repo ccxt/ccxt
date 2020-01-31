@@ -143,10 +143,6 @@ class IndexedOrderBookSide extends OrderBookSide {
         }
     }
 
-    public function restore($price, $size, $id) { // price is presumably null
-        return $this->store($price, $size, $id);
-    }
-
     public function storeArray($delta) {
         $price = $delta[0];
         $size = $delta[1];

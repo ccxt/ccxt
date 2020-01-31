@@ -13,6 +13,8 @@ module.exports = class kraken extends ccxt.kraken {
             'has': {
                 'ws': true,
                 'watchTicker': true,
+                'watchTickers': false, // for now
+                'watchTrades': true,
                 'watchOrderBook': true,
             },
             'urls': {
@@ -28,7 +30,7 @@ module.exports = class kraken extends ccxt.kraken {
                 'ws': '0.2.0',
             },
             'options': {
-                'subscriptionStatusByChannelId': {},
+                'tradesLimit': 1000,
             },
             'exceptions': {
                 'ws': {
@@ -68,26 +70,26 @@ module.exports = class kraken extends ccxt.kraken {
         const market = this.safeValue (this.options['marketsByWsName'], wsName);
         const symbol = market['symbol'];
         const ticker = message[1];
-        const vwap = parseFloat (ticker['p'][0]);
+        const vwap = this.safeFloat (ticker['p'], 0);
         let quoteVolume = undefined;
-        const baseVolume = parseFloat (ticker['v'][0]);
+        const baseVolume = this.safeFloat (ticker['v'], 0);
         if (baseVolume !== undefined && vwap !== undefined) {
             quoteVolume = baseVolume * vwap;
         }
-        const last = parseFloat (ticker['c'][0]);
+        const last = this.safeFloat (ticker['c'], 0);
         const timestamp = this.milliseconds ();
         const result = {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['h'][0]),
-            'low': parseFloat (ticker['l'][0]),
-            'bid': parseFloat (ticker['b'][0]),
-            'bidVolume': parseFloat (ticker['b'][2]),
-            'ask': parseFloat (ticker['a'][0]),
-            'askVolume': parseFloat (ticker['a'][2]),
+            'high': this.safeFloat (ticker['h'], 0),
+            'low': this.safeFloat (ticker['l'], 0),
+            'bid': this.safeFloat (ticker['b'], 0),
+            'bidVolume': this.safeFloat (ticker['b'], 2),
+            'ask': this.safeFloat (ticker['a'], 0),
+            'askVolume': this.safeFloat (ticker['a'], 2),
             'vwap': vwap,
-            'open': parseFloat (ticker['o'][0]),
+            'open': this.safeFloat (ticker['o'], 0),
             'close': last,
             'last': last,
             'previousClose': undefined,
@@ -101,8 +103,7 @@ module.exports = class kraken extends ccxt.kraken {
         // todo: add support for multiple tickers (may be tricky)
         // kraken confirms multi-pair subscriptions separately one by one
         // trigger correct watchTickers calls upon receiving any of symbols
-        // --------------------------------------------------------------------
-        // if there's a corresponding watchTicker call - trigger it
+        this.tickers[symbol] = result;
         client.resolve (result, messageHash);
     }
 
@@ -123,36 +124,23 @@ module.exports = class kraken extends ccxt.kraken {
         //         "XBT/USD"
         //     ]
         //
-        // todo: incremental trades – add max limit to the dequeue of trades, unshift and push
-        //
-        //     const trade = this.handleTrade (client, delta, market);
-        //     this.trades.push (trade);
-        //     tradesCount += 1;
-        //
-        const wsName = message[3];
-        // const name = 'ticker';
-        // const messageHash = name + ':' + wsName;
+        const wsName = this.safeString (message, 3);
+        const name = this.safeString (message, 2);
+        const messageHash = name + ':' + wsName;
         const market = this.safeValue (this.options['marketsByWsName'], wsName);
         const symbol = market['symbol'];
-        // for (let i = 0; i < message[1].length; i++)
-        const timestamp = parseInt (message[2]);
-        const result = {
-            'id': undefined,
-            'order': undefined,
-            'info': message,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            // 'type': type,
-            // 'side': side,
-            'takerOrMaker': undefined,
-            // 'price': price,
-            // 'amount': amount,
-            // 'cost': price * amount,
-            // 'fee': fee,
-        };
-        result['id'] = undefined;
-        throw NotImplemented (this.id + ' handleTrades() not implemented yet (wip)');
+        const stored = this.safeValue (this.trades, symbol, []);
+        const trades = this.safeValue (message, 1, []);
+        const parsed = this.parseTrades (trades, market);
+        for (let i = 0; i < parsed.length; i++) {
+            stored.push (parsed[i]);
+            const storedLength = stored.length;
+            if (storedLength > this.options['tradesLimit']) {
+                stored.shift ();
+            }
+        }
+        this.trades[symbol] = stored;
+        client.resolve (stored, messageHash);
     }
 
     handleOHLCV (client, message) {
@@ -174,25 +162,16 @@ module.exports = class kraken extends ccxt.kraken {
         //         'ETH/XBT', // Asset pair
         //     ]
         //
-        const wsName = message[3];
+        const wsName = this.safeString (message, 3);
         const name = 'ohlc';
-        const candle = message[1];
-        // console.log (
-        //     this.iso8601 (parseInt (parseFloat (candle[0]) * 1000)), '-',
-        //     this.iso8601 (parseInt (parseFloat (candle[1]) * 1000)), ': [',
-        //     parseFloat (candle[2]),
-        //     parseFloat (candle[3]),
-        //     parseFloat (candle[4]),
-        //     parseFloat (candle[5]),
-        //     parseFloat (candle[7]), ']'
-        // );
+        const candle = this.safeValue (message, 1);
         const result = [
-            parseInt (parseFloat (candle[0]) * 1000),
-            parseFloat (candle[2]),
-            parseFloat (candle[3]),
-            parseFloat (candle[4]),
-            parseFloat (candle[5]),
-            parseFloat (candle[7]),
+            parseInt (this.safeFloat (candle, 0) * 1000),
+            this.safeFloat (candle, 2),
+            this.safeFloat (candle, 3),
+            this.safeFloat (candle, 4),
+            this.safeFloat (candle, 5),
+            this.safeFloat (candle, 7),
         ];
         const messageHash = name + ':' + wsName;
         client.resolve (result, messageHash);
@@ -224,18 +203,16 @@ module.exports = class kraken extends ccxt.kraken {
         };
         const request = this.deepExtend (subscribe, params);
         return await this.watch (url, messageHash, request, messageHash);
-        // const future = this.watch (url, [ messageHash, requestId ], request, messageHash);
-        // const client = this.clients[url];
-        // client['futures'][requestId] = future;
-        // return await future;
     }
 
     async watchTicker (symbol, params = {}) {
         return await this.watchPublic ('ticker', symbol, params);
     }
 
-    async watchTrades (symbol, params = {}) {
-        return await this.watchPublic ('trade', symbol, params);
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        const name = 'trade';
+        const future = this.watchPublic (name, symbol, params);
+        return await this.after (future, this.filterBySinceLimit, since, limit);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -298,45 +275,6 @@ module.exports = class kraken extends ccxt.kraken {
         //
         const event = this.safeString (message, 'event');
         client.resolve (message, event);
-    }
-
-    handleTrade (client, trade, market = undefined) {
-        //
-        // public trades
-        //
-        //     [
-        //         "t", // trade
-        //         "42706057", // id
-        //         1, // 1 = buy, 0 = sell
-        //         "0.05567134", // price
-        //         "0.00181421", // amount
-        //         1522877119, // timestamp
-        //     ]
-        //
-        const id = trade[1].toString ();
-        const side = trade[2] ? 'buy' : 'sell';
-        const price = parseFloat (trade[3]);
-        const amount = parseFloat (trade[4]);
-        const timestamp = trade[5] * 1000;
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        return {
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'id': id,
-            'order': undefined,
-            'type': undefined,
-            'takerOrMaker': undefined,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': price * amount,
-            'fee': undefined,
-        };
     }
 
     handleOrderBook (client, message) {
@@ -475,7 +413,7 @@ module.exports = class kraken extends ccxt.kraken {
         //     }
         //
         const channelId = this.safeString (message, 'channelID');
-        this.options['subscriptionStatusByChannelId'][channelId] = message;
+        client.subscriptions[channelId] = message;
         // const requestId = this.safeString (message, 'reqid');
         // if (requestId in client.futures) {
         //     delete client.futures[requestId];
@@ -523,7 +461,7 @@ module.exports = class kraken extends ccxt.kraken {
         if (Array.isArray (message)) {
             // todo: move this branch and the 'method' property – to the client.subscriptions
             const channelId = message[0].toString ();
-            const subscriptionStatus = this.safeValue (this.options['subscriptionStatusByChannelId'], channelId, {});
+            const subscriptionStatus = this.safeValue (client.subscriptions, channelId, {});
             const subscription = this.safeValue (subscriptionStatus, 'subscription', {});
             const name = this.safeString (subscription, 'name');
             const methods = {
