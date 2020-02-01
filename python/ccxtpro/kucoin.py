@@ -17,7 +17,7 @@ class kucoin(Exchange, ccxt.kucoin):
                 'watchOrderBook': True,
                 'watchTickers': False,  # for now
                 'watchTicker': True,  # for now
-                'watchTrades': False,  # for now
+                'watchTrades': True,  # for now
                 'watchBalance': False,  # for now
             },
             'options': {
@@ -149,6 +149,76 @@ class kucoin(Exchange, ccxt.kucoin):
         messageHash = self.safe_string(message, 'topic')
         if messageHash is not None:
             client.resolve(ticker, messageHash)
+        return message
+
+    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+        await self.load_markets()
+        future = self.negotiate()
+        return await self.after_async(future, self.subscribe_to_trades, symbol, since, limit, params)
+
+    async def subscribe_to_trades(self, negotiation, symbol, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        data = self.safe_value(negotiation, 'data', {})
+        instanceServers = self.safe_value(data, 'instanceServers', [])
+        firstServer = self.safe_value(instanceServers, 0, {})
+        endpoint = self.safe_string(firstServer, 'endpoint')
+        token = self.safe_string(data, 'token')
+        nonce = self.nonce()
+        query = {
+            'token': token,
+            'acceptUserMessage': 'true',
+            # 'connectId': nonce,  # user-defined id is supported, received by handleSystemStatus
+        }
+        url = endpoint + '?' + self.urlencode(query)
+        topic = '/market/match'
+        messageHash = topic + ':' + market['id']
+        subscribe = {
+            'id': nonce,
+            'type': 'subscribe',
+            'topic': messageHash,
+            'response': True,
+        }
+        subscription = {
+            'id': str(nonce),
+            'symbol': symbol,
+            'topic': topic,
+            'messageHash': messageHash,
+        }
+        request = self.extend(subscribe, params)
+        return await self.watch(url, messageHash, request, messageHash, subscription)
+
+    def handle_trade(self, client, message):
+        #
+        #     {
+        #         data: {
+        #             sequence: '1568787654360',
+        #             symbol: 'BTC-USDT',
+        #             side: 'buy',
+        #             size: '0.00536577',
+        #             price: '9345',
+        #             takerOrderId: '5e356c4a9f1a790008f8d921',
+        #             time: '1580559434436443257',
+        #             type: 'match',
+        #             makerOrderId: '5e356bffedf0010008fa5d7f',
+        #             tradeId: '5e356c4aeefabd62c62a1ece'
+        #         },
+        #         subject: 'trade.l3match',
+        #         topic: '/market/match:BTC-USDT',
+        #         type: 'message'
+        #     }
+        #
+        data = self.safe_value(message, 'data', {})
+        trade = self.parse_trade(data)
+        messageHash = self.safe_string(message, 'topic')
+        symbol = trade['symbol']
+        array = self.safe_value(self.trades, symbol, [])
+        array.append(trade)
+        length = len(array)
+        if length > self.options['tradesLimit']:
+            array.pop(0)
+        self.trades[symbol] = array
+        client.resolve(array, messageHash)
         return message
 
     async def watch_order_book(self, symbol, limit=None, params={}):
@@ -384,6 +454,7 @@ class kucoin(Exchange, ccxt.kucoin):
         methods = {
             'trade.l2update': self.handle_order_book,
             'trade.snapshot': self.handle_ticker,
+            'trade.l3match': self.handle_trade,
         }
         method = self.safe_value(methods, subject)
         if method is None:

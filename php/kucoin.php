@@ -19,7 +19,7 @@ class kucoin extends \ccxt\kucoin {
                 'watchOrderBook' => true,
                 'watchTickers' => false, // for now
                 'watchTicker' => true, // for now
-                'watchTrades' => false, // for now
+                'watchTrades' => true, // for now
                 'watchBalance' => false, // for now
             ),
             'options' => array(
@@ -158,6 +158,80 @@ class kucoin extends \ccxt\kucoin {
         if ($messageHash !== null) {
             $client->resolve ($ticker, $messageHash);
         }
+        return $message;
+    }
+
+    public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $future = $this->negotiate ();
+        return $this->after_async ($future, array($this, 'subscribe_to_trades'), $symbol, $since, $limit, $params);
+    }
+
+    public function subscribe_to_trades ($negotiation, $symbol, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $data = $this->safe_value($negotiation, 'data', array());
+        $instanceServers = $this->safe_value($data, 'instanceServers', array());
+        $firstServer = $this->safe_value($instanceServers, 0, array());
+        $endpoint = $this->safe_string($firstServer, 'endpoint');
+        $token = $this->safe_string($data, 'token');
+        $nonce = $this->nonce ();
+        $query = array(
+            'token' => $token,
+            'acceptUserMessage' => 'true',
+            // 'connectId' => $nonce, // user-defined id is supported, received by handleSystemStatus
+        );
+        $url = $endpoint . '?' . $this->urlencode ($query);
+        $topic = '/market/match';
+        $messageHash = $topic . ':' . $market['id'];
+        $subscribe = array(
+            'id' => $nonce,
+            'type' => 'subscribe',
+            'topic' => $messageHash,
+            'response' => true,
+        );
+        $subscription = array(
+            'id' => (string) $nonce,
+            'symbol' => $symbol,
+            'topic' => $topic,
+            'messageHash' => $messageHash,
+        );
+        $request = array_merge($subscribe, $params);
+        return $this->watch ($url, $messageHash, $request, $messageHash, $subscription);
+    }
+
+    public function handle_trade ($client, $message) {
+        //
+        //     {
+        //         $data => $array(
+        //             sequence => '1568787654360',
+        //             $symbol => 'BTC-USDT',
+        //             side => 'buy',
+        //             size => '0.00536577',
+        //             price => '9345',
+        //             takerOrderId => '5e356c4a9f1a790008f8d921',
+        //             time => '1580559434436443257',
+        //             type => 'match',
+        //             makerOrderId => '5e356bffedf0010008fa5d7f',
+        //             tradeId => '5e356c4aeefabd62c62a1ece'
+        //         ),
+        //         subject => 'trade.l3match',
+        //         topic => '/market/match:BTC-USDT',
+        //         type => 'message'
+        //     }
+        //
+        $data = $this->safe_value($message, 'data', $array());
+        $trade = $this->parse_trade($data);
+        $messageHash = $this->safe_string($message, 'topic');
+        $symbol = $trade['symbol'];
+        $array = $this->safe_value($this->trades, $symbol, $array());
+        $array[] = $trade;
+        $length = is_array($array) ? count($array) : 0;
+        if ($length > $this->options['tradesLimit']) {
+            array_shift($array);
+        }
+        $this->trades[$symbol] = $array;
+        $client->resolve ($array, $messageHash);
         return $message;
     }
 
@@ -419,6 +493,7 @@ class kucoin extends \ccxt\kucoin {
         $methods = array(
             'trade.l2update' => array($this, 'handle_order_book'),
             'trade.snapshot' => array($this, 'handle_ticker'),
+            'trade.l3match' => array($this, 'handle_trade'),
         );
         $method = $this->safe_value($methods, $subject);
         if ($method === null) {
