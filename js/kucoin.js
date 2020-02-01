@@ -14,7 +14,7 @@ module.exports = class kucoin extends ccxt.kucoin {
                 'ws': true,
                 'watchOrderBook': true,
                 'watchTickers': false, // for now
-                'watchTicker': false, // for now
+                'watchTicker': true, // for now
                 'watchTrades': false, // for now
                 'watchBalance': false, // for now
             },
@@ -28,6 +28,133 @@ module.exports = class kucoin extends ccxt.kucoin {
                 'ping': this.ping,
             },
         });
+    }
+
+    async negotiate (params = {}) {
+        const client = this.client (this.urls['api']['ws']);
+        const messageHash = 'negotiate';
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
+            future = client.future (messageHash);
+            client.subscriptions[messageHash] = future;
+            let response = undefined;
+            const throwException = false;
+            if (this.checkRequiredCredentials (throwException)) {
+                response = await this.privatePostBulletPrivate ();
+                //
+                //     {
+                //         code: "200000",
+                //         data: {
+                //             instanceServers: [
+                //                 {
+                //                     pingInterval:  50000,
+                //                     endpoint: "wss://push-private.kucoin.com/endpoint",
+                //                     protocol: "websocket",
+                //                     encrypt: true,
+                //                     pingTimeout: 10000
+                //                 }
+                //             ],
+                //             token: "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+                //         }
+                //     }
+                //
+            } else {
+                response = await this.publicPostBulletPublic ();
+            }
+            client.resolve (response, messageHash);
+            // const data = this.safeValue (response, 'data', {});
+            // const instanceServers = this.safeValue (data, 'instanceServers', []);
+            // const firstServer = this.safeValue (instanceServers, 0, {});
+            // const endpoint = this.safeString (firstServer, 'endpoint');
+            // const token = this.safeString (data, 'token');
+        }
+        return await future;
+    }
+
+    async watchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const future = this.negotiate ();
+        return await this.afterAsync (future, this.subscribeToTicker, symbol, params);
+    }
+
+    async subscribeToTicker (negotiation, symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const data = this.safeValue (negotiation, 'data', {});
+        const instanceServers = this.safeValue (data, 'instanceServers', []);
+        const firstServer = this.safeValue (instanceServers, 0, {});
+        const endpoint = this.safeString (firstServer, 'endpoint');
+        const token = this.safeString (data, 'token');
+        const nonce = this.nonce ();
+        const query = {
+            'token': token,
+            'acceptUserMessage': 'true',
+            // 'connectId': nonce, // user-defined id is supported, received by handleSystemStatus
+        };
+        const url = endpoint + '?' + this.urlencode (query);
+        const topic = '/market/snapshot'; // '/market/ticker';
+        const messageHash = topic + ':' + market['id'];
+        const subscribe = {
+            'id': nonce,
+            'type': 'subscribe',
+            'topic': messageHash,
+            'response': true,
+        };
+        const subscription = {
+            'id': nonce.toString (),
+            'symbol': symbol,
+            'topic': topic,
+            'messageHash': messageHash,
+        };
+        const request = this.extend (subscribe, params);
+        return await this.watch (url, messageHash, request, messageHash, subscription);
+    }
+
+    handleTicker (client, message) {
+        //
+        // updates come in every 2 sec unless there
+        // were no changes since the previous update
+        //
+        //     {
+        //         "data": {
+        //             "sequence": "1545896669291",
+        //             "data": {
+        //                 "trading": true,
+        //                 "symbol": "KCS-BTC",
+        //                 "buy": 0.00011,
+        //                 "sell": 0.00012,
+        //                 "sort": 100,
+        //                 "volValue": 3.13851792584, // total
+        //                 "baseCurrency": "KCS",
+        //                 "market": "BTC",
+        //                 "quoteCurrency": "BTC",
+        //                 "symbolCode": "KCS-BTC",
+        //                 "datetime": 1548388122031,
+        //                 "high": 0.00013,
+        //                 "vol": 27514.34842,
+        //                 "low": 0.0001,
+        //                 "changePrice": -1.0e-5,
+        //                 "changeRate": -0.0769,
+        //                 "lastTradedPrice": 0.00012,
+        //                 "board": 0,
+        //                 "mark": 0
+        //             }
+        //         },
+        //         "subject": "trade.snapshot",
+        //         "topic": "/market/snapshot:KCS-BTC",
+        //         "type": "message"
+        //     }
+        //
+        const data = this.safeValue (message, 'data', {});
+        const rawTicker = this.safeValue (data, 'data', {});
+        const ticker = this.parseTicker (rawTicker);
+        const symbol = ticker['symbol'];
+        this.tickers[symbol] = ticker;
+        const messageHash = this.safeString (message, 'topic');
+        if (messageHash !== undefined) {
+            client.resolve (ticker, messageHash);
+        }
+        return message;
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -247,6 +374,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         return message;
     }
 
+
     handleOrderBookSubscription (client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeString (subscription, 'limit');
@@ -310,6 +438,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         const subject = this.safeString (message, 'subject');
         const methods = {
             'trade.l2update': this.handleOrderBook,
+            'trade.snapshot': this.handleTicker,
         };
         const method = this.safeValue (methods, subject);
         if (method === undefined) {
