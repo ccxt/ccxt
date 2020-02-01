@@ -301,15 +301,7 @@ class coinbasepro extends Exchange {
         return $orderbook;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array(
-            'id' => $market['id'],
-        );
-        // publicGetProductsIdTicker or publicGetProductsIdStats
-        $method = $this->safe_string($this->options, 'fetchTickerMethod', 'publicGetProductsIdTicker');
-        $response = $this->$method (array_merge($request, $params));
+    public function parse_ticker ($ticker, $market = null) {
         //
         // publicGetProductsIdTicker
         //
@@ -332,32 +324,67 @@ class coinbasepro extends Exchange {
         //         "volume" => "2.41000000"
         //     }
         //
-        $timestamp = $this->parse8601 ($this->safe_value($response, 'time'));
-        $bid = $this->safe_float($response, 'bid');
-        $ask = $this->safe_float($response, 'ask');
-        $last = $this->safe_float($response, 'price');
+        $timestamp = $this->parse8601 ($this->safe_value($ticker, 'time'));
+        $bid = $this->safe_float($ticker, 'bid');
+        $ask = $this->safe_float($ticker, 'ask');
+        $last = $this->safe_float($ticker, 'price');
+        $symbol = ($market === null) ? null : $market['symbol'];
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => $this->safe_float($response, 'high'),
-            'low' => $this->safe_float($response, 'low'),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
             'bid' => $bid,
             'bidVolume' => null,
             'ask' => $ask,
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_float($response, 'open'),
+            'open' => $this->safe_float($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($response, 'volume'),
+            'baseVolume' => $this->safe_float($ticker, 'volume'),
             'quoteVolume' => null,
-            'info' => $response,
+            'info' => $ticker,
         );
+    }
+
+    public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array(
+            'id' => $market['id'],
+        );
+        // publicGetProductsIdTicker or publicGetProductsIdStats
+        $method = $this->safe_string($this->options, 'fetchTickerMethod', 'publicGetProductsIdTicker');
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // publicGetProductsIdTicker
+        //
+        //     {
+        //         "trade_id":843439,
+        //         "price":"0.997999",
+        //         "size":"80.29769",
+        //         "time":"2020-01-28T02:13:33.012523Z",
+        //         "bid":"0.997094",
+        //         "ask":"0.998",
+        //         "volume":"1903188.03750000"
+        //     }
+        //
+        // publicGetProductsIdStats
+        //
+        //     {
+        //         "open" => "34.19000000",
+        //         "high" => "95.70000000",
+        //         "low" => "7.06000000",
+        //         "volume" => "2.41000000"
+        //     }
+        //
+        return $this->parse_ticker($response, $market);
     }
 
     public function parse_trade ($trade, $market = null) {

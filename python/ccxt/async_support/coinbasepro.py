@@ -306,6 +306,57 @@ class coinbasepro(Exchange):
         orderbook['nonce'] = self.safe_integer(response, 'sequence')
         return orderbook
 
+    def parse_ticker(self, ticker, market=None):
+        #
+        # publicGetProductsIdTicker
+        #
+        #     {
+        #         "trade_id":843439,
+        #         "price":"0.997999",
+        #         "size":"80.29769",
+        #         "time":"2020-01-28T02:13:33.012523Z",
+        #         "bid":"0.997094",
+        #         "ask":"0.998",
+        #         "volume":"1903188.03750000"
+        #     }
+        #
+        # publicGetProductsIdStats
+        #
+        #     {
+        #         "open": "34.19000000",
+        #         "high": "95.70000000",
+        #         "low": "7.06000000",
+        #         "volume": "2.41000000"
+        #     }
+        #
+        timestamp = self.parse8601(self.safe_value(ticker, 'time'))
+        bid = self.safe_float(ticker, 'bid')
+        ask = self.safe_float(ticker, 'ask')
+        last = self.safe_float(ticker, 'price')
+        symbol = None if (market is None) else market['symbol']
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': bid,
+            'bidVolume': None,
+            'ask': ask,
+            'askVolume': None,
+            'vwap': None,
+            'open': self.safe_float(ticker, 'open'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': self.safe_float(ticker, 'volume'),
+            'quoteVolume': None,
+            'info': ticker,
+        }
+
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -337,32 +388,7 @@ class coinbasepro(Exchange):
         #         "volume": "2.41000000"
         #     }
         #
-        timestamp = self.parse8601(self.safe_value(response, 'time'))
-        bid = self.safe_float(response, 'bid')
-        ask = self.safe_float(response, 'ask')
-        last = self.safe_float(response, 'price')
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(response, 'high'),
-            'low': self.safe_float(response, 'low'),
-            'bid': bid,
-            'bidVolume': None,
-            'ask': ask,
-            'askVolume': None,
-            'vwap': None,
-            'open': self.safe_float(response, 'open'),
-            'close': last,
-            'last': last,
-            'previousClose': None,
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'baseVolume': self.safe_float(response, 'volume'),
-            'quoteVolume': None,
-            'info': response,
-        }
+        return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
         #
