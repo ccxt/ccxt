@@ -31,7 +31,7 @@ module.exports = class kucoin extends ccxt.kucoin {
     }
 
     async negotiate (params = {}) {
-        const client = this.client (this.urls['api']['ws']);
+        const client = this.client ('ws');
         const messageHash = 'negotiate';
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
@@ -209,7 +209,6 @@ module.exports = class kucoin extends ccxt.kucoin {
         const subscription = {
             'id': nonce.toString (),
             'symbol': symbol,
-            'limit': limit,
             'topic': topic,
             'messageHash': messageHash,
             'method': this.handleOrderBookSubscription,
