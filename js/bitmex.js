@@ -307,7 +307,7 @@ module.exports = class bitmex extends ccxt.bitmex {
         throw new NotImplemented (this.id + ' watchBalance() not implemented yet');
     }
 
-    handleTrade (client, message) {
+    handleTrades (client, message) {
         //
         // initial snapshot
         //
@@ -714,7 +714,7 @@ module.exports = class bitmex extends ccxt.bitmex {
                 'orderBookL2_25': this.handleOrderBook,
                 'orderBook10': this.handleOrderBook,
                 'instrument': this.handleTicker,
-                'trade': this.handleTrade,
+                'trade': this.handleTrades,
             };
             const method = this.safeValue (methods, table);
             if (method === undefined) {
