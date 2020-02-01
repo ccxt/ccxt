@@ -117,6 +117,38 @@ module.exports = class phemex extends Exchange {
         };
     }
 
+    parseBidAsk (bidask, priceKey = 0, amountKey = 1, priceScale = 4, pricePrecision = 1) {
+        const priceEp = bidask[priceKey];
+        const price = parseFloat (this.convertEp (priceEp, priceScale, pricePrecision));
+        const amount = parseFloat (bidask[amountKey]);
+        return [price, amount];
+    }
+
+    parseBidsAsks (bidasks, priceKey = 0, amountKey = 1, priceScale = 4, pricePrecision = 1) {
+        const result = [];
+        for (let i = 0; i < bidasks.length; i++) {
+            const bidask = this.parseBidAsk (bidasks[i], priceKey, amountKey, priceScale, pricePrecision);
+            result.push (bidask);
+        }
+        return result;
+    }
+
+    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
+        // market data
+        const precisions = this.safeValue (market, 'precision');
+        const priceScale = this.safeInteger (market, 'priceScale');
+        const pricePrecision = this.safeInteger (precisions, 'price');
+        const rawBids = this.safeValue (orderbook, bidsKey);
+        const rawAsks = this.safeValue (orderbook, asksKey);
+        return {
+            'bids': this.sortBy (this.parseBidsAsks (rawBids, priceKey, amountKey, priceScale, pricePrecision), 0, true),
+            'asks': this.sortBy (this.parseBidsAsks (rawAsks, priceKey, amountKey, priceScale, pricePrecision), 0),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
+        };
+    }
+
     parseOrderStatus (status) {
         const statuses = {
             'Untriggered': 'open',
@@ -451,40 +483,11 @@ module.exports = class phemex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketID = market['id'];
-        // market data
-        const precisions = this.safeValue (market, 'precision');
-        const priceScale = this.safeInteger (market, 'priceScale');
-        const pricePrecision = this.safeInteger (precisions, 'price');
         const method = 'public2GetMdOrderbook';
         const response = await this[method] ({ 'symbol': marketID });
         const data = this.parseMdResponse (response);
         const book = this.safeValue (data, 'book');
-        const rawBids = this.safeValue (book, 'bids');
-        const rawAsks = this.safeValue (book, 'asks');
-        const bids = [];
-        const asks = [];
-        for (let i = 0; i < rawBids.length; i++) {
-            const order = rawBids[i];
-            const priceEp = order[0];
-            const amount = order[1];
-            const price = this.convertEp (priceEp, priceScale, pricePrecision);
-            bids.push ([price, amount]);
-        }
-        for (let i = 0; i < rawAsks.length; i++) {
-            const order = rawAsks[i];
-            const priceEp = order[0];
-            const amount = order[1];
-            const price = this.convertEp (priceEp, priceScale, pricePrecision);
-            asks.push ([price, amount]);
-        }
-        const result = {
-            'bids': bids,
-            'asks': asks,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'nonce': undefined,
-        };
-        return result;
+        return this.parseOrderBook (book, undefined, 'bids', 'asks', 0, 1, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
