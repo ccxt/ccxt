@@ -13,7 +13,7 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
                 'ws': true,
                 'watchOHLCV': false,
                 'watchOrderBook': true,
-                'watchTicker': false,
+                'watchTicker': true,
                 'watchTickers': false, // for now
                 'watchTrades': true,
                 'watchBalance': false,
@@ -43,6 +43,11 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         };
         const request = this.extend (subscribe, params);
         return await this.watch (url, messageHash, request, messageHash);
+    }
+
+    async watchTicker (symbol, params = {}) {
+        const name = 'ticker';
+        return await this.subscribe (name, symbol, params);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -97,6 +102,104 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         }
         return message;
     }
+
+    handleTicker (client, message) {
+        //
+        //     {
+        //         type: 'ticker',
+        //         sequence: 12042642428,
+        //         product_id: 'BTC-USD',
+        //         price: '9380.55',
+        //         open_24h: '9450.81000000',
+        //         volume_24h: '9611.79166047',
+        //         low_24h: '9195.49000000',
+        //         high_24h: '9475.19000000',
+        //         volume_30d: '327812.00311873',
+        //         best_bid: '9380.54',
+        //         best_ask: '9380.55',
+        //         side: 'buy',
+        //         time: '2020-02-01T01:40:16.253563Z',
+        //         trade_id: 82062566,
+        //         last_size: '0.41969131'
+        //     }
+        //
+        const marketId = this.safeString (message, 'product_id');
+        if (marketId !== undefined) {
+            const ticker = this.parseTicker (message);
+            const symbol = ticker['symbol'];
+            this.tickers[symbol] = ticker;
+            const type = this.safeString (message, 'type');
+            const messageHash = type + ':' + marketId;
+            client.resolve (ticker, messageHash);
+        }
+        return message;
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         type: 'ticker',
+        //         sequence: 12042642428,
+        //         product_id: 'BTC-USD',
+        //         price: '9380.55',
+        //         open_24h: '9450.81000000',
+        //         volume_24h: '9611.79166047',
+        //         low_24h: '9195.49000000',
+        //         high_24h: '9475.19000000',
+        //         volume_30d: '327812.00311873',
+        //         best_bid: '9380.54',
+        //         best_ask: '9380.55',
+        //         side: 'buy',
+        //         time: '2020-02-01T01:40:16.253563Z',
+        //         trade_id: 82062566,
+        //         last_size: '0.41969131'
+        //     }
+        //
+        const type = this.safeString (ticker, 'type');
+        if (type === undefined) {
+            return super.parseTicker (ticker, market);
+        }
+        let symbol = undefined;
+        const marketId = this.safeString (ticker, 'product_id');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
+        const last = this.safeFloat (ticker, 'price');
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'high_24h'),
+            'low': this.safeFloat (ticker, 'low_24h'),
+            'bid': this.safeFloat (ticker, 'best_bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'best_ask'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeFloat (ticker, 'open_24h'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeFloat (ticker, 'volume_24h'),
+            'quoteVolume': undefined,
+            'info': ticker,
+        };
+    }
+
 
     handleDelta (bookside, delta) {
         const price = this.safeFloat (delta, 0);
@@ -212,6 +315,7 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
             'l2update': this.handleOrderBook,
             'subscribe': this.handleSubscriptionStatus,
             'match': this.handleTrade,
+            'ticker': this.handleTicker,
         };
         const method = this.safeValue (methods, type);
         if (method === undefined) {
