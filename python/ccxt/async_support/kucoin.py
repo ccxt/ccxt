@@ -970,6 +970,19 @@ class kucoin(Exchange):
         #         "time":1548848575203567174
         #     }
         #
+        #     {
+        #         sequence: '1568787654360',
+        #         symbol: 'BTC-USDT',
+        #         side: 'buy',
+        #         size: '0.00536577',
+        #         price: '9345',
+        #         takerOrderId: '5e356c4a9f1a790008f8d921',
+        #         time: '1580559434436443257',
+        #         type: 'match',
+        #         makerOrderId: '5e356bffedf0010008fa5d7f',
+        #         tradeId: '5e356c4aeefabd62c62a1ece'
+        #     }
+        #
         # fetchMyTrades(private) v2
         #
         #     {
@@ -1037,8 +1050,6 @@ class kucoin(Exchange):
             if market is not None:
                 symbol = market['symbol']
         id = self.safe_string_2(trade, 'tradeId', 'id')
-        if id is not None:
-            id = str(id)
         orderId = self.safe_string(trade, 'orderId')
         takerOrMaker = self.safe_string(trade, 'liquidity')
         amount = self.safe_float_2(trade, 'size', 'amount')
