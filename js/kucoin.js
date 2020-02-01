@@ -1019,6 +1019,19 @@ module.exports = class kucoin extends Exchange {
         //         "time":1548848575203567174
         //     }
         //
+        //     {
+        //         sequence: '1568787654360',
+        //         symbol: 'BTC-USDT',
+        //         side: 'buy',
+        //         size: '0.00536577',
+        //         price: '9345',
+        //         takerOrderId: '5e356c4a9f1a790008f8d921',
+        //         time: '1580559434436443257',
+        //         type: 'match',
+        //         makerOrderId: '5e356bffedf0010008fa5d7f',
+        //         tradeId: '5e356c4aeefabd62c62a1ece'
+        //     }
+        //
         // fetchMyTrades (private) v2
         //
         //     {
@@ -1089,10 +1102,7 @@ module.exports = class kucoin extends Exchange {
                 symbol = market['symbol'];
             }
         }
-        let id = this.safeString2 (trade, 'tradeId', 'id');
-        if (id !== undefined) {
-            id = id.toString ();
-        }
+        const id = this.safeString2 (trade, 'tradeId', 'id');
         const orderId = this.safeString (trade, 'orderId');
         const takerOrMaker = this.safeString (trade, 'liquidity');
         const amount = this.safeFloat2 (trade, 'size', 'amount');
