@@ -15,7 +15,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchOrderBook': true,
-                'watchTrades': false,
+                'watchTrades': true,
                 'watchBalance': false,
             },
             'urls': {
@@ -29,19 +29,153 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         });
     }
 
-    async watchTicker (symbol, params = {}) {
+    async subscribe (channel, symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
         const url = this.urls['api']['ws']['public'];
-        const channel = 'ticker';
+        const messageHash = channel + ':' + marketId;
+        // const channel = 'trades';
         const request = {
             'event': 'subscribe',
             'channel': channel,
             'symbol': marketId,
+            'messageHash': messageHash,
         };
-        const messageHash = channel + ':' + marketId;
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+    }
+
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        const future = this.subscribe ('trades', symbol, params);
+        return await this.after (future, this.filterBySinceLimit, since, limit);
+    }
+
+    async watchTicker (symbol, params = {}) {
+        return await this.subscribe ('ticker', symbol, params);
+    }
+
+    handleTrades (client, message, subscription) {
+        //
+        // initial snapshot
+        //
+        //     [
+        //         2,
+        //             [
+        //             [ null, 1580565020, 9374.9, 0.005 ],
+        //             [ null, 1580565004, 9374.9, 0.005 ],
+        //             [ null, 1580565003, 9374.9, 0.005 ],
+        //         ]
+        //     ]
+        //
+        // when a trade does not have an id yet
+        //
+        //     // channel id, update type, seq, time, price, amount
+        //     [ 2, 'te', '28462857-BTCUSD', 1580565041, 9374.9, 0.005 ],
+        //
+        // when a trade already has an id
+        //
+        //     // channel id, update type, seq, trade id, time, price, amount
+        //     [ 2, 'tu', '28462857-BTCUSD', 413357662, 1580565041, 9374.9, 0.005 ]
+        //
+        const messageHash = this.safeValue (subscription, 'messageHash');
+        const marketId = this.safeString (subscription, 'pair');
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            const symbol = market['symbol'];
+            const data = this.safeValue (message, 1);
+            const stored = this.safeValue (this.trades, symbol, []);
+            if (Array.isArray (data)) {
+                const trades = this.parseTrades (data, market);
+                for (let i = 0; i < trades.length; i++) {
+                    stored.push (trades[i]);
+                    const storedLength = stored.length;
+                    if (storedLength > this.options['tradesLimit']) {
+                        stored.shift ();
+                    }
+                }
+            } else {
+                const second = this.safeString (message, 1);
+                if (second !== 'tu') {
+                    return;
+                }
+                const trade = this.parseTrade (message, market);
+                stored.push (trade);
+                const length = stored.length;
+                if (length > this.options['tradesLimit']) {
+                    stored.shift ();
+                }
+            }
+            this.trades[symbol] = stored;
+            client.resolve (stored, messageHash);
+        }
+        return message;
+    }
+
+    parseTrade (trade, market = undefined) {
+        //
+        // snapshot trade
+        //
+        //     // null, time, price, amount
+        //     [ null, 1580565020, 9374.9, 0.005 ],
+        //
+        // when a trade does not have an id yet
+        //
+        //     // channel id, update type, seq, time, price, amount
+        //     [ 2, 'te', '28462857-BTCUSD', 1580565041, 9374.9, 0.005 ],
+        //
+        // when a trade already has an id
+        //
+        //     // channel id, update type, seq, trade id, time, price, amount
+        //     [ 2, 'tu', '28462857-BTCUSD', 413357662, 1580565041, 9374.9, 0.005 ]
+        //
+        if (!Array.isArray (trade)) {
+            return super.parseTrade (trade, market);
+        }
+        const tradeLength = trade.length;
+        const event = this.safeString (trade, 1);
+        let id = undefined;
+        if (event === 'tu') {
+            id = this.safeString (trade, tradeLength - 4);
+        }
+        const timestamp = this.safeTimestamp (trade, tradeLength - 3);
+        const price = this.safeFloat (trade, tradeLength - 2);
+        let amount = this.safeFloat (trade, tradeLength - 1);
+        let side = undefined;
+        if (amount !== undefined) {
+            side = (amount > 0) ? 'buy' : 'sell';
+            amount = Math.abs (amount);
+        }
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
+        }
+        const seq = this.safeString (trade, 2);
+        const parts = seq.split ('-');
+        const marketId = this.safeString (parts, 1);
+        let symbol = undefined;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const takerOrMaker = undefined;
+        const orderId = undefined;
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': id,
+            'order': orderId,
+            'type': undefined,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+        };
     }
 
     handleTicker (client, message, subscription) {
@@ -104,24 +238,15 @@ module.exports = class bitfinex extends ccxt.bitfinex {
                 throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 25 or 100');
             }
         }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const marketId = market['id'];
-        const url = this.urls['api']['ws']['public'];
-        const channel = 'book';
         const request = {
-            'event': 'subscribe',
-            'channel': channel,
-            'symbol': marketId,
+            // 'event': 'subscribe', // added in subscribe()
+            // 'channel': channel,  // added in subscribe()
+            // 'symbol': marketId,  // added in subscribe()
             // 'prec': 'P0', // string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
             // 'freq': 'F0', // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
             // 'len': '25', // string, number of price points, '25', '100', default = '25'
         };
-        if (limit !== undefined) {
-            request['len'] = limit.toString ();
-        }
-        const messageHash = channel + ':' + marketId;
-        const future = this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const future = this.subscribe ('book', symbol, this.deepExtend (request, params));
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
@@ -233,7 +358,6 @@ module.exports = class bitfinex extends ccxt.bitfinex {
     }
 
     handleMessage (client, message) {
-        // console.log (new Date (), message);
         if (Array.isArray (message)) {
             const channelId = this.safeString (message, 0);
             //
@@ -251,7 +375,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
                 'book': this.handleOrderBook,
                 // 'ohlc': this.handleOHLCV,
                 'ticker': this.handleTicker,
-                // 'trade': this.handleTrades,
+                'trades': this.handleTrades,
             };
             const method = this.safeValue (methods, channel);
             if (method === undefined) {
@@ -260,7 +384,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
                 return method.call (this, client, message, subscription);
             }
         } else {
-            // todo: add bitfinex handleErrorMessage
+            // todo add bitfinex handleErrorMessage
             //
             //     {
             //         event: 'info',
