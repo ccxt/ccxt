@@ -21,6 +21,7 @@ class kucoin(Exchange, ccxt.kucoin):
                 'watchBalance': False,  # for now
             },
             'options': {
+                'tradesLimit': 1000,
                 'watchOrderBookRate': 100,  # get updates every 100ms or 1000ms
             },
             'streaming': {
@@ -69,12 +70,7 @@ class kucoin(Exchange, ccxt.kucoin):
             # token = self.safe_string(data, 'token')
         return await future
 
-    async def watch_ticker(self, symbol, params={}):
-        await self.load_markets()
-        future = self.negotiate()
-        return await self.after_async(future, self.subscribe_to_ticker, symbol, params)
-
-    async def subscribe_to_ticker(self, negotiation, symbol, params={}):
+    async def subscribe(self, negotiation, topic, method, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
         data = self.safe_value(negotiation, 'data', {})
@@ -89,7 +85,7 @@ class kucoin(Exchange, ccxt.kucoin):
             # 'connectId': nonce,  # user-defined id is supported, received by handleSystemStatus
         }
         url = endpoint + '?' + self.urlencode(query)
-        topic = '/market/snapshot'  # '/market/ticker'
+        # topic = '/market/snapshot'  # '/market/ticker'
         messageHash = topic + ':' + market['id']
         subscribe = {
             'id': nonce,
@@ -102,9 +98,16 @@ class kucoin(Exchange, ccxt.kucoin):
             'symbol': symbol,
             'topic': topic,
             'messageHash': messageHash,
+            'method': method,
         }
         request = self.extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash, subscription)
+
+    async def watch_ticker(self, symbol, params={}):
+        await self.load_markets()
+        negotiate = self.negotiate()
+        topic = '/market/snapshot'
+        return await self.after_async(negotiate, self.subscribe, topic, None, symbol, params)
 
     def handle_ticker(self, client, message):
         #
@@ -153,40 +156,10 @@ class kucoin(Exchange, ccxt.kucoin):
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
-        future = self.negotiate()
-        return await self.after_async(future, self.subscribe_to_trades, symbol, since, limit, params)
-
-    async def subscribe_to_trades(self, negotiation, symbol, since=None, limit=None, params={}):
-        await self.load_markets()
-        market = self.market(symbol)
-        data = self.safe_value(negotiation, 'data', {})
-        instanceServers = self.safe_value(data, 'instanceServers', [])
-        firstServer = self.safe_value(instanceServers, 0, {})
-        endpoint = self.safe_string(firstServer, 'endpoint')
-        token = self.safe_string(data, 'token')
-        nonce = self.nonce()
-        query = {
-            'token': token,
-            'acceptUserMessage': 'true',
-            # 'connectId': nonce,  # user-defined id is supported, received by handleSystemStatus
-        }
-        url = endpoint + '?' + self.urlencode(query)
+        negotiate = self.negotiate()
         topic = '/market/match'
-        messageHash = topic + ':' + market['id']
-        subscribe = {
-            'id': nonce,
-            'type': 'subscribe',
-            'topic': messageHash,
-            'response': True,
-        }
-        subscription = {
-            'id': str(nonce),
-            'symbol': symbol,
-            'topic': topic,
-            'messageHash': messageHash,
-        }
-        request = self.extend(subscribe, params)
-        return await self.watch(url, messageHash, request, messageHash, subscription)
+        future = self.after_async(negotiate, self.subscribe, topic, None, symbol, since, params)
+        return await self.after(future, self.filterBySinceLimit, since, limit)
 
     def handle_trade(self, client, message):
         #
@@ -222,14 +195,6 @@ class kucoin(Exchange, ccxt.kucoin):
         return message
 
     async def watch_order_book(self, symbol, limit=None, params={}):
-        if limit is not None:
-            if (limit != 20) and (limit != 100):
-                raise ExchangeError(self.id + " watchOrderBook 'limit' argument must be None, 20 or 100")
-        await self.load_markets()
-        future = self.negotiate()
-        return await self.after_async(future, self.subscribe_to_order_book, symbol, limit, params)
-
-    async def subscribe_to_order_book(self, negotiation, symbol, limit=None, params={}):
         #
         # https://docs.kucoin.com/#level-2-market-data
         #
@@ -245,37 +210,13 @@ class kucoin(Exchange, ccxt.kucoin):
         # If the size=0, update the sequence and remove the price of which the
         # size is 0 out of level 2. For other cases, please update the price.
         #
+        if limit is not None:
+            if (limit != 20) and (limit != 100):
+                raise ExchangeError(self.id + " watchOrderBook 'limit' argument must be None, 20 or 100")
         await self.load_markets()
-        market = self.market(symbol)
-        data = self.safe_value(negotiation, 'data', {})
-        instanceServers = self.safe_value(data, 'instanceServers', [])
-        firstServer = self.safe_value(instanceServers, 0, {})
-        endpoint = self.safe_string(firstServer, 'endpoint')
-        token = self.safe_string(data, 'token')
-        nonce = self.nonce()
-        query = {
-            'token': token,
-            'acceptUserMessage': 'true',
-            # 'connectId': nonce,  # user-defined id is supported, received by handleSystemStatus
-        }
-        url = endpoint + '?' + self.urlencode(query)
+        negotiate = self.negotiate()
         topic = '/market/level2'
-        messageHash = topic + ':' + market['id']
-        subscribe = {
-            'id': nonce,
-            'type': 'subscribe',
-            'topic': messageHash,
-            'response': True,
-        }
-        subscription = {
-            'id': str(nonce),
-            'symbol': symbol,
-            'topic': topic,
-            'messageHash': messageHash,
-            'method': self.handle_order_book_subscription,
-        }
-        request = self.extend(subscribe, params)
-        future = self.watch(url, messageHash, request, messageHash, subscription)
+        future = self.after_async(negotiate, self.subscribe, topic, self.handle_order_book_subscription, symbol, params)
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
     def limit_order_book(self, orderbook, symbol, limit=None, params={}):
