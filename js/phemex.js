@@ -268,7 +268,7 @@ module.exports = class phemex extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': this.convertEp (priceEp, priceScale, pricePrecision),
+            'price': parseFloat (this.convertEp (priceEp, priceScale, pricePrecision)),
             'amount': amount,
             'cost': undefined,
             'fee': {
@@ -495,7 +495,7 @@ module.exports = class phemex extends Exchange {
         const response = await this[method] ({ 'symbol': marketID });
         const data = this.parseMdResponse (response);
         const trades = this.safeValue (data, 'trades');
-        return this.parseMdTrades (trades, market);
+        return this.parseMdTrades (this.sortBy (trades, 0), market);
     }
 
     async fetchBalance (params = {}) {
