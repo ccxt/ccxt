@@ -19,7 +19,7 @@ class bitfinex extends \ccxt\bitfinex {
                 'watchTicker' => true,
                 'watchTickers' => false,
                 'watchOrderBook' => true,
-                'watchTrades' => false,
+                'watchTrades' => true,
                 'watchBalance' => false,
             ),
             'urls' => array(
@@ -33,19 +33,153 @@ class bitfinex extends \ccxt\bitfinex {
         ));
     }
 
-    public function watch_ticker ($symbol, $params = array ()) {
+    public function subscribe ($channel, $symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $marketId = $market['id'];
         $url = $this->urls['api']['ws']['public'];
-        $channel = 'ticker';
+        $messageHash = $channel . ':' . $marketId;
+        // $channel = 'trades';
         $request = array(
             'event' => 'subscribe',
             'channel' => $channel,
             'symbol' => $marketId,
+            'messageHash' => $messageHash,
         );
-        $messageHash = $channel . ':' . $marketId;
         return $this->watch ($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
+    }
+
+    public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $future = $this->subscribe ('trades', $symbol, $params);
+        return $this->after ($future, $this->filterBySinceLimit, $since, $limit);
+    }
+
+    public function watch_ticker ($symbol, $params = array ()) {
+        return $this->subscribe ('ticker', $symbol, $params);
+    }
+
+    public function handle_trades ($client, $message, $subscription) {
+        //
+        // initial snapshot
+        //
+        //     array(
+        //         2,
+        //             array(
+        //             array( null, 1580565020, 9374.9, 0.005 ),
+        //             array( null, 1580565004, 9374.9, 0.005 ),
+        //             array( null, 1580565003, 9374.9, 0.005 ),
+        //         )
+        //     )
+        //
+        // when a $trade does not have an id yet
+        //
+        //     // channel id, update type, seq, time, price, amount
+        //     array( 2, 'te', '28462857-BTCUSD', 1580565041, 9374.9, 0.005 ),
+        //
+        // when a $trade already has an id
+        //
+        //     // channel id, update type, seq, $trade id, time, price, amount
+        //     array( 2, 'tu', '28462857-BTCUSD', 413357662, 1580565041, 9374.9, 0.005 )
+        //
+        $messageHash = $this->safe_value($subscription, 'messageHash');
+        $marketId = $this->safe_string($subscription, 'pair');
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+            $symbol = $market['symbol'];
+            $data = $this->safe_value($message, 1);
+            $stored = $this->safe_value($this->trades, $symbol, array());
+            if (gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) == 0) {
+                $trades = $this->parse_trades($data, $market);
+                for ($i = 0; $i < count($trades); $i++) {
+                    $stored[] = $trades[$i];
+                    $storedLength = is_array($stored) ? count($stored) : 0;
+                    if ($storedLength > $this->options['tradesLimit']) {
+                        array_shift($stored);
+                    }
+                }
+            } else {
+                $second = $this->safe_string($message, 1);
+                if ($second !== 'tu') {
+                    return;
+                }
+                $trade = $this->parse_trade($message, $market);
+                $stored[] = $trade;
+                $length = is_array($stored) ? count($stored) : 0;
+                if ($length > $this->options['tradesLimit']) {
+                    array_shift($stored);
+                }
+            }
+            $this->trades[$symbol] = $stored;
+            $client->resolve ($stored, $messageHash);
+        }
+        return $message;
+    }
+
+    public function parse_trade ($trade, $market = null) {
+        //
+        // snapshot $trade
+        //
+        //     // null, time, $price, $amount
+        //     array( null, 1580565020, 9374.9, 0.005 ),
+        //
+        // when a $trade does not have an $id yet
+        //
+        //     // channel $id, update type, $seq, time, $price, $amount
+        //     array( 2, 'te', '28462857-BTCUSD', 1580565041, 9374.9, 0.005 ),
+        //
+        // when a $trade already has an $id
+        //
+        //     // channel $id, update type, $seq, $trade $id, time, $price, $amount
+        //     array( 2, 'tu', '28462857-BTCUSD', 413357662, 1580565041, 9374.9, 0.005 )
+        //
+        if (!gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
+            return parent::parse_trade($trade, $market);
+        }
+        $tradeLength = is_array($trade) ? count($trade) : 0;
+        $event = $this->safe_string($trade, 1);
+        $id = null;
+        if ($event === 'tu') {
+            $id = $this->safe_string($trade, $tradeLength - 4);
+        }
+        $timestamp = $this->safe_timestamp($trade, $tradeLength - 3);
+        $price = $this->safe_float($trade, $tradeLength - 2);
+        $amount = $this->safe_float($trade, $tradeLength - 1);
+        $side = null;
+        if ($amount !== null) {
+            $side = ($amount > 0) ? 'buy' : 'sell';
+            $amount = abs($amount);
+        }
+        $cost = null;
+        if (($price !== null) && ($amount !== null)) {
+            $cost = $price * $amount;
+        }
+        $seq = $this->safe_string($trade, 2);
+        $parts = explode('-', $seq);
+        $marketId = $this->safe_string($parts, 1);
+        $symbol = null;
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+        }
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
+        }
+        $takerOrMaker = null;
+        $orderId = null;
+        return array(
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'id' => $id,
+            'order' => $orderId,
+            'type' => null,
+            'takerOrMaker' => $takerOrMaker,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
+        );
     }
 
     public function handle_ticker ($client, $message, $subscription) {
@@ -108,24 +242,15 @@ class bitfinex extends \ccxt\bitfinex {
                 throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 25 or 100');
             }
         }
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        $marketId = $market['id'];
-        $url = $this->urls['api']['ws']['public'];
-        $channel = 'book';
         $request = array(
-            'event' => 'subscribe',
-            'channel' => $channel,
-            'symbol' => $marketId,
+            // 'event' => 'subscribe', // added in subscribe()
+            // 'channel' => channel,  // added in subscribe()
+            // 'symbol' => marketId,  // added in subscribe()
             // 'prec' => 'P0', // string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
             // 'freq' => 'F0', // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
             // 'len' => '25', // string, number of price points, '25', '100', default = '25'
         );
-        if ($limit !== null) {
-            $request['len'] = (string) $limit;
-        }
-        $messageHash = $channel . ':' . $marketId;
-        $future = $this->watch ($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
+        $future = $this->subscribe ('book', $symbol, array_replace_recursive($request, $params));
         return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
@@ -237,7 +362,6 @@ class bitfinex extends \ccxt\bitfinex {
     }
 
     public function handle_message ($client, $message) {
-        // var_dump (new Date (), $message);
         if (gettype($message) === 'array' && count(array_filter(array_keys($message), 'is_string')) == 0) {
             $channelId = $this->safe_string($message, 0);
             //
@@ -255,7 +379,7 @@ class bitfinex extends \ccxt\bitfinex {
                 'book' => array($this, 'handle_order_book'),
                 // 'ohlc' => $this->handleOHLCV,
                 'ticker' => array($this, 'handle_ticker'),
-                // 'trade' => $this->handleTrades,
+                'trades' => array($this, 'handle_trades'),
             );
             $method = $this->safe_value($methods, $channel);
             if ($method === null) {
@@ -264,7 +388,7 @@ class bitfinex extends \ccxt\bitfinex {
                 return $method($client, $message, $subscription);
             }
         } else {
-            // todo => add bitfinex handleErrorMessage
+            // todo add bitfinex handleErrorMessage
             //
             //     {
             //         $event => 'info',

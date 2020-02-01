@@ -23,6 +23,7 @@ class kucoin extends \ccxt\kucoin {
                 'watchBalance' => false, // for now
             ),
             'options' => array(
+                'tradesLimit' => 1000,
                 'watchOrderBookRate' => 100, // get updates every 100ms or 1000ms
             ),
             'streaming' => array(
@@ -75,13 +76,7 @@ class kucoin extends \ccxt\kucoin {
         return $future;
     }
 
-    public function watch_ticker ($symbol, $params = array ()) {
-        $this->load_markets();
-        $future = $this->negotiate ();
-        return $this->after_async ($future, array($this, 'subscribe_to_ticker'), $symbol, $params);
-    }
-
-    public function subscribe_to_ticker ($negotiation, $symbol, $params = array ()) {
+    public function subscribe ($negotiation, $topic, $method, $symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $data = $this->safe_value($negotiation, 'data', array());
@@ -96,7 +91,7 @@ class kucoin extends \ccxt\kucoin {
             // 'connectId' => $nonce, // user-defined id is supported, received by handleSystemStatus
         );
         $url = $endpoint . '?' . $this->urlencode ($query);
-        $topic = '/market/snapshot'; // '/market/ticker';
+        // $topic = '/market/snapshot'; // '/market/ticker';
         $messageHash = $topic . ':' . $market['id'];
         $subscribe = array(
             'id' => $nonce,
@@ -109,9 +104,17 @@ class kucoin extends \ccxt\kucoin {
             'symbol' => $symbol,
             'topic' => $topic,
             'messageHash' => $messageHash,
+            'method' => $method,
         );
         $request = array_merge($subscribe, $params);
         return $this->watch ($url, $messageHash, $request, $messageHash, $subscription);
+    }
+
+    public function watch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
+        $negotiate = $this->negotiate ();
+        $topic = '/market/snapshot';
+        return $this->after_async ($negotiate, array($this, 'subscribe'), $topic, null, $symbol, $params);
     }
 
     public function handle_ticker ($client, $message) {
@@ -163,41 +166,10 @@ class kucoin extends \ccxt\kucoin {
 
     public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $future = $this->negotiate ();
-        return $this->after_async ($future, array($this, 'subscribe_to_trades'), $symbol, $since, $limit, $params);
-    }
-
-    public function subscribe_to_trades ($negotiation, $symbol, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        $data = $this->safe_value($negotiation, 'data', array());
-        $instanceServers = $this->safe_value($data, 'instanceServers', array());
-        $firstServer = $this->safe_value($instanceServers, 0, array());
-        $endpoint = $this->safe_string($firstServer, 'endpoint');
-        $token = $this->safe_string($data, 'token');
-        $nonce = $this->nonce ();
-        $query = array(
-            'token' => $token,
-            'acceptUserMessage' => 'true',
-            // 'connectId' => $nonce, // user-defined id is supported, received by handleSystemStatus
-        );
-        $url = $endpoint . '?' . $this->urlencode ($query);
+        $negotiate = $this->negotiate ();
         $topic = '/market/match';
-        $messageHash = $topic . ':' . $market['id'];
-        $subscribe = array(
-            'id' => $nonce,
-            'type' => 'subscribe',
-            'topic' => $messageHash,
-            'response' => true,
-        );
-        $subscription = array(
-            'id' => (string) $nonce,
-            'symbol' => $symbol,
-            'topic' => $topic,
-            'messageHash' => $messageHash,
-        );
-        $request = array_merge($subscribe, $params);
-        return $this->watch ($url, $messageHash, $request, $messageHash, $subscription);
+        $future = $this->after_async ($negotiate, array($this, 'subscribe'), $topic, null, $symbol, $since, $params);
+        return $this->after ($future, $this->filterBySinceLimit, $since, $limit);
     }
 
     public function handle_trade ($client, $message) {
@@ -236,63 +208,30 @@ class kucoin extends \ccxt\kucoin {
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
+        //
+        // https://docs.kucoin.com/#level-2-market-data
+        //
+        // 1. After receiving the websocket Level 2 data flow, cache the data.
+        // 2. Initiate a REST request to get the snapshot data of Level 2 order book.
+        // 3. Playback the cached Level 2 data flow.
+        // 4. Apply the new Level 2 data flow to the local snapshot to ensure that
+        // the sequence of the new Level 2 update lines up with the sequence of
+        // the previous Level 2 data. Discard all the message prior to that
+        // sequence, and then playback the change to snapshot.
+        // 5. Update the level2 full data based on sequence according to the
+        // size. If the price is 0, ignore the messages and update the sequence.
+        // If the size=0, update the sequence and remove the price of which the
+        // size is 0 out of level 2. For other cases, please update the price.
+        //
         if ($limit !== null) {
             if (($limit !== 20) && ($limit !== 100)) {
                 throw new ExchangeError($this->id . " watchOrderBook 'limit' argument must be null, 20 or 100");
             }
         }
         $this->load_markets();
-        $future = $this->negotiate ();
-        return $this->after_async ($future, array($this, 'subscribe_to_order_book'), $symbol, $limit, $params);
-    }
-
-    public function subscribe_to_order_book ($negotiation, $symbol, $limit = null, $params = array ()) {
-        //
-        // https://docs.kucoin.com/#level-2-$market-$data
-        //
-        // 1. After receiving the websocket Level 2 $data flow, cache the $data->
-        // 2. Initiate a REST $request to get the snapshot $data of Level 2 order book.
-        // 3. Playback the cached Level 2 $data flow.
-        // 4. Apply the new Level 2 $data flow to the local snapshot to ensure that
-        // the sequence of the new Level 2 update lines up with the sequence of
-        // the previous Level 2 $data-> Discard all the message prior to that
-        // sequence, and then playback the change to snapshot.
-        // 5. Update the level2 full $data based on sequence according to the
-        // size. If the price is 0, ignore the messages and update the sequence.
-        // If the size=0, update the sequence and remove the price of which the
-        // size is 0 out of level 2. For other cases, please update the price.
-        //
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        $data = $this->safe_value($negotiation, 'data', array());
-        $instanceServers = $this->safe_value($data, 'instanceServers', array());
-        $firstServer = $this->safe_value($instanceServers, 0, array());
-        $endpoint = $this->safe_string($firstServer, 'endpoint');
-        $token = $this->safe_string($data, 'token');
-        $nonce = $this->nonce ();
-        $query = array(
-            'token' => $token,
-            'acceptUserMessage' => 'true',
-            // 'connectId' => $nonce, // user-defined id is supported, received by handleSystemStatus
-        );
-        $url = $endpoint . '?' . $this->urlencode ($query);
+        $negotiate = $this->negotiate ();
         $topic = '/market/level2';
-        $messageHash = $topic . ':' . $market['id'];
-        $subscribe = array(
-            'id' => $nonce,
-            'type' => 'subscribe',
-            'topic' => $messageHash,
-            'response' => true,
-        );
-        $subscription = array(
-            'id' => (string) $nonce,
-            'symbol' => $symbol,
-            'topic' => $topic,
-            'messageHash' => $messageHash,
-            'method' => array($this, 'handle_order_book_subscription'),
-        );
-        $request = array_merge($subscribe, $params);
-        $future = $this->watch ($url, $messageHash, $request, $messageHash, $subscription);
+        $future = $this->after_async ($negotiate, array($this, 'subscribe'), $topic, array($this, 'handle_order_book_subscription'), $symbol, $params);
         return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
