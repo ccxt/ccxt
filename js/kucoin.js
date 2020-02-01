@@ -353,7 +353,6 @@ module.exports = class kucoin extends ccxt.kucoin {
         return message;
     }
 
-
     handleOrderBookSubscription (client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeString (subscription, 'limit');
@@ -393,7 +392,6 @@ module.exports = class kucoin extends ccxt.kucoin {
         //         type: 'welcome',
         //     }
         //
-        console.log (message);
         return message;
     }
 
