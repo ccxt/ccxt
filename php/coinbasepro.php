@@ -17,7 +17,7 @@ class coinbasepro extends \ccxt\coinbasepro {
                 'ws' => true,
                 'watchOHLCV' => false,
                 'watchOrderBook' => true,
-                'watchTicker' => false,
+                'watchTicker' => true,
                 'watchTickers' => false, // for now
                 'watchTrades' => true,
                 'watchBalance' => false,
@@ -47,6 +47,11 @@ class coinbasepro extends \ccxt\coinbasepro {
         );
         $request = array_merge($subscribe, $params);
         return $this->watch ($url, $messageHash, $request, $messageHash);
+    }
+
+    public function watch_ticker ($symbol, $params = array ()) {
+        $name = 'ticker';
+        return $this->subscribe ($name, $symbol, $params);
     }
 
     public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
@@ -100,6 +105,103 @@ class coinbasepro extends \ccxt\coinbasepro {
             $client->resolve ($array, $messageHash);
         }
         return $message;
+    }
+
+    public function handle_ticker ($client, $message) {
+        //
+        //     {
+        //         $type => 'ticker',
+        //         sequence => 12042642428,
+        //         product_id => 'BTC-USD',
+        //         price => '9380.55',
+        //         open_24h => '9450.81000000',
+        //         volume_24h => '9611.79166047',
+        //         low_24h => '9195.49000000',
+        //         high_24h => '9475.19000000',
+        //         volume_30d => '327812.00311873',
+        //         best_bid => '9380.54',
+        //         best_ask => '9380.55',
+        //         side => 'buy',
+        //         time => '2020-02-01T01:40:16.253563Z',
+        //         trade_id => 82062566,
+        //         last_size => '0.41969131'
+        //     }
+        //
+        $marketId = $this->safe_string($message, 'product_id');
+        if ($marketId !== null) {
+            $ticker = $this->parse_ticker($message);
+            $symbol = $ticker['symbol'];
+            $this->tickers[$symbol] = $ticker;
+            $type = $this->safe_string($message, 'type');
+            $messageHash = $type . ':' . $marketId;
+            $client->resolve ($ticker, $messageHash);
+        }
+        return $message;
+    }
+
+    public function parse_ticker ($ticker, $market = null) {
+        //
+        //     {
+        //         $type => 'ticker',
+        //         sequence => 12042642428,
+        //         product_id => 'BTC-USD',
+        //         price => '9380.55',
+        //         open_24h => '9450.81000000',
+        //         volume_24h => '9611.79166047',
+        //         low_24h => '9195.49000000',
+        //         high_24h => '9475.19000000',
+        //         volume_30d => '327812.00311873',
+        //         best_bid => '9380.54',
+        //         best_ask => '9380.55',
+        //         side => 'buy',
+        //         time => '2020-02-01T01:40:16.253563Z',
+        //         trade_id => 82062566,
+        //         last_size => '0.41969131'
+        //     }
+        //
+        $type = $this->safe_string($ticker, 'type');
+        if ($type === null) {
+            return parent::parse_ticker($ticker, $market);
+        }
+        $symbol = null;
+        $marketId = $this->safe_string($ticker, 'product_id');
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            } else {
+                list($baseId, $quoteId) = explode('-', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
+        }
+        $timestamp = $this->parse8601 ($this->safe_string($ticker, 'time'));
+        $last = $this->safe_float($ticker, 'price');
+        return array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => $this->safe_float($ticker, 'high_24h'),
+            'low' => $this->safe_float($ticker, 'low_24h'),
+            'bid' => $this->safe_float($ticker, 'best_bid'),
+            'bidVolume' => null,
+            'ask' => $this->safe_float($ticker, 'best_ask'),
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => $this->safe_float($ticker, 'open_24h'),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => $this->safe_float($ticker, 'volume_24h'),
+            'quoteVolume' => null,
+            'info' => $ticker,
+        );
     }
 
     public function handle_delta ($bookside, $delta) {
@@ -216,6 +318,7 @@ class coinbasepro extends \ccxt\coinbasepro {
             'l2update' => array($this, 'handle_order_book'),
             'subscribe' => array($this, 'handle_subscription_status'),
             'match' => array($this, 'handle_trade'),
+            'ticker' => array($this, 'handle_ticker'),
         );
         $method = $this->safe_value($methods, $type);
         if ($method === null) {

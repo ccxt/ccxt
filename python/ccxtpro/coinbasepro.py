@@ -15,7 +15,7 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
                 'ws': True,
                 'watchOHLCV': False,
                 'watchOrderBook': True,
-                'watchTicker': False,
+                'watchTicker': True,
                 'watchTickers': False,  # for now
                 'watchTrades': True,
                 'watchBalance': False,
@@ -44,6 +44,10 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
         }
         request = self.extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
+
+    async def watch_ticker(self, symbol, params={}):
+        name = 'ticker'
+        return await self.subscribe(name, symbol, params)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         name = 'matches'
@@ -91,6 +95,96 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
             self.trades[symbol] = array
             client.resolve(array, messageHash)
         return message
+
+    def handle_ticker(self, client, message):
+        #
+        #     {
+        #         type: 'ticker',
+        #         sequence: 12042642428,
+        #         product_id: 'BTC-USD',
+        #         price: '9380.55',
+        #         open_24h: '9450.81000000',
+        #         volume_24h: '9611.79166047',
+        #         low_24h: '9195.49000000',
+        #         high_24h: '9475.19000000',
+        #         volume_30d: '327812.00311873',
+        #         best_bid: '9380.54',
+        #         best_ask: '9380.55',
+        #         side: 'buy',
+        #         time: '2020-02-01T01:40:16.253563Z',
+        #         trade_id: 82062566,
+        #         last_size: '0.41969131'
+        #     }
+        #
+        marketId = self.safe_string(message, 'product_id')
+        if marketId is not None:
+            ticker = self.parse_ticker(message)
+            symbol = ticker['symbol']
+            self.tickers[symbol] = ticker
+            type = self.safe_string(message, 'type')
+            messageHash = type + ':' + marketId
+            client.resolve(ticker, messageHash)
+        return message
+
+    def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         type: 'ticker',
+        #         sequence: 12042642428,
+        #         product_id: 'BTC-USD',
+        #         price: '9380.55',
+        #         open_24h: '9450.81000000',
+        #         volume_24h: '9611.79166047',
+        #         low_24h: '9195.49000000',
+        #         high_24h: '9475.19000000',
+        #         volume_30d: '327812.00311873',
+        #         best_bid: '9380.54',
+        #         best_ask: '9380.55',
+        #         side: 'buy',
+        #         time: '2020-02-01T01:40:16.253563Z',
+        #         trade_id: 82062566,
+        #         last_size: '0.41969131'
+        #     }
+        #
+        type = self.safe_string(ticker, 'type')
+        if type is None:
+            return super(coinbasepro, self).parse_ticker(ticker, market)
+        symbol = None
+        marketId = self.safe_string(ticker, 'product_id')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('-')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
+        timestamp = self.parse8601(self.safe_string(ticker, 'time'))
+        last = self.safe_float(ticker, 'price')
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_float(ticker, 'high_24h'),
+            'low': self.safe_float(ticker, 'low_24h'),
+            'bid': self.safe_float(ticker, 'best_bid'),
+            'bidVolume': None,
+            'ask': self.safe_float(ticker, 'best_ask'),
+            'askVolume': None,
+            'vwap': None,
+            'open': self.safe_float(ticker, 'open_24h'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': self.safe_float(ticker, 'volume_24h'),
+            'quoteVolume': None,
+            'info': ticker,
+        }
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)
@@ -196,6 +290,7 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
             'l2update': self.handle_order_book,
             'subscribe': self.handle_subscription_status,
             'match': self.handle_trade,
+            'ticker': self.handle_ticker,
         }
         method = self.safe_value(methods, type)
         if method is None:
