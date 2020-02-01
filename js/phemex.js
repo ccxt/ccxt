@@ -21,6 +21,10 @@ module.exports = class phemex extends Exchange {
         return this.convertENumber (ev, scale, precision, ROUND);
     }
 
+    convertEr (er, scale, precision) {
+        return this.convertENumber (er, scale, precision, ROUND);
+    }
+
     convertEp (ep, scale, precision) {
         if (ep === undefined) {
             return undefined;
@@ -64,6 +68,10 @@ module.exports = class phemex extends Exchange {
 
     parseResponse (response) {
         return this.safeValue (response, 'data', null);
+    }
+
+    parseMdResponse (response) {
+        return this.safeValue (response, 'result', null);
     }
 
     parseMarket (product, precisions) {
@@ -183,6 +191,103 @@ module.exports = class phemex extends Exchange {
         return result;
     }
 
+    parseMyTrade (trade, market = undefined) {
+        const marketID = market['id'];
+        // market data
+        const contractSide = this.safeInteger (market, marketID, 1);
+        const precisions = this.safeValue (market, 'precision');
+        const priceScale = this.safeInteger (market, 'priceScale');
+        const pricePrecision = this.safeInteger (precisions, 'price');
+        const valueScale = this.safeInteger (market, 'valueScale');
+        const valuePrecision = this.safeInteger (precisions, 'value');
+        // trade data
+        const transactTimeNs = this.safeInteger (trade, 'transactTimeNs', 0);
+        const timestamp = this.convertTimeNs (transactTimeNs);
+        const type = this.safeStringLower (trade, 'ordType');
+        const side = this.safeStringLower (trade, 'side');
+        const execStatus = this.safeString (trade, 'execStatus');
+        const execPriceEp = this.safeInteger (trade, 'execPriceEp', 0);
+        const priceEp = this.safeInteger (trade, 'priceEp', 0);
+        const amount = this.safeInteger (trade, 'execQty', 0);
+        const costEv = this.calcCostEv (amount, execPriceEp, priceEp, priceScale, valueScale, contractSide);
+        const execFeeEv = this.safeInteger (trade, 'execFeeEv', 0);
+        const feeRateEr = this.safeInteger (trade, 'feeRateEr', 0);
+        let takerOrMaker = undefined;
+        if (execStatus === 'TakerFill') {
+            takerOrMaker = 'taker';
+        } else if (execStatus === 'MakerFill') {
+            takerOrMaker = 'maker';
+        }
+        return {
+            'info': trade,
+            'id': this.safeString (trade, 'execID'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': this.safeString (trade, 'orderID'),
+            'type': type,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': this.convertEp (execPriceEp, priceScale, pricePrecision),
+            'amount': amount,
+            'cost': this.convertEv (costEv + execFeeEv, valueScale, valuePrecision),
+            'fee': {
+                'cost': this.convertEv (execFeeEv, valueScale, valuePrecision),
+                'currency': this.safeString (trade, 'currency'),
+                'rate': this.convertEr (feeRateEr, 8, 8),
+            },
+        };
+    }
+
+    parseMyTrades (trades, market = undefined) {
+        const result = [];
+        const tradesCount = trades.length;
+        for (let i = 0; i < tradesCount; i++) {
+            result.push (this.parseMyTrade (trades[i], market));
+        }
+        return result;
+    }
+
+    parseMdTrade (trade, market = undefined) {
+        // market data
+        const precisions = this.safeValue (market, 'precision');
+        const priceScale = this.safeInteger (market, 'priceScale');
+        const pricePrecision = this.safeInteger (precisions, 'price');
+        const timestampNs = trade[0];
+        const timestamp = this.convertTimeNs (timestampNs);
+        const side = trade[1].toLowerCase ();
+        const priceEp = trade[2];
+        const amount = trade[3];
+        return {
+            'info': trade,
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': undefined,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': this.convertEp (priceEp, priceScale, pricePrecision),
+            'amount': amount,
+            'cost': undefined,
+            'fee': {
+                'cost': undefined,
+                'currency': undefined,
+                'rate': undefined,
+            },
+        };
+    }
+
+    parseMdTrades (trades, market = undefined) {
+        const result = [];
+        const tradesCount = trades.length;
+        for (let i = 0; i < tradesCount; i++) {
+            result.push (this.parseMdTrade (trades[i], market));
+        }
+        return result;
+    }
+
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'phemex',
@@ -214,18 +319,18 @@ module.exports = class phemex extends Exchange {
                 'fetchL2OrderBook': false,
                 'fetchLedger': false,
                 'fetchMarkets': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': true,
                 'fetchStatus': false,
                 'fetchTicker': false,
                 'fetchTickers': false,
                 'fetchTime': false,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': false,
@@ -246,10 +351,12 @@ module.exports = class phemex extends Exchange {
                 'www': 'https://phemex.com',
                 'test': {
                     'public': 'https://testnet.phemex.com/api',
+                    'public2': 'https://testnet-api.phemex.com',
                     'private': 'https://testnet-api.phemex.com',
                 },
                 'api': {
                     'public': 'https://phemex.com/api',
+                    'public2': 'https://api.phemex.com',
                     'private': 'https://api.phemex.com',
                 },
                 'doc': [
@@ -265,12 +372,19 @@ module.exports = class phemex extends Exchange {
                         'exchange/public/products',
                     ],
                 },
+                'public2': {
+                    'get': [
+                        'md/orderbook',
+                        'md/trade',
+                    ],
+                },
                 'private': {
                     'get': [
                         'accounts/accountPositions',
                         'phemex-user/order',
                         'phemex-user/order/list',
                         'phemex-user/order/orderList',
+                        'phemex-user/order/trade',
                         'orders/activeList',
                     ],
                     'post': [
@@ -331,6 +445,57 @@ module.exports = class phemex extends Exchange {
             result.push (market);
         }
         return result;
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketID = market['id'];
+        // market data
+        const precisions = this.safeValue (market, 'precision');
+        const priceScale = this.safeInteger (market, 'priceScale');
+        const pricePrecision = this.safeInteger (precisions, 'price');
+        const method = 'public2GetMdOrderbook';
+        const response = await this[method] ({ 'symbol': marketID });
+        const data = this.parseMdResponse (response);
+        const book = this.safeValue (data, 'book');
+        const rawBids = this.safeValue (book, 'bids');
+        const rawAsks = this.safeValue (book, 'asks');
+        const bids = [];
+        const asks = [];
+        for (let i = 0; i < rawBids.length; i++) {
+            const order = rawBids[i];
+            const priceEp = order[0];
+            const amount = order[1];
+            const price = this.convertEp (priceEp, priceScale, pricePrecision);
+            bids.push ([price, amount]);
+        }
+        for (let i = 0; i < rawAsks.length; i++) {
+            const order = rawAsks[i];
+            const priceEp = order[0];
+            const amount = order[1];
+            const price = this.convertEp (priceEp, priceScale, pricePrecision);
+            asks.push ([price, amount]);
+        }
+        const result = {
+            'bids': bids,
+            'asks': asks,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'nonce': undefined,
+        };
+        return result;
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketID = market['id'];
+        const method = 'public2GetMdTrade';
+        const response = await this[method] ({ 'symbol': marketID });
+        const data = this.parseMdResponse (response);
+        const trades = this.safeValue (data, 'trades');
+        return this.parseMdTrades (trades, market);
     }
 
     async fetchBalance (params = {}) {
@@ -471,6 +636,17 @@ module.exports = class phemex extends Exchange {
         } catch (e) {
             throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
         }
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketID = market['id'];
+        const method = 'privateGetPhemexUserOrderTrade';
+        const response = await this[method] ({ 'symbol': marketID, 'start': since, 'limit': limit });
+        const data = this.parseResponse (response);
+        const trades = this.safeValue (data, 'rows', []);
+        return this.parseMyTrades (trades, market);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
