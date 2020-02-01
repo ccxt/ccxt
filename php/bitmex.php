@@ -311,7 +311,7 @@ class bitmex extends \ccxt\bitmex {
         throw new NotImplemented($this->id . ' watchBalance() not implemented yet');
     }
 
-    public function handle_trade ($client, $message) {
+    public function handle_trades ($client, $message) {
         //
         // initial snapshot
         //
@@ -718,7 +718,7 @@ class bitmex extends \ccxt\bitmex {
                 'orderBookL2_25' => array($this, 'handle_order_book'),
                 'orderBook10' => array($this, 'handle_order_book'),
                 'instrument' => array($this, 'handle_ticker'),
-                'trade' => array($this, 'handle_trade'),
+                'trade' => array($this, 'handle_trades'),
             );
             $method = $this->safe_value($methods, $table);
             if ($method === null) {

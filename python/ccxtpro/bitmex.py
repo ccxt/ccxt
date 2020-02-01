@@ -304,7 +304,7 @@ class bitmex(Exchange, ccxt.bitmex):
         await self.load_markets()
         raise NotImplemented(self.id + ' watchBalance() not implemented yet')
 
-    def handle_trade(self, client, message):
+    def handle_trades(self, client, message):
         #
         # initial snapshot
         #
@@ -683,7 +683,7 @@ class bitmex(Exchange, ccxt.bitmex):
                 'orderBookL2_25': self.handle_order_book,
                 'orderBook10': self.handle_order_book,
                 'instrument': self.handle_ticker,
-                'trade': self.handle_trade,
+                'trade': self.handle_trades,
             }
             method = self.safe_value(methods, table)
             if method is None:
