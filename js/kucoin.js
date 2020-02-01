@@ -404,10 +404,11 @@ module.exports = class kucoin extends Exchange {
                 symbol = market['symbol'];
             }
         }
+        const timestamp = this.safeInteger (ticker, 'time');
         return {
             'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'buy'),
