@@ -200,7 +200,6 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         };
     }
 
-
     handleDelta (bookside, delta) {
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);
