@@ -386,29 +386,20 @@ module.exports = class binance extends ccxt.binance {
         const kline = this.safeValue (message, 'k');
         const interval = this.safeString (kline, 'i');
         const messageHash = lowercaseMarketId + '@' + event + '_' + interval;
-        const timestamp = this.safeInteger (kline, 't');
-        const open = this.safeFloat (kline, 'o');
-        const high = this.safeFloat (kline, 'h');
-        const low = this.safeFloat (kline, 'l');
-        const close = this.safeFloat (kline, 'c');
-        const volume = this.safeFloat (kline, 'v');
         const parsed = [
-            timestamp,
-            open,
-            high,
-            low,
-            close,
-            volume,
+            this.safeInteger (kline, 't'),
+            this.safeFloat (kline, 'o'),
+            this.safeFloat (kline, 'h'),
+            this.safeFloat (kline, 'l'),
+            this.safeFloat (kline, 'c'),
+            this.safeFloat (kline, 'v'),
         ];
         let symbol = marketId;
         if (marketId in this.markets_by_id) {
             const market = this.markets_by_id[marketId];
             symbol = market['symbol'];
         }
-        if (!(symbol in this.ohlcvs)) {
-            this.ohlcvs[symbol] = [];
-        }
-        const stored = this.ohlcvs[symbol];
+        const stored = this.safeValue (this.ohlcvs, symbol, []);
         const length = stored.length;
         if (length && parsed[0] === stored[length - 1][0]) {
             stored[length - 1] = parsed;
