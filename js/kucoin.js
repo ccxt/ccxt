@@ -160,11 +160,15 @@ module.exports = class kucoin extends ccxt.kucoin {
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         if (limit !== undefined) {
             if ((limit !== 20) && (limit !== 100)) {
-                throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 20 or 100');
+                throw new ExchangeError (this.id + " watchOrderBook 'limit' argument must be undefined, 20 or 100");
             }
         }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const future = this.negotiate ();
+        return await this.afterAsync (future, this.subscribeToOrderBook, symbol, limit, params);
+    }
+
+    async subscribeToOrderBook (negotiation, symbol, limit = undefined, params = {}) {
         //
         // https://docs.kucoin.com/#level-2-market-data
         //
@@ -180,34 +184,9 @@ module.exports = class kucoin extends ccxt.kucoin {
         // If the size=0, update the sequence and remove the price of which the
         // size is 0 out of level 2. For other cases, please update the price.
         //
-        let tokenResponse = this.safeValue (this.options, 'tokenResponse');
-        if (tokenResponse === undefined) {
-            const throwException = false;
-            if (this.checkRequiredCredentials (throwException)) {
-                tokenResponse = await this.privatePostBulletPrivate ();
-                //
-                //     {
-                //         code: "200000",
-                //         data: {
-                //             instanceServers: [
-                //                 {
-                //                     pingInterval:  50000,
-                //                     endpoint: "wss://push-private.kucoin.com/endpoint",
-                //                     protocol: "websocket",
-                //                     encrypt: true,
-                //                     pingTimeout: 10000
-                //                 }
-                //             ],
-                //             token: "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
-                //         }
-                //     }
-                //
-            } else {
-                tokenResponse = await this.publicPostBulletPublic ();
-            }
-            this.options['tokenResponse'] = tokenResponse;
-        }
-        const data = this.safeValue (tokenResponse, 'data', {});
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const data = this.safeValue (negotiation, 'data', {});
         const instanceServers = this.safeValue (data, 'instanceServers', []);
         const firstServer = this.safeValue (instanceServers, 0, {});
         const endpoint = this.safeString (firstServer, 'endpoint');
@@ -230,10 +209,10 @@ module.exports = class kucoin extends ccxt.kucoin {
         const subscription = {
             'id': nonce.toString (),
             'symbol': symbol,
+            'limit': limit,
             'topic': topic,
             'messageHash': messageHash,
             'method': this.handleOrderBookSubscription,
-            'limit': limit,
         };
         const request = this.extend (subscribe, params);
         const future = this.watch (url, messageHash, request, messageHash, subscription);
