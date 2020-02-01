@@ -14,9 +14,10 @@ module.exports = class kucoin extends ccxt.kucoin {
                 'ws': true,
                 'watchOrderBook': true,
                 'watchTickers': false, // for now
-                'watchTicker': true, // for now
-                'watchTrades': true, // for now
+                'watchTicker': true,
+                'watchTrades': true,
                 'watchBalance': false, // for now
+                'watchOHLCV': false, // missing in the exchange API
             },
             'options': {
                 'tradesLimit': 1000,
