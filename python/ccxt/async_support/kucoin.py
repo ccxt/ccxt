@@ -403,10 +403,11 @@ class kucoin(Exchange):
         if symbol is None:
             if market is not None:
                 symbol = market['symbol']
+        timestamp = self.safe_integer(ticker, 'time')
         return {
             'symbol': symbol,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'buy'),

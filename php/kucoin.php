@@ -407,10 +407,11 @@ class kucoin extends Exchange {
                 $symbol = $market['symbol'];
             }
         }
+        $timestamp = $this->safe_integer($ticker, 'time');
         return array(
             'symbol' => $symbol,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
