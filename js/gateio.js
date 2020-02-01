@@ -278,12 +278,12 @@ module.exports = class gateio extends ccxt.gateio {
         const wsMarketId = this.safeString (ohlcv, 7);
         const marketId = this.safeStringLower (ohlcv, 7);
         const parsed = [
-            parseInt (ohlcv[0]),    // t
-            parseFloat (ohlcv[1]),  // o
-            parseFloat (ohlcv[3]),  // h
-            parseFloat (ohlcv[4]),  // l
-            parseFloat (ohlcv[2]),  // c
-            parseFloat (ohlcv[5]),  // v
+            this.safeTimestamp (ohlcv, 0), // t
+            this.safeFloat (ohlcv, 1), // o
+            this.safeFloat (ohlcv, 3), // h
+            this.safeFloat (ohlcv, 4), // l
+            this.safeFloat (ohlcv, 2), // c
+            this.safeFloat (ohlcv, 5), // v
         ];
         let market = undefined;
         let symbol = marketId;
