@@ -18,7 +18,7 @@ class kucoin extends \ccxt\kucoin {
                 'ws' => true,
                 'watchOrderBook' => true,
                 'watchTickers' => false, // for now
-                'watchTicker' => false, // for now
+                'watchTicker' => true, // for now
                 'watchTrades' => false, // for now
                 'watchBalance' => false, // for now
             ),
@@ -34,34 +34,17 @@ class kucoin extends \ccxt\kucoin {
         ));
     }
 
-    public function watch_order_book ($symbol, $limit = null, $params = array ()) {
-        if ($limit !== null) {
-            if (($limit !== 20) && ($limit !== 100)) {
-                throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 20 or 100');
-            }
-        }
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        //
-        // https://docs.kucoin.com/#level-2-$market-$data
-        //
-        // 1. After receiving the websocket Level 2 $data flow, cache the $data->
-        // 2. Initiate a REST $request to get the snapshot $data of Level 2 order book.
-        // 3. Playback the cached Level 2 $data flow.
-        // 4. Apply the new Level 2 $data flow to the local snapshot to ensure that
-        // the sequence of the new Level 2 update lines up with the sequence of
-        // the previous Level 2 $data-> Discard all the message prior to that
-        // sequence, and then playback the change to snapshot.
-        // 5. Update the level2 full $data based on sequence according to the
-        // size. If the price is 0, ignore the messages and update the sequence.
-        // If the size=0, update the sequence and remove the price of which the
-        // size is 0 out of level 2. For other cases, please update the price.
-        //
-        $tokenResponse = $this->safe_value($this->options, 'tokenResponse');
-        if ($tokenResponse === null) {
+    public function negotiate ($params = array ()) {
+        $client = $this->client ('ws');
+        $messageHash = 'negotiate';
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if ($future === null) {
+            $future = $client->future ($messageHash);
+            $client->subscriptions[$messageHash] = $future;
+            $response = null;
             $throwException = false;
             if ($this->check_required_credentials($throwException)) {
-                $tokenResponse = $this->privatePostBulletPrivate ();
+                $response = $this->privatePostBulletPrivate ();
                 //
                 //     {
                 //         code => "200000",
@@ -80,11 +63,134 @@ class kucoin extends \ccxt\kucoin {
                 //     }
                 //
             } else {
-                $tokenResponse = $this->publicPostBulletPublic ();
+                $response = $this->publicPostBulletPublic ();
             }
-            $this->options['tokenResponse'] = $tokenResponse;
+            $client->resolve ($response, $messageHash);
+            // $data = $this->safe_value($response, 'data', array());
+            // $instanceServers = $this->safe_value($data, 'instanceServers', array());
+            // $firstServer = $this->safe_value($instanceServers, 0, array());
+            // $endpoint = $this->safe_string($firstServer, 'endpoint');
+            // $token = $this->safe_string($data, 'token');
         }
-        $data = $this->safe_value($tokenResponse, 'data', array());
+        return $future;
+    }
+
+    public function watch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
+        $future = $this->negotiate ();
+        return $this->after_async ($future, array($this, 'subscribe_to_ticker'), $symbol, $params);
+    }
+
+    public function subscribe_to_ticker ($negotiation, $symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $data = $this->safe_value($negotiation, 'data', array());
+        $instanceServers = $this->safe_value($data, 'instanceServers', array());
+        $firstServer = $this->safe_value($instanceServers, 0, array());
+        $endpoint = $this->safe_string($firstServer, 'endpoint');
+        $token = $this->safe_string($data, 'token');
+        $nonce = $this->nonce ();
+        $query = array(
+            'token' => $token,
+            'acceptUserMessage' => 'true',
+            // 'connectId' => $nonce, // user-defined id is supported, received by handleSystemStatus
+        );
+        $url = $endpoint . '?' . $this->urlencode ($query);
+        $topic = '/market/snapshot'; // '/market/ticker';
+        $messageHash = $topic . ':' . $market['id'];
+        $subscribe = array(
+            'id' => $nonce,
+            'type' => 'subscribe',
+            'topic' => $messageHash,
+            'response' => true,
+        );
+        $subscription = array(
+            'id' => (string) $nonce,
+            'symbol' => $symbol,
+            'topic' => $topic,
+            'messageHash' => $messageHash,
+        );
+        $request = array_merge($subscribe, $params);
+        return $this->watch ($url, $messageHash, $request, $messageHash, $subscription);
+    }
+
+    public function handle_ticker ($client, $message) {
+        //
+        // updates come in every 2 sec unless there
+        // were no changes since the previous update
+        //
+        //     {
+        //         "$data" => {
+        //             "sequence" => "1545896669291",
+        //             "$data" => array(
+        //                 "trading" => true,
+        //                 "$symbol" => "KCS-BTC",
+        //                 "buy" => 0.00011,
+        //                 "sell" => 0.00012,
+        //                 "sort" => 100,
+        //                 "volValue" => 3.13851792584, // total
+        //                 "baseCurrency" => "KCS",
+        //                 "market" => "BTC",
+        //                 "quoteCurrency" => "BTC",
+        //                 "symbolCode" => "KCS-BTC",
+        //                 "datetime" => 1548388122031,
+        //                 "high" => 0.00013,
+        //                 "vol" => 27514.34842,
+        //                 "low" => 0.0001,
+        //                 "changePrice" => -1.0e-5,
+        //                 "changeRate" => -0.0769,
+        //                 "lastTradedPrice" => 0.00012,
+        //                 "board" => 0,
+        //                 "mark" => 0
+        //             }
+        //         ),
+        //         "subject" => "trade.snapshot",
+        //         "topic" => "/market/snapshot:KCS-BTC",
+        //         "type" => "$message"
+        //     }
+        //
+        $data = $this->safe_value($message, 'data', array());
+        $rawTicker = $this->safe_value($data, 'data', array());
+        $ticker = $this->parse_ticker($rawTicker);
+        $symbol = $ticker['symbol'];
+        $this->tickers[$symbol] = $ticker;
+        $messageHash = $this->safe_string($message, 'topic');
+        if ($messageHash !== null) {
+            $client->resolve ($ticker, $messageHash);
+        }
+        return $message;
+    }
+
+    public function watch_order_book ($symbol, $limit = null, $params = array ()) {
+        if ($limit !== null) {
+            if (($limit !== 20) && ($limit !== 100)) {
+                throw new ExchangeError($this->id . " watchOrderBook 'limit' argument must be null, 20 or 100");
+            }
+        }
+        $this->load_markets();
+        $future = $this->negotiate ();
+        return $this->after_async ($future, array($this, 'subscribe_to_order_book'), $symbol, $limit, $params);
+    }
+
+    public function subscribe_to_order_book ($negotiation, $symbol, $limit = null, $params = array ()) {
+        //
+        // https://docs.kucoin.com/#level-2-$market-$data
+        //
+        // 1. After receiving the websocket Level 2 $data flow, cache the $data->
+        // 2. Initiate a REST $request to get the snapshot $data of Level 2 order book.
+        // 3. Playback the cached Level 2 $data flow.
+        // 4. Apply the new Level 2 $data flow to the local snapshot to ensure that
+        // the sequence of the new Level 2 update lines up with the sequence of
+        // the previous Level 2 $data-> Discard all the message prior to that
+        // sequence, and then playback the change to snapshot.
+        // 5. Update the level2 full $data based on sequence according to the
+        // size. If the price is 0, ignore the messages and update the sequence.
+        // If the size=0, update the sequence and remove the price of which the
+        // size is 0 out of level 2. For other cases, please update the price.
+        //
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $data = $this->safe_value($negotiation, 'data', array());
         $instanceServers = $this->safe_value($data, 'instanceServers', array());
         $firstServer = $this->safe_value($instanceServers, 0, array());
         $endpoint = $this->safe_string($firstServer, 'endpoint');
@@ -110,7 +216,6 @@ class kucoin extends \ccxt\kucoin {
             'topic' => $topic,
             'messageHash' => $messageHash,
             'method' => array($this, 'handle_order_book_subscription'),
-            'limit' => $limit,
         );
         $request = array_merge($subscribe, $params);
         $future = $this->watch ($url, $messageHash, $request, $messageHash, $subscription);
@@ -290,7 +395,6 @@ class kucoin extends \ccxt\kucoin {
         //         type => 'welcome',
         //     }
         //
-        var_dump ($message);
         return $message;
     }
 
@@ -314,6 +418,7 @@ class kucoin extends \ccxt\kucoin {
         $subject = $this->safe_string($message, 'subject');
         $methods = array(
             'trade.l2update' => array($this, 'handle_order_book'),
+            'trade.snapshot' => array($this, 'handle_ticker'),
         );
         $method = $this->safe_value($methods, $subject);
         if ($method === null) {

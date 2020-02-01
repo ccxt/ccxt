@@ -16,7 +16,7 @@ class kucoin(Exchange, ccxt.kucoin):
                 'ws': True,
                 'watchOrderBook': True,
                 'watchTickers': False,  # for now
-                'watchTicker': False,  # for now
+                'watchTicker': True,  # for now
                 'watchTrades': False,  # for now
                 'watchBalance': False,  # for now
             },
@@ -31,32 +31,17 @@ class kucoin(Exchange, ccxt.kucoin):
             },
         })
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
-        if limit is not None:
-            if (limit != 20) and (limit != 100):
-                raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 20 or 100')
-        await self.load_markets()
-        market = self.market(symbol)
-        #
-        # https://docs.kucoin.com/#level-2-market-data
-        #
-        # 1. After receiving the websocket Level 2 data flow, cache the data.
-        # 2. Initiate a REST request to get the snapshot data of Level 2 order book.
-        # 3. Playback the cached Level 2 data flow.
-        # 4. Apply the new Level 2 data flow to the local snapshot to ensure that
-        # the sequence of the new Level 2 update lines up with the sequence of
-        # the previous Level 2 data. Discard all the message prior to that
-        # sequence, and then playback the change to snapshot.
-        # 5. Update the level2 full data based on sequence according to the
-        # size. If the price is 0, ignore the messages and update the sequence.
-        # If the size=0, update the sequence and remove the price of which the
-        # size is 0 out of level 2. For other cases, please update the price.
-        #
-        tokenResponse = self.safe_value(self.options, 'tokenResponse')
-        if tokenResponse is None:
+    async def negotiate(self, params={}):
+        client = self.client('ws')
+        messageHash = 'negotiate'
+        future = self.safe_value(client.subscriptions, messageHash)
+        if future is None:
+            future = client.future(messageHash)
+            client.subscriptions[messageHash] = future
+            response = None
             throwException = False
             if self.check_required_credentials(throwException):
-                tokenResponse = await self.privatePostBulletPrivate()
+                response = await self.privatePostBulletPrivate()
                 #
                 #     {
                 #         code: "200000",
@@ -75,9 +60,124 @@ class kucoin(Exchange, ccxt.kucoin):
                 #     }
                 #
             else:
-                tokenResponse = await self.publicPostBulletPublic()
-            self.options['tokenResponse'] = tokenResponse
-        data = self.safe_value(tokenResponse, 'data', {})
+                response = await self.publicPostBulletPublic()
+            client.resolve(response, messageHash)
+            # data = self.safe_value(response, 'data', {})
+            # instanceServers = self.safe_value(data, 'instanceServers', [])
+            # firstServer = self.safe_value(instanceServers, 0, {})
+            # endpoint = self.safe_string(firstServer, 'endpoint')
+            # token = self.safe_string(data, 'token')
+        return await future
+
+    async def watch_ticker(self, symbol, params={}):
+        await self.load_markets()
+        future = self.negotiate()
+        return await self.after_async(future, self.subscribe_to_ticker, symbol, params)
+
+    async def subscribe_to_ticker(self, negotiation, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        data = self.safe_value(negotiation, 'data', {})
+        instanceServers = self.safe_value(data, 'instanceServers', [])
+        firstServer = self.safe_value(instanceServers, 0, {})
+        endpoint = self.safe_string(firstServer, 'endpoint')
+        token = self.safe_string(data, 'token')
+        nonce = self.nonce()
+        query = {
+            'token': token,
+            'acceptUserMessage': 'true',
+            # 'connectId': nonce,  # user-defined id is supported, received by handleSystemStatus
+        }
+        url = endpoint + '?' + self.urlencode(query)
+        topic = '/market/snapshot'  # '/market/ticker'
+        messageHash = topic + ':' + market['id']
+        subscribe = {
+            'id': nonce,
+            'type': 'subscribe',
+            'topic': messageHash,
+            'response': True,
+        }
+        subscription = {
+            'id': str(nonce),
+            'symbol': symbol,
+            'topic': topic,
+            'messageHash': messageHash,
+        }
+        request = self.extend(subscribe, params)
+        return await self.watch(url, messageHash, request, messageHash, subscription)
+
+    def handle_ticker(self, client, message):
+        #
+        # updates come in every 2 sec unless there
+        # were no changes since the previous update
+        #
+        #     {
+        #         "data": {
+        #             "sequence": "1545896669291",
+        #             "data": {
+        #                 "trading": True,
+        #                 "symbol": "KCS-BTC",
+        #                 "buy": 0.00011,
+        #                 "sell": 0.00012,
+        #                 "sort": 100,
+        #                 "volValue": 3.13851792584,  # total
+        #                 "baseCurrency": "KCS",
+        #                 "market": "BTC",
+        #                 "quoteCurrency": "BTC",
+        #                 "symbolCode": "KCS-BTC",
+        #                 "datetime": 1548388122031,
+        #                 "high": 0.00013,
+        #                 "vol": 27514.34842,
+        #                 "low": 0.0001,
+        #                 "changePrice": -1.0e-5,
+        #                 "changeRate": -0.0769,
+        #                 "lastTradedPrice": 0.00012,
+        #                 "board": 0,
+        #                 "mark": 0
+        #             }
+        #         },
+        #         "subject": "trade.snapshot",
+        #         "topic": "/market/snapshot:KCS-BTC",
+        #         "type": "message"
+        #     }
+        #
+        data = self.safe_value(message, 'data', {})
+        rawTicker = self.safe_value(data, 'data', {})
+        ticker = self.parse_ticker(rawTicker)
+        symbol = ticker['symbol']
+        self.tickers[symbol] = ticker
+        messageHash = self.safe_string(message, 'topic')
+        if messageHash is not None:
+            client.resolve(ticker, messageHash)
+        return message
+
+    async def watch_order_book(self, symbol, limit=None, params={}):
+        if limit is not None:
+            if (limit != 20) and (limit != 100):
+                raise ExchangeError(self.id + " watchOrderBook 'limit' argument must be None, 20 or 100")
+        await self.load_markets()
+        future = self.negotiate()
+        return await self.after_async(future, self.subscribe_to_order_book, symbol, limit, params)
+
+    async def subscribe_to_order_book(self, negotiation, symbol, limit=None, params={}):
+        #
+        # https://docs.kucoin.com/#level-2-market-data
+        #
+        # 1. After receiving the websocket Level 2 data flow, cache the data.
+        # 2. Initiate a REST request to get the snapshot data of Level 2 order book.
+        # 3. Playback the cached Level 2 data flow.
+        # 4. Apply the new Level 2 data flow to the local snapshot to ensure that
+        # the sequence of the new Level 2 update lines up with the sequence of
+        # the previous Level 2 data. Discard all the message prior to that
+        # sequence, and then playback the change to snapshot.
+        # 5. Update the level2 full data based on sequence according to the
+        # size. If the price is 0, ignore the messages and update the sequence.
+        # If the size=0, update the sequence and remove the price of which the
+        # size is 0 out of level 2. For other cases, please update the price.
+        #
+        await self.load_markets()
+        market = self.market(symbol)
+        data = self.safe_value(negotiation, 'data', {})
         instanceServers = self.safe_value(data, 'instanceServers', [])
         firstServer = self.safe_value(instanceServers, 0, {})
         endpoint = self.safe_string(firstServer, 'endpoint')
@@ -103,7 +203,6 @@ class kucoin(Exchange, ccxt.kucoin):
             'topic': topic,
             'messageHash': messageHash,
             'method': self.handle_order_book_subscription,
-            'limit': limit,
         }
         request = self.extend(subscribe, params)
         future = self.watch(url, messageHash, request, messageHash, subscription)
@@ -262,7 +361,6 @@ class kucoin(Exchange, ccxt.kucoin):
         #         type: 'welcome',
         #     }
         #
-        print(message)
         return message
 
     def handle_subject(self, client, message):
@@ -285,6 +383,7 @@ class kucoin(Exchange, ccxt.kucoin):
         subject = self.safe_string(message, 'subject')
         methods = {
             'trade.l2update': self.handle_order_book,
+            'trade.snapshot': self.handle_ticker,
         }
         method = self.safe_value(methods, subject)
         if method is None:
