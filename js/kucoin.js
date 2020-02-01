@@ -72,13 +72,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         return await future;
     }
 
-    async watchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const future = this.negotiate ();
-        return await this.afterAsync (future, this.subscribeToTicker, symbol, params);
-    }
-
-    async subscribeToTicker (negotiation, symbol, params = {}) {
+    async subscribe (negotiation, topic, method, symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const data = this.safeValue (negotiation, 'data', {});
@@ -93,7 +87,7 @@ module.exports = class kucoin extends ccxt.kucoin {
             // 'connectId': nonce, // user-defined id is supported, received by handleSystemStatus
         };
         const url = endpoint + '?' + this.urlencode (query);
-        const topic = '/market/snapshot'; // '/market/ticker';
+        // const topic = '/market/snapshot'; // '/market/ticker';
         const messageHash = topic + ':' + market['id'];
         const subscribe = {
             'id': nonce,
@@ -106,9 +100,17 @@ module.exports = class kucoin extends ccxt.kucoin {
             'symbol': symbol,
             'topic': topic,
             'messageHash': messageHash,
+            'method': method,
         };
         const request = this.extend (subscribe, params);
         return await this.watch (url, messageHash, request, messageHash, subscription);
+    }
+
+    async watchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const negotiate = this.negotiate ();
+        const topic = '/market/snapshot';
+        return await this.afterAsync (negotiate, this.subscribe, topic, undefined, symbol, params);
     }
 
     handleTicker (client, message) {
@@ -160,41 +162,10 @@ module.exports = class kucoin extends ccxt.kucoin {
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const future = this.negotiate ();
-        return await this.afterAsync (future, this.subscribeToTrades, symbol, since, limit, params);
-    }
-
-    async subscribeToTrades (negotiation, symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const data = this.safeValue (negotiation, 'data', {});
-        const instanceServers = this.safeValue (data, 'instanceServers', []);
-        const firstServer = this.safeValue (instanceServers, 0, {});
-        const endpoint = this.safeString (firstServer, 'endpoint');
-        const token = this.safeString (data, 'token');
-        const nonce = this.nonce ();
-        const query = {
-            'token': token,
-            'acceptUserMessage': 'true',
-            // 'connectId': nonce, // user-defined id is supported, received by handleSystemStatus
-        };
-        const url = endpoint + '?' + this.urlencode (query);
+        const negotiate = this.negotiate ();
         const topic = '/market/match';
-        const messageHash = topic + ':' + market['id'];
-        const subscribe = {
-            'id': nonce,
-            'type': 'subscribe',
-            'topic': messageHash,
-            'response': true,
-        };
-        const subscription = {
-            'id': nonce.toString (),
-            'symbol': symbol,
-            'topic': topic,
-            'messageHash': messageHash,
-        };
-        const request = this.extend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        const future = this.afterAsync (negotiate, this.subscribe, topic, undefined, symbol, since, params);
+        return await this.after (future, this.filterBySinceLimit, since, limit);
     }
 
     handleTrade (client, message) {
@@ -233,17 +204,6 @@ module.exports = class kucoin extends ccxt.kucoin {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
-        if (limit !== undefined) {
-            if ((limit !== 20) && (limit !== 100)) {
-                throw new ExchangeError (this.id + " watchOrderBook 'limit' argument must be undefined, 20 or 100");
-            }
-        }
-        await this.loadMarkets ();
-        const future = this.negotiate ();
-        return await this.afterAsync (future, this.subscribeToOrderBook, symbol, limit, params);
-    }
-
-    async subscribeToOrderBook (negotiation, symbol, limit = undefined, params = {}) {
         //
         // https://docs.kucoin.com/#level-2-market-data
         //
@@ -259,37 +219,15 @@ module.exports = class kucoin extends ccxt.kucoin {
         // If the size=0, update the sequence and remove the price of which the
         // size is 0 out of level 2. For other cases, please update the price.
         //
+        if (limit !== undefined) {
+            if ((limit !== 20) && (limit !== 100)) {
+                throw new ExchangeError (this.id + " watchOrderBook 'limit' argument must be undefined, 20 or 100");
+            }
+        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const data = this.safeValue (negotiation, 'data', {});
-        const instanceServers = this.safeValue (data, 'instanceServers', []);
-        const firstServer = this.safeValue (instanceServers, 0, {});
-        const endpoint = this.safeString (firstServer, 'endpoint');
-        const token = this.safeString (data, 'token');
-        const nonce = this.nonce ();
-        const query = {
-            'token': token,
-            'acceptUserMessage': 'true',
-            // 'connectId': nonce, // user-defined id is supported, received by handleSystemStatus
-        };
-        const url = endpoint + '?' + this.urlencode (query);
+        const negotiate = this.negotiate ();
         const topic = '/market/level2';
-        const messageHash = topic + ':' + market['id'];
-        const subscribe = {
-            'id': nonce,
-            'type': 'subscribe',
-            'topic': messageHash,
-            'response': true,
-        };
-        const subscription = {
-            'id': nonce.toString (),
-            'symbol': symbol,
-            'topic': topic,
-            'messageHash': messageHash,
-            'method': this.handleOrderBookSubscription,
-        };
-        const request = this.extend (subscribe, params);
-        const future = this.watch (url, messageHash, request, messageHash, subscription);
+        const future = this.afterAsync (negotiate, this.subscribe, topic, this.handleOrderBookSubscription, symbol, params);
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
