@@ -368,16 +368,18 @@ module.exports = class kucoin extends Exchange {
     parseTicker (ticker, market = undefined) {
         //
         //     {
-        //         'buy': '0.00001168',
-        //         'changePrice': '-0.00000018',
-        //         'changeRate': '-0.0151',
-        //         'datetime': 1550661146316,
-        //         'high': '0.0000123',
-        //         'last': '0.00001169',
-        //         'low': '0.00001159',
-        //         'sell': '0.00001182',
-        //         'symbol': 'LOOM-BTC',
-        //         'vol': '44399.5669'
+        //         symbol: "ETH-BTC",
+        //         high: "0.019518",
+        //         vol: "7997.82836194",
+        //         last: "0.019329",
+        //         low: "0.019",
+        //         buy: "0.019329",
+        //         sell: "0.01933",
+        //         changePrice: "-0.000139",
+        //         time:  1580553706304,
+        //         averagePrice: "0.01926386",
+        //         changeRate: "-0.0071",
+        //         volValue: "154.40791568183474"
         //     }
         //
         let percentage = this.safeFloat (ticker, 'changeRate');
@@ -385,7 +387,6 @@ module.exports = class kucoin extends Exchange {
             percentage = percentage * 100;
         }
         const last = this.safeFloat (ticker, 'last');
-        const average = this.safeFloat (ticker, 'averagePrice');
         let symbol = undefined;
         const marketId = this.safeString (ticker, 'symbol');
         if (marketId !== undefined) {
@@ -422,7 +423,7 @@ module.exports = class kucoin extends Exchange {
             'previousClose': undefined,
             'change': this.safeFloat (ticker, 'changePrice'),
             'percentage': percentage,
-            'average': average,
+            'average': this.safeFloat (ticker, 'averagePrice'),
             'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': this.safeFloat (ticker, 'volValue'),
             'info': ticker,
