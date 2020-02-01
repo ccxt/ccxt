@@ -19,6 +19,7 @@ module.exports = class kucoin extends ccxt.kucoin {
                 'watchBalance': false, // for now
             },
             'options': {
+                'tradesLimit': 1000,
                 'watchOrderBookRate': 100, // get updates every 100ms or 1000ms
             },
             'streaming': {
