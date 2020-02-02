@@ -17,8 +17,11 @@ const ccxtpro = require ('ccxt.pro');
 ```
 
 CCXT Pro is a professional extension to the standard CCXT that is going to include:
-- The support for unified public and private WebSockets (pub and sub) – work in progress now
-- FIX protocol adapters – planned for the future
+
+- Unified public and private WebSockets APIs<sup>wip now</sup>
+- Backward-compatible CCXT ←→ CCXT Pro adapters
+- FIX protocol transports<sup>planned</sup>
+-
 
 ## Technicalities:
 
@@ -35,11 +38,21 @@ The access to the CCXT Pro repository is prepaid and restricted (by invitation o
 
 ## License Summary
 
-The CCXT Pro License does not include mechanisms that enforce technical limitations on the user or any other restrictions that would affect direct communication between the users and the exchanges without intermediaries. The mechanism that protects the CCXT Pro license is not technical, but works based purely on laws.
+The CCXT Pro repository is hosted on GitHub. The access to the repository is licensed/paid. The users of the library pay for the continued access to the repository, including the maintenance and support as well as the updates that will follow (new exchanges and methods, improvements, bugfixes and so on).
 
-CCXT Pro is open-source which is another important aspect in the licensing. Without imposing unnecessary technical limitations and introducing intermediary code, there is no technical way for us to know that someone is using CCXT Pro in-house without a license.
+CCXT Pro does not enforce technical restrictions that would affect the efficiency of direct communications between the users and the exchanges. The protection is not technical but legal. We do not impose unnecessary limitations or intermediary code. It is hard to know if someone is using CCXT Pro in private. If your CCXT Pro licensed access expires, your software or system will not break down and will keep working fine with the most recent updates that you already have by that time. However, you will lose the future updates without a paid licensed access to the repository.
 
-The CCXT Pro license addresses abusive access to the repository, leaking the source-code and republishing it without a permission from us. Violations of licensing terms will be pursued legally.
+It is illegal to republish or redistribute the CCXT Pro source code without a separate permission from us.
+
+Any licensed user, developer, team, or company, having obtained paid access to the CCXT repository, is allowed to use CCXT Pro as a dependency, subject to the terms and limitations of the CCXT Pro paid subscription plans.
+
+Licensed developers, teams, and/or software companies can use, copy, and modify CCXT Pro as long as they do not vendor, publish, or redistribute the source code of CCXT Pro to 3rd-parties. In general, it is allowed to specify CCXT Pro as a dependency of your software by linking to the CCXT Pro repository as long as you DO NOT INCLUDE A COPY OF CCXT PRO SOURCE CODE IN YOUR SOFTWARE.
+
+If you are a software developer you should specify CCXT Pro as your requirement. The end-user of your software is responsible for obtaining his own individual CCXT Pro license. The best practice is to make it clear in your docs or on your website. Since CCXT and CCXT Pro are interchangeable, auto-detection can be factored-in to let the end-user choose between the free CCXT and the paid CCXT Pro.
+
+**Violations of the licensing terms will trigger a ban followed with a legal pursuit.**
+
+Thank you for using CCXT Pro legally!
 
 # How To Install
 
@@ -56,6 +69,12 @@ Installing CCXT Pro requires visiting the https://ccxt.pro website and obtaining
 ```shell
 # in your project directory
 npm install ccxt.pro
+
+# if you're using Git/HTTPS authentication
+npm install git+https://github.com/kroitor/ccxt.pro.git
+
+# if you are connecting to GitHub with SSH
+npm install git@github.com/kroitor/ccxt.pro.git
 ```
 
 ## Python
