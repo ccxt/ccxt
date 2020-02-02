@@ -49,7 +49,7 @@ CCXT Pro does not enforce technical restrictions that would affect the efficienc
 
 Any licensed user, developer, team, or company, having obtained paid access to the CCXT repository, can use CCXT Pro as a dependency, subject to the terms and limitations of the CCXT Pro paid subscription plans.
 
-Licensed developers, teams, and/or software companies can use, copy, and modify CCXT Pro as long as they do not vendor, publish, or redistribute the source code of CCXT Pro to 3rd-parties. It is allowed to specify CCXT Pro as a dependency of your software by linking to the CCXT Pro repository as long as you DO NOT INCLUDE A COPY OF CCXT PRO SOURCE CODE IN YOUR SOFTWARE.
+Licensed developers, teams, and/or software companies can use, copy, and modify CCXT Pro as long as they **DO NOT VENDOR, PUBLISH OR REDISTRIBUTE THE SOURCE CODE OF CCXT PRO** to 3rd-parties. It is allowed to specify CCXT Pro as a dependency of your software by linking to the CCXT Pro repository as long as you **DO NOT INCLUDE A COPY OF THE CCXT PRO SOURCE CODE IN YOUR SOFTWARE**.
 
 If you are a software developer you should specify CCXT Pro as your requirement. The end-user of your software is responsible for obtaining his own individual CCXT Pro license. The best practice is to make it clear in your docs or on your website. Since CCXT and CCXT Pro are interchangeable, auto-detection can be factored-in to let the end-user choose between the free CCXT and the paid CCXT Pro.
 
