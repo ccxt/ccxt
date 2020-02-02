@@ -352,27 +352,19 @@ class binance(Exchange, ccxt.binance):
         kline = self.safe_value(message, 'k')
         interval = self.safe_string(kline, 'i')
         messageHash = lowercaseMarketId + '@' + event + '_' + interval
-        timestamp = self.safe_integer(kline, 't')
-        open = self.safe_float(kline, 'o')
-        high = self.safe_float(kline, 'h')
-        low = self.safe_float(kline, 'l')
-        close = self.safe_float(kline, 'c')
-        volume = self.safe_float(kline, 'v')
         parsed = [
-            timestamp,
-            open,
-            high,
-            low,
-            close,
-            volume,
+            self.safe_integer(kline, 't'),
+            self.safe_float(kline, 'o'),
+            self.safe_float(kline, 'h'),
+            self.safe_float(kline, 'l'),
+            self.safe_float(kline, 'c'),
+            self.safe_float(kline, 'v'),
         ]
         symbol = marketId
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
             symbol = market['symbol']
-        if not (symbol in self.ohlcvs):
-            self.ohlcvs[symbol] = []
-        stored = self.ohlcvs[symbol]
+        stored = self.safe_value(self.ohlcvs, symbol, [])
         length = len(stored)
         if length and parsed[0] == stored[length - 1][0]:
             stored[length - 1] = parsed

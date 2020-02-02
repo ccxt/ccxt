@@ -260,12 +260,12 @@ class gateio(Exchange, ccxt.gateio):
         wsMarketId = self.safe_string(ohlcv, 7)
         marketId = self.safe_string_lower(ohlcv, 7)
         parsed = [
-            int(ohlcv[0]),    # t
-            float(ohlcv[1]),  # o
-            float(ohlcv[3]),  # h
-            float(ohlcv[4]),  # l
-            float(ohlcv[2]),  # c
-            float(ohlcv[5]),  # v
+            self.safe_timestamp(ohlcv, 0),  # t
+            self.safe_float(ohlcv, 1),  # o
+            self.safe_float(ohlcv, 3),  # h
+            self.safe_float(ohlcv, 4),  # l
+            self.safe_float(ohlcv, 2),  # c
+            self.safe_float(ohlcv, 5),  # v
         ]
         market = None
         symbol = marketId

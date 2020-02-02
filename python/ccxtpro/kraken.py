@@ -20,6 +20,9 @@ class kraken(Exchange, ccxt.kraken):
                 'watchTickers': False,  # for now
                 'watchTrades': True,
                 'watchOrderBook': True,
+                # 'watchStatus': True,
+                # 'watchHeartbeat': True,
+                'watchOHLCV': True,
             },
             'urls': {
                 'api': {
@@ -48,7 +51,7 @@ class kraken(Exchange, ccxt.kraken):
             },
         })
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client, message, subscription):
         #
         #     [
         #         0,  # channelID
@@ -102,7 +105,7 @@ class kraken(Exchange, ccxt.kraken):
             'quoteVolume': quoteVolume,
             'info': ticker,
         }
-        # todo: add support for multiple tickers(may be tricky)
+        # todo add support for multiple tickers(may be tricky)
         # kraken confirms multi-pair subscriptions separately one by one
         # trigger correct watchTickers calls upon receiving any of symbols
         self.tickers[symbol] = result
@@ -112,7 +115,7 @@ class kraken(Exchange, ccxt.kraken):
         await self.load_markets()
         raise NotImplemented(self.id + ' watchBalance() not implemented yet')
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client, message, subscription):
         #
         #     [
         #         0,  # channelID
@@ -140,7 +143,15 @@ class kraken(Exchange, ccxt.kraken):
         self.trades[symbol] = stored
         client.resolve(stored, messageHash)
 
-    def handle_ohlcv(self, client, message):
+    def find_timeframe(self, timeframe):
+        keys = list(self.timeframes.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if self.timeframes[key] == timeframe:
+                return key
+        return None
+
+    def handle_ohlcv(self, client, message, subscription):
         #
         #     [
         #         216,  # channelID
@@ -159,19 +170,38 @@ class kraken(Exchange, ccxt.kraken):
         #         'ETH/XBT',  # Asset pair
         #     ]
         #
+        info = self.safe_value(subscription, 'subscription', {})
+        interval = self.safe_integer(info, 'interval')
+        name = self.safe_string(info, 'name')
         wsName = self.safe_string(message, 3)
-        name = 'ohlc'
-        candle = self.safe_value(message, 1)
-        result = [
-            int(self.safe_float(candle, 0) * 1000),
-            self.safe_float(candle, 2),
-            self.safe_float(candle, 3),
-            self.safe_float(candle, 4),
-            self.safe_float(candle, 5),
-            self.safe_float(candle, 7),
-        ]
-        messageHash = name + ':' + wsName
-        client.resolve(result, messageHash)
+        market = self.safe_value(self.options['marketsByWsName'], wsName)
+        symbol = market['symbol']
+        timeframe = self.find_timeframe(interval)
+        duration = self.parse_timeframe(timeframe)
+        if timeframe is not None:
+            candle = self.safe_value(message, 1)
+            messageHash = name + ':' + timeframe + ':' + wsName
+            timestamp = self.safe_float(candle, 1)
+            timestamp -= duration
+            result = [
+                int(timestamp * 1000),
+                self.safe_float(candle, 2),
+                self.safe_float(candle, 3),
+                self.safe_float(candle, 4),
+                self.safe_float(candle, 5),
+                self.safe_float(candle, 7),
+            ]
+            self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+            stored = self.safe_value(self.ohlcvs[symbol], timeframe, [])
+            length = len(stored)
+            if length and result[0] == stored[length - 1][0]:
+                stored[length - 1] = result
+            else:
+                stored.append(result)
+                if length + 1 > self.options['OHLCVLimit']:
+                    stored.pop(0)
+            self.ohlcvs[symbol][timeframe] = stored
+            client.resolve(stored, messageHash)
 
     def reqid(self):
         # their support said that reqid must be an int32, not documented
@@ -221,13 +251,27 @@ class kraken(Exchange, ccxt.kraken):
         return orderbook.limit(limit)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
         name = 'ohlc'
-        request = {
+        market = self.market(symbol)
+        wsName = self.safe_value(market['info'], 'wsname')
+        messageHash = name + ':' + timeframe + ':' + wsName
+        url = self.urls['api']['ws']['public']
+        requestId = self.reqid()
+        subscribe = {
+            'event': 'subscribe',
+            'reqid': requestId,
+            'pair': [
+                wsName,
+            ],
             'subscription': {
-                'interval': int(self.timeframes[timeframe]),
+                'name': name,
+                'interval': self.timeframes[timeframe],
             },
         }
-        return await self.watch_public(name, symbol, self.extend(request, params))
+        request = self.deep_extend(subscribe, params)
+        future = self.watch(url, messageHash, request, messageHash)
+        return await self.after(future, self.filterBySinceLimit, since, limit, 0)
 
     async def load_markets(self, reload=False, params={}):
         markets = await super(kraken, self).load_markets(reload, params)
@@ -259,7 +303,7 @@ class kraken(Exchange, ccxt.kraken):
         event = self.safe_string(message, 'event')
         client.resolve(message, event)
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client, message, subscription):
         #
         # first message(snapshot)
         #
@@ -324,7 +368,6 @@ class kraken(Exchange, ccxt.kraken):
                 timestamp = self.handle_deltas(bookside, deltas, timestamp)
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
-            # the .limit() operation will be moved to the watchOrderBook
             client.resolve(orderbook, messageHash)
         else:
             orderbook = self.orderbooks[symbol]
@@ -345,7 +388,6 @@ class kraken(Exchange, ccxt.kraken):
                 timestamp = self.handle_deltas(orderbook['bids'], b, timestamp)
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
-            # the .limit() operation will be moved to the watchOrderBook
             client.resolve(orderbook, messageHash)
 
     def handle_deltas(self, bookside, deltas, timestamp):
@@ -413,9 +455,7 @@ class kraken(Exchange, ccxt.kraken):
                     exception = ExchangeError(errorMessage)
                 else:
                     exception = broad[broadKey](errorMessage)
-                # print(requestId, exception)
                 client.reject(exception, requestId)
-                # raise exception
                 return False
         return True
 
@@ -425,11 +465,10 @@ class kraken(Exchange, ccxt.kraken):
 
     def handle_message(self, client, message):
         if isinstance(message, list):
-            # todo: move self branch and the 'method' property – to the client.subscriptions
             channelId = str(message[0])
-            subscriptionStatus = self.safe_value(client.subscriptions, channelId, {})
-            subscription = self.safe_value(subscriptionStatus, 'subscription', {})
-            name = self.safe_string(subscription, 'name')
+            subscription = self.safe_value(client.subscriptions, channelId, {})
+            info = self.safe_value(subscription, 'subscription', {})
+            name = self.safe_string(info, 'name')
             methods = {
                 'book': self.handle_order_book,
                 'ohlc': self.handle_ohlcv,
@@ -440,7 +479,7 @@ class kraken(Exchange, ccxt.kraken):
             if method is None:
                 return message
             else:
-                return method(client, message)
+                return method(client, message, subscription)
         else:
             if self.handle_error_message(client, message):
                 event = self.safe_string(message, 'event')

@@ -16,9 +16,10 @@ class kucoin(Exchange, ccxt.kucoin):
                 'ws': True,
                 'watchOrderBook': True,
                 'watchTickers': False,  # for now
-                'watchTicker': True,  # for now
-                'watchTrades': True,  # for now
+                'watchTicker': True,
+                'watchTrades': True,
                 'watchBalance': False,  # for now
+                'watchOHLCV': False,  # missing in the exchange API
             },
             'options': {
                 'tradesLimit': 1000,

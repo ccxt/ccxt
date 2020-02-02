@@ -282,14 +282,14 @@ class gateio extends \ccxt\gateio {
         $ohlcv = $message['params'][0];
         $wsMarketId = $this->safe_string($ohlcv, 7);
         $marketId = $this->safe_string_lower($ohlcv, 7);
-        $parsed = [
-            intval ($ohlcv[0]),    // t
-            floatval ($ohlcv[1]),  // o
-            floatval ($ohlcv[3]),  // h
-            floatval ($ohlcv[4]),  // l
-            floatval ($ohlcv[2]),  // c
-            floatval ($ohlcv[5]),  // v
-        ];
+        $parsed = array(
+            $this->safe_timestamp($ohlcv, 0), // t
+            $this->safe_float($ohlcv, 1), // o
+            $this->safe_float($ohlcv, 3), // h
+            $this->safe_float($ohlcv, 4), // l
+            $this->safe_float($ohlcv, 2), // c
+            $this->safe_float($ohlcv, 5), // v
+        );
         $market = null;
         $symbol = $marketId;
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {

@@ -20,6 +20,9 @@ class kraken extends \ccxt\kraken {
                 'watchTickers' => false, // for now
                 'watchTrades' => true,
                 'watchOrderBook' => true,
+                // 'watchStatus' => true,
+                // 'watchHeartbeat' => true,
+                'watchOHLCV' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -49,7 +52,7 @@ class kraken extends \ccxt\kraken {
         ));
     }
 
-    public function handle_ticker ($client, $message) {
+    public function handle_ticker ($client, $message, $subscription) {
         //
         //     array(
         //         0, // channelID
@@ -104,7 +107,7 @@ class kraken extends \ccxt\kraken {
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
-        // todo => add support for multiple tickers (may be tricky)
+        // todo add support for multiple tickers (may be tricky)
         // kraken confirms multi-pair subscriptions separately one by one
         // trigger correct watchTickers calls upon receiving any of symbols
         $this->tickers[$symbol] = $result;
@@ -116,7 +119,7 @@ class kraken extends \ccxt\kraken {
         throw new NotImplemented($this->id . ' watchBalance() not implemented yet');
     }
 
-    public function handle_trades ($client, $message) {
+    public function handle_trades ($client, $message, $subscription) {
         //
         //     array(
         //         0, // channelID
@@ -147,13 +150,24 @@ class kraken extends \ccxt\kraken {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function handle_ohlcv ($client, $message) {
+    public function find_timeframe ($timeframe) {
+        $keys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($this->timeframes[$key] === $timeframe) {
+                return $key;
+            }
+        }
+        return null;
+    }
+
+    public function handle_ohlcv ($client, $message, $subscription) {
         //
         //     array(
         //         216, // channelID
         //         array(
         //             '1574454214.962096', // Time, seconds since epoch
-        //             '1574454240.000000', // End timestamp of the interval
+        //             '1574454240.000000', // End $timestamp of the $interval
         //             '0.020970', // Open price at midnight UTC
         //             '0.020970', // Intraday high price
         //             '0.020970', // Intraday low price
@@ -162,23 +176,45 @@ class kraken extends \ccxt\kraken {
         //             '0.08636138', // Accumulated volume today
         //             1, // Number of trades today
         //         ),
-        //         'ohlc-1', // Channel Name of subscription
+        //         'ohlc-1', // Channel Name of $subscription
         //         'ETH/XBT', // Asset pair
         //     )
         //
+        $info = $this->safe_value($subscription, 'subscription', array());
+        $interval = $this->safe_integer($info, 'interval');
+        $name = $this->safe_string($info, 'name');
         $wsName = $this->safe_string($message, 3);
-        $name = 'ohlc';
-        $candle = $this->safe_value($message, 1);
-        $result = array(
-            intval ($this->safe_float($candle, 0) * 1000),
-            $this->safe_float($candle, 2),
-            $this->safe_float($candle, 3),
-            $this->safe_float($candle, 4),
-            $this->safe_float($candle, 5),
-            $this->safe_float($candle, 7),
-        );
-        $messageHash = $name . ':' . $wsName;
-        $client->resolve ($result, $messageHash);
+        $market = $this->safe_value($this->options['marketsByWsName'], $wsName);
+        $symbol = $market['symbol'];
+        $timeframe = $this->find_timeframe ($interval);
+        $duration = $this->parse_timeframe($timeframe);
+        if ($timeframe !== null) {
+            $candle = $this->safe_value($message, 1);
+            $messageHash = $name . ':' . $timeframe . ':' . $wsName;
+            $timestamp = $this->safe_float($candle, 1);
+            $timestamp -= $duration;
+            $result = array(
+                intval ($timestamp * 1000),
+                $this->safe_float($candle, 2),
+                $this->safe_float($candle, 3),
+                $this->safe_float($candle, 4),
+                $this->safe_float($candle, 5),
+                $this->safe_float($candle, 7),
+            );
+            $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe, array());
+            $length = is_array($stored) ? count($stored) : 0;
+            if ($length && $result[0] === $stored[$length - 1][0]) {
+                $stored[$length - 1] = $result;
+            } else {
+                $stored[] = $result;
+                if ($length . 1 > $this->options['OHLCVLimit']) {
+                    array_shift($stored);
+                }
+            }
+            $this->ohlcvs[$symbol][$timeframe] = $stored;
+            $client->resolve ($stored, $messageHash);
+        }
     }
 
     public function reqid () {
@@ -236,13 +272,27 @@ class kraken extends \ccxt\kraken {
     }
 
     public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $name = 'ohlc';
-        $request = array(
+        $market = $this->market ($symbol);
+        $wsName = $this->safe_value($market['info'], 'wsname');
+        $messageHash = $name . ':' . $timeframe . ':' . $wsName;
+        $url = $this->urls['api']['ws']['public'];
+        $requestId = $this->reqid ();
+        $subscribe = array(
+            'event' => 'subscribe',
+            'reqid' => $requestId,
+            'pair' => array(
+                $wsName,
+            ),
             'subscription' => array(
-                'interval' => intval ($this->timeframes[$timeframe]),
+                'name' => $name,
+                'interval' => $this->timeframes[$timeframe],
             ),
         );
-        return $this->watch_public ($name, $symbol, array_merge($request, $params));
+        $request = array_replace_recursive($subscribe, $params);
+        $future = $this->watch ($url, $messageHash, $request, $messageHash);
+        return $this->after ($future, $this->filterBySinceLimit, $since, $limit, 0);
     }
 
     public function load_markets ($reload = false, $params = array ()) {
@@ -281,7 +331,7 @@ class kraken extends \ccxt\kraken {
         $client->resolve ($message, $event);
     }
 
-    public function handle_order_book ($client, $message) {
+    public function handle_order_book ($client, $message, $subscription) {
         //
         // first $message (snapshot)
         //
@@ -347,7 +397,6 @@ class kraken extends \ccxt\kraken {
             }
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601 ($timestamp);
-            // the .limit () operation will be moved to the watchOrderBook
             $client->resolve ($orderbook, $messageHash);
         } else {
             $orderbook = $this->orderbooks[$symbol];
@@ -372,7 +421,6 @@ class kraken extends \ccxt\kraken {
             }
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601 ($timestamp);
-            // the .limit () operation will be moved to the watchOrderBook
             $client->resolve ($orderbook, $messageHash);
         }
     }
@@ -447,9 +495,7 @@ class kraken extends \ccxt\kraken {
                 } else {
                     $exception = new $broad[$broadKey] ($errorMessage);
                 }
-                // var_dump ($requestId, $exception);
                 $client->reject ($exception, $requestId);
-                // throw $exception;
                 return false;
             }
         }
@@ -463,11 +509,10 @@ class kraken extends \ccxt\kraken {
 
     public function handle_message ($client, $message) {
         if (gettype($message) === 'array' && count(array_filter(array_keys($message), 'is_string')) == 0) {
-            // todo => move this branch and the 'method' property – to the $client->subscriptions
             $channelId = (string) $message[0];
-            $subscriptionStatus = $this->safe_value($client->subscriptions, $channelId, array());
-            $subscription = $this->safe_value($subscriptionStatus, 'subscription', array());
-            $name = $this->safe_string($subscription, 'name');
+            $subscription = $this->safe_value($client->subscriptions, $channelId, array());
+            $info = $this->safe_value($subscription, 'subscription', array());
+            $name = $this->safe_string($info, 'name');
             $methods = array(
                 'book' => array($this, 'handle_order_book'),
                 'ohlc' => array($this, 'handle_ohlcv'),
@@ -478,7 +523,7 @@ class kraken extends \ccxt\kraken {
             if ($method === null) {
                 return $message;
             } else {
-                return $method($client, $message);
+                return $method($client, $message, $subscription);
             }
         } else {
             if ($this->handle_error_message ($client, $message)) {

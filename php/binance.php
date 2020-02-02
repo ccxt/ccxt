@@ -390,29 +390,20 @@ class binance extends \ccxt\binance {
         $kline = $this->safe_value($message, 'k');
         $interval = $this->safe_string($kline, 'i');
         $messageHash = $lowercaseMarketId . '@' . $event . '_' . $interval;
-        $timestamp = $this->safe_integer($kline, 't');
-        $open = $this->safe_float($kline, 'o');
-        $high = $this->safe_float($kline, 'h');
-        $low = $this->safe_float($kline, 'l');
-        $close = $this->safe_float($kline, 'c');
-        $volume = $this->safe_float($kline, 'v');
         $parsed = array(
-            $timestamp,
-            $open,
-            $high,
-            $low,
-            $close,
-            $volume,
+            $this->safe_integer($kline, 't'),
+            $this->safe_float($kline, 'o'),
+            $this->safe_float($kline, 'h'),
+            $this->safe_float($kline, 'l'),
+            $this->safe_float($kline, 'c'),
+            $this->safe_float($kline, 'v'),
         );
         $symbol = $marketId;
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
             $symbol = $market['symbol'];
         }
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
-            $this->ohlcvs[$symbol] = array();
-        }
-        $stored = $this->ohlcvs[$symbol];
+        $stored = $this->safe_value($this->ohlcvs, $symbol, array());
         $length = is_array($stored) ? count($stored) : 0;
         if ($length && $parsed[0] === $stored[$length - 1][0]) {
             $stored[$length - 1] = $parsed;
