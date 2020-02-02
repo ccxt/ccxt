@@ -1,4 +1,4 @@
-![CCXT Pro](https://user-images.githubusercontent.com/1294454/73616113-4ba19580-4620-11ea-8ab0-347c67d3e136.png)
+![CCXT Pro](https://user-images.githubusercontent.com/1294454/73616182-5872b900-4621-11ea-85d9-24b80d2e9120.png)
 
 ---
 
