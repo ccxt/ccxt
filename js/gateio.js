@@ -54,7 +54,7 @@ module.exports = class gateio extends ccxt.gateio {
         const subscribeMessage = {
             'id': requestId,
             'method': 'depth.subscribe',
-            'params': [wsMarketId, limit, interval],
+            'params': [ wsMarketId, limit, interval ],
         };
         const subscription = {
             'id': requestId,
@@ -173,7 +173,7 @@ module.exports = class gateio extends ccxt.gateio {
         const subscribeMessage = {
             'id': requestId,
             'method': 'trades.subscribe',
-            'params': [marketId],
+            'params': [ marketId ],
         };
         const subscription = {
             'id': requestId,
@@ -230,23 +230,111 @@ module.exports = class gateio extends ccxt.gateio {
         client.resolve (stored, messageHash);
     }
 
+    async loadMarkets (reload = false, params = {}) {
+        const markets = await super.loadMarkets (reload, params);
+        let marketsByUpperCaseId = this.safeValue (this.options, 'marketsByUpperCaseId');
+        if ((marketsByUpperCaseId === undefined) || reload) {
+            marketsByUpperCaseId = {};
+            const symbols = Object.keys (markets);
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = markets[symbol];
+                const uppercaseId = this.safeStringUpper (market, 'id');
+                market['uppercaseId'] = uppercaseId;
+                markets[symbol] = market;
+                marketsByUpperCaseId[uppercaseId] = market;
+            }
+            this.options['marketsByUpperCaseId'] = marketsByUpperCaseId;
+        }
+        return markets;
+    }
+
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketId = market['id'].toUpperCase ();
+        const marketId = market['uppercaseId'];
         const requestId = this.nonce ();
         const url = this.urls['api']['ws'];
-        const interval = parseInt (this.timeframes[timeframe]);
+        const interval = this.timeframes[timeframe];
         const subscribeMessage = {
             'id': requestId,
             'method': 'kline.subscribe',
-            'params': [marketId, interval],
+            'params': [ marketId, interval ],
         };
         const subscription = {
             'id': requestId,
         };
+        // gateio sends candles without a timeframe identifier
+        // making it impossible to differentiate candles from
+        // two or more different timeframes within the same symbol
+        // thus the exchange API is limited to one timeframe per symbol
         const messageHash = 'kline.update' + ':' + marketId;
-        return await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        const future = this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        return await this.after (future, this.filterBySinceLimit, since, limit, 0);
+    }
+
+    handleOHLCV (client, message) {
+        //
+        //     {
+        //         method: 'kline.update',
+        //         params: [
+        //             [
+        //                 1580661060,
+        //                 '9432.37',
+        //                 '9435.77',
+        //                 '9435.77',
+        //                 '9429.93',
+        //                 '0.0879',
+        //                 '829.1875889352',
+        //                 'BTC_USDT'
+        //             ]
+        //         ],
+        //         id: null
+        //     }
+        //
+        const params = this.safeValue (message, 'params', []);
+        const ohlcv = this.safeValue (params, 0, []);
+        const uppercaseId = this.safeString (ohlcv, 7);
+        const marketId = this.safeStringLower (ohlcv, 7);
+        const parsed = [
+            this.safeTimestamp (ohlcv, 0), // t
+            this.safeFloat (ohlcv, 1), // o
+            this.safeFloat (ohlcv, 3), // h
+            this.safeFloat (ohlcv, 4), // l
+            this.safeFloat (ohlcv, 2), // c
+            this.safeFloat (ohlcv, 5), // v
+        ];
+        let market = undefined;
+        let symbol = marketId;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        }
+        // gateio sends candles without a timeframe identifier
+        // making it impossible to differentiate candles from
+        // two or more different timeframes within the same symbol
+        // thus the exchange API is limited to one timeframe per symbol
+        // --------------------------------------------------------------------
+        // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        // const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
+        // --------------------------------------------------------------------
+        const stored = this.safeValue (this.ohlcvs, symbol, []);
+        const length = stored.length;
+        if (length && parsed[0] === stored[length - 1][0]) {
+            stored[length - 1] = parsed;
+        } else {
+            stored.push (parsed);
+            if (length === this.options['OHLCVLimit']) {
+                stored.shift ();
+            }
+        }
+        // --------------------------------------------------------------------
+        // this.ohlcvs[symbol][timeframe] = stored;
+        // --------------------------------------------------------------------
+        this.ohlcvs[symbol] = stored;
+        const methodType = message['method'];
+        const messageHash = methodType + ':' + uppercaseId;
+        client.resolve (stored, messageHash);
     }
 
     async authenticate () {
@@ -271,43 +359,6 @@ module.exports = class gateio extends ccxt.gateio {
             this.spawn (this.watch, url, requestId, authenticateMessage, method, subscribe);
         }
         return await future;
-    }
-
-    handleOHLCV (client, message) {
-        const ohlcv = message['params'][0];
-        const wsMarketId = this.safeString (ohlcv, 7);
-        const marketId = this.safeStringLower (ohlcv, 7);
-        const parsed = [
-            this.safeTimestamp (ohlcv, 0), // t
-            this.safeFloat (ohlcv, 1), // o
-            this.safeFloat (ohlcv, 3), // h
-            this.safeFloat (ohlcv, 4), // l
-            this.safeFloat (ohlcv, 2), // c
-            this.safeFloat (ohlcv, 5), // v
-        ];
-        let market = undefined;
-        let symbol = marketId;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
-        if (!(symbol in this.ohlcvs)) {
-            this.ohlcvs[symbol] = [];
-        }
-        const stored = this.ohlcvs[symbol];
-        const length = stored.length;
-        if (length && parsed[0] === stored[length - 1][0]) {
-            stored[length - 1] = parsed;
-        } else {
-            stored.push (parsed);
-            if (length === this.options['OHLCVLimit']) {
-                stored.shift ();
-            }
-        }
-        this.ohlcvs[symbol] = stored;
-        const methodType = message['method'];
-        const messageHash = methodType + ':' + wsMarketId;
-        client.resolve (stored, messageHash);
     }
 
     async watchBalance (params = {}) {
@@ -352,7 +403,9 @@ module.exports = class gateio extends ccxt.gateio {
         const messageHash = message['id'];
         const result = message['result'];
         this.handleBalanceMessage (client, messageHash, result);
-        delete client.subscriptions['balance.query'];
+        if ('balance.query' in client.subscriptions) {
+            delete client.subscriptions['balance.query'];
+        }
     }
 
     handleBalance (client, message) {
@@ -409,8 +462,10 @@ module.exports = class gateio extends ccxt.gateio {
         if (status === 'success') {
             // client.resolve (true, 'authenticated') will delete the future
             // we want to remember that we are authenticated in subsequent call to private methods
-            const future = client.futures['authenticated'];
-            future.resolve (true);
+            const future = this.safeValue (client.futures, 'authenticated');
+            if (future !== undefined) {
+                future.resolve (true);
+            }
         } else {
             // delete authenticate subscribeHash to release the "subscribe lock"
             // allows subsequent calls to subscribe to reauthenticate
