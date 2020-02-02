@@ -16,6 +16,9 @@ module.exports = class kraken extends ccxt.kraken {
                 'watchTickers': false, // for now
                 'watchTrades': true,
                 'watchOrderBook': true,
+                'watchStatus': true,
+                'watchHeartbeat': true,
+                'watchOHLCV': true,
             },
             'urls': {
                 'api': {
@@ -45,7 +48,7 @@ module.exports = class kraken extends ccxt.kraken {
         });
     }
 
-    handleTicker (client, message) {
+    handleTicker (client, message, subscription) {
         //
         //     [
         //         0, // channelID
@@ -112,7 +115,7 @@ module.exports = class kraken extends ccxt.kraken {
         throw new NotImplemented (this.id + ' watchBalance() not implemented yet');
     }
 
-    handleTrades (client, message) {
+    handleTrades (client, message, subscription) {
         //
         //     [
         //         0, // channelID
@@ -143,7 +146,18 @@ module.exports = class kraken extends ccxt.kraken {
         client.resolve (stored, messageHash);
     }
 
-    handleOHLCV (client, message) {
+    findTimeframe (timeframe) {
+        const keys = Object.keys (this.timeframes);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.timeframes[key] === timeframe) {
+                return key;
+            }
+        }
+        return undefined;
+    }
+
+    handleOHLCV (client, message, subscription) {
         //
         //     [
         //         216, // channelID
@@ -162,19 +176,65 @@ module.exports = class kraken extends ccxt.kraken {
         //         'ETH/XBT', // Asset pair
         //     ]
         //
+        const info = this.safeValue (subscription, 'subscription', {});
+        const interval = this.safeInteger (info, 'interval');
+        const name = this.safeString (info, 'name');
         const wsName = this.safeString (message, 3);
-        const name = 'ohlc';
-        const candle = this.safeValue (message, 1);
-        const result = [
-            parseInt (this.safeFloat (candle, 0) * 1000),
-            this.safeFloat (candle, 2),
-            this.safeFloat (candle, 3),
-            this.safeFloat (candle, 4),
-            this.safeFloat (candle, 5),
-            this.safeFloat (candle, 7),
-        ];
-        const messageHash = name + ':' + wsName;
-        client.resolve (result, messageHash);
+        const market = this.safeValue (this.options['marketsByWsName'], wsName);
+        const symbol = market['symbol'];
+        const timeframe = this.findTimeframe (interval);
+        const duration = this.parseTimeframe (timeframe);
+        if (timeframe !== undefined) {
+            const candle = this.safeValue (message, 1);
+            const messageHash = name + ':' + timeframe + ':' + wsName;
+            let timestamp = this.safeFloat (candle, 1);
+            timestamp -= duration;
+            const result = [
+                parseInt (timestamp * 1000),
+                this.safeFloat (candle, 2),
+                this.safeFloat (candle, 3),
+                this.safeFloat (candle, 4),
+                this.safeFloat (candle, 5),
+                this.safeFloat (candle, 7),
+            ];
+            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
+            const length = stored.length;
+            if (length && result[0] === stored[length - 1][0]) {
+                stored[length - 1] = result;
+            } else {
+                stored.push (result);
+                if (length + 1 > this.options['OHLCVLimit']) {
+                    stored.shift ();
+                }
+            }
+            this.ohlcvs[symbol][timeframe] = stored;
+            client.resolve (stored, messageHash);
+        }
+        // const messageHash = name + ':' + interval + ':' + wsName;
+        // // --------------------------------------------------------------------
+        // const marketId = this.safeString (message, 's');
+        // const lowercaseMarketId = this.safeStringLower (message, 's');
+        // const event = this.safeString (message, 'e');
+        // const kline = this.safeValue (message, 'k');
+        // const interval = this.safeString (kline, 'i');
+        // // const messageHash = lowercaseMarketId + '@' + event + '_' + interval;
+        // const parsed = [
+        //     this.safeInteger (kline, 't'),
+        //     this.safeFloat (kline, 'o'),
+        //     this.safeFloat (kline, 'h'),
+        //     this.safeFloat (kline, 'l'),
+        //     this.safeFloat (kline, 'c'),
+        //     this.safeFloat (kline, 'v'),
+        // ];
+        // let symbol = marketId;
+        // if (marketId in this.markets_by_id) {
+        //     const market = this.markets_by_id[marketId];
+        //     symbol = market['symbol'];
+        // }
+        // const timeframe = this.findTimeframe (interval);
+        // // --------------------------------------------------------------------
+        // client.resolve (result, messageHash);
     }
 
     reqid () {
@@ -232,13 +292,27 @@ module.exports = class kraken extends ccxt.kraken {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         const name = 'ohlc';
-        const request = {
+        const market = this.market (symbol);
+        const wsName = this.safeValue (market['info'], 'wsname');
+        const messageHash = name + ':' + timeframe + ':' + wsName;
+        const url = this.urls['api']['ws']['public'];
+        const requestId = this.reqid ();
+        const subscribe = {
+            'event': 'subscribe',
+            'reqid': requestId,
+            'pair': [
+                wsName,
+            ],
             'subscription': {
-                'interval': parseInt (this.timeframes[timeframe]),
+                'name': name,
+                'interval': this.timeframes[timeframe],
             },
         };
-        return await this.watchPublic (name, symbol, this.extend (request, params));
+        const request = this.deepExtend (subscribe, params);
+        const future = this.watch (url, messageHash, request, messageHash);
+        return await this.after (future, this.filterBySinceLimit, since, limit, 0);
     }
 
     async loadMarkets (reload = false, params = {}) {
@@ -277,7 +351,7 @@ module.exports = class kraken extends ccxt.kraken {
         client.resolve (message, event);
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client, message, subscription) {
         //
         // first message (snapshot)
         //
@@ -343,7 +417,6 @@ module.exports = class kraken extends ccxt.kraken {
             }
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
-            // the .limit () operation will be moved to the watchOrderBook
             client.resolve (orderbook, messageHash);
         } else {
             const orderbook = this.orderbooks[symbol];
@@ -368,7 +441,6 @@ module.exports = class kraken extends ccxt.kraken {
             }
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
-            // the .limit () operation will be moved to the watchOrderBook
             client.resolve (orderbook, messageHash);
         }
     }
@@ -443,9 +515,7 @@ module.exports = class kraken extends ccxt.kraken {
                 } else {
                     exception = new broad[broadKey] (errorMessage);
                 }
-                // console.log (requestId, exception);
                 client.reject (exception, requestId);
-                // throw exception;
                 return false;
             }
         }
@@ -461,9 +531,9 @@ module.exports = class kraken extends ccxt.kraken {
         if (Array.isArray (message)) {
             // todo: move this branch and the 'method' property – to the client.subscriptions
             const channelId = message[0].toString ();
-            const subscriptionStatus = this.safeValue (client.subscriptions, channelId, {});
-            const subscription = this.safeValue (subscriptionStatus, 'subscription', {});
-            const name = this.safeString (subscription, 'name');
+            const subscription = this.safeValue (client.subscriptions, channelId, {});
+            const info = this.safeValue (subscription, 'subscription', {});
+            const name = this.safeString (info, 'name');
             const methods = {
                 'book': this.handleOrderBook,
                 'ohlc': this.handleOHLCV,
@@ -474,7 +544,7 @@ module.exports = class kraken extends ccxt.kraken {
             if (method === undefined) {
                 return message;
             } else {
-                return method.call (this, client, message);
+                return method.call (this, client, message, subscription);
             }
         } else {
             if (this.handleErrorMessage (client, message)) {
