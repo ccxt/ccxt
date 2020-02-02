@@ -47,9 +47,9 @@ The CCXT Pro repository is hosted on GitHub. The access to the repository is lic
 
 CCXT Pro does not enforce technical restrictions that would affect the efficiency of direct communications between the users and the exchanges. The protection is not technical but legal. We do not impose unnecessary limitations or intermediary code. It is hard to know if someone is using CCXT Pro in private. If your CCXT Pro licensed access expires, your software or system will not break down and will keep working fine with the most recent version that you already have by that time. However, you will lose the  updates that will follow if you don't have an ongoing paid license to access the repository.
 
-Any licensed user, developer, team, or company, having obtained paid access to the CCXT repository, is allowed to use CCXT Pro as a dependency, subject to the terms and limitations of the CCXT Pro paid subscription plans.
+Any licensed user, developer, team, or company, having obtained paid access to the CCXT repository, can use CCXT Pro as a dependency, subject to the terms and limitations of the CCXT Pro paid subscription plans.
 
-Licensed developers, teams, and/or software companies can use, copy, and modify CCXT Pro as long as they do not vendor, publish, or redistribute the source code of CCXT Pro to 3rd-parties. In general, it is allowed to specify CCXT Pro as a dependency of your software by linking to the CCXT Pro repository as long as you DO NOT INCLUDE A COPY OF CCXT PRO SOURCE CODE IN YOUR SOFTWARE.
+Licensed developers, teams, and/or software companies can use, copy, and modify CCXT Pro as long as they do not vendor, publish, or redistribute the source code of CCXT Pro to 3rd-parties. It is allowed to specify CCXT Pro as a dependency of your software by linking to the CCXT Pro repository as long as you DO NOT INCLUDE A COPY OF CCXT PRO SOURCE CODE IN YOUR SOFTWARE.
 
 If you are a software developer you should specify CCXT Pro as your requirement. The end-user of your software is responsible for obtaining his own individual CCXT Pro license. The best practice is to make it clear in your docs or on your website. Since CCXT and CCXT Pro are interchangeable, auto-detection can be factored-in to let the end-user choose between the free CCXT and the paid CCXT Pro.
 
