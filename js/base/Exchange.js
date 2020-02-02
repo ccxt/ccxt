@@ -1026,9 +1026,9 @@ module.exports = class Exchange {
         return this.markets;
     }
 
-    filterBySinceLimit (array, since = undefined, limit = undefined) {
+    filterBySinceLimit (array, since = undefined, limit = undefined, key = 'timestamp') {
         if (since !== undefined && since !== null)
-            array = array.filter (entry => entry.timestamp >= since)
+            array = array.filter (entry => entry[key] >= since)
         if (limit !== undefined && limit !== null)
             array = array.slice (0, limit)
         return array

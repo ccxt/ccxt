@@ -1726,11 +1726,11 @@ class Exchange {
         return $this->markets;
     }
 
-    public function filter_by_since_limit($array, $since = null, $limit = null) {
+    public function filter_by_since_limit($array, $since = null, $limit = null, $key = 'timestamp') {
         $result = array();
         $array = array_values($array);
         foreach ($array as $entry) {
-            if ($entry['timestamp'] > $since) {
+            if ($entry[$key] > $since) {
                 $result[] = $entry;
             }
         }
@@ -1740,8 +1740,8 @@ class Exchange {
         return $result;
     }
 
-    public function filterBySinceLimit($array, $since = null, $limit = null) {
-        return $this->filter_by_since_limit($array, $since, $limit);
+    public function filterBySinceLimit($array, $since = null, $limit = null, $key = 'timestamp') {
+        return $this->filter_by_since_limit($array, $since, $limit, $key);
     }
 
     public function parse_trades($trades, $market = null, $since = null, $limit = null, $params = array()) {
