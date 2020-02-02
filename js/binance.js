@@ -347,10 +347,10 @@ module.exports = class binance extends ccxt.binance {
         const market = this.market (symbol);
         const marketId = market['lowercaseId'];
         const interval = this.timeframes[timeframe];
-        const name = 'kline_';
-        const messageHash = marketId + '@' + name + interval;
-        // todo add filter by since and limit
-        return await this.watchPublic (messageHash, params);
+        const name = 'kline';
+        const messageHash = marketId + '@' + name + '_' + interval;
+        const future = this.watchPublic (messageHash, params);
+        return await this.after (future, this.filterBySinceLimit, since, limit, 0);
     }
 
     handleOHLCV (client, message) {
