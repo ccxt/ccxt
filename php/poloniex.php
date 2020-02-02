@@ -20,6 +20,7 @@ class poloniex extends \ccxt\poloniex {
                 'watchTrades' => true,
                 'watchOrderBook' => true,
                 'watchBalance' => false, // not implemented yet
+                'watchOHLCV' => false, // missing on the exchange side
             ),
             'urls' => array(
                 'api' => array(

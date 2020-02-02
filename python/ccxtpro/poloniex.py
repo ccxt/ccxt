@@ -19,6 +19,7 @@ class poloniex(Exchange, ccxt.poloniex):
                 'watchTrades': True,
                 'watchOrderBook': True,
                 'watchBalance': False,  # not implemented yet
+                'watchOHLCV': False,  # missing on the exchange side
             },
             'urls': {
                 'api': {

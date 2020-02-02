@@ -21,7 +21,7 @@ class kucoin extends \ccxt\kucoin {
                 'watchTicker' => true,
                 'watchTrades' => true,
                 'watchBalance' => false, // for now
-                'watchOHLCV' => false, // missing in the exchange API
+                'watchOHLCV' => false, // missing on the exchange side
             ),
             'options' => array(
                 'tradesLimit' => 1000,

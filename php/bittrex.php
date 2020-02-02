@@ -21,6 +21,7 @@ class bittrex extends \ccxt\bittrex {
                 'watchTrades' => true,
                 'watchTicker' => true,
                 'watchTickers' => false, // for now
+                'watchOHLCV' => false, // missing on the exchange side
             ),
             'urls' => array(
                 'api' => array(

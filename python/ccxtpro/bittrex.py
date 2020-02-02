@@ -21,6 +21,7 @@ class bittrex(Exchange, ccxt.bittrex):
                 'watchTrades': True,
                 'watchTicker': True,
                 'watchTickers': False,  # for now
+                'watchOHLCV': False,  # missing on the exchange side
             },
             'urls': {
                 'api': {

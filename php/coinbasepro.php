@@ -15,7 +15,7 @@ class coinbasepro extends \ccxt\coinbasepro {
         return array_replace_recursive(parent::describe (), array(
             'has' => array(
                 'ws' => true,
-                'watchOHLCV' => false,
+                'watchOHLCV' => false, // missing on the exchange side
                 'watchOrderBook' => true,
                 'watchTicker' => true,
                 'watchTickers' => false, // for now

@@ -59,7 +59,7 @@ class gateio extends \ccxt\gateio {
         $subscribeMessage = array(
             'id' => $requestId,
             'method' => 'depth.subscribe',
-            'params' => [$wsMarketId, $limit, $interval],
+            'params' => array( $wsMarketId, $limit, $interval ),
         );
         $subscription = array(
             'id' => $requestId,
@@ -178,7 +178,7 @@ class gateio extends \ccxt\gateio {
         $subscribeMessage = array(
             'id' => $requestId,
             'method' => 'trades.subscribe',
-            'params' => [$marketId],
+            'params' => array( $marketId ),
         );
         $subscription = array(
             'id' => $requestId,
@@ -235,23 +235,111 @@ class gateio extends \ccxt\gateio {
         $client->resolve ($stored, $messageHash);
     }
 
+    public function load_markets ($reload = false, $params = array ()) {
+        $markets = parent::load_markets($reload, $params);
+        $marketsByUpperCaseId = $this->safe_value($this->options, 'marketsByUpperCaseId');
+        if (($marketsByUpperCaseId === null) || $reload) {
+            $marketsByUpperCaseId = array();
+            $symbols = is_array($markets) ? array_keys($markets) : array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $market = $markets[$symbol];
+                $uppercaseId = $this->safe_string_upper($market, 'id');
+                $market['uppercaseId'] = $uppercaseId;
+                $markets[$symbol] = $market;
+                $marketsByUpperCaseId[$uppercaseId] = $market;
+            }
+            $this->options['marketsByUpperCaseId'] = $marketsByUpperCaseId;
+        }
+        return $markets;
+    }
+
     public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $marketId = strtoupper($market['id']);
+        $marketId = $market['uppercaseId'];
         $requestId = $this->nonce ();
         $url = $this->urls['api']['ws'];
-        $interval = intval ($this->timeframes[$timeframe]);
+        $interval = $this->timeframes[$timeframe];
         $subscribeMessage = array(
             'id' => $requestId,
             'method' => 'kline.subscribe',
-            'params' => [$marketId, $interval],
+            'params' => array( $marketId, $interval ),
         );
         $subscription = array(
             'id' => $requestId,
         );
+        // gateio sends candles without a $timeframe identifier
+        // making it impossible to differentiate candles from
+        // two or more different timeframes within the same $symbol
+        // thus the exchange API is limited to one $timeframe per $symbol
         $messageHash = 'kline.update' . ':' . $marketId;
-        return $this->watch ($url, $messageHash, $subscribeMessage, $messageHash, $subscription);
+        $future = $this->watch ($url, $messageHash, $subscribeMessage, $messageHash, $subscription);
+        return $this->after ($future, $this->filterBySinceLimit, $since, $limit, 0);
+    }
+
+    public function handle_ohlcv ($client, $message) {
+        //
+        //     {
+        //         method => 'kline.update',
+        //         $params => array(
+        //             array(
+        //                 1580661060,
+        //                 '9432.37',
+        //                 '9435.77',
+        //                 '9435.77',
+        //                 '9429.93',
+        //                 '0.0879',
+        //                 '829.1875889352',
+        //                 'BTC_USDT'
+        //             )
+        //         ),
+        //         id => null
+        //     }
+        //
+        $params = $this->safe_value($message, 'params', array());
+        $ohlcv = $this->safe_value($params, 0, array());
+        $uppercaseId = $this->safe_string($ohlcv, 7);
+        $marketId = $this->safe_string_lower($ohlcv, 7);
+        $parsed = array(
+            $this->safe_timestamp($ohlcv, 0), // t
+            $this->safe_float($ohlcv, 1), // o
+            $this->safe_float($ohlcv, 3), // h
+            $this->safe_float($ohlcv, 4), // l
+            $this->safe_float($ohlcv, 2), // c
+            $this->safe_float($ohlcv, 5), // v
+        );
+        $market = null;
+        $symbol = $marketId;
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+            $symbol = $market['symbol'];
+        }
+        // gateio sends candles without a timeframe identifier
+        // making it impossible to differentiate candles from
+        // two or more different timeframes within the same $symbol
+        // thus the exchange API is limited to one timeframe per $symbol
+        // --------------------------------------------------------------------
+        // $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        // $stored = $this->safe_value($this->ohlcvs[$symbol], timeframe, array());
+        // --------------------------------------------------------------------
+        $stored = $this->safe_value($this->ohlcvs, $symbol, array());
+        $length = is_array($stored) ? count($stored) : 0;
+        if ($length && $parsed[0] === $stored[$length - 1][0]) {
+            $stored[$length - 1] = $parsed;
+        } else {
+            $stored[] = $parsed;
+            if ($length === $this->options['OHLCVLimit']) {
+                array_shift($stored);
+            }
+        }
+        // --------------------------------------------------------------------
+        // $this->ohlcvs[$symbol][timeframe] = $stored;
+        // --------------------------------------------------------------------
+        $this->ohlcvs[$symbol] = $stored;
+        $methodType = $message['method'];
+        $messageHash = $methodType . ':' . $uppercaseId;
+        $client->resolve ($stored, $messageHash);
     }
 
     public function authenticate () {
@@ -276,43 +364,6 @@ class gateio extends \ccxt\gateio {
             $this->spawn (array($this, 'watch'), $url, $requestId, $authenticateMessage, $method, $subscribe);
         }
         return $future;
-    }
-
-    public function handle_ohlcv ($client, $message) {
-        $ohlcv = $message['params'][0];
-        $wsMarketId = $this->safe_string($ohlcv, 7);
-        $marketId = $this->safe_string_lower($ohlcv, 7);
-        $parsed = array(
-            $this->safe_timestamp($ohlcv, 0), // t
-            $this->safe_float($ohlcv, 1), // o
-            $this->safe_float($ohlcv, 3), // h
-            $this->safe_float($ohlcv, 4), // l
-            $this->safe_float($ohlcv, 2), // c
-            $this->safe_float($ohlcv, 5), // v
-        );
-        $market = null;
-        $symbol = $marketId;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        }
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
-            $this->ohlcvs[$symbol] = array();
-        }
-        $stored = $this->ohlcvs[$symbol];
-        $length = is_array($stored) ? count($stored) : 0;
-        if ($length && $parsed[0] === $stored[$length - 1][0]) {
-            $stored[$length - 1] = $parsed;
-        } else {
-            $stored[] = $parsed;
-            if ($length === $this->options['OHLCVLimit']) {
-                array_shift($stored);
-            }
-        }
-        $this->ohlcvs[$symbol] = $stored;
-        $methodType = $message['method'];
-        $messageHash = $methodType . ':' . $wsMarketId;
-        $client->resolve ($stored, $messageHash);
     }
 
     public function watch_balance ($params = array ()) {
@@ -357,7 +408,9 @@ class gateio extends \ccxt\gateio {
         $messageHash = $message['id'];
         $result = $message['result'];
         $this->handle_balance_message ($client, $messageHash, $result);
-        unset($client->subscriptions['balance.query']);
+        if (is_array($client->subscriptions) && array_key_exists('balance.query', $client->subscriptions)) {
+            unset($client->subscriptions['balance.query']);
+        }
     }
 
     public function handle_balance ($client, $message) {
@@ -414,8 +467,10 @@ class gateio extends \ccxt\gateio {
         if ($status === 'success') {
             // $client->resolve (true, 'authenticated') will delete the $future
             // we want to remember that we are authenticated in subsequent call to private methods
-            $future = $client->futures['authenticated'];
-            $future->resolve (true);
+            $future = $this->safe_value($client->futures, 'authenticated');
+            if ($future !== null) {
+                $future->resolve (true);
+            }
         } else {
             // delete authenticate subscribeHash to release the "subscribe lock"
             // allows subsequent calls to subscribe to reauthenticate

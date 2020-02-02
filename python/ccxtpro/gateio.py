@@ -215,13 +215,29 @@ class gateio(Exchange, ccxt.gateio):
         messageHash = methodType + ':' + wsMarketId
         client.resolve(stored, messageHash)
 
+    async def load_markets(self, reload=False, params={}):
+        markets = await super(gateio, self).load_markets(reload, params)
+        marketsByUpperCaseId = self.safe_value(self.options, 'marketsByUpperCaseId')
+        if (marketsByUpperCaseId is None) or reload:
+            marketsByUpperCaseId = {}
+            symbols = list(markets.keys())
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                market = markets[symbol]
+                uppercaseId = self.safe_string_upper(market, 'id')
+                market['uppercaseId'] = uppercaseId
+                markets[symbol] = market
+                marketsByUpperCaseId[uppercaseId] = market
+            self.options['marketsByUpperCaseId'] = marketsByUpperCaseId
+        return markets
+
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        marketId = market['id'].upper()
+        marketId = market['uppercaseId']
         requestId = self.nonce()
         url = self.urls['api']['ws']
-        interval = int(self.timeframes[timeframe])
+        interval = self.timeframes[timeframe]
         subscribeMessage = {
             'id': requestId,
             'method': 'kline.subscribe',
@@ -230,8 +246,73 @@ class gateio(Exchange, ccxt.gateio):
         subscription = {
             'id': requestId,
         }
+        # gateio sends candles without a timeframe identifier
+        # making it impossible to differentiate candles from
+        # two or more different timeframes within the same symbol
+        # thus the exchange API is limited to one timeframe per symbol
         messageHash = 'kline.update' + ':' + marketId
-        return await self.watch(url, messageHash, subscribeMessage, messageHash, subscription)
+        future = self.watch(url, messageHash, subscribeMessage, messageHash, subscription)
+        return await self.after(future, self.filterBySinceLimit, since, limit, 0)
+
+    def handle_ohlcv(self, client, message):
+        #
+        #     {
+        #         method: 'kline.update',
+        #         params: [
+        #             [
+        #                 1580661060,
+        #                 '9432.37',
+        #                 '9435.77',
+        #                 '9435.77',
+        #                 '9429.93',
+        #                 '0.0879',
+        #                 '829.1875889352',
+        #                 'BTC_USDT'
+        #             ]
+        #         ],
+        #         id: null
+        #     }
+        #
+        params = self.safe_value(message, 'params', [])
+        ohlcv = self.safe_value(params, 0, [])
+        uppercaseId = self.safe_string(ohlcv, 7)
+        marketId = self.safe_string_lower(ohlcv, 7)
+        parsed = [
+            self.safe_timestamp(ohlcv, 0),  # t
+            self.safe_float(ohlcv, 1),  # o
+            self.safe_float(ohlcv, 3),  # h
+            self.safe_float(ohlcv, 4),  # l
+            self.safe_float(ohlcv, 2),  # c
+            self.safe_float(ohlcv, 5),  # v
+        ]
+        market = None
+        symbol = marketId
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+            symbol = market['symbol']
+        # gateio sends candles without a timeframe identifier
+        # making it impossible to differentiate candles from
+        # two or more different timeframes within the same symbol
+        # thus the exchange API is limited to one timeframe per symbol
+        # --------------------------------------------------------------------
+        # self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+        # stored = self.safe_value(self.ohlcvs[symbol], timeframe, [])
+        # --------------------------------------------------------------------
+        stored = self.safe_value(self.ohlcvs, symbol, [])
+        length = len(stored)
+        if length and parsed[0] == stored[length - 1][0]:
+            stored[length - 1] = parsed
+        else:
+            stored.append(parsed)
+            if length == self.options['OHLCVLimit']:
+                stored.pop(0)
+        # --------------------------------------------------------------------
+        # self.ohlcvs[symbol][timeframe] = stored
+        # --------------------------------------------------------------------
+        self.ohlcvs[symbol] = stored
+        methodType = message['method']
+        messageHash = methodType + ':' + uppercaseId
+        client.resolve(stored, messageHash)
 
     async def authenticate(self):
         url = self.urls['api']['ws']
@@ -254,38 +335,6 @@ class gateio(Exchange, ccxt.gateio):
             }
             self.spawn(self.watch, url, requestId, authenticateMessage, method, subscribe)
         return await future
-
-    def handle_ohlcv(self, client, message):
-        ohlcv = message['params'][0]
-        wsMarketId = self.safe_string(ohlcv, 7)
-        marketId = self.safe_string_lower(ohlcv, 7)
-        parsed = [
-            self.safe_timestamp(ohlcv, 0),  # t
-            self.safe_float(ohlcv, 1),  # o
-            self.safe_float(ohlcv, 3),  # h
-            self.safe_float(ohlcv, 4),  # l
-            self.safe_float(ohlcv, 2),  # c
-            self.safe_float(ohlcv, 5),  # v
-        ]
-        market = None
-        symbol = marketId
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-        if not (symbol in self.ohlcvs):
-            self.ohlcvs[symbol] = []
-        stored = self.ohlcvs[symbol]
-        length = len(stored)
-        if length and parsed[0] == stored[length - 1][0]:
-            stored[length - 1] = parsed
-        else:
-            stored.append(parsed)
-            if length == self.options['OHLCVLimit']:
-                stored.pop(0)
-        self.ohlcvs[symbol] = stored
-        methodType = message['method']
-        messageHash = methodType + ':' + wsMarketId
-        client.resolve(stored, messageHash)
 
     async def watch_balance(self, params={}):
         await self.load_markets()
@@ -327,7 +376,8 @@ class gateio(Exchange, ccxt.gateio):
         messageHash = message['id']
         result = message['result']
         self.handle_balance_message(client, messageHash, result)
-        del client.subscriptions['balance.query']
+        if 'balance.query' in client.subscriptions:
+            del client.subscriptions['balance.query']
 
     def handle_balance(self, client, message):
         messageHash = message['method']
@@ -377,8 +427,9 @@ class gateio(Exchange, ccxt.gateio):
         if status == 'success':
             # client.resolve(True, 'authenticated') will del the future
             # we want to remember that we are authenticated in subsequent call to private methods
-            future = client.futures['authenticated']
-            future.resolve(True)
+            future = self.safe_value(client.futures, 'authenticated')
+            if future is not None:
+                future.resolve(True)
         else:
             # del authenticate subscribeHash to release the "subscribe lock"
             # allows subsequent calls to subscribe to reauthenticate

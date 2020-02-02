@@ -13,7 +13,7 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
         return self.deep_extend(super(coinbasepro, self).describe(), {
             'has': {
                 'ws': True,
-                'watchOHLCV': False,
+                'watchOHLCV': False,  # missing on the exchange side
                 'watchOrderBook': True,
                 'watchTicker': True,
                 'watchTickers': False,  # for now
