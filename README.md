@@ -153,21 +153,22 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguge support]
 
 ### Prerequisites
 
-The best way to understand CCXT Pro is to make sure you grasp the entire CCXT Manual and practice standard CCXT first. CCXT Pro borrows a lot from CCXT, therefore the two libraries share a lot of commonalities, including:
+The best way to understand CCXT Pro is to make sure you grasp the entire CCXT Manual and practice standard CCXT first. CCXT Pro borrows from CCXT. The two libraries share a lot of commonalities, including:
 
-- markets, symbols and ids
+- the concepts of public API and private authenticated API
+- markets, symbols, currency codes and ids
 - unified data structures and formats, orderbooks, trades, orders, candles, ...
 - exceptions and error mappings
 - authentication and API keys (for private feeds and calls)
 - configuration options
 
-The CCXT Pro audience consists mostly of professional algorithmic traders and developers, in order to work efficiently with this library the user is required to be well-familiar with the concepts of streaming. One has to understand the difference between connection-based streaming APIs ([WebSocket](https://en.wikipedia.org/wiki/WebSocket), CCXT Pro) and request-response based APIs ([REST](https://en.wikipedia.org/wiki/Representational_state_transfer), CCXT).
+The CCXT Pro audience consists mostly of professional algorithmic traders and developers. In order to work efficiently with this library the user is required to be well-familiar with the concepts of streaming. One has to understand the underlying differences between connection-based streaming APIs ([WebSocket](https://en.wikipedia.org/wiki/WebSocket), CCXT Pro) and request-response based APIs ([REST](https://en.wikipedia.org/wiki/Representational_state_transfer), CCXT).
 
 The general async-style flow for a CCXT application is as follows:
 
 ```JavaScript
 
-// the RESTful orderbook polling request-response loop
+// a RESTful orderbook polling request-response loop
 
 while (condition) {
 
@@ -188,17 +189,22 @@ while (condition) {
 
 In CCXT Pro each public and private unified RESTful method having a `fetch*` prefix also has a corresponding stream-based counterpart method prefixed with `watch*`, as follows:
 
-- `fetchStatus` → `watchStatus`
-- `fetchOrderBook` → `watchOrderBook`
-- `fetchTicker` → `watchTicker`
-- `fetchTickers` → `watchTickers`
-- `fetchOHLCV` → `watchOHLCV`
-- `fetchTrades` → `watchTrades`
-- `fetchBalance` → `watchBalance`
-- `fetchOrders` → `watchOrders`
-- `fetchMyTrades` → `watchMyTrades`
-- `fetchTransactions` → `watchTransactions`
-- ...
+- Public API
+  - `fetchStatus` → `watchStatus`
+  - `fetchOrderBook` → `watchOrderBook`
+  - `fetchTicker` → `watchTicker`
+  - `fetchTickers` → `watchTickers`
+  - `fetchOHLCV` → `watchOHLCV`
+  - `fetchTrades` → `watchTrades`
+  - `fetchStatus` → `watchStatus`
+- Private API
+  - `fetchBalance` → `watchBalance`
+  - `fetchOrders` → `watchOrders`
+  - `fetchMyTrades` → `watchMyTrades`
+  - `fetchTransactions` → `watchTransactions`
+  - `fetchLedger` → `watchLedger`
+  - `createOrder` → `watchCreateOrder`<sup>`watch` prefix</sup>
+  - `cancelOrder` → `watchCancelOrder`<sup>`watch` prefix</sup>
 
 The Unified CCXT Pro Streaming API inherits CCXT usage patterns to make migration easier.
 
@@ -206,7 +212,7 @@ The general async-style flow for a CCXT Pro application (as opposed to a CCXT ap
 
 ```JavaScript
 
-// the stream-based (WebSocket) orderbook feed loop
+// a stream-based (WebSocket) orderbook feed loop
 
 while (condition) {
 
