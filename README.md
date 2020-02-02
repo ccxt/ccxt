@@ -34,7 +34,7 @@ CCXT Pro is a professional extension to the standard CCXT that is going to inclu
 
 ## The Access To The Repository
 
-The access to the CCXT Pro repository is prepaid and restricted (by invitation only). In order to get the access to the repository, the user must buy an access plan at https://ccxt.pro and visit the repository on GitHub via https://github.com/kroitor/ccxt.pro.
+The access to the CCXT Pro repository is prepaid and restricted (by invitation only). 
 
 ## CCXT Pro License
 
@@ -43,7 +43,7 @@ The access to the CCXT Pro repository is prepaid and restricted (by invitation o
 - Violation of the licensing terms will trigger a ban followed by a legal pursuit.
 ```
 
-The CCXT Pro repository is hosted on GitHub. The access to the repository is licensed/paid. The users of the library pay for the continued access to the repository, including updates, support and maintenance (new exchanges, improvements, bugfixes and so on).
+The CCXT Pro repository is hosted on GitHub. The access to the repository is licensed/prepaid and restricted (by invitation only). In order to access the repository, the user must obtain a paid subscription plan at https://ccxt.pro. The users of the library pay for the continued access to the repository, including updates, support and maintenance (new exchanges, improvements, bugfixes and so on).
 
 CCXT Pro does not enforce technical restrictions that would affect the efficiency of direct communications between the users and the exchanges. The protection is not technical but legal. We do not impose unnecessary limitations or intermediary code. It is hard to know if someone is using CCXT Pro in private. If your CCXT Pro licensed access expires, your software or system will not break down and will keep working fine with the most recent version that you already have by that time. However, you will lose the  updates that will follow if you don't have an ongoing paid license to access the repository.
 
