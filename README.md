@@ -18,9 +18,9 @@ const ccxtpro = require ('ccxt.pro');
 
 CCXT Pro is a professional extension to the standard CCXT that is going to include:
 
-- Unified public and private WebSockets APIs<sup>wip now</sup>
+- Unified public and private WebSockets APIs <sup>*wip now*</sup>
 - Backward-compatible CCXT ←→ CCXT Pro adapters
-- FIX protocol transports<sup>planned</sup>
+- FIX protocol transports <sup>*planned*</sup>
 -
 
 ## Technicalities:
@@ -204,8 +204,8 @@ In CCXT Pro each public and private unified RESTful method having a `fetch*` pre
   - `fetchMyTrades` → `watchMyTrades`
   - `fetchTransactions` → `watchTransactions`
   - `fetchLedger` → `watchLedger`
-  - `createOrder` → `watchCreateOrder`<sup>`watch` prefix</sup>
-  - `cancelOrder` → `watchCancelOrder`<sup>`watch` prefix</sup>
+  - `createOrder` → `watchCreateOrder` <sup>*`watch` prefix*</sup>
+  - `cancelOrder` → `watchCancelOrder` <sup>*`watch` prefix*</sup>
 
 The Unified CCXT Pro Streaming API inherits CCXT usage patterns to make migration easier.
 
