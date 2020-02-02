@@ -353,6 +353,17 @@ module.exports = class binance extends ccxt.binance {
         return await this.after (future, this.filterBySinceLimit, since, limit, 0);
     }
 
+    findTimeframe (timeframe) {
+        const keys = Object.keys (this.timeframes);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.timeframes[key] === timeframe) {
+                return key;
+            }
+        }
+        return undefined;
+    }
+
     handleOHLCV (client, message) {
         //
         //     {
@@ -385,6 +396,7 @@ module.exports = class binance extends ccxt.binance {
         const event = this.safeString (message, 'e');
         const kline = this.safeValue (message, 'k');
         const interval = this.safeString (kline, 'i');
+        const timeframe = this.findTimeframe (interval);
         const messageHash = lowercaseMarketId + '@' + event + '_' + interval;
         const parsed = [
             this.safeInteger (kline, 't'),
@@ -399,7 +411,8 @@ module.exports = class binance extends ccxt.binance {
             const market = this.markets_by_id[marketId];
             symbol = market['symbol'];
         }
-        const stored = this.safeValue (this.ohlcvs, symbol, []);
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
         const length = stored.length;
         if (length && parsed[0] === stored[length - 1][0]) {
             stored[length - 1] = parsed;
@@ -409,7 +422,7 @@ module.exports = class binance extends ccxt.binance {
                 stored.shift ();
             }
         }
-        this.ohlcvs[symbol] = stored;
+        this.ohlcvs[symbol][timeframe] = stored;
         client.resolve (stored, messageHash);
     }
 
