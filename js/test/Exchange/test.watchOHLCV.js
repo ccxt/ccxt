@@ -50,6 +50,7 @@ module.exports = async (exchange, symbol) => {
             ohlcv[5],
         ])
 
+        console.log ('--------------------------------------------------------')
         log.noLocate (asTable (response))
     }
 
