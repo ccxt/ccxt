@@ -1,7 +1,3 @@
-![CCXT Pro](https://user-images.githubusercontent.com/1294454/73616182-5872b900-4621-11ea-85d9-24b80d2e9120.png)
-
----
-
 # CCXT Pro
 
 ```JavaScript
