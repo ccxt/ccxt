@@ -1646,10 +1646,10 @@ class Exchange(object):
     def filter_by_currency_since_limit(self, array, code=None, since=None, limit=None):
         return self.filter_by_value_since_limit(array, 'currency', code, since, limit)
 
-    def filter_by_since_limit(self, array, since=None, limit=None):
+    def filter_by_since_limit(self, array, since=None, limit=None, key='timestamp'):
         array = self.to_array(array)
         if since:
-            array = [entry for entry in array if entry['timestamp'] >= since]
+            array = [entry for entry in array if entry[key] >= since]
         if limit:
             array = array[0:limit]
         return array
