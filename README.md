@@ -204,8 +204,8 @@ In CCXT Pro each public and private unified RESTful method having a `fetch*` pre
   - `fetchMyTrades` → `watchMyTrades`
   - `fetchTransactions` → `watchTransactions`
   - `fetchLedger` → `watchLedger`
-  - `createOrder` → `watchCreateOrder` <sup>*(`watch` prefix)*</sup>
-  - `cancelOrder` → `watchCancelOrder` <sup>*(`watch` prefix)*</sup>
+  - `createOrder` → `watchCreateOrder` <sup>*(notice the `watch` prefix)*</sup>
+  - `cancelOrder` → `watchCancelOrder` <sup>*(notice the `watch` prefix)*</sup>
 
 The Unified CCXT Pro Streaming API inherits CCXT usage patterns to make migration easier.
 
@@ -351,14 +351,24 @@ Every CCXT Pro instance contains all properties of the underlying CCXT instance.
 
 ```JavaScript
 {
-    'has': { ... } // an extended associative array of extended exchange capabilities (e.g. `watchOrderBook`, `watchOHLCV`, ...)
+    'has': { // an associative array of extended exchange capabilities
+        'ws': true,
+        'watchOrderBook': true,
+        'watchTicker': true,
+        'watchTrades': true,
+        'watchOHLCV': true,
+        'watchBalance': true,
+        'watchCreateOrder': true,
+        'watchCancelOrder': true,
+        ...
+    },
     'urls': {
         'api': { // will contain a streaming API base URL, depending on the underlying protocol
             'ws': 'wss://ws.exchange.com',            // https://en.wikipedia.org/wiki/WebSocket
             'signalr': 'https://signalr.exchange.com' // https://en.wikipedia.org/wiki/SignalR
             'socketio': 'wss://socket.exchange.io'    // https://socket.io
         },
-    }
+    },
     'version': '1.21',
     'streaming': {
         'keepAlive': 30000, // integer keep-alive rate in milliseconds
