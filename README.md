@@ -67,7 +67,6 @@ Installing CCXT Pro requires visiting the https://ccxt.pro website and obtaining
 
 ```shell
 # in your project directory
-npm install ccxt.pro
 
 # if you're using Git/HTTPS authentication
 npm install git+https://github.com/kroitor/ccxt.pro.git
@@ -78,8 +77,12 @@ npm install git@github.com/kroitor/ccxt.pro.git
 
 ## Python
 
-```
-pip install ccxtpro
+```shell
+# if you're using Git/HTTPS authentication
+pip3 install -e git+https://github.com/kroitor/ccxt.pro.git#subdirectory=python
+
+# if you are connecting to GitHub with SSH
+pip3 install -e git+ssh://git@github.com/kroitor/ccxt.pro.git#subdirectory=python
 ```
 
 ## PHP
