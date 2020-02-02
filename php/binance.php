@@ -351,10 +351,21 @@ class binance extends \ccxt\binance {
         $market = $this->market ($symbol);
         $marketId = $market['lowercaseId'];
         $interval = $this->timeframes[$timeframe];
-        $name = 'kline_';
-        $messageHash = $marketId . '@' . $name . $interval;
-        // todo add filter by $since and $limit
-        return $this->watch_public ($messageHash, $params);
+        $name = 'kline';
+        $messageHash = $marketId . '@' . $name . '_' . $interval;
+        $future = $this->watch_public ($messageHash, $params);
+        return $this->after ($future, $this->filterBySinceLimit, $since, $limit, 0);
+    }
+
+    public function find_timeframe ($timeframe) {
+        $keys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($this->timeframes[$key] === $timeframe) {
+                return $key;
+            }
+        }
+        return null;
     }
 
     public function handle_ohlcv ($client, $message) {
@@ -389,6 +400,7 @@ class binance extends \ccxt\binance {
         $event = $this->safe_string($message, 'e');
         $kline = $this->safe_value($message, 'k');
         $interval = $this->safe_string($kline, 'i');
+        $timeframe = $this->find_timeframe ($interval);
         $messageHash = $lowercaseMarketId . '@' . $event . '_' . $interval;
         $parsed = array(
             $this->safe_integer($kline, 't'),
@@ -403,7 +415,8 @@ class binance extends \ccxt\binance {
             $market = $this->markets_by_id[$marketId];
             $symbol = $market['symbol'];
         }
-        $stored = $this->safe_value($this->ohlcvs, $symbol, array());
+        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe, array());
         $length = is_array($stored) ? count($stored) : 0;
         if ($length && $parsed[0] === $stored[$length - 1][0]) {
             $stored[$length - 1] = $parsed;
@@ -413,7 +426,7 @@ class binance extends \ccxt\binance {
                 array_shift($stored);
             }
         }
-        $this->ohlcvs[$symbol] = $stored;
+        $this->ohlcvs[$symbol][$timeframe] = $stored;
         $client->resolve ($stored, $messageHash);
     }
 

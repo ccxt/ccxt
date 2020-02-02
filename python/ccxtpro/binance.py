@@ -314,10 +314,18 @@ class binance(Exchange, ccxt.binance):
         market = self.market(symbol)
         marketId = market['lowercaseId']
         interval = self.timeframes[timeframe]
-        name = 'kline_'
-        messageHash = marketId + '@' + name + interval
-        # todo add filter by since and limit
-        return await self.watch_public(messageHash, params)
+        name = 'kline'
+        messageHash = marketId + '@' + name + '_' + interval
+        future = self.watch_public(messageHash, params)
+        return await self.after(future, self.filterBySinceLimit, since, limit, 0)
+
+    def find_timeframe(self, timeframe):
+        keys = list(self.timeframes.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if self.timeframes[key] == timeframe:
+                return key
+        return None
 
     def handle_ohlcv(self, client, message):
         #
@@ -351,6 +359,7 @@ class binance(Exchange, ccxt.binance):
         event = self.safe_string(message, 'e')
         kline = self.safe_value(message, 'k')
         interval = self.safe_string(kline, 'i')
+        timeframe = self.find_timeframe(interval)
         messageHash = lowercaseMarketId + '@' + event + '_' + interval
         parsed = [
             self.safe_integer(kline, 't'),
@@ -364,7 +373,8 @@ class binance(Exchange, ccxt.binance):
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
             symbol = market['symbol']
-        stored = self.safe_value(self.ohlcvs, symbol, [])
+        self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+        stored = self.safe_value(self.ohlcvs[symbol], timeframe, [])
         length = len(stored)
         if length and parsed[0] == stored[length - 1][0]:
             stored[length - 1] = parsed
@@ -372,7 +382,7 @@ class binance(Exchange, ccxt.binance):
             stored.append(parsed)
             if length + 1 > self.options['OHLCVLimit']:
                 stored.pop(0)
-        self.ohlcvs[symbol] = stored
+        self.ohlcvs[symbol][timeframe] = stored
         client.resolve(stored, messageHash)
 
     async def watch_public(self, messageHash, params={}):
