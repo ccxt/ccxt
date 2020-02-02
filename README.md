@@ -204,8 +204,8 @@ In CCXT Pro each public and private unified RESTful method having a `fetch*` pre
   - `fetchMyTrades` → `watchMyTrades`
   - `fetchTransactions` → `watchTransactions`
   - `fetchLedger` → `watchLedger`
-  - `createOrder` → `watchCreateOrder` <sup>*`watch` prefix*</sup>
-  - `cancelOrder` → `watchCancelOrder` <sup>*`watch` prefix*</sup>
+  - `createOrder` → `watchCreateOrder` <sup>*(`watch` prefix)*</sup>
+  - `cancelOrder` → `watchCancelOrder` <sup>*(`watch` prefix)*</sup>
 
 The Unified CCXT Pro Streaming API inherits CCXT usage patterns to make migration easier.
 
