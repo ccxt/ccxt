@@ -32,10 +32,6 @@ CCXT Pro is a professional extension to the standard CCXT that is going to inclu
 - keep-alive ping-pong
 - proxies
 
-## The Access To The Repository
-
-The access to the CCXT Pro repository is prepaid and restricted (by invitation only). 
-
 ## CCXT Pro License
 
 ```diff
