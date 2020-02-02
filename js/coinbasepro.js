@@ -11,7 +11,7 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchOHLCV': false,
+                'watchOHLCV': false, // missing on the exchange side
                 'watchOrderBook': true,
                 'watchTicker': true,
                 'watchTickers': false, // for now
