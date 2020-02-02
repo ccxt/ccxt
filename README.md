@@ -36,10 +36,10 @@ CCXT Pro is a professional extension to the standard CCXT that is going to inclu
 
 The access to the CCXT Pro repository is prepaid and restricted (by invitation only). In order to get the access to the repository, the user must buy an access plan at https://ccxt.pro and visit the repository on GitHub via https://github.com/kroitor/ccxt.pro.
 
-## License Summary
+## CCXT Pro License
 
 ```diff
-- WARNING: Violation of the licensing terms will trigger a ban followed by a legal pursuit.
+- Violation of the licensing terms will trigger a ban followed by a legal pursuit.
 - It is illegal to republish or redistribute the CCXT Pro source code without a separate permission from us.
 ```
 
