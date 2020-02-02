@@ -38,9 +38,10 @@ The access to the CCXT Pro repository is prepaid and restricted (by invitation o
 
 ## License Summary
 
-**WARNING: Violation of the licensing terms will trigger a ban followed by a legal pursuit.**
-
-**It is illegal to republish or redistribute the CCXT Pro source code without a separate permission from us.**
+```diff
+- WARNING: Violation of the licensing terms will trigger a ban followed by a legal pursuit.
+- It is illegal to republish or redistribute the CCXT Pro source code without a separate permission from us.
+```
 
 The CCXT Pro repository is hosted on GitHub. The access to the repository is licensed/paid. The users of the library pay for the continued access to the repository, including updates, support and maintenance (new exchanges, improvements, bugfixes and so on).
 
