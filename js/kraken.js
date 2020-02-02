@@ -16,8 +16,8 @@ module.exports = class kraken extends ccxt.kraken {
                 'watchTickers': false, // for now
                 'watchTrades': true,
                 'watchOrderBook': true,
-                'watchStatus': true,
-                'watchHeartbeat': true,
+                // 'watchStatus': true,
+                // 'watchHeartbeat': true,
                 'watchOHLCV': true,
             },
             'urls': {
@@ -103,7 +103,7 @@ module.exports = class kraken extends ccxt.kraken {
             'quoteVolume': quoteVolume,
             'info': ticker,
         };
-        // todo: add support for multiple tickers (may be tricky)
+        // todo add support for multiple tickers (may be tricky)
         // kraken confirms multi-pair subscriptions separately one by one
         // trigger correct watchTickers calls upon receiving any of symbols
         this.tickers[symbol] = result;
@@ -211,30 +211,6 @@ module.exports = class kraken extends ccxt.kraken {
             this.ohlcvs[symbol][timeframe] = stored;
             client.resolve (stored, messageHash);
         }
-        // const messageHash = name + ':' + interval + ':' + wsName;
-        // // --------------------------------------------------------------------
-        // const marketId = this.safeString (message, 's');
-        // const lowercaseMarketId = this.safeStringLower (message, 's');
-        // const event = this.safeString (message, 'e');
-        // const kline = this.safeValue (message, 'k');
-        // const interval = this.safeString (kline, 'i');
-        // // const messageHash = lowercaseMarketId + '@' + event + '_' + interval;
-        // const parsed = [
-        //     this.safeInteger (kline, 't'),
-        //     this.safeFloat (kline, 'o'),
-        //     this.safeFloat (kline, 'h'),
-        //     this.safeFloat (kline, 'l'),
-        //     this.safeFloat (kline, 'c'),
-        //     this.safeFloat (kline, 'v'),
-        // ];
-        // let symbol = marketId;
-        // if (marketId in this.markets_by_id) {
-        //     const market = this.markets_by_id[marketId];
-        //     symbol = market['symbol'];
-        // }
-        // const timeframe = this.findTimeframe (interval);
-        // // --------------------------------------------------------------------
-        // client.resolve (result, messageHash);
     }
 
     reqid () {
@@ -529,7 +505,6 @@ module.exports = class kraken extends ccxt.kraken {
 
     handleMessage (client, message) {
         if (Array.isArray (message)) {
-            // todo: move this branch and the 'method' property – to the client.subscriptions
             const channelId = message[0].toString ();
             const subscription = this.safeValue (client.subscriptions, channelId, {});
             const info = this.safeValue (subscription, 'subscription', {});
