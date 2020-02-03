@@ -460,7 +460,7 @@ class stex extends Exchange {
         //         "ask" => "0.02069998",
         //         "bid" => "0.02028622",
         //         "$last" => "0.02049224",
-        //         "open" => "0.02059605",
+        //         "$open" => "0.02059605",
         //         "low" => "0.01977744",
         //         "high" => "0.02097005",
         //         "volume" => "480.43248971",
@@ -503,6 +503,15 @@ class stex extends Exchange {
             $symbol = $market['symbol'];
         }
         $last = $this->safe_float($ticker, 'last');
+        $open = $this->safe_float($ticker, 'open');
+        $change = null;
+        $percentage = null;
+        if ($last !== null) {
+            if ($open !== null) {
+                $change = $last - $open;
+                $percentage = ((100 / $open) * $last) - 100;
+            }
+        }
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -514,12 +523,12 @@ class stex extends Exchange {
             'ask' => $this->safe_float($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_float($ticker, 'open'),
+            'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => null, // previous day close
-            'change' => null,
-            'percentage' => null,
+            'change' => $change,
+            'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $this->safe_float($ticker, 'volumeQuote'),
             'quoteVolume' => $this->safe_float($ticker, 'volume'),

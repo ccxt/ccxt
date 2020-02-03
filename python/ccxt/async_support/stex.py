@@ -497,6 +497,13 @@ class stex(Exchange):
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
+        open = self.safe_float(ticker, 'open')
+        change = None
+        percentage = None
+        if last is not None:
+            if open is not None:
+                change = last - open
+                percentage = ((100 / open) * last) - 100
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -508,12 +515,12 @@ class stex(Exchange):
             'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_float(ticker, 'open'),
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,  # previous day close
-            'change': None,
-            'percentage': None,
+            'change': change,
+            'percentage': percentage,
             'average': None,
             'baseVolume': self.safe_float(ticker, 'volumeQuote'),
             'quoteVolume': self.safe_float(ticker, 'volume'),
