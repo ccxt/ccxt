@@ -1524,7 +1524,7 @@ class stex extends Exchange {
         if (($code === null) && ($currency !== null)) {
             $code = $currency['code'];
         }
-        $type = (is_array($transaction) && array_key_exists('depositId', $transaction)) ? 'deposit' : 'withdrawal';
+        $type = (is_array($transaction) && array_key_exists('deposit_status_id', $transaction)) ? 'deposit' : 'withdrawal';
         $amount = $this->safe_float($transaction, 'amount');
         $status = $this->parse_transaction_status ($this->safe_string_lower($transaction, 'status'));
         $timestamp = $this->safe_timestamp_2($transaction, 'timestamp', 'created_ts');
@@ -1562,21 +1562,20 @@ class stex extends Exchange {
     }
 
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
-        if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
-        }
         $this->load_markets();
-        $currency = $this->currency ($code);
-        $request = array(
-            'currencyTypeName' => $currency['name'],
-            // 'pageSize' => $limit, // documented as required, but it works without it
-            // 'pageNum' => 0, // also works without it, most likely a typo in the docs
-            // 'sort' => 1, // 1 = asc, 0 = desc
-        );
-        if ($limit !== null) {
-            $request['pageSize'] = $limit; // default 50
+        $currency = null;
+        $request = array();
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+            $request['currencyId'] = $currency['id'];
         }
-        $response = $this->privatePostExchangeFundControllerWebsiteFundcontrollerGetPayinCoinRecord (array_merge($request, $params));
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        if ($since !== null) {
+            $request['timeStart'] = $since;
+        }
+        $response = $this->profileGetDeposits (array_merge($request, $params));
         //
         //     {
         //         "success" => true,
@@ -1596,31 +1595,35 @@ class stex extends Exchange {
         //                 "status_color" => "#BC3D51",
         //                 "created_at" => "2018-11-28 12:32:08",
         //                 "timestamp" => "1543409389",
-        //                 "confirmations" => "1 of 2"
+        //                 "confirmations" => "1 of 2",
+        //                 "protocol_specific_settings" => {
+        //                     "protocol_name" => "Tether OMNI",
+        //                     "protocol_id" => 10,
+        //                     "block_explorer_url" => "https://omniexplorer.info/search/"
+        //                 }
         //             }
         //         )
         //     }
         //
-        $deposits = $this->safe_value($response, 'datas', array());
+        $deposits = $this->safe_value($response, 'data', array());
         return $this->parse_transactions($deposits, $code, $since, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
-        if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $currency $code argument');
-        }
         $this->load_markets();
-        $currency = $this->currency ($code);
-        $request = array(
-            'currencyId' => $currency['id'],
-            // 'pageSize' => $limit, // documented as required, but it works without it
-            // 'pageIndex' => 0, // also works without it, most likely a typo in the docs
-            // 'tab' => 'all', // all, wait (submitted, not audited), success (auditing passed), fail (auditing failed), cancel (canceled by user)
-        );
-        if ($limit !== null) {
-            $request['pageSize'] = $limit; // default 50
+        $currency = null;
+        $request = array();
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+            $request['currencyId'] = $currency['id'];
         }
-        $response = $this->privateGetExchangeFundControllerWebsiteFundwebsitecontrollerGetpayoutcoinrecord (array_merge($request, $params));
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        if ($since !== null) {
+            $request['timeStart'] = $since;
+        }
+        $response = $this->profileGetWithdrawals (array_merge($request, $params));
         //
         //     {
         //         "success" => true,
@@ -1642,7 +1645,7 @@ class stex extends Exchange {
         //                 "updated_ts" => "1548063365",
         //                 "txid" => null,
         //                 "protocol_id" => 0,
-        //                 "withdrawal_address" => {
+        //                 "withdrawal_address" => array(
         //                     "address" => "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
         //                     "address_name" => "Address",
         //                     "additional_address_parameter" => "qwertyuiopasdfghjkl",
@@ -1651,6 +1654,11 @@ class stex extends Exchange {
         //                     "protocol_id" => 10,
         //                     "protocol_name" => "Tether OMNI",
         //                     "supports_new_address_creation" => false
+        //                 ),
+        //                 "protocol_specific_settings" => {
+        //                     "protocol_name" => "Tether OMNI",
+        //                     "protocol_id" => 10,
+        //                     "block_explorer_url" => "https://omniexplorer.info/search/"
         //                 }
         //             }
         //         )

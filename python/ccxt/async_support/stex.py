@@ -1450,7 +1450,7 @@ class stex(Exchange):
             code = self.common_currency_code(self.safe_string(transaction, 'currency_code'))
         if (code is None) and (currency is not None):
             code = currency['code']
-        type = 'deposit' if ('depositId' in transaction) else 'withdrawal'
+        type = 'deposit' if ('deposit_status_id' in transaction) else 'withdrawal'
         amount = self.safe_float(transaction, 'amount')
         status = self.parse_transaction_status(self.safe_string_lower(transaction, 'status'))
         timestamp = self.safe_timestamp_2(transaction, 'timestamp', 'created_ts')
@@ -1486,19 +1486,17 @@ class stex(Exchange):
         }
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
         await self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'currencyTypeName': currency['name'],
-            # 'pageSize': limit,  # documented as required, but it works without it
-            # 'pageNum': 0,  # also works without it, most likely a typo in the docs
-            # 'sort': 1,  # 1 = asc, 0 = desc
-        }
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['currencyId'] = currency['id']
         if limit is not None:
-            request['pageSize'] = limit  # default 50
-        response = await self.privatePostExchangeFundControllerWebsiteFundcontrollerGetPayinCoinRecord(self.extend(request, params))
+            request['limit'] = limit
+        if since is not None:
+            request['timeStart'] = since
+        response = await self.profileGetDeposits(self.extend(request, params))
         #
         #     {
         #         "success": True,
@@ -1518,28 +1516,31 @@ class stex(Exchange):
         #                 "status_color": "#BC3D51",
         #                 "created_at": "2018-11-28 12:32:08",
         #                 "timestamp": "1543409389",
-        #                 "confirmations": "1 of 2"
+        #                 "confirmations": "1 of 2",
+        #                 "protocol_specific_settings": {
+        #                     "protocol_name": "Tether OMNI",
+        #                     "protocol_id": 10,
+        #                     "block_explorer_url": "https://omniexplorer.info/search/"
+        #                 }
         #             }
         #         ]
         #     }
         #
-        deposits = self.safe_value(response, 'datas', {})
+        deposits = self.safe_value(response, 'data', [])
         return self.parse_transactions(deposits, code, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
         await self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'currencyId': currency['id'],
-            # 'pageSize': limit,  # documented as required, but it works without it
-            # 'pageIndex': 0,  # also works without it, most likely a typo in the docs
-            # 'tab': 'all',  # all, wait(submitted, not audited), success(auditing passed), fail(auditing failed), cancel(canceled by user)
-        }
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['currencyId'] = currency['id']
         if limit is not None:
-            request['pageSize'] = limit  # default 50
-        response = await self.privateGetExchangeFundControllerWebsiteFundwebsitecontrollerGetpayoutcoinrecord(self.extend(request, params))
+            request['limit'] = limit
+        if since is not None:
+            request['timeStart'] = since
+        response = await self.profileGetWithdrawals(self.extend(request, params))
         #
         #     {
         #         "success": True,
@@ -1570,6 +1571,11 @@ class stex(Exchange):
         #                     "protocol_id": 10,
         #                     "protocol_name": "Tether OMNI",
         #                     "supports_new_address_creation": False
+        #                 },
+        #                 "protocol_specific_settings": {
+        #                     "protocol_name": "Tether OMNI",
+        #                     "protocol_id": 10,
+        #                     "block_explorer_url": "https://omniexplorer.info/search/"
         #                 }
         #             }
         #         ]
