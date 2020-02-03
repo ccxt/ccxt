@@ -1520,7 +1520,7 @@ module.exports = class stex extends Exchange {
         if ((code === undefined) && (currency !== undefined)) {
             code = currency['code'];
         }
-        const type = ('depositId' in transaction) ? 'deposit' : 'withdrawal';
+        const type = ('deposit_status_id' in transaction) ? 'deposit' : 'withdrawal';
         const amount = this.safeFloat (transaction, 'amount');
         const status = this.parseTransactionStatus (this.safeStringLower (transaction, 'status'));
         const timestamp = this.safeTimestamp2 (transaction, 'timestamp', 'created_ts');
@@ -1558,21 +1558,21 @@ module.exports = class stex extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
-        }
         await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currencyTypeName': currency['name'],
-            // 'pageSize': limit, // documented as required, but it works without it
-            // 'pageNum': 0, // also works without it, most likely a typo in the docs
-            // 'sort': 1, // 1 = asc, 0 = desc
-        };
-        if (limit !== undefined) {
-            request['pageSize'] = limit; // default 50
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currencyId'] = currency['id'];
         }
-        const response = await this.privatePostExchangeFundControllerWebsiteFundcontrollerGetPayinCoinRecord (this.extend (request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['timeStart'] = since;
+        }
+        const response = await this.profileGetDeposits (this.extend (request, params));
+        console.log(response);
         //
         //     {
         //         "success": true,
@@ -1592,31 +1592,36 @@ module.exports = class stex extends Exchange {
         //                 "status_color": "#BC3D51",
         //                 "created_at": "2018-11-28 12:32:08",
         //                 "timestamp": "1543409389",
-        //                 "confirmations": "1 of 2"
+        //                 "confirmations": "1 of 2",
+        //                 "protocol_specific_settings": {
+        //                     "protocol_name": "Tether OMNI",
+        //                     "protocol_id": 10,
+        //                     "block_explorer_url": "https://omniexplorer.info/search/"
+        //                 }
         //             }
         //         ]
         //     }
         //
-        const deposits = this.safeValue (response, 'datas', {});
+        const deposits = this.safeValue (response, 'data', []);
         return this.parseTransactions (deposits, code, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
-        }
         await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currencyId': currency['id'],
-            // 'pageSize': limit, // documented as required, but it works without it
-            // 'pageIndex': 0, // also works without it, most likely a typo in the docs
-            // 'tab': 'all', // all, wait (submitted, not audited), success (auditing passed), fail (auditing failed), cancel (canceled by user)
-        };
-        if (limit !== undefined) {
-            request['pageSize'] = limit; // default 50
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currencyId'] = currency['id'];
         }
-        const response = await this.privateGetExchangeFundControllerWebsiteFundwebsitecontrollerGetpayoutcoinrecord (this.extend (request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['timeStart'] = since;
+        }
+        const response = await this.profileGetWithdrawals (this.extend (request, params));
+        console.log(response);
         //
         //     {
         //         "success": true,
@@ -1647,6 +1652,11 @@ module.exports = class stex extends Exchange {
         //                     "protocol_id": 10,
         //                     "protocol_name": "Tether OMNI",
         //                     "supports_new_address_creation": false
+        //                 },
+        //                 "protocol_specific_settings": {
+        //                     "protocol_name": "Tether OMNI",
+        //                     "protocol_id": 10,
+        //                     "block_explorer_url": "https://omniexplorer.info/search/"
         //                 }
         //             }
         //         ]
