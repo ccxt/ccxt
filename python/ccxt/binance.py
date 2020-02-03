@@ -215,6 +215,7 @@ class binance(Exchange):
                     ],
                     'delete': [
                         'order',
+                        'allOpenOrders',
                     ],
                 },
                 'v3': {
