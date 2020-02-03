@@ -21,6 +21,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 
 
@@ -170,6 +171,7 @@ class coinbasepro(Exchange):
                     'invalid signature': AuthenticationError,
                     'Invalid Passphrase': AuthenticationError,
                     'Invalid order id': InvalidOrder,
+                    'Private rate limit exceeded': RateLimitExceeded,
                 },
                 'broad': {
                     'Order already done': OrderNotFound,
@@ -873,7 +875,7 @@ class coinbasepro(Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if (code == 400) or (code == 404):
             if body[0] == '{':
-                message = response['message']
+                message = self.safe_string(response, 'message')
                 feedback = self.id + ' ' + message
                 self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
