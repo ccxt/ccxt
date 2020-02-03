@@ -20,6 +20,7 @@ class bitmex extends \ccxt\bitmex {
                 'watchTickers' => false,
                 'watchTrades' => true,
                 'watchOrderBook' => true,
+                'watchOHLCV' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -412,49 +413,6 @@ class bitmex extends \ccxt\bitmex {
         return $this->after ($future, $this->filterBySinceLimit, $since, $limit);
     }
 
-    public function handle_ohlcv ($client, $message) {
-        //
-        //     array(
-        //         216, // channelID
-        //         array(
-        //             '1574454214.962096', // Time, seconds since epoch
-        //             '1574454240.000000', // End timestamp of the interval
-        //             '0.020970', // Open price at midnight UTC
-        //             '0.020970', // Intraday high price
-        //             '0.020970', // Intraday low price
-        //             '0.020970', // Closing price at midnight UTC
-        //             '0.020970', // Volume weighted average price
-        //             '0.08636138', // Accumulated volume today
-        //             1, // Number of trades today
-        //         ),
-        //         'ohlc-1', // Channel Name of subscription
-        //         'ETH/XBT', // Asset pair
-        //     )
-        //
-        $wsName = $message[3];
-        $name = 'ohlc';
-        $candle = $message[1];
-        // var_dump (
-        //     $this->iso8601 (intval (floatval ($candle[0]) * 1000)), '-',
-        //     $this->iso8601 (intval (floatval ($candle[1]) * 1000)), ' => [',
-        //     floatval ($candle[2]),
-        //     floatval ($candle[3]),
-        //     floatval ($candle[4]),
-        //     floatval ($candle[5]),
-        //     floatval ($candle[7]), ']'
-        // );
-        $result = [
-            intval (floatval ($candle[0]) * 1000),
-            floatval ($candle[2]),
-            floatval ($candle[3]),
-            floatval ($candle[4]),
-            floatval ($candle[5]),
-            floatval ($candle[7]),
-        ];
-        $messageHash = $wsName . ':' . $name;
-        $client->resolve ($result, $messageHash);
-    }
-
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
         $table = null;
         if ($limit === null) {
@@ -485,14 +443,140 @@ class bitmex extends \ccxt\bitmex {
     }
 
     public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        // $name = 'ohlc';
-        // $request = array(
-        //     'subscription' => array(
-        //         'interval' => intval ($this->timeframes[$timeframe]),
-        //     ),
-        // );
-        // return $this->watchPublicMessage ($name, $symbol, array_merge($request, $params));
-        throw new NotImplemented($this->id . ' watchOHLCV() not implemented yet (wip)');
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $table = 'tradeBin' . $this->timeframes[$timeframe];
+        $messageHash = $table . ':' . $market['id'];
+        $url = $this->urls['api']['ws'];
+        $request = array(
+            'op' => 'subscribe',
+            'args' => array(
+                $messageHash,
+            ),
+        );
+        $future = $this->watch ($url, $messageHash, array_merge($request, $params), $messageHash);
+        return $this->after ($future, $this->filterBySinceLimit, $since, $limit, 0);
+    }
+
+    public function find_timeframe ($timeframe) {
+        $keys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($this->timeframes[$key] === $timeframe) {
+                return $key;
+            }
+        }
+        return null;
+    }
+
+    public function handle_ohlcv ($client, $message) {
+        //
+        //     {
+        //         $table => 'tradeBin1m',
+        //         action => 'partial',
+        //         keys => array(),
+        //         types => array(
+        //             timestamp => 'timestamp',
+        //             $symbol => 'symbol',
+        //             open => 'float',
+        //             high => 'float',
+        //             low => 'float',
+        //             close => 'float',
+        //             trades => 'long',
+        //             volume => 'long',
+        //             vwap => 'float',
+        //             lastSize => 'long',
+        //             turnover => 'long',
+        //             homeNotional => 'float',
+        //             foreignNotional => 'float'
+        //         ),
+        //         foreignKeys => array( $symbol => 'instrument' ),
+        //         attributes => array( timestamp => 'sorted', $symbol => 'grouped' ),
+        //         filter => array( $symbol => 'XBTUSD' ),
+        //         data => array(
+        //             {
+        //                 timestamp => '2020-02-03T01:13:00.000Z',
+        //                 $symbol => 'XBTUSD',
+        //                 open => 9395,
+        //                 high => 9395.5,
+        //                 low => 9394.5,
+        //                 close => 9395,
+        //                 trades => 221,
+        //                 volume => 839204,
+        //                 vwap => 9394.9643,
+        //                 lastSize => 1874,
+        //                 turnover => 8932641535,
+        //                 homeNotional => 89.32641534999999,
+        //                 foreignNotional => 839204
+        //             }
+        //         )
+        //     }
+        //
+        //
+        //     {
+        //         $table => 'tradeBin1m',
+        //         action => 'insert',
+        //         data => array(
+        //             {
+        //                 timestamp => '2020-02-03T18:28:00.000Z',
+        //                 $symbol => 'XBTUSD',
+        //                 open => 9256,
+        //                 high => 9256.5,
+        //                 low => 9256,
+        //                 close => 9256,
+        //                 trades => 29,
+        //                 volume => 79057,
+        //                 vwap => 9256.688,
+        //                 lastSize => 100,
+        //                 turnover => 854077082,
+        //                 homeNotional => 8.540770820000002,
+        //                 foreignNotional => 79057
+        //             }
+        //         )
+        //     }
+        //
+        // --------------------------------------------------------------------
+        $table = $this->safe_string($message, 'table');
+        $interval = str_replace('tradeBin', '', $table);
+        $timeframe = $this->find_timeframe ($interval);
+        $duration = $this->parse_timeframe($timeframe);
+        $candles = $this->safe_value($message, 'data', array());
+        $results = array();
+        for ($i = 0; $i < count($candles); $i++) {
+            $candle = $candles[$i];
+            $marketId = $this->safe_string($candle, 'symbol');
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $symbol = $market['symbol'];
+                $messageHash = $table . ':' . $market['id'];
+                $result = array(
+                    $this->parse8601 ($this->safe_string($candle, 'timestamp')) - $duration * 1000,
+                    $this->safe_float($candle, 'open'),
+                    $this->safe_float($candle, 'high'),
+                    $this->safe_float($candle, 'low'),
+                    $this->safe_float($candle, 'close'),
+                    $this->safe_float($candle, 'volume'),
+                );
+                $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+                $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe, array());
+                $length = is_array($stored) ? count($stored) : 0;
+                if ($length && $result[0] === $stored[$length - 1][0]) {
+                    $stored[$length - 1] = $result;
+                } else {
+                    $stored[] = $result;
+                    if ($length . 1 > $this->options['OHLCVLimit']) {
+                        array_shift($stored);
+                    }
+                }
+                $this->ohlcvs[$symbol][$timeframe] = $stored;
+                $results[$messageHash] = $stored;
+            }
+        }
+        $messageHashes = is_array($results) ? array_keys($results) : array();
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $client->resolve ($results[$messageHash], $messageHash);
+        }
     }
 
     public function watch_heartbeat ($params = array ()) {
@@ -503,13 +587,13 @@ class bitmex extends \ccxt\bitmex {
     }
 
     public function sign_message ($client, $messageHash, $message, $params = array ()) {
-        // todo => bitmex signMessage not implemented yet
+        // todo bitmex signMessage not implemented yet
         return $message;
     }
 
     public function handle_order_book ($client, $message) {
         //
-        // first $message (snapshot)
+        // first snapshot
         //
         //     {
         //         $table => 'orderBookL2',
@@ -611,7 +695,7 @@ class bitmex extends \ccxt\bitmex {
 
     public function handle_system_status ($client, $message) {
         //
-        // todo => answer the question whether handleSystemStatus should be renamed
+        // todo answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
         // involves system status and maintenance updates
         //
@@ -719,6 +803,10 @@ class bitmex extends \ccxt\bitmex {
                 'orderBook10' => array($this, 'handle_order_book'),
                 'instrument' => array($this, 'handle_ticker'),
                 'trade' => array($this, 'handle_trades'),
+                'tradeBin1m' => array($this, 'handle_ohlcv'),
+                'tradeBin5m' => array($this, 'handle_ohlcv'),
+                'tradeBin1h' => array($this, 'handle_ohlcv'),
+                'tradeBin1d' => array($this, 'handle_ohlcv'),
             );
             $method = $this->safe_value($methods, $table);
             if ($method === null) {

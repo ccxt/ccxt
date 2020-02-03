@@ -19,6 +19,7 @@ class bitmex(Exchange, ccxt.bitmex):
                 'watchTickers': False,
                 'watchTrades': True,
                 'watchOrderBook': True,
+                'watchOHLCV': True,
             },
             'urls': {
                 'api': {
@@ -399,48 +400,6 @@ class bitmex(Exchange, ccxt.bitmex):
         future = self.watch(url, messageHash, self.extend(request, params), messageHash)
         return await self.after(future, self.filterBySinceLimit, since, limit)
 
-    def handle_ohlcv(self, client, message):
-        #
-        #     [
-        #         216,  # channelID
-        #         [
-        #             '1574454214.962096',  # Time, seconds since epoch
-        #             '1574454240.000000',  # End timestamp of the interval
-        #             '0.020970',  # Open price at midnight UTC
-        #             '0.020970',  # Intraday high price
-        #             '0.020970',  # Intraday low price
-        #             '0.020970',  # Closing price at midnight UTC
-        #             '0.020970',  # Volume weighted average price
-        #             '0.08636138',  # Accumulated volume today
-        #             1,  # Number of trades today
-        #         ],
-        #         'ohlc-1',  # Channel Name of subscription
-        #         'ETH/XBT',  # Asset pair
-        #     ]
-        #
-        wsName = message[3]
-        name = 'ohlc'
-        candle = message[1]
-        # print(
-        #     self.iso8601(int(float(candle[0]) * 1000)), '-',
-        #     self.iso8601(int(float(candle[1]) * 1000)), ': [',
-        #     float(candle[2]),
-        #     float(candle[3]),
-        #     float(candle[4]),
-        #     float(candle[5]),
-        #     float(candle[7]), ']'
-        # )
-        result = [
-            int(float(candle[0]) * 1000),
-            float(candle[2]),
-            float(candle[3]),
-            float(candle[4]),
-            float(candle[5]),
-            float(candle[7]),
-        ]
-        messageHash = wsName + ':' + name
-        client.resolve(result, messageHash)
-
     async def watch_order_book(self, symbol, limit=None, params={}):
         table = None
         if limit is None:
@@ -468,14 +427,131 @@ class bitmex(Exchange, ccxt.bitmex):
         return orderbook.limit(limit)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        # name = 'ohlc'
-        # request = {
-        #     'subscription': {
-        #         'interval': int(self.timeframes[timeframe]),
-        #     },
-        # }
-        # return await self.watchPublicMessage(name, symbol, self.extend(request, params))
-        raise NotImplemented(self.id + ' watchOHLCV() not implemented yet(wip)')
+        await self.load_markets()
+        market = self.market(symbol)
+        table = 'tradeBin' + self.timeframes[timeframe]
+        messageHash = table + ':' + market['id']
+        url = self.urls['api']['ws']
+        request = {
+            'op': 'subscribe',
+            'args': [
+                messageHash,
+            ],
+        }
+        future = self.watch(url, messageHash, self.extend(request, params), messageHash)
+        return await self.after(future, self.filterBySinceLimit, since, limit, 0)
+
+    def find_timeframe(self, timeframe):
+        keys = list(self.timeframes.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if self.timeframes[key] == timeframe:
+                return key
+        return None
+
+    def handle_ohlcv(self, client, message):
+        #
+        #     {
+        #         table: 'tradeBin1m',
+        #         action: 'partial',
+        #         keys: [],
+        #         types: {
+        #             timestamp: 'timestamp',
+        #             symbol: 'symbol',
+        #             open: 'float',
+        #             high: 'float',
+        #             low: 'float',
+        #             close: 'float',
+        #             trades: 'long',
+        #             volume: 'long',
+        #             vwap: 'float',
+        #             lastSize: 'long',
+        #             turnover: 'long',
+        #             homeNotional: 'float',
+        #             foreignNotional: 'float'
+        #         },
+        #         foreignKeys: {symbol: 'instrument'},
+        #         attributes: {timestamp: 'sorted', symbol: 'grouped'},
+        #         filter: {symbol: 'XBTUSD'},
+        #         data: [
+        #             {
+        #                 timestamp: '2020-02-03T01:13:00.000Z',
+        #                 symbol: 'XBTUSD',
+        #                 open: 9395,
+        #                 high: 9395.5,
+        #                 low: 9394.5,
+        #                 close: 9395,
+        #                 trades: 221,
+        #                 volume: 839204,
+        #                 vwap: 9394.9643,
+        #                 lastSize: 1874,
+        #                 turnover: 8932641535,
+        #                 homeNotional: 89.32641534999999,
+        #                 foreignNotional: 839204
+        #             }
+        #         ]
+        #     }
+        #
+        #
+        #     {
+        #         table: 'tradeBin1m',
+        #         action: 'insert',
+        #         data: [
+        #             {
+        #                 timestamp: '2020-02-03T18:28:00.000Z',
+        #                 symbol: 'XBTUSD',
+        #                 open: 9256,
+        #                 high: 9256.5,
+        #                 low: 9256,
+        #                 close: 9256,
+        #                 trades: 29,
+        #                 volume: 79057,
+        #                 vwap: 9256.688,
+        #                 lastSize: 100,
+        #                 turnover: 854077082,
+        #                 homeNotional: 8.540770820000002,
+        #                 foreignNotional: 79057
+        #             }
+        #         ]
+        #     }
+        #
+        # --------------------------------------------------------------------
+        table = self.safe_string(message, 'table')
+        interval = table.replace('tradeBin', '')
+        timeframe = self.find_timeframe(interval)
+        duration = self.parse_timeframe(timeframe)
+        candles = self.safe_value(message, 'data', [])
+        results = {}
+        for i in range(0, len(candles)):
+            candle = candles[i]
+            marketId = self.safe_string(candle, 'symbol')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+                messageHash = table + ':' + market['id']
+                result = [
+                    self.parse8601(self.safe_string(candle, 'timestamp')) - duration * 1000,
+                    self.safe_float(candle, 'open'),
+                    self.safe_float(candle, 'high'),
+                    self.safe_float(candle, 'low'),
+                    self.safe_float(candle, 'close'),
+                    self.safe_float(candle, 'volume'),
+                ]
+                self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+                stored = self.safe_value(self.ohlcvs[symbol], timeframe, [])
+                length = len(stored)
+                if length and result[0] == stored[length - 1][0]:
+                    stored[length - 1] = result
+                else:
+                    stored.append(result)
+                    if length + 1 > self.options['OHLCVLimit']:
+                        stored.pop(0)
+                self.ohlcvs[symbol][timeframe] = stored
+                results[messageHash] = stored
+        messageHashes = list(results.keys())
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            client.resolve(results[messageHash], messageHash)
 
     async def watch_heartbeat(self, params={}):
         await self.load_markets()
@@ -484,12 +560,12 @@ class bitmex(Exchange, ccxt.bitmex):
         return await self.watch(url, event)
 
     def sign_message(self, client, messageHash, message, params={}):
-        # todo: bitmex signMessage not implemented yet
+        # todo bitmex signMessage not implemented yet
         return message
 
     def handle_order_book(self, client, message):
         #
-        # first message(snapshot)
+        # first snapshot
         #
         #     {
         #         table: 'orderBookL2',
@@ -582,7 +658,7 @@ class bitmex(Exchange, ccxt.bitmex):
 
     def handle_system_status(self, client, message):
         #
-        # todo: answer the question whether handleSystemStatus should be renamed
+        # todo answer the question whether handleSystemStatus should be renamed
         # and unified as handleStatus for any usage pattern that
         # involves system status and maintenance updates
         #
@@ -684,6 +760,10 @@ class bitmex(Exchange, ccxt.bitmex):
                 'orderBook10': self.handle_order_book,
                 'instrument': self.handle_ticker,
                 'trade': self.handle_trades,
+                'tradeBin1m': self.handle_ohlcv,
+                'tradeBin5m': self.handle_ohlcv,
+                'tradeBin1h': self.handle_ohlcv,
+                'tradeBin1d': self.handle_ohlcv,
             }
             method = self.safe_value(methods, table)
             if method is None:
