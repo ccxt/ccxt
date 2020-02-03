@@ -1572,7 +1572,6 @@ module.exports = class stex extends Exchange {
             request['timeStart'] = since;
         }
         const response = await this.profileGetDeposits (this.extend (request, params));
-        console.log(response);
         //
         //     {
         //         "success": true,
@@ -1621,7 +1620,6 @@ module.exports = class stex extends Exchange {
             request['timeStart'] = since;
         }
         const response = await this.profileGetWithdrawals (this.extend (request, params));
-        console.log(response);
         //
         //     {
         //         "success": true,
