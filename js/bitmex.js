@@ -16,6 +16,7 @@ module.exports = class bitmex extends ccxt.bitmex {
                 'watchTickers': false,
                 'watchTrades': true,
                 'watchOrderBook': true,
+                'watchOHLCV': true,
             },
             'urls': {
                 'api': {
@@ -408,49 +409,6 @@ module.exports = class bitmex extends ccxt.bitmex {
         return await this.after (future, this.filterBySinceLimit, since, limit);
     }
 
-    handleOHLCV (client, message) {
-        //
-        //     [
-        //         216, // channelID
-        //         [
-        //             '1574454214.962096', // Time, seconds since epoch
-        //             '1574454240.000000', // End timestamp of the interval
-        //             '0.020970', // Open price at midnight UTC
-        //             '0.020970', // Intraday high price
-        //             '0.020970', // Intraday low price
-        //             '0.020970', // Closing price at midnight UTC
-        //             '0.020970', // Volume weighted average price
-        //             '0.08636138', // Accumulated volume today
-        //             1, // Number of trades today
-        //         ],
-        //         'ohlc-1', // Channel Name of subscription
-        //         'ETH/XBT', // Asset pair
-        //     ]
-        //
-        const wsName = message[3];
-        const name = 'ohlc';
-        const candle = message[1];
-        // console.log (
-        //     this.iso8601 (parseInt (parseFloat (candle[0]) * 1000)), '-',
-        //     this.iso8601 (parseInt (parseFloat (candle[1]) * 1000)), ': [',
-        //     parseFloat (candle[2]),
-        //     parseFloat (candle[3]),
-        //     parseFloat (candle[4]),
-        //     parseFloat (candle[5]),
-        //     parseFloat (candle[7]), ']'
-        // );
-        const result = [
-            parseInt (parseFloat (candle[0]) * 1000),
-            parseFloat (candle[2]),
-            parseFloat (candle[3]),
-            parseFloat (candle[4]),
-            parseFloat (candle[5]),
-            parseFloat (candle[7]),
-        ];
-        const messageHash = wsName + ':' + name;
-        client.resolve (result, messageHash);
-    }
-
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         let table = undefined;
         if (limit === undefined) {
@@ -481,14 +439,140 @@ module.exports = class bitmex extends ccxt.bitmex {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        // const name = 'ohlc';
-        // const request = {
-        //     'subscription': {
-        //         'interval': parseInt (this.timeframes[timeframe]),
-        //     },
-        // };
-        // return await this.watchPublicMessage (name, symbol, this.extend (request, params));
-        throw new NotImplemented (this.id + ' watchOHLCV() not implemented yet (wip)');
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const table = 'tradeBin' + this.timeframes[timeframe];
+        const messageHash = table + ':' + market['id'];
+        const url = this.urls['api']['ws'];
+        const request = {
+            'op': 'subscribe',
+            'args': [
+                messageHash,
+            ],
+        };
+        const future = this.watch (url, messageHash, this.extend (request, params), messageHash);
+        return await this.after (future, this.filterBySinceLimit, since, limit, 0);
+    }
+
+    findTimeframe (timeframe) {
+        const keys = Object.keys (this.timeframes);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.timeframes[key] === timeframe) {
+                return key;
+            }
+        }
+        return undefined;
+    }
+
+    handleOHLCV (client, message) {
+        //
+        //     {
+        //         table: 'tradeBin1m',
+        //         action: 'partial',
+        //         keys: [],
+        //         types: {
+        //             timestamp: 'timestamp',
+        //             symbol: 'symbol',
+        //             open: 'float',
+        //             high: 'float',
+        //             low: 'float',
+        //             close: 'float',
+        //             trades: 'long',
+        //             volume: 'long',
+        //             vwap: 'float',
+        //             lastSize: 'long',
+        //             turnover: 'long',
+        //             homeNotional: 'float',
+        //             foreignNotional: 'float'
+        //         },
+        //         foreignKeys: { symbol: 'instrument' },
+        //         attributes: { timestamp: 'sorted', symbol: 'grouped' },
+        //         filter: { symbol: 'XBTUSD' },
+        //         data: [
+        //             {
+        //                 timestamp: '2020-02-03T01:13:00.000Z',
+        //                 symbol: 'XBTUSD',
+        //                 open: 9395,
+        //                 high: 9395.5,
+        //                 low: 9394.5,
+        //                 close: 9395,
+        //                 trades: 221,
+        //                 volume: 839204,
+        //                 vwap: 9394.9643,
+        //                 lastSize: 1874,
+        //                 turnover: 8932641535,
+        //                 homeNotional: 89.32641534999999,
+        //                 foreignNotional: 839204
+        //             }
+        //         ]
+        //     }
+        //
+        //
+        //     {
+        //         table: 'tradeBin1m',
+        //         action: 'insert',
+        //         data: [
+        //             {
+        //                 timestamp: '2020-02-03T18:28:00.000Z',
+        //                 symbol: 'XBTUSD',
+        //                 open: 9256,
+        //                 high: 9256.5,
+        //                 low: 9256,
+        //                 close: 9256,
+        //                 trades: 29,
+        //                 volume: 79057,
+        //                 vwap: 9256.688,
+        //                 lastSize: 100,
+        //                 turnover: 854077082,
+        //                 homeNotional: 8.540770820000002,
+        //                 foreignNotional: 79057
+        //             }
+        //         ]
+        //     }
+        //
+        // --------------------------------------------------------------------
+        const table = this.safeString (message, 'table');
+        const interval = table.replace ('tradeBin', '');
+        const timeframe = this.findTimeframe (interval);
+        const duration = this.parseTimeframe (timeframe);
+        const candles = this.safeValue (message, 'data', []);
+        const results = {};
+        for (let i = 0; i < candles.length; i++) {
+            const candle = candles[i];
+            const marketId = this.safeString (candle, 'symbol');
+            if (marketId in this.markets_by_id) {
+                const market = this.markets_by_id[marketId];
+                const symbol = market['symbol'];
+                const messageHash = table + ':' + market['id'];
+                const result = [
+                    this.parse8601 (this.safeString (candle, 'timestamp')) - duration * 1000,
+                    this.safeFloat (candle, 'open'),
+                    this.safeFloat (candle, 'high'),
+                    this.safeFloat (candle, 'low'),
+                    this.safeFloat (candle, 'close'),
+                    this.safeFloat (candle, 'volume'),
+                ];
+                this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+                const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
+                const length = stored.length;
+                if (length && result[0] === stored[length - 1][0]) {
+                    stored[length - 1] = result;
+                } else {
+                    stored.push (result);
+                    if (length + 1 > this.options['OHLCVLimit']) {
+                        stored.shift ();
+                    }
+                }
+                this.ohlcvs[symbol][timeframe] = stored;
+                results[messageHash] = stored;
+            }
+        }
+        const messageHashes = Object.keys (results);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            client.resolve (results[messageHash], messageHash);
+        }
     }
 
     async watchHeartbeat (params = {}) {
@@ -499,13 +583,13 @@ module.exports = class bitmex extends ccxt.bitmex {
     }
 
     signMessage (client, messageHash, message, params = {}) {
-        // todo: bitmex signMessage not implemented yet
+        // todo bitmex signMessage not implemented yet
         return message;
     }
 
     handleOrderBook (client, message) {
         //
-        // first message (snapshot)
+        // first snapshot
         //
         //     {
         //         table: 'orderBookL2',
@@ -607,7 +691,7 @@ module.exports = class bitmex extends ccxt.bitmex {
 
     handleSystemStatus (client, message) {
         //
-        // todo: answer the question whether handleSystemStatus should be renamed
+        // todo answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
         // involves system status and maintenance updates
         //
@@ -715,6 +799,10 @@ module.exports = class bitmex extends ccxt.bitmex {
                 'orderBook10': this.handleOrderBook,
                 'instrument': this.handleTicker,
                 'trade': this.handleTrades,
+                'tradeBin1m': this.handleOHLCV,
+                'tradeBin5m': this.handleOHLCV,
+                'tradeBin1h': this.handleOHLCV,
+                'tradeBin1d': this.handleOHLCV,
             };
             const method = this.safeValue (methods, table);
             if (method === undefined) {
