@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, NotSupported, OrderNotFound, OnMaintenance } = require ('./base/errors');
+const { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, NotSupported, OrderNotFound, OnMaintenance, RateLimitExceeded } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -152,6 +152,7 @@ module.exports = class coinbasepro extends Exchange {
                     'invalid signature': AuthenticationError,
                     'Invalid Passphrase': AuthenticationError,
                     'Invalid order id': InvalidOrder,
+                    'Private rate limit exceeded': RateLimitExceeded,
                 },
                 'broad': {
                     'Order already done': OrderNotFound,
@@ -934,7 +935,7 @@ module.exports = class coinbasepro extends Exchange {
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((code === 400) || (code === 404)) {
             if (body[0] === '{') {
-                const message = response['message'];
+                const message = this.safeString (response, 'message');
                 const feedback = this.id + ' ' + message;
                 this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
                 this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
