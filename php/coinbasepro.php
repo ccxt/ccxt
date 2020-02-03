@@ -157,6 +157,7 @@ class coinbasepro extends Exchange {
                     'invalid signature' => '\\ccxt\\AuthenticationError',
                     'Invalid Passphrase' => '\\ccxt\\AuthenticationError',
                     'Invalid order id' => '\\ccxt\\InvalidOrder',
+                    'Private rate limit exceeded' => '\\ccxt\\RateLimitExceeded',
                 ),
                 'broad' => array(
                     'Order already done' => '\\ccxt\\OrderNotFound',
@@ -939,7 +940,7 @@ class coinbasepro extends Exchange {
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (($code === 400) || ($code === 404)) {
             if ($body[0] === '{') {
-                $message = $response['message'];
+                $message = $this->safe_string($response, 'message');
                 $feedback = $this->id . ' ' . $message;
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
