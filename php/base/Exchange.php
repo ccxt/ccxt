@@ -2499,7 +2499,7 @@ class Exchange {
                 if ($significantPosition > 0) {
                     ++$significantPosition;
                 }
-                $result = (string) round($x, $numPrecisionDigits - $significantPosition, PHP_ROUND_HALF_UP);
+                $result = static::number_to_string(round($x, $numPrecisionDigits - $significantPosition, PHP_ROUND_HALF_UP));
             }
         } elseif ($roundingMode === TRUNCATE) {
             $dotIndex = strpos($x, '.');

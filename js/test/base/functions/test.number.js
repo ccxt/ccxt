@@ -134,6 +134,8 @@ assert (decimalToPrecision ('0.098765', ROUND, 1, SIGNIFICANT_DIGITS, PAD_WITH_Z
 assert (decimalToPrecision ('0', ROUND, 0, SIGNIFICANT_DIGITS) === '0');
 assert (decimalToPrecision ('-0.123', ROUND, 0, SIGNIFICANT_DIGITS) === '0');
 
+assert (decimalToPrecision ('0.00000044', ROUND, 5, SIGNIFICANT_DIGITS) === '0.00000044');
+
 // ----------------------------------------------------------------------------
 // testDecimalToPrecisionRoundingToTickSize
 
