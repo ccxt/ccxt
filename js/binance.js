@@ -203,6 +203,7 @@ module.exports = class binance extends Exchange {
                     ],
                     'delete': [
                         'order',
+                        'allOpenOrders',
                     ],
                 },
                 'v3': {
