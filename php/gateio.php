@@ -169,7 +169,7 @@ class gateio extends Exchange {
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $keys = is_array($market) ? array_keys($market) : array();
-            $id = $keys[0];
+            $id = $this->safe_string($keys, 0);
             $details = $market[$id];
             // all of their symbols are separated with an underscore
             // but not boe_eth_eth (BOE_ETH/ETH) which has two underscores
