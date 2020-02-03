@@ -45,7 +45,7 @@ CCXT Pro does not enforce technical restrictions that would affect the efficienc
 
 Any licensed user, developer, team, or company, having obtained paid access to the CCXT repository, can use CCXT Pro as a dependency, subject to the terms and limitations of the CCXT Pro paid subscription plans.
 
-Licensees can use, copy, and modify CCXT Pro as long as they<br />**DO NOT VENDOR, PUBLISH, SELL OR REDISTRIBUTE THE SOURCE CODE OF CCXT PRO**. 
+Licensees can use, copy, and modify CCXT Pro as long as they<br />**DO NOT VENDOR, PUBLISH, SELL OR REDISTRIBUTE THE SOURCE CODE OF CCXT PRO**.
 
 It is allowed to specify CCXT Pro as a dependency of your software as long as you<br />**DO NOT INCLUDE A COPY OF THE CCXT PRO SOURCE CODE IN YOUR SOFTWARE**.
 
@@ -89,7 +89,8 @@ pip3 install -e git+ssh://git@github.com/kroitor/ccxt.pro.git#subdirectory=pytho
 
 ```shell
 # in your project directory
-composer install ccxt/ccxtpro
+composer config repositories.ccxtpro '{"type": "git", "url": "https://github.com/kroitor/ccxt.pro.git"}'
+composer require ccxt/ccxtpro
 ```
 
 # How To Use
