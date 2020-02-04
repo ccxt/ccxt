@@ -38,18 +38,18 @@ class gateio extends Exchange {
                 'fetchMyTrades' => true,
             ),
             'timeframes' => array(
-                '1m' => '60',
-                '5m' => '300',
-                '10m' => '600',
-                '15m' => '900',
-                '30m' => '1800',
-                '1h' => '3600',
-                '2h' => '7200',
-                '4h' => '14400',
-                '6h' => '21600',
-                '12h' => '43200',
-                '1d' => '86400',
-                '1w' => '604800',
+                '1m' => 60,
+                '5m' => 300,
+                '10m' => 600,
+                '15m' => 900,
+                '30m' => 1800,
+                '1h' => 3600,
+                '2h' => 7200,
+                '4h' => 14400,
+                '6h' => 21600,
+                '12h' => 43200,
+                '1d' => 86400,
+                '1w' => 604800,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
@@ -169,7 +169,7 @@ class gateio extends Exchange {
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $keys = is_array($market) ? array_keys($market) : array();
-            $id = $keys[0];
+            $id = $this->safe_string($keys, 0);
             $details = $market[$id];
             // all of their symbols are separated with an underscore
             // but not boe_eth_eth (BOE_ETH/ETH) which has two underscores

@@ -209,6 +209,7 @@ class binance extends Exchange {
                     ),
                     'delete' => array(
                         'order',
+                        'allOpenOrders',
                     ),
                 ),
                 'v3' => array(

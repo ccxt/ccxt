@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.22.19';
+$version = '1.22.34';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.22.19';
+    const VERSION = '1.22.34';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -1726,11 +1726,11 @@ class Exchange {
         return $this->markets;
     }
 
-    public function filter_by_since_limit($array, $since = null, $limit = null) {
+    public function filter_by_since_limit($array, $since = null, $limit = null, $key = 'timestamp') {
         $result = array();
         $array = array_values($array);
         foreach ($array as $entry) {
-            if ($entry['timestamp'] > $since) {
+            if ($entry[$key] > $since) {
                 $result[] = $entry;
             }
         }
@@ -1740,8 +1740,8 @@ class Exchange {
         return $result;
     }
 
-    public function filterBySinceLimit($array, $since = null, $limit = null) {
-        return $this->filter_by_since_limit($array, $since, $limit);
+    public function filterBySinceLimit($array, $since = null, $limit = null, $key = 'timestamp') {
+        return $this->filter_by_since_limit($array, $since, $limit, $key);
     }
 
     public function parse_trades($trades, $market = null, $since = null, $limit = null, $params = array()) {
@@ -2499,7 +2499,7 @@ class Exchange {
                 if ($significantPosition > 0) {
                     ++$significantPosition;
                 }
-                $result = (string) round($x, $numPrecisionDigits - $significantPosition, PHP_ROUND_HALF_UP);
+                $result = static::number_to_string(round($x, $numPrecisionDigits - $significantPosition, PHP_ROUND_HALF_UP));
             }
         } elseif ($roundingMode === TRUNCATE) {
             $dotIndex = strpos($x, '.');
