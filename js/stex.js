@@ -1758,14 +1758,14 @@ module.exports = class stex extends Exchange {
         //         ]
         //     }
         //
-        const detail = this.safeValue (response, 'data', []);
+        const data = this.safeValue (response, 'data', []);
         const withdrawFees = {};
         const depositFees = {};
-        for (let i = 0; i < detail.length; i++) {
-            const id = detail[i]['id'];
+        for (let i = 0; i < data.length; i++) {
+            const id = this.safeString (data[i], 'id');
             const code = this.safeCurrencyCode (id);
-            withdrawFees[code] = this.safeFloat (detail[i], 'withdrawal_fee_const');
-            depositFees[code] = this.safeFloat (detail[i], 'deposit_fee_const');
+            withdrawFees[code] = this.safeFloat (data[i], 'withdrawal_fee_const');
+            depositFees[code] = this.safeFloat (data[i], 'deposit_fee_const');
         }
         return {
             'withdraw': withdrawFees,
