@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, InvalidNonce, AuthenticationError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class levidge extends Exchange {
@@ -20,7 +19,7 @@ module.exports = class levidge extends Exchange {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
-                },
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
                 'api': {
@@ -51,7 +50,7 @@ module.exports = class levidge extends Exchange {
                     ],
                 },
             },
-            });
+        });
     }
 
     async fetchTicker (params = {}) {
