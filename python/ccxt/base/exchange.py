@@ -816,8 +816,9 @@ class Exchange(object):
         is_int_key = isinstance(key, int)
         for element in array:
             is_dict = isinstance(element, dict)
-            if (((is_dict and key in element) or (not is_dict and is_int_key and key < len(element)))
-                 and (element[key] is not None)):
+            dict_check = is_dict and (key in element)
+            list_check = not is_dict and is_int_key and (key < len(element))
+            if (dict_check or list_check) and (element[key] is not None):
                 k = element[key]
                 result[k] = element
         return result
