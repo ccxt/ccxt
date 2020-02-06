@@ -1750,7 +1750,7 @@ module.exports = class binance extends Exchange {
         if ((api === 'private') || (api === 'sapi') || (api === 'wapi' && path !== 'systemStatus') || (api === 'fapiPrivate')) {
             this.checkRequiredCredentials ();
             let query = undefined;
-            if (($api === 'sapi' && $path === 'asset/dust')){
+            if ((api === 'sapi') && (path === 'asset/dust')) {
                 query = this.urlencodeWithArrayRepeat (this.extend ({
                     'timestamp': this.nonce (),
                     'recvWindow': this.options['recvWindow'],
