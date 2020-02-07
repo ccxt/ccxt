@@ -1002,6 +1002,7 @@ class Exchange(object):
                 return None
             yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups()
             ms = ms or '.000'
+            ms = (ms + '00')[0:4]
             msint = int(ms[1:])
             sign = sign or ''
             sign = int(sign + '1') * -1
