@@ -8,8 +8,8 @@ declare module 'ccxt' {
     }
 
     // Marker interface for symbol strings in CCXT format (ASSET/QUOTE)
-    // Can substitute it with regex validated strings when the feature is available:
-    // https://github.com/Microsoft/TypeScript/issues/6579
+    // Can substitute it with nominal types when the feature is available:
+    // https://github.com/Microsoft/TypeScript/issues/202
     interface TickerSymbol extends String {}
     
 
