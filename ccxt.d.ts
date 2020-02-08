@@ -102,6 +102,7 @@ declare module 'ccxt' {
         type: 'market' | 'limit';
         side: 'buy' | 'sell';
         price: number;
+        average?: number;
         amount: number;
         filled: number;
         remaining: number;
@@ -180,6 +181,8 @@ declare module 'ccxt' {
     export interface Currency {
         id: string;
         code: string;
+        numericId?: number;
+        precision: number;
     }
 
     export interface Balance {
