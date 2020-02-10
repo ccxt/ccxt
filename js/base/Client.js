@@ -221,11 +221,9 @@ module.exports = class Client {
     }
 
     onMessage (message) {
-        // browser sends MessageEvent objects
+        // if we use onmessage we get MessageEvent objects
         // MessageEvent {isTrusted: true, data: "{"e":"depthUpdate","E":1581358737706,"s":"ETHBTC",…"0.06200000"]],"a":[["0.02261300","0.00000000"]]}", origin: "wss://stream.binance.com:9443", lastEventId: "", source: null, …}
-        if (isBrowser) {
-            message = message.data
-        }
+        message = message.data
         try {
             message = isJsonEncodedObject (message) ? JSON.parse (message) : message
             // console.log (new Date (), 'onMessage', message)
