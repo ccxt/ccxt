@@ -157,7 +157,9 @@ module.exports = class Client {
                 if (this.ping) {
                     this.send (this.ping (this))
                 } else if (isNode) {
-                    this.connection.ping ()  // can't do this inside browser
+                    // can't do this inside browser
+                    // https://stackoverflow.com/questions/10585355/sending-websocket-ping-pong-frame-from-browser
+                    this.connection.ping ()
                 }
             }
         }
