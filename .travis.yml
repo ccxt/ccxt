@@ -41,7 +41,7 @@ script:
 - cd ..
 - npm run test-base
 - set +e # (we deactivate set -e here, to prevent sudden log truncation in Travis, as it was suggested by the support team)
-- node run-tests --js --python 5; export TESTS_FAILED=$?
+- bash -c 'node run-tests --js --python 5' 2>&1; export TESTS_FAILED=$?
 - set -e # activate it again!
 - if [ "$TESTS_FAILED" -ne 0 ]; then exit 1; fi
 # - export TWINE_REPOSITORY_URL=https://pypi.python.org/pypi
