@@ -1628,10 +1628,17 @@ class binance(Exchange):
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
         if (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus') or (api == 'fapiPrivate'):
             self.check_required_credentials()
-            query = self.urlencode(self.extend({
-                'timestamp': self.nonce(),
-                'recvWindow': self.options['recvWindow'],
-            }, params))
+            query = None
+            if (api == 'sapi') and (path == 'asset/dust'):
+                query = self.urlencode_with_array_repeat(self.extend({
+                    'timestamp': self.nonce(),
+                    'recvWindow': self.options['recvWindow'],
+                }, params))
+            else:
+                query = self.urlencode(self.extend({
+                    'timestamp': self.nonce(),
+                    'recvWindow': self.options['recvWindow'],
+                }, params))
             signature = self.hmac(self.encode(query), self.encode(self.secret))
             query += '&' + 'signature=' + signature
             headers = {

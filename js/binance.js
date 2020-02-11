@@ -1749,10 +1749,18 @@ module.exports = class binance extends Exchange {
         }
         if ((api === 'private') || (api === 'sapi') || (api === 'wapi' && path !== 'systemStatus') || (api === 'fapiPrivate')) {
             this.checkRequiredCredentials ();
-            let query = this.urlencode (this.extend ({
-                'timestamp': this.nonce (),
-                'recvWindow': this.options['recvWindow'],
-            }, params));
+            let query = undefined;
+            if ((api === 'sapi') && (path === 'asset/dust')) {
+                query = this.urlencodeWithArrayRepeat (this.extend ({
+                    'timestamp': this.nonce (),
+                    'recvWindow': this.options['recvWindow'],
+                }, params));
+            } else {
+                query = this.urlencode (this.extend ({
+                    'timestamp': this.nonce (),
+                    'recvWindow': this.options['recvWindow'],
+                }, params));
+            }
             const signature = this.hmac (this.encode (query), this.encode (this.secret));
             query += '&' + 'signature=' + signature;
             headers = {
