@@ -314,7 +314,7 @@ module.exports = class bw extends Exchange {
                     },
                     'withdraw': {
                         'min': undefined,
-                        'max': parseFloat (this.safeInteger (currency, 'onceDrawLimit')),
+                        'max': this.safeFloat (currency, 'onceDrawLimit'),
                     },
                 },
             };
