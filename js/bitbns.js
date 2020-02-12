@@ -439,6 +439,7 @@ module.exports = class bitbns extends Exchange {
         // console.log(request);
         const resp = await this.private1PostListExecutedOrders (this.extend (request, params));
         const trades = resp.data;
+        // console.log("trades:",trades);
         const result = [];
         let numOfTrades = trades.length;
         // console.log("numoftrades", numOfTrades);
@@ -449,7 +450,7 @@ module.exports = class bitbns extends Exchange {
         for (let i = 0; i < numOfTrades; i += 1) {
             const tradeObj = {
                 'info': trades[i],
-                'id': undefined,
+                'id': trades[i]['id'],
                 'timestamp': trades[i].date,
                 'datetime': this.parse8601 (trades[i].date),
                 'symbol': symbol,
