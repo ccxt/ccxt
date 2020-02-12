@@ -97,6 +97,7 @@ class binance(Exchange):
                 # the API structure below will need 3-layer apidefs
                 'sapi': {
                     'get': [
+                        'accountSnapshot',
                         # these endpoints require self.apiKey
                         'margin/asset',
                         'margin/pair',
@@ -120,13 +121,30 @@ class binance(Exchange):
                         'futures/transfer',
                         # https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
                         'capital/config/getall',  # get networks for withdrawing USDT ERC20 vs USDT Omni
+                        'capital/deposit/address',
+                        'capital/deposit/hisrec',
+                        'capital/deposit/subAddress',
+                        'capital/deposit/subHisrec',
+                        'capital/withdraw/history',
+                        'sub-account/futures/account',
+                        'sub-account/futures/accountSummary',
+                        'sub-account/futures/positionRisk',
+                        'sub-account/margin/account',
+                        'sub-account/margin/accountSummary',
+                        'sub-account/status',
                     ],
                     'post': [
                         'asset/dust',
+                        'account/disableFastWithdrawSwitch',
+                        'account/enableFastWithdrawSwitch',
+                        'capital/withdraw/apply',
                         'margin/transfer',
                         'margin/loan',
                         'margin/repay',
                         'margin/order',
+                        'sub-account/margin/enable',
+                        'sub-account/margin/enable',
+                        'sub-account/futures/enable',
                         'userDataStream',
                         'futures/transfer',
                     ],
@@ -197,6 +215,7 @@ class binance(Exchange):
                     ],
                     'delete': [
                         'order',
+                        'allOpenOrders',
                     ],
                 },
                 'v3': {
@@ -820,6 +839,8 @@ class binance(Exchange):
         if self.options['fetchTradesMethod'] == 'publicGetAggTrades':
             if since is not None:
                 request['startTime'] = since
+                # https://github.com/ccxt/ccxt/issues/6400
+                # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
                 request['endTime'] = self.sum(since, 3600000)
         if limit is not None:
             request['limit'] = limit  # default = 500, maximum = 1000
@@ -978,10 +999,19 @@ class binance(Exchange):
             raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type in ' + market['type'] + ' market ' + symbol)
         request = {
             'symbol': market['id'],
-            'quantity': self.amount_to_precision(symbol, amount),
             'type': uppercaseType,
             'side': side.upper(),
         }
+        if uppercaseType == 'MARKET':
+            quoteOrderQty = self.safe_float(params, 'quoteOrderQty')
+            if quoteOrderQty is not None:
+                request['quoteOrderQty'] = self.cost_to_precision(symbol, quoteOrderQty)
+            elif price is not None:
+                request['quoteOrderQty'] = self.cost_to_precision(symbol, amount * price)
+            else:
+                request['quantity'] = self.amount_to_precision(symbol, amount)
+        else:
+            request['quantity'] = self.amount_to_precision(symbol, amount)
         if market['spot']:
             request['newOrderRespType'] = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         timeInForceIsRequired = False
@@ -1580,22 +1610,35 @@ class binance(Exchange):
             url += '.html'
         userDataStream = ((path == 'userDataStream') or (path == 'listenKey'))
         if path == 'historicalTrades':
-            headers = {
-                'X-MBX-APIKEY': self.apiKey,
-            }
+            if self.apiKey:
+                headers = {
+                    'X-MBX-APIKEY': self.apiKey,
+                }
+            else:
+                raise AuthenticationError(self.id + ' historicalTrades endpoint requires `apiKey` credential')
         elif userDataStream:
-            # v1 special case for userDataStream
-            body = self.urlencode(params)
-            headers = {
-                'X-MBX-APIKEY': self.apiKey,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            }
+            if self.apiKey:
+                # v1 special case for userDataStream
+                body = self.urlencode(params)
+                headers = {
+                    'X-MBX-APIKEY': self.apiKey,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+            else:
+                raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
         if (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus') or (api == 'fapiPrivate'):
             self.check_required_credentials()
-            query = self.urlencode(self.extend({
-                'timestamp': self.nonce(),
-                'recvWindow': self.options['recvWindow'],
-            }, params))
+            query = None
+            if (api == 'sapi') and (path == 'asset/dust'):
+                query = self.urlencode_with_array_repeat(self.extend({
+                    'timestamp': self.nonce(),
+                    'recvWindow': self.options['recvWindow'],
+                }, params))
+            else:
+                query = self.urlencode(self.extend({
+                    'timestamp': self.nonce(),
+                    'recvWindow': self.options['recvWindow'],
+                }, params))
             signature = self.hmac(self.encode(query), self.encode(self.secret))
             query += '&' + 'signature=' + signature
             headers = {

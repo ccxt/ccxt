@@ -304,7 +304,7 @@ class yobit(Exchange):
         orderbook = response[market['id']]
         return self.parse_order_book(orderbook)
 
-    def fetch_order_books(self, symbols=None, params={}):
+    def fetch_order_books(self, symbols=None, limit=None, params={}):
         self.load_markets()
         ids = None
         if symbols is None:
@@ -318,7 +318,10 @@ class yobit(Exchange):
             ids = '-'.join(ids)
         request = {
             'pair': ids,
+            # 'ignore_invalid': True,
         }
+        if limit is not None:
+            request['limit'] = limit
         response = self.publicGetDepthPair(self.extend(request, params))
         result = {}
         ids = list(response.keys())

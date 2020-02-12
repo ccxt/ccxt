@@ -85,6 +85,7 @@ module.exports = class binance extends Exchange {
                 // the API structure below will need 3-layer apidefs
                 'sapi': {
                     'get': [
+                        'accountSnapshot',
                         // these endpoints require this.apiKey
                         'margin/asset',
                         'margin/pair',
@@ -108,13 +109,30 @@ module.exports = class binance extends Exchange {
                         'futures/transfer',
                         // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
                         'capital/config/getall', // get networks for withdrawing USDT ERC20 vs USDT Omni
+                        'capital/deposit/address',
+                        'capital/deposit/hisrec',
+                        'capital/deposit/subAddress',
+                        'capital/deposit/subHisrec',
+                        'capital/withdraw/history',
+                        'sub-account/futures/account',
+                        'sub-account/futures/accountSummary',
+                        'sub-account/futures/positionRisk',
+                        'sub-account/margin/account',
+                        'sub-account/margin/accountSummary',
+                        'sub-account/status',
                     ],
                     'post': [
                         'asset/dust',
+                        'account/disableFastWithdrawSwitch',
+                        'account/enableFastWithdrawSwitch',
+                        'capital/withdraw/apply',
                         'margin/transfer',
                         'margin/loan',
                         'margin/repay',
                         'margin/order',
+                        'sub-account/margin/enable',
+                        'sub-account/margin/enable',
+                        'sub-account/futures/enable',
                         'userDataStream',
                         'futures/transfer',
                     ],
@@ -185,6 +203,7 @@ module.exports = class binance extends Exchange {
                     ],
                     'delete': [
                         'order',
+                        'allOpenOrders',
                     ],
                 },
                 'v3': {
@@ -849,6 +868,8 @@ module.exports = class binance extends Exchange {
         if (this.options['fetchTradesMethod'] === 'publicGetAggTrades') {
             if (since !== undefined) {
                 request['startTime'] = since;
+                // https://github.com/ccxt/ccxt/issues/6400
+                // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
                 request['endTime'] = this.sum (since, 3600000);
             }
         }
@@ -1036,10 +1057,21 @@ module.exports = class binance extends Exchange {
         }
         const request = {
             'symbol': market['id'],
-            'quantity': this.amountToPrecision (symbol, amount),
             'type': uppercaseType,
             'side': side.toUpperCase (),
         };
+        if (uppercaseType === 'MARKET') {
+            const quoteOrderQty = this.safeFloat (params, 'quoteOrderQty');
+            if (quoteOrderQty !== undefined) {
+                request['quoteOrderQty'] = this.costToPrecision (symbol, quoteOrderQty);
+            } else if (price !== undefined) {
+                request['quoteOrderQty'] = this.costToPrecision (symbol, amount * price);
+            } else {
+                request['quantity'] = this.amountToPrecision (symbol, amount);
+            }
+        } else {
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+        }
         if (market['spot']) {
             request['newOrderRespType'] = this.safeValue (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         }
@@ -1696,23 +1728,39 @@ module.exports = class binance extends Exchange {
         }
         const userDataStream = ((path === 'userDataStream') || (path === 'listenKey'));
         if (path === 'historicalTrades') {
-            headers = {
-                'X-MBX-APIKEY': this.apiKey,
-            };
+            if (this.apiKey) {
+                headers = {
+                    'X-MBX-APIKEY': this.apiKey,
+                };
+            } else {
+                throw new AuthenticationError (this.id + ' historicalTrades endpoint requires `apiKey` credential');
+            }
         } else if (userDataStream) {
-            // v1 special case for userDataStream
-            body = this.urlencode (params);
-            headers = {
-                'X-MBX-APIKEY': this.apiKey,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            };
+            if (this.apiKey) {
+                // v1 special case for userDataStream
+                body = this.urlencode (params);
+                headers = {
+                    'X-MBX-APIKEY': this.apiKey,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                };
+            } else {
+                throw new AuthenticationError (this.id + ' userDataStream endpoint requires `apiKey` credential');
+            }
         }
         if ((api === 'private') || (api === 'sapi') || (api === 'wapi' && path !== 'systemStatus') || (api === 'fapiPrivate')) {
             this.checkRequiredCredentials ();
-            let query = this.urlencode (this.extend ({
-                'timestamp': this.nonce (),
-                'recvWindow': this.options['recvWindow'],
-            }, params));
+            let query = undefined;
+            if ((api === 'sapi') && (path === 'asset/dust')) {
+                query = this.urlencodeWithArrayRepeat (this.extend ({
+                    'timestamp': this.nonce (),
+                    'recvWindow': this.options['recvWindow'],
+                }, params));
+            } else {
+                query = this.urlencode (this.extend ({
+                    'timestamp': this.nonce (),
+                    'recvWindow': this.options['recvWindow'],
+                }, params));
+            }
             const signature = this.hmac (this.encode (query), this.encode (this.secret));
             query += '&' + 'signature=' + signature;
             headers = {

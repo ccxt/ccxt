@@ -9,13 +9,11 @@ const debug = process.argv.includes ('--debug') || false
 /*  ------------------------------------------------------------------------ */
 
 const asTable   = require ('as-table')
-    , util      = require ('util')
     , log       = require ('ololog')
     , ansi      = require ('ansicolor').nice
     , fs        = require ('fs')
     , ccxt      = require ('../../ccxt.js')
     , chai      = require ('chai')
-    , expect    = chai.expect
     , assert    = chai.assert
 
 /*  ------------------------------------------------------------------------ */
@@ -82,14 +80,12 @@ Object.keys (errors)
 const keysGlobal = 'keys.json'
 const keysLocal = 'keys.local.json'
 
-let keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
+const keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
 // eslint-disable-next-line import/no-dynamic-require
-let settings = require (__dirname + '/../../' + keysFile)[exchangeId]
+const settings = require (__dirname + '/../../' + keysFile)[exchangeId]
 
 if (settings) {
-    const keys = Object.keys (settings)
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i]
+    for (const key in settings) {
         if (settings[key]) {
             settings[key] = ccxt.deepExtend (exchange[key] || {}, settings[key])
         }
@@ -224,7 +220,6 @@ let testExchange = async exchange => {
 
     await loadExchange (exchange)
 
-    let delay = exchange.rateLimit
     let symbol = exchange.symbols[0]
     const symbols = [
         'BTC/USD',

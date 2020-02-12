@@ -15,7 +15,7 @@ module.exports = class kucoin extends Exchange {
             'countries': [ 'SC' ],
             'rateLimit': 334,
             'version': 'v2',
-            'certified': true,
+            'certified': false,
             'comment': 'Platform 2.0',
             'has': {
                 'fetchTime': true,
@@ -368,24 +368,47 @@ module.exports = class kucoin extends Exchange {
     parseTicker (ticker, market = undefined) {
         //
         //     {
-        //         'buy': '0.00001168',
-        //         'changePrice': '-0.00000018',
-        //         'changeRate': '-0.0151',
-        //         'datetime': 1550661146316,
-        //         'high': '0.0000123',
-        //         'last': '0.00001169',
-        //         'low': '0.00001159',
-        //         'sell': '0.00001182',
-        //         'symbol': 'LOOM-BTC',
-        //         'vol': '44399.5669'
+        //         symbol: "ETH-BTC",
+        //         high: "0.019518",
+        //         vol: "7997.82836194",
+        //         last: "0.019329",
+        //         low: "0.019",
+        //         buy: "0.019329",
+        //         sell: "0.01933",
+        //         changePrice: "-0.000139",
+        //         time:  1580553706304,
+        //         averagePrice: "0.01926386",
+        //         changeRate: "-0.0071",
+        //         volValue: "154.40791568183474"
+        //     }
+        //
+        //     {
+        //         "trading": true,
+        //         "symbol": "KCS-BTC",
+        //         "buy": 0.00011,
+        //         "sell": 0.00012,
+        //         "sort": 100,
+        //         "volValue": 3.13851792584,   //total
+        //         "baseCurrency": "KCS",
+        //         "market": "BTC",
+        //         "quoteCurrency": "BTC",
+        //         "symbolCode": "KCS-BTC",
+        //         "datetime": 1548388122031,
+        //         "high": 0.00013,
+        //         "vol": 27514.34842,
+        //         "low": 0.0001,
+        //         "changePrice": -1.0e-5,
+        //         "changeRate": -0.0769,
+        //         "lastTradedPrice": 0.00012,
+        //         "board": 0,
+        //         "mark": 0
         //     }
         //
         let percentage = this.safeFloat (ticker, 'changeRate');
         if (percentage !== undefined) {
             percentage = percentage * 100;
         }
-        const last = this.safeFloat (ticker, 'last');
-        const average = this.safeFloat (ticker, 'averagePrice');
+        const last = this.safeFloat2 (ticker, 'last', 'lastTradedPrice');
         let symbol = undefined;
         const marketId = this.safeString (ticker, 'symbol');
         if (marketId !== undefined) {
@@ -404,10 +427,11 @@ module.exports = class kucoin extends Exchange {
                 symbol = market['symbol'];
             }
         }
+        const timestamp = this.safeInteger2 (ticker, 'time', 'datetime');
         return {
             'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'buy'),
@@ -421,7 +445,7 @@ module.exports = class kucoin extends Exchange {
             'previousClose': undefined,
             'change': this.safeFloat (ticker, 'changePrice'),
             'percentage': percentage,
-            'average': average,
+            'average': this.safeFloat (ticker, 'averagePrice'),
             'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': this.safeFloat (ticker, 'volValue'),
             'info': ticker,
@@ -995,6 +1019,19 @@ module.exports = class kucoin extends Exchange {
         //         "time":1548848575203567174
         //     }
         //
+        //     {
+        //         sequence: '1568787654360',
+        //         symbol: 'BTC-USDT',
+        //         side: 'buy',
+        //         size: '0.00536577',
+        //         price: '9345',
+        //         takerOrderId: '5e356c4a9f1a790008f8d921',
+        //         time: '1580559434436443257',
+        //         type: 'match',
+        //         makerOrderId: '5e356bffedf0010008fa5d7f',
+        //         tradeId: '5e356c4aeefabd62c62a1ece'
+        //     }
+        //
         // fetchMyTrades (private) v2
         //
         //     {
@@ -1065,10 +1102,7 @@ module.exports = class kucoin extends Exchange {
                 symbol = market['symbol'];
             }
         }
-        let id = this.safeString2 (trade, 'tradeId', 'id');
-        if (id !== undefined) {
-            id = id.toString ();
-        }
+        const id = this.safeString2 (trade, 'tradeId', 'id');
         const orderId = this.safeString (trade, 'orderId');
         const takerOrMaker = this.safeString (trade, 'liquidity');
         const amount = this.safeFloat2 (trade, 'size', 'amount');

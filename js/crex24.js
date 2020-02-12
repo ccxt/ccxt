@@ -315,9 +315,6 @@ module.exports = class crex24 extends Exchange {
         //         }
         //     ]
         //
-        // const log = require ('ololog').unlimited.green;
-        // log (response);
-        // process.exit ();
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];

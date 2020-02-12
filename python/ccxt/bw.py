@@ -33,7 +33,7 @@ class bw(Exchange):
                 'editOrder': False,
                 'fetchBalance': True,
                 'fetchBidsAsks': False,
-                'fetchClosedOrders': False,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
@@ -124,6 +124,7 @@ class bw(Exchange):
                         'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
                         'exchange/fund/controller/website/fundwebsitecontroller/getwithdrawaddress',
                         'exchange/fund/controller/website/fundwebsitecontroller/getpayoutcoinrecord',
+                        'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
                         # the docs say that the following URLs are HTTP POST
                         # in the docs header and HTTP GET in the docs body
                         # the docs contradict themselves, a typo most likely
@@ -821,6 +822,23 @@ class bw(Exchange):
         orders = self.safe_value(data, 'entrustList', [])
         return self.parse_orders(orders, market, since, limit)
 
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'marketId': market['id'],
+        }
+        if limit is not None:
+            request['pageSize'] = limit  # default limit is 20
+        if since is not None:
+            request['startDateTime'] = since
+        response = self.privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustList(self.extend(request, params))
+        data = self.safe_value(response, 'datas', {})
+        orders = self.safe_value(data, 'entrustList', [])
+        return self.parse_orders(orders, market, since, limit)
+
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
@@ -886,7 +904,7 @@ class bw(Exchange):
                 keys = list(sortedParams.keys())
                 for i in range(0, len(keys)):
                     key = keys[i]
-                    content += key + sortedParams[key]
+                    content += key + str(sortedParams[key])
             else:
                 content = body
             signature = self.apiKey + ms + content + self.secret

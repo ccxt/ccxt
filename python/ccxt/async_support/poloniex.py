@@ -124,12 +124,9 @@ class poloniex(Exchange):
             },
             'fees': {
                 'trading': {
-                    # https://github.com/ccxt/ccxt/issues/6064
-                    # starting from October 21, 2019 17:00 UTC
-                    # all spot trading fees will be reduced to 0.00%
-                    # until December 31, 2019 23:59 UTC
-                    'maker': 0.0,
-                    'taker': 0.0,
+                    # starting from Jan 8 2020
+                    'maker': 0.0009,
+                    'taker': 0.0009,
                 },
                 'funding': {},
             },
@@ -325,16 +322,13 @@ class poloniex(Exchange):
         orderbook['nonce'] = self.safe_integer(response, 'seq')
         return orderbook
 
-    async def fetch_order_books(self, symbols=None, params={}):
+    async def fetch_order_books(self, symbols=None, limit=None, params={}):
         await self.load_markets()
         request = {
             'currencyPair': 'all',
         }
-        #
-        #     if limit is not None:
-        #         request['depth'] = limit  # 100
-        #     }
-        #
+        if limit is not None:
+            request['depth'] = limit  # 100
         response = await self.publicGetReturnOrderBook(self.extend(request, params))
         marketIds = list(response.keys())
         result = {}

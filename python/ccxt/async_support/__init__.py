@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.21.73'
+__version__ = '1.22.40'
 
 # -----------------------------------------------------------------------------
 
@@ -51,7 +51,6 @@ from ccxt.base.errors import OrderNotFillable                   # noqa: F401
 from ccxt.async_support._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.async_support.acx import acx                                    # noqa: F401
 from ccxt.async_support.adara import adara                                # noqa: F401
-from ccxt.async_support.allcoin import allcoin                            # noqa: F401
 from ccxt.async_support.anxpro import anxpro                              # noqa: F401
 from ccxt.async_support.bcex import bcex                                  # noqa: F401
 from ccxt.async_support.bequant import bequant                            # noqa: F401
@@ -175,7 +174,6 @@ exchanges = [
     '_1btcxe',
     'acx',
     'adara',
-    'allcoin',
     'anxpro',
     'bcex',
     'bequant',

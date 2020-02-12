@@ -165,8 +165,19 @@ module.exports = class btcalpha extends Exchange {
             request['limit_sell'] = limit;
             request['limit_buy'] = limit;
         }
-        const reponse = await this.publicGetOrderbookPairName (this.extend (request, params));
-        return this.parseOrderBook (reponse, undefined, 'buy', 'sell', 'price', 'amount');
+        const response = await this.publicGetOrderbookPairName (this.extend (request, params));
+        return this.parseOrderBook (response, undefined, 'buy', 'sell', 'price', 'amount');
+    }
+
+    parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
+        const result = [];
+        for (let i = 0; i < bidasks.length; i++) {
+            const bidask = bidasks[i];
+            if (bidask) {
+                result.push (this.parseBidAsk (bidask, priceKey, amountKey));
+            }
+        }
+        return result;
     }
 
     parseTrade (trade, market = undefined) {

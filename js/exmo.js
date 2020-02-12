@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, NotSupported, OnMaintenance } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, NotSupported, OnMaintenance, RateLimitExceeded } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -384,17 +384,22 @@ module.exports = class exmo extends Exchange {
                 },
             },
             'exceptions': {
-                '40005': AuthenticationError, // Authorization error, incorrect signature
-                '40009': InvalidNonce, //
-                '40015': ExchangeError, // API function do not exist
-                '40016': OnMaintenance, // {"result":false,"error":"Error 40016: Maintenance work in progress"}
-                '40017': AuthenticationError, // Wrong API Key
-                '50052': InsufficientFunds,
-                '50054': InsufficientFunds,
-                '50304': OrderNotFound, // "Order was not found '123456789'" (fetching order trades for an order that does not have trades yet)
-                '50173': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
-                '50319': InvalidOrder, // Price by order is less than permissible minimum for this pair
-                '50321': InvalidOrder, // Price by order is more than permissible maximum for this pair
+                'exact': {
+                    '40005': AuthenticationError, // Authorization error, incorrect signature
+                    '40009': InvalidNonce, //
+                    '40015': ExchangeError, // API function do not exist
+                    '40016': OnMaintenance, // {"result":false,"error":"Error 40016: Maintenance work in progress"}
+                    '40017': AuthenticationError, // Wrong API Key
+                    '50052': InsufficientFunds,
+                    '50054': InsufficientFunds,
+                    '50304': OrderNotFound, // "Order was not found '123456789'" (fetching order trades for an order that does not have trades yet)
+                    '50173': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
+                    '50319': InvalidOrder, // Price by order is less than permissible minimum for this pair
+                    '50321': InvalidOrder, // Price by order is more than permissible maximum for this pair
+                },
+                'broad': {
+                    'API rate limit exceeded': RateLimitExceeded, // {"result":false,"error":"API rate limit exceeded for 99.33.55.224. Retry after 60 sec.","history":[],"begin":1579392000,"end":1579478400}
+                },
             },
         });
     }
@@ -633,7 +638,7 @@ module.exports = class exmo extends Exchange {
         return this.parseOrderBook (result, undefined, 'bid', 'ask');
     }
 
-    async fetchOrderBooks (symbols = undefined, params = {}) {
+    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
         if (symbols === undefined) {
@@ -650,6 +655,9 @@ module.exports = class exmo extends Exchange {
         const request = {
             'pair': ids,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const response = await this.publicGetOrderBook (this.extend (request, params));
         const result = {};
         const marketIds = Object.keys (response);
@@ -1396,7 +1404,8 @@ module.exports = class exmo extends Exchange {
                     code = (numSubParts > 1) ? errorSubParts[1] : errorSubParts[0];
                 }
                 const feedback = this.id + ' ' + body;
-                this.throwExactlyMatchedException (this.exceptions, code, feedback);
+                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
                 throw new ExchangeError (feedback);
             }
         }

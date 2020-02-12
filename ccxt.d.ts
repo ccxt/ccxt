@@ -7,61 +7,9 @@ declare module 'ccxt' {
         [key: string]: T;
     }
 
-    // error.js -----------------------------------------
+    // errors.js -----------------------------------------
 
     export class BaseError extends Error {
-        constructor(message: string);
-    }
-
-    export class ExchangeError extends BaseError {
-        constructor(message: string);
-    }
-
-    export class NotSupported extends ExchangeError {
-        constructor(message: string);
-    }
-
-    export class AuthenticationError extends ExchangeError {
-        constructor(message: string);
-    }
-
-    export class InvalidNonce extends ExchangeError {
-        constructor(message: string);
-    }
-
-    export class InsufficientFunds extends ExchangeError {
-        constructor(message: string);
-    }
-
-    export class InvalidOrder extends ExchangeError {
-        constructor(message: string);
-    }
-
-    export class OrderNotFound extends InvalidOrder {
-        constructor(message: string);
-    }
-
-    export class OrderNotCached extends InvalidOrder {
-        constructor(message: string);
-    }
-
-    export class CancelPending extends InvalidOrder {
-        constructor(message: string);
-    }
-
-    export class NetworkError extends BaseError {
-        constructor(message: string);
-    }
-
-    export class DDoSProtection extends NetworkError {
-        constructor(message: string);
-    }
-
-    export class RequestTimeout extends NetworkError {
-        constructor(message: string);
-    }
-
-    export class ExchangeNotAvailable extends NetworkError {
         constructor(message: string);
     }
 
@@ -102,6 +50,7 @@ declare module 'ccxt' {
         type: 'market' | 'limit';
         side: 'buy' | 'sell';
         price: number;
+        average?: number;
         amount: number;
         filled: number;
         remaining: number;
@@ -180,6 +129,8 @@ declare module 'ccxt' {
     export interface Currency {
         id: string;
         code: string;
+        numericId?: number;
+        precision: number;
     }
 
     export interface Balance {
@@ -453,7 +404,6 @@ declare module 'ccxt' {
     export class _1btcxe extends Exchange {}
     export class acx extends Exchange {}
     export class adara extends Exchange {}
-    export class allcoin extends okcoinusd {}
     export class anxpro extends Exchange {}
     export class bcex extends Exchange {}
     export class bequant extends hitbtc2 {}
