@@ -157,11 +157,8 @@ module.exports = class bitbns extends Exchange {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
-            // console.log (method, url);
         }
         // console.log(url);
-        // if (api === 'private')
-        // console.log ("ccxt obj:",{ 'url': url, 'method': method, 'body': body, 'headers': headers });
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
@@ -187,7 +184,6 @@ module.exports = class bitbns extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        // const data = bitbns
         await this.loadMarkets ();
         const market = this.market (symbol);
         const excgSymbol = market['id'];
@@ -407,35 +403,16 @@ module.exports = class bitbns extends Exchange {
         const market = this.market (symbol);
         const tradingSymbol = market['id'];
         limit = limit === undefined ? 0 : limit;
-        // for (;allTrades.length < limit;) {
-        //     const request = {
-        //         'symbol': tradingSymbol,
-        //         'page': page,
-        //         'since': since,
-        //     };
-        //     // console.log(request);
-        //     const resp = await this.private1PostListExecutedOrders (this.extend (request, params));
-        //     // console.log("resp: ",resp.data);
-        //     if (resp.data.length === 0) {
-        //         // console.log ("All trades fetched");
-        //         break;
-        //     }
-        //     page = page + 1;
-        //     allTrades = allTrades.concat (resp.data);
-        //     // console.log("int alltrades:", allTra÷des);
-        // }
         if (since !== undefined) {
             since = this.iso8601 (since);
         }
         const request = {
             'symbol': tradingSymbol,
             'page': 0,
-            // 'since': since,
         };
         if (since !== undefined) {
             request['since'] = since;
         }
-        // if(since === )
         // console.log(request);
         const resp = await this.private1PostListExecutedOrders (this.extend (request, params));
         const trades = resp.data;
