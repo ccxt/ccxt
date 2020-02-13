@@ -507,7 +507,7 @@ module.exports = class Exchange {
     async fetch2 (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
 
         if (this.enableRateLimit)
-            await this.throttle ()
+            await this.throttle (this.rateLimit)
 
         const request = this.sign (path, type, method, params, headers, body)
         return this.fetch (request.url, request.method, request.headers, request.body)
