@@ -758,7 +758,7 @@ class ftx extends Exchange {
 
     public function parse_order ($order, $market = null) {
         //
-        // fetchOrder, fetchOrders, fetchOpenOrders, createOrder ("limit", "$market")
+        // limit orders - fetchOrder, fetchOrders, fetchOpenOrders, createOrder
         //
         //     {
         //         "createdAt" => "2019-03-05T09:56:55.728933+00:00",
@@ -776,6 +776,27 @@ class ftx extends Exchange {
         //         "ioc" => false,
         //         "postOnly" => false,
         //         "clientId" => null,
+        //     }
+        //
+        // $market orders - fetchOrder, fetchOrders, fetchOpenOrders, createOrder
+        //
+        //     {
+        //         "avgFillPrice" => 2666.0,
+        //         "clientId" => None,
+        //         "createdAt" => "2020-02-12T00 => 53 => 49.009726+00 => 00",
+        //         "filledSize" => 0.0007,
+        //         "future" => None,
+        //         "$id" => 3109208514,
+        //         "ioc" => True,
+        //         "$market" => "BNBBULL/USD",
+        //         "postOnly" => False,
+        //         "$price" => None,
+        //         "reduceOnly" => False,
+        //         "remainingSize" => 0.0,
+        //         "$side" => "buy",
+        //         "size" => 0.0007,
+        //         "$status" => "closed",
+        //         "$type" => "$market"
         //     }
         //
         // createOrder (conditional, "stop", "trailingStop", or "takeProfit")
@@ -814,11 +835,12 @@ class ftx extends Exchange {
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'type');
         $amount = $this->safe_float($order, 'size');
+        $average = $this->safe_float($order, 'avgFillPrice');
+        $price = $this->safe_float_2($order, 'price', 'triggerPrice', $average);
         $cost = null;
         if ($filled !== null && $amount !== null) {
-            $cost = $filled * $amount;
+            $cost = $filled * $price;
         }
-        $price = $this->safe_float_2($order, 'price', 'triggerPrice');
         $lastTradeTimestamp = $this->parse8601 ($this->safe_string($order, 'triggeredAt'));
         return array(
             'info' => $order,
@@ -832,7 +854,7 @@ class ftx extends Exchange {
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
-            'average' => null,
+            'average' => $average,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
