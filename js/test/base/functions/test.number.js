@@ -157,6 +157,11 @@ assert (decimalToPrecision ('-0.000123456789', ROUND, 0.00000012, TICK_SIZE) ===
 assert (decimalToPrecision ('-0.000123456789', TRUNCATE, 0.00000012, TICK_SIZE) === '-0.00012336');
 assert (decimalToPrecision ('-165', TRUNCATE, 110, TICK_SIZE) === '-110');
 assert (decimalToPrecision ('-165', ROUND, 110, TICK_SIZE) === '-220');
+assert (decimalToPrecision ('-1650', TRUNCATE, 1100, TICK_SIZE) === '-1100');
+assert (decimalToPrecision ('-1650', ROUND, 1100, TICK_SIZE) === '-2200');
+
+assert (decimalToPrecision ('0.0006', TRUNCATE, 0.0001, TICK_SIZE) === '0.0006');
+assert (decimalToPrecision ('-0.0006', TRUNCATE, 0.0001, TICK_SIZE) === '-0.0006');
 
 // ----------------------------------------------------------------------------
 // testDecimalToPrecisionNegativeNumbers

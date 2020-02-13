@@ -106,9 +106,12 @@ const decimalToPrecision = (x, roundingMode
 
 /*  handle tick size */
     if (countingMode === TICK_SIZE) {
+        const precisionDigitsString = decimalToPrecision (numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING)
+        const newNumPrecisionDigits = precisionFromString (precisionDigitsString)
         const missing = x % numPrecisionDigits
-        const reminder = x / numPrecisionDigits
-        if (reminder !== Math.floor (reminder)) {
+        let reminder = x / numPrecisionDigits
+        const fpError = decimalToPrecision (missing / numPrecisionDigits, ROUND, newNumPrecisionDigits + 2, DECIMAL_PLACES, NO_PADDING)
+        if (!('1' === fpError || '-1' === fpError)) {
             if (roundingMode === ROUND) {
                 if (x > 0) {
                     if (missing >= numPrecisionDigits / 2) {
@@ -127,8 +130,6 @@ const decimalToPrecision = (x, roundingMode
                 x = x - missing
             }
         }
-        const precisionDigitsString = decimalToPrecision (numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING)
-        const newNumPrecisionDigits = precisionFromString (precisionDigitsString)
         return decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
     }
 
