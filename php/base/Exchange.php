@@ -2457,9 +2457,17 @@ class Exchange {
         }
 
         if ($countingMode === TICK_SIZE) {
+            $precisionDigitsString = static::decimal_to_precision ($numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING);
+            $parts = explode ('.', preg_replace ('/0+$/', '', $precisionDigitsString));
+            if (count ($parts) > 1) {
+                $newNumPrecisionDigits = strlen ($parts[1]);
+            } else {
+                $newNumPrecisionDigits = strlen (preg_replace ('/0+$/', '', $parts[0]));
+            }
             $missing = fmod($x, $numPrecisionDigits);
             $reminder = $x / $numPrecisionDigits;
-            if ($reminder !== floor($reminder)) {
+            $fpError = static::decimal_to_precision ($missing / $numPrecisionDigits, ROUND, $newNumPrecisionDigits + 2, DECIMAL_PLACES, NO_PADDING);
+            if (!('1' === $fpError || '-1' === $fpError)) {
                 if ($roundingMode === ROUND) {
                     if ($x > 0) {
                         if ($missing >= $numPrecisionDigits / 2) {
@@ -2477,13 +2485,6 @@ class Exchange {
                 } else if (TRUNCATE === $roundingMode) {
                     $x = $x - $missing;
                 }
-            }
-            $precisionDigitsString = static::decimal_to_precision ($numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING);
-            $parts = explode ('.', preg_replace ('/0+$/', '', $precisionDigitsString));
-            if (count ($parts) > 1) {
-                $newNumPrecisionDigits = strlen ($parts[1]);
-            } else {
-                $newNumPrecisionDigits = strlen (preg_replace ('/0+$/', '', $parts[0]));
             }
             return static::decimal_to_precision ($x, ROUND, $newNumPrecisionDigits, DECIMAL_PLACES, $paddingMode);
         }
