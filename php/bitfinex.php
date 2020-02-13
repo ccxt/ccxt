@@ -629,6 +629,7 @@ class bitfinex extends Exchange {
         if ($timestamp !== null) {
             $timestamp *= 1000;
         }
+        $timestamp = intval ($timestamp);
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];

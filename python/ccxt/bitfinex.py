@@ -617,6 +617,7 @@ class bitfinex(Exchange):
         timestamp = self.safe_float(ticker, 'timestamp')
         if timestamp is not None:
             timestamp *= 1000
+        timestamp = int(timestamp)
         symbol = None
         if market is not None:
             symbol = market['symbol']
