@@ -836,7 +836,7 @@ module.exports = class ftx extends Exchange {
         const average = this.safeFloat (order, 'avgFillPrice');
         const price = this.safeFloat2 (order, 'price', 'triggerPrice', average);
         let cost = undefined;
-        if (filled !== undefined && amount !== undefined) {
+        if (filled !== undefined && price !== undefined) {
             cost = filled * price;
         }
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'triggeredAt'));
