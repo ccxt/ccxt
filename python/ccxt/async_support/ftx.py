@@ -807,7 +807,7 @@ class ftx(Exchange):
         average = self.safe_float(order, 'avgFillPrice')
         price = self.safe_float_2(order, 'price', 'triggerPrice', average)
         cost = None
-        if filled is not None and amount is not None:
+        if filled is not None and price is not None:
             cost = filled * price
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'triggeredAt'))
         return {

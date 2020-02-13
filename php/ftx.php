@@ -838,7 +838,7 @@ class ftx extends Exchange {
         $average = $this->safe_float($order, 'avgFillPrice');
         $price = $this->safe_float_2($order, 'price', 'triggerPrice', $average);
         $cost = null;
-        if ($filled !== null && $amount !== null) {
+        if ($filled !== null && $price !== null) {
             $cost = $filled * $price;
         }
         $lastTradeTimestamp = $this->parse8601 ($this->safe_string($order, 'triggeredAt'));
