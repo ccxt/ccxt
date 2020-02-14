@@ -19,6 +19,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 
@@ -401,17 +402,22 @@ class exmo(Exchange):
                 },
             },
             'exceptions': {
-                '40005': AuthenticationError,  # Authorization error, incorrect signature
-                '40009': InvalidNonce,  #
-                '40015': ExchangeError,  # API function do not exist
-                '40016': OnMaintenance,  # {"result":false,"error":"Error 40016: Maintenance work in progress"}
-                '40017': AuthenticationError,  # Wrong API Key
-                '50052': InsufficientFunds,
-                '50054': InsufficientFunds,
-                '50304': OrderNotFound,  # "Order was not found '123456789'"(fetching order trades for an order that does not have trades yet)
-                '50173': OrderNotFound,  # "Order with id X was not found."(cancelling non-existent, closed and cancelled order)
-                '50319': InvalidOrder,  # Price by order is less than permissible minimum for self pair
-                '50321': InvalidOrder,  # Price by order is more than permissible maximum for self pair
+                'exact': {
+                    '40005': AuthenticationError,  # Authorization error, incorrect signature
+                    '40009': InvalidNonce,  #
+                    '40015': ExchangeError,  # API function do not exist
+                    '40016': OnMaintenance,  # {"result":false,"error":"Error 40016: Maintenance work in progress"}
+                    '40017': AuthenticationError,  # Wrong API Key
+                    '50052': InsufficientFunds,
+                    '50054': InsufficientFunds,
+                    '50304': OrderNotFound,  # "Order was not found '123456789'"(fetching order trades for an order that does not have trades yet)
+                    '50173': OrderNotFound,  # "Order with id X was not found."(cancelling non-existent, closed and cancelled order)
+                    '50319': InvalidOrder,  # Price by order is less than permissible minimum for self pair
+                    '50321': InvalidOrder,  # Price by order is more than permissible maximum for self pair
+                },
+                'broad': {
+                    'API rate limit exceeded': RateLimitExceeded,  # {"result":false,"error":"API rate limit exceeded for 99.33.55.224. Retry after 60 sec.","history":[],"begin":1579392000,"end":1579478400}
+                },
             },
         })
 
@@ -623,7 +629,7 @@ class exmo(Exchange):
         result = self.safe_value(response, market['id'])
         return self.parse_order_book(result, None, 'bid', 'ask')
 
-    def fetch_order_books(self, symbols=None, params={}):
+    def fetch_order_books(self, symbols=None, limit=None, params={}):
         self.load_markets()
         ids = None
         if symbols is None:
@@ -638,6 +644,8 @@ class exmo(Exchange):
         request = {
             'pair': ids,
         }
+        if limit is not None:
+            request['limit'] = limit
         response = self.publicGetOrderBook(self.extend(request, params))
         result = {}
         marketIds = list(response.keys())
@@ -1291,5 +1299,6 @@ class exmo(Exchange):
                     numSubParts = len(errorSubParts)
                     code = errorSubParts[1] if (numSubParts > 1) else errorSubParts[0]
                 feedback = self.id + ' ' + body
-                self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 raise ExchangeError(feedback)

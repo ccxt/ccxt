@@ -389,17 +389,22 @@ class exmo extends Exchange {
                 ),
             ),
             'exceptions' => array(
-                '40005' => '\\ccxt\\AuthenticationError', // Authorization error, incorrect signature
-                '40009' => '\\ccxt\\InvalidNonce', //
-                '40015' => '\\ccxt\\ExchangeError', // API function do not exist
-                '40016' => '\\ccxt\\OnMaintenance', // array("result":false,"error":"Error 40016 => Maintenance work in progress")
-                '40017' => '\\ccxt\\AuthenticationError', // Wrong API Key
-                '50052' => '\\ccxt\\InsufficientFunds',
-                '50054' => '\\ccxt\\InsufficientFunds',
-                '50304' => '\\ccxt\\OrderNotFound', // "Order was not found '123456789'" (fetching order trades for an order that does not have trades yet)
-                '50173' => '\\ccxt\\OrderNotFound', // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
-                '50319' => '\\ccxt\\InvalidOrder', // Price by order is less than permissible minimum for this pair
-                '50321' => '\\ccxt\\InvalidOrder', // Price by order is more than permissible maximum for this pair
+                'exact' => array(
+                    '40005' => '\\ccxt\\AuthenticationError', // Authorization error, incorrect signature
+                    '40009' => '\\ccxt\\InvalidNonce', //
+                    '40015' => '\\ccxt\\ExchangeError', // API function do not exist
+                    '40016' => '\\ccxt\\OnMaintenance', // array("result":false,"error":"Error 40016 => Maintenance work in progress")
+                    '40017' => '\\ccxt\\AuthenticationError', // Wrong API Key
+                    '50052' => '\\ccxt\\InsufficientFunds',
+                    '50054' => '\\ccxt\\InsufficientFunds',
+                    '50304' => '\\ccxt\\OrderNotFound', // "Order was not found '123456789'" (fetching order trades for an order that does not have trades yet)
+                    '50173' => '\\ccxt\\OrderNotFound', // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
+                    '50319' => '\\ccxt\\InvalidOrder', // Price by order is less than permissible minimum for this pair
+                    '50321' => '\\ccxt\\InvalidOrder', // Price by order is more than permissible maximum for this pair
+                ),
+                'broad' => array(
+                    'API rate limit exceeded' => '\\ccxt\\RateLimitExceeded', // array("result":false,"error":"API rate limit exceeded for 99.33.55.224. Retry after 60 sec.","history":array(),"begin":1579392000,"end":1579478400)
+                ),
             ),
         ));
     }
@@ -638,7 +643,7 @@ class exmo extends Exchange {
         return $this->parse_order_book($result, null, 'bid', 'ask');
     }
 
-    public function fetch_order_books ($symbols = null, $params = array ()) {
+    public function fetch_order_books ($symbols = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $ids = null;
         if ($symbols === null) {
@@ -655,6 +660,9 @@ class exmo extends Exchange {
         $request = array(
             'pair' => $ids,
         );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
         $response = $this->publicGetOrderBook (array_merge($request, $params));
         $result = array();
         $marketIds = is_array($response) ? array_keys($response) : array();
@@ -1401,7 +1409,8 @@ class exmo extends Exchange {
                     $code = ($numSubParts > 1) ? $errorSubParts[1] : $errorSubParts[0];
                 }
                 $feedback = $this->id . ' ' . $body;
-                $this->throw_exactly_matched_exception($this->exceptions, $code, $feedback);
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
                 throw new ExchangeError($feedback);
             }
         }

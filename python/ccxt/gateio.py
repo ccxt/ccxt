@@ -45,18 +45,18 @@ class gateio(Exchange):
                 'fetchMyTrades': True,
             },
             'timeframes': {
-                '1m': '60',
-                '5m': '300',
-                '10m': '600',
-                '15m': '900',
-                '30m': '1800',
-                '1h': '3600',
-                '2h': '7200',
-                '4h': '14400',
-                '6h': '21600',
-                '12h': '43200',
-                '1d': '86400',
-                '1w': '604800',
+                '1m': 60,
+                '5m': 300,
+                '10m': 600,
+                '15m': 900,
+                '30m': 1800,
+                '1h': 3600,
+                '2h': 7200,
+                '4h': 14400,
+                '6h': 21600,
+                '12h': 43200,
+                '1d': 86400,
+                '1w': 604800,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
@@ -174,7 +174,7 @@ class gateio(Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             keys = list(market.keys())
-            id = keys[0]
+            id = self.safe_string(keys, 0)
             details = market[id]
             # all of their symbols are separated with an underscore
             # but not boe_eth_eth(BOE_ETH/ETH) which has two underscores
@@ -309,12 +309,14 @@ class gateio(Exchange):
             open = last / self.sum(1, relativeChange)
             change = last - open
             average = self.sum(last, open) / 2
+        open = self.safe_float(ticker, 'open', open)
+        change = self.safe_float(ticker, 'change', change)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high24hr'),
-            'low': self.safe_float(ticker, 'low24hr'),
+            'high': self.safe_float_2(ticker, 'high24hr', 'high'),
+            'low': self.safe_float_2(ticker, 'low24hr', 'low'),
             'bid': self.safe_float(ticker, 'highestBid'),
             'bidVolume': None,
             'ask': self.safe_float(ticker, 'lowestAsk'),
@@ -363,10 +365,11 @@ class gateio(Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_timestamp_2(trade, 'timestamp', 'time_unix')
+        timestamp = self.safe_timestamp(trade, 'time', timestamp)
         id = self.safe_string_2(trade, 'tradeID', 'id')
         # take either of orderid or orderId
         orderId = self.safe_string_2(trade, 'orderid', 'orderNumber')
-        price = self.safe_float(trade, 'rate')
+        price = self.safe_float_2(trade, 'rate', 'price')
         amount = self.safe_float(trade, 'amount')
         type = self.safe_string(trade, 'type')
         cost = None
@@ -442,19 +445,25 @@ class gateio(Exchange):
         #     'timestamp': 1531158583,
         #     'type': 'sell'},
         #
-        id = self.safe_string(order, 'orderNumber')
+        id = self.safe_string_2(order, 'orderNumber', 'id')
         symbol = None
         marketId = self.safe_string(order, 'currencyPair')
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
-        timestamp = self.safe_timestamp(order, 'timestamp')
+        timestamp = self.safe_timestamp_2(order, 'timestamp', 'ctime')
+        lastTradeTimestamp = self.safe_timestamp(order, 'mtime')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'type')
-        price = self.safe_float(order, 'initialRate')
+        # handling for order.update messages
+        if side == '1':
+            side = 'sell'
+        elif side == '2':
+            side = 'buy'
+        price = self.safe_float_2(order, 'initialRate', 'price')
         average = self.safe_float(order, 'filledRate')
-        amount = self.safe_float(order, 'initialAmount')
+        amount = self.safe_float_2(order, 'initialAmount', 'amount')
         filled = self.safe_float(order, 'filledAmount')
         # In the order status response, self field has a different name.
         remaining = self.safe_float_2(order, 'leftAmount', 'left')
@@ -468,6 +477,7 @@ class gateio(Exchange):
             'id': id,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
             'symbol': symbol,
             'type': 'limit',
@@ -673,6 +683,8 @@ class gateio(Exchange):
         txid = self.safe_string(transaction, 'txid')
         amount = self.safe_float(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
+        if address == 'false':
+            address = None
         timestamp = self.safe_timestamp(transaction, 'timestamp')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         type = self.parse_transaction_type(id[0])

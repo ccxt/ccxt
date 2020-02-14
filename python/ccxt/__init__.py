@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.21.15'
+__version__ = '1.22.39'
 
 # ----------------------------------------------------------------------------
 
@@ -70,7 +70,6 @@ from ccxt.base.errors import OrderNotFillable               # noqa: F401
 from ccxt._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.acx import acx                                    # noqa: F401
 from ccxt.adara import adara                                # noqa: F401
-from ccxt.allcoin import allcoin                            # noqa: F401
 from ccxt.anxpro import anxpro                              # noqa: F401
 from ccxt.bcex import bcex                                  # noqa: F401
 from ccxt.bequant import bequant                            # noqa: F401
@@ -184,7 +183,6 @@ from ccxt.timex import timex                                # noqa: F401
 from ccxt.upbit import upbit                                # noqa: F401
 from ccxt.vaultoro import vaultoro                          # noqa: F401
 from ccxt.vbtc import vbtc                                  # noqa: F401
-from ccxt.virwox import virwox                              # noqa: F401
 from ccxt.whitebit import whitebit                          # noqa: F401
 from ccxt.xbtce import xbtce                                # noqa: F401
 from ccxt.yobit import yobit                                # noqa: F401
@@ -195,7 +193,6 @@ exchanges = [
     '_1btcxe',
     'acx',
     'adara',
-    'allcoin',
     'anxpro',
     'bcex',
     'bequant',
@@ -309,7 +306,6 @@ exchanges = [
     'upbit',
     'vaultoro',
     'vbtc',
-    'virwox',
     'whitebit',
     'xbtce',
     'yobit',

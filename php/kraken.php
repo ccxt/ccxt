@@ -48,15 +48,15 @@ class kraken extends Exchange {
             ),
             'marketsByAltname' => array(),
             'timeframes' => array(
-                '1m' => '1',
-                '5m' => '5',
-                '15m' => '15',
-                '30m' => '30',
-                '1h' => '60',
-                '4h' => '240',
-                '1d' => '1440',
-                '1w' => '10080',
-                '2w' => '21600',
+                '1m' => 1,
+                '5m' => 5,
+                '15m' => 15,
+                '30m' => 30,
+                '1h' => 60,
+                '4h' => 240,
+                '1d' => 1440,
+                '1w' => 10080,
+                '2w' => 21600,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg',
@@ -217,6 +217,7 @@ class kraken extends Exchange {
                 'inactiveCurrencies' => array( 'CAD', 'USD', 'JPY', 'GBP' ),
             ),
             'exceptions' => array(
+                'EQuery:Invalid asset pair' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Invalid asset pair"])
                 'EAPI:Invalid key' => '\\ccxt\\AuthenticationError',
                 'EFunding:Unknown withdraw key' => '\\ccxt\\ExchangeError',
                 'EFunding:Invalid amount' => '\\ccxt\\InsufficientFunds',

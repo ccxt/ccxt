@@ -147,7 +147,7 @@ class fcoin extends Exchange {
                 '400' => '\\ccxt\\NotSupported', // Bad Request
                 '401' => '\\ccxt\\AuthenticationError',
                 '405' => '\\ccxt\\NotSupported',
-                '429' => '\\ccxt\\DDoSProtection', // Too Many Requests, exceed api request limit
+                '429' => '\\ccxt\\RateLimitExceeded', // Too Many Requests, exceed api request limit
                 '1002' => '\\ccxt\\ExchangeNotAvailable', // System busy
                 '1016' => '\\ccxt\\InsufficientFunds',
                 '2136' => '\\ccxt\\AuthenticationError', // The API key is expired
@@ -385,7 +385,7 @@ class fcoin extends Exchange {
             }
         }
         $values = $ticker['ticker'];
-        $last = floatval ($values[0]);
+        $last = $this->safe_float($values, 0);
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
@@ -393,12 +393,12 @@ class fcoin extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($values[7]),
-            'low' => floatval ($values[8]),
-            'bid' => floatval ($values[2]),
-            'bidVolume' => floatval ($values[3]),
-            'ask' => floatval ($values[4]),
-            'askVolume' => floatval ($values[5]),
+            'high' => $this->safe_float($values, 7),
+            'low' => $this->safe_float($values, 8),
+            'bid' => $this->safe_float($values, 2),
+            'bidVolume' => $this->safe_float($values, 3),
+            'ask' => $this->safe_float($values, 4),
+            'askVolume' => $this->safe_float($values, 5),
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -407,8 +407,8 @@ class fcoin extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($values[9]),
-            'quoteVolume' => floatval ($values[10]),
+            'baseVolume' => $this->safe_float($values, 9),
+            'quoteVolume' => $this->safe_float($values, 10),
             'info' => $ticker,
         );
     }

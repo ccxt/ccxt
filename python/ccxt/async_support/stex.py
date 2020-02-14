@@ -44,6 +44,7 @@ class stex(Exchange):
                 'fetchDeposits': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
+                'fetchFundingFees': True,
             },
             'version': 'v3',
             'urls': {
@@ -497,6 +498,13 @@ class stex(Exchange):
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
+        open = self.safe_float(ticker, 'open')
+        change = None
+        percentage = None
+        if last is not None:
+            if open is not None:
+                change = last - open
+                percentage = ((100 / open) * last) - 100
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -508,12 +516,12 @@ class stex(Exchange):
             'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_float(ticker, 'open'),
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,  # previous day close
-            'change': None,
-            'percentage': None,
+            'change': change,
+            'percentage': percentage,
             'average': None,
             'baseVolume': self.safe_float(ticker, 'volumeQuote'),
             'quoteVolume': self.safe_float(ticker, 'volume'),
@@ -1443,7 +1451,7 @@ class stex(Exchange):
             code = self.common_currency_code(self.safe_string(transaction, 'currency_code'))
         if (code is None) and (currency is not None):
             code = currency['code']
-        type = 'deposit' if ('depositId' in transaction) else 'withdrawal'
+        type = 'deposit' if ('deposit_status_id' in transaction) else 'withdrawal'
         amount = self.safe_float(transaction, 'amount')
         status = self.parse_transaction_status(self.safe_string_lower(transaction, 'status'))
         timestamp = self.safe_timestamp_2(transaction, 'timestamp', 'created_ts')
@@ -1479,19 +1487,17 @@ class stex(Exchange):
         }
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
         await self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'currencyTypeName': currency['name'],
-            # 'pageSize': limit,  # documented as required, but it works without it
-            # 'pageNum': 0,  # also works without it, most likely a typo in the docs
-            # 'sort': 1,  # 1 = asc, 0 = desc
-        }
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['currencyId'] = currency['id']
         if limit is not None:
-            request['pageSize'] = limit  # default 50
-        response = await self.privatePostExchangeFundControllerWebsiteFundcontrollerGetPayinCoinRecord(self.extend(request, params))
+            request['limit'] = limit
+        if since is not None:
+            request['timeStart'] = since
+        response = await self.profileGetDeposits(self.extend(request, params))
         #
         #     {
         #         "success": True,
@@ -1511,28 +1517,31 @@ class stex(Exchange):
         #                 "status_color": "#BC3D51",
         #                 "created_at": "2018-11-28 12:32:08",
         #                 "timestamp": "1543409389",
-        #                 "confirmations": "1 of 2"
+        #                 "confirmations": "1 of 2",
+        #                 "protocol_specific_settings": {
+        #                     "protocol_name": "Tether OMNI",
+        #                     "protocol_id": 10,
+        #                     "block_explorer_url": "https://omniexplorer.info/search/"
+        #                 }
         #             }
         #         ]
         #     }
         #
-        deposits = self.safe_value(response, 'datas', {})
+        deposits = self.safe_value(response, 'data', [])
         return self.parse_transactions(deposits, code, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
         await self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'currencyId': currency['id'],
-            # 'pageSize': limit,  # documented as required, but it works without it
-            # 'pageIndex': 0,  # also works without it, most likely a typo in the docs
-            # 'tab': 'all',  # all, wait(submitted, not audited), success(auditing passed), fail(auditing failed), cancel(canceled by user)
-        }
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['currencyId'] = currency['id']
         if limit is not None:
-            request['pageSize'] = limit  # default 50
-        response = await self.privateGetExchangeFundControllerWebsiteFundwebsitecontrollerGetpayoutcoinrecord(self.extend(request, params))
+            request['limit'] = limit
+        if since is not None:
+            request['timeStart'] = since
+        response = await self.profileGetWithdrawals(self.extend(request, params))
         #
         #     {
         #         "success": True,
@@ -1563,6 +1572,11 @@ class stex(Exchange):
         #                     "protocol_id": 10,
         #                     "protocol_name": "Tether OMNI",
         #                     "supports_new_address_creation": False
+        #                 },
+        #                 "protocol_specific_settings": {
+        #                     "protocol_name": "Tether OMNI",
+        #                     "protocol_id": 10,
+        #                     "block_explorer_url": "https://omniexplorer.info/search/"
         #                 }
         #             }
         #         ]
@@ -1620,6 +1634,61 @@ class stex(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         return self.parse_transaction(data, currency)
+
+    async def fetch_funding_fees(self, codes=None, params={}):
+        response = await self.publicGetCurrencies(params)
+        #
+        #     {
+        #         "success": True,
+        #         "data": [
+        #             {
+        #                 "id": 1,
+        #                 "code": "BTC",
+        #                 "name": "Bitcoin",
+        #                 "active": True,
+        #                 "delisted": False,
+        #                 "precision": 8,
+        #                 "minimum_tx_confirmations": 24,
+        #                 "minimum_withdrawal_amount": "0.009",
+        #                 "minimum_deposit_amount": "0.000003",
+        #                 "deposit_fee_currency_id": 1,
+        #                 "deposit_fee_currency_code": "ETH",
+        #                 "deposit_fee_const": "0.00001",
+        #                 "deposit_fee_percent": "0",
+        #                 "withdrawal_fee_currency_id": 1,
+        #                 "withdrawal_fee_currency_code": "ETH",
+        #                 "withdrawal_fee_const": "0.0015",
+        #                 "withdrawal_fee_percent": "0",
+        #                 "withdrawal_limit": "string",
+        #                 "block_explorer_url": "https://blockchain.info/tx/",
+        #                 "protocol_specific_settings": [
+        #                     {
+        #                         "protocol_name": "Tether OMNI",
+        #                         "protocol_id": 10,
+        #                         "active": True,
+        #                         "withdrawal_fee_currency_id": 1,
+        #                         "withdrawal_fee_const": 0.002,
+        #                         "withdrawal_fee_percent": 0,
+        #                         "block_explorer_url": "https://omniexplorer.info/search/"
+        #                     }
+        #                 ]
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        withdrawFees = {}
+        depositFees = {}
+        for i in range(0, len(data)):
+            id = self.safe_string(data[i], 'id')
+            code = self.safe_currency_code(id)
+            withdrawFees[code] = self.safe_float(data[i], 'withdrawal_fee_const')
+            depositFees[code] = self.safe_float(data[i], 'deposit_fee_const')
+        return {
+            'withdraw': withdrawFees,
+            'deposit': depositFees,
+            'info': response,
+        }
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

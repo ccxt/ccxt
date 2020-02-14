@@ -12,7 +12,6 @@ use \ccxt\AddressPending;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
 use \ccxt\DDoSProtection;
-use \ccxt\ExchangeNotAvailable;
 
 class bittrex extends Exchange {
 
@@ -121,6 +120,8 @@ class bittrex extends Exchange {
                 'v2' => array(
                     'get' => array(
                         'currencies/GetBTCPrice',
+                        'currencies/GetWalletHealth',
+                        'general/GetLatestAlert',
                         'market/GetTicks',
                         'market/GetLatestTick',
                         'Markets/GetMarketSummaries',
@@ -211,24 +212,30 @@ class bittrex extends Exchange {
                 ),
             ),
             'exceptions' => array(
-                // 'Call to Cancel was throttled. Try again in 60 seconds.' => '\\ccxt\\DDoSProtection',
-                // 'Call to GetBalances was throttled. Try again in 60 seconds.' => '\\ccxt\\DDoSProtection',
-                'APISIGN_NOT_PROVIDED' => '\\ccxt\\AuthenticationError',
-                'INVALID_SIGNATURE' => '\\ccxt\\AuthenticationError',
-                'INVALID_CURRENCY' => '\\ccxt\\ExchangeError',
-                'INVALID_PERMISSION' => '\\ccxt\\AuthenticationError',
-                'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds',
-                'QUANTITY_NOT_PROVIDED' => '\\ccxt\\InvalidOrder',
-                'MIN_TRADE_REQUIREMENT_NOT_MET' => '\\ccxt\\InvalidOrder',
-                'ORDER_NOT_OPEN' => '\\ccxt\\OrderNotFound',
-                'INVALID_ORDER' => '\\ccxt\\InvalidOrder',
-                'UUID_INVALID' => '\\ccxt\\OrderNotFound',
-                'RATE_NOT_PROVIDED' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder ('ETH/BTC', 1, 0)
-                'INVALID_MARKET' => '\\ccxt\\BadSymbol', // array("success":false,"message":"INVALID_MARKET","result":null,"explanation":null)
-                'WHITELIST_VIOLATION_IP' => '\\ccxt\\PermissionDenied',
-                'DUST_TRADE_DISALLOWED_MIN_VALUE' => '\\ccxt\\InvalidOrder',
-                'RESTRICTED_MARKET' => '\\ccxt\\BadSymbol',
-                'We are down for scheduled maintenance, but we\u2019ll be back up shortly.' => '\\ccxt\\OnMaintenance', // array("success":false,"message":"We are down for scheduled maintenance, but we\u2019ll be back up shortly.","result":null,"explanation":null)
+                'exact' => array(
+                    // 'Call to Cancel was throttled. Try again in 60 seconds.' => '\\ccxt\\DDoSProtection',
+                    // 'Call to GetBalances was throttled. Try again in 60 seconds.' => '\\ccxt\\DDoSProtection',
+                    'APISIGN_NOT_PROVIDED' => '\\ccxt\\AuthenticationError',
+                    'INVALID_SIGNATURE' => '\\ccxt\\AuthenticationError',
+                    'INVALID_CURRENCY' => '\\ccxt\\ExchangeError',
+                    'INVALID_PERMISSION' => '\\ccxt\\AuthenticationError',
+                    'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds',
+                    'QUANTITY_NOT_PROVIDED' => '\\ccxt\\InvalidOrder',
+                    'MIN_TRADE_REQUIREMENT_NOT_MET' => '\\ccxt\\InvalidOrder',
+                    'ORDER_NOT_OPEN' => '\\ccxt\\OrderNotFound',
+                    'INVALID_ORDER' => '\\ccxt\\InvalidOrder',
+                    'UUID_INVALID' => '\\ccxt\\OrderNotFound',
+                    'RATE_NOT_PROVIDED' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder ('ETH/BTC', 1, 0)
+                    'INVALID_MARKET' => '\\ccxt\\BadSymbol', // array("success":false,"message":"INVALID_MARKET","result":null,"explanation":null)
+                    'WHITELIST_VIOLATION_IP' => '\\ccxt\\PermissionDenied',
+                    'DUST_TRADE_DISALLOWED_MIN_VALUE' => '\\ccxt\\InvalidOrder',
+                    'RESTRICTED_MARKET' => '\\ccxt\\BadSymbol',
+                    'We are down for scheduled maintenance, but we\u2019ll be back up shortly.' => '\\ccxt\\OnMaintenance', // array("success":false,"message":"We are down for scheduled maintenance, but we\u2019ll be back up shortly.","result":null,"explanation":null)
+                ),
+                'broad' => array(
+                    'throttled' => '\\ccxt\\DDoSProtection',
+                    'problem' => '\\ccxt\\ExchangeNotAvailable',
+                ),
             ),
             'options' => array(
                 'parseOrderStatus' => false,
@@ -1371,7 +1378,8 @@ class bittrex extends Exchange {
         if ($body[0] === '{') {
             $success = $this->safe_value($response, 'success');
             if ($success === null) {
-                throw new ExchangeError($this->id . ' => malformed $response => ' . $this->json ($response));
+                // throw new ExchangeError($this->id . ' malformed $response ' . $this->json ($response));
+                return;
             }
             if (gettype($success) === 'string') {
                 // bleutrade uses string instead of boolean
@@ -1424,14 +1432,9 @@ class bittrex extends Exchange {
                         }
                     }
                 }
-                $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
                 if ($message !== null) {
-                    if (mb_strpos($message, 'throttled. Try again') !== false) {
-                        throw new DDoSProtection($feedback);
-                    }
-                    if (mb_strpos($message, 'problem') !== false) {
-                        throw new ExchangeNotAvailable($feedback); // 'There was a problem processing your request.  If this problem persists, please contact...')
-                    }
+                    $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
                 }
                 throw new ExchangeError($feedback);
             }

@@ -374,14 +374,14 @@ class coinbase(Exchange):
         #         "next_step": null
         #     }
         #
-        amountObject = self.safe_value(transaction, 'amount', {})
+        subtotalObject = self.safe_value(transaction, 'subtotal', {})
         feeObject = self.safe_value(transaction, 'fee', {})
         id = self.safe_string(transaction, 'id')
         timestamp = self.parse8601(self.safe_value(transaction, 'created_at'))
         updated = self.parse8601(self.safe_value(transaction, 'updated_at'))
         type = self.safe_string(transaction, 'resource')
-        amount = self.safe_float(amountObject, 'amount')
-        currencyId = self.safe_string(amountObject, 'currency')
+        amount = self.safe_float(subtotalObject, 'amount')
+        currencyId = self.safe_string(subtotalObject, 'currency')
         currency = self.safe_currency_code(currencyId)
         feeCost = self.safe_float(feeObject, 'amount')
         feeCurrencyId = self.safe_string(feeObject, 'currency')

@@ -38,18 +38,18 @@ class gateio extends Exchange {
                 'fetchMyTrades' => true,
             ),
             'timeframes' => array(
-                '1m' => '60',
-                '5m' => '300',
-                '10m' => '600',
-                '15m' => '900',
-                '30m' => '1800',
-                '1h' => '3600',
-                '2h' => '7200',
-                '4h' => '14400',
-                '6h' => '21600',
-                '12h' => '43200',
-                '1d' => '86400',
-                '1w' => '604800',
+                '1m' => 60,
+                '5m' => 300,
+                '10m' => 600,
+                '15m' => 900,
+                '30m' => 1800,
+                '1h' => 3600,
+                '2h' => 7200,
+                '4h' => 14400,
+                '6h' => 21600,
+                '12h' => 43200,
+                '1d' => 86400,
+                '1w' => 604800,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
@@ -169,7 +169,7 @@ class gateio extends Exchange {
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $keys = is_array($market) ? array_keys($market) : array();
-            $id = $keys[0];
+            $id = $this->safe_string($keys, 0);
             $details = $market[$id];
             // all of their symbols are separated with an underscore
             // but not boe_eth_eth (BOE_ETH/ETH) which has two underscores
@@ -316,12 +316,14 @@ class gateio extends Exchange {
             $change = $last - $open;
             $average = $this->sum ($last, $open) / 2;
         }
+        $open = $this->safe_float($ticker, 'open', $open);
+        $change = $this->safe_float($ticker, 'change', $change);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => $this->safe_float($ticker, 'high24hr'),
-            'low' => $this->safe_float($ticker, 'low24hr'),
+            'high' => $this->safe_float_2($ticker, 'high24hr', 'high'),
+            'low' => $this->safe_float_2($ticker, 'low24hr', 'low'),
             'bid' => $this->safe_float($ticker, 'highestBid'),
             'bidVolume' => null,
             'ask' => $this->safe_float($ticker, 'lowestAsk'),
@@ -376,10 +378,11 @@ class gateio extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $timestamp = $this->safe_timestamp_2($trade, 'timestamp', 'time_unix');
+        $timestamp = $this->safe_timestamp($trade, 'time', $timestamp);
         $id = $this->safe_string_2($trade, 'tradeID', 'id');
         // take either of orderid or $orderId
         $orderId = $this->safe_string_2($trade, 'orderid', 'orderNumber');
-        $price = $this->safe_float($trade, 'rate');
+        $price = $this->safe_float_2($trade, 'rate', 'price');
         $amount = $this->safe_float($trade, 'amount');
         $type = $this->safe_string($trade, 'type');
         $cost = null;
@@ -463,7 +466,7 @@ class gateio extends Exchange {
         //     'timestamp' => 1531158583,
         //     'type' => 'sell'),
         //
-        $id = $this->safe_string($order, 'orderNumber');
+        $id = $this->safe_string_2($order, 'orderNumber', 'id');
         $symbol = null;
         $marketId = $this->safe_string($order, 'currencyPair');
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
@@ -472,12 +475,19 @@ class gateio extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_timestamp($order, 'timestamp');
+        $timestamp = $this->safe_timestamp_2($order, 'timestamp', 'ctime');
+        $lastTradeTimestamp = $this->safe_timestamp($order, 'mtime');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $side = $this->safe_string($order, 'type');
-        $price = $this->safe_float($order, 'initialRate');
+        // handling for $order->update messages
+        if ($side === '1') {
+            $side = 'sell';
+        } else if ($side === '2') {
+            $side = 'buy';
+        }
+        $price = $this->safe_float_2($order, 'initialRate', 'price');
         $average = $this->safe_float($order, 'filledRate');
-        $amount = $this->safe_float($order, 'initialAmount');
+        $amount = $this->safe_float_2($order, 'initialAmount', 'amount');
         $filled = $this->safe_float($order, 'filledAmount');
         // In the $order $status response, this field has a different name.
         $remaining = $this->safe_float_2($order, 'leftAmount', 'left');
@@ -492,6 +502,7 @@ class gateio extends Exchange {
             'id' => $id,
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',
@@ -725,6 +736,9 @@ class gateio extends Exchange {
         $txid = $this->safe_string($transaction, 'txid');
         $amount = $this->safe_float($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
+        if ($address === 'false') {
+            $address = null;
+        }
         $timestamp = $this->safe_timestamp($transaction, 'timestamp');
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
         $type = $this->parse_transaction_type ($id[0]);

@@ -436,7 +436,7 @@ class upbit(Exchange):
         quote = self.safe_currency_code(quoteId)
         return base + '/' + quote
 
-    def fetch_order_books(self, symbols=None, params={}):
+    def fetch_order_books(self, symbols=None, limit=None, params={}):
         self.load_markets()
         ids = None
         if symbols is None:
@@ -495,7 +495,7 @@ class upbit(Exchange):
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
-        orderbooks = self.fetch_order_books([symbol], params)
+        orderbooks = self.fetch_order_books([symbol], limit, params)
         return self.safe_value(orderbooks, symbol)
 
     def parse_ticker(self, ticker, market=None):

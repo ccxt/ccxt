@@ -25,6 +25,7 @@ class bigone extends Exchange {
                 'fetchDeposits' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOrder' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
@@ -187,6 +188,7 @@ class bigone extends Exchange {
                 'amount' => $this->safe_integer($market, 'base_scale'),
                 'price' => $this->safe_integer($market, 'quote_scale'),
             );
+            $minCost = $this->safe_integer($market, 'min_quote_value');
             $entry = array(
                 'id' => $id,
                 'uuid' => $uuid,
@@ -200,14 +202,14 @@ class bigone extends Exchange {
                 'limits' => array(
                     'amount' => array(
                         'min' => pow(10, -$precision['amount']),
-                        'max' => pow(10, $precision['amount']),
+                        'max' => null,
                     ),
                     'price' => array(
                         'min' => pow(10, -$precision['price']),
-                        'max' => pow(10, $precision['price']),
+                        'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
+                        'min' => $minCost,
                         'max' => null,
                     ),
                 ),

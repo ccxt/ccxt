@@ -190,8 +190,8 @@ class bibox(Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'baseId': base,
-                'quoteId': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': True,
                 'info': market,
                 'precision': precision,
@@ -391,7 +391,7 @@ class bibox(Exchange):
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'symbol')
-            name = self.safe_string(currency, 'name')
+            name = currency['name']  # contains hieroglyphs causing python ASCII bug
             code = self.safe_currency_code(id)
             precision = 8
             deposit = self.safe_value(currency, 'enable_deposit')
@@ -770,12 +770,20 @@ class bibox(Exchange):
         response = await self.privatePostTransfer(request)
         #
         #     {
+        #         "result":"3Jx6RZ9TNMsAoy9NUzBwZf68QBppDruSKW","cmd":"transfer/transferIn"
+        #     }
+        #
+        #     {
         #         "result":"{\"account\":\"PERSONALLY OMITTED\",\"memo\":\"PERSONALLY OMITTED\"}","cmd":"transfer/transferIn"
         #     }
         #
-        result = json.loads(self.safe_string(response, 'result'))
-        address = self.safe_string(result, 'account')
-        tag = self.safe_string(result, 'memo')
+        result = self.safe_string(response, 'result')
+        address = result
+        tag = None
+        if self.is_json_encoded_object(result):
+            parsed = json.loads(result)
+            address = self.safe_string(parsed, 'account')
+            tag = self.safe_string(parsed, 'memo')
         return {
             'currency': code,
             'address': address,

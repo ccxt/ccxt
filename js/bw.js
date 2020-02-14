@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, ArgumentsRequired, ExchangeNotAvailable } = require ('./base/errors');
+const { BadSymbol, ExchangeError, AuthenticationError, ArgumentsRequired, ExchangeNotAvailable } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ module.exports = class bw extends Exchange {
                 'editOrder': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -97,6 +97,7 @@ module.exports = class bw extends Exchange {
                 'exact': {
                     '999': AuthenticationError,
                     '1000': ExchangeNotAvailable, // {"datas":null,"resMsg":{"message":"getKlines error:data not exitsts\uff0cplease wait ,dataType=4002_KLINE_1M","method":null,"code":"1000"}}
+                    '5017': BadSymbol, // {"datas":null,"resMsg":{"message":"market not exist","method":null,"code":"5017"}}
                 },
             },
             'api': {
@@ -118,6 +119,7 @@ module.exports = class bw extends Exchange {
                         'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
                         'exchange/fund/controller/website/fundwebsitecontroller/getwithdrawaddress',
                         'exchange/fund/controller/website/fundwebsitecontroller/getpayoutcoinrecord',
+                        'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
                         // the docs say that the following URLs are HTTP POST
                         // in the docs header and HTTP GET in the docs body
                         // the docs contradict themselves, a typo most likely
@@ -860,6 +862,27 @@ module.exports = class bw extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketId': market['id'],
+        };
+        if (limit !== undefined) {
+            request['pageSize'] = limit; // default limit is 20
+        }
+        if (since !== undefined) {
+            request['startDateTime'] = since;
+        }
+        const response = await this.privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustList (this.extend (request, params));
+        const data = this.safeValue (response, 'datas', {});
+        const orders = this.safeValue (data, 'entrustList', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
@@ -931,13 +954,13 @@ module.exports = class bw extends Exchange {
                 const keys = Object.keys (sortedParams);
                 for (let i = 0; i < keys.length; i++) {
                     const key = keys[i];
-                    content += key + sortedParams[key];
+                    content += key + sortedParams[key].toString ();
                 }
             } else {
                 content = body;
             }
-            const signing = this.apiKey + ms + content + this.secret;
-            const hash = this.hash (this.encode (signing), 'md5');
+            const signature = this.apiKey + ms + content + this.secret;
+            const hash = this.hash (this.encode (signature), 'md5');
             if (!headers) {
                 headers = {};
             }

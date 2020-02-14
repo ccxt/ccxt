@@ -388,14 +388,14 @@ class coinbase extends Exchange {
         //         "next_step" => null
         //     }
         //
-        $amountObject = $this->safe_value($transaction, 'amount', array());
+        $subtotalObject = $this->safe_value($transaction, 'subtotal', array());
         $feeObject = $this->safe_value($transaction, 'fee', array());
         $id = $this->safe_string($transaction, 'id');
         $timestamp = $this->parse8601 ($this->safe_value($transaction, 'created_at'));
         $updated = $this->parse8601 ($this->safe_value($transaction, 'updated_at'));
         $type = $this->safe_string($transaction, 'resource');
-        $amount = $this->safe_float($amountObject, 'amount');
-        $currencyId = $this->safe_string($amountObject, 'currency');
+        $amount = $this->safe_float($subtotalObject, 'amount');
+        $currencyId = $this->safe_string($subtotalObject, 'currency');
         $currency = $this->safe_currency_code($currencyId);
         $feeCost = $this->safe_float($feeObject, 'amount');
         $feeCurrencyId = $this->safe_string($feeObject, 'currency');

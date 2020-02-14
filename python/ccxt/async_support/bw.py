@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import ExchangeNotAvailable
 
 
@@ -32,7 +33,7 @@ class bw(Exchange):
                 'editOrder': False,
                 'fetchBalance': True,
                 'fetchBidsAsks': False,
-                'fetchClosedOrders': False,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
@@ -101,6 +102,7 @@ class bw(Exchange):
                 'exact': {
                     '999': AuthenticationError,
                     '1000': ExchangeNotAvailable,  # {"datas":null,"resMsg":{"message":"getKlines error:data not exitsts\uff0cplease wait ,dataType=4002_KLINE_1M","method":null,"code":"1000"}}
+                    '5017': BadSymbol,  # {"datas":null,"resMsg":{"message":"market not exist","method":null,"code":"5017"}}
                 },
             },
             'api': {
@@ -122,6 +124,7 @@ class bw(Exchange):
                         'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
                         'exchange/fund/controller/website/fundwebsitecontroller/getwithdrawaddress',
                         'exchange/fund/controller/website/fundwebsitecontroller/getpayoutcoinrecord',
+                        'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
                         # the docs say that the following URLs are HTTP POST
                         # in the docs header and HTTP GET in the docs body
                         # the docs contradict themselves, a typo most likely
@@ -819,6 +822,23 @@ class bw(Exchange):
         orders = self.safe_value(data, 'entrustList', [])
         return self.parse_orders(orders, market, since, limit)
 
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'marketId': market['id'],
+        }
+        if limit is not None:
+            request['pageSize'] = limit  # default limit is 20
+        if since is not None:
+            request['startDateTime'] = since
+        response = await self.privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustList(self.extend(request, params))
+        data = self.safe_value(response, 'datas', {})
+        orders = self.safe_value(data, 'entrustList', [])
+        return self.parse_orders(orders, market, since, limit)
+
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
@@ -884,11 +904,11 @@ class bw(Exchange):
                 keys = list(sortedParams.keys())
                 for i in range(0, len(keys)):
                     key = keys[i]
-                    content += key + sortedParams[key]
+                    content += key + str(sortedParams[key])
             else:
                 content = body
-            signing = self.apiKey + ms + content + self.secret
-            hash = self.hash(self.encode(signing), 'md5')
+            signature = self.apiKey + ms + content + self.secret
+            hash = self.hash(self.encode(signature), 'md5')
             if not headers:
                 headers = {}
             headers['Apiid'] = self.apiKey

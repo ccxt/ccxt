@@ -281,7 +281,7 @@ module.exports = class tidex extends Exchange {
         return this.parseOrderBook (orderbook);
     }
 
-    async fetchOrderBooks (symbols = undefined, params = {}) {
+    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
         if (symbols === undefined) {
@@ -298,6 +298,9 @@ module.exports = class tidex extends Exchange {
         const request = {
             'pair': ids,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default = 150, max = 2000
+        }
         const response = await this.publicGetDepthPair (this.extend (request, params));
         const result = {};
         ids = Object.keys (response);
@@ -324,10 +327,13 @@ module.exports = class tidex extends Exchange {
         //        sell: 0.03377798,
         //     updated: 1537522009          }
         //
-        const timestamp = this.safeTimestamp (ticker, 'updated');
+        let timestamp = this.safeTimestamp (ticker, 'updated');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
+            if (!market['active']) {
+                timestamp = undefined;
+            }
         }
         const last = this.safeFloat (ticker, 'last');
         return {

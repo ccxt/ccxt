@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.21.15';
+$version = '1.22.39';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.21.15';
+    const VERSION = '1.22.39';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -87,7 +87,6 @@ class Exchange {
         '_1btcxe',
         'acx',
         'adara',
-        'allcoin',
         'anxpro',
         'bcex',
         'bequant',
@@ -201,7 +200,6 @@ class Exchange {
         'upbit',
         'vaultoro',
         'vbtc',
-        'virwox',
         'whitebit',
         'xbtce',
         'yobit',
@@ -627,7 +625,7 @@ class Exchange {
 
     public function milliseconds() {
         list($msec, $sec) = explode(' ', microtime());
-        return $sec . substr($msec, 2, 3);
+        return (int) ($sec . substr($msec, 2, 3));
     }
 
     public function microseconds() {
@@ -759,6 +757,10 @@ class Exchange {
         return true;
     }
 
+    public function checkRequiredCredentials($error = true) {
+        return $this->check_required_credentials($error);
+    }
+
     public function check_address($address) {
         if (empty($address) || !is_string($address)) {
             throw new InvalidAddress($this->id . ' address is undefined');
@@ -841,11 +843,13 @@ class Exchange {
         $this->currencies = array();
         $this->balance = array();
         $this->orderbooks = array();
+        $this->tickers = array();
         $this->fees = array('trading' => array(), 'funding' => array());
         $this->precision = array();
         $this->orders = array();
         $this->trades = array();
         $this->transactions = array();
+        $this->ohlcvs = array();
         $this->exceptions = array();
         $this->accounts = array();
         $this->status = array('status' => 'ok', 'updated' => null, 'eta' => null, 'url' => null);
@@ -866,7 +870,7 @@ class Exchange {
         $this->httpExceptions = array(
             '422' => 'ExchangeError',
             '418' => 'DDoSProtection',
-            '429' => 'DDoSProtection',
+            '429' => 'RateLimitExceeded',
             '404' => 'ExchangeNotAvailable',
             '409' => 'ExchangeNotAvailable',
             '500' => 'ExchangeNotAvailable',
@@ -945,6 +949,7 @@ class Exchange {
             'fetchOHLCV' => 'emulated',
             'fetchOpenOrders' => false,
             'fetchOrder' => false,
+            'fetchOrderTrades' => false,
             'fetchOrderBook' => true,
             'fetchOrderBooks' => false,
             'fetchOrders' => false,
@@ -1140,7 +1145,7 @@ class Exchange {
             $digest = static::hash($request, $hash, 'hex');
         }
         $ec = new EC(strtolower($algorithm));
-        $key = $ec->keyFromPrivate($secret);
+        $key = $ec->keyFromPrivate(ltrim($secret, '0x'));
         $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true));
         $count = new BN ('0');
         $minimumSize = (new BN ('1'))->shln (8 * 31)->sub (new BN ('1'));
@@ -1632,7 +1637,7 @@ class Exchange {
     }
 
     public function parse_balance($balance) {
-        $currencies = $this->omit($balance, 'info');
+        $currencies = $this->omit($balance, array('info', 'free', 'used', 'total'));
 
         $balance['free'] = array();
         $balance['used'] = array();
@@ -1641,28 +1646,22 @@ class Exchange {
         foreach ($currencies as $code => $value) {
             if (!isset($value['total'])) {
                 if (isset($value['free']) && isset($value['used'])) {
-                    $currencies[$code]['total'] = static::sum($value['free'], $value['used']);
+                    $balance[$code]['total'] = static::sum($value['free'], $value['used']);
                 }
             }
             if (!isset($value['used'])) {
                 if (isset($value['total']) && isset($value['free'])) {
-                    $currencies[$code]['used'] = static::sum($value['total'], -$value['free']);
+                    $balance[$code]['used'] = static::sum($value['total'], -$value['free']);
                 }
             }
             if (!isset($value['free'])) {
                 if (isset($value['total']) && isset($value['used'])) {
-                    $currencies[$code]['free'] = static::sum($value['total'], -$value['used']);
+                    $balance[$code]['free'] = static::sum($value['total'], -$value['used']);
                 }
             }
-        }
-
-        $accounts = array('free', 'used', 'total');
-        foreach ($accounts as $account) {
-            $balance[$account] = array();
-            foreach ($currencies as $code => $value) {
-                $balance[$code] = isset($balance[$code]) ? $balance[$code] : array();
-                $balance[$code][$account] = $balance[$account][$code] = $value[$account];
-            }
+            $balance['free'][$code] = $balance[$code]['free'];
+            $balance['used'][$code] = $balance[$code]['used'];
+            $balance['total'][$code] = $balance[$code]['total'];
         }
         return $balance;
     }
@@ -1727,11 +1726,11 @@ class Exchange {
         return $this->markets;
     }
 
-    public function filter_by_since_limit($array, $since = null, $limit = null) {
+    public function filter_by_since_limit($array, $since = null, $limit = null, $key = 'timestamp') {
         $result = array();
         $array = array_values($array);
         foreach ($array as $entry) {
-            if ($entry['timestamp'] > $since) {
+            if ($entry[$key] > $since) {
                 $result[] = $entry;
             }
         }
@@ -1741,8 +1740,8 @@ class Exchange {
         return $result;
     }
 
-    public function filterBySinceLimit($array, $since = null, $limit = null) {
-        return $this->filter_by_since_limit($array, $since, $limit);
+    public function filterBySinceLimit($array, $since = null, $limit = null, $key = 'timestamp') {
+        return $this->filter_by_since_limit($array, $since, $limit, $key);
     }
 
     public function parse_trades($trades, $market = null, $since = null, $limit = null, $params = array()) {
@@ -2500,7 +2499,7 @@ class Exchange {
                 if ($significantPosition > 0) {
                     ++$significantPosition;
                 }
-                $result = (string) round($x, $numPrecisionDigits - $significantPosition, PHP_ROUND_HALF_UP);
+                $result = static::number_to_string(round($x, $numPrecisionDigits - $significantPosition, PHP_ROUND_HALF_UP));
             }
         } elseif ($roundingMode === TRUNCATE) {
             $dotIndex = strpos($x, '.');
