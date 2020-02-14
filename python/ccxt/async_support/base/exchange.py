@@ -9,9 +9,6 @@ __version__ = '1.22.48'
 import asyncio
 import concurrent
 import socket
-import time
-import math
-import random
 import certifi
 import aiohttp
 import ssl
