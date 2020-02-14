@@ -109,7 +109,6 @@ const decimalToPrecision = (x, roundingMode
         const precisionDigitsString = decimalToPrecision (numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING)
         const newNumPrecisionDigits = precisionFromString (precisionDigitsString)
         const missing = x % numPrecisionDigits
-        let reminder = x / numPrecisionDigits
         // See: https://github.com/ccxt/ccxt/pull/6486
         const fpError = decimalToPrecision (missing / numPrecisionDigits, ROUND, Math.max (newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING)
         if (precisionFromString (fpError) !== 0) {
