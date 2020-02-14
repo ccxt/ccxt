@@ -2466,7 +2466,7 @@ class Exchange {
             }
             $missing = fmod($x, $numPrecisionDigits);
             $reminder = $x / $numPrecisionDigits;
-            $fpError = static::decimal_to_precision ($missing / $numPrecisionDigits, ROUND, $newNumPrecisionDigits + 2, DECIMAL_PLACES, NO_PADDING);
+            $fpError = static::decimal_to_precision ($missing / $numPrecisionDigits, ROUND, max($newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING);
             if (!('1' === $fpError || '-1' === $fpError)) {
                 if ($roundingMode === ROUND) {
                     if ($x > 0) {

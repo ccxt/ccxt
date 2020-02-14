@@ -110,7 +110,7 @@ const decimalToPrecision = (x, roundingMode
         const newNumPrecisionDigits = precisionFromString (precisionDigitsString)
         const missing = x % numPrecisionDigits
         let reminder = x / numPrecisionDigits
-        const fpError = decimalToPrecision (missing / numPrecisionDigits, ROUND, newNumPrecisionDigits + 2, DECIMAL_PLACES, NO_PADDING)
+        const fpError = decimalToPrecision (missing / numPrecisionDigits, ROUND, Math.max (newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING)
         if (!('1' === fpError || '-1' === fpError)) {
             if (roundingMode === ROUND) {
                 if (x > 0) {
