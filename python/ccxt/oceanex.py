@@ -102,6 +102,9 @@ class oceanex(Exchange):
                     'taker': 0.1 / 100,
                 },
             },
+            'commonCurrencies': {
+                'PLA': 'Plair',
+            },
             'exceptions': {
                 'codes': {
                     '-1': BadRequest,
