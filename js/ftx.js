@@ -756,7 +756,7 @@ module.exports = class ftx extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // fetchOrder, fetchOrders, fetchOpenOrders, createOrder ("limit", "market")
+        // limit orders - fetchOrder, fetchOrders, fetchOpenOrders, createOrder
         //
         //     {
         //         "createdAt": "2019-03-05T09:56:55.728933+00:00",
@@ -774,6 +774,27 @@ module.exports = class ftx extends Exchange {
         //         "ioc": false,
         //         "postOnly": false,
         //         "clientId": null,
+        //     }
+        //
+        // market orders - fetchOrder, fetchOrders, fetchOpenOrders, createOrder
+        //
+        //     {
+        //         "avgFillPrice": 2666.0,
+        //         "clientId": None,
+        //         "createdAt": "2020-02-12T00: 53: 49.009726+00: 00",
+        //         "filledSize": 0.0007,
+        //         "future": None,
+        //         "id": 3109208514,
+        //         "ioc": True,
+        //         "market": "BNBBULL/USD",
+        //         "postOnly": False,
+        //         "price": None,
+        //         "reduceOnly": False,
+        //         "remainingSize": 0.0,
+        //         "side": "buy",
+        //         "size": 0.0007,
+        //         "status": "closed",
+        //         "type": "market"
         //     }
         //
         // createOrder (conditional, "stop", "trailingStop", or "takeProfit")
@@ -812,11 +833,12 @@ module.exports = class ftx extends Exchange {
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'type');
         const amount = this.safeFloat (order, 'size');
+        const average = this.safeFloat (order, 'avgFillPrice');
+        const price = this.safeFloat2 (order, 'price', 'triggerPrice', average);
         let cost = undefined;
-        if (filled !== undefined && amount !== undefined) {
-            cost = filled * amount;
+        if (filled !== undefined && price !== undefined) {
+            cost = filled * price;
         }
-        const price = this.safeFloat2 (order, 'price', 'triggerPrice');
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'triggeredAt'));
         return {
             'info': order,
@@ -830,7 +852,7 @@ module.exports = class ftx extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'average': undefined,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,

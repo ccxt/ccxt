@@ -98,6 +98,9 @@ class oceanex extends Exchange {
                     'taker' => 0.1 / 100,
                 ),
             ),
+            'commonCurrencies' => array(
+                'PLA' => 'Plair',
+            ),
             'exceptions' => array(
                 'codes' => array(
                     '-1' => '\\ccxt\\BadRequest',

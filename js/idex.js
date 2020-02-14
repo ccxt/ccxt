@@ -99,6 +99,7 @@ module.exports = class idex extends Exchange {
             'commonCurrencies': {
                 'ONE': 'Menlo One',
                 'FT': 'Fabric Token',
+                'PLA': 'PlayChip',
             },
         });
     }

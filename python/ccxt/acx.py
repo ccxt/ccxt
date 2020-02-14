@@ -94,6 +94,9 @@ class acx(Exchange):
                     'withdraw': {},  # There is only 1% fee on withdrawals to your bank account.
                 },
             },
+            'commonCurrencies': {
+                'PLA': 'Plair',
+            },
             'exceptions': {
                 '2002': InsufficientFunds,
                 '2003': OrderNotFound,

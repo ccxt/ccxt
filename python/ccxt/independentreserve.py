@@ -72,6 +72,9 @@ class independentreserve(Exchange):
                     'tierBased': False,
                 },
             },
+            'commonCurrencies': {
+                'PLA': 'PlayChip',
+            },
         })
 
     def fetch_markets(self, params={}):
