@@ -287,8 +287,8 @@ module.exports = class hitbtc extends Exchange {
                         'ZSC': 191,
                     },
                     'deposit': {
-                        'BTC': 0.0006,
-                        'ETH': 0.003,
+                        'BTC': 0,
+                        'ETH': 0,
                         'BCH': 0,
                         'USDT': 0,
                         'BTG': 0,
@@ -492,6 +492,7 @@ module.exports = class hitbtc extends Exchange {
                 'GET': 'Themis',
                 'HSR': 'HC',
                 'LNC': 'LinkerCoin',
+                'PLA': 'PlayChip',
                 'UNC': 'Unigame',
                 'USD': 'USDT',
                 'XBT': 'BTC',
