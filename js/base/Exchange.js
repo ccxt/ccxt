@@ -367,7 +367,6 @@ module.exports = class Exchange {
             throw new Error (this.id + '.rateLimit property is not configured')
 
         this.tokenBucket = this.extend ({
-            refillRate:  1 / this.rateLimit,
             delay:       1,
             capacity:    1,
             defaultCost: 1,

@@ -87,26 +87,6 @@ class Exchange(BaseExchange):
                 await self.session.close()
             self.session = None
 
-    async def wait_for_token(self):
-        while self.rateLimitTokens <= 1:
-            # if self.verbose:
-            #     print('Waiting for tokens: Exchange: {0}'.format(self.id))
-            self.add_new_tokens()
-            seconds_delays = [0.001, 0.005, 0.022, 0.106, 0.5]
-            delay = random.choice(seconds_delays)
-            await asyncio.sleep(delay)
-        self.rateLimitTokens -= 1
-
-    def add_new_tokens(self):
-        # if self.verbose:
-        #     print('Adding new tokens: Exchange: {0}'.format(self.id))
-        now = time.monotonic()
-        time_since_update = now - self.rateLimitUpdateTime
-        new_tokens = math.floor((0.8 * 1000.0 * time_since_update) / self.rateLimit)
-        if new_tokens > 1:
-            self.rateLimitTokens = min(self.rateLimitTokens + new_tokens, self.rateLimitMaxTokens)
-            self.rateLimitUpdateTime = now
-
     async def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None):
         """A better wrapper over request for deferred signing"""
         if self.enableRateLimit:
