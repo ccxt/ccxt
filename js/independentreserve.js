@@ -71,6 +71,9 @@ module.exports = class independentreserve extends Exchange {
                     'tierBased': false,
                 },
             },
+            'commonCurrencies': {
+                'PLA': 'PlayChip',
+            },
         });
     }
 
