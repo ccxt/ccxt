@@ -492,10 +492,16 @@ class ftx(Exchange):
             'market_name': market['id'],
             'resolution': self.timeframes[timeframe],
         }
-        if limit is not None:
+        # max 1501 candles, including the current candle when since is not specified
+        limit = 1501 if (limit is None) else limit
+        if since is None:
+            request['end_time'] = self.seconds()
             request['limit'] = limit
-        if since is not None:
+            request['start_time'] = request['end_time'] - limit * self.parse_timeframe(timeframe)
+        else:
             request['start_time'] = int(since / 1000)
+            request['limit'] = limit
+            request['end_time'] = self.sum(request['start_time'], limit * self.parse_timeframe(timeframe))
         response = self.publicGetMarketsMarketNameCandles(self.extend(request, params))
         #
         #     {

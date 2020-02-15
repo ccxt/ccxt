@@ -504,11 +504,16 @@ class ftx extends Exchange {
             'market_name' => $market['id'],
             'resolution' => $this->timeframes[$timeframe],
         );
-        if ($limit !== null) {
+        // max 1501 candles, including the current candle when $since is not specified
+        $limit = ($limit === null) ? 1501 : $limit;
+        if ($since === null) {
+            $request['end_time'] = $this->seconds ();
             $request['limit'] = $limit;
-        }
-        if ($since !== null) {
+            $request['start_time'] = $request['end_time'] - $limit * $this->parse_timeframe($timeframe);
+        } else {
             $request['start_time'] = intval ($since / 1000);
+            $request['limit'] = $limit;
+            $request['end_time'] = $this->sum ($request['start_time'], $limit * $this->parse_timeframe($timeframe));
         }
         $response = $this->publicGetMarketsMarketNameCandles (array_merge($request, $params));
         //
