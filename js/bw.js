@@ -336,8 +336,10 @@ module.exports = class bw extends Exchange {
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
         }
-        if ((symbol === undefined) && (market !== undefined)) {
+        if (market !== undefined) {
             symbol = market['symbol'];
+        } else {
+            symbol = marketId;
         }
         const timestamp = this.milliseconds ();
         const close = parseFloat (this.safeValue (ticker, 1));
