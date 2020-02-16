@@ -10,6 +10,7 @@ module.exports = class topq extends bw {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'topq',
+            'countries': [ 'SG' ],
             'name': 'TOP.Q',
             'hostname': 'topliq.com',
             'urls': {
