@@ -80,18 +80,10 @@ class bw extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'tierBased' => true,
+                    'tierBased' => false,
                     'percentage' => true,
                     'taker' => 0.2 / 100,
                     'maker' => 0.2 / 100,
-                    'tiers' => array(
-                        'taker' => array(
-                            array( 0, 0.2 / 100 ),
-                        ),
-                        'maker' => array(
-                            array( 0, 0.2 / 100 ),
-                        ),
-                    ),
                 ),
                 'funding' => array(
                 ),

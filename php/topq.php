@@ -12,6 +12,7 @@ class topq extends bw {
     public function describe () {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'topq',
+            'countries' => array( 'SG' ),
             'name' => 'TOP.Q',
             'hostname' => 'topliq.com',
             'urls' => array(

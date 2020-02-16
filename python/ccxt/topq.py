@@ -11,6 +11,7 @@ class topq(bw):
     def describe(self):
         return self.deep_extend(super(topq, self).describe(), {
             'id': 'topq',
+            'countries': ['SG'],
             'name': 'TOP.Q',
             'hostname': 'topliq.com',
             'urls': {

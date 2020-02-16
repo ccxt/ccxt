@@ -83,18 +83,10 @@ class bw(Exchange):
             },
             'fees': {
                 'trading': {
-                    'tierBased': True,
+                    'tierBased': False,
                     'percentage': True,
                     'taker': 0.2 / 100,
                     'maker': 0.2 / 100,
-                    'tiers': {
-                        'taker': [
-                            [0, 0.2 / 100],
-                        ],
-                        'maker': [
-                            [0, 0.2 / 100],
-                        ],
-                    },
                 },
                 'funding': {
                 },
