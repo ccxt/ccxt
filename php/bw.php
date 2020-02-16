@@ -100,6 +100,7 @@ class bw extends Exchange {
                 'exact' => array(
                     '999' => '\\ccxt\\AuthenticationError',
                     '1000' => '\\ccxt\\ExchangeNotAvailable', // array("datas":null,"resMsg":array("message":"getKlines error:data not exitsts\uff0cplease wait ,dataType=4002_KLINE_1M","method":null,"code":"1000"))
+                    '2012' => '\\ccxt\\OrderNotFound', // array("datas":null,"resMsg":array("message":"entrust not exists or on dealing with system","method":null,"code":"2012"))
                     '5017' => '\\ccxt\\BadSymbol', // array("datas":null,"resMsg":array("message":"market not exist","method":null,"code":"5017"))
                 ),
             ),
@@ -317,7 +318,7 @@ class bw extends Exchange {
                     ),
                     'withdraw' => array(
                         'min' => null,
-                        'max' => floatval ($this->safe_integer($currency, 'onceDrawLimit')),
+                        'max' => $this->safe_float($currency, 'onceDrawLimit'),
                     ),
                 ),
             );
