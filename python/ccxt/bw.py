@@ -336,8 +336,10 @@ class bw(Exchange):
         marketId = self.safe_string(ticker, 0)
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
-        if (symbol is None) and (market is not None):
+        if market is not None:
             symbol = market['symbol']
+        else:
+            symbol = marketId
         timestamp = self.milliseconds()
         close = float(self.safe_value(ticker, 1))
         bid = self.safe_value(ticker, 'bid', {})

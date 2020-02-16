@@ -339,8 +339,10 @@ class bw extends Exchange {
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
         }
-        if (($symbol === null) && ($market !== null)) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        } else {
+            $symbol = $marketId;
         }
         $timestamp = $this->milliseconds ();
         $close = floatval ($this->safe_value($ticker, 1));
