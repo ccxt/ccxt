@@ -33,8 +33,9 @@ namespace ccxt;
 use kornrunner\Keccak;
 use kornrunner\Solidity;
 use Elliptic\EC;
+use BN\BN;
 
-$version = '1.18.1165';
+$version = '1.22.58';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -53,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.1165';
+    const VERSION = '1.22.58';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -86,7 +87,6 @@ class Exchange {
         '_1btcxe',
         'acx',
         'adara',
-        'allcoin',
         'anxpro',
         'bcex',
         'bequant',
@@ -106,6 +106,7 @@ class Exchange {
         'bitkk',
         'bitlish',
         'bitmart',
+        'bitmax',
         'bitmex',
         'bitso',
         'bitstamp',
@@ -123,7 +124,8 @@ class Exchange {
         'btctradeua',
         'btcturk',
         'buda',
-        'bxinth',
+        'bw',
+        'bytetrade',
         'cex',
         'chilebit',
         'cobinhood',
@@ -133,7 +135,6 @@ class Exchange {
         'coincheck',
         'coinegg',
         'coinex',
-        'coinexchange',
         'coinfalcon',
         'coinfloor',
         'coingi',
@@ -141,26 +142,21 @@ class Exchange {
         'coinmate',
         'coinone',
         'coinspot',
-        'cointiger',
         'coolcoin',
         'coss',
         'crex24',
-        'crypton',
         'deribit',
         'digifinex',
         'dsx',
-        'dx',
-        'eterbase',
-        'ethfinex',
         'exmo',
         'exx',
         'fcoin',
         'fcoinjp',
         'flowbtc',
         'foxbit',
+        'ftx',
         'fybse',
         'gateio',
-        'gdax',
         'gemini',
         'hitbtc',
         'hitbtc2',
@@ -174,7 +170,6 @@ class Exchange {
         'kkex',
         'kraken',
         'kucoin',
-        'kucoin2',
         'kuna',
         'lakebtc',
         'latoken',
@@ -183,11 +178,8 @@ class Exchange {
         'livecoin',
         'luno',
         'lykke',
-        'mandala',
         'mercado',
         'mixcoins',
-        'negociecoins',
-        'nova',
         'oceanex',
         'okcoincny',
         'okcoinusd',
@@ -197,16 +189,19 @@ class Exchange {
         'poloniex',
         'rightbtc',
         'southxchange',
+        'stex',
         'stronghold',
         'surbitcoin',
         'theocean',
         'therock',
         'tidebit',
         'tidex',
+        'timex',
+        'topq',
         'upbit',
         'vaultoro',
         'vbtc',
-        'virwox',
+        'whitebit',
         'xbtce',
         'yobit',
         'zaif',
@@ -353,8 +348,12 @@ class Exchange {
             $scale = 60 * 60 * 24;
         } elseif ($unit === 'h') {
             $scale = 60 * 60;
-        } else {
+        } elseif ($unit === 'm') {
             $scale = 60;
+        } elseif ($unit === 's') {
+            $scale = 1;
+        } else {
+            throw new NotSupported('timeframe unit ' . $unit . ' is not supported');
         }
         return $amount * $scale;
     }
@@ -447,14 +446,11 @@ class Exchange {
     }
 
     public function filter_by($array, $key, $value = null) {
-        if ($value) {
-            $grouped = static::group_by($array, $key);
-            if (is_array($grouped) && array_key_exists($value, $grouped)) {
-                return $grouped[$value];
-            }
-            return array();
+        $grouped = static::group_by($array, $key);
+        if (is_array($grouped) && array_key_exists($value, $grouped)) {
+            return $grouped[$value];
         }
-        return $array;
+        return array();
     }
 
     public static function group_by($array, $key) {
@@ -594,12 +590,21 @@ class Exchange {
         return preg_replace(array('#[=]+$#u', '#\+#u', '#\\/#'), array('', '-', '_'), \base64_encode($string));
     }
 
-    public function urlencode($string) {
-        return http_build_query($string, '', $this->urlencode_glue);
+    public function urlencode($array) {
+        foreach ($array as $key => $value) {
+            if (is_bool($value)) {
+                $array[$key] = var_export($value, true);
+            }
+        }
+        return http_build_query($array, '', $this->urlencode_glue);
     }
 
-    public function rawencode($string) {
-        return urldecode(http_build_query($string, '', $this->urlencode_glue));
+    public function urlencode_with_array_repeat($array) {
+        return preg_replace('/%5B\d*%5D/', '', $this->urlencode($array));
+    }
+
+    public function rawencode($array) {
+        return urldecode($this->urlencode($array));
     }
 
     public function encode_uri_component($string) {
@@ -621,7 +626,7 @@ class Exchange {
 
     public function milliseconds() {
         list($msec, $sec) = explode(' ', microtime());
-        return $sec . substr($msec, 2, 3);
+        return (int) ($sec . substr($msec, 2, 3));
     }
 
     public function microseconds() {
@@ -679,12 +684,12 @@ class Exchange {
         }
         return $time;
     }
-
-    public static function rfc2616($timestamp) {
-        if (!$timestamp) {
-            $timestamp = $this->milliseconds();
-        }
-        return gmdate('D, d M Y H:i:s T', (int) round($timestamp / 1000));
+    
+    public static function rfc2616($timestamp) {	
+        if (!$timestamp) {	
+            $timestamp = $this->milliseconds();	
+        }	
+        return gmdate('D, d M Y H:i:s T', (int) round($timestamp / 1000));	
     }
 
     public static function dmy($timestamp, $infix = '-') {
@@ -703,6 +708,9 @@ class Exchange {
         return implode('', func_get_args());
     }
 
+    public static function binary_concat_array($arr) {
+        return implode('', $arr);
+    }
 
     public static function binary_to_base64($binary) {
         return \base64_encode($binary);
@@ -754,6 +762,11 @@ class Exchange {
                 }
             }
         }
+        return true;
+    }
+
+    public function checkRequiredCredentials($error = true) {
+        return $this->check_required_credentials($error);
     }
 
     public function check_address($address) {
@@ -796,8 +809,10 @@ class Exchange {
         // }
 
         $this->defined_rest_api = array();
-        $this->curl = curl_init();
+        $this->curl = null;
         $this->curl_options = array(); // overrideable by user, empty by default
+        $this->curl_reset = true;
+        $this->curl_close = false;
 
         $this->id = null;
 
@@ -836,11 +851,13 @@ class Exchange {
         $this->currencies = array();
         $this->balance = array();
         $this->orderbooks = array();
+        $this->tickers = array();
         $this->fees = array('trading' => array(), 'funding' => array());
         $this->precision = array();
         $this->orders = array();
         $this->trades = array();
         $this->transactions = array();
+        $this->ohlcvs = array();
         $this->exceptions = array();
         $this->accounts = array();
         $this->status = array('status' => 'ok', 'updated' => null, 'eta' => null, 'url' => null);
@@ -861,7 +878,7 @@ class Exchange {
         $this->httpExceptions = array(
             '422' => 'ExchangeError',
             '418' => 'DDoSProtection',
-            '429' => 'DDoSProtection',
+            '429' => 'RateLimitExceeded',
             '404' => 'ExchangeNotAvailable',
             '409' => 'ExchangeNotAvailable',
             '500' => 'ExchangeNotAvailable',
@@ -940,6 +957,7 @@ class Exchange {
             'fetchOHLCV' => 'emulated',
             'fetchOpenOrders' => false,
             'fetchOrder' => false,
+            'fetchOrderTrades' => false,
             'fetchOrderBook' => true,
             'fetchOrderBooks' => false,
             'fetchOrders' => false,
@@ -1129,18 +1147,25 @@ class Exchange {
         return $signature;
     }
 
-    public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = null) {
+    public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = null, $fixedLength = false) {
         $digest = $request;
         if ($hash !== null) {
             $digest = static::hash($request, $hash, 'hex');
         }
         $ec = new EC(strtolower($algorithm));
-        $key = $ec->keyFromPrivate($secret);
+        $key = $ec->keyFromPrivate(ltrim($secret, '0x'));
         $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true));
-        $signature = array();
-        $signature['r'] = $ellipticSignature->r->bi->toHex();
-        $signature['s'] = $ellipticSignature->s->bi->toHex();
-        $signature['v'] = $ellipticSignature->recoveryParam;
+        $count = new BN ('0');
+        $minimumSize = (new BN ('1'))->shln (8 * 31)->sub (new BN ('1'));
+        while ($fixedLength && ($ellipticSignature->r->gt($ec->nh) || $ellipticSignature->r->lte($minimumSize) || $ellipticSignature->s->lte($minimumSize))) {
+            $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true, 'extraEntropy' => $count->toArray('le', 32)));
+            $count = $count->add(new BN('1'));
+        }
+        $signature = array(
+            'r' =>  $ellipticSignature->r->bi->toHex(),
+            's' => $ellipticSignature->s->bi->toHex(),
+            'v' => $ellipticSignature->recoveryParam,
+        );
         return $signature;
     }
 
@@ -1165,6 +1190,27 @@ class Exchange {
 
     public function request($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
         return $this->fetch2($path, $api, $method, $params, $headers, $body);
+    }
+
+    public function throwExactlyMatchedException($exact, $string, $message) {
+        return $this->throw_exactly_matched_exception($exact, $string, $message);
+    }
+
+    public function throw_exactly_matched_exception($exact, $string, $message) {
+        if (isset($exact[$string])) {
+            throw new $exact[$string]($message);
+        }
+    }
+
+    public function throwBroadlyMatchedException($broad, $string, $message) {
+        return $this->throw_broadly_matched_exception($broad, $string, $message);
+    }
+
+    public function throw_broadly_matched_exception($broad, $string, $message) {
+        $broad_key = $this->find_broadly_matched_key($broad, $string);
+        if ($broad_key !== null) {
+            throw new $broad[$broad_key]($message);
+        }
     }
 
     public function findBroadlyMatchedKey($broad, $string) {
@@ -1216,6 +1262,18 @@ class Exchange {
         $url = $this->proxy . $url;
 
         $verbose_headers = $headers;
+
+        // https://github.com/ccxt/ccxt/issues/5914
+        if ($this->curl) {
+            if ($this->curl_close) {
+                curl_close($this->curl); // we properly close the curl channel here to save cookies
+                $this->curl = curl_init();
+            } else if ($this->curl_reset) {
+                curl_reset($this->curl); // this is the default
+            }
+        } else {
+            $this->curl = curl_init();
+        }
 
         curl_setopt($this->curl, CURLOPT_URL, $url);
 
@@ -1345,9 +1403,6 @@ class Exchange {
         $curl_error = curl_error($this->curl);
         $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
 
-        // Reset curl opts
-        curl_reset($this->curl);
-
         if ($this->verbose) {
             print_r("\nResponse:\n");
             print_r(array($method, $url, $http_status_code, $curl_error, $response_headers, $result));
@@ -1417,7 +1472,7 @@ class Exchange {
     public function set_markets($markets, $currencies = null) {
         $values = is_array($markets) ? array_values($markets) : array();
         for ($i = 0; $i < count($values); $i++) {
-            $values[$i] = array_merge(
+            $values[$i] = array_replace_recursive(
                 $this->fees['trading'],
                 array('precision' => $this->precision, 'limits' => $this->limits),
                 $values[$i]
@@ -1590,7 +1645,7 @@ class Exchange {
     }
 
     public function parse_balance($balance) {
-        $currencies = $this->omit($balance, 'info');
+        $currencies = $this->omit($balance, array('info', 'free', 'used', 'total'));
 
         $balance['free'] = array();
         $balance['used'] = array();
@@ -1599,28 +1654,22 @@ class Exchange {
         foreach ($currencies as $code => $value) {
             if (!isset($value['total'])) {
                 if (isset($value['free']) && isset($value['used'])) {
-                    $currencies[$code]['total'] = static::sum($value['free'], $value['used']);
+                    $balance[$code]['total'] = static::sum($value['free'], $value['used']);
                 }
             }
             if (!isset($value['used'])) {
                 if (isset($value['total']) && isset($value['free'])) {
-                    $currencies[$code]['used'] = static::sum($value['total'], -$value['free']);
+                    $balance[$code]['used'] = static::sum($value['total'], -$value['free']);
                 }
             }
             if (!isset($value['free'])) {
                 if (isset($value['total']) && isset($value['used'])) {
-                    $currencies[$code]['free'] = static::sum($value['total'], -$value['used']);
+                    $balance[$code]['free'] = static::sum($value['total'], -$value['used']);
                 }
             }
-        }
-
-        $accounts = array('free', 'used', 'total');
-        foreach ($accounts as $account) {
-            $balance[$account] = array();
-            foreach ($currencies as $code => $value) {
-                $balance[$code] = isset($balance[$code]) ? $balance[$code] : array();
-                $balance[$code][$account] = $balance[$account][$code] = $value[$account];
-            }
+            $balance['free'][$code] = $balance[$code]['free'];
+            $balance['used'][$code] = $balance[$code]['used'];
+            $balance['total'][$code] = $balance[$code]['total'];
         }
         return $balance;
     }
@@ -1685,11 +1734,11 @@ class Exchange {
         return $this->markets;
     }
 
-    public function filter_by_since_limit($array, $since = null, $limit = null) {
+    public function filter_by_since_limit($array, $since = null, $limit = null, $key = 'timestamp') {
         $result = array();
         $array = array_values($array);
         foreach ($array as $entry) {
-            if ($entry['timestamp'] > $since) {
+            if ($entry[$key] > $since) {
                 $result[] = $entry;
             }
         }
@@ -1699,8 +1748,8 @@ class Exchange {
         return $result;
     }
 
-    public function filterBySinceLimit($array, $since = null, $limit = null) {
-        return $this->filter_by_since_limit($array, $since, $limit);
+    public function filterBySinceLimit($array, $since = null, $limit = null, $key = 'timestamp') {
+        return $this->filter_by_since_limit($array, $since, $limit, $key);
     }
 
     public function parse_trades($trades, $market = null, $since = null, $limit = null, $params = array()) {
@@ -2296,33 +2345,6 @@ class Exchange {
                         $this->currencies[$code] : $code;
     }
 
-    public function find_market($string) {
-        if (!isset($this->markets)) {
-            throw new ExchangeError($this->id . ' markets not loaded');
-        }
-        if (gettype($string) === 'string') {
-            if (isset($this->markets_by_id[$string])) {
-                return $this->markets_by_id[$string];
-            }
-
-            if (isset($this->markets[$string])) {
-                return $this->markets[$string];
-            }
-        }
-
-        return $string;
-    }
-
-    public function find_symbol($string, $market = null) {
-        if (!isset($market)) {
-            $market = $this->find_market($string);
-        }
-        if ((gettype($market) === 'array') && static::is_associative($market)) {
-            return $market['symbol'];
-        }
-        return $string;
-    }
-
     public function market($symbol) {
         if (!isset($this->markets)) {
             throw new ExchangeError($this->id . ' markets not loaded');
@@ -2395,7 +2417,7 @@ class Exchange {
         $nonfiltered = get_object_vars($this);
         $filtered = array();
         foreach ($nonfiltered as $key => $value) {
-            if ((strpos($key, 'has') !== false) && (key !== 'has')) {
+            if ((strpos($key, 'has') !== false) && ($key !== 'has')) {
                 $filtered[$key] = $value;
             }
         }
@@ -2407,6 +2429,15 @@ class Exchange {
 
     public static function decimalToPrecision($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
         return static::decimal_to_precision($x, $roundingMode, $numPrecisionDigits, $countingMode, $paddingMode);
+    }
+
+    public static function precisionFromString($x) {
+        $parts = explode ('.', preg_replace ('/0+$/', '', $x));
+        if (count ($parts) > 1) {
+            return strlen ($parts[1]);
+        } else {
+            return 0;
+        }
     }
 
     public static function decimal_to_precision($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
@@ -2443,9 +2474,12 @@ class Exchange {
         }
 
         if ($countingMode === TICK_SIZE) {
+            $precisionDigitsString = static::decimal_to_precision ($numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING);
+            $newNumPrecisionDigits = static::precisionFromString ($precisionDigitsString);
             $missing = fmod($x, $numPrecisionDigits);
-            $reminder = $x / $numPrecisionDigits;
-            if ($reminder !== floor($reminder)) {
+            // See: https://github.com/ccxt/ccxt/pull/6486
+            $fpError = static::decimal_to_precision ($missing / $numPrecisionDigits, ROUND, max($newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING);
+            if (static::precisionFromString ($fpError) !== 0) {
                 if ($roundingMode === ROUND) {
                     if ($x > 0) {
                         if ($missing >= $numPrecisionDigits / 2) {
@@ -2464,13 +2498,6 @@ class Exchange {
                     $x = $x - $missing;
                 }
             }
-            $precisionDigitsString = static::decimal_to_precision ($numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING);
-            $parts = explode ('.', preg_replace ('/0+$/', '', $precisionDigitsString));
-            if (count ($parts) > 1) {
-                $newNumPrecisionDigits = strlen ($parts[1]);
-            } else {
-                $newNumPrecisionDigits = strlen (preg_replace ('/0+$/', '', $parts[0]));
-            }
             return static::decimal_to_precision ($x, ROUND, $newNumPrecisionDigits, DECIMAL_PLACES, $paddingMode);
         }
 
@@ -2485,11 +2512,11 @@ class Exchange {
                 if ($significantPosition > 0) {
                     ++$significantPosition;
                 }
-                $result = (string) round($x, $numPrecisionDigits - $significantPosition, PHP_ROUND_HALF_UP);
+                $result = static::number_to_string(round($x, $numPrecisionDigits - $significantPosition, PHP_ROUND_HALF_UP));
             }
         } elseif ($roundingMode === TRUNCATE) {
             $dotIndex = strpos($x, '.');
-            $dotPosition = $dotIndex ?: 0;
+            $dotPosition = $dotIndex ?: strlen($x);
             if ($countingMode === DECIMAL_PLACES) {
                 if ($dotIndex) {
                     list($before, $after) = explode('.', static::number_to_string($x));
@@ -2501,7 +2528,7 @@ class Exchange {
                 if ($numPrecisionDigits === 0) {
                     return '0';
                 }
-                $significantPosition = log(abs($x), 10) % 10;
+                $significantPosition = (int) log(abs($x), 10);
                 $start = $dotPosition - $significantPosition;
                 $end = $start + $numPrecisionDigits;
                 if ($dotPosition >= $end) {
@@ -2663,7 +2690,7 @@ class Exchange {
         if (!isset(Exchange::$eth_units[$unit])) {
             throw new \UnexpectedValueException("Unknown unit '" . $unit . "', supported units: " . implode(', ', array_keys(Exchange::$eth_units)));
         }
-        return (string) (int) (('wei' === $unit) ? $amount : bcmul($amount, Exchange::$eth_units[$unit]));
+        return (('wei' === $unit) ? (string) (int) $amount : bcmul($amount, Exchange::$eth_units[$unit]));
     }
 
     public function getZeroExOrderHash($order) {
@@ -2726,9 +2753,10 @@ class Exchange {
     }
 
     public static function hashMessage($message) {
-        $buffer = unpack('C*', hex2bin($message));
+        $trimmed = ltrim($message, '0x');
+        $buffer = unpack('C*', hex2bin($trimmed));
         $prefix = bin2hex("\u{0019}Ethereum Signed Message:\n" . sizeof($buffer));
-        return '0x' . Keccak::hash(hex2bin($prefix . $message), 256);
+        return '0x' . Keccak::hash(hex2bin($prefix . $trimmed), 256);
     }
 
     public static function signHash($hash, $privateKey) {
@@ -2750,6 +2778,10 @@ class Exchange {
         } else {
             throw new ExchangeError($this->id . ' requires a non-empty value in $this->twofa property');
         }
+    }
+
+    public function soliditySha3 ($array) {
+        return @call_user_func_array('\\kornrunner\Solidity::sha3', $array);
     }
 
     public static function totp($key) {
@@ -2779,5 +2811,31 @@ class Exchange {
         $code = ($hmac[$offset + 0] & 0x7F) << 24 | ($hmac[$offset + 1] & 0xFF) << 16 | ($hmac[$offset + 2] & 0xFF) << 8 | ($hmac[$offset + 3] & 0xFF);
         $otp = $code % pow(10, 6);
         return str_pad((string) $otp, 6, '0', STR_PAD_LEFT);
+    }
+
+    public static function pack_byte ($n) {
+        return pack('C', $n);
+    }
+
+    public static function numberToBE($n, $padding) {
+        $n = new BN ($n);
+        return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $a . $b; });
+    }
+
+    public static function numberToLE($n, $padding) {
+        $n = new BN ($n);
+        return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $b . $a; });
+    }
+
+    public static function integer_divide($a, $b) {
+        return (new BN ($a))->div (new BN ($b));
+    }
+
+    public static function integer_modulo($a, $b) {
+        return (new BN ($a))->mod (new BN ($b));
+    }
+
+    public static function integer_pow($a, $b) {
+        return (new BN ($a))->pow (new BN ($b));
     }
 }
