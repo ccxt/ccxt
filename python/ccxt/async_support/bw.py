@@ -590,7 +590,7 @@ class bw(Exchange):
         result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
-            currencyId = self.safe_integer(balance, 'currencyTypeId')
+            currencyId = self.safe_string(balance, 'currencyTypeId')
             code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'amount')

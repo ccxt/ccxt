@@ -612,7 +612,7 @@ class bw extends Exchange {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
-            $currencyId = $this->safe_integer($balance, 'currencyTypeId');
+            $currencyId = $this->safe_string($balance, 'currencyTypeId');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'amount');
