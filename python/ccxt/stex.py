@@ -44,6 +44,7 @@ class stex(Exchange):
                 'fetchDeposits': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
+                'fetchFundingFees': True,
             },
             'version': 'v3',
             'urls': {
@@ -501,7 +502,7 @@ class stex(Exchange):
         change = None
         percentage = None
         if last is not None:
-            if open is not None:
+            if (open is not None) and (open > 0):
                 change = last - open
                 percentage = ((100 / open) * last) - 100
         return {
@@ -1633,6 +1634,61 @@ class stex(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         return self.parse_transaction(data, currency)
+
+    def fetch_funding_fees(self, codes=None, params={}):
+        response = self.publicGetCurrencies(params)
+        #
+        #     {
+        #         "success": True,
+        #         "data": [
+        #             {
+        #                 "id": 1,
+        #                 "code": "BTC",
+        #                 "name": "Bitcoin",
+        #                 "active": True,
+        #                 "delisted": False,
+        #                 "precision": 8,
+        #                 "minimum_tx_confirmations": 24,
+        #                 "minimum_withdrawal_amount": "0.009",
+        #                 "minimum_deposit_amount": "0.000003",
+        #                 "deposit_fee_currency_id": 1,
+        #                 "deposit_fee_currency_code": "ETH",
+        #                 "deposit_fee_const": "0.00001",
+        #                 "deposit_fee_percent": "0",
+        #                 "withdrawal_fee_currency_id": 1,
+        #                 "withdrawal_fee_currency_code": "ETH",
+        #                 "withdrawal_fee_const": "0.0015",
+        #                 "withdrawal_fee_percent": "0",
+        #                 "withdrawal_limit": "string",
+        #                 "block_explorer_url": "https://blockchain.info/tx/",
+        #                 "protocol_specific_settings": [
+        #                     {
+        #                         "protocol_name": "Tether OMNI",
+        #                         "protocol_id": 10,
+        #                         "active": True,
+        #                         "withdrawal_fee_currency_id": 1,
+        #                         "withdrawal_fee_const": 0.002,
+        #                         "withdrawal_fee_percent": 0,
+        #                         "block_explorer_url": "https://omniexplorer.info/search/"
+        #                     }
+        #                 ]
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        withdrawFees = {}
+        depositFees = {}
+        for i in range(0, len(data)):
+            id = self.safe_string(data[i], 'id')
+            code = self.safe_currency_code(id)
+            withdrawFees[code] = self.safe_float(data[i], 'withdrawal_fee_const')
+            depositFees[code] = self.safe_float(data[i], 'deposit_fee_const')
+        return {
+            'withdraw': withdrawFees,
+            'deposit': depositFees,
+            'info': response,
+        }
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

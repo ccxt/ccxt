@@ -94,6 +94,9 @@ class acx extends Exchange {
                     'withdraw' => array(), // There is only 1% fee on withdrawals to your bank account.
                 ),
             ),
+            'commonCurrencies' => array(
+                'PLA' => 'Plair',
+            ),
             'exceptions' => array(
                 '2002' => '\\ccxt\\InsufficientFunds',
                 '2003' => '\\ccxt\\OrderNotFound',

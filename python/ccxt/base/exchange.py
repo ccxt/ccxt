@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.22.34'
+__version__ = '1.22.61'
 
 # -----------------------------------------------------------------------------
 
@@ -1002,6 +1002,7 @@ class Exchange(object):
                 return None
             yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups()
             ms = ms or '.000'
+            ms = (ms + '00')[0:4]
             msint = int(ms[1:])
             sign = sign or ''
             sign = int(sign + '1') * -1
@@ -1622,6 +1623,7 @@ class Exchange(object):
     def safe_currency_code(self, currency_id, currency=None):
         code = None
         if currency_id is not None:
+            currency_id = str(currency_id)
             if self.currencies_by_id is not None and currency_id in self.currencies_by_id:
                 code = self.currencies_by_id[currency_id]['code']
             else:

@@ -239,7 +239,7 @@ class poloniex(Exchange):
             if limit is None:
                 request['start'] = request['end'] - self.parse_timeframe('1w')  # max range = 1 week
             else:
-                request['start'] = request['end'] - self.sum(limit) * self.parse_timeframe(timeframe)
+                request['start'] = request['end'] - limit * self.parse_timeframe(timeframe)
         else:
             request['start'] = int(since / 1000)
             if limit is not None:

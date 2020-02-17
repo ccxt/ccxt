@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.22.34",
+  "version": "1.22.61",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -488,7 +488,9 @@
     "BW",
     "timex.io",
     "TimeX",
-    "bitz.com"
+    "bitz.com",
+    "topliq.com",
+    "TOP.Q"
   ],
   "collective": {
     "type": "opencollective",

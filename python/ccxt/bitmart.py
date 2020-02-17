@@ -160,6 +160,7 @@ class bitmart(Exchange):
             },
             'commonCurrencies': {
                 'ONE': 'Menlo One',
+                'PLA': 'Plair',
             },
         })
 

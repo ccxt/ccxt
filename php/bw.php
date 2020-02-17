@@ -80,18 +80,10 @@ class bw extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'tierBased' => true,
+                    'tierBased' => false,
                     'percentage' => true,
                     'taker' => 0.2 / 100,
                     'maker' => 0.2 / 100,
-                    'tiers' => array(
-                        'taker' => array(
-                            array( 0, 0.2 / 100 ),
-                        ),
-                        'maker' => array(
-                            array( 0, 0.2 / 100 ),
-                        ),
-                    ),
                 ),
                 'funding' => array(
                 ),
@@ -100,6 +92,7 @@ class bw extends Exchange {
                 'exact' => array(
                     '999' => '\\ccxt\\AuthenticationError',
                     '1000' => '\\ccxt\\ExchangeNotAvailable', // array("datas":null,"resMsg":array("message":"getKlines error:data not exitsts\uff0cplease wait ,dataType=4002_KLINE_1M","method":null,"code":"1000"))
+                    '2012' => '\\ccxt\\OrderNotFound', // array("datas":null,"resMsg":array("message":"entrust not exists or on dealing with system","method":null,"code":"2012"))
                     '5017' => '\\ccxt\\BadSymbol', // array("datas":null,"resMsg":array("message":"market not exist","method":null,"code":"5017"))
                 ),
             ),
@@ -317,7 +310,7 @@ class bw extends Exchange {
                     ),
                     'withdraw' => array(
                         'min' => null,
-                        'max' => floatval ($this->safe_integer($currency, 'onceDrawLimit')),
+                        'max' => $this->safe_float($currency, 'onceDrawLimit'),
                     ),
                 ),
             );
@@ -346,8 +339,10 @@ class bw extends Exchange {
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
         }
-        if (($symbol === null) && ($market !== null)) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        } else {
+            $symbol = $marketId;
         }
         $timestamp = $this->milliseconds ();
         $close = floatval ($this->safe_value($ticker, 1));
@@ -617,7 +612,7 @@ class bw extends Exchange {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
-            $currencyId = $this->safe_integer($balance, 'currencyTypeId');
+            $currencyId = $this->safe_string($balance, 'currencyTypeId');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'amount');

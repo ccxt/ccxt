@@ -294,6 +294,7 @@ class binance extends Exchange {
                 'Account has insufficient balance for requested action.' => '\\ccxt\\InsufficientFunds',
                 'Rest API trading is not enabled.' => '\\ccxt\\ExchangeNotAvailable',
                 '-1000' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
+                '-1003' => '\\ccxt\\RateLimitExceeded', // array("code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API.")
                 '-1013' => '\\ccxt\\InvalidOrder', // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                 '-1021' => '\\ccxt\\InvalidNonce', // 'your time is ahead of server'
                 '-1022' => '\\ccxt\\AuthenticationError', // array("code":-1022,"msg":"Signature for this request is not valid.")
@@ -1755,10 +1756,18 @@ class binance extends Exchange {
         }
         if (($api === 'private') || ($api === 'sapi') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'fapiPrivate')) {
             $this->check_required_credentials();
-            $query = $this->urlencode (array_merge(array(
-                'timestamp' => $this->nonce (),
-                'recvWindow' => $this->options['recvWindow'],
-            ), $params));
+            $query = null;
+            if (($api === 'sapi') && ($path === 'asset/dust')) {
+                $query = $this->urlencode_with_array_repeat(array_merge(array(
+                    'timestamp' => $this->nonce (),
+                    'recvWindow' => $this->options['recvWindow'],
+                ), $params));
+            } else {
+                $query = $this->urlencode (array_merge(array(
+                    'timestamp' => $this->nonce (),
+                    'recvWindow' => $this->options['recvWindow'],
+                ), $params));
+            }
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret));
             $query .= '&' . 'signature=' . $signature;
             $headers = array(

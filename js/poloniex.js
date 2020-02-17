@@ -228,7 +228,7 @@ module.exports = class poloniex extends Exchange {
             if (limit === undefined) {
                 request['start'] = request['end'] - this.parseTimeframe ('1w'); // max range = 1 week
             } else {
-                request['start'] = request['end'] - this.sum (limit) * this.parseTimeframe (timeframe);
+                request['start'] = request['end'] - limit * this.parseTimeframe (timeframe);
             }
         } else {
             request['start'] = parseInt (since / 1000);

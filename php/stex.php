@@ -39,6 +39,7 @@ class stex extends Exchange {
                 'fetchDeposits' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
+                'fetchFundingFees' => true,
             ),
             'version' => 'v3',
             'urls' => array(
@@ -507,7 +508,7 @@ class stex extends Exchange {
         $change = null;
         $percentage = null;
         if ($last !== null) {
-            if ($open !== null) {
+            if (($open !== null) && ($open > 0)) {
                 $change = $last - $open;
                 $percentage = ((100 / $open) * $last) - 100;
             }
@@ -1718,6 +1719,63 @@ class stex extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_transaction($data, $currency);
+    }
+
+    public function fetch_funding_fees ($codes = null, $params = array ()) {
+        $response = $this->publicGetCurrencies ($params);
+        //
+        //     {
+        //         "success" => true,
+        //         "$data" => array(
+        //             {
+        //                 "$id" => 1,
+        //                 "$code" => "BTC",
+        //                 "name" => "Bitcoin",
+        //                 "active" => true,
+        //                 "delisted" => false,
+        //                 "precision" => 8,
+        //                 "minimum_tx_confirmations" => 24,
+        //                 "minimum_withdrawal_amount" => "0.009",
+        //                 "minimum_deposit_amount" => "0.000003",
+        //                 "deposit_fee_currency_id" => 1,
+        //                 "deposit_fee_currency_code" => "ETH",
+        //                 "deposit_fee_const" => "0.00001",
+        //                 "deposit_fee_percent" => "0",
+        //                 "withdrawal_fee_currency_id" => 1,
+        //                 "withdrawal_fee_currency_code" => "ETH",
+        //                 "withdrawal_fee_const" => "0.0015",
+        //                 "withdrawal_fee_percent" => "0",
+        //                 "withdrawal_limit" => "string",
+        //                 "block_explorer_url" => "https://blockchain.info/tx/",
+        //                 "protocol_specific_settings" => array(
+        //                     {
+        //                         "protocol_name" => "Tether OMNI",
+        //                         "protocol_id" => 10,
+        //                         "active" => true,
+        //                         "withdrawal_fee_currency_id" => 1,
+        //                         "withdrawal_fee_const" => 0.002,
+        //                         "withdrawal_fee_percent" => 0,
+        //                         "block_explorer_url" => "https://omniexplorer.info/search/"
+        //                     }
+        //                 )
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $withdrawFees = array();
+        $depositFees = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $id = $this->safe_string($data[$i], 'id');
+            $code = $this->safe_currency_code($id);
+            $withdrawFees[$code] = $this->safe_float($data[$i], 'withdrawal_fee_const');
+            $depositFees[$code] = $this->safe_float($data[$i], 'deposit_fee_const');
+        }
+        return array(
+            'withdraw' => $withdrawFees,
+            'deposit' => $depositFees,
+            'info' => $response,
+        );
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
