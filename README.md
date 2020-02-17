@@ -75,10 +75,10 @@ npm install git@github.com/kroitor/ccxt.pro.git
 
 ```shell
 # if you're using Git/HTTPS authentication
-pip3 install -e git+https://github.com/kroitor/ccxt.pro.git#subdirectory=python
+pip3 install git+https://github.com/kroitor/ccxt.pro.git#subdirectory=python
 
 # if you are connecting to GitHub with SSH
-pip3 install -e git+ssh://git@github.com/kroitor/ccxt.pro.git#subdirectory=python
+pip3 install git+ssh://git@github.com/kroitor/ccxt.pro.git#subdirectory=python
 ```
 
 ## PHP
