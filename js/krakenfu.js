@@ -373,9 +373,6 @@ module.exports = class krakenfu extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        if (since !== undefined) {
-            request['lastTime'] = this.iso8601 (since);
-        }
         // Returns the last 100 trades from the specified lastTime value
         const response = await this.publicGetHistory (this.extend (request, params));
         return this.parseTrades (response['history'], market, since, limit);
