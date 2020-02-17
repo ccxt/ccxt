@@ -561,7 +561,7 @@ class bleutrade extends Exchange {
                     'currency' => $code,
                 );
             } else if (mb_strpos($part, 'order id') === 0) {
-                $referenceId = str_replace('order id', '', $part);
+                $referenceId = str_replace('order $id ', '', $part);
             }
             //
             // does not belong to Ledger, related to parseTransaction

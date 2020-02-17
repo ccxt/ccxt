@@ -528,7 +528,7 @@ class bleutrade(Exchange):
                     'currency': code,
                 }
             elif part.find('order id') == 0:
-                referenceId = part.replace('order id', '')
+                referenceId = part.replace('order id ', '')
             #
             # does not belong to Ledger, related to parseTransaction
             #
