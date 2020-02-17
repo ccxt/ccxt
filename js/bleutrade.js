@@ -443,20 +443,19 @@ module.exports = class bleutrade extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactionsWithMethod (method, code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const method = (type === 'deposit') ? 'v3PrivatePostGetdeposithistory' : 'v3PrivatePostGetwithdrawhistory';
         const response = await this[method] (params);
-        const result = this.parseTransactions (response['result']);
-        return this.filterByCurrencySinceLimit (result, code, since, limit);
+        const transactions = this.safeValue (response, 'result', []);
+        return this.parseTransactions (transactions, code, since, limit);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
+        return await this.fetchTransactionsWithMethod ('v3PrivatePostGetdeposithistory', code, since, limit, params);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsByType ('withdrawal', code, since, limit, params);
+        return await this.fetchTransactionsWithMethod ('v3PrivatePostGetwithdrawhistory', code, since, limit, params);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -558,7 +557,7 @@ module.exports = class bleutrade extends Exchange {
                     'currency': code,
                 };
             } else if (part.indexOf ('order id') === 0) {
-                referenceId = part.replace ('order id', '');
+                referenceId = part.replace ('order id ', '');
             }
             //
             // does not belong to Ledger, related to parseTransaction

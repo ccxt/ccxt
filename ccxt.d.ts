@@ -431,7 +431,7 @@ declare module 'ccxt' {
     export class bittrex extends Exchange {}
     export class bitz extends Exchange {}
     export class bl3p extends Exchange {}
-    export class bleutrade extends bittrex {}
+    export class bleutrade extends Exchange {}
     export class braziliex extends Exchange {}
     export class btcalpha extends Exchange {}
     export class btcbox extends Exchange {}
@@ -514,6 +514,7 @@ declare module 'ccxt' {
     export class tidebit extends Exchange {}
     export class tidex extends Exchange {}
     export class timex extends Exchange {}
+    export class topq extends bw {}
     export class upbit extends Exchange {}
     export class vaultoro extends Exchange {}
     export class vbtc extends foxbit {}

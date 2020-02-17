@@ -492,10 +492,16 @@ class ftx(Exchange):
             'market_name': market['id'],
             'resolution': self.timeframes[timeframe],
         }
-        if limit is not None:
+        # max 1501 candles, including the current candle when since is not specified
+        limit = 1501 if (limit is None) else limit
+        if since is None:
+            request['end_time'] = self.seconds()
             request['limit'] = limit
-        if since is not None:
+            request['start_time'] = request['end_time'] - limit * self.parse_timeframe(timeframe)
+        else:
             request['start_time'] = int(since / 1000)
+            request['limit'] = limit
+            request['end_time'] = self.sum(request['start_time'], limit * self.parse_timeframe(timeframe))
         response = self.publicGetMarketsMarketNameCandles(self.extend(request, params))
         #
         #     {
@@ -729,7 +735,7 @@ class ftx(Exchange):
 
     def parse_order(self, order, market=None):
         #
-        # fetchOrder, fetchOrders, fetchOpenOrders, createOrder("limit", "market")
+        # limit orders - fetchOrder, fetchOrders, fetchOpenOrders, createOrder
         #
         #     {
         #         "createdAt": "2019-03-05T09:56:55.728933+00:00",
@@ -747,6 +753,27 @@ class ftx(Exchange):
         #         "ioc": False,
         #         "postOnly": False,
         #         "clientId": null,
+        #     }
+        #
+        # market orders - fetchOrder, fetchOrders, fetchOpenOrders, createOrder
+        #
+        #     {
+        #         "avgFillPrice": 2666.0,
+        #         "clientId": None,
+        #         "createdAt": "2020-02-12T00: 53: 49.009726+00: 00",
+        #         "filledSize": 0.0007,
+        #         "future": None,
+        #         "id": 3109208514,
+        #         "ioc": True,
+        #         "market": "BNBBULL/USD",
+        #         "postOnly": False,
+        #         "price": None,
+        #         "reduceOnly": False,
+        #         "remainingSize": 0.0,
+        #         "side": "buy",
+        #         "size": 0.0007,
+        #         "status": "closed",
+        #         "type": "market"
         #     }
         #
         # createOrder(conditional, "stop", "trailingStop", or "takeProfit")
@@ -783,10 +810,11 @@ class ftx(Exchange):
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'type')
         amount = self.safe_float(order, 'size')
+        average = self.safe_float(order, 'avgFillPrice')
+        price = self.safe_float_2(order, 'price', 'triggerPrice', average)
         cost = None
-        if filled is not None and amount is not None:
-            cost = filled * amount
-        price = self.safe_float_2(order, 'price', 'triggerPrice')
+        if filled is not None and price is not None:
+            cost = filled * price
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'triggeredAt'))
         return {
             'info': order,
@@ -800,7 +828,7 @@ class ftx(Exchange):
             'price': price,
             'amount': amount,
             'cost': cost,
-            'average': None,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,

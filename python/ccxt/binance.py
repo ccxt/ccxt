@@ -14,6 +14,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import ROUND
@@ -300,6 +301,7 @@ class binance(Exchange):
                 'Account has insufficient balance for requested action.': InsufficientFunds,
                 'Rest API trading is not enabled.': ExchangeNotAvailable,
                 '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
+                '-1003': RateLimitExceeded,  # {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
                 '-1013': InvalidOrder,  # createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                 '-1021': InvalidNonce,  # 'your time is ahead of server'
                 '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for self request is not valid."}
@@ -1325,6 +1327,8 @@ class binance(Exchange):
             request['asset'] = currency['id']
         if since is not None:
             request['startTime'] = since
+            # max 3 months range https://github.com/ccxt/ccxt/issues/6495
+            request['endTime'] = self.sum(since, 7776000000)
         response = self.wapiGetDepositHistory(self.extend(request, params))
         #
         #     {    success:    True,
@@ -1347,6 +1351,8 @@ class binance(Exchange):
             request['asset'] = currency['id']
         if since is not None:
             request['startTime'] = since
+            # max 3 months range https://github.com/ccxt/ccxt/issues/6495
+            request['endTime'] = self.sum(since, 7776000000)
         response = self.wapiGetWithdrawHistory(self.extend(request, params))
         #
         #     {withdrawList: [{     amount:  14,
