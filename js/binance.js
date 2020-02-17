@@ -1419,6 +1419,8 @@ module.exports = class binance extends Exchange {
         }
         if (since !== undefined) {
             request['startTime'] = since;
+            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
+            request['endTime'] = this.sum (since, this.parseTimeframe ('1M') * 3 * 1000);
         }
         const response = await this.wapiGetDepositHistory (this.extend (request, params));
         //
@@ -1444,6 +1446,8 @@ module.exports = class binance extends Exchange {
         }
         if (since !== undefined) {
             request['startTime'] = since;
+            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
+            request['endTime'] = this.sum (since, this.parseTimeframe ('1M') * 3 * 1000);
         }
         const response = await this.wapiGetWithdrawHistory (this.extend (request, params));
         //
