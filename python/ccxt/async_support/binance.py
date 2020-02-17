@@ -1327,6 +1327,8 @@ class binance(Exchange):
             request['asset'] = currency['id']
         if since is not None:
             request['startTime'] = since
+            # max 3 months range https://github.com/ccxt/ccxt/issues/6495
+            request['endTime'] = self.sum(since, 7776000000)
         response = await self.wapiGetDepositHistory(self.extend(request, params))
         #
         #     {    success:    True,
@@ -1349,6 +1351,8 @@ class binance(Exchange):
             request['asset'] = currency['id']
         if since is not None:
             request['startTime'] = since
+            # max 3 months range https://github.com/ccxt/ccxt/issues/6495
+            request['endTime'] = self.sum(since, 7776000000)
         response = await self.wapiGetWithdrawHistory(self.extend(request, params))
         #
         #     {withdrawList: [{     amount:  14,
