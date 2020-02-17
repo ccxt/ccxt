@@ -114,15 +114,15 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguge support]
     │                  The Unified CCXT Pro API                   |
     |                              .                              |
     |       loadMarkets            .           watchBalance       |
-    |       fetchMarkets           .            createOrder       |
-    |       fetchCurrencies        .            cancelOrder       |
-    |       fetchTicker            .             watchOrder       |
-    |       fetchTickers           .            watchOrders       |
-    |       fetchOrderBook         .        watcgOpenOrders       |
-    |       fetchOHLCV             .      watchClosedOrders       |
-    |       fetchStatus            .          watchMyTrades       |
-    |       fetchTrades            .                deposit       |
-    |                              .               withdraw       |
+    |       watchTicker            .       watchCreateOrder       |
+    |       watchTickers           .       watchCancelOrder       |
+    |       watchOrderBook         .             watchOrder       |
+    |       watchOHLCV             .            watchOrders       |
+    |       watchStatus            .        wathgOpenOrders       |
+    |       watchTrades            .      watchClosedOrders       |
+    |                              .          watchMyTrades       |
+    |                              .           watchDeposit       |
+    |                              .          watchWithdraw       |
     │                              .                              |
     +=============================================================+
     │                              .                              |
