@@ -1412,7 +1412,6 @@ module.exports = class upbit extends Exchange {
         //     }
         //
         const message = this.safeString (response, 'message');
-        // https://github.com/ccxt/ccxt/issues/6452
         if (message !== undefined) {
             throw new AddressPending (this.id + ' is generating ' + code + ' deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address');
         }
