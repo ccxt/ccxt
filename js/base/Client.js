@@ -3,7 +3,6 @@
 const ccxt = require ('ccxt')
     , {
         isNode,
-        isBrowser,
         isJsonEncodedObject,
         RequestTimeout,
         NetworkError,
