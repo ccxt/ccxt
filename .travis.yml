@@ -25,7 +25,7 @@ before_install:
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
   npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
-- cp package.json LICENSE.txt keys.json python
+- cp package.json README.md LICENSE.txt keys.json python
 - npm run build
 - set +e
 - node run-tests --js --python --php; export TESTS_FAILED=$?
