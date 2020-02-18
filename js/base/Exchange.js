@@ -43,7 +43,7 @@ const {
 
 const { TRUNCATE, ROUND, DECIMAL_PLACES } = functions.precisionConstants
 
-const BN = require ('../static_dependencies/BN/bn')
+//const BN = require ('../static_dependencies/BN/bn')
 
 // ----------------------------------------------------------------------------
 // web3 / 0x imports
@@ -55,10 +55,10 @@ let Web3 = undefined
 
 try {
     const requireFunction = require;
-    Web3      = requireFunction ('web3') // eslint-disable-line global-require
-    ethAbi    = requireFunction ('ethereumjs-abi') // eslint-disable-line global-require
-    ethUtil   = requireFunction ('ethereumjs-util') // eslint-disable-line global-require
-    BigNumber = requireFunction ('bignumber.js') // eslint-disable-line global-require
+    //Web3      = requireFunction ('web3') // eslint-disable-line global-require
+    //ethAbi    = requireFunction ('ethereumjs-abi') // eslint-disable-line global-require
+    //ethUtil   = requireFunction ('ethereumjs-util') // eslint-disable-line global-require
+    //BigNumber = requireFunction ('bignumber.js') // eslint-disable-line global-require
     // we prefer bignumber.js over BN.js
     // BN        = requireFunction ('bn.js') // eslint-disable-line global-require
 } catch (e) {
@@ -1355,72 +1355,6 @@ module.exports = class Exchange {
             order['expirationUnixTimestampSec'], // uint256
             order['salt'], // uint256
         ]);
-    }
-
-    getZeroExOrderHashV2 (order) {
-        // https://github.com/0xProject/0x-monorepo/blob/development/python-packages/order_utils/src/zero_ex/order_utils/__init__.py
-        const addressPadding = '000000000000000000000000';
-        const header = '1901';
-        const domainStructHeader = '91ab3d17e3a50a9d89e63fd30b92be7f5336b03b287bb946787a83a9d62a2766f0f24618f4c4be1e62e026fb039a20ef96f4495294817d1027ffaa6d1f70e61ead7c5bef027816a800da1736444fb58a807ef4c9603b7848673f7e3a68eb14a5';
-        const orderSchemaHash = '770501f88a26ede5c04a20ef877969e961eb11fc13b78aaf414b633da0d4f86f';
-
-        const domainStructHash = ethAbi.soliditySHA3 (
-            [
-                'bytes',
-                'bytes',
-                'address'
-            ],
-            [
-                Buffer.from (domainStructHeader, 'hex'),
-                Buffer.from (addressPadding, 'hex'),
-                order['exchangeAddress']
-            ]
-        );
-        const orderStructHash = ethAbi.soliditySHA3 (
-            [
-                'bytes',
-                'bytes',
-                'address',
-                'bytes',
-                'address',
-                'bytes',
-                'address',
-                'bytes',
-                'address',
-                'uint256',
-                'uint256',
-                'uint256',
-                'uint256',
-                'uint256',
-                'uint256',
-                'string',
-                'string'
-            ],
-            [
-                Buffer.from (orderSchemaHash, 'hex'),
-                Buffer.from (addressPadding, 'hex'),
-                order['makerAddress'],
-                Buffer.from (addressPadding, 'hex'),
-                order['takerAddress'],
-                Buffer.from (addressPadding, 'hex'),
-                order['feeRecipientAddress'],
-                Buffer.from (addressPadding, 'hex'),
-                order['senderAddress'],
-                order['makerAssetAmount'],
-                order['takerAssetAmount'],
-                order['makerFee'],
-                order['takerFee'],
-                order['expirationTimeSeconds'],
-                order['salt'],
-                ethUtil.keccak (Buffer.from (order['makerAssetData'].slice (2), 'hex')),
-                ethUtil.keccak (Buffer.from (order['takerAssetData'].slice (2), 'hex')),
-            ]
-        );
-        return '0x' + ethUtil.keccak (Buffer.concat ([
-            Buffer.from (header, 'hex'),
-            domainStructHash,
-            orderStructHash
-        ])).toString ('hex');
     }
 
     signZeroExOrder (order, privateKey) {
