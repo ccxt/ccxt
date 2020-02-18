@@ -324,6 +324,7 @@ class bitfinex(Exchange):
                 'UTN': 'UTNP',
                 'VSY': 'VSYS',
                 'XCH': 'XCHF',
+                'ZBT': 'ZB',
             },
             'exceptions': {
                 'exact': {

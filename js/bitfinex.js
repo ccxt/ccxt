@@ -310,6 +310,7 @@ module.exports = class bitfinex extends Exchange {
                 'UTN': 'UTNP',
                 'VSY': 'VSYS',
                 'XCH': 'XCHF',
+                'ZBT': 'ZB',
             },
             'exceptions': {
                 'exact': {

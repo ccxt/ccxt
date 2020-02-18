@@ -132,6 +132,8 @@ class cex extends Exchange {
                     'Invalid Order' => '\\ccxt\\InvalidOrder',
                     'Order not found' => '\\ccxt\\OrderNotFound',
                     'Rate limit exceeded' => '\\ccxt\\RateLimitExceeded',
+                    'Invalid API key' => '\\ccxt\\AuthenticationError',
+                    'There was an error while placing your order' => '\\ccxt\\InvalidOrder',
                 ),
             ),
             'options' => array(
