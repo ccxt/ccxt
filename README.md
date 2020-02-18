@@ -1,15 +1,37 @@
 ![CCXT Pro](https://user-images.githubusercontent.com/1294454/71230147-79917b80-22f9-11ea-9c7e-dcd40123a1d0.png)
 
+### JavaScript
+
 ```JavaScript
 'use strict';
 const ccxtpro = require ('ccxt.pro');
 (async () => {
-    const exchange = new ccxtpro.binance ()
+    const exchange = new ccxtpro.binance ({ enableRateLimit: true })
     while (true) {
         const orderbook = await exchange.watchOrderBook ('ETH/BTC')
         console.log (new Date (), orderbook['asks'][0], orderbook['bids'][0])
     }
 }) ()
+```
+
+### Python
+
+```Python
+import ccxtpro
+import asyncio
+
+async def main():
+    exchange = ccxtpro.binance({'enableRateLimit': True})
+    while True:
+        orderbook = await exchange.watch_order_book('ETH/BTC')
+        print(orderbook['asks'][0], orderbook['bids'][0])
+
+asyncio.get_event_loop().run_until_complete(main())
+```
+
+### PHP
+
+```PHP
 ```
 
 CCXT Pro is a professional extension to the standard CCXT that is going to include:
