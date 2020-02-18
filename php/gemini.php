@@ -49,7 +49,11 @@ class gemini extends Exchange {
                     'https://docs.gemini.com/rest-api',
                     'https://docs.sandbox.gemini.com',
                 ),
-                'test' => 'https://api.sandbox.gemini.com',
+                'test' => array(
+                    'public' => 'https://api.sandbox.gemini.com',
+                    'private' => 'https://api.sandbox.gemini.com',
+                    'web' => 'https://docs.sandbox.gemini.com',
+                ),
                 'fees' => array(
                     'https://gemini.com/api-fee-schedule',
                     'https://gemini.com/trading-fees',
