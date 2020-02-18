@@ -681,6 +681,8 @@ class huobipro(Exchange):
         return getattr(self, method)(symbol, since, limit, params)
 
     def fetch_open_orders_v1(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOpenOrdersV1 requires a symbol argument')
         return self.fetch_orders_by_states('pre-submitted,submitted,partial-filled', symbol, since, limit, params)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):

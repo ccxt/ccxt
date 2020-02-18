@@ -1425,6 +1425,8 @@ class binance extends Exchange {
         }
         if ($since !== null) {
             $request['startTime'] = $since;
+            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
+            $request['endTime'] = $this->sum ($since, 7776000000);
         }
         $response = $this->wapiGetDepositHistory (array_merge($request, $params));
         //
@@ -1450,6 +1452,8 @@ class binance extends Exchange {
         }
         if ($since !== null) {
             $request['startTime'] = $since;
+            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
+            $request['endTime'] = $this->sum ($since, 7776000000);
         }
         $response = $this->wapiGetWithdrawHistory (array_merge($request, $params));
         //
@@ -1837,6 +1841,10 @@ class binance extends Exchange {
                 // checks against $error codes
                 $error = $this->safe_string($response, 'code');
                 if ($error !== null) {
+                    // https://github.com/ccxt/ccxt/issues/6501
+                    if ($error === '200') {
+                        return;
+                    }
                     // a workaround for array("$code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
                     // despite that their $message is very confusing, it is raised by Binance
                     // on a temporary ban (the API key is valid, but disabled for a while)

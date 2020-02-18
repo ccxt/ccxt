@@ -557,7 +557,7 @@ module.exports = class bleutrade extends Exchange {
                     'currency': code,
                 };
             } else if (part.indexOf ('order id') === 0) {
-                referenceId = part.replace ('order id', '');
+                referenceId = part.replace ('order id ', '');
             }
             //
             // does not belong to Ledger, related to parseTransaction
