@@ -10,7 +10,7 @@ import json
 here = path.abspath(path.dirname(__file__))
 root = path.dirname(here)
 
-readme = path.join(here, 'README.rst')
+readme = path.join(here, 'README.md')
 package_json = path.join(here, 'package.json')
 
 # a workaround when installing locally from git repository with pip install -e .
@@ -66,6 +66,7 @@ setup(
 
     keywords=package['keywords'],
     packages=find_packages(),
+    data_files=[('', ['LICENSE.txt'])],
 
     install_requires=[
         'setuptools>=38.5.1',
@@ -78,7 +79,7 @@ setup(
         ':python_version>="3.5.2"': [
             'aiohttp>=3.0.1',
             'aiodns==1.1.1',
-            'ccxt>=1.22.29',
+            'ccxt>=1.22.58',
             'yarl==1.1.0',
         ],
         'qa': [
