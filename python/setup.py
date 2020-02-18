@@ -66,6 +66,7 @@ setup(
 
     keywords=package['keywords'],
     packages=find_packages(),
+    data_files=[('', ['LICENSE.txt'])],
 
     install_requires=[
         'setuptools>=38.5.1',
