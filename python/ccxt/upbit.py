@@ -1341,7 +1341,6 @@ class upbit(Exchange):
         #     }
         #
         message = self.safe_string(response, 'message')
-        # https://github.com/ccxt/ccxt/issues/6452
         if message is not None:
             raise AddressPending(self.id + ' is generating ' + code + ' deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address')
         return self.parse_deposit_address(response)

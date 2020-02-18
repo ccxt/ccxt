@@ -1416,7 +1416,6 @@ class upbit extends Exchange {
         //     }
         //
         $message = $this->safe_string($response, 'message');
-        // https://github.com/ccxt/ccxt/issues/6452
         if ($message !== null) {
             throw new AddressPending($this->id . ' is generating ' . $code . ' deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address');
         }
