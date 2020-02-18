@@ -206,7 +206,7 @@
         "Zaif"
     ],
     "homepage": "https://ccxt.pro",
-    "license": "MIT",
+    "license": "See LICENSE.txt",
     "authors": [{
         "name": "Igor Kroitor",
         "email": "igor.kroitor@gmail.com",
