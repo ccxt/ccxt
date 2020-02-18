@@ -10,7 +10,7 @@ import json
 here = path.abspath(path.dirname(__file__))
 root = path.dirname(here)
 
-readme = path.join(here, 'README.rst')
+readme = path.join(here, 'README.md')
 package_json = path.join(here, 'package.json')
 
 # a workaround when installing locally from git repository with pip install -e .
