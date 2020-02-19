@@ -1253,11 +1253,18 @@ class binance extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
+        // https://github.com/ccxt/ccxt/issues/6507
+        $origClientOrderId = $this->safe_value($params, 'origClientOrderId');
         $request = array(
             'symbol' => $market['id'],
-            'orderId' => intval ($id),
+            // 'orderId' => intval ($id),
             // 'origClientOrderId' => $id,
         );
+        if ($origClientOrderId === null) {
+            $request['orderId'] = intval ($id);
+        } else {
+            $request['origClientOrderId'] = $origClientOrderId;
+        }
         $method = $market['spot'] ? 'privateDeleteOrder' : 'fapiPrivateDeleteOrder';
         $response = $this->$method (array_merge($request, $params));
         return $this->parse_order($response);

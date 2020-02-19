@@ -1135,7 +1135,14 @@ class bitmex(Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privateDeleteOrder(self.extend({'orderID': id}, params))
+        # https://github.com/ccxt/ccxt/issues/6507
+        clOrdID = self.safe_value(params, 'clOrdID')
+        request = {}
+        if clOrdID is None:
+            request['orderID'] = id
+        else:
+            request['clOrdID'] = clOrdID
+        response = self.privateDeleteOrder(self.extend(request, params))
         order = response[0]
         error = self.safe_string(order, 'error')
         if error is not None:
