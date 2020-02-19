@@ -18,6 +18,7 @@ module.exports = class kucoin extends Exchange {
             'certified': false,
             'comment': 'Platform 2.0',
             'has': {
+                'CORS': false,
                 'fetchTime': true,
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
