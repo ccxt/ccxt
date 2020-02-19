@@ -21,6 +21,7 @@ class kucoin extends Exchange {
             'certified' => false,
             'comment' => 'Platform 2.0',
             'has' => array(
+                'CORS' => false,
                 'fetchTime' => true,
                 'fetchMarkets' => true,
                 'fetchCurrencies' => true,
