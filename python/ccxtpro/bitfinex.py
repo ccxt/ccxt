@@ -19,14 +19,20 @@ class bitfinex(Exchange, ccxt.bitfinex):
                 'watchOrderBook': True,
                 'watchTrades': True,
                 'watchBalance': False,  # for now
-                'watchOHLCV': False,  # missing on the exchange side
+                'watchOHLCV': False,  # missing on the exchange side in v1
             },
             'urls': {
                 'api': {
                     'ws': {
-                        'public': 'wss://api.bitfinex.com/ws/1',
+                        'public': 'wss://api-pub.bitfinex.com/ws/1',
                         'private': 'wss://api.bitfinex.com/ws/1',
                     },
+                },
+            },
+            'options': {
+                'watchOrderBook': {
+                    'prec': 'P0',
+                    'freq': 'F0',
                 },
             },
         })
@@ -219,12 +225,15 @@ class bitfinex(Exchange, ccxt.bitfinex):
         if limit is not None:
             if (limit != 25) and (limit != 100):
                 raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 25 or 100')
+        options = self.safe_value(self.options, 'watchOrderBook', {})
+        prec = self.safe_string(options, 'prec', 'P0')
+        freq = self.safe_string(options, 'freq', 'F0')
         request = {
             # 'event': 'subscribe',  # added in subscribe()
             # 'channel': channel,  # added in subscribe()
             # 'symbol': marketId,  # added in subscribe()
-            # 'prec': 'P0',  # string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
-            # 'freq': 'F0',  # string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
+            'prec': prec,  # string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
+            'freq': freq,  # string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
             # 'len': '25',  # string, number of price points, '25', '100', default = '25'
         }
         future = self.subscribe('book', symbol, self.deep_extend(request, params))
@@ -263,25 +272,53 @@ class bitfinex(Exchange, ccxt.bitfinex):
         symbol = market['symbol']
         channel = 'book'
         messageHash = channel + ':' + marketId
+        prec = self.safe_string(subscription, 'prec', 'P0')
+        isRaw = (prec == 'R0')
         # if it is an initial snapshot
         if isinstance(message[1], list):
             limit = self.safe_integer(subscription, 'len')
-            self.orderbooks[symbol] = self.counted_order_book({}, limit)
+            if isRaw:
+                # raw order books
+                self.orderbooks[symbol] = self.indexed_order_book({}, limit)
+            else:
+                # P0, P1, P2, P3, P4
+                self.orderbooks[symbol] = self.counted_order_book({}, limit)
             orderbook = self.orderbooks[symbol]
-            deltas = message[1]
-            for i in range(0, len(deltas)):
-                delta = deltas[i]
-                amount = -delta[2] if (delta[2] < 0) else delta[2]
-                side = 'asks' if (delta[2] < 0) else 'bids'
-                bookside = orderbook[side]
-                bookside.store(delta[0], amount, delta[1])
+            if isRaw:
+                deltas = message[1]
+                for i in range(0, len(deltas)):
+                    delta = deltas[i]
+                    id = self.safe_string(delta, 0)
+                    price = self.safe_float(delta, 1)
+                    size = -delta[2] if (delta[2] < 0) else delta[2]
+                    side = 'asks' if (delta[2] < 0) else 'bids'
+                    bookside = orderbook[side]
+                    bookside.store(price, size, id)
+            else:
+                deltas = message[1]
+                for i in range(0, len(deltas)):
+                    delta = deltas[i]
+                    size = -delta[2] if (delta[2] < 0) else delta[2]
+                    side = 'asks' if (delta[2] < 0) else 'bids'
+                    bookside = orderbook[side]
+                    bookside.store(delta[0], size, delta[1])
             client.resolve(orderbook, messageHash)
         else:
             orderbook = self.orderbooks[symbol]
-            amount = -message[3] if (message[3] < 0) else message[3]
-            side = 'asks' if (message[3] < 0) else 'bids'
-            bookside = orderbook[side]
-            bookside.store(message[1], amount, message[2])
+            if isRaw:
+                id = self.safe_string(message, 1)
+                price = self.safe_float(message, 2)
+                size = -message[3] if (message[3] < 0) else message[3]
+                side = 'asks' if (message[3] < 0) else 'bids'
+                bookside = orderbook[side]
+                # price = 0 means that you have to remove the order from your book
+                amount = size if (price > 0) else 0
+                bookside.store(price, amount, id)
+            else:
+                size = -message[3] if (message[3] < 0) else message[3]
+                side = 'asks' if (message[3] < 0) else 'bids'
+                bookside = orderbook[side]
+                bookside.store(message[1], size, message[2])
             client.resolve(orderbook, messageHash)
 
     def handle_heartbeat(self, client, message):
