@@ -1,5 +1,11 @@
 ![CCXT Pro](https://user-images.githubusercontent.com/1294454/71230147-79917b80-22f9-11ea-9c7e-dcd40123a1d0.png)
 
+---
+
+CCXT Pro is a professional tool for algorithmic crypto-trading. It is a high-performance superset of the CCXT library, one of the world's leading open-source frameworks for crypto finance. CCXT Pro includes the standard CCXT library and wraps it with powerful new features and useful enhancements.
+
+---
+
 ### JavaScript
 
 ```JavaScript
@@ -38,33 +44,28 @@ $loop = \React\EventLoop\Factory::create();
 $exchange = new \ccxtpro\bitfinex(array('enableRateLimit' => true, 'loop' => $loop));
 
 $main = function () use (&$exchange, &$main) {
-    $exchange->watch_order_book('ETH/BTC')->then(function($orderbook) use (&$main) {
-        echo date('c '),
-            json_encode($orderbook['asks'][0]), ' ',
-            json_encode($orderbook['bids'][0]), "\n";
-        $main();
-    });
+  $exchange->watch_order_book('ETH/BTC')->then(function($ob) use (&$main) {
+    echo date('c '), json_encode(array($ob['asks'][0], $ob['bids'][0])), "\n";
+    $main();
+  });
 };
 
 $loop->futureTick($main);
 $loop->run ();
 ```
 
-CCXT Pro is a professional extension to the standard CCXT that is going to include:
+---
+
+## Features:
 
 - Unified public and private WebSockets APIs <sup>*wip now*</sup>
+- Auto-connection and re-connection
+- Connection timeouts
+- Re-connection exponential backoff delay
+- Keep-alive ping-pong
+- Proxies
 - Backward-compatible CCXT ←→ CCXT Pro adapters
 - FIX protocol transports <sup>*planned*</sup>
--
-
-## Technicalities:
-
-- public and private unified streaming APIs
-- auto-connection and re-connection
-- connection timeouts
-- re-connection exponential backoff delay
-- keep-alive ping-pong
-- proxies
 
 ## CCXT Pro License
 
