@@ -1395,7 +1395,7 @@ module.exports = class upbit extends Exchange {
             'currency': currency['id'],
         };
         // https://github.com/ccxt/ccxt/issues/6452
-        const response = await this.privatePostDepositsGenerateCoinAddress (code, this.extend (request, params));
+        const response = await this.privatePostDepositsGenerateCoinAddress (this.extend (request, params));
         //
         // https://docs.upbit.com/v1.0/reference#%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD
         // can be any of the two responses:
