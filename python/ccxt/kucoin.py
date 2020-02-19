@@ -33,6 +33,7 @@ class kucoin(Exchange):
             'certified': False,
             'comment': 'Platform 2.0',
             'has': {
+                'CORS': False,
                 'fetchTime': True,
                 'fetchMarkets': True,
                 'fetchCurrencies': True,
