@@ -1,15 +1,53 @@
 ![CCXT Pro](https://user-images.githubusercontent.com/1294454/71230147-79917b80-22f9-11ea-9c7e-dcd40123a1d0.png)
 
+### JavaScript
+
 ```JavaScript
 'use strict';
 const ccxtpro = require ('ccxt.pro');
 (async () => {
-    const exchange = new ccxtpro.binance ()
+    const exchange = new ccxtpro.binance ({ enableRateLimit: true })
     while (true) {
         const orderbook = await exchange.watchOrderBook ('ETH/BTC')
         console.log (new Date (), orderbook['asks'][0], orderbook['bids'][0])
     }
 }) ()
+```
+
+### Python
+
+```Python
+import ccxtpro
+import asyncio
+
+async def main():
+    exchange = ccxtpro.poloniex({'enableRateLimit': True})
+    while True:
+        orderbook = await exchange.watch_order_book('ETH/BTC')
+        print(orderbook['asks'][0], orderbook['bids'][0])
+
+asyncio.get_event_loop().run_until_complete(main())
+```
+
+### PHP
+
+```PHP
+require_once 'vendor/autoload.php';
+
+$loop = \React\EventLoop\Factory::create();
+$exchange = new \ccxtpro\bitfinex(array('enableRateLimit' => true, 'loop' => $loop));
+
+$main = function () use (&$exchange, &$main) {
+    $exchange->watch_order_book('ETH/BTC')->then(function($orderbook) use (&$main) {
+        echo date('c '),
+            json_encode($orderbook['asks'][0]), ' ',
+            json_encode($orderbook['bids'][0]), "\n";
+        $main();
+    });
+};
+
+$loop->futureTick($main);
+$loop->run ();
 ```
 
 CCXT Pro is a professional extension to the standard CCXT that is going to include:

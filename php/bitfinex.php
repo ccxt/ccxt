@@ -21,14 +21,20 @@ class bitfinex extends \ccxt\bitfinex {
                 'watchOrderBook' => true,
                 'watchTrades' => true,
                 'watchBalance' => false, // for now
-                'watchOHLCV' => false, // missing on the exchange side
+                'watchOHLCV' => false, // missing on the exchange side in v1
             ),
             'urls' => array(
                 'api' => array(
                     'ws' => array(
-                        'public' => 'wss://api.bitfinex.com/ws/1',
+                        'public' => 'wss://api-pub.bitfinex.com/ws/1',
                         'private' => 'wss://api.bitfinex.com/ws/1',
                     ),
+                ),
+            ),
+            'options' => array(
+                'watchOrderBook' => array(
+                    'prec' => 'P0',
+                    'freq' => 'F0',
                 ),
             ),
         ));
@@ -243,12 +249,15 @@ class bitfinex extends \ccxt\bitfinex {
                 throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 25 or 100');
             }
         }
+        $options = $this->safe_value($this->options, 'watchOrderBook', array());
+        $prec = $this->safe_string($options, 'prec', 'P0');
+        $freq = $this->safe_string($options, 'freq', 'F0');
         $request = array(
             // 'event' => 'subscribe', // added in subscribe()
-            // 'channel' => channel,  // added in subscribe()
-            // 'symbol' => marketId,  // added in subscribe()
-            // 'prec' => 'P0', // string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
-            // 'freq' => 'F0', // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
+            // 'channel' => channel, // added in subscribe()
+            // 'symbol' => marketId, // added in subscribe()
+            'prec' => $prec, // string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
+            'freq' => $freq, // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
             // 'len' => '25', // string, number of price points, '25', '100', default = '25'
         );
         $future = $this->subscribe ('book', $symbol, array_replace_recursive($request, $params));
@@ -264,12 +273,12 @@ class bitfinex extends \ccxt\bitfinex {
         // first $message (snapshot)
         //
         //     array(
-        //         18691, // $channel id
+        //         18691, // $channel $id
         //         array(
-        //             array( 7364.8, 10, 4.354802 ), // price, count, size > 0 = bid
+        //             array( 7364.8, 10, 4.354802 ), // $price, count, $size > 0 = bid
         //             array( 7364.7, 1, 0.00288831 ),
         //             array( 7364.3, 12, 0.048 ),
-        //             array( 7364.9, 3, -0.42028976 ), // price, count, size < 0 = ask
+        //             array( 7364.9, 3, -0.42028976 ), // $price, count, $size < 0 = ask
         //             array( 7365, 1, -0.25 ),
         //             array( 7365.5, 1, -0.00371937 ),
         //         )
@@ -278,10 +287,10 @@ class bitfinex extends \ccxt\bitfinex {
         // subsequent updates
         //
         //     array(
-        //         30,     // $channel id
-        //         9339.9, // price
+        //         30,     // $channel $id
+        //         9339.9, // $price
         //         0,      // count
-        //         -1,     // size > 0 = bid, size < 0 = ask
+        //         -1,     // $size > 0 = bid, $size < 0 = ask
         //     )
         //
         $marketId = $this->safe_string($subscription, 'pair');
@@ -289,26 +298,58 @@ class bitfinex extends \ccxt\bitfinex {
         $symbol = $market['symbol'];
         $channel = 'book';
         $messageHash = $channel . ':' . $marketId;
+        $prec = $this->safe_string($subscription, 'prec', 'P0');
+        $isRaw = ($prec === 'R0');
         // if it is an initial snapshot
         if (gettype($message[1]) === 'array' && count(array_filter(array_keys($message[1]), 'is_string')) == 0) {
             $limit = $this->safe_integer($subscription, 'len');
-            $this->orderbooks[$symbol] = $this->counted_order_book (array(), $limit);
+            if ($isRaw) {
+                // raw order books
+                $this->orderbooks[$symbol] = $this->indexed_order_book (array(), $limit);
+            } else {
+                // P0, P1, P2, P3, P4
+                $this->orderbooks[$symbol] = $this->counted_order_book (array(), $limit);
+            }
             $orderbook = $this->orderbooks[$symbol];
-            $deltas = $message[1];
-            for ($i = 0; $i < count($deltas); $i++) {
-                $delta = $deltas[$i];
-                $amount = ($delta[2] < 0) ? -$delta[2] : $delta[2];
-                $side = ($delta[2] < 0) ? 'asks' : 'bids';
-                $bookside = $orderbook[$side];
-                $bookside->store ($delta[0], $amount, $delta[1]);
+            if ($isRaw) {
+                $deltas = $message[1];
+                for ($i = 0; $i < count($deltas); $i++) {
+                    $delta = $deltas[$i];
+                    $id = $this->safe_string($delta, 0);
+                    $price = $this->safe_float($delta, 1);
+                    $size = ($delta[2] < 0) ? -$delta[2] : $delta[2];
+                    $side = ($delta[2] < 0) ? 'asks' : 'bids';
+                    $bookside = $orderbook[$side];
+                    $bookside->store ($price, $size, $id);
+                }
+            } else {
+                $deltas = $message[1];
+                for ($i = 0; $i < count($deltas); $i++) {
+                    $delta = $deltas[$i];
+                    $size = ($delta[2] < 0) ? -$delta[2] : $delta[2];
+                    $side = ($delta[2] < 0) ? 'asks' : 'bids';
+                    $bookside = $orderbook[$side];
+                    $bookside->store ($delta[0], $size, $delta[1]);
+                }
             }
             $client->resolve ($orderbook, $messageHash);
         } else {
             $orderbook = $this->orderbooks[$symbol];
-            $amount = ($message[3] < 0) ? -$message[3] : $message[3];
-            $side = ($message[3] < 0) ? 'asks' : 'bids';
-            $bookside = $orderbook[$side];
-            $bookside->store ($message[1], $amount, $message[2]);
+            if ($isRaw) {
+                $id = $this->safe_string($message, 1);
+                $price = $this->safe_float($message, 2);
+                $size = ($message[3] < 0) ? -$message[3] : $message[3];
+                $side = ($message[3] < 0) ? 'asks' : 'bids';
+                $bookside = $orderbook[$side];
+                // $price = 0 means that you have to remove the order from your book
+                $amount = ($price > 0) ? $size : 0;
+                $bookside->store ($price, $amount, $id);
+            } else {
+                $size = ($message[3] < 0) ? -$message[3] : $message[3];
+                $side = ($message[3] < 0) ? 'asks' : 'bids';
+                $bookside = $orderbook[$side];
+                $bookside->store ($message[1], $size, $message[2]);
+            }
             $client->resolve ($orderbook, $messageHash);
         }
     }
