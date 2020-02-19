@@ -17,7 +17,7 @@ class flowbtc(Exchange):
             'version': 'v1',
             'rateLimit': 1000,
             'has': {
-                'CORS': True,
+                'CORS': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg',
