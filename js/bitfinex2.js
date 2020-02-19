@@ -17,7 +17,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'certified': false,
             // new metainfo interface
             'has': {
-                'CORS': true,
+                'CORS': false,
                 'createLimitOrder': false,
                 'createMarketOrder': false,
                 'createOrder': false,
