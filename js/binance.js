@@ -1247,11 +1247,18 @@ module.exports = class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        // https://github.com/ccxt/ccxt/issues/6507
+        const origClientOrderId = this.safeValue (params, 'origClientOrderId');
         const request = {
             'symbol': market['id'],
-            'orderId': parseInt (id),
+            // 'orderId': parseInt (id),
             // 'origClientOrderId': id,
         };
+        if (origClientOrderId === undefined) {
+            request['orderId'] = parseInt (id);
+        } else {
+            request['origClientOrderId'] = origClientOrderId;
+        }
         const method = market['spot'] ? 'privateDeleteOrder' : 'fapiPrivateDeleteOrder';
         const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response);
