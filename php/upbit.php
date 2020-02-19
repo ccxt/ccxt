@@ -1399,7 +1399,7 @@ class upbit extends Exchange {
             'currency' => $currency['id'],
         );
         // https://github.com/ccxt/ccxt/issues/6452
-        $response = $this->privatePostDepositsGenerateCoinAddress ($code, array_merge($request, $params));
+        $response = $this->privatePostDepositsGenerateCoinAddress (array_merge($request, $params));
         //
         // https://docs.upbit.com/v1.0/reference#%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD
         // can be any of the two responses:
