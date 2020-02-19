@@ -17,14 +17,20 @@ module.exports = class bitfinex extends ccxt.bitfinex {
                 'watchOrderBook': true,
                 'watchTrades': true,
                 'watchBalance': false, // for now
-                'watchOHLCV': false, // missing on the exchange side
+                'watchOHLCV': false, // missing on the exchange side in v1
             },
             'urls': {
                 'api': {
                     'ws': {
-                        'public': 'wss://api.bitfinex.com/ws/1',
+                        'public': 'wss://api-pub.bitfinex.com/ws/1',
                         'private': 'wss://api.bitfinex.com/ws/1',
                     },
+                },
+            },
+            'options': {
+                'watchOrderBook': {
+                    'prec': 'P0',
+                    'freq': 'F0',
                 },
             },
         });
@@ -239,12 +245,15 @@ module.exports = class bitfinex extends ccxt.bitfinex {
                 throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 25 or 100');
             }
         }
+        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const prec = this.safeString (options, 'prec', 'P0');
+        const freq = this.safeString (options, 'freq', 'F0');
         const request = {
             // 'event': 'subscribe', // added in subscribe()
-            // 'channel': channel,  // added in subscribe()
-            // 'symbol': marketId,  // added in subscribe()
-            // 'prec': 'P0', // string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
-            // 'freq': 'F0', // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
+            // 'channel': channel, // added in subscribe()
+            // 'symbol': marketId, // added in subscribe()
+            'prec': prec, // string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
+            'freq': freq, // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
             // 'len': '25', // string, number of price points, '25', '100', default = '25'
         };
         const future = this.subscribe ('book', symbol, this.deepExtend (request, params));
@@ -285,26 +294,58 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         const symbol = market['symbol'];
         const channel = 'book';
         const messageHash = channel + ':' + marketId;
+        const prec = this.safeString (subscription, 'prec', 'P0');
+        const isRaw = (prec === 'R0');
         // if it is an initial snapshot
         if (Array.isArray (message[1])) {
             const limit = this.safeInteger (subscription, 'len');
-            this.orderbooks[symbol] = this.countedOrderBook ({}, limit);
+            if (isRaw) {
+                // raw order books
+                this.orderbooks[symbol] = this.indexedOrderBook ({}, limit);
+            } else {
+                // P0, P1, P2, P3, P4
+                this.orderbooks[symbol] = this.countedOrderBook ({}, limit);
+            }
             const orderbook = this.orderbooks[symbol];
-            const deltas = message[1];
-            for (let i = 0; i < deltas.length; i++) {
-                const delta = deltas[i];
-                const amount = (delta[2] < 0) ? -delta[2] : delta[2];
-                const side = (delta[2] < 0) ? 'asks' : 'bids';
-                const bookside = orderbook[side];
-                bookside.store (delta[0], amount, delta[1]);
+            if (isRaw) {
+                const deltas = message[1];
+                for (let i = 0; i < deltas.length; i++) {
+                    const delta = deltas[i];
+                    const id = this.safeString (delta, 0);
+                    const price = this.safeFloat (delta, 1);
+                    const size = (delta[2] < 0) ? -delta[2] : delta[2];
+                    const side = (delta[2] < 0) ? 'asks' : 'bids';
+                    const bookside = orderbook[side];
+                    bookside.store (price, size, id);
+                }
+            } else {
+                const deltas = message[1];
+                for (let i = 0; i < deltas.length; i++) {
+                    const delta = deltas[i];
+                    const size = (delta[2] < 0) ? -delta[2] : delta[2];
+                    const side = (delta[2] < 0) ? 'asks' : 'bids';
+                    const bookside = orderbook[side];
+                    bookside.store (delta[0], size, delta[1]);
+                }
             }
             client.resolve (orderbook, messageHash);
         } else {
             const orderbook = this.orderbooks[symbol];
-            const amount = (message[3] < 0) ? -message[3] : message[3];
-            const side = (message[3] < 0) ? 'asks' : 'bids';
-            const bookside = orderbook[side];
-            bookside.store (message[1], amount, message[2]);
+            if (isRaw) {
+                const id = this.safeString (message, 1);
+                const price = this.safeFloat (message, 2);
+                const size = (message[3] < 0) ? -message[3] : message[3];
+                const side = (message[3] < 0) ? 'asks' : 'bids';
+                const bookside = orderbook[side];
+                // price = 0 means that you have to remove the order from your book
+                const amount = (price > 0) ? size : 0;
+                bookside.store (price, amount, id);
+            } else {
+                const size = (message[3] < 0) ? -message[3] : message[3];
+                const side = (message[3] < 0) ? 'asks' : 'bids';
+                const bookside = orderbook[side];
+                bookside.store (message[1], size, message[2]);
+            }
             client.resolve (orderbook, messageHash);
         }
     }
