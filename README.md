@@ -40,8 +40,8 @@ $exchange = new \ccxtpro\bitfinex(array('enableRateLimit' => true, 'loop' => $lo
 $main = function () use (&$exchange, &$main) {
     $exchange->watch_order_book('ETH/BTC')->then(function($orderbook) use (&$main) {
         echo date('c '),
-            json_encode($orderbook['asks'][0], ' ',
-            json_encode($orderbook['bids'][0], "\n";
+            json_encode($orderbook['asks'][0]), ' ',
+            json_encode($orderbook['bids'][0]), "\n";
         $main();
     });
 };
