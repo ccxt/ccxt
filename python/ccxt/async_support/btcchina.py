@@ -18,7 +18,7 @@ class btcchina(Exchange):
             'rateLimit': 1500,
             'version': 'v1',
             'has': {
-                'CORS': True,
+                'CORS': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766368-465b3286-5ed6-11e7-9a11-0f6467e1d82b.jpg',

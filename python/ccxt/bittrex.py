@@ -40,7 +40,7 @@ class bittrex(Exchange):
             'certified': True,
             # new metainfo interface
             'has': {
-                'CORS': True,
+                'CORS': False,
                 'createMarketOrder': False,
                 'fetchDepositAddress': True,
                 'fetchClosedOrders': True,

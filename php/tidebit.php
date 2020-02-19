@@ -20,7 +20,7 @@ class tidebit extends Exchange {
             'version' => 'v2',
             'has' => array(
                 'fetchDepositAddress' => true,
-                'CORS' => true,
+                'CORS' => false,
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
                 'withdraw' => true,
