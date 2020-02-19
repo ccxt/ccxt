@@ -16,7 +16,7 @@ def print_exchanges():
 def print_usage():
     print("Usage: python", sys.argv[0], 'id')
     print("python", sys.argv[0], 'kraken')
-    print("python", sys.argv[0], 'gdax')
+    print("python", sys.argv[0], 'coinbasepro')
     print_exchanges()
 
 
