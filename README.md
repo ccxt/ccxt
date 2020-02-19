@@ -56,21 +56,16 @@ $loop->run ();
 
 ---
 
-CCXT Pro is a professional extension to the standard CCXT that is going to include:
+## Features:
 
 - Unified public and private WebSockets APIs <sup>*wip now*</sup>
+- Auto-connection and re-connection
+- Connection timeouts
+- Re-connection exponential backoff delay
+- Keep-alive ping-pong
+- Proxies
 - Backward-compatible CCXT ←→ CCXT Pro adapters
 - FIX protocol transports <sup>*planned*</sup>
--
-
-## Technicalities:
-
-- public and private unified streaming APIs
-- auto-connection and re-connection
-- connection timeouts
-- re-connection exponential backoff delay
-- keep-alive ping-pong
-- proxies
 
 ## CCXT Pro License
 
