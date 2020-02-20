@@ -20,7 +20,7 @@ const asFloat   = (x: any) => ((isNumber (x) || isString (x)) ? parseFloat (x)  
 
 /*  .............................................   */
 
-export default {
+export = {
 
     isNumber
     , isArray

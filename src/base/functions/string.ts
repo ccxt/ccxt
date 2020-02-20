@@ -8,7 +8,7 @@ export const unCamelCase = (s: string) => s.match (/^[A-Z0-9_]+$/) ? s : (s.repl
 
 export const capitalize = (s: string) => s.length
     ? (s.charAt (0).toUpperCase () + s.slice (1))
-     : s
+    : s
 
 export const strip = (s: string) => s.replace(/^\s+|\s+$/g, '')
 

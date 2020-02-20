@@ -285,7 +285,7 @@ const decimalToPrecision = (x: number, roundingMode: number
 
 /*  ------------------------------------------------------------------------ */
 
-export default {
+export {
 
     numberToString,
     precisionFromString,

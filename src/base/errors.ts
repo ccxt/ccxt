@@ -43,7 +43,7 @@ function subclass (BaseClass: typeof Error, classes: object, namespace = {}) {
 
 /*  ------------------------------------------------------------------------ */
 
-export default subclass (
+export = subclass (
     // Root class
     Error,
     // Derived class hierarchy
