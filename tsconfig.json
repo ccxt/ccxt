@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "target": "ES2018",
+    "baseUrl": "./src",
+    "outDir": "./js",
+    "allowJs": true,
+    "strict": true,
+    "removeComments": true,
+    "sourceMap": true,
+  },
+  "include": [
+    "./src/**/*"
+  ],
+}

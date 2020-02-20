@@ -15,7 +15,7 @@
   "scripts": {
     "docker": "docker-compose run --rm ccxt",
     "build": "npm run build-without-docs && npm run pandoc-all && npm run update-badges",
-    "build-without-docs": "npm run export-exchanges && npm run vss && npm run check-js-syntax && npm run browserify && npm run transpile && npm run qa",
+    "build-without-docs": "tsc && npm run export-exchanges && npm run vss && npm run check-js-syntax && npm run browserify && npm run transpile && npm run qa",
     "test": "npm run build && node run-tests",
     "fast-test": "node run-tests --js",
     "test-base": "npm run test-js-base && npm run test-python-base && npm run test-php-base",
@@ -49,6 +49,7 @@
   "types": "./ccxt.d.ts",
   "dependencies": {},
   "devDependencies": {
+    "@types/node": "^13.7.4",
     "ansicolor": "1.1.81",
     "as-table": "1.0.37",
     "asciichart": "1.5.7",
@@ -59,7 +60,8 @@
     "eslint-config-airbnb-base": "12.1.0",
     "eslint-plugin-import": "2.16.0",
     "mocha": "5.2.0",
-    "ololog": "1.1.121"
+    "ololog": "1.1.121",
+    "typescript": "^3.7.5"
   },
   "author": {
     "name": "Igor Kroitor",

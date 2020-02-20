@@ -1,6 +1,4 @@
-'use strict';
-
-const errorHierarchy = {
+export const errorHierarchy = {
     'BaseError': {
         'ExchangeError': {
             'AuthenticationError': {
@@ -40,5 +38,3 @@ const errorHierarchy = {
         },
     },
 };
-
-module.exports = errorHierarchy;

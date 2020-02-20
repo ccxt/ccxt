@@ -1,10 +1,8 @@
-'use strict';
-
-const errorHierarchy = require ('./errorHierarchy.js')
+import { errorHierarchy } from './errorHierarchy.js';
 
 /*  ------------------------------------------------------------------------ */
 
-function subclass (BaseClass, classes, namespace = {}) {
+function subclass (BaseClass: typeof Error, classes: object, namespace = {}) {
 
     for (const [className, subclasses] of Object.entries (classes)) {
 
@@ -17,7 +15,9 @@ function subclass (BaseClass, classes, namespace = {}) {
 
             [className]: class extends BaseClass {
 
-                constructor (message) {
+                __proto__: Error;
+
+                constructor (message: string) {
 
                     super (message)
 
@@ -35,7 +35,7 @@ function subclass (BaseClass, classes, namespace = {}) {
 
         })[className]
 
-        subclass (Class, subclasses, namespace)
+        subclass (Class as any, subclasses, namespace)
     }
 
     return namespace
@@ -43,7 +43,7 @@ function subclass (BaseClass, classes, namespace = {}) {
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = subclass (
+export = subclass (
     // Root class
     Error,
     // Derived class hierarchy
