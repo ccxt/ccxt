@@ -41,7 +41,7 @@ const precisionConstants = {
 
 // See https://stackoverflow.com/questions/1685680/how-to-avoid-scientific-notation-for-large-numbers-in-javascript for discussion
 
-function numberToString (x) { // avoids scientific notation for too large and too small numbers
+function numberToString (x: number) { // avoids scientific notation for too large and too small numbers
 
     if (typeof x === 'string') return x
 
@@ -51,14 +51,14 @@ function numberToString (x) { // avoids scientific notation for too large and to
         const neg = (s[0] === '-')
         if (e) {
             x *= Math.pow (10, e - 1)
-            x = (neg ? '-' : '') + '0.' + (new Array (e)).join ('0') + x.toString ().substring (neg ? 3 : 2)
+            x = (neg ? '-' : '') + '0.' + (new Array (e)).join ('0') + x.toString ().substring (neg ? 3 : 2) as any
         }
     } else {
         let e = parseInt (x.toString ().split ('+')[1])
         if (e > 20) {
             e -= 20
             x /= Math.pow (10, e)
-            x += (new Array (e + 1)).join ('0')
+            x += (new Array (e + 1)).join ('0') as any
         }
     }
     return x.toString ()
@@ -67,29 +67,29 @@ function numberToString (x) { // avoids scientific notation for too large and to
 //-----------------------------------------------------------------------------
 // expects non-scientific notation
 
-const truncate_regExpCache = []
-    , truncate_to_string = (num, precision = 0) => {
-        num = numberToString (num)
+const truncate_regExpCache = [] as (string | RegExp)[]
+    , truncate_to_string = (num: number, precision = 0) => {
+        num = numberToString (num) as any
         if (precision > 0) {
             const re = truncate_regExpCache[precision] || (truncate_regExpCache[precision] = new RegExp ("([-]*\\d+\\.\\d{" + precision + "})(\\d)"))
-            const [ , result] = num.toString ().match (re) || [null, num]
+            const [ , result] = num.toString ().match (re) as any || [null, num]
             return result.toString ()
         }
-        return parseInt (num).toString ()
+        return parseInt (num as any).toString ()
     }
-    , truncate = (num, precision = 0) => parseFloat (truncate_to_string (num, precision))
+    , truncate = (num: number, precision = 0) => parseFloat (truncate_to_string (num, precision))
 
-function precisionFromString (string) {
+function precisionFromString (string: string) {
     const split = string.replace (/0+$/g, '').split ('.')
     return (split.length > 1) ? (split[1].length) : 0
 }
 
 /*  ------------------------------------------------------------------------ */
 
-const decimalToPrecision = (x, roundingMode
-                             , numPrecisionDigits
-                             , countingMode       = DECIMAL_PLACES
-                             , paddingMode        = NO_PADDING) => {
+const decimalToPrecision = (x: number, roundingMode: number
+                             , numPrecisionDigits: number
+                             , countingMode: number       = DECIMAL_PLACES
+                             , paddingMode: number        = NO_PADDING): string => {
 
     if (numPrecisionDigits < 0) {
         if (countingMode === TICK_SIZE) {
@@ -97,7 +97,7 @@ const decimalToPrecision = (x, roundingMode
         }
         const toNearest = Math.pow (10, -numPrecisionDigits)
         if (roundingMode === ROUND) {
-            return (toNearest * decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ()
+            return (toNearest * (decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode) as any)).toString ()
         }
         if (roundingMode === TRUNCATE) {
             return (x - (x % toNearest)).toString ()
@@ -285,7 +285,7 @@ const decimalToPrecision = (x, roundingMode
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = {
+export default {
 
     numberToString,
     precisionFromString,
