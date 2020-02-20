@@ -31,7 +31,9 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                'fetchOrder': 'emulated', // no endpoint for a single open-or-closed order (just for an open/closed orders only)
+                'fetchOrder': false,
+                'fetchOpenOrder': true,
+                'fetchClosedOrder': true,
                 'fetchOrderTrades': true,
                 'fetchStatus': true,
                 'fetchTickers': true,
@@ -745,66 +747,85 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         const cid = this.safeValue (params, 'cid'); // client order id
-        const cidDate = this.safeValue (params, 'cidDate'); // client order id date
-        const request = {};
+        let request = undefined;
         if (cid !== undefined) {
-            request['cid'] = cid;
-        } else if (cidDate !== undefined) {
-            request['cid_date'] = cidDate;
+            const cidDate = this.safeValue (params, 'cidDate'); // client order id date
+            if (cidDate === undefined) {
+                throw new InvalidOrder (this.id + " canceling an order by client order id ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')");
+            }
+            request = {
+                'cid': cid,
+                'cid_date': cidDate,
+            };
         } else {
-            request['id'] = parseInt (id);
+            request = {
+                'id': parseInt (id),
+            };
         }
         const response = await this.privatePostAuthWOrderCancel (this.extend (request, params));
         const order = this.safeValue (response, 4);
         return this.parseOrder (order);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
-        const orderId = parseInt (id);
-        const filter = this.extend ({ 'id': [orderId] }, params);
-        const openOrders = await this.fetchOpenOrders (symbol, undefined, undefined, filter);
-        if ((this.isArray (openOrders)) && (openOrders.length > 0)) {
-            return openOrders[0];
+    async fetchOpenOrder (id, symbol = undefined, params = {}) {
+        const request = {
+            'id': [ parseInt (id) ],
+        };
+        const orders = await this.fetchOpenOrders (symbol, undefined, undefined, this.extend (request, params));
+        const order = this.safeValue (orders, 0);
+        if (order === undefined) {
+            throw new OrderNotFound (this.id + ' order ' + id + ' not found');
         }
-        const closedOrders = await this.fetchClosedOrders (symbol, undefined, undefined, filter);
-        if ((this.isArray (closedOrders)) && (closedOrders.length > 0)) {
-            return closedOrders[0];
+        return order;
+    }
+
+    async fetchClosedOrder (id, symbol = undefined, params = {}) {
+        const request = {
+            'id': [ parseInt (id) ],
+        };
+        const orders = await this.fetchClosedOrders (symbol, undefined, undefined, this.extend (request, params));
+        const order = this.safeValue (orders, 0);
+        if (order === undefined) {
+            throw new OrderNotFound (this.id + ' order ' + id + ' not found');
         }
-        throw new OrderNotFound (this.id + ' Order not found.');
+        return order;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        let response = undefined;
         if (symbol === undefined) {
-            const request = {};
-            const response = await this.privatePostAuthROrders (this.extend (request, params));
-            return this.parseOrders (response, undefined, since, limit);
+            response = await this.privatePostAuthROrders (this.extend (request, params));
         } else {
-            const market = this.market (symbol);
-            const request = {
-                'symbol': market['id'],
-            };
-            const response = await this.privatePostAuthROrdersSymbol (this.extend (request, params));
-            return this.parseOrders (response, market, since, limit);
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+            response = await this.privatePostAuthROrdersSymbol (this.extend (request, params));
         }
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // returns the most recent closed or canceled orders up to circa two weeks ago
         await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        let response = undefined;
         if (symbol === undefined) {
-            const request = {};
-            // Returns the most recent closed or canceled orders up to circa two weeks ago
-            const response = await this.privatePostAuthROrdersHist (this.extend (request, params));
-            return this.parseOrders (response, undefined, since, limit);
+            response = await this.privatePostAuthROrdersHist (this.extend (request, params));
         } else {
-            const market = this.market (symbol);
-            const request = {
-                'symbol': market['id'],
-            };
-            // Returns the most recent closed or canceled orders up to circa two weeks ago
-            const response = await this.privatePostAuthROrdersSymbolHist (this.extend (request, params));
-            return this.parseOrders (response, market, since, limit);
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+            response = await this.privatePostAuthROrdersSymbolHist (this.extend (request, params));
         }
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 25, max 2500
+        }
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -818,9 +839,9 @@ module.exports = class bitfinex2 extends bitfinex {
             'id': orderId,
             'symbol': market['id'],
         };
-        // Valid for trades upto 10 days old
+        // valid for trades upto 10 days old
         const response = await this.privatePostAuthROrderSymbolIdTrades (this.extend (request, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchDepositAddress (currency, params = {}) {
