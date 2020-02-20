@@ -183,6 +183,7 @@ module.exports = class kucoin extends Exchange {
             'commonCurrencies': {
                 'HOT': 'HOTNOW',
                 'EDGE': 'DADI', // https://github.com/ccxt/ccxt/issues/5756
+                'WAX': 'WAXP',
             },
             'options': {
                 'version': 'v1',
