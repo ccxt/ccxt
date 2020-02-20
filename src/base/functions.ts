@@ -9,7 +9,7 @@ const unCamelCasePropertyNames = (x: any) => {
 
 /*  ------------------------------------------------------------------------ */
 
-export = unCamelCasePropertyNames (Object.assign ({}
+module.exports = unCamelCasePropertyNames (Object.assign ({}
 
     , require ('./functions/platform')
     , require ('./functions/generic')
