@@ -16,6 +16,7 @@ before_install:
 - rm -rf node_modules
 - npm install
 - npm install web3@1.0.0-beta.37 ethereumjs-util ethereumjs-abi bignumber.js --no-save
+- npm install --global typescript
 - git checkout package.json package-lock.json
 - sudo wget --quiet https://github.com/jgm/pandoc/releases/download/2.2.1/pandoc-2.2.1-1-amd64.deb
 - sudo dpkg -i pandoc-2.2.1-1-amd64.deb
@@ -34,6 +35,7 @@ before_install:
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
 - cp package.json LICENSE.txt keys.json python
+- tsc
 - npm run build
 #- npm run git-unignore-generated-files
 - cd python
