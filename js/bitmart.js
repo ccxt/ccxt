@@ -150,6 +150,7 @@ module.exports = class bitmart extends Exchange {
             },
             'commonCurrencies': {
                 'ONE': 'Menlo One',
+                'PLA': 'Plair',
             },
         });
     }

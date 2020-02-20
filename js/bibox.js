@@ -171,8 +171,8 @@ module.exports = class bibox extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'baseId': base,
-                'quoteId': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': true,
                 'info': market,
                 'precision': precision,
@@ -400,7 +400,7 @@ module.exports = class bibox extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'symbol');
-            const name = this.safeString (currency, 'name');
+            const name = currency['name']; // contains hieroglyphs causing python ASCII bug
             const code = this.safeCurrencyCode (id);
             const precision = 8;
             const deposit = this.safeValue (currency, 'enable_deposit');
@@ -818,12 +818,21 @@ module.exports = class bibox extends Exchange {
         const response = await this.privatePostTransfer (request);
         //
         //     {
+        //         "result":"3Jx6RZ9TNMsAoy9NUzBwZf68QBppDruSKW","cmd":"transfer/transferIn"
+        //     }
+        //
+        //     {
         //         "result":"{\"account\":\"PERSONALLY OMITTED\",\"memo\":\"PERSONALLY OMITTED\"}","cmd":"transfer/transferIn"
         //     }
         //
-        const result = JSON.parse (this.safeString (response, 'result'));
-        const address = this.safeString (result, 'account');
-        const tag = this.safeString (result, 'memo');
+        const result = this.safeString (response, 'result');
+        let address = result;
+        let tag = undefined;
+        if (this.isJsonEncodedObject (result)) {
+            const parsed = JSON.parse (result);
+            address = this.safeString (parsed, 'account');
+            tag = this.safeString (parsed, 'memo');
+        }
         return {
             'currency': code,
             'address': address,

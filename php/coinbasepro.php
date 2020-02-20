@@ -157,12 +157,14 @@ class coinbasepro extends Exchange {
                     'invalid signature' => '\\ccxt\\AuthenticationError',
                     'Invalid Passphrase' => '\\ccxt\\AuthenticationError',
                     'Invalid order id' => '\\ccxt\\InvalidOrder',
+                    'Private rate limit exceeded' => '\\ccxt\\RateLimitExceeded',
                 ),
                 'broad' => array(
                     'Order already done' => '\\ccxt\\OrderNotFound',
                     'order not found' => '\\ccxt\\OrderNotFound',
                     'price too small' => '\\ccxt\\InvalidOrder',
                     'price too precise' => '\\ccxt\\InvalidOrder',
+                    'under maintenance' => '\\ccxt\\OnMaintenance',
                 ),
             ),
         ));
@@ -300,29 +302,46 @@ class coinbasepro extends Exchange {
         return $orderbook;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array(
-            'id' => $market['id'],
-        );
-        $ticker = $this->publicGetProductsIdTicker (array_merge($request, $params));
+    public function parse_ticker ($ticker, $market = null) {
+        //
+        // publicGetProductsIdTicker
+        //
+        //     {
+        //         "trade_id":843439,
+        //         "price":"0.997999",
+        //         "size":"80.29769",
+        //         "time":"2020-01-28T02:13:33.012523Z",
+        //         "$bid":"0.997094",
+        //         "$ask":"0.998",
+        //         "volume":"1903188.03750000"
+        //     }
+        //
+        // publicGetProductsIdStats
+        //
+        //     {
+        //         "open" => "34.19000000",
+        //         "high" => "95.70000000",
+        //         "low" => "7.06000000",
+        //         "volume" => "2.41000000"
+        //     }
+        //
         $timestamp = $this->parse8601 ($this->safe_value($ticker, 'time'));
         $bid = $this->safe_float($ticker, 'bid');
         $ask = $this->safe_float($ticker, 'ask');
         $last = $this->safe_float($ticker, 'price');
+        $symbol = ($market === null) ? null : $market['symbol'];
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => null,
-            'low' => null,
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
             'bid' => $bid,
             'bidVolume' => null,
             'ask' => $ask,
             'askVolume' => null,
             'vwap' => null,
-            'open' => null,
+            'open' => $this->safe_float($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
@@ -335,14 +354,69 @@ class coinbasepro extends Exchange {
         );
     }
 
+    public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array(
+            'id' => $market['id'],
+        );
+        // publicGetProductsIdTicker or publicGetProductsIdStats
+        $method = $this->safe_string($this->options, 'fetchTickerMethod', 'publicGetProductsIdTicker');
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // publicGetProductsIdTicker
+        //
+        //     {
+        //         "trade_id":843439,
+        //         "price":"0.997999",
+        //         "size":"80.29769",
+        //         "time":"2020-01-28T02:13:33.012523Z",
+        //         "bid":"0.997094",
+        //         "ask":"0.998",
+        //         "volume":"1903188.03750000"
+        //     }
+        //
+        // publicGetProductsIdStats
+        //
+        //     {
+        //         "open" => "34.19000000",
+        //         "high" => "95.70000000",
+        //         "low" => "7.06000000",
+        //         "volume" => "2.41000000"
+        //     }
+        //
+        return $this->parse_ticker($response, $market);
+    }
+
     public function parse_trade ($trade, $market = null) {
+        //
+        //     {
+        //         $type => 'match',
+        //         trade_id => 82047307,
+        //         maker_order_id => '0f358725-2134-435e-be11-753912a326e0',
+        //         taker_order_id => '252b7002-87a3-425c-ac73-f5b9e23f3caf',
+        //         $side => 'sell',
+        //         size => '0.00513192',
+        //         $price => '9314.78',
+        //         product_id => 'BTC-USD',
+        //         sequence => 12038915443,
+        //         time => '2020-01-31T20:03:41.158814Z'
+        //     }
+        //
         $timestamp = $this->parse8601 ($this->safe_string_2($trade, 'time', 'created_at'));
         $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($trade, 'product_id');
-            $market = $this->safe_value($this->markets_by_id, $marketId);
+        $marketId = $this->safe_string($trade, 'product_id');
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            } else {
+                list($baseId, $quoteId) = explode('-', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
         }
-        if ($market) {
+        if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
         $feeRate = null;
@@ -866,7 +940,7 @@ class coinbasepro extends Exchange {
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (($code === 400) || ($code === 404)) {
             if ($body[0] === '{') {
-                $message = $response['message'];
+                $message = $this->safe_string($response, 'message');
                 $feedback = $this->id . ' ' . $message;
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);

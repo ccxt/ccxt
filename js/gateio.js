@@ -34,18 +34,18 @@ module.exports = class gateio extends Exchange {
                 'fetchMyTrades': true,
             },
             'timeframes': {
-                '1m': '60',
-                '5m': '300',
-                '10m': '600',
-                '15m': '900',
-                '30m': '1800',
-                '1h': '3600',
-                '2h': '7200',
-                '4h': '14400',
-                '6h': '21600',
-                '12h': '43200',
-                '1d': '86400',
-                '1w': '604800',
+                '1m': 60,
+                '5m': 300,
+                '10m': 600,
+                '15m': 900,
+                '30m': 1800,
+                '1h': 3600,
+                '2h': 7200,
+                '4h': 14400,
+                '6h': 21600,
+                '12h': 43200,
+                '1d': 86400,
+                '1w': 604800,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
@@ -165,7 +165,7 @@ module.exports = class gateio extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const keys = Object.keys (market);
-            const id = keys[0];
+            const id = this.safeString (keys, 0);
             const details = market[id];
             // all of their symbols are separated with an underscore
             // but not boe_eth_eth (BOE_ETH/ETH) which has two underscores
@@ -731,7 +731,10 @@ module.exports = class gateio extends Exchange {
         const id = this.safeString (transaction, 'id');
         const txid = this.safeString (transaction, 'txid');
         const amount = this.safeFloat (transaction, 'amount');
-        const address = this.safeString (transaction, 'address');
+        let address = this.safeString (transaction, 'address');
+        if (address === 'false') {
+            address = undefined;
+        }
         const timestamp = this.safeTimestamp (transaction, 'timestamp');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const type = this.parseTransactionType (id[0]);

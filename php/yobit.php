@@ -298,7 +298,7 @@ class yobit extends Exchange {
         return $this->parse_order_book($orderbook);
     }
 
-    public function fetch_order_books ($symbols = null, $params = array ()) {
+    public function fetch_order_books ($symbols = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $ids = null;
         if ($symbols === null) {
@@ -314,7 +314,11 @@ class yobit extends Exchange {
         }
         $request = array(
             'pair' => $ids,
+            // 'ignore_invalid' => true,
         );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
         $response = $this->publicGetDepthPair (array_merge($request, $params));
         $result = array();
         $ids = is_array($response) ? array_keys($response) : array();

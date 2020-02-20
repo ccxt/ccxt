@@ -26,7 +26,7 @@ class adara(Exchange):
             'certified': False,
             # new metainfo interface
             'has': {
-                'CORS': True,
+                'CORS': False,
                 'fetchCurrencies': True,
                 'fetchOrderBooks': False,
                 'createMarketOrder': False,

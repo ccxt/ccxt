@@ -22,7 +22,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 
@@ -66,7 +66,11 @@ class gemini(Exchange):
                     'https://docs.gemini.com/rest-api',
                     'https://docs.sandbox.gemini.com',
                 ],
-                'test': 'https://api.sandbox.gemini.com',
+                'test': {
+                    'public': 'https://api.sandbox.gemini.com',
+                    'private': 'https://api.sandbox.gemini.com',
+                    'web': 'https://docs.sandbox.gemini.com',
+                },
                 'fees': [
                     'https://gemini.com/api-fee-schedule',
                     'https://gemini.com/trading-fees',
@@ -122,7 +126,7 @@ class gemini(Exchange):
                 '403': PermissionDenied,  # The API key is missing the role necessary to access self private API endpoint
                 '404': OrderNotFound,  # Unknown API entry point or Order not found
                 '406': InsufficientFunds,  # Insufficient Funds
-                '429': DDoSProtection,  # Rate Limiting was applied
+                '429': RateLimitExceeded,  # Rate Limiting was applied
                 '500': ExchangeError,  # The server encountered an error
                 '502': ExchangeError,  # Technical issues are preventing the request from being satisfied
                 '503': OnMaintenance,  # The exchange is down for maintenance
@@ -165,7 +169,7 @@ class gemini(Exchange):
                     'NoSSL': AuthenticationError,  # You must use HTTPS to access the API
                     'OptionsMustBeArray': BadRequest,  # The options parameter must be an array.
                     'OrderNotFound': OrderNotFound,  # The order specified was not found
-                    'RateLimit': DDoSProtection,  # Requests were made too frequently. See Rate Limits below.
+                    'RateLimit': RateLimitExceeded,  # Requests were made too frequently. See Rate Limits below.
                     'System': ExchangeError,  # We are experiencing technical issues
                     'UnsupportedOption': BadRequest,  # This order execution option is not supported.
                 },

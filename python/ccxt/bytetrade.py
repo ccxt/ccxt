@@ -543,6 +543,7 @@ class bytetrade(Exchange):
             typeNum = 1
         else:
             typeNum = 2
+            price = 0
         normalSymbol = market['normalSymbol']
         baseId = market['baseId']
         baseCurrency = self.currency(market['base'])
@@ -1202,7 +1203,7 @@ class bytetrade(Exchange):
             request = {
                 'chainType': chainId,
                 'trObj': self.json(fatty),
-                'chainContractAddresss': chainContractAddress,
+                'chainContractAddress': chainContractAddress,
             }
         else:
             operation = {
@@ -1241,14 +1242,14 @@ class bytetrade(Exchange):
                     'chainType': chainId,
                     'toExternalAddress': 'noneed',
                     'trObj': self.json(fatty),
-                    'chainContractAddresss': chainContractAddress,
+                    'chainContractAddress': chainContractAddress,
                 }
             else:
                 request = {
                     'chainType': chainId,
                     'toExternalAddress': address,
                     'trObj': self.json(fatty),
-                    'chainContractAddresss': chainContractAddress,
+                    'chainContractAddress': chainContractAddress,
                 }
         response = self.publicPostTransactionWithdraw(request)
         return {

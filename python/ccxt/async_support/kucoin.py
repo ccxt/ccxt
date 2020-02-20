@@ -16,7 +16,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
@@ -31,9 +30,10 @@ class kucoin(Exchange):
             'countries': ['SC'],
             'rateLimit': 334,
             'version': 'v2',
-            'certified': True,
+            'certified': False,
             'comment': 'Platform 2.0',
             'has': {
+                'CORS': False,
                 'fetchTime': True,
                 'fetchMarkets': True,
                 'fetchCurrencies': True,
@@ -156,7 +156,7 @@ class kucoin(Exchange):
                     '403': NotSupported,
                     '404': NotSupported,
                     '405': NotSupported,
-                    '429': DDoSProtection,
+                    '429': RateLimitExceeded,
                     '500': ExchangeError,
                     '503': ExchangeNotAvailable,
                     '200004': InsufficientFunds,
@@ -373,23 +373,46 @@ class kucoin(Exchange):
     def parse_ticker(self, ticker, market=None):
         #
         #     {
-        #         'buy': '0.00001168',
-        #         'changePrice': '-0.00000018',
-        #         'changeRate': '-0.0151',
-        #         'datetime': 1550661146316,
-        #         'high': '0.0000123',
-        #         'last': '0.00001169',
-        #         'low': '0.00001159',
-        #         'sell': '0.00001182',
-        #         'symbol': 'LOOM-BTC',
-        #         'vol': '44399.5669'
+        #         symbol: "ETH-BTC",
+        #         high: "0.019518",
+        #         vol: "7997.82836194",
+        #         last: "0.019329",
+        #         low: "0.019",
+        #         buy: "0.019329",
+        #         sell: "0.01933",
+        #         changePrice: "-0.000139",
+        #         time:  1580553706304,
+        #         averagePrice: "0.01926386",
+        #         changeRate: "-0.0071",
+        #         volValue: "154.40791568183474"
+        #     }
+        #
+        #     {
+        #         "trading": True,
+        #         "symbol": "KCS-BTC",
+        #         "buy": 0.00011,
+        #         "sell": 0.00012,
+        #         "sort": 100,
+        #         "volValue": 3.13851792584,   #total
+        #         "baseCurrency": "KCS",
+        #         "market": "BTC",
+        #         "quoteCurrency": "BTC",
+        #         "symbolCode": "KCS-BTC",
+        #         "datetime": 1548388122031,
+        #         "high": 0.00013,
+        #         "vol": 27514.34842,
+        #         "low": 0.0001,
+        #         "changePrice": -1.0e-5,
+        #         "changeRate": -0.0769,
+        #         "lastTradedPrice": 0.00012,
+        #         "board": 0,
+        #         "mark": 0
         #     }
         #
         percentage = self.safe_float(ticker, 'changeRate')
         if percentage is not None:
             percentage = percentage * 100
-        last = self.safe_float(ticker, 'last')
-        average = self.safe_float(ticker, 'averagePrice')
+        last = self.safe_float_2(ticker, 'last', 'lastTradedPrice')
         symbol = None
         marketId = self.safe_string(ticker, 'symbol')
         if marketId is not None:
@@ -404,10 +427,11 @@ class kucoin(Exchange):
         if symbol is None:
             if market is not None:
                 symbol = market['symbol']
+        timestamp = self.safe_integer_2(ticker, 'time', 'datetime')
         return {
             'symbol': symbol,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'buy'),
@@ -421,7 +445,7 @@ class kucoin(Exchange):
             'previousClose': None,
             'change': self.safe_float(ticker, 'changePrice'),
             'percentage': percentage,
-            'average': average,
+            'average': self.safe_float(ticker, 'averagePrice'),
             'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': self.safe_float(ticker, 'volValue'),
             'info': ticker,
@@ -947,6 +971,19 @@ class kucoin(Exchange):
         #         "time":1548848575203567174
         #     }
         #
+        #     {
+        #         sequence: '1568787654360',
+        #         symbol: 'BTC-USDT',
+        #         side: 'buy',
+        #         size: '0.00536577',
+        #         price: '9345',
+        #         takerOrderId: '5e356c4a9f1a790008f8d921',
+        #         time: '1580559434436443257',
+        #         type: 'match',
+        #         makerOrderId: '5e356bffedf0010008fa5d7f',
+        #         tradeId: '5e356c4aeefabd62c62a1ece'
+        #     }
+        #
         # fetchMyTrades(private) v2
         #
         #     {
@@ -1014,8 +1051,6 @@ class kucoin(Exchange):
             if market is not None:
                 symbol = market['symbol']
         id = self.safe_string_2(trade, 'tradeId', 'id')
-        if id is not None:
-            id = str(id)
         orderId = self.safe_string(trade, 'orderId')
         takerOrMaker = self.safe_string(trade, 'liquidity')
         amount = self.safe_float_2(trade, 'size', 'amount')

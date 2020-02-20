@@ -17,7 +17,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'certified': false,
             // new metainfo interface
             'has': {
-                'CORS': true,
+                'CORS': false,
                 'cancelAllOrders': true,
                 'createLimitOrder': true,
                 'createMarketOrder': true,
@@ -37,6 +37,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchTickers': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransactions': false,
                 'withdraw': true,
             },
             'timeframes': {

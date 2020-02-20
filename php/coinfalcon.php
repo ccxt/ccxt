@@ -424,7 +424,7 @@ class coinfalcon extends Exchange {
         }
         $ErrorClass = $this->safe_value(array(
             '401' => '\\ccxt\\AuthenticationError',
-            '429' => '\\ccxt\\DDoSProtection',
+            '429' => '\\ccxt\\RateLimitExceeded',
         ), $code, '\\ccxt\\ExchangeError');
         throw new $ErrorClass($body);
     }

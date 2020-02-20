@@ -313,6 +313,7 @@ class bitfinex extends Exchange {
                 'UTN' => 'UTNP',
                 'VSY' => 'VSYS',
                 'XCH' => 'XCHF',
+                'ZBT' => 'ZB',
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -414,7 +415,7 @@ class bitfinex extends Exchange {
                     'YOYOW' => 'yoyow',
                     'ZEC' => 'zcash',
                     'ZRX' => 'zrx',
-                    'XTZ' => 'tezos',
+                    'XTZ' => 'xtz',
                 ),
                 'orderTypes' => array(
                     'limit' => 'exchange limit',
@@ -546,11 +547,19 @@ class bitfinex extends Exchange {
         } else {
             $key = 'base';
         }
+        $code = $market[$key];
+        $currency = $this->safe_value($this->currencies, $code);
+        if ($currency !== null) {
+            $precision = $this->safe_integer($currency, 'precision');
+            if ($precision !== null) {
+                $cost = floatval ($this->currency_to_precision($code, $cost));
+            }
+        }
         return array(
             'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
-            'cost' => floatval ($this->currency_to_precision($market[$key], $cost)),
+            'cost' => $cost,
         );
     }
 
@@ -621,6 +630,7 @@ class bitfinex extends Exchange {
         if ($timestamp !== null) {
             $timestamp *= 1000;
         }
+        $timestamp = intval ($timestamp);
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];

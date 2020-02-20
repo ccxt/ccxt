@@ -324,6 +324,7 @@ class bitfinex(Exchange):
                 'UTN': 'UTNP',
                 'VSY': 'VSYS',
                 'XCH': 'XCHF',
+                'ZBT': 'ZB',
             },
             'exceptions': {
                 'exact': {
@@ -425,7 +426,7 @@ class bitfinex(Exchange):
                     'YOYOW': 'yoyow',
                     'ZEC': 'zcash',
                     'ZRX': 'zrx',
-                    'XTZ': 'tezos',
+                    'XTZ': 'xtz',
                 },
                 'orderTypes': {
                     'limit': 'exchange limit',
@@ -547,11 +548,17 @@ class bitfinex(Exchange):
             cost *= price
         else:
             key = 'base'
+        code = market[key]
+        currency = self.safe_value(self.currencies, code)
+        if currency is not None:
+            precision = self.safe_integer(currency, 'precision')
+            if precision is not None:
+                cost = float(self.currency_to_precision(code, cost))
         return {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': float(self.currency_to_precision(market[key], cost)),
+            'cost': cost,
         }
 
     def fetch_balance(self, params={}):
@@ -611,6 +618,7 @@ class bitfinex(Exchange):
         timestamp = self.safe_float(ticker, 'timestamp')
         if timestamp is not None:
             timestamp *= 1000
+        timestamp = int(timestamp)
         symbol = None
         if market is not None:
             symbol = market['symbol']

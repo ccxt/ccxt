@@ -10,6 +10,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import AddressPending
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
@@ -436,7 +437,7 @@ class upbit(Exchange):
         quote = self.safe_currency_code(quoteId)
         return base + '/' + quote
 
-    def fetch_order_books(self, symbols=None, params={}):
+    def fetch_order_books(self, symbols=None, limit=None, params={}):
         self.load_markets()
         ids = None
         if symbols is None:
@@ -495,7 +496,7 @@ class upbit(Exchange):
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
-        orderbooks = self.fetch_order_books([symbol], params)
+        orderbooks = self.fetch_order_books([symbol], limit, params)
         return self.safe_value(orderbooks, symbol)
 
     def parse_ticker(self, ticker, market=None):
@@ -1322,7 +1323,8 @@ class upbit(Exchange):
         request = {
             'currency': currency['id'],
         }
-        response = self.fetch_deposit_address(code, self.extend(request, params))
+        # https://github.com/ccxt/ccxt/issues/6452
+        response = self.privatePostDepositsGenerateCoinAddress(self.extend(request, params))
         #
         # https://docs.upbit.com/v1.0/reference#%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD
         # can be any of the two responses:
@@ -1340,12 +1342,7 @@ class upbit(Exchange):
         #
         message = self.safe_string(response, 'message')
         if message is not None:
-            return {
-                'currency': code,
-                'address': None,
-                'tag': None,
-                'info': response,
-            }
+            raise AddressPending(self.id + ' is generating ' + code + ' deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address')
         return self.parse_deposit_address(response)
 
     def withdraw(self, code, amount, address, tag=None, params={}):

@@ -114,12 +114,9 @@ class poloniex extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    // https://github.com/ccxt/ccxt/issues/6064
-                    // starting from October 21, 2019 17:00 UTC
-                    // all spot trading fees will be reduced to 0.00%
-                    // until December 31, 2019 23:59 UTC
-                    'maker' => 0.0,
-                    'taker' => 0.0,
+                    // starting from Jan 8 2020
+                    'maker' => 0.0009,
+                    'taker' => 0.0009,
                 ),
                 'funding' => array(),
             ),
@@ -236,7 +233,7 @@ class poloniex extends Exchange {
             if ($limit === null) {
                 $request['start'] = $request['end'] - $this->parse_timeframe('1w'); // max range = 1 week
             } else {
-                $request['start'] = $request['end'] - $this->sum ($limit) * $this->parse_timeframe($timeframe);
+                $request['start'] = $request['end'] - $limit * $this->parse_timeframe($timeframe);
             }
         } else {
             $request['start'] = intval ($since / 1000);
@@ -330,16 +327,14 @@ class poloniex extends Exchange {
         return $orderbook;
     }
 
-    public function fetch_order_books ($symbols = null, $params = array ()) {
+    public function fetch_order_books ($symbols = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'currencyPair' => 'all',
         );
-        //
-        //     if (limit !== null) {
-        //         $request['depth'] = limit; // 100
-        //     }
-        //
+        if ($limit !== null) {
+            $request['depth'] = $limit; // 100
+        }
         $response = $this->publicGetReturnOrderBook (array_merge($request, $params));
         $marketIds = is_array($response) ? array_keys($response) : array();
         $result = array();

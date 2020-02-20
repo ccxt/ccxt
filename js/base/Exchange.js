@@ -1,6 +1,6 @@
 "use strict";
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
 const functions = require ('./functions')
 
@@ -38,7 +38,8 @@ const {
     , AuthenticationError
     , DDoSProtection
     , RequestTimeout
-    , ExchangeNotAvailable } = require ('./errors')
+    , ExchangeNotAvailable
+    , RateLimitExceeded } = require ('./errors')
 
 const { TRUNCATE, ROUND, DECIMAL_PLACES } = functions.precisionConstants
 
@@ -104,6 +105,7 @@ module.exports = class Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
+                'fetchOrderTrades': false,
                 'fetchStatus': 'emulated',
                 'fetchTicker': true,
                 'fetchTickers': false,
@@ -164,7 +166,7 @@ module.exports = class Exchange {
             'httpExceptions': {
                 '422': ExchangeError,
                 '418': DDoSProtection,
-                '429': DDoSProtection,
+                '429': RateLimitExceeded,
                 '404': ExchangeNotAvailable,
                 '409': ExchangeNotAvailable,
                 '500': ExchangeNotAvailable,
@@ -256,12 +258,13 @@ module.exports = class Exchange {
         this.walletAddress = undefined // a wallet address "0x"-prefixed hexstring
         this.token         = undefined // reserved for HTTP auth in some cases
 
-        this.balance     = {}
-        this.orderbooks  = {}
-        this.tickers     = {}
-        this.orders      = {}
-        this.trades      = {}
+        this.balance      = {}
+        this.orderbooks   = {}
+        this.tickers      = {}
+        this.orders       = {}
+        this.trades       = {}
         this.transactions = {}
+        this.ohlcvs       = {}
 
         this.requiresWeb3 = false
         this.precision = {}
@@ -364,7 +367,6 @@ module.exports = class Exchange {
             throw new Error (this.id + '.rateLimit property is not configured')
 
         this.tokenBucket = this.extend ({
-            refillRate:  1 / this.rateLimit,
             delay:       1,
             capacity:    1,
             defaultCost: 1,
@@ -408,7 +410,7 @@ module.exports = class Exchange {
     }
 
     setSandboxMode (enabled) {
-        if (!!enabled) {
+        if (!!enabled) { // eslint-disable-line no-extra-boolean-cast
             if ('test' in this.urls) {
                 if (typeof this.urls['api'] === 'string') {
                     this.urls['api_backup'] = this.urls['api']
@@ -504,7 +506,7 @@ module.exports = class Exchange {
     async fetch2 (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
 
         if (this.enableRateLimit)
-            await this.throttle ()
+            await this.throttle (this.rateLimit)
 
         const request = this.sign (path, type, method, params, headers, body)
         return this.fetch (request.url, request.method, request.headers, request.body)
@@ -634,7 +636,7 @@ module.exports = class Exchange {
             'limits': this.limits,
             'precision': this.precision,
         }, this.fees['trading'], market))
-        this.markets = deepExtend (this.markets, indexBy (values, 'symbol'))
+        this.markets = indexBy (values, 'symbol')
         this.marketsById = indexBy (markets, 'id')
         this.markets_by_id = this.marketsById
         this.symbols = Object.keys (this.markets).sort ()
@@ -939,13 +941,13 @@ module.exports = class Exchange {
 
     parseBalance (balance) {
 
-        const currencies = Object.keys (this.omit (balance, 'info'));
+        const currencies = Object.keys (this.omit (balance, [ 'info', 'free', 'used', 'total' ]));
 
         balance['free'] = {}
         balance['used'] = {}
         balance['total'] = {}
 
-        currencies.forEach ((currency) => {
+        for (const currency of currencies) {
 
             if (balance[currency].total === undefined) {
                 if (balance[currency].free !== undefined && balance[currency].used !== undefined) {
@@ -963,11 +965,10 @@ module.exports = class Exchange {
                 }
             }
 
-            [ 'free', 'used', 'total' ].forEach ((account) => {
-                balance[account] = balance[account] || {}
-                balance[account][currency] = balance[currency][account]
-            })
-        })
+            balance.free[currency] = balance[currency].free
+            balance.used[currency] = balance[currency].used
+            balance.total[currency] = balance[currency].total
+        }
 
         return balance
     }
@@ -1024,9 +1025,9 @@ module.exports = class Exchange {
         return this.markets;
     }
 
-    filterBySinceLimit (array, since = undefined, limit = undefined) {
+    filterBySinceLimit (array, since = undefined, limit = undefined, key = 'timestamp') {
         if (since !== undefined && since !== null)
-            array = array.filter (entry => entry.timestamp >= since)
+            array = array.filter (entry => entry[key] >= since)
         if (limit !== undefined && limit !== null)
             array = array.slice (0, limit)
         return array

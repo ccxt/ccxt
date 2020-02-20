@@ -22,7 +22,7 @@ class bitfinex2(bitfinex):
             'certified': False,
             # new metainfo interface
             'has': {
-                'CORS': True,
+                'CORS': False,
                 'createLimitOrder': False,
                 'createMarketOrder': False,
                 'createOrder': False,
@@ -38,6 +38,7 @@ class bitfinex2(bitfinex):
                 'fetchTickers': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransactions': False,
                 'withdraw': True,
             },
             'timeframes': {

@@ -17,7 +17,7 @@ module.exports = class tidebit extends Exchange {
             'version': 'v2',
             'has': {
                 'fetchDepositAddress': true,
-                'CORS': true,
+                'CORS': false,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'withdraw': true,

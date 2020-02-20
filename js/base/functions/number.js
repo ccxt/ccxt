@@ -106,9 +106,12 @@ const decimalToPrecision = (x, roundingMode
 
 /*  handle tick size */
     if (countingMode === TICK_SIZE) {
+        const precisionDigitsString = decimalToPrecision (numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING)
+        const newNumPrecisionDigits = precisionFromString (precisionDigitsString)
         const missing = x % numPrecisionDigits
-        const reminder = x / numPrecisionDigits
-        if (reminder !== Math.floor (reminder)) {
+        // See: https://github.com/ccxt/ccxt/pull/6486
+        const fpError = decimalToPrecision (missing / numPrecisionDigits, ROUND, Math.max (newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING)
+        if (precisionFromString (fpError) !== 0) {
             if (roundingMode === ROUND) {
                 if (x > 0) {
                     if (missing >= numPrecisionDigits / 2) {
@@ -127,8 +130,6 @@ const decimalToPrecision = (x, roundingMode
                 x = x - missing
             }
         }
-        const precisionDigitsString = decimalToPrecision (numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING)
-        const newNumPrecisionDigits = precisionFromString (precisionDigitsString)
         return decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
     }
 

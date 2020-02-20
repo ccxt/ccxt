@@ -323,9 +323,6 @@ class crex24(Exchange):
         #         }
         #     ]
         #
-        # log = require('ololog').unlimited.green
-        # log(response)
-        # sys.exit()
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]

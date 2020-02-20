@@ -176,8 +176,8 @@ class bibox extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'baseId' => $base,
-                'quoteId' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'active' => true,
                 'info' => $market,
                 'precision' => $precision,
@@ -405,7 +405,7 @@ class bibox extends Exchange {
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $this->safe_string($currency, 'symbol');
-            $name = $this->safe_string($currency, 'name');
+            $name = $currency['name']; // contains hieroglyphs causing python ASCII bug
             $code = $this->safe_currency_code($id);
             $precision = 8;
             $deposit = $this->safe_value($currency, 'enable_deposit');
@@ -823,12 +823,21 @@ class bibox extends Exchange {
         $response = $this->privatePostTransfer ($request);
         //
         //     {
+        //         "$result":"3Jx6RZ9TNMsAoy9NUzBwZf68QBppDruSKW","cmd":"transfer/transferIn"
+        //     }
+        //
+        //     {
         //         "$result":"array(\"account\":\"PERSONALLY OMITTED\",\"memo\":\"PERSONALLY OMITTED\")","cmd":"transfer/transferIn"
         //     }
         //
-        $result = json_decode($this->safe_string($response, 'result', $as_associative_array = true));
-        $address = $this->safe_string($result, 'account');
-        $tag = $this->safe_string($result, 'memo');
+        $result = $this->safe_string($response, 'result');
+        $address = $result;
+        $tag = null;
+        if ($this->is_json_encoded_object($result)) {
+            $parsed = json_decode($result, $as_associative_array = true);
+            $address = $this->safe_string($parsed, 'account');
+            $tag = $this->safe_string($parsed, 'memo');
+        }
         return array(
             'currency' => $code,
             'address' => $address,

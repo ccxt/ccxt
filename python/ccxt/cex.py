@@ -13,6 +13,7 @@ except NameError:
     basestring = str  # Python 2
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NullResponse
 from ccxt.base.errors import InsufficientFunds
@@ -32,7 +33,7 @@ class cex(Exchange):
             'countries': ['GB', 'EU', 'CY', 'RU'],
             'rateLimit': 1500,
             'has': {
-                'CORS': True,
+                'CORS': False,
                 'fetchCurrencies': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,
@@ -143,6 +144,8 @@ class cex(Exchange):
                     'Invalid Order': InvalidOrder,
                     'Order not found': OrderNotFound,
                     'Rate limit exceeded': RateLimitExceeded,
+                    'Invalid API key': AuthenticationError,
+                    'There was an error while placing your order': InvalidOrder,
                 },
             },
             'options': {

@@ -31,7 +31,7 @@ class hitbtc2(hitbtc):
             'has': {
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
-                'CORS': True,
+                'CORS': False,
                 'editOrder': True,
                 'fetchCurrencies': True,
                 'fetchOHLCV': True,

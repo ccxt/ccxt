@@ -31,7 +31,7 @@ class bw extends Exchange {
                 'editOrder' => false,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => false,
-                'fetchClosedOrders' => false,
+                'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
@@ -80,18 +80,10 @@ class bw extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'tierBased' => true,
+                    'tierBased' => false,
                     'percentage' => true,
                     'taker' => 0.2 / 100,
                     'maker' => 0.2 / 100,
-                    'tiers' => array(
-                        'taker' => array(
-                            array( 0, 0.2 / 100 ),
-                        ),
-                        'maker' => array(
-                            array( 0, 0.2 / 100 ),
-                        ),
-                    ),
                 ),
                 'funding' => array(
                 ),
@@ -100,6 +92,7 @@ class bw extends Exchange {
                 'exact' => array(
                     '999' => '\\ccxt\\AuthenticationError',
                     '1000' => '\\ccxt\\ExchangeNotAvailable', // array("datas":null,"resMsg":array("message":"getKlines error:data not exitsts\uff0cplease wait ,dataType=4002_KLINE_1M","method":null,"code":"1000"))
+                    '2012' => '\\ccxt\\OrderNotFound', // array("datas":null,"resMsg":array("message":"entrust not exists or on dealing with system","method":null,"code":"2012"))
                     '5017' => '\\ccxt\\BadSymbol', // array("datas":null,"resMsg":array("message":"market not exist","method":null,"code":"5017"))
                 ),
             ),
@@ -122,6 +115,7 @@ class bw extends Exchange {
                         'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
                         'exchange/fund/controller/website/fundwebsitecontroller/getwithdrawaddress',
                         'exchange/fund/controller/website/fundwebsitecontroller/getpayoutcoinrecord',
+                        'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
                         // the docs say that the following URLs are HTTP POST
                         // in the docs header and HTTP GET in the docs body
                         // the docs contradict themselves, a typo most likely
@@ -316,7 +310,7 @@ class bw extends Exchange {
                     ),
                     'withdraw' => array(
                         'min' => null,
-                        'max' => floatval ($this->safe_integer($currency, 'onceDrawLimit')),
+                        'max' => $this->safe_float($currency, 'onceDrawLimit'),
                     ),
                 ),
             );
@@ -345,8 +339,10 @@ class bw extends Exchange {
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
         }
-        if (($symbol === null) && ($market !== null)) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        } else {
+            $symbol = $marketId;
         }
         $timestamp = $this->milliseconds ();
         $close = floatval ($this->safe_value($ticker, 1));
@@ -616,7 +612,7 @@ class bw extends Exchange {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
-            $currencyId = $this->safe_integer($balance, 'currencyTypeId');
+            $currencyId = $this->safe_string($balance, 'currencyTypeId');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'amount');
@@ -864,6 +860,27 @@ class bw extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array(
+            'marketId' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['pageSize'] = $limit; // default $limit is 20
+        }
+        if ($since !== null) {
+            $request['startDateTime'] = $since;
+        }
+        $response = $this->privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustList (array_merge($request, $params));
+        $data = $this->safe_value($response, 'datas', array());
+        $orders = $this->safe_value($data, 'entrustList', array());
+        return $this->parse_orders($orders, $market, $since, $limit);
+    }
+
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
@@ -935,7 +952,7 @@ class bw extends Exchange {
                 $keys = is_array($sortedParams) ? array_keys($sortedParams) : array();
                 for ($i = 0; $i < count($keys); $i++) {
                     $key = $keys[$i];
-                    $content .= $key . $sortedParams[$key];
+                    $content .= $key . (string) $sortedParams[$key];
                 }
             } else {
                 $content = $body;

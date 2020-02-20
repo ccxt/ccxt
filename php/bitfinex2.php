@@ -21,7 +21,7 @@ class bitfinex2 extends bitfinex {
             'certified' => false,
             // new metainfo interface
             'has' => array(
-                'CORS' => true,
+                'CORS' => false,
                 'createLimitOrder' => false,
                 'createMarketOrder' => false,
                 'createOrder' => false,
@@ -37,6 +37,7 @@ class bitfinex2 extends bitfinex {
                 'fetchTickers' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransactions' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(

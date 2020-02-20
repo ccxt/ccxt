@@ -17,7 +17,7 @@ class btctradeua(Exchange):
             'countries': ['UA'],  # Ukraine,
             'rateLimit': 3000,
             'has': {
-                'CORS': True,
+                'CORS': False,
                 'createMarketOrder': False,
                 'fetchOpenOrders': True,
             },

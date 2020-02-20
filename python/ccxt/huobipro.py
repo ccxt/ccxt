@@ -99,14 +99,22 @@ class huobipro(Exchange):
                     ],
                 },
                 'private': {
+                    # todo add v2 endpoints
+                    # 'GET /v2/account/withdraw/quota
+                    # 'GET /v2/reference/currencies
+                    # 'GET /v2/account/deposit/address
                     'get': [
                         'account/accounts',  # 查询当前用户的所有账户(即account-id)
                         'account/accounts/{id}/balance',  # 查询指定账户的余额
+                        'account/accounts/{sub-uid}',
                         'account/history',
+                        'cross-margin/loan-info',
+                        'fee/fee-rate/get',
                         'order/openOrders',
                         'order/orders',
                         'order/orders/{id}',  # 查询某个订单详情
                         'order/orders/{id}/matchresults',  # 查询某个订单的成交明细
+                        'order/orders/getClientOrder',
                         'order/history',  # 查询当前委托、历史委托
                         'order/matchresults',  # 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses',  # 查询虚拟币提现地址
@@ -116,9 +124,17 @@ class huobipro(Exchange):
                         'points/actions',
                         'points/orders',
                         'subuser/aggregate-balance',
+                        'stable-coin/exchange_rate',
+                        'stable-coin/quote',
                     ],
+                    # todo add v2 endpoints
+                    # POST /v2/sub-user/management
                     'post': [
+                        'futures/transfer',
+                        'order/batch-orders',
                         'order/orders/place',  # 创建并执行一个新订单(一步下单， 推荐使用)
+                        'order/orders/submitCancelClientOrder',
+                        'order/orders/batchCancelOpenOrders',
                         'order/orders',  # 创建一个新的订单请求 （仅创建订单，不执行下单）
                         'order/orders/{id}/place',  # 执行一个订单 （仅执行已创建的订单）
                         'order/orders/{id}/submitcancel',  # 申请撤销一个订单请求
@@ -132,6 +148,7 @@ class huobipro(Exchange):
                         'dw/transfer-out/margin',  # 借贷账户划出至现货账户
                         'margin/orders',  # 申请借贷
                         'margin/orders/{id}/repay',  # 归还借贷
+                        'stable-coin/exchange',
                         'subuser/transfer',
                     ],
                 },
@@ -664,6 +681,8 @@ class huobipro(Exchange):
         return getattr(self, method)(symbol, since, limit, params)
 
     def fetch_open_orders_v1(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOpenOrdersV1 requires a symbol argument')
         return self.fetch_orders_by_states('pre-submitted,submitted,partial-filled', symbol, since, limit, params)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):

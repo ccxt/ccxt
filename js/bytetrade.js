@@ -575,6 +575,7 @@ module.exports = class bytetrade extends Exchange {
             typeNum = 1;
         } else {
             typeNum = 2;
+            price = 0;
         }
         const normalSymbol = market['normalSymbol'];
         const baseId = market['baseId'];
@@ -1281,7 +1282,7 @@ module.exports = class bytetrade extends Exchange {
             request = {
                 'chainType': chainId,
                 'trObj': this.json (fatty),
-                'chainContractAddresss': chainContractAddress,
+                'chainContractAddress': chainContractAddress,
             };
         } else {
             operation = {
@@ -1320,14 +1321,14 @@ module.exports = class bytetrade extends Exchange {
                     'chainType': chainId,
                     'toExternalAddress': 'noneed',
                     'trObj': this.json (fatty),
-                    'chainContractAddresss': chainContractAddress,
+                    'chainContractAddress': chainContractAddress,
                 };
             } else {
                 request = {
                     'chainType': chainId,
                     'toExternalAddress': address,
                     'trObj': this.json (fatty),
-                    'chainContractAddresss': chainContractAddress,
+                    'chainContractAddress': chainContractAddress,
                 };
             }
         }
