@@ -59,7 +59,8 @@
     "eslint-config-airbnb-base": "12.1.0",
     "eslint-plugin-import": "2.16.0",
     "mocha": "5.2.0",
-    "ololog": "1.1.121"
+    "ololog": "1.1.121",
+    "typescript": "^3.7.5"
   },
   "author": {
     "name": "Igor Kroitor",
