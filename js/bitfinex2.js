@@ -592,22 +592,16 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     parseOrderStatus (status) {
-        if (status === 'ACTIVE') {
-            return 'open';
-        } else if (status === 'PARTIALLY FILLED') {
-            return 'open';
-        } else if (status === 'EXECUTED') {
-            return 'closed';
-        } else if (status === 'CANCELED') {
-            return 'canceled';
-        } else if (status === 'INSUFFICIENT MARGIN') {
-            return 'rejected';  // ???
-        } else if (status === 'RSN_DUST') {
-            return 'rejected';  // ???
-        } else if (status === 'RSN_PAUSE') {
-            return 'rejected';  // ???
-        }
-        return status;
+        const statuses = {
+            'ACTIVE': 'open',
+            'PARTIALLY FILLED': 'open',
+            'EXECUTED': 'closed',
+            'CANCELED': 'canceled',
+            'INSUFFICIENT MARGIN': 'rejected',
+            'RSN_DUST': 'rejected',
+            'RSN_PAUSE': 'rejected',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
