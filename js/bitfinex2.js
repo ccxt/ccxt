@@ -233,9 +233,13 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchStatus (params = {}) {
-        // [1]=operative, [0]=maintenance
+        //
+        //    [1] // operative
+        //    [0] // maintenance
+        //
         const response = await this.publicGetPlatformStatus (params);
-        const formattedStatus = (response[0] === 1) ? 'ok' : 'maintenance';
+        const status = this.safeValue (response, 0);
+        const formattedStatus = (status === 1) ? 'ok' : 'maintenance';
         this.status = this.extend (this.status, {
             'status': formattedStatus,
             'updated': this.milliseconds (),
