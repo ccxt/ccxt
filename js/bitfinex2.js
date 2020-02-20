@@ -739,18 +739,23 @@ module.exports = class bitfinex2 extends bitfinex {
             'all': 1,
         };
         const response = await this.privatePostAuthWOrderCancelMulti (this.extend (request, params));
-        const orders = response[4];
+        const orders = this.safeValue (response, 4, []);
         return this.parseOrders (orders);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        const orderId = parseInt (id);
-        const request = {
-            'id': orderId,
-        };
-        // Also can cancel order by Client Order ID and Client Order ID Date (cid and cid_date in params)
+        const cid = this.safeValue (params, 'cid'); // client order id
+        const cidDate = this.safeValue (params, 'cidDate'); // client order id date
+        const request = {};
+        if (cid !== undefined) {
+            request['cid'] = cid;
+        } else if (cidDate !== undefined) {
+            request['cid_date'] = cidDate;
+        } else {
+            request['id'] = parseInt (id);
+        }
         const response = await this.privatePostAuthWOrderCancel (this.extend (request, params));
-        const order = response[4];
+        const order = this.safeValue (response, 4);
         return this.parseOrder (order);
     }
 
