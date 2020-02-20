@@ -185,21 +185,31 @@ module.exports = class bitfinex2 extends bitfinex {
             },
             'options': {
                 'precision': 'R0', // P0, P1, P2, P3, P4, R0
+                // convert 'EXCHANGE MARKET' to lowercase 'market'
+                // convert 'EXCHANGE LIMIT' to lowercase 'limit'
+                // everything else remains uppercase
                 'orderTypes': {
-                    'MARKET': undefined,
+                    // 'MARKET': undefined,
                     'EXCHANGE MARKET': 'market',
-                    'LIMIT': undefined,
+                    // 'LIMIT': undefined,
                     'EXCHANGE LIMIT': 'limit',
-                    'STOP': undefined,
-                    'EXCHANGE STOP': 'stopOrLoss',
-                    'TRAILING STOP': undefined,
-                    'EXCHANGE TRAILING STOP': undefined,
-                    'FOK': undefined,
-                    'EXCHANGE FOK': 'limit FOK',
-                    'STOP LIMIT': undefined,
-                    'EXCHANGE STOP LIMIT': 'limit stop',
-                    'IOC': undefined,
-                    'EXCHANGE IOC': 'limit ioc',
+                    // 'STOP': undefined,
+                    // 'EXCHANGE STOP': undefined,
+                    // 'TRAILING STOP': undefined,
+                    // 'EXCHANGE TRAILING STOP': undefined,
+                    // 'FOK': undefined,
+                    // 'EXCHANGE FOK': undefined,
+                    // 'STOP LIMIT': undefined,
+                    // 'EXCHANGE STOP LIMIT': undefined,
+                    // 'IOC': undefined,
+                    // 'EXCHANGE IOC': undefined,
+                },
+                // convert 'market' to 'EXCHANGE MARKET'
+                // convert 'limit' 'EXCHANGE LIMIT'
+                // everything else remains as is
+                'exchangeTypes': {
+                    'market': 'EXCHANGE MARKET',
+                    'limit': 'EXCHANGE LIMIT',
                 },
                 'fiat': {
                     'USD': 'USD',
@@ -597,7 +607,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'PARTIALLY FILLED': 'open',
             'EXECUTED': 'closed',
             'CANCELED': 'canceled',
-            'INSUFFICIENT MARGIN': 'rejected',
+            'INSUFFICIENT MARGIN': 'canceled',
             'RSN_DUST': 'rejected',
             'RSN_PAUSE': 'rejected',
         };
@@ -654,78 +664,74 @@ module.exports = class bitfinex2 extends bitfinex {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const orderTypes = this.options['orderTypes'];
-        let orderType = undefined;
-        const nativeOrderTypes = Object.keys (orderTypes);
-        for (let i = 0; i < nativeOrderTypes.length; i++) {
-            const key = nativeOrderTypes[i];
-            if ((orderTypes[key] !== undefined) && (orderTypes[key] === type)) {
-                orderType = key;
-                break;
-            }
-        }
+        const exchangeTypes = this.safeValue (this.options, 'exchangeTypes', {});
+        const orderType = this.safeString (exchangeTypes, type, type);
+        amount = (side === 'sell') ? -amount : amount;
         const request = {
             'symbol': market['id'],
             'type': orderType,
-            'amount': (side === 'sell') ? -amount : amount,
+            'amount': this.numberToString (amount),
         };
-        // Amount and price should be strings (not numbers)
-        request['amount'] = this.numberToString (request['amount']);
         if (type !== 'market') {
             request['price'] = this.numberToString (price);
         }
         const response = await this.privatePostAuthWOrderSubmit (this.extend (request, params));
-        // [
-        //   1578784364.748,    // Millisecond Time Stamp of the update
-        //   "on-req",          // Purpose of notification ('on-req', 'oc-req', 'uca', 'fon-req', 'foc-req')
-        //   null,              // Unique ID of the message
-        //   null,              // Ignore
-        //   [
+        //
         //     [
-        //       37271830598,           // Order ID
-        //       null,                  // Group ID
-        //       1578784364748,         // Client Order ID
-        //       "tBTCUST",             // Pair
-        //       1578784364748,         // Millisecond timestamp of creation
-        //       1578784364748,         // Millisecond timestamp of update
-        //       -0.005,                // Positive means buy, negative means sell
-        //       -0.005,                // Original amount
-        //       "EXCHANGE LIMIT",      // Order type (LIMIT, MARKET, STOP, TRAILING STOP, EXCHANGE MARKET, EXCHANGE LIMIT, EXCHANGE STOP, EXCHANGE TRAILING STOP, FOK, EXCHANGE FOK, IOC, EXCHANGE IOC)
-        //       null,                  // Previous order type
-        //       null,                  // Millisecond timestamp of Time-In-Force: automatic order cancellation
-        //       null,                  // Ignore
-        //       0,                     // Flags (see https://docs.bitfinex.com/docs/flag-values)
-        //       "ACTIVE",              // Order Status
-        //       null,                  // Ignore
-        //       null,                  // Ignore
-        //       20000,                 // Price
-        //       0,                     // Average price
-        //       0,                     // The trailing price
-        //       0,                     // Auxiliary Limit price (for STOP LIMIT)
-        //       null,                  // Ignore
-        //       null,                  // Ignore
-        //       null,                  // Ignore
-        //       0,                     // 1 - hidden order
-        //       null,                  // If another order caused this order to be placed (OCO) this will be that other order's ID
-        //       null,                  // Ignore
-        //       null,                  // Ignore
-        //       null,                  // Ignore
-        //       "API>BFX",             // Origin of action: BFX, ETHFX, API>BFX, API>ETHFX
-        //       null,                  // Ignore
-        //       null,                  // Ignore
-        //       null                   // Meta
+        //         1578784364.748,    // Millisecond Time Stamp of the update
+        //         "on-req",          // Purpose of notification ('on-req', 'oc-req', 'uca', 'fon-req', 'foc-req')
+        //         null,              // Unique ID of the message
+        //         null,              // Ignore
+        //         [
+        //             [
+        //                 37271830598,           // Order ID
+        //                 null,                  // Group ID
+        //                 1578784364748,         // Client Order ID
+        //                 "tBTCUST",             // Pair
+        //                 1578784364748,         // Millisecond timestamp of creation
+        //                 1578784364748,         // Millisecond timestamp of update
+        //                 -0.005,                // Positive means buy, negative means sell
+        //                 -0.005,                // Original amount
+        //                 "EXCHANGE LIMIT",      // Order type (LIMIT, MARKET, STOP, TRAILING STOP, EXCHANGE MARKET, EXCHANGE LIMIT, EXCHANGE STOP, EXCHANGE TRAILING STOP, FOK, EXCHANGE FOK, IOC, EXCHANGE IOC)
+        //                 null,                  // Previous order type
+        //                 null,                  // Millisecond timestamp of Time-In-Force: automatic order cancellation
+        //                 null,                  // Ignore
+        //                 0,                     // Flags (see https://docs.bitfinex.com/docs/flag-values)
+        //                 "ACTIVE",              // Order Status
+        //                 null,                  // Ignore
+        //                 null,                  // Ignore
+        //                 20000,                 // Price
+        //                 0,                     // Average price
+        //                 0,                     // The trailing price
+        //                 0,                     // Auxiliary Limit price (for STOP LIMIT)
+        //                 null,                  // Ignore
+        //                 null,                  // Ignore
+        //                 null,                  // Ignore
+        //                 0,                     // 1 - hidden order
+        //                 null,                  // If another order caused this order to be placed (OCO) this will be that other order's ID
+        //                 null,                  // Ignore
+        //                 null,                  // Ignore
+        //                 null,                  // Ignore
+        //                 "API>BFX",             // Origin of action: BFX, ETHFX, API>BFX, API>ETHFX
+        //                 null,                  // Ignore
+        //                 null,                  // Ignore
+        //                 null                   // Meta
+        //             ]
+        //         ],
+        //         null,                  // Error code
+        //         "SUCCESS",             // Status (SUCCESS, ERROR, FAILURE, ...)
+        //         "Submitting 1 orders." // Text of the notification
         //     ]
-        //   ],
-        //   null,                  // Error code
-        //   "SUCCESS",             // Status (SUCCESS, ERROR, FAILURE, ...)
-        //   "Submitting 1 orders." // Text of the notification
-        // ]
-        if (response[6] !== 'SUCCESS') {
+        //
+        const status = this.safeString (response, 6);
+        if (status !== 'SUCCESS') {
             const errorCode = response[5];
             const errorText = response[7];
             throw new ExchangeError (this.id + ' ' + response[6] + ': ' + errorText + ' (#' + errorCode + ')');
         }
-        return this.parseOrder (response[4][0]);
+        const orders = this.safeValue (response, 4, []);
+        const order = this.safeValue (orders, 0);
+        return this.parseOrder (order, market);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
