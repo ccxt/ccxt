@@ -49,6 +49,7 @@
   "types": "./ccxt.d.ts",
   "dependencies": {},
   "devDependencies": {
+    "@types/node": "^13.7.4",
     "ansicolor": "1.1.81",
     "as-table": "1.0.37",
     "asciichart": "1.5.7",

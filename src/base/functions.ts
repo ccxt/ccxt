@@ -1,17 +1,15 @@
-'use strict';
-
 /*  ------------------------------------------------------------------------ */
 
-const { unCamelCase } = require ('./functions/string')
+import { unCamelCase } from './functions/string'
 
-const unCamelCasePropertyNames = x => {
+const unCamelCasePropertyNames = (x: any) => {
     for (const k in x) x[unCamelCase (k)] = x[k] // camel_case_method = camelCaseMethod
     return x
 }
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = unCamelCasePropertyNames (Object.assign ({}
+export = unCamelCasePropertyNames (Object.assign ({}
 
     , require ('./functions/platform')
     , require ('./functions/generic')
