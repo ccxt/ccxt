@@ -274,6 +274,7 @@ module.exports = class bitfinex extends Exchange {
                     },
                 },
             },
+            // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
             'commonCurrencies': {
                 'ABS': 'ABYSS',
                 'AIO': 'AION',
@@ -930,6 +931,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     getCurrencyName (code) {
+        // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         if (code in this.options['currencyNames']) {
             return this.options['currencyNames'][code];
         }
@@ -947,6 +949,7 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
+        // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         const name = this.getCurrencyName (code);
         const request = {
             'method': name,
@@ -1088,11 +1091,13 @@ module.exports = class bitfinex extends Exchange {
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
+        await this.loadMarkets ();
+        // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         const name = this.getCurrencyName (code);
         const request = {
             'withdraw_type': name,
             'walletselected': 'exchange',
-            'amount': amount.toString (),
+            'amount': this.numberToString (amount),
             'address': address,
         };
         if (tag !== undefined) {
