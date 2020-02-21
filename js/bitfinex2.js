@@ -903,6 +903,28 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {
+            'end': this.milliseconds (),
+        };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 25, max 1000
+        }
+        let method = 'privatePostAuthRTradesHist';
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+            method = 'privatePostAuthRTradesSymbolHist';
+        }
+        const response = await this[method] (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
+    }
+
     async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -955,28 +977,6 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         throw new NotSupported (this.id + ' withdraw not implemented yet');
-    }
-
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        const request = {
-            'end': this.milliseconds (),
-        };
-        if (since !== undefined) {
-            request['start'] = since;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 25, max 1000
-        }
-        let method = 'privatePostAuthRTradesHist';
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-            method = 'privatePostAuthRTradesSymbolHist';
-        }
-        const response = await this[method] (this.extend (request, params));
-        return this.parseTrades (response, market, since, limit);
     }
 
     nonce () {
