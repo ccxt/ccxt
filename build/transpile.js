@@ -973,32 +973,34 @@ class Transpiler {
 
         const { python3Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js })
 
-       const python3BodyIntellisense = python3Body + '\n\n' + Array.from (function* intellisense (map) {
+        const pythonBaseError = 'class BaseError(Exception):\n    pass\n\n'
+        const classes = []
+        const python3BodyIntellisense = python3Body + '\n\n' + pythonBaseError + Array.from (function* intellisense (map, parent) {
             for (const key in map) {
-                yield key + ' = Exception'
-                yield* intellisense (map[key])
+                classes.push (key)
+                yield 'class ' + key + '(' + parent + '):\n    pass\n'
+                yield* intellisense (map[key], key)
             }
-        } (errorHierarchy['BaseError'])).join ('\n')
+        } (errorHierarchy['BaseError'], 'BaseError')).concat (['__all__ = [\n    error_hierarchy,\n    ' + classes.join (',\n    ') + '\n]']).join ('\n') + '\n'
 
         const message = 'Transpiling error hierachy →'
 
-        const python = {
-            filename: './python/ccxt/base/errors.py',
-            regex: /error_hierarchy = [\S\s]+= Exception/s,
-            replacement: python3BodyIntellisense,
-        }
+        const pythonFilename = './python/ccxt/base/errors.py'
+        log.bright.cyan (message, pythonFilename.yellow)
+        fs.writeFileSync (pythonFilename, python3BodyIntellisense)
 
-        log.bright.cyan (message, python.filename.yellow)
-        replaceInFile (... Object.values (python))
+        const phpHeader = '<?php\n\nnamespace ccxt;\n\nuse Exception;\n\n'
+        const phpBodyIntellisense = phpHeader + phpBody + '\n\n' + Array.from (function* intellisense (map, parent) {
+            for (const key in map) {
+                yield 'class ' + key + ' extends ' + parent + ' {\n};\n'
+                yield* intellisense (map[key], key)
+            }
+        } (errorHierarchy['BaseError'], 'BaseError')).join ('\n')
 
-        const php = {
-            filename:'./php/base/errors.php',
-            regex: /\$error_hierarchy = .+?\n\)\;/s,
-            replacement: phpBody,
-        }
+        const phpFilename = './php/base/errors.php'
 
-        log.bright.cyan (message, php.filename.yellow)
-        replaceInFile (... Object.values (php))
+        log.bright.cyan (message, phpFilename.yellow)
+        fs.writeFileSync (phpFilename, phpBodyIntellisense)
     }
 
     //-----------------------------------------------------------------------------
