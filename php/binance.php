@@ -218,10 +218,15 @@ class binance extends Exchange {
                         'marginType',
                         'order',
                         'leverage',
+                        'listenKey',
+                    ),
+                    'put' => array(
+                        'listenKey',
                     ),
                     'delete' => array(
                         'order',
                         'allOpenOrders',
+                        'listenKey',
                     ),
                 ),
                 'v3' => array(

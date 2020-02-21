@@ -225,10 +225,15 @@ class binance(Exchange):
                         'marginType',
                         'order',
                         'leverage',
+                        'listenKey',
+                    ],
+                    'put': [
+                        'listenKey',
                     ],
                     'delete': [
                         'order',
                         'allOpenOrders',
+                        'listenKey',
                     ],
                 },
                 'v3': {
