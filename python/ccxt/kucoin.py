@@ -33,6 +33,7 @@ class kucoin(Exchange):
             'certified': False,
             'comment': 'Platform 2.0',
             'has': {
+                'CORS': False,
                 'fetchTime': True,
                 'fetchMarkets': True,
                 'fetchCurrencies': True,
@@ -197,6 +198,7 @@ class kucoin(Exchange):
             'commonCurrencies': {
                 'HOT': 'HOTNOW',
                 'EDGE': 'DADI',  # https://github.com/ccxt/ccxt/issues/5756
+                'WAX': 'WAXP',
             },
             'options': {
                 'version': 'v1',

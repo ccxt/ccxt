@@ -504,7 +504,7 @@ module.exports = class stex extends Exchange {
         let change = undefined;
         let percentage = undefined;
         if (last !== undefined) {
-            if (open !== undefined) {
+            if ((open !== undefined) && (open > 0)) {
                 change = last - open;
                 percentage = ((100 / open) * last) - 100;
             }

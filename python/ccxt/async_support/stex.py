@@ -502,7 +502,7 @@ class stex(Exchange):
         change = None
         percentage = None
         if last is not None:
-            if open is not None:
+            if (open is not None) and (open > 0):
                 change = last - open
                 percentage = ((100 / open) * last) - 100
         return {

@@ -98,6 +98,7 @@ class _1btcxe(Exchange):
         ]
 
     def fetch_balance(self, params={}):
+        self.load_markets()
         response = self.privatePostBalancesAndInfo(params)
         balance = response['balances-and-info']
         result = {'info': balance}
@@ -113,6 +114,7 @@ class _1btcxe(Exchange):
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        self.load_markets()
         request = {
             'currency': self.market_id(symbol),
         }
@@ -120,6 +122,7 @@ class _1btcxe(Exchange):
         return self.parse_order_book(response['order-book'], None, 'bid', 'ask', 'price', 'order_amount')
 
     def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
         request = {
             'currency': self.market_id(symbol),
         }
@@ -160,6 +163,7 @@ class _1btcxe(Exchange):
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1d', since=None, limit=None, params={}):
+        self.load_markets()
         market = self.market(symbol)
         response = self.publicGetHistoricalPrices(self.extend({
             'currency': market['id'],
@@ -199,6 +203,7 @@ class _1btcxe(Exchange):
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        self.load_markets()
         market = self.market(symbol)
         request = {
             'currency': market['id'],
@@ -210,6 +215,7 @@ class _1btcxe(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
         request = {
             'side': side,
             'type': type,
@@ -225,6 +231,7 @@ class _1btcxe(Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
+        self.load_markets()
         request = {
             'id': id,
         }

@@ -35,6 +35,7 @@ class bitstamp extends Exchange {
                 'api' => array(
                     'public' => 'https://www.bitstamp.net/api',
                     'private' => 'https://www.bitstamp.net/api',
+                    'v1' => 'https://www.bitstamp.net/api',
                 ),
                 'www' => 'https://www.bitstamp.net',
                 'doc' => 'https://www.bitstamp.net/api',
@@ -1028,6 +1029,9 @@ class bitstamp extends Exchange {
         $method .= $v1 ? 'Deposit' : '';
         $method .= 'Address';
         $response = $this->$method ($params);
+        if ($v1) {
+            $response = json_decode($response, $as_associative_array = true);
+        }
         $address = $v1 ? $response : $this->safe_string($response, 'address');
         $tag = $v1 ? null : $this->safe_string($response, 'destination_tag');
         $this->check_address($address);

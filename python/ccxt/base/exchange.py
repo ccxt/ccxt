@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.22.39'
+__version__ = '1.22.86'
 
 # -----------------------------------------------------------------------------
 
@@ -813,8 +813,9 @@ class Exchange(object):
         result = {}
         if type(array) is dict:
             array = Exchange.keysort(array).values()
+        is_int_key = isinstance(key, int)
         for element in array:
-            if (key in element) and (element[key] is not None):
+            if ((is_int_key and (key < len(element))) or (key in element)) and (element[key] is not None):
                 k = element[key]
                 result[k] = element
         return result
@@ -1623,6 +1624,7 @@ class Exchange(object):
     def safe_currency_code(self, currency_id, currency=None):
         code = None
         if currency_id is not None:
+            currency_id = str(currency_id)
             if self.currencies_by_id is not None and currency_id in self.currencies_by_id:
                 code = self.currencies_by_id[currency_id]['code']
             else:

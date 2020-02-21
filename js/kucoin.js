@@ -18,6 +18,7 @@ module.exports = class kucoin extends Exchange {
             'certified': false,
             'comment': 'Platform 2.0',
             'has': {
+                'CORS': false,
                 'fetchTime': true,
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
@@ -182,6 +183,7 @@ module.exports = class kucoin extends Exchange {
             'commonCurrencies': {
                 'HOT': 'HOTNOW',
                 'EDGE': 'DADI', // https://github.com/ccxt/ccxt/issues/5756
+                'WAX': 'WAXP',
             },
             'options': {
                 'version': 'v1',

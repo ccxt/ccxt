@@ -946,8 +946,11 @@ class Transpiler {
     exportTypeScriptDeclarations (classes) {
 
         const file = './ccxt.d.ts'
-        const regex = /(?:    export class [^\s]+ extends [^\s]+ \{\}[\r]?[\n])+/
-        const replacement = Object.keys (classes).map (className => {
+
+        log.bright.cyan ('Exporting TypeScript declarations →', file.yellow)
+
+        const regex = /\/[\n]{2}(?:    export class [^\s]+ extends [^\s]+ \{\}[\r]?[\n])+/
+        const replacement = "/\n\n" + Object.keys (classes).map (className => {
             const baseClass = classes[className]
             return '    export class ' + className + ' extends ' + baseClass + " {}"
         }).join ("\n") + "\n"

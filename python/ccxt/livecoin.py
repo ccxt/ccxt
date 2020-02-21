@@ -116,6 +116,7 @@ class livecoin(Exchange):
                 'RUR': 'RUB',
                 'SCT': 'SpaceCoin',
                 'TPI': 'ThaneCoin',
+                'WAX': 'WAXP',
                 'wETT': 'WETT',
                 'XBT': 'Bricktox',
             },

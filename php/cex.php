@@ -21,7 +21,7 @@ class cex extends Exchange {
             'countries' => array( 'GB', 'EU', 'CY', 'RU' ),
             'rateLimit' => 1500,
             'has' => array(
-                'CORS' => true,
+                'CORS' => false,
                 'fetchCurrencies' => true,
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
@@ -132,6 +132,8 @@ class cex extends Exchange {
                     'Invalid Order' => '\\ccxt\\InvalidOrder',
                     'Order not found' => '\\ccxt\\OrderNotFound',
                     'Rate limit exceeded' => '\\ccxt\\RateLimitExceeded',
+                    'Invalid API key' => '\\ccxt\\AuthenticationError',
+                    'There was an error while placing your order' => '\\ccxt\\InvalidOrder',
                 ),
             ),
             'options' => array(

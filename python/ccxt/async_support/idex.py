@@ -105,6 +105,8 @@ class idex(Exchange):
             'commonCurrencies': {
                 'ONE': 'Menlo One',
                 'FT': 'Fabric Token',
+                'PLA': 'PlayChip',
+                'WAX': 'WAXP',
             },
         })
 

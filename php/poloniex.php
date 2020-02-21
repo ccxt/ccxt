@@ -233,7 +233,7 @@ class poloniex extends Exchange {
             if ($limit === null) {
                 $request['start'] = $request['end'] - $this->parse_timeframe('1w'); // max range = 1 week
             } else {
-                $request['start'] = $request['end'] - $this->sum ($limit) * $this->parse_timeframe($timeframe);
+                $request['start'] = $request['end'] - $limit * $this->parse_timeframe($timeframe);
             }
         } else {
             $request['start'] = intval ($since / 1000);

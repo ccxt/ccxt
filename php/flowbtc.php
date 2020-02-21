@@ -18,7 +18,7 @@ class flowbtc extends Exchange {
             'version' => 'v1',
             'rateLimit' => 1000,
             'has' => array(
-                'CORS' => true,
+                'CORS' => false,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg',

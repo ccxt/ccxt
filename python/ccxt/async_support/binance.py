@@ -14,6 +14,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import ROUND
@@ -132,6 +133,15 @@ class binance(Exchange):
                         'sub-account/margin/account',
                         'sub-account/margin/accountSummary',
                         'sub-account/status',
+                        # lending endpoints
+                        'lending/daily/product/list',
+                        'lending/daily/userLeftQuota',
+                        'lending/daily/userRedemptionQuota',
+                        'lending/daily/token/position',
+                        'lending/union/account',
+                        'lending/union/purchaseRecord',
+                        'lending/union/redemptionRecord',
+                        'lending/union/interestHistory',
                     ],
                     'post': [
                         'asset/dust',
@@ -147,6 +157,9 @@ class binance(Exchange):
                         'sub-account/futures/enable',
                         'userDataStream',
                         'futures/transfer',
+                        # lending
+                        'lending/daily/purchase',
+                        'lending/daily/redeem',
                     ],
                     'put': [
                         'userDataStream',
@@ -191,9 +204,6 @@ class binance(Exchange):
                         'ticker/price',
                         'ticker/bookTicker',
                     ],
-                    'put': ['listenKey'],
-                    'post': ['listenKey'],
-                    'delete': ['listenKey'],
                 },
                 'fapiPrivate': {
                     'get': [
@@ -212,10 +222,15 @@ class binance(Exchange):
                         'marginType',
                         'order',
                         'leverage',
+                        'listenKey',
+                    ],
+                    'put': [
+                        'listenKey',
                     ],
                     'delete': [
                         'order',
                         'allOpenOrders',
+                        'listenKey',
                     ],
                 },
                 'v3': {
@@ -300,6 +315,7 @@ class binance(Exchange):
                 'Account has insufficient balance for requested action.': InsufficientFunds,
                 'Rest API trading is not enabled.': ExchangeNotAvailable,
                 '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
+                '-1003': RateLimitExceeded,  # {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
                 '-1013': InvalidOrder,  # createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                 '-1021': InvalidNonce,  # 'your time is ahead of server'
                 '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for self request is not valid."}
@@ -1155,11 +1171,17 @@ class binance(Exchange):
             raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
+        # https://github.com/ccxt/ccxt/issues/6507
+        origClientOrderId = self.safe_value(params, 'origClientOrderId')
         request = {
             'symbol': market['id'],
-            'orderId': int(id),
+            # 'orderId': int(id),
             # 'origClientOrderId': id,
         }
+        if origClientOrderId is None:
+            request['orderId'] = int(id)
+        else:
+            request['origClientOrderId'] = origClientOrderId
         method = 'privateDeleteOrder' if market['spot'] else 'fapiPrivateDeleteOrder'
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_order(response)
@@ -1325,6 +1347,8 @@ class binance(Exchange):
             request['asset'] = currency['id']
         if since is not None:
             request['startTime'] = since
+            # max 3 months range https://github.com/ccxt/ccxt/issues/6495
+            request['endTime'] = self.sum(since, 7776000000)
         response = await self.wapiGetDepositHistory(self.extend(request, params))
         #
         #     {    success:    True,
@@ -1347,6 +1371,8 @@ class binance(Exchange):
             request['asset'] = currency['id']
         if since is not None:
             request['startTime'] = since
+            # max 3 months range https://github.com/ccxt/ccxt/issues/6495
+            request['endTime'] = self.sum(since, 7776000000)
         response = await self.wapiGetWithdrawHistory(self.extend(request, params))
         #
         #     {withdrawList: [{     amount:  14,
@@ -1608,7 +1634,7 @@ class binance(Exchange):
         url += '/' + path
         if api == 'wapi':
             url += '.html'
-        userDataStream = ((path == 'userDataStream') or (path == 'listenKey'))
+        userDataStream = (path == 'userDataStream')
         if path == 'historicalTrades':
             if self.apiKey:
                 headers = {
@@ -1693,6 +1719,9 @@ class binance(Exchange):
                 # checks against error codes
                 error = self.safe_string(response, 'code')
                 if error is not None:
+                    # https://github.com/ccxt/ccxt/issues/6501
+                    if error == '200':
+                        return
                     # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
                     # despite that their message is very confusing, it is raised by Binance
                     # on a temporary ban(the API key is valid, but disabled for a while)

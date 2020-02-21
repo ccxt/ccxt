@@ -508,7 +508,7 @@ class stex extends Exchange {
         $change = null;
         $percentage = null;
         if ($last !== null) {
-            if ($open !== null) {
+            if (($open !== null) && ($open > 0)) {
                 $change = $last - $open;
                 $percentage = ((100 / $open) * $last) - 100;
             }

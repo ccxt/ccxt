@@ -222,6 +222,9 @@ class bitforex extends Exchange {
                     ),
                 ),
             ),
+            'commonCurrencies' => array(
+                'UOS' => 'UOS Network',
+            ),
             'exceptions' => array(
                 '4004' => '\\ccxt\\OrderNotFound',
                 '1013' => '\\ccxt\\AuthenticationError',

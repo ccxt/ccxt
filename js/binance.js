@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, InvalidAddress } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, InvalidAddress, RateLimitExceeded } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -120,6 +120,15 @@ module.exports = class binance extends Exchange {
                         'sub-account/margin/account',
                         'sub-account/margin/accountSummary',
                         'sub-account/status',
+                        // lending endpoints
+                        'lending/daily/product/list',
+                        'lending/daily/userLeftQuota',
+                        'lending/daily/userRedemptionQuota',
+                        'lending/daily/token/position',
+                        'lending/union/account',
+                        'lending/union/purchaseRecord',
+                        'lending/union/redemptionRecord',
+                        'lending/union/interestHistory',
                     ],
                     'post': [
                         'asset/dust',
@@ -135,6 +144,9 @@ module.exports = class binance extends Exchange {
                         'sub-account/futures/enable',
                         'userDataStream',
                         'futures/transfer',
+                        // lending
+                        'lending/daily/purchase',
+                        'lending/daily/redeem',
                     ],
                     'put': [
                         'userDataStream',
@@ -179,9 +191,6 @@ module.exports = class binance extends Exchange {
                         'ticker/price',
                         'ticker/bookTicker',
                     ],
-                    'put': [ 'listenKey' ],
-                    'post': [ 'listenKey' ],
-                    'delete': [ 'listenKey' ],
                 },
                 'fapiPrivate': {
                     'get': [
@@ -200,10 +209,15 @@ module.exports = class binance extends Exchange {
                         'marginType',
                         'order',
                         'leverage',
+                        'listenKey',
+                    ],
+                    'put': [
+                        'listenKey',
                     ],
                     'delete': [
                         'order',
                         'allOpenOrders',
+                        'listenKey',
                     ],
                 },
                 'v3': {
@@ -288,6 +302,7 @@ module.exports = class binance extends Exchange {
                 'Account has insufficient balance for requested action.': InsufficientFunds,
                 'Rest API trading is not enabled.': ExchangeNotAvailable,
                 '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
+                '-1003': RateLimitExceeded, // {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
                 '-1013': InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                 '-1021': InvalidNonce, // 'your time is ahead of server'
                 '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
@@ -1234,11 +1249,18 @@ module.exports = class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        // https://github.com/ccxt/ccxt/issues/6507
+        const origClientOrderId = this.safeValue (params, 'origClientOrderId');
         const request = {
             'symbol': market['id'],
-            'orderId': parseInt (id),
+            // 'orderId': parseInt (id),
             // 'origClientOrderId': id,
         };
+        if (origClientOrderId === undefined) {
+            request['orderId'] = parseInt (id);
+        } else {
+            request['origClientOrderId'] = origClientOrderId;
+        }
         const method = market['spot'] ? 'privateDeleteOrder' : 'fapiPrivateDeleteOrder';
         const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response);
@@ -1418,6 +1440,8 @@ module.exports = class binance extends Exchange {
         }
         if (since !== undefined) {
             request['startTime'] = since;
+            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
+            request['endTime'] = this.sum (since, 7776000000);
         }
         const response = await this.wapiGetDepositHistory (this.extend (request, params));
         //
@@ -1443,6 +1467,8 @@ module.exports = class binance extends Exchange {
         }
         if (since !== undefined) {
             request['startTime'] = since;
+            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
+            request['endTime'] = this.sum (since, 7776000000);
         }
         const response = await this.wapiGetWithdrawHistory (this.extend (request, params));
         //
@@ -1726,7 +1752,7 @@ module.exports = class binance extends Exchange {
         if (api === 'wapi') {
             url += '.html';
         }
-        const userDataStream = ((path === 'userDataStream') || (path === 'listenKey'));
+        const userDataStream = (path === 'userDataStream');
         if (path === 'historicalTrades') {
             if (this.apiKey) {
                 headers = {
@@ -1830,6 +1856,10 @@ module.exports = class binance extends Exchange {
                 // checks against error codes
                 const error = this.safeString (response, 'code');
                 if (error !== undefined) {
+                    // https://github.com/ccxt/ccxt/issues/6501
+                    if (error === '200') {
+                        return;
+                    }
                     // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
                     // despite that their message is very confusing, it is raised by Binance
                     // on a temporary ban (the API key is valid, but disabled for a while)

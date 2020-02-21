@@ -102,6 +102,8 @@ class idex extends Exchange {
             'commonCurrencies' => array(
                 'ONE' => 'Menlo One',
                 'FT' => 'Fabric Token',
+                'PLA' => 'PlayChip',
+                'WAX' => 'WAXP',
             ),
         ));
     }

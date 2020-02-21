@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.22.39';
+$version = '1.22.86';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.22.39';
+    const VERSION = '1.22.86';
 
     public static $exchanges = array(
         '_1btcxe',
@@ -170,6 +170,7 @@ class Exchange {
         'tidebit',
         'tidex',
         'timex',
+        'topq',
         'upbit',
         'vaultoro',
         'vbtc',
@@ -2396,6 +2397,15 @@ class Exchange {
         return static::decimal_to_precision($x, $roundingMode, $numPrecisionDigits, $countingMode, $paddingMode);
     }
 
+    public static function precisionFromString($x) {
+        $parts = explode ('.', preg_replace ('/0+$/', '', $x));
+        if (count ($parts) > 1) {
+            return strlen ($parts[1]);
+        } else {
+            return 0;
+        }
+    }
+
     public static function decimal_to_precision($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
         if ($countingMode === TICK_SIZE) {
             if (!(is_float ($numPrecisionDigits) || is_int($numPrecisionDigits)))
@@ -2430,9 +2440,12 @@ class Exchange {
         }
 
         if ($countingMode === TICK_SIZE) {
+            $precisionDigitsString = static::decimal_to_precision ($numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING);
+            $newNumPrecisionDigits = static::precisionFromString ($precisionDigitsString);
             $missing = fmod($x, $numPrecisionDigits);
-            $reminder = $x / $numPrecisionDigits;
-            if ($reminder !== floor($reminder)) {
+            // See: https://github.com/ccxt/ccxt/pull/6486
+            $fpError = static::decimal_to_precision ($missing / $numPrecisionDigits, ROUND, max($newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING);
+            if (static::precisionFromString ($fpError) !== 0) {
                 if ($roundingMode === ROUND) {
                     if ($x > 0) {
                         if ($missing >= $numPrecisionDigits / 2) {
@@ -2450,13 +2463,6 @@ class Exchange {
                 } else if (TRUNCATE === $roundingMode) {
                     $x = $x - $missing;
                 }
-            }
-            $precisionDigitsString = static::decimal_to_precision ($numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING);
-            $parts = explode ('.', preg_replace ('/0+$/', '', $precisionDigitsString));
-            if (count ($parts) > 1) {
-                $newNumPrecisionDigits = strlen ($parts[1]);
-            } else {
-                $newNumPrecisionDigits = strlen (preg_replace ('/0+$/', '', $parts[0]));
             }
             return static::decimal_to_precision ($x, ROUND, $newNumPrecisionDigits, DECIMAL_PLACES, $paddingMode);
         }

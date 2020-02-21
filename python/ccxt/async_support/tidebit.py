@@ -20,7 +20,7 @@ class tidebit(Exchange):
             'version': 'v2',
             'has': {
                 'fetchDepositAddress': True,
-                'CORS': True,
+                'CORS': False,
                 'fetchTickers': True,
                 'fetchOHLCV': True,
                 'withdraw': True,
