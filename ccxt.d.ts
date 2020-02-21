@@ -13,6 +13,34 @@ declare module 'ccxt' {
         constructor(message: string);
     }
 
+    export class ExchangeError extends BaseError {}
+    export class AuthenticationError extends ExchangeError {}
+    export class PermissionDenied extends AuthenticationError {}
+    export class AccountSuspended extends AuthenticationError {}
+    export class ArgumentsRequired extends ExchangeError {}
+    export class BadRequest extends ExchangeError {}
+    export class BadSymbol extends BadRequest {}
+    export class BadResponse extends ExchangeError {}
+    export class NullResponse extends BadResponse {}
+    export class InsufficientFunds extends ExchangeError {}
+    export class InvalidAddress extends ExchangeError {}
+    export class AddressPending extends InvalidAddress {}
+    export class InvalidOrder extends ExchangeError {}
+    export class OrderNotFound extends InvalidOrder {}
+    export class OrderNotCached extends InvalidOrder {}
+    export class CancelPending extends InvalidOrder {}
+    export class OrderImmediatelyFillable extends InvalidOrder {}
+    export class OrderNotFillable extends InvalidOrder {}
+    export class DuplicateOrderId extends InvalidOrder {}
+    export class NotSupported extends ExchangeError {}
+    export class NetworkError extends BaseError {}
+    export class DDoSProtection extends NetworkError {}
+    export class RateLimitExceeded extends DDoSProtection {}
+    export class ExchangeNotAvailable extends NetworkError {}
+    export class OnMaintenance extends ExchangeNotAvailable {}
+    export class InvalidNonce extends NetworkError {}
+    export class RequestTimeout extends NetworkError {}
+
     // -----------------------------------------------
 
     export const version: string;
