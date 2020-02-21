@@ -191,9 +191,6 @@ module.exports = class binance extends Exchange {
                         'ticker/price',
                         'ticker/bookTicker',
                     ],
-                    'put': [ 'listenKey' ],
-                    'post': [ 'listenKey' ],
-                    'delete': [ 'listenKey' ],
                 },
                 'fapiPrivate': {
                     'get': [
@@ -1755,7 +1752,7 @@ module.exports = class binance extends Exchange {
         if (api === 'wapi') {
             url += '.html';
         }
-        const userDataStream = ((path === 'userDataStream') || (path === 'listenKey'));
+        const userDataStream = (path === 'userDataStream');
         if (path === 'historicalTrades') {
             if (this.apiKey) {
                 headers = {
