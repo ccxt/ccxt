@@ -80,8 +80,30 @@ module.exports = class bitfinex2 extends bitfinex {
                 },
                 'public': {
                     'get': [
+                        'conf/{config}',
+                        'conf/pub:{action}:{object}',
                         'conf/pub:{action}:{object}:{detail}',
-                        'conf/pub:map:currency:label',
+                        'conf/pub:map:{object}',
+                        'conf/pub:map:{object}:{detail}',
+                        'conf/pub:map:currency:{detail}',
+                        'conf/pub:map:currency:sym', // maps symbols to their API symbols, BAB > BCH
+                        'conf/pub:map:currency:label', // verbose friendly names, BNT > Bancor
+                        'conf/pub:map:currency:unit', // maps symbols to unit of measure where applicable
+                        'conf/pub:map:currency:undl', // maps derivatives symbols to their underlying currency
+                        'conf/pub:map:currency:pool', // maps symbols to underlying network/protocol they operate on
+                        'conf/pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
+                        'conf/pub:map:tx:method',
+                        'conf/pub:list:{object}',
+                        'conf/pub:list:{object}:{detail}',
+                        'conf/pub:list:currency',
+                        'conf/pub:list:pair:exchange',
+                        'conf/pub:list:pair:margin',
+                        'conf/pub:list:competitions',
+                        'conf/pub:info:{object}',
+                        'conf/pub:info:{object}:{detail}',
+                        'conf/pub:info:pair',
+                        'conf/pub:info:tx:status', // [ deposit, withdrawal ] statuses 1 = active, 0 = maintenance
+                        'conf/pub:fees',
                         'platform/status',
                         'tickers',
                         'ticker/{symbol}',
