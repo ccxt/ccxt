@@ -244,21 +244,23 @@ module.exports = class binance extends ccxt.binance {
                 if (pu === undefined) {
                     // spot
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    if (u <= orderbook['nonce']) {
-                        return;
-                    }
-                    // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                    if (((U - 1) > orderbook['nonce']) || ((u - 1) < orderbook['nonce'])) {
-                        return;
-                    }
-                    // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-                    if ((U - 1) !== orderbook['nonce']) {
-                        // todo: client.reject from handleOrderBookMessage properly
-                        throw new ExchangeError (this.id + ' handleOrderBook received an out-of-order nonce');
-                    }
-                    this.handleOrderBookMessage (client, message, orderbook);
-                    if (nonce < orderbook['nonce']) {
-                        client.resolve (orderbook, messageHash);
+                    if (u > orderbook['nonce']) {
+                        // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
+                        if (U < orderbook['nonce']) {
+                            this.handleOrderBookMessage (client, message, orderbook);
+                            if (nonce < orderbook['nonce']) {
+                                client.resolve (orderbook, messageHash);
+                            }
+                        } else if ((U - 1) === orderbook['nonce']) {
+                            // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
+                            this.handleOrderBookMessage (client, message, orderbook);
+                            if (nonce < orderbook['nonce']) {
+                                client.resolve (orderbook, messageHash);
+                            }
+                        } else {
+                            // todo: client.reject from handleOrderBookMessage properly
+                            throw new ExchangeError (this.id + ' handleOrderBook received an out-of-order nonce');
+                        }
                     }
                 } else {
                     // future
