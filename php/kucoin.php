@@ -186,6 +186,7 @@ class kucoin extends Exchange {
             'commonCurrencies' => array(
                 'HOT' => 'HOTNOW',
                 'EDGE' => 'DADI', // https://github.com/ccxt/ccxt/issues/5756
+                'WAX' => 'WAXP',
             ),
             'options' => array(
                 'version' => 'v1',
