@@ -975,7 +975,7 @@ class Transpiler {
 
         const pythonBaseError = 'class BaseError(Exception):\n    pass\n\n\n'
         const classes = []
-        const python3BodyIntellisense = python3Body + '\n\n' + pythonBaseError + Array.from (function* intellisense (map, parent) {
+        const python3BodyIntellisense = python3Body + '\n\n\n' + pythonBaseError + Array.from (function* intellisense (map, parent) {
             for (const key in map) {
                 classes.push (key)
                 yield 'class ' + key + '(' + parent + '):\n    pass\n\n'
