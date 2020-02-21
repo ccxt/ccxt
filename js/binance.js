@@ -140,6 +140,7 @@ module.exports = class binance extends ccxt.binance {
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {
+        const type = this.safeValue (subscription, 'type');
         const symbol = this.safeString (subscription, 'symbol');
         const messageHash = this.safeString (subscription, 'messageHash');
         // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
@@ -151,7 +152,27 @@ module.exports = class binance extends ccxt.binance {
         const messages = orderbook.cache;
         for (let i = 0; i < messages.length; i++) {
             const message = messages[i];
-            this.handleOrderBookMessage (client, message, orderbook);
+            const U = this.safeInteger (message, 'U');
+            const u = this.safeInteger (message, 'u');
+            if (type === 'future') {
+                // 4. Drop any event where u is < lastUpdateId in the snapshot
+                if (u < orderbook['nonce']) {
+                    continue;
+                }
+                // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
+                if ((U <= orderbook['nonce']) && (u >= orderbook['nonce'])) {
+                    this.handleOrderBookMessage (client, message, orderbook);
+                }
+            } else {
+                // 4. Drop any event where u is <= lastUpdateId in the snapshot
+                if (u <= orderbook['nonce']) {
+                    continue;
+                }
+                // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
+                if (((U - 1) <= orderbook['nonce']) && ((u - 1) >= orderbook['nonce'])) {
+                    this.handleOrderBookMessage (client, message, orderbook);
+                }
+            }
         }
         this.orderbooks[symbol] = orderbook;
         client.resolve (orderbook, messageHash);
@@ -170,103 +191,13 @@ module.exports = class binance extends ccxt.binance {
     }
 
     handleOrderBookMessage (client, message, orderbook) {
-        //
-        // notice the differences between trading futures and spot trading
-        // the algorithms use different urls in step 1
-        // delta caching and merging also differs in steps 4, 5, 6
-        //
-        // spot/margin
-        // https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly
-        //
-        // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-        // 2. Buffer the events you receive from the stream.
-        // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
-        // 4. Drop any event where u is <= lastUpdateId in the snapshot.
-        // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
-        // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-        // 7. The data in each event is the absolute quantity for a price level.
-        // 8. If the quantity is 0, remove the price level.
-        // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
-        //
-        //     {
-        //         "e": "depthUpdate",      // Event type
-        //         "E": 123456789,          // Event time
-        //         "s": "BNBBTC",           // Symbol
-        //         "U": 157,                // First update ID in event
-        //         "u": 160,                // Final update ID in event
-        //         "b": [                   // Bids to be updated
-        //             [ "0.0024", "10" ],  // Price level to be updated, Quantity
-        //         ],
-        //         "a": [                   // Asks to be updated
-        //             [ "0.0026", "100" ], // Price level to be updated, Quantity
-        //         ]
-        //     }
-        //
-        // futures
-        // https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
-        //
-        // 1. Open a stream to wss://fstream.binance.com/stream?streams=btcusdt@depth.
-        // 2. Buffer the events you receive from the stream. For same price, latest received update covers the previous one.
-        // 3. Get a depth snapshot from https://fapi.binance.com/fapi/v1/depth?symbol=BTCUSDT&limit=1000 .
-        // 4. Drop any event where u is < lastUpdateId in the snapshot.
-        // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-        // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3.
-        // 7. The data in each event is the absolute quantity for a price level.
-        // 8. If the quantity is 0, remove the price level.
-        // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
-        //
-        //     {
-        //         "e": "depthUpdate",      // Event type
-        //         "E": 123456789,          // Event time
-        //         "T": 123456788,          // transaction time
-        //         "s": "BTCUSDT",          // Symbol
-        //         "U": 157,                // first update Id from last stream
-        //         "u": 160,                // last update Id from last stream
-        //         "pu": 149,               // last update Id in last stream, u in the last stream, future only
-        //         "b": [                   // Bids to be updated
-        //             [ "0.0024", "10" ],  // Price level to be updated, Quantity
-        //         ],
-        //         "a": [                   // Asks to be updated
-        //             [ "0.0026", "100" ], // Price level to be updated, Quantity
-        //         ]
-        //     }
-        //
-        const pu = this.safeInteger (message, 'pu');
-        if (pu === undefined) {
-            // spot
-        }
-        const u = this.safeInteger2 (message, 'u', 'lastUpdateId');
-        const lastUpdateIdPlus1 = this.sum (orderbook['nonce'], 1);
-        console.log ('--------------------------------------------------------')
-        console.log ('u                  =', u);
-        console.log ("orderbook['nonce'] =", orderbook['nonce']);
-        // merge accumulated deltas
-        // 4. Drop any event where u is <= lastUpdateId in the snapshot
-        if (u <= orderbook['nonce']) {
-            return orderbook;
-        }
-        const U = this.safeInteger (message, 'U');
-        console.log ('U                  =', U);
-        console.log ('U - 1              =', U - 1);
-        // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-        if ((U <= lastUpdateIdPlus1) && (u >= lastUpdateIdPlus1)) {
-            this.handleDeltas (orderbook['asks'], this.safeValue (message, 'a', []));
-            this.handleDeltas (orderbook['bids'], this.safeValue (message, 'b', []));
-            orderbook['nonce'] = u;
-            const timestamp = this.safeInteger (message, 'E');
-            orderbook['timestamp'] = timestamp;
-            orderbook['datetime'] = this.iso8601 (timestamp);
-        }
-        // if (((U - 1) > orderbook['nonce'])) {
-        //     // todo: client.reject from handleOrderBookMessage properly
-        //     throw new ExchangeError (this.id + ' handleOrderBook received an out-of-order nonce');
-        // }
-        // this.handleDeltas (orderbook['asks'], this.safeValue (message, 'a', []));
-        // this.handleDeltas (orderbook['bids'], this.safeValue (message, 'b', []));
-        // orderbook['nonce'] = u;
-        // const timestamp = this.safeInteger (message, 'E');
-        // orderbook['timestamp'] = timestamp;
-        // orderbook['datetime'] = this.iso8601 (timestamp);
+        const u = this.safeInteger (message, 'u');
+        this.handleDeltas (orderbook['asks'], this.safeValue (message, 'a', []));
+        this.handleDeltas (orderbook['bids'], this.safeValue (message, 'b', []));
+        orderbook['nonce'] = u;
+        const timestamp = this.safeInteger (message, 'E');
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
         return orderbook;
     }
 
@@ -301,23 +232,61 @@ module.exports = class binance extends ccxt.binance {
         const name = 'depth';
         const messageHash = market['lowercaseId'] + '@' + name;
         const orderbook = this.orderbooks[symbol];
-        if (orderbook['nonce'] !== undefined) {
-            // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
-            // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
+        const nonce = this.safeInteger (orderbook, 'nonce');
+        if (nonce === undefined) {
+            // 2. Buffer the events you receive from the stream.
+            orderbook.cache.push (message);
+        } else {
             try {
-                const nonce = orderbook['nonce'];
-                this.handleOrderBookMessage (client, message, orderbook);
-                if (nonce < orderbook['nonce']) {
-                    client.resolve (orderbook, messageHash);
+                const U = this.safeInteger (message, 'U');
+                const u = this.safeInteger (message, 'u');
+                const pu = this.safeInteger (message, 'pu');
+                if (pu === undefined) {
+                    // spot
+                    // 4. Drop any event where u is <= lastUpdateId in the snapshot
+                    if (u <= orderbook['nonce']) {
+                        return;
+                    }
+                    // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
+                    if (((U - 1) > orderbook['nonce']) || ((u - 1) < orderbook['nonce'])) {
+                        return;
+                    }
+                    // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
+                    if ((U - 1) !== orderbook['nonce']) {
+                        // todo: client.reject from handleOrderBookMessage properly
+                        throw new ExchangeError (this.id + ' handleOrderBook received an out-of-order nonce');
+                    }
+                    this.handleOrderBookMessage (client, message, orderbook);
+                    if (nonce < orderbook['nonce']) {
+                        client.resolve (orderbook, messageHash);
+                    }
+                } else {
+                    // future
+                    // 4. Drop any event where u is < lastUpdateId in the snapshot
+                    if (u >= orderbook['nonce']) {
+                        // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
+                        if (U <= orderbook['nonce']) {
+                            this.handleOrderBookMessage (client, message, orderbook);
+                            if (nonce <= orderbook['nonce']) {
+                                client.resolve (orderbook, messageHash);
+                            }
+                        // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
+                        } else if (pu === orderbook['nonce']) {
+                            this.handleOrderBookMessage (client, message, orderbook);
+                            if (nonce <= orderbook['nonce']) {
+                                client.resolve (orderbook, messageHash);
+                            }
+                        } else {
+                            // todo: client.reject from handleOrderBookMessage properly
+                            throw new ExchangeError (this.id + ' handleOrderBook received an out-of-order nonce');
+                        }
+                    }
                 }
             } catch (e) {
                 delete this.orderbooks[symbol];
                 delete client.subscriptions[messageHash];
                 client.reject (e, messageHash);
             }
-        } else {
-            // 2. Buffer the events you receive from the stream.
-            orderbook.cache.push (message);
         }
     }
 
