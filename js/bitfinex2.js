@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const bitfinex = require ('./bitfinex.js');
-const { ExchangeError, NotSupported, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance } = require ('./base/errors');
+const { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -287,6 +287,8 @@ module.exports = class bitfinex2 extends bitfinex {
                     '20060': OnMaintenance,
                 },
                 'broad': {
+                    'address': InvalidAddress,
+                    'available balance is only': InsufficientFunds,
                     'not enough exchange balance': InsufficientFunds,
                     'Order not found': OrderNotFound,
                     'symbol: invalid': BadSymbol,
@@ -936,6 +938,7 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
+        // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         const name = this.getCurrencyName (code);
         const request = {
             'method': name,
@@ -975,8 +978,117 @@ module.exports = class bitfinex2 extends bitfinex {
         };
     }
 
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     [
+        //         1582271520931, // MTS Millisecond Time Stamp of the update
+        //         "acc_wd-req", // TYPE Purpose of notification 'acc_wd-req' account withdrawal request
+        //         null, // MESSAGE_ID unique ID of the message
+        //         null, // not documented
+        //         [
+        //             0, // WITHDRAWAL_ID Unique Withdrawal ID
+        //             null, // PLACEHOLDER
+        //             "bitcoin", // METHOD Method of withdrawal
+        //             null, // PAYMENT_ID Payment ID if relevant
+        //             "exchange", // WALLET Sending wallet
+        //             1, // AMOUNT Amount of Withdrawal less fee
+        //             null, // PLACEHOLDER
+        //             null, // PLACEHOLDER
+        //             0.0004, // WITHDRAWAL_FEE Fee on withdrawal
+        //         ],
+        //         null, // CODE null or integer Work in progress
+        //         "SUCCESS", // STATUS Status of the notification, it may vary over time SUCCESS, ERROR, FAILURE
+        //         "Invalid bitcoin address (abcdef)", // TEXT Text of the notification
+        //     ]
+        //
+        // todo add support for all movements, deposits and withdrawals
+        //
+        const data = this.safeValue (transaction, 4, []);
+        const timestamp = this.safeInteger (transaction, 0);
+        let code = undefined;
+        if (currency !== undefined) {
+            code = currency['code'];
+        }
+        let feeCost = this.safeFloat (data, 8);
+        if (feeCost !== undefined) {
+            feeCost = Math.abs (feeCost);
+        }
+        const amount = this.safeFloat (data, 5);
+        let id = this.safeValue (data, 0);
+        let status = 'ok';
+        if (id === 0) {
+            id = undefined;
+            status = 'failed';
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': undefined, // this is actually the tag for XRP transfers (the address is missing)
+            'tag': this.safeString (data, 3), // refix it properly for the tag from description
+            'type': 'withdrawal',
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': undefined,
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+                'rate': undefined,
+            },
+        };
+    }
+
     async withdraw (code, amount, address, tag = undefined, params = {}) {
-        throw new NotSupported (this.id + ' withdraw not implemented yet');
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
+        const name = this.getCurrencyName (code);
+        const request = {
+            'method': name,
+            'wallet': 'exchange', // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
+            'amount': this.numberToString (amount),
+            'address': address,
+        };
+        if (tag !== undefined) {
+            request['payment_id'] = tag;
+        }
+        const response = await this.privatePostAuthWWithdraw (this.extend (request, params));
+        //
+        //     [
+        //         1582271520931, // MTS Millisecond Time Stamp of the update
+        //         "acc_wd-req", // TYPE Purpose of notification 'acc_wd-req' account withdrawal request
+        //         null, // MESSAGE_ID unique ID of the message
+        //         null, // not documented
+        //         [
+        //             0, // WITHDRAWAL_ID Unique Withdrawal ID
+        //             null, // PLACEHOLDER
+        //             "bitcoin", // METHOD Method of withdrawal
+        //             null, // PAYMENT_ID Payment ID if relevant
+        //             "exchange", // WALLET Sending wallet
+        //             1, // AMOUNT Amount of Withdrawal less fee
+        //             null, // PLACEHOLDER
+        //             null, // PLACEHOLDER
+        //             0.0004, // WITHDRAWAL_FEE Fee on withdrawal
+        //         ],
+        //         null, // CODE null or integer Work in progress
+        //         "SUCCESS", // STATUS Status of the notification, it may vary over time SUCCESS, ERROR, FAILURE
+        //         "Invalid bitcoin address (abcdef)", // TEXT Text of the notification
+        //     ]
+        //
+        const text = this.safeString (response, 7);
+        if (text !== 'success') {
+            this.throwBroadlyMatchedException (this.exceptions['broad'], text, text);
+        }
+        const transaction = this.parseTransaction (response, currency);
+        return this.extend (transaction, {
+            'address': address,
+        });
     }
 
     nonce () {
