@@ -94,11 +94,11 @@ module.exports =
 
     , indexBy (x, k, out = {}) {
         const isIntKey = isInteger (k)
-        for (const v of values (x))
-            if (((!isArray (v) && (k in v)) || (isArray (v) && isIntKey && k < v.length))
-                    && (v[k] !== undefined))
+        for (const v of values (x)) {
+            if ((isIntKey && (k < v.length))) || (k in v)) {
                 out[v[k]] = v
-
+            }
+        }
         return out
     }
 
