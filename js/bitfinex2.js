@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const bitfinex = require ('./bitfinex.js');
-const { ExchangeError, NotSupported, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, NotSupported, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -18,9 +18,11 @@ module.exports = class bitfinex2 extends bitfinex {
             // new metainfo interface
             'has': {
                 'CORS': false,
-                'createLimitOrder': false,
-                'createMarketOrder': false,
-                'createOrder': false,
+                'cancelAllOrders': true,
+                'createLimitOrder': true,
+                'createMarketOrder': true,
+                'createOrder': true,
+                'cancelOrder': true,
                 'deposit': false,
                 'editOrder': false,
                 'fetchDepositAddress': false,
@@ -28,8 +30,12 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchFundingFees': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenOrders': false,
-                'fetchOrder': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': false,
+                'fetchOpenOrder': true,
+                'fetchClosedOrder': true,
+                'fetchOrderTrades': true,
+                'fetchStatus': true,
                 'fetchTickers': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
@@ -74,7 +80,30 @@ module.exports = class bitfinex2 extends bitfinex {
                 },
                 'public': {
                     'get': [
-                        'conf/pub:map:currency:label',
+                        'conf/{config}',
+                        'conf/pub:{action}:{object}',
+                        'conf/pub:{action}:{object}:{detail}',
+                        'conf/pub:map:{object}',
+                        'conf/pub:map:{object}:{detail}',
+                        'conf/pub:map:currency:{detail}',
+                        'conf/pub:map:currency:sym', // maps symbols to their API symbols, BAB > BCH
+                        'conf/pub:map:currency:label', // verbose friendly names, BNT > Bancor
+                        'conf/pub:map:currency:unit', // maps symbols to unit of measure where applicable
+                        'conf/pub:map:currency:undl', // maps derivatives symbols to their underlying currency
+                        'conf/pub:map:currency:pool', // maps symbols to underlying network/protocol they operate on
+                        'conf/pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
+                        'conf/pub:map:tx:method',
+                        'conf/pub:list:{object}',
+                        'conf/pub:list:{object}:{detail}',
+                        'conf/pub:list:currency',
+                        'conf/pub:list:pair:exchange',
+                        'conf/pub:list:pair:margin',
+                        'conf/pub:list:competitions',
+                        'conf/pub:info:{object}',
+                        'conf/pub:info:{object}:{detail}',
+                        'conf/pub:info:pair',
+                        'conf/pub:info:tx:status', // [ deposit, withdrawal ] statuses 1 = active, 0 = maintenance
+                        'conf/pub:fees',
                         'platform/status',
                         'tickers',
                         'ticker/{symbol}',
@@ -86,7 +115,11 @@ module.exports = class bitfinex2 extends bitfinex {
                         'book/{symbol}/P3',
                         'book/{symbol}/R0',
                         'stats1/{key}:{size}:{symbol}:{side}/{section}',
+                        'stats1/{key}:{size}:{symbol}:{side}/last',
+                        'stats1/{key}:{size}:{symbol}:{side}/hist',
                         'stats1/{key}:{size}:{symbol}/{section}',
+                        'stats1/{key}:{size}:{symbol}/last',
+                        'stats1/{key}:{size}:{symbol}/hist',
                         'stats1/{key}:{size}:{symbol}:long/last',
                         'stats1/{key}:{size}:{symbol}:long/hist',
                         'stats1/{key}:{size}:{symbol}:short/last',
@@ -94,6 +127,11 @@ module.exports = class bitfinex2 extends bitfinex {
                         'candles/trade:{timeframe}:{symbol}/{section}',
                         'candles/trade:{timeframe}:{symbol}/last',
                         'candles/trade:{timeframe}:{symbol}/hist',
+                        'status/{type}',
+                        'status/deriv',
+                        'liquidations/hist',
+                        'rankings/{key}:{timeframe}:{symbol}/{section}',
+                        'rankings/{key}:{timeframe}:{symbol}/hist',
                     ],
                     'post': [
                         'calc/trade/avg',
@@ -102,39 +140,69 @@ module.exports = class bitfinex2 extends bitfinex {
                 },
                 'private': {
                     'post': [
+                        // 'auth/r/orders/{symbol}/new', // outdated
+                        // 'auth/r/stats/perf:{timeframe}/hist', // outdated
                         'auth/r/wallets',
+                        'auth/r/wallets/hist',
+                        'auth/r/orders',
                         'auth/r/orders/{symbol}',
-                        'auth/r/orders/{symbol}/new',
-                        'auth/r/orders/{symbol}/hist',
-                        'auth/r/order/{symbol}:{id}/trades',
                         'auth/w/order/submit',
-                        'auth/r/trades/hist',
+                        'auth/w/order/update',
+                        'auth/w/order/cancel',
+                        'auth/w/order/multi',
+                        'auth/w/order/cancel/multi',
+                        'auth/r/orders/{symbol}/hist',
+                        'auth/r/orders/hist',
+                        'auth/r/order/{symbol}:{id}/trades',
                         'auth/r/trades/{symbol}/hist',
+                        'auth/r/trades/hist',
+                        'auth/r/ledgers/{currency}/hist',
+                        'auth/r/ledgers/hist',
+                        'auth/r/info/margin/{key}',
+                        'auth/r/info/margin/base',
+                        'auth/r/info/margin/sym_all',
                         'auth/r/positions',
+                        'auth/w/position/claim',
                         'auth/r/positions/hist',
                         'auth/r/positions/audit',
+                        'auth/w/deriv/collateral/set',
+                        'auth/r/funding/offers',
                         'auth/r/funding/offers/{symbol}',
+                        'auth/w/funding/offer/submit',
+                        'auth/w/funding/offer/cancel',
+                        'auth/w/funding/offer/cancel/all',
+                        'auth/w/funding/close',
+                        'auth/w/funding/auto',
+                        'auth/w/funding/keep',
                         'auth/r/funding/offers/{symbol}/hist',
+                        'auth/r/funding/offers/hist',
+                        'auth/r/funding/loans',
+                        'auth/r/funding/loans/hist',
                         'auth/r/funding/loans/{symbol}',
                         'auth/r/funding/loans/{symbol}/hist',
+                        'auth/r/funding/credits',
+                        'auth/r/funding/credits/hist',
                         'auth/r/funding/credits/{symbol}',
                         'auth/r/funding/credits/{symbol}/hist',
                         'auth/r/funding/trades/{symbol}/hist',
-                        'auth/r/info/margin/{key}',
+                        'auth/r/funding/trades/hist',
                         'auth/r/info/funding/{key}',
-                        'auth/r/ledgers/hist',
-                        'auth/r/movements/hist',
+                        'auth/r/info/user',
+                        'auth/r/logins/hist',
+                        'auth/w/transfer',
+                        'auth/w/deposit/address',
+                        'auth/w/deposit/invoice',
+                        'auth/w/withdraw',
                         'auth/r/movements/{currency}/hist',
-                        'auth/r/stats/perf:{timeframe}/hist',
+                        'auth/r/movements/hist',
                         'auth/r/alerts',
                         'auth/w/alert/set',
+                        'auth/w/alert/price:{symbol}:{price}/del',
                         'auth/w/alert/{type}:{symbol}:{price}/del',
                         'auth/calc/order/avail',
-                        'auth/r/ledgers/{symbol}/hist',
-                        'auth/r/settings',
                         'auth/w/settings/set',
+                        'auth/r/settings',
                         'auth/w/settings/del',
-                        'auth/r/info/user',
                     ],
                 },
             },
@@ -177,27 +245,51 @@ module.exports = class bitfinex2 extends bitfinex {
             },
             'options': {
                 'precision': 'R0', // P0, P1, P2, P3, P4, R0
-                'orderTypes': {
-                    'MARKET': undefined,
+                // convert 'EXCHANGE MARKET' to lowercase 'market'
+                // convert 'EXCHANGE LIMIT' to lowercase 'limit'
+                // everything else remains uppercase
+                'exchangeTypes': {
+                    // 'MARKET': undefined,
                     'EXCHANGE MARKET': 'market',
-                    'LIMIT': undefined,
+                    // 'LIMIT': undefined,
                     'EXCHANGE LIMIT': 'limit',
-                    'STOP': undefined,
-                    'EXCHANGE STOP': 'stopOrLoss',
-                    'TRAILING STOP': undefined,
-                    'EXCHANGE TRAILING STOP': undefined,
-                    'FOK': undefined,
-                    'EXCHANGE FOK': 'limit FOK',
-                    'STOP LIMIT': undefined,
-                    'EXCHANGE STOP LIMIT': 'limit stop',
-                    'IOC': undefined,
-                    'EXCHANGE IOC': 'limit ioc',
+                    // 'STOP': undefined,
+                    // 'EXCHANGE STOP': undefined,
+                    // 'TRAILING STOP': undefined,
+                    // 'EXCHANGE TRAILING STOP': undefined,
+                    // 'FOK': undefined,
+                    // 'EXCHANGE FOK': undefined,
+                    // 'STOP LIMIT': undefined,
+                    // 'EXCHANGE STOP LIMIT': undefined,
+                    // 'IOC': undefined,
+                    // 'EXCHANGE IOC': undefined,
+                },
+                // convert 'market' to 'EXCHANGE MARKET'
+                // convert 'limit' 'EXCHANGE LIMIT'
+                // everything else remains as is
+                'orderTypes': {
+                    'market': 'EXCHANGE MARKET',
+                    'limit': 'EXCHANGE LIMIT',
                 },
                 'fiat': {
                     'USD': 'USD',
                     'EUR': 'EUR',
                     'JPY': 'JPY',
                     'GBP': 'GBP',
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    '10020': BadRequest,
+                    '10100': AuthenticationError,
+                    '10114': InvalidNonce,
+                    '20060': OnMaintenance,
+                },
+                'broad': {
+                    'not enough exchange balance': InsufficientFunds,
+                    'Order not found': OrderNotFound,
+                    'symbol: invalid': BadSymbol,
+                    'Invalid order': InvalidOrder,
                 },
             },
         });
@@ -211,13 +303,29 @@ module.exports = class bitfinex2 extends bitfinex {
         return 'f' + code;
     }
 
+    async fetchStatus (params = {}) {
+        //
+        //    [1] // operative
+        //    [0] // maintenance
+        //
+        const response = await this.publicGetPlatformStatus (params);
+        const status = this.safeValue (response, 0);
+        const formattedStatus = (status === 1) ? 'ok' : 'maintenance';
+        this.status = this.extend (this.status, {
+            'status': formattedStatus,
+            'updated': this.milliseconds (),
+        });
+        return this.status;
+    }
+
     async fetchMarkets (params = {}) {
+        // todo drop v1 in favor of v2 configs
+        // pub:list:pair:exchange,pub:list:pair:margin,pub:info:pair
         const response = await this.v1GetSymbolsDetails (params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
-            let id = this.safeString (market, 'pair');
-            id = id.toUpperCase ();
+            let id = this.safeStringUpper (market, 'pair');
             let baseId = undefined;
             let quoteId = undefined;
             if (id.indexOf (':') >= 0) {
@@ -267,6 +375,145 @@ module.exports = class bitfinex2 extends bitfinex {
                 'spot': false,
                 'futures': false,
             });
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        const labels = [
+            'pub:map:currency:sym', // maps symbols to their API symbols, BAB > BCH
+            'pub:map:currency:label', // verbose friendly names, BNT > Bancor
+            'pub:map:currency:unit', // maps symbols to unit of measure where applicable
+            'pub:map:currency:undl', // maps derivatives symbols to their underlying currency
+            'pub:map:currency:pool', // maps symbols to underlying network/protocol they operate on
+            'pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
+        ];
+        const config = labels.join (',');
+        const request = {
+            'config': config,
+        };
+        const response = await this.publicGetConfConfig (this.extend (request, params));
+        //
+        //     [
+        //         // sym
+        //         // maps symbols to their API symbols, BAB > BCH
+        //         [
+        //             [ 'ATO', 'ATOM' ],
+        //             [ 'BAB', 'BCH' ],
+        //             [ 'CNHT', 'CNHt' ],
+        //             [ 'DSH', 'DASH' ],
+        //             [ 'IOT', 'IOTA' ],
+        //             [ 'LES', 'LEO-EOS' ],
+        //             [ 'LET', 'LEO-ERC20' ],
+        //             [ 'QTM', 'QTUM' ],
+        //             [ 'SNG', 'SNGLS' ],
+        //             [ 'STJ', 'STORJ' ],
+        //             [ 'TSD', 'TUSD' ],
+        //             [ 'UDC', 'USDC' ],
+        //             [ 'USK', 'USDK' ],
+        //             [ 'UST', 'USDt' ],
+        //             [ 'USTF0', 'USDt0' ],
+        //             [ 'XCH', 'XCHF' ],
+        //             [ 'YYW', 'YOYOW' ],
+        //             // ...
+        //         ],
+        //         // label
+        //         // verbose friendly names, BNT > Bancor
+        //         [
+        //             [ 'BAB', 'Bitcoin Cash' ],
+        //             [ 'BCH', 'Bitcoin Cash' ],
+        //             [ 'LEO', 'Unus Sed LEO' ],
+        //             [ 'LES', 'Unus Sed LEO (EOS)' ],
+        //             [ 'LET', 'Unus Sed LEO (ERC20)' ],
+        //             // ...
+        //         ],
+        //         // unit
+        //         // maps symbols to unit of measure where applicable
+        //         [
+        //             [ 'IOT', 'Mi|MegaIOTA' ],
+        //         ],
+        //         // undl
+        //         // maps derivatives symbols to their underlying currency
+        //         [
+        //             [ 'USTF0', 'UST' ],
+        //             [ 'BTCF0', 'BTC' ],
+        //             [ 'ETHF0', 'ETH' ],
+        //         ],
+        //         // pool
+        //         // maps symbols to underlying network/protocol they operate on
+        //         [
+        //             [ 'SAN', 'ETH' ], [ 'OMG', 'ETH' ], [ 'AVT', 'ETH' ], [ 'EDO', 'ETH' ],
+        //             [ 'ESS', 'ETH' ], [ 'ATD', 'EOS' ], [ 'ADD', 'EOS' ], [ 'MTO', 'EOS' ],
+        //             [ 'PNK', 'ETH' ], [ 'BAB', 'BCH' ], [ 'WLO', 'XLM' ], [ 'VLD', 'ETH' ],
+        //             [ 'BTT', 'TRX' ], [ 'IMP', 'ETH' ], [ 'SCR', 'ETH' ], [ 'GNO', 'ETH' ],
+        //             // ...
+        //         ],
+        //         // explorer
+        //         // maps symbols to their recognised block explorer URLs
+        //         [
+        //             [
+        //                 'AIO',
+        //                 [
+        //                     "https://mainnet.aion.network",
+        //                     "https://mainnet.aion.network/#/account/VAL",
+        //                     "https://mainnet.aion.network/#/transaction/VAL"
+        //                 ]
+        //             ],
+        //             // ...
+        //         ],
+        //     ]
+        //
+        const indexed = {
+            'sym': this.indexBy (this.safeValue (response, 0, []), 0),
+            'label': this.indexBy (this.safeValue (response, 1, []), 0),
+            'unit': this.indexBy (this.safeValue (response, 2, []), 0),
+            'undl': this.indexBy (this.safeValue (response, 3, []), 0),
+            'pool': this.indexBy (this.safeValue (response, 4, []), 0),
+            'explorer': this.indexBy (this.safeValue (response, 5, []), 0),
+        };
+        console.log (indexed);
+        process.exit ();
+        const currencies = this.safeValue (response, 'result', []);
+        const result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
+            const id = this.safeString (currency, 'Currency');
+            // todo: will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            const code = this.safeCurrencyCode (id);
+            const precision = 8; // default precision, todo: fix "magic constants"
+            const address = this.safeValue (currency, 'BaseAddress');
+            const fee = this.safeFloat (currency, 'TxFee'); // todo: redesign
+            result[code] = {
+                'id': id,
+                'code': code,
+                'address': address,
+                'info': currency,
+                'type': currency['CoinType'],
+                'name': currency['CurrencyLong'],
+                'active': currency['IsActive'],
+                'fee': fee,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': fee,
+                        'max': undefined,
+                    },
+                },
+            };
         }
         return result;
     }
@@ -467,12 +714,12 @@ module.exports = class bitfinex2 extends bitfinex {
             const feeCurrency = this.safeCurrencyCode (trade[10]);
             if (feeCost !== undefined) {
                 fee = {
-                    'cost': Math.abs (feeCost),
+                    'cost': parseFloat (this.feeToPrecision (symbol, Math.abs (feeCost))),
                     'currency': feeCurrency,
                 };
             }
             const orderType = trade[6];
-            type = this.safeString (this.options['orderTypes'], orderType);
+            type = this.safeString (this.options['exchangeTypes'], orderType);
         }
         if (symbol === undefined) {
             if (market !== undefined) {
@@ -555,19 +802,250 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'ACTIVE': 'open',
+            'PARTIALLY FILLED': 'open',
+            'EXECUTED': 'closed',
+            'CANCELED': 'canceled',
+            'INSUFFICIENT MARGIN': 'canceled',
+            'RSN_DUST': 'rejected',
+            'RSN_PAUSE': 'rejected',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order, market = undefined) {
+        const id = this.safeString (order, 0);
+        let symbol = undefined;
+        const marketId = this.safeString (order, 3);
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const timestamp = this.safeTimestamp (order, 5);
+        const remaining = Math.abs (this.safeFloat (order, 6));
+        const amount = Math.abs (this.safeFloat (order, 7));
+        const filled = amount - remaining;
+        const side = (order[7] < 0) ? 'sell' : 'buy';
+        const orderType = this.safeString (order, 8);
+        const type = this.safeString (this.safeValue (this.options, 'exchangeTypes'), orderType);
+        let status = undefined;
+        const statusString = this.safeString (order, 13);
+        if (statusString !== undefined) {
+            const parts = statusString.split (' @ ');
+            status = this.parseOrderStatus (this.safeString (parts, 0));
+        }
+        const price = this.safeFloat (order, 16);
+        const average = this.safeFloat (order, 17);
+        const cost = price * filled;
+        return {
+            'info': order,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+        };
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        throw new NotSupported (this.id + ' createOrder not implemented yet');
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const orderTypes = this.safeValue (this.options, 'orderTypes', {});
+        const orderType = this.safeString (orderTypes, type, type);
+        amount = (side === 'sell') ? -amount : amount;
+        const request = {
+            'symbol': market['id'],
+            'type': orderType,
+            'amount': this.numberToString (amount),
+        };
+        if (type !== 'market') {
+            request['price'] = this.numberToString (price);
+        }
+        const response = await this.privatePostAuthWOrderSubmit (this.extend (request, params));
+        //
+        //     [
+        //         1578784364.748,    // Millisecond Time Stamp of the update
+        //         "on-req",          // Purpose of notification ('on-req', 'oc-req', 'uca', 'fon-req', 'foc-req')
+        //         null,              // Unique ID of the message
+        //         null,              // Ignore
+        //         [
+        //             [
+        //                 37271830598,           // Order ID
+        //                 null,                  // Group ID
+        //                 1578784364748,         // Client Order ID
+        //                 "tBTCUST",             // Pair
+        //                 1578784364748,         // Millisecond timestamp of creation
+        //                 1578784364748,         // Millisecond timestamp of update
+        //                 -0.005,                // Positive means buy, negative means sell
+        //                 -0.005,                // Original amount
+        //                 "EXCHANGE LIMIT",      // Order type (LIMIT, MARKET, STOP, TRAILING STOP, EXCHANGE MARKET, EXCHANGE LIMIT, EXCHANGE STOP, EXCHANGE TRAILING STOP, FOK, EXCHANGE FOK, IOC, EXCHANGE IOC)
+        //                 null,                  // Previous order type
+        //                 null,                  // Millisecond timestamp of Time-In-Force: automatic order cancellation
+        //                 null,                  // Ignore
+        //                 0,                     // Flags (see https://docs.bitfinex.com/docs/flag-values)
+        //                 "ACTIVE",              // Order Status
+        //                 null,                  // Ignore
+        //                 null,                  // Ignore
+        //                 20000,                 // Price
+        //                 0,                     // Average price
+        //                 0,                     // The trailing price
+        //                 0,                     // Auxiliary Limit price (for STOP LIMIT)
+        //                 null,                  // Ignore
+        //                 null,                  // Ignore
+        //                 null,                  // Ignore
+        //                 0,                     // 1 - hidden order
+        //                 null,                  // If another order caused this order to be placed (OCO) this will be that other order's ID
+        //                 null,                  // Ignore
+        //                 null,                  // Ignore
+        //                 null,                  // Ignore
+        //                 "API>BFX",             // Origin of action: BFX, ETHFX, API>BFX, API>ETHFX
+        //                 null,                  // Ignore
+        //                 null,                  // Ignore
+        //                 null                   // Meta
+        //             ]
+        //         ],
+        //         null,                  // Error code
+        //         "SUCCESS",             // Status (SUCCESS, ERROR, FAILURE, ...)
+        //         "Submitting 1 orders." // Text of the notification
+        //     ]
+        //
+        const status = this.safeString (response, 6);
+        if (status !== 'SUCCESS') {
+            const errorCode = response[5];
+            const errorText = response[7];
+            throw new ExchangeError (this.id + ' ' + response[6] + ': ' + errorText + ' (#' + errorCode + ')');
+        }
+        const orders = this.safeValue (response, 4, []);
+        const order = this.safeValue (orders, 0);
+        return this.parseOrder (order, market);
     }
 
-    cancelOrder (id, symbol = undefined, params = {}) {
-        throw new NotSupported (this.id + ' cancelOrder not implemented yet');
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        const request = {
+            'all': 1,
+        };
+        const response = await this.privatePostAuthWOrderCancelMulti (this.extend (request, params));
+        const orders = this.safeValue (response, 4, []);
+        return this.parseOrders (orders);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchOrder not implemented yet');
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        const cid = this.safeValue (params, 'cid'); // client order id
+        let request = undefined;
+        if (cid !== undefined) {
+            const cidDate = this.safeValue (params, 'cidDate'); // client order id date
+            if (cidDate === undefined) {
+                throw new InvalidOrder (this.id + " canceling an order by client order id ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')");
+            }
+            request = {
+                'cid': cid,
+                'cid_date': cidDate,
+            };
+        } else {
+            request = {
+                'id': parseInt (id),
+            };
+        }
+        const response = await this.privatePostAuthWOrderCancel (this.extend (request, params));
+        const order = this.safeValue (response, 4);
+        return this.parseOrder (order);
     }
 
-    async fetchDepositAddress (currency, params = {}) {
+    async fetchOpenOrder (id, symbol = undefined, params = {}) {
+        const request = {
+            'id': [ parseInt (id) ],
+        };
+        const orders = await this.fetchOpenOrders (symbol, undefined, undefined, this.extend (request, params));
+        const order = this.safeValue (orders, 0);
+        if (order === undefined) {
+            throw new OrderNotFound (this.id + ' order ' + id + ' not found');
+        }
+        return order;
+    }
+
+    async fetchClosedOrder (id, symbol = undefined, params = {}) {
+        const request = {
+            'id': [ parseInt (id) ],
+        };
+        const orders = await this.fetchClosedOrders (symbol, undefined, undefined, this.extend (request, params));
+        const order = this.safeValue (orders, 0);
+        if (order === undefined) {
+            throw new OrderNotFound (this.id + ' order ' + id + ' not found');
+        }
+        return order;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        let response = undefined;
+        if (symbol === undefined) {
+            response = await this.privatePostAuthROrders (this.extend (request, params));
+        } else {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+            response = await this.privatePostAuthROrdersSymbol (this.extend (request, params));
+        }
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // returns the most recent closed or canceled orders up to circa two weeks ago
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        let response = undefined;
+        if (symbol === undefined) {
+            response = await this.privatePostAuthROrdersHist (this.extend (request, params));
+        } else {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+            response = await this.privatePostAuthROrdersSymbolHist (this.extend (request, params));
+        }
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 25, max 2500
+        }
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const orderId = parseInt (id);
+        const request = {
+            'id': orderId,
+            'symbol': market['id'],
+        };
+        // valid for trades upto 10 days old
+        const response = await this.privatePostAuthROrderSymbolIdTrades (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
         throw new NotSupported (this.id + ' fetchDepositAddress() not implemented yet.');
     }
 
@@ -645,5 +1123,18 @@ module.exports = class bitfinex2 extends bitfinex {
             throw new ExchangeError (this.id + ' returned empty response');
         }
         return response;
+    }
+
+    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
+        if (statusCode === 500) {
+            // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
+            const errorCode = this.numberToString (response[1]);
+            const errorText = response[2];
+            const feedback = this.id + ' ' + errorText;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorText, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorText, feedback);
+            throw new ExchangeError (this.id + ' ' + errorText + ' (#' + errorCode + ')');
+        }
     }
 };
