@@ -22,7 +22,10 @@ module.exports = class binance extends ccxt.binance {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://stream.binance.com:9443/ws',
+                    'ws': {
+                        'spot': 'wss://stream.binance.com:9443/ws',
+                        'future': 'wss://fstream.binance.com/ws',
+                    },
                 },
             },
             'options': {
@@ -70,9 +73,17 @@ module.exports = class binance extends ccxt.binance {
         //     }
         //
         await this.loadMarkets ();
+        const defaultType = this.safeString2 (this.options, 'watchOrderBook', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
         const market = this.market (symbol);
         //
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#how-to-manage-a-local-order-book-correctly
+        // notice the differences between trading futures and spot trading
+        // the algorithms use different urls in step 1
+        // delta caching and merging also differs in steps 4, 5, 6
+        //
+        // spot/margin
+        // https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly
         //
         // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
         // 2. Buffer the events you receive from the stream.
@@ -84,9 +95,22 @@ module.exports = class binance extends ccxt.binance {
         // 8. If the quantity is 0, remove the price level.
         // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
         //
+        // futures
+        // https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
+        //
+        // 1. Open a stream to wss://fstream.binance.com/stream?streams=btcusdt@depth.
+        // 2. Buffer the events you receive from the stream. For same price, latest received update covers the previous one.
+        // 3. Get a depth snapshot from https://fapi.binance.com/fapi/v1/depth?symbol=BTCUSDT&limit=1000 .
+        // 4. Drop any event where u is < lastUpdateId in the snapshot.
+        // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
+        // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3.
+        // 7. The data in each event is the absolute quantity for a price level.
+        // 8. If the quantity is 0, remove the price level.
+        // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
+        //
         const name = 'depth';
         const messageHash = market['lowercaseId'] + '@' + name;
-        const url = this.urls['api']['ws']; // + '/' + messageHash;
+        const url = this.urls['api']['ws'][type]; // + '/' + messageHash;
         const requestId = this.nonce ();
         const watchOrderBookRate = this.safeString (this.options, 'watchOrderBookRate', '100');
         const request = {
@@ -103,8 +127,9 @@ module.exports = class binance extends ccxt.binance {
             'symbol': symbol,
             'method': this.handleOrderBookSubscription,
             'limit': limit,
+            'type': type,
         };
-        const message = this.extend (request, params);
+        const message = this.extend (request, query);
         // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
         const future = this.watch (url, messageHash, message, messageHash, subscription);
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
@@ -115,6 +140,7 @@ module.exports = class binance extends ccxt.binance {
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {
+        const type = this.safeValue (subscription, 'type');
         const symbol = this.safeString (subscription, 'symbol');
         const messageHash = this.safeString (subscription, 'messageHash');
         // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
@@ -126,7 +152,27 @@ module.exports = class binance extends ccxt.binance {
         const messages = orderbook.cache;
         for (let i = 0; i < messages.length; i++) {
             const message = messages[i];
-            this.handleOrderBookMessage (client, message, orderbook);
+            const U = this.safeInteger (message, 'U');
+            const u = this.safeInteger (message, 'u');
+            if (type === 'future') {
+                // 4. Drop any event where u is < lastUpdateId in the snapshot
+                if (u < orderbook['nonce']) {
+                    continue;
+                }
+                // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
+                if ((U <= orderbook['nonce']) && (u >= orderbook['nonce'])) {
+                    this.handleOrderBookMessage (client, message, orderbook);
+                }
+            } else {
+                // 4. Drop any event where u is <= lastUpdateId in the snapshot
+                if (u <= orderbook['nonce']) {
+                    continue;
+                }
+                // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
+                if (((U - 1) <= orderbook['nonce']) && ((u - 1) >= orderbook['nonce'])) {
+                    this.handleOrderBookMessage (client, message, orderbook);
+                }
+            }
         }
         this.orderbooks[symbol] = orderbook;
         client.resolve (orderbook, messageHash);
@@ -145,23 +191,13 @@ module.exports = class binance extends ccxt.binance {
     }
 
     handleOrderBookMessage (client, message, orderbook) {
-        const u = this.safeInteger2 (message, 'u', 'lastUpdateId');
-        // merge accumulated deltas
-        // 4. Drop any event where u is <= lastUpdateId in the snapshot.
-        if (u > orderbook['nonce']) {
-            const U = this.safeInteger (message, 'U');
-            // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
-            if ((U !== undefined) && ((U - 1) > orderbook['nonce'])) {
-                // todo: client.reject from handleOrderBookMessage properly
-                throw new ExchangeError (this.id + ' handleOrderBook received an out-of-order nonce');
-            }
-            this.handleDeltas (orderbook['asks'], this.safeValue (message, 'a', []));
-            this.handleDeltas (orderbook['bids'], this.safeValue (message, 'b', []));
-            orderbook['nonce'] = u;
-            const timestamp = this.safeInteger (message, 'E');
-            orderbook['timestamp'] = timestamp;
-            orderbook['datetime'] = this.iso8601 (timestamp);
-        }
+        const u = this.safeInteger (message, 'u');
+        this.handleDeltas (orderbook['asks'], this.safeValue (message, 'a', []));
+        this.handleDeltas (orderbook['bids'], this.safeValue (message, 'b', []));
+        orderbook['nonce'] = u;
+        const timestamp = this.safeInteger (message, 'E');
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
         return orderbook;
     }
 
@@ -196,23 +232,61 @@ module.exports = class binance extends ccxt.binance {
         const name = 'depth';
         const messageHash = market['lowercaseId'] + '@' + name;
         const orderbook = this.orderbooks[symbol];
-        if (orderbook['nonce'] !== undefined) {
-            // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
-            // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
+        const nonce = this.safeInteger (orderbook, 'nonce');
+        if (nonce === undefined) {
+            // 2. Buffer the events you receive from the stream.
+            orderbook.cache.push (message);
+        } else {
             try {
-                const nonce = orderbook['nonce'];
-                this.handleOrderBookMessage (client, message, orderbook);
-                if (nonce < orderbook['nonce']) {
-                    client.resolve (orderbook, messageHash);
+                const U = this.safeInteger (message, 'U');
+                const u = this.safeInteger (message, 'u');
+                const pu = this.safeInteger (message, 'pu');
+                if (pu === undefined) {
+                    // spot
+                    // 4. Drop any event where u is <= lastUpdateId in the snapshot
+                    if (u <= orderbook['nonce']) {
+                        return;
+                    }
+                    // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
+                    if (((U - 1) > orderbook['nonce']) || ((u - 1) < orderbook['nonce'])) {
+                        return;
+                    }
+                    // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
+                    if ((U - 1) !== orderbook['nonce']) {
+                        // todo: client.reject from handleOrderBookMessage properly
+                        throw new ExchangeError (this.id + ' handleOrderBook received an out-of-order nonce');
+                    }
+                    this.handleOrderBookMessage (client, message, orderbook);
+                    if (nonce < orderbook['nonce']) {
+                        client.resolve (orderbook, messageHash);
+                    }
+                } else {
+                    // future
+                    // 4. Drop any event where u is < lastUpdateId in the snapshot
+                    if (u >= orderbook['nonce']) {
+                        // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
+                        if (U <= orderbook['nonce']) {
+                            this.handleOrderBookMessage (client, message, orderbook);
+                            if (nonce <= orderbook['nonce']) {
+                                client.resolve (orderbook, messageHash);
+                            }
+                        // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
+                        } else if (pu === orderbook['nonce']) {
+                            this.handleOrderBookMessage (client, message, orderbook);
+                            if (nonce <= orderbook['nonce']) {
+                                client.resolve (orderbook, messageHash);
+                            }
+                        } else {
+                            // todo: client.reject from handleOrderBookMessage properly
+                            throw new ExchangeError (this.id + ' handleOrderBook received an out-of-order nonce');
+                        }
+                    }
                 }
             } catch (e) {
                 delete this.orderbooks[symbol];
                 delete client.subscriptions[messageHash];
                 client.reject (e, messageHash);
             }
-        } else {
-            // 2. Buffer the events you receive from the stream.
-            orderbook.cache.push (message);
         }
     }
 
@@ -427,6 +501,9 @@ module.exports = class binance extends ccxt.binance {
     }
 
     async watchPublic (messageHash, params = {}) {
+        const defaultType = this.safeString2 (this.options, 'watchOrderBook', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
         const requestId = this.nonce ();
         const request = {
             'method': 'SUBSCRIBE',
@@ -438,8 +515,8 @@ module.exports = class binance extends ccxt.binance {
         const subscribe = {
             'id': requestId,
         };
-        const url = this.urls['api']['ws'];
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
+        const url = this.urls['api']['ws'][type];
+        return await this.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -533,7 +610,10 @@ module.exports = class binance extends ccxt.binance {
     async watchBalance (params = {}) {
         await this.loadMarkets ();
         await this.authenticate ();
-        const url = this.urls['api']['ws'] + '/' + this.options['listenKey'];
+        const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        const url = this.urls['api']['ws'][type] + '/' + this.options['listenKey'];
         const requestId = this.nonce ();
         const request = {
             'method': 'SUBSCRIBE',
@@ -545,7 +625,7 @@ module.exports = class binance extends ccxt.binance {
             'id': requestId,
         };
         const messageHash = 'outboundAccountInfo';
-        return await this.watch (url, messageHash, request, 1, subscribe);
+        return await this.watch (url, messageHash, this.extend (request, query), 1, subscribe);
     }
 
     handleBalance (client, message) {
@@ -598,7 +678,10 @@ module.exports = class binance extends ccxt.binance {
     async watchOrders (params = {}) {
         await this.loadMarkets ();
         await this.authenticate ();
-        const url = this.urls['api']['ws'] + '/' + this.options['listenKey'];
+        const defaultType = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        const url = this.urls['api']['ws'][type] + '/' + this.options['listenKey'];
         const requestId = this.nonce ();
         const request = {
             'method': 'SUBSCRIBE',
@@ -610,7 +693,7 @@ module.exports = class binance extends ccxt.binance {
             'id': requestId,
         };
         const messageHash = 'executionReport';
-        return await this.watch (url, messageHash, request, 1, subscribe);
+        return await this.watch (url, messageHash, this.extend (request, query), 1, subscribe);
     }
 
     handleOrder (client, message) {
