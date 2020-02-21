@@ -815,7 +815,7 @@ class Exchange(object):
             array = Exchange.keysort(array).values()
         is_int_key = isinstance(key, int)
         for element in array:
-            if ((is_int_key and (key < len(element)) or (key in element)) and (element[key] is not None):
+            if ((is_int_key and (key < len(element))) or (key in element)) and (element[key] is not None):
                 k = element[key]
                 result[k] = element
         return result
