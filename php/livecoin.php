@@ -109,6 +109,7 @@ class livecoin extends Exchange {
                 'RUR' => 'RUB',
                 'SCT' => 'SpaceCoin',
                 'TPI' => 'ThaneCoin',
+                'WAX' => 'WAXP',
                 'wETT' => 'WETT',
                 'XBT' => 'Bricktox',
             ),

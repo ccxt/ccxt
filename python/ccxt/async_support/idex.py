@@ -106,6 +106,7 @@ class idex(Exchange):
                 'ONE': 'Menlo One',
                 'FT': 'Fabric Token',
                 'PLA': 'PlayChip',
+                'WAX': 'WAXP',
             },
         })
 

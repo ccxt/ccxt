@@ -312,6 +312,7 @@ class bitfinex extends Exchange {
                 'UST' => 'USDT',
                 'UTN' => 'UTNP',
                 'VSY' => 'VSYS',
+                'WAX' => 'WAXP',
                 'XCH' => 'XCHF',
                 'ZBT' => 'ZB',
             ),
