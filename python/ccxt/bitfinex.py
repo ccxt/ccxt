@@ -288,6 +288,7 @@ class bitfinex(Exchange):
                     },
                 },
             },
+            # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
             'commonCurrencies': {
                 'ABS': 'ABYSS',
                 'AIO': 'AION',
@@ -876,6 +877,7 @@ class bitfinex(Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def get_currency_name(self, code):
+        # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         if code in self.options['currencyNames']:
             return self.options['currencyNames'][code]
         raise NotSupported(self.id + ' ' + code + ' not supported for withdrawal')
@@ -890,6 +892,7 @@ class bitfinex(Exchange):
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
+        # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         name = self.get_currency_name(code)
         request = {
             'method': name,
@@ -1021,11 +1024,13 @@ class bitfinex(Exchange):
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
+        self.load_markets()
+        # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         name = self.get_currency_name(code)
         request = {
             'withdraw_type': name,
             'walletselected': 'exchange',
-            'amount': str(amount),
+            'amount': self.number_to_string(amount),
             'address': address,
         }
         if tag is not None:
