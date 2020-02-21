@@ -26,7 +26,10 @@ class binance extends \ccxt\binance {
             ),
             'urls' => array(
                 'api' => array(
-                    'ws' => 'wss://stream.binance.com:9443/ws',
+                    'ws' => array(
+                        'spot' => 'wss://stream.binance.com:9443/ws',
+                        'future' => 'wss://fstream.binance.com/ws',
+                    ),
                 ),
             ),
             'options' => array(
@@ -74,9 +77,17 @@ class binance extends \ccxt\binance {
         //     }
         //
         $this->load_markets();
+        $defaultType = $this->safe_string_2($this->options, 'watchOrderBook', 'defaultType', 'spot');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $query = $this->omit ($params, 'type');
         $market = $this->market ($symbol);
         //
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#how-to-manage-a-local-order-book-correctly
+        // notice the differences between trading futures and spot trading
+        // the algorithms use different urls in step 1
+        // delta caching and merging also differs in steps 4, 5, 6
+        //
+        // spot/margin
+        // https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly
         //
         // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
         // 2. Buffer the events you receive from the stream.
@@ -88,9 +99,22 @@ class binance extends \ccxt\binance {
         // 8. If the quantity is 0, remove the price level.
         // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
         //
+        // futures
+        // https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
+        //
+        // 1. Open a stream to wss://fstream.binance.com/stream?streams=btcusdt@depth.
+        // 2. Buffer the events you receive from the stream. For same price, latest received update covers the previous one.
+        // 3. Get a depth snapshot from https://fapi.binance.com/fapi/v1/depth?$symbol=BTCUSDT&$limit=1000 .
+        // 4. Drop any event where u is < lastUpdateId in the snapshot.
+        // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
+        // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3.
+        // 7. The data in each event is the absolute quantity for a price level.
+        // 8. If the quantity is 0, remove the price level.
+        // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
+        //
         $name = 'depth';
         $messageHash = $market['lowercaseId'] . '@' . $name;
-        $url = $this->urls['api']['ws']; // . '/' . $messageHash;
+        $url = $this->urls['api']['ws'][$type]; // . '/' . $messageHash;
         $requestId = $this->nonce ();
         $watchOrderBookRate = $this->safe_string($this->options, 'watchOrderBookRate', '100');
         $request = array(
@@ -107,8 +131,9 @@ class binance extends \ccxt\binance {
             'symbol' => $symbol,
             'method' => array($this, 'handle_order_book_subscription'),
             'limit' => $limit,
+            'type' => $type,
         );
-        $message = array_merge($request, $params);
+        $message = array_merge($request, $query);
         // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
         $future = $this->watch ($url, $messageHash, $message, $messageHash, $subscription);
         return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
@@ -119,6 +144,7 @@ class binance extends \ccxt\binance {
     }
 
     public function fetch_order_book_snapshot ($client, $message, $subscription) {
+        $type = $this->safe_value($subscription, 'type');
         $symbol = $this->safe_string($subscription, 'symbol');
         $messageHash = $this->safe_string($subscription, 'messageHash');
         // 3. Get a depth $snapshot from https://www.binance.com/api/v1/depth?$symbol=BNBBTC&limit=1000 .
@@ -130,7 +156,27 @@ class binance extends \ccxt\binance {
         $messages = $orderbook->cache;
         for ($i = 0; $i < count($messages); $i++) {
             $message = $messages[$i];
-            $this->handle_order_book_message ($client, $message, $orderbook);
+            $U = $this->safe_integer($message, 'U');
+            $u = $this->safe_integer($message, 'u');
+            if ($type === 'future') {
+                // 4. Drop any event where $u is < lastUpdateId in the $snapshot
+                if ($u < $orderbook['nonce']) {
+                    continue;
+                }
+                // 5. The first processed event should have $U <= lastUpdateId AND $u >= lastUpdateId
+                if (($U <= $orderbook['nonce']) && ($u >= $orderbook['nonce'])) {
+                    $this->handle_order_book_message ($client, $message, $orderbook);
+                }
+            } else {
+                // 4. Drop any event where $u is <= lastUpdateId in the $snapshot
+                if ($u <= $orderbook['nonce']) {
+                    continue;
+                }
+                // 5. The first processed event should have $U <= lastUpdateId+1 AND $u >= lastUpdateId+1
+                if ((($U - 1) <= $orderbook['nonce']) && (($u - 1) >= $orderbook['nonce'])) {
+                    $this->handle_order_book_message ($client, $message, $orderbook);
+                }
+            }
         }
         $this->orderbooks[$symbol] = $orderbook;
         $client->resolve ($orderbook, $messageHash);
@@ -149,23 +195,13 @@ class binance extends \ccxt\binance {
     }
 
     public function handle_order_book_message ($client, $message, $orderbook) {
-        $u = $this->safe_integer_2($message, 'u', 'lastUpdateId');
-        // merge accumulated deltas
-        // 4. Drop any event where $u is <= lastUpdateId in the snapshot.
-        if ($u > $orderbook['nonce']) {
-            $U = $this->safe_integer($message, 'U');
-            // 5. The first processed event should have $U <= lastUpdateId+1 AND $u >= lastUpdateId+1.
-            if (($U !== null) && (($U - 1) > $orderbook['nonce'])) {
-                // todo => $client->reject from handleOrderBookMessage properly
-                throw new ExchangeError($this->id . ' handleOrderBook received an out-of-order nonce');
-            }
-            $this->handle_deltas ($orderbook['asks'], $this->safe_value($message, 'a', array()));
-            $this->handle_deltas ($orderbook['bids'], $this->safe_value($message, 'b', array()));
-            $orderbook['nonce'] = $u;
-            $timestamp = $this->safe_integer($message, 'E');
-            $orderbook['timestamp'] = $timestamp;
-            $orderbook['datetime'] = $this->iso8601 ($timestamp);
-        }
+        $u = $this->safe_integer($message, 'u');
+        $this->handle_deltas ($orderbook['asks'], $this->safe_value($message, 'a', array()));
+        $this->handle_deltas ($orderbook['bids'], $this->safe_value($message, 'b', array()));
+        $orderbook['nonce'] = $u;
+        $timestamp = $this->safe_integer($message, 'E');
+        $orderbook['timestamp'] = $timestamp;
+        $orderbook['datetime'] = $this->iso8601 ($timestamp);
         return $orderbook;
     }
 
@@ -178,8 +214,8 @@ class binance extends \ccxt\binance {
         //         "$e" => "depthUpdate", // Event type
         //         "E" => 1577554482280, // Event time
         //         "s" => "BNBBTC", // Symbol
-        //         "U" => 157, // First update ID in event
-        //         "u" => 160, // Final update ID in event
+        //         "$U" => 157, // First update ID in event
+        //         "$u" => 160, // Final update ID in event
         //         "b" => array( // bids
         //             array( "0.0024", "10" ), // price, size
         //         ),
@@ -200,23 +236,63 @@ class binance extends \ccxt\binance {
         $name = 'depth';
         $messageHash = $market['lowercaseId'] . '@' . $name;
         $orderbook = $this->orderbooks[$symbol];
-        if ($orderbook['nonce'] !== null) {
-            // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
-            // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
+        $nonce = $this->safe_integer($orderbook, 'nonce');
+        if ($nonce === null) {
+            // 2. Buffer the events you receive from the stream.
+            $orderbook->cache[] = $message;
+        } else {
             try {
-                $nonce = $orderbook['nonce'];
-                $this->handle_order_book_message ($client, $message, $orderbook);
-                if ($nonce < $orderbook['nonce']) {
-                    $client->resolve ($orderbook, $messageHash);
+                $U = $this->safe_integer($message, 'U');
+                $u = $this->safe_integer($message, 'u');
+                $pu = $this->safe_integer($message, 'pu');
+                if ($pu === null) {
+                    // spot
+                    // 4. Drop any event where $u is <= lastUpdateId in the snapshot
+                    if ($u > $orderbook['nonce']) {
+                        // 5. The first processed event should have $U <= lastUpdateId+1 AND $u >= lastUpdateId+1
+                        if ($U < $orderbook['nonce']) {
+                            $this->handle_order_book_message ($client, $message, $orderbook);
+                            if ($nonce < $orderbook['nonce']) {
+                                $client->resolve ($orderbook, $messageHash);
+                            }
+                        } else if (($U - 1) === $orderbook['nonce']) {
+                            // 6. While listening to the stream, each new event's $U should be equal to the previous event's $u+1.
+                            $this->handle_order_book_message ($client, $message, $orderbook);
+                            if ($nonce < $orderbook['nonce']) {
+                                $client->resolve ($orderbook, $messageHash);
+                            }
+                        } else {
+                            // todo => $client->reject from handleOrderBookMessage properly
+                            throw new ExchangeError($this->id . ' handleOrderBook received an out-of-order nonce');
+                        }
+                    }
+                } else {
+                    // future
+                    // 4. Drop any event where $u is < lastUpdateId in the snapshot
+                    if ($u >= $orderbook['nonce']) {
+                        // 5. The first processed event should have $U <= lastUpdateId AND $u >= lastUpdateId
+                        if ($U <= $orderbook['nonce']) {
+                            $this->handle_order_book_message ($client, $message, $orderbook);
+                            if ($nonce <= $orderbook['nonce']) {
+                                $client->resolve ($orderbook, $messageHash);
+                            }
+                        // 6. While listening to the stream, each new event's $pu should be equal to the previous event's $u, otherwise initialize the process from step 3
+                        } else if ($pu === $orderbook['nonce']) {
+                            $this->handle_order_book_message ($client, $message, $orderbook);
+                            if ($nonce <= $orderbook['nonce']) {
+                                $client->resolve ($orderbook, $messageHash);
+                            }
+                        } else {
+                            // todo => $client->reject from handleOrderBookMessage properly
+                            throw new ExchangeError($this->id . ' handleOrderBook received an out-of-order nonce');
+                        }
+                    }
                 }
             } catch (Exception $e) {
                 unset($this->orderbooks[$symbol]);
                 unset($client->subscriptions[$messageHash]);
                 $client->reject ($e, $messageHash);
             }
-        } else {
-            // 2. Buffer the events you receive from the stream.
-            $orderbook->cache[] = $message;
         }
     }
 
@@ -431,6 +507,9 @@ class binance extends \ccxt\binance {
     }
 
     public function watch_public ($messageHash, $params = array ()) {
+        $defaultType = $this->safe_string_2($this->options, 'watchOrderBook', 'defaultType', 'spot');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $query = $this->omit ($params, 'type');
         $requestId = $this->nonce ();
         $request = array(
             'method' => 'SUBSCRIBE',
@@ -442,8 +521,8 @@ class binance extends \ccxt\binance {
         $subscribe = array(
             'id' => $requestId,
         );
-        $url = $this->urls['api']['ws'];
-        return $this->watch ($url, $messageHash, array_merge($request, $params), $messageHash, $subscribe);
+        $url = $this->urls['api']['ws'][$type];
+        return $this->watch ($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe);
     }
 
     public function watch_ticker ($symbol, $params = array ()) {
@@ -537,7 +616,10 @@ class binance extends \ccxt\binance {
     public function watch_balance ($params = array ()) {
         $this->load_markets();
         $this->authenticate ();
-        $url = $this->urls['api']['ws'] . '/' . $this->options['listenKey'];
+        $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $query = $this->omit ($params, 'type');
+        $url = $this->urls['api']['ws'][$type] . '/' . $this->options['listenKey'];
         $requestId = $this->nonce ();
         $request = array(
             'method' => 'SUBSCRIBE',
@@ -549,7 +631,7 @@ class binance extends \ccxt\binance {
             'id' => $requestId,
         );
         $messageHash = 'outboundAccountInfo';
-        return $this->watch ($url, $messageHash, $request, 1, $subscribe);
+        return $this->watch ($url, $messageHash, array_merge($request, $query), 1, $subscribe);
     }
 
     public function handle_balance ($client, $message) {
@@ -602,7 +684,10 @@ class binance extends \ccxt\binance {
     public function watch_orders ($params = array ()) {
         $this->load_markets();
         $this->authenticate ();
-        $url = $this->urls['api']['ws'] . '/' . $this->options['listenKey'];
+        $defaultType = $this->safe_string_2($this->options, 'watchOrders', 'defaultType', 'spot');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $query = $this->omit ($params, 'type');
+        $url = $this->urls['api']['ws'][$type] . '/' . $this->options['listenKey'];
         $requestId = $this->nonce ();
         $request = array(
             'method' => 'SUBSCRIBE',
@@ -614,7 +699,7 @@ class binance extends \ccxt\binance {
             'id' => $requestId,
         );
         $messageHash = 'executionReport';
-        return $this->watch ($url, $messageHash, $request, 1, $subscribe);
+        return $this->watch ($url, $messageHash, array_merge($request, $query), 1, $subscribe);
     }
 
     public function handle_order ($client, $message) {

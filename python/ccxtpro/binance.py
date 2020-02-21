@@ -24,7 +24,10 @@ class binance(Exchange, ccxt.binance):
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://stream.binance.com:9443/ws',
+                    'ws': {
+                        'spot': 'wss://stream.binance.com:9443/ws',
+                        'future': 'wss://fstream.binance.com/ws',
+                    },
                 },
             },
             'options': {
@@ -68,9 +71,17 @@ class binance(Exchange, ccxt.binance):
         #     }
         #
         await self.load_markets()
+        defaultType = self.safe_string_2(self.options, 'watchOrderBook', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        query = self.omit(params, 'type')
         market = self.market(symbol)
         #
-        # https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#how-to-manage-a-local-order-book-correctly
+        # notice the differences between trading futures and spot trading
+        # the algorithms use different urls in step 1
+        # delta caching and merging also differs in steps 4, 5, 6
+        #
+        # spot/margin
+        # https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly
         #
         # 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
         # 2. Buffer the events you receive from the stream.
@@ -82,9 +93,22 @@ class binance(Exchange, ccxt.binance):
         # 8. If the quantity is 0, remove the price level.
         # 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
         #
+        # futures
+        # https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
+        #
+        # 1. Open a stream to wss://fstream.binance.com/stream?streams=btcusdt@depth.
+        # 2. Buffer the events you receive from the stream. For same price, latest received update covers the previous one.
+        # 3. Get a depth snapshot from https://fapi.binance.com/fapi/v1/depth?symbol=BTCUSDT&limit=1000 .
+        # 4. Drop any event where u is < lastUpdateId in the snapshot.
+        # 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
+        # 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3.
+        # 7. The data in each event is the absolute quantity for a price level.
+        # 8. If the quantity is 0, remove the price level.
+        # 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
+        #
         name = 'depth'
         messageHash = market['lowercaseId'] + '@' + name
-        url = self.urls['api']['ws']  # + '/' + messageHash
+        url = self.urls['api']['ws'][type]  # + '/' + messageHash
         requestId = self.nonce()
         watchOrderBookRate = self.safe_string(self.options, 'watchOrderBookRate', '100')
         request = {
@@ -101,8 +125,9 @@ class binance(Exchange, ccxt.binance):
             'symbol': symbol,
             'method': self.handle_order_book_subscription,
             'limit': limit,
+            'type': type,
         }
-        message = self.extend(request, params)
+        message = self.extend(request, query)
         # 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
         future = self.watch(url, messageHash, message, messageHash, subscription)
         return await self.after(future, self.limit_order_book, symbol, limit, params)
@@ -111,6 +136,7 @@ class binance(Exchange, ccxt.binance):
         return orderbook.limit(limit)
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
+        type = self.safe_value(subscription, 'type')
         symbol = self.safe_string(subscription, 'symbol')
         messageHash = self.safe_string(subscription, 'messageHash')
         # 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
@@ -122,7 +148,22 @@ class binance(Exchange, ccxt.binance):
         messages = orderbook.cache
         for i in range(0, len(messages)):
             message = messages[i]
-            self.handle_order_book_message(client, message, orderbook)
+            U = self.safe_integer(message, 'U')
+            u = self.safe_integer(message, 'u')
+            if type == 'future':
+                # 4. Drop any event where u is < lastUpdateId in the snapshot
+                if u < orderbook['nonce']:
+                    continue
+                # 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
+                if (U <= orderbook['nonce']) and (u >= orderbook['nonce']):
+                    self.handle_order_book_message(client, message, orderbook)
+            else:
+                # 4. Drop any event where u is <= lastUpdateId in the snapshot
+                if u <= orderbook['nonce']:
+                    continue
+                # 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
+                if ((U - 1) <= orderbook['nonce']) and ((u - 1) >= orderbook['nonce']):
+                    self.handle_order_book_message(client, message, orderbook)
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
@@ -136,21 +177,13 @@ class binance(Exchange, ccxt.binance):
             self.handle_delta(bookside, deltas[i])
 
     def handle_order_book_message(self, client, message, orderbook):
-        u = self.safe_integer_2(message, 'u', 'lastUpdateId')
-        # merge accumulated deltas
-        # 4. Drop any event where u is <= lastUpdateId in the snapshot.
-        if u > orderbook['nonce']:
-            U = self.safe_integer(message, 'U')
-            # 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
-            if (U is not None) and ((U - 1) > orderbook['nonce']):
-                # todo: client.reject from handleOrderBookMessage properly
-                raise ExchangeError(self.id + ' handleOrderBook received an out-of-order nonce')
-            self.handle_deltas(orderbook['asks'], self.safe_value(message, 'a', []))
-            self.handle_deltas(orderbook['bids'], self.safe_value(message, 'b', []))
-            orderbook['nonce'] = u
-            timestamp = self.safe_integer(message, 'E')
-            orderbook['timestamp'] = timestamp
-            orderbook['datetime'] = self.iso8601(timestamp)
+        u = self.safe_integer(message, 'u')
+        self.handle_deltas(orderbook['asks'], self.safe_value(message, 'a', []))
+        self.handle_deltas(orderbook['bids'], self.safe_value(message, 'b', []))
+        orderbook['nonce'] = u
+        timestamp = self.safe_integer(message, 'E')
+        orderbook['timestamp'] = timestamp
+        orderbook['datetime'] = self.iso8601(timestamp)
         return orderbook
 
     def handle_order_book(self, client, message):
@@ -182,21 +215,53 @@ class binance(Exchange, ccxt.binance):
         name = 'depth'
         messageHash = market['lowercaseId'] + '@' + name
         orderbook = self.orderbooks[symbol]
-        if orderbook['nonce'] is not None:
-            # 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
-            # 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
+        nonce = self.safe_integer(orderbook, 'nonce')
+        if nonce is None:
+            # 2. Buffer the events you receive from the stream.
+            orderbook.cache.append(message)
+        else:
             try:
-                nonce = orderbook['nonce']
-                self.handle_order_book_message(client, message, orderbook)
-                if nonce < orderbook['nonce']:
-                    client.resolve(orderbook, messageHash)
+                U = self.safe_integer(message, 'U')
+                u = self.safe_integer(message, 'u')
+                pu = self.safe_integer(message, 'pu')
+                if pu is None:
+                    # spot
+                    # 4. Drop any event where u is <= lastUpdateId in the snapshot
+                    if u > orderbook['nonce']:
+                        # 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
+                        if U < orderbook['nonce']:
+                            self.handle_order_book_message(client, message, orderbook)
+                            if nonce < orderbook['nonce']:
+                                client.resolve(orderbook, messageHash)
+                        elif (U - 1) == orderbook['nonce']:
+                            # 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
+                            self.handle_order_book_message(client, message, orderbook)
+                            if nonce < orderbook['nonce']:
+                                client.resolve(orderbook, messageHash)
+                        else:
+                            # todo: client.reject from handleOrderBookMessage properly
+                            raise ExchangeError(self.id + ' handleOrderBook received an out-of-order nonce')
+                else:
+                    # future
+                    # 4. Drop any event where u is < lastUpdateId in the snapshot
+                    if u >= orderbook['nonce']:
+                        # 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
+                        if U <= orderbook['nonce']:
+                            self.handle_order_book_message(client, message, orderbook)
+                            if nonce <= orderbook['nonce']:
+                                client.resolve(orderbook, messageHash)
+                        # 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
+                        elif pu == orderbook['nonce']:
+                            self.handle_order_book_message(client, message, orderbook)
+                            if nonce <= orderbook['nonce']:
+                                client.resolve(orderbook, messageHash)
+                        else:
+                            # todo: client.reject from handleOrderBookMessage properly
+                            raise ExchangeError(self.id + ' handleOrderBook received an out-of-order nonce')
             except Exception as e:
                 del self.orderbooks[symbol]
                 del client.subscriptions[messageHash]
                 client.reject(e, messageHash)
-        else:
-            # 2. Buffer the events you receive from the stream.
-            orderbook.cache.append(message)
 
     def sign_message(self, client, messageHash, message, params={}):
         # todo: implement binance signMessage
@@ -386,6 +451,9 @@ class binance(Exchange, ccxt.binance):
         client.resolve(stored, messageHash)
 
     async def watch_public(self, messageHash, params={}):
+        defaultType = self.safe_string_2(self.options, 'watchOrderBook', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        query = self.omit(params, 'type')
         requestId = self.nonce()
         request = {
             'method': 'SUBSCRIBE',
@@ -397,8 +465,8 @@ class binance(Exchange, ccxt.binance):
         subscribe = {
             'id': requestId,
         }
-        url = self.urls['api']['ws']
-        return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscribe)
+        url = self.urls['api']['ws'][type]
+        return await self.watch(url, messageHash, self.extend(request, query), messageHash, subscribe)
 
     async def watch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -486,7 +554,10 @@ class binance(Exchange, ccxt.binance):
     async def watch_balance(self, params={}):
         await self.load_markets()
         await self.authenticate()
-        url = self.urls['api']['ws'] + '/' + self.options['listenKey']
+        defaultType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        query = self.omit(params, 'type')
+        url = self.urls['api']['ws'][type] + '/' + self.options['listenKey']
         requestId = self.nonce()
         request = {
             'method': 'SUBSCRIBE',
@@ -498,7 +569,7 @@ class binance(Exchange, ccxt.binance):
             'id': requestId,
         }
         messageHash = 'outboundAccountInfo'
-        return await self.watch(url, messageHash, request, 1, subscribe)
+        return await self.watch(url, messageHash, self.extend(request, query), 1, subscribe)
 
     def handle_balance(self, client, message):
         # sent upon creating or filling an order
@@ -548,7 +619,10 @@ class binance(Exchange, ccxt.binance):
     async def watch_orders(self, params={}):
         await self.load_markets()
         await self.authenticate()
-        url = self.urls['api']['ws'] + '/' + self.options['listenKey']
+        defaultType = self.safe_string_2(self.options, 'watchOrders', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        query = self.omit(params, 'type')
+        url = self.urls['api']['ws'][type] + '/' + self.options['listenKey']
         requestId = self.nonce()
         request = {
             'method': 'SUBSCRIBE',
@@ -560,7 +634,7 @@ class binance(Exchange, ccxt.binance):
             'id': requestId,
         }
         messageHash = 'executionReport'
-        return await self.watch(url, messageHash, request, 1, subscribe)
+        return await self.watch(url, messageHash, self.extend(request, query), 1, subscribe)
 
     def handle_order(self, client, message):
         # {
