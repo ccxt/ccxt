@@ -80,6 +80,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 },
                 'public': {
                     'get': [
+                        'conf/pub:{action}:{object}:{detail}',
                         'conf/pub:map:currency:label',
                         'platform/status',
                         'tickers',
@@ -92,7 +93,11 @@ module.exports = class bitfinex2 extends bitfinex {
                         'book/{symbol}/P3',
                         'book/{symbol}/R0',
                         'stats1/{key}:{size}:{symbol}:{side}/{section}',
+                        'stats1/{key}:{size}:{symbol}:{side}/last',
+                        'stats1/{key}:{size}:{symbol}:{side}/hist',
                         'stats1/{key}:{size}:{symbol}/{section}',
+                        'stats1/{key}:{size}:{symbol}/last',
+                        'stats1/{key}:{size}:{symbol}/hist',
                         'stats1/{key}:{size}:{symbol}:long/last',
                         'stats1/{key}:{size}:{symbol}:long/hist',
                         'stats1/{key}:{size}:{symbol}:short/last',
@@ -100,6 +105,11 @@ module.exports = class bitfinex2 extends bitfinex {
                         'candles/trade:{timeframe}:{symbol}/{section}',
                         'candles/trade:{timeframe}:{symbol}/last',
                         'candles/trade:{timeframe}:{symbol}/hist',
+                        'status/{type}',
+                        'status/deriv',
+                        'liquidations/hist',
+                        'rankings/{key}:{timeframe}:{symbol}/{section}',
+                        'rankings/{key}:{timeframe}:{symbol}/hist',
                     ],
                     'post': [
                         'calc/trade/avg',
