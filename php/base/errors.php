@@ -45,6 +45,9 @@ $error_hierarchy = array(
     ),
 );
 
+class BaseError extends Exception {
+};
+
 class ExchangeError extends BaseError {
 };
 

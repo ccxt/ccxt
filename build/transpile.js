@@ -990,7 +990,8 @@ class Transpiler {
         fs.writeFileSync (pythonFilename, python3BodyIntellisense)
 
         const phpHeader = '<?php\n\nnamespace ccxt;\n\nuse Exception;\n\n'
-        const phpBodyIntellisense = phpHeader + phpBody + '\n\n' + Array.from (function* intellisense (map, parent) {
+        const phpBaseError = 'class BaseError extends Exception {\n};\n\n'
+        const phpBodyIntellisense = phpHeader + phpBody + '\n\n' + phpBaseError + Array.from (function* intellisense (map, parent) {
             for (const key in map) {
                 yield 'class ' + key + ' extends ' + parent + ' {\n};\n'
                 yield* intellisense (map[key], key)
@@ -998,7 +999,6 @@ class Transpiler {
         } (errorHierarchy['BaseError'], 'BaseError')).join ('\n')
 
         const phpFilename = './php/base/errors.php'
-
         log.bright.cyan (message, phpFilename.yellow)
         fs.writeFileSync (phpFilename, phpBodyIntellisense)
     }
