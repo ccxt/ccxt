@@ -886,14 +886,7 @@ class bitfinex(Exchange):
             'renew': 1,
         }
         response = self.fetch_deposit_address(code, self.extend(request, params))
-        address = self.safe_string(response, 'address')
-        self.check_address(address)
-        return {
-            'info': response['info'],
-            'currency': code,
-            'address': address,
-            'tag': None,
-        }
+        return response
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
