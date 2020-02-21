@@ -19,13 +19,14 @@ module.exports = class bitfinex2 extends bitfinex {
             'has': {
                 'CORS': false,
                 'cancelAllOrders': true,
+                'createDepositAddress': true,
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'cancelOrder': true,
                 'deposit': false,
                 'editOrder': false,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
                 'fetchClosedOrders': false,
                 'fetchFundingFees': false,
                 'fetchMyTrades': true,
@@ -248,7 +249,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 // convert 'EXCHANGE MARKET' to lowercase 'market'
                 // convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 // everything else remains uppercase
-                'orderTypes': {
+                'exchangeTypes': {
                     // 'MARKET': undefined,
                     'EXCHANGE MARKET': 'market',
                     // 'LIMIT': undefined,
@@ -267,7 +268,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 // convert 'market' to 'EXCHANGE MARKET'
                 // convert 'limit' 'EXCHANGE LIMIT'
                 // everything else remains as is
-                'exchangeTypes': {
+                'orderTypes': {
                     'market': 'EXCHANGE MARKET',
                     'limit': 'EXCHANGE LIMIT',
                 },
@@ -578,7 +579,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 };
             }
             const orderType = trade[6];
-            type = this.safeString (this.options['orderTypes'], orderType);
+            type = this.safeString (this.options['exchangeTypes'], orderType);
         }
         if (symbol === undefined) {
             if (market !== undefined) {
@@ -690,7 +691,7 @@ module.exports = class bitfinex2 extends bitfinex {
         const filled = amount - remaining;
         const side = (order[7] < 0) ? 'sell' : 'buy';
         const orderType = this.safeString (order, 8);
-        const type = this.safeString (this.safeValue (this.options, 'orderTypes'), orderType);
+        const type = this.safeString (this.safeValue (this.options, 'exchangeTypes'), orderType);
         let status = undefined;
         const statusString = this.safeString (order, 13);
         if (statusString !== undefined) {
@@ -724,8 +725,8 @@ module.exports = class bitfinex2 extends bitfinex {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const exchangeTypes = this.safeValue (this.options, 'exchangeTypes', {});
-        const orderType = this.safeString (exchangeTypes, type, type);
+        const orderTypes = this.safeValue (this.options, 'orderTypes', {});
+        const orderType = this.safeString (orderTypes, type, type);
         amount = (side === 'sell') ? -amount : amount;
         const request = {
             'symbol': market['id'],
@@ -902,8 +903,54 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchDepositAddress (currency, params = {}) {
-        throw new NotSupported (this.id + ' fetchDepositAddress() not implemented yet.');
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'op_renew': 1,
+        };
+        const response = await this.fetchDepositAddress (code, this.extend (request, params));
+        return response;
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const name = this.getCurrencyName (code);
+        const request = {
+            'method': name,
+            'wallet': 'exchange', // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
+            'op_renew': 0, // a value of 1 will generate a new address
+        };
+        const response = await this.privatePostAuthWDepositAddress (this.extend (request, params));
+        //
+        //     [
+        //         1582269616687, // MTS Millisecond Time Stamp of the update
+        //         'acc_dep', // TYPE Purpose of notification 'acc_dep' for account deposit
+        //         null, // MESSAGE_ID unique ID of the message
+        //         null, // not documented
+        //         [
+        //             null, // PLACEHOLDER
+        //             'BITCOIN', // METHOD Method of deposit
+        //             'BTC', // CURRENCY_CODE Currency code of new address
+        //             null, // PLACEHOLDER
+        //             '1BC9PZqpUmjyEB54uggn8TFKj49zSDYzqG', // ADDRESS
+        //             null, // POOL_ADDRESS
+        //         ],
+        //         null, // CODE null or integer work in progress
+        //         'SUCCESS', // STATUS Status of the notification, SUCCESS, ERROR, FAILURE
+        //         'success', // TEXT Text of the notification
+        //     ]
+        //
+        const result = this.safeValue (response, 4, []);
+        const poolAddress = this.safeString (result, 5);
+        const address = (poolAddress === undefined) ? this.safeString (result, 4) : poolAddress;
+        const tag = (poolAddress === undefined) ? undefined : this.safeString (result, 4);
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
