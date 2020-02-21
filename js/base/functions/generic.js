@@ -2,7 +2,7 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const { isObject, isNumber, isInteger, isDictionary, isArray } = require ('./type')
+const { isObject, isNumber, isDictionary, isArray } = require ('./type')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -77,28 +77,14 @@ module.exports =
           value2: { someKey: 'value2', anotherKey: 'anotherValue2' },
           value3: { someKey: 'value3', anotherKey: 'anotherValue3' },
       }
-
-       Array objects itself can be array too:
-       array = [
-          [7900.0, 10.0],
-          [7901.0, 8.8],
-       ]
-       key = 0
-
-       Returns:
-      {
-          7900.0: [7900.0, 10.0],
-          7901.0: [7901.0, 8.8],
-      }
     */
 
     , indexBy (x, k, out = {}) {
-        const isIntKey = isInteger (k)
-        for (const v of values (x)) {
-            if ((isIntKey && (k < v.length)) || (k in v)) {
+
+        for (const v of values (x))
+            if (k in v)
                 out[v[k]] = v
-            }
-        }
+
         return out
     }
 
