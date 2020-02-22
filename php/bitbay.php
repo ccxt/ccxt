@@ -21,6 +21,22 @@ class bitbay extends Exchange {
                 'withdraw' => true,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
+                'fetchOHLCV' => true,
+            ),
+            'timeframes' => array(
+                '1m' => '60',
+                '3m' => '180',
+                '5m' => '300',
+                '15m' => '900',
+                '30m' => '1800',
+                '1h' => '3600',
+                '2h' => '7200',
+                '4h' => '14400',
+                '6h' => '21600',
+                '12h' => '43200',
+                '1d' => '86400',
+                '3d' => '259200',
+                '1w' => '604800',
             ),
             'urls' => array(
                 'referral' => 'https://auth.bitbay.net/ref/jHlbB4mIkdS1',
@@ -136,10 +152,10 @@ class bitbay extends Exchange {
                 '503' => '\\ccxt\\InvalidNonce', // Invalid moment parameter. Request time doesn't match current server time
                 '504' => '\\ccxt\\ExchangeError', // Invalid method
                 '505' => '\\ccxt\\AuthenticationError', // Key has no permission for this action
-                '506' => '\\ccxt\\AuthenticationError', // Account locked. Please contact with customer service
+                '506' => '\\ccxt\\AccountSuspended', // Account locked. Please contact with customer service
                 // codes 507 and 508 are not specified in their docs
                 '509' => '\\ccxt\\ExchangeError', // The BIC/SWIFT is required for this currency
-                '510' => '\\ccxt\\ExchangeError', // Invalid market name
+                '510' => '\\ccxt\\BadSymbol', // Invalid market name
                 'FUNDS_NOT_SUFFICIENT' => '\\ccxt\\InsufficientFunds',
                 'OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS' => '\\ccxt\\InvalidOrder',
                 'OFFER_NOT_FOUND' => '\\ccxt\\OrderNotFound',
@@ -743,6 +759,55 @@ class bitbay extends Exchange {
             'TRANSACTION_PRE_LOCKING' => 'trade',
         );
         return $this->safe_string($types, $type, $type);
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        // array(
+        //     '1582399800000',
+        //     {
+        //         o => '0.0001428',
+        //         c => '0.0001428',
+        //         h => '0.0001428',
+        //         l => '0.0001428',
+        //         v => '4',
+        //         co => '1'
+        //     }
+        // )
+        return [
+            intval ($ohlcv[0]),
+            $this->safe_float($ohlcv[1], 'o'),
+            $this->safe_float($ohlcv[1], 'h'),
+            $this->safe_float($ohlcv[1], 'l'),
+            $this->safe_float($ohlcv[1], 'c'),
+            $this->safe_float($ohlcv[1], 'v'),
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
+        $request = array(
+            'symbol' => $tradingSymbol,
+            'resolution' => $this->timeframes[$timeframe],
+            // 'from' => 1574709092000, // unix timestamp in milliseconds, required
+            // 'to' => 1574709092000, // unix timestamp in milliseconds, required
+        );
+        if ($limit === null) {
+            $limit = 100;
+        }
+        $duration = $this->parse_timeframe($timeframe);
+        $timerange = $limit * $duration * 1000;
+        if ($since === null) {
+            $request['to'] = $this->milliseconds ();
+            $request['from'] = $request['to'] - $timerange;
+        } else {
+            $request['from'] = intval ($since);
+            $request['to'] = $this->sum ($request['from'], $timerange);
+        }
+        $response = $this->v1_01PublicGetTradingCandleHistorySymbolResolution (array_merge($request, $params));
+        $ohlcvs = $this->safe_value($response, 'items', array());
+        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
     public function parse_trade ($trade, $market = null) {
