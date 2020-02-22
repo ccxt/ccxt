@@ -11,7 +11,7 @@ install:
   # - curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
   # - python get-pip.py
   - python -m pip install --upgrade setuptools
-  - pip install enum34
+  - pip install --no-use-pep517 enum34
   - python -c "import enum; print enum"
   - pip install tox
   - pip install requests
