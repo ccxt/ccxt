@@ -56,33 +56,6 @@ class Exchange {
 
     const VERSION = '1.22.88';
 
-    public static $eth_units = array (
-        'wei'        => '1',
-        'kwei'       => '1000',
-        'babbage'    => '1000',
-        'femtoether' => '1000',
-        'mwei'       => '1000000',
-        'lovelace'   => '1000000',
-        'picoether'  => '1000000',
-        'gwei'       => '1000000000',
-        'nano'       => '1000000000',
-        'shannon'    => '1000000000',
-        'nanoether'  => '1000000000',
-        'szabo'      => '1000000000000',
-        'micro'      => '1000000000000',
-        'microether' => '1000000000000',
-        'finney'     => '1000000000000000',
-        'milli'      => '1000000000000000',
-        'milliether' => '1000000000000000',
-        'ether'      => '1000000000000000000',
-        'kether'     => '1000000000000000000000',
-        'einstein'   => '1000000000000000000000',
-        'grand'      => '1000000000000000000000',
-        'mether'     => '1000000000000000000000000',
-        'gether'     => '1000000000000000000000000000',
-        'tether'     => '1000000000000000000000000000000',
-    );
-
     public static $exchanges = array(
         '_1btcxe',
         'acx',
@@ -2617,73 +2590,18 @@ class Exchange {
         }
     }
 
-    public function eth_decimals($unit = 'ether') {
-        $units = array(
-            'wei' => 0,          // 1
-            'kwei' => 3,         // 1000
-            'babbage' => 3,      // 1000
-            'femtoether' => 3,   // 1000
-            'mwei' => 6,         // 1000000
-            'lovelace' => 6,     // 1000000
-            'picoether' => 6,    // 1000000
-            'gwei' => 9,         // 1000000000
-            'shannon' => 9,      // 1000000000
-            'nanoether' => 9,    // 1000000000
-            'nano' => 9,         // 1000000000
-            'szabo' => 12,       // 1000000000000
-            'microether' => 12,  // 1000000000000
-            'micro' => 12,       // 1000000000000
-            'finney' => 15,      // 1000000000000000
-            'milliether' => 15,  // 1000000000000000
-            'milli' => 15,       // 1000000000000000
-            'ether' => 18,       // 1000000000000000000
-            'kether' => 21,      // 1000000000000000000000
-            'grand' => 21,       // 1000000000000000000000
-            'mether' => 24,      // 1000000000000000000000000
-            'gether' => 27,      // 1000000000000000000000000000
-            'tether' => 30,      // 1000000000000000000000000000000
-        );
-        return $this->safe_value($units, $unit);
+    public static function fromWei($amount, $decimals = 18) {
+        $exponential = sprintf('%e', $amount);
+        list($n, $exponent) = explode('e', $exponential);
+        $new_exponent = intval($exponent) - $decimals;
+        return static::number_to_string(floatval($n . 'e' . strval($new_exponent)));
     }
 
-    public function ethDecimals($unit = 'ether') {
-        return $this->eth_decimals($unit);
-    }
-
-    public function eth_unit($decimals = 18) {
-        $units = array(
-            0 => 'wei',      // 1000000000000000000
-            3 => 'kwei',     // 1000000000000000
-            6 => 'mwei',     // 1000000000000
-            9 => 'gwei',     // 1000000000
-            12 => 'szabo',   // 1000000
-            15 => 'finney',  // 1000
-            18 => 'ether',   // 1
-            21 => 'kether',  // 0.001
-            24 => 'mether',  // 0.000001
-            27 => 'gether',  // 0.000000001
-            30 => 'tether',  // 0.000000000001
-        );
-        return $this->safe_value($units, (int) $decimals);
-    }
-
-    public function ethUnit($decimals = 18) {
-        return $this->eth_unit($decimals);
-    }
-
-    public function fromWei($amount, $unit = 'ether', $decimals = 18) {
-        if (!isset(Exchange::$eth_units[$unit])) {
-            throw new \UnexpectedValueException("Unknown unit '" . $unit . "', supported units: " . implode(', ', array_keys(Exchange::$eth_units)));
-        }
-        $denominator = substr_count(Exchange::$eth_units[$unit], 0) + strlen($amount) - strpos($amount, '.') - 1;
-        return (float) (('wei' === $unit) ? $amount : bcdiv($amount, Exchange::$eth_units[$unit], $denominator));
-    }
-
-    public function toWei($amount, $unit = 'ether', $decimals = 18) {
-        if (!isset(Exchange::$eth_units[$unit])) {
-            throw new \UnexpectedValueException("Unknown unit '" . $unit . "', supported units: " . implode(', ', array_keys(Exchange::$eth_units)));
-        }
-        return (('wei' === $unit) ? (string) (int) $amount : bcmul($amount, Exchange::$eth_units[$unit]));
+    public static function toWei($amount, $decimals = 18) {
+        $exponential = sprintf('%e', $amount);
+        list($n, $exponent) = explode('e', $exponential);
+        $new_exponent = intval($exponent) + $decimals;
+        return static::number_to_string(floatval($n . 'e' . strval($new_exponent)));
     }
 
     public function getZeroExOrderHash($order) {
@@ -2734,15 +2652,6 @@ class Exchange {
         //     'uint256', // { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
         // );
         return call_user_func_array('\kornrunner\Solidity::sha3', $unpacked);
-    }
-
-    public function signZeroExOrder($order, $privateKey) {
-        $orderHash = $this->getZeroExOrderHash($order);
-        $signature = $this->signMessage($orderHash, $privateKey);
-        return array_merge($order, array(
-            'orderHash' => $orderHash,
-            'ecSignature' => $signature, // todo fix v if needed
-        ));
     }
 
     public static function hashMessage($message) {

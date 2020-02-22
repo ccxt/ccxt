@@ -1758,77 +1758,21 @@ class Exchange(object):
         if not Exchange.has_web3():
             raise NotSupported("Web3 functionality requires Python3 and web3 package installed: https://github.com/ethereum/web3.py")
 
-    def eth_decimals(self, unit='ether'):
-        units = {
-            'wei': 0,          # 1
-            'kwei': 3,         # 1000
-            'babbage': 3,      # 1000
-            'femtoether': 3,   # 1000
-            'mwei': 6,         # 1000000
-            'lovelace': 6,     # 1000000
-            'picoether': 6,    # 1000000
-            'gwei': 9,         # 1000000000
-            'shannon': 9,      # 1000000000
-            'nanoether': 9,    # 1000000000
-            'nano': 9,         # 1000000000
-            'szabo': 12,       # 1000000000000
-            'microether': 12,  # 1000000000000
-            'micro': 12,       # 1000000000000
-            'finney': 15,      # 1000000000000000
-            'milliether': 15,  # 1000000000000000
-            'milli': 15,       # 1000000000000000
-            'ether': 18,       # 1000000000000000000
-            'kether': 21,      # 1000000000000000000000
-            'grand': 21,       # 1000000000000000000000
-            'mether': 24,      # 1000000000000000000000000
-            'gether': 27,      # 1000000000000000000000000000
-            'tether': 30,      # 1000000000000000000000000000000
-        }
-        return self.safe_value(units, unit)
+    @staticmethod
+    def fromWei(amount, decimals=18):
+        amount_float = float(amount)
+        exponential = '{:e}'.format(amount_float)
+        n, exponent = exponential.split('e')
+        new_exponent = int(exponent) - decimals
+        return number_to_string(n + 'e' + str(new_exponent))
 
-    def eth_unit(self, decimals=18):
-        units = {
-            0: 'wei',      # 1000000000000000000
-            3: 'kwei',     # 1000000000000000
-            6: 'mwei',     # 1000000000000
-            9: 'gwei',     # 1000000000
-            12: 'szabo',   # 1000000
-            15: 'finney',  # 1000
-            18: 'ether',   # 1
-            21: 'kether',  # 0.001
-            24: 'mether',  # 0.000001
-            27: 'gether',  # 0.000000001
-            30: 'tether',  # 0.000000000001
-        }
-        return self.safe_value(units, decimals)
-
-    def fromWei(self, amount, unit='ether', decimals=18):
-        if Web3 is None:
-            raise NotSupported("ethereum web3 methods require Python 3: https://pythonclock.org")
-        if amount is None:
-            return amount
-        if decimals != 18:
-            if decimals % 3:
-                amount = int(amount) * (10 ** (18 - decimals))
-            else:
-                unit = self.eth_unit(decimals)
-        return float(Web3.fromWei(int(amount), unit))
-
-    def toWei(self, amount, unit='ether', decimals=18):
-        if Web3 is None:
-            raise NotSupported("ethereum web3 methods require Python 3: https://pythonclock.org")
-        if amount is None:
-            return amount
-        if decimals != 18:
-            if decimals % 3:
-                # this case has known yet unsolved problems:
-                #     toWei(1.999, 'ether', 17) == '199900000000000011'
-                #     toWei(1.999, 'ether', 19) == '19989999999999999991'
-                # the best solution should not involve additional dependencies
-                amount = Decimal(amount) / Decimal(10 ** (18 - decimals))
-            else:
-                unit = self.eth_unit(decimals)
-        return str(Web3.toWei(amount, unit))
+    @staticmethod
+    def toWei(amount, decimals=18):
+        amount_float = float(amount)
+        exponential = '{:e}'.format(amount_float)
+        n, exponent = exponential.split('e')
+        new_exponent = int(exponent) + decimals
+        return number_to_string(n + 'e' + str(new_exponent))
 
     def privateKeyToAddress(self, privateKey):
         private_key_bytes = base64.b16decode(Exchange.encode(privateKey), True)
@@ -1946,14 +1890,6 @@ class Exchange(object):
             order_struct_hash
         )
         return '0x' + base64.b16encode(sha3).decode('ascii').lower()
-
-    def signZeroExOrder(self, order, privateKey):
-        orderHash = self.getZeroExOrderHash(order)
-        signature = self.signMessage(orderHash[-64:], privateKey)
-        return self.extend(order, {
-            'orderHash': orderHash,
-            'ecSignature': signature,  # todo fix v if needed
-        })
 
     def signZeroExOrderV2(self, order, privateKey):
         orderHash = self.getZeroExOrderHashV2(order)
