@@ -7,11 +7,13 @@ install:
   - npm install --global npm@latest
   - set PATH=%APPDATA%\npm;%PATH%
   - npm install
-  - python -m pip install --upgrade pip setuptools enum34
+  - cinst -y curl
+  - curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+  - python get-pip.py
+  - python -m pip install --upgrade setuptools enum34
   - pip install tox
   - pip install requests
   - pip install cryptography
-  - cinst -y curl
   - SET PATH=C:\Program Files\curl;%PATH%
   - ps: Set-Service wuauserv -StartupType Manual
   - cinst -y php --allow-empty-checksums
