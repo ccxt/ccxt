@@ -7,9 +7,8 @@ install:
   - npm install --global npm@latest
   - set PATH=%APPDATA%\npm;%PATH%
   - npm install
-  - pip install enum34
+  - python -m pip install --upgrade pip setuptools enum34
   - python -c "import enum; print enum"
-  - python -m pip install --upgrade pip setuptools
   - pip install tox
   - pip install requests
   - pip install cryptography
