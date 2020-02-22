@@ -33,6 +33,7 @@ test_script:
   - refreshenv
   - node --version
   - npm --version
+  - python --version
   - npm run build
   - npm run test-base
 cache:
