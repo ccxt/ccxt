@@ -20,7 +20,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE             # noqa F401
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa F401
 from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401
 from ccxt.base.decimal_to_precision import number_to_string      # noqa F401
-from ccxt import Exchange
+from ccxt.base.exchange import Exchange                          # noqa F401
 
 
 def toWei(amount, decimals):
@@ -29,6 +29,7 @@ def toWei(amount, decimals):
 
 def fromWei(amount, decimals):
     return Exchange.fromWei(amount, decimals)
+
 
 # ----------------------------------------------------------------------------
 # toWei / fromWei
@@ -63,7 +64,7 @@ assert(fromWei(10000000000000000, 16) == '1')
 assert(fromWei('1300000000000000000', 18) == '1.3')
 assert(fromWei(1300000000000000000, 18) == '1.3')
 assert(fromWei('199900000000000000', 17) == '1.999')
-assert(fromWei(199900000000000000, 17) ==  '1.999')
+assert(fromWei(199900000000000000, 17) == '1.999')
 assert(fromWei('100000000000000000', 18) == '0.1')
 assert(fromWei('10000000000000000', 18) == '0.01')
 assert(fromWei('1000000000000000', 18) == '0.001')
