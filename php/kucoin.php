@@ -1577,6 +1577,14 @@ class kucoin extends Exchange {
             $payload = $timestamp . $method . $endpoint . $endpart;
             $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha256', 'base64');
             $headers['KC-API-SIGN'] = $this->decode ($signature);
+            $partnerId = $this->safe_string($this->options, 'partnerId');
+            $partnerSecret = $this->safe_string($this->options, 'partnerSecret');
+            if ($partnerId !== null && $partnerSecret !== null) {
+                $partnerPayload = $timestamp . $partnerId . $this->apiKey;
+                $partnerSignature = $this->hmac ($this->encode ($partnerPayload), $this->encode ($partnerSecret), 'sha256', 'base64');
+                $headers['KC-API-PARTNER'] = $partnerId;
+                $headers['KC-API-PARTNER-SIGN'] = $this->decode ($partnerSignature);
+            }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
