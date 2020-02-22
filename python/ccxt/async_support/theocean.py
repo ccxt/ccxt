@@ -150,16 +150,16 @@ class theocean(Exchange):
                 'price': -int(quoteToken['precision']),
             }
             amountLimits = {
-                'min': self.fromWei(self.safe_string(baseToken, 'minAmount'), 'ether', baseDecimals),
-                'max': self.fromWei(self.safe_string(baseToken, 'maxAmount'), 'ether', baseDecimals),
+                'min': self.fromWei(self.safe_string(baseToken, 'minAmount'), baseDecimals),
+                'max': self.fromWei(self.safe_string(baseToken, 'maxAmount'), baseDecimals),
             }
             priceLimits = {
                 'min': None,
                 'max': None,
             }
             costLimits = {
-                'min': self.fromWei(self.safe_string(quoteToken, 'minAmount'), 'ether', quoteDecimals),
-                'max': self.fromWei(self.safe_string(quoteToken, 'maxAmount'), 'ether', quoteDecimals),
+                'min': self.fromWei(self.safe_string(quoteToken, 'minAmount'), quoteDecimals),
+                'max': self.fromWei(self.safe_string(quoteToken, 'maxAmount'), quoteDecimals),
             }
             limits = {
                 'amount': amountLimits,
@@ -189,7 +189,7 @@ class theocean(Exchange):
             self.safe_float(ohlcv, 'high'),
             self.safe_float(ohlcv, 'low'),
             self.safe_float(ohlcv, 'close'),
-            self.fromWei(self.safe_string(ohlcv, 'baseVolume'), 'ether', baseDecimals),
+            self.fromWei(self.safe_string(ohlcv, 'baseVolume'), baseDecimals),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
@@ -242,9 +242,9 @@ class theocean(Exchange):
         #     {"available":"0","committed":"0","total":"0"}
         #
         decimals = self.safe_integer(self.options['decimals'], code, 18)
-        free = self.fromWei(self.safe_string(response, 'available'), 'ether', decimals)
-        used = self.fromWei(self.safe_string(response, 'committed'), 'ether', decimals)
-        total = self.fromWei(self.safe_string(response, 'total'), 'ether', decimals)
+        free = self.fromWei(self.safe_string(response, 'available'), decimals)
+        used = self.fromWei(self.safe_string(response, 'committed'), decimals)
+        total = self.fromWei(self.safe_string(response, 'total'), decimals)
         return {
             'free': free,
             'used': used,
@@ -341,7 +341,7 @@ class theocean(Exchange):
             symbol = market['symbol']
             base = market['base']
         baseDecimals = self.safe_integer(self.options['decimals'], base, 18)
-        baseVolume = self.fromWei(self.safe_string(ticker, 'volume'), 'ether', baseDecimals)
+        baseVolume = self.fromWei(self.safe_string(ticker, 'volume'), baseDecimals)
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -441,7 +441,7 @@ class theocean(Exchange):
             symbol = market['symbol']
             base = market['base']
         baseDecimals = self.safe_integer(self.options['decimals'], base, 18)
-        amount = self.fromWei(self.safe_string(trade, 'amount'), 'ether', baseDecimals)
+        amount = self.fromWei(self.safe_string(trade, 'amount'), baseDecimals)
         cost = None
         if amount is not None and price is not None:
             cost = amount * price
@@ -516,7 +516,7 @@ class theocean(Exchange):
             'baseTokenAddress': market['baseId'],  # Base token address
             'quoteTokenAddress': market['quoteId'],  # Quote token address
             'side': side,  # "buy" or "sell"
-            'amount': self.toWei(self.amount_to_precision(symbol, amount), 'ether', baseDecimals),  # Base token amount in wei
+            'amount': self.toWei(self.amount_to_precision(symbol, amount), baseDecimals),  # Base token amount in wei
         }
         method = None
         if type == 'limit':
@@ -592,13 +592,13 @@ class theocean(Exchange):
             base = market['base']
         baseDecimals = self.safe_integer(self.options['decimals'], base, 18)
         price = self.safe_float(order, 'price')
-        filledAmount = self.fromWei(self.safe_string(order, 'filledAmount'), 'ether', baseDecimals)
-        settledAmount = self.fromWei(self.safe_string(order, 'settledAmount'), 'ether', baseDecimals)
-        confirmedAmount = self.fromWei(self.safe_string(order, 'confirmedAmount'), 'ether', baseDecimals)
-        failedAmount = self.fromWei(self.safe_string(order, 'failedAmount'), 'ether', baseDecimals)
-        deadAmount = self.fromWei(self.safe_string(order, 'deadAmount'), 'ether', baseDecimals)
-        prunedAmount = self.fromWei(self.safe_string(order, 'prunedAmount'), 'ether', baseDecimals)
-        amount = self.fromWei(self.safe_string(order, 'initialAmount'), 'ether', baseDecimals)
+        filledAmount = self.fromWei(self.safe_string(order, 'filledAmount'), baseDecimals)
+        settledAmount = self.fromWei(self.safe_string(order, 'settledAmount'), baseDecimals)
+        confirmedAmount = self.fromWei(self.safe_string(order, 'confirmedAmount'), baseDecimals)
+        failedAmount = self.fromWei(self.safe_string(order, 'failedAmount'), baseDecimals)
+        deadAmount = self.fromWei(self.safe_string(order, 'deadAmount'), baseDecimals)
+        prunedAmount = self.fromWei(self.safe_string(order, 'prunedAmount'), baseDecimals)
+        amount = self.fromWei(self.safe_string(order, 'initialAmount'), baseDecimals)
         filled = self.sum(filledAmount, settledAmount, confirmedAmount)
         remaining = None
         lastTradeTimestamp = None
@@ -647,7 +647,7 @@ class theocean(Exchange):
                 raise NotSupported(self.id + ' encountered an unsupported order fee option: ' + feeOption)
             feeDecimals = self.safe_integer(self.options['decimals'], feeCurrency, 18)
             fee = {
-                'cost': self.fromWei(feeCost, 'ether', feeDecimals),
+                'cost': self.fromWei(feeCost, feeDecimals),
                 'currency': feeCurrency,
             }
         amountPrecision = market['precision']['amount'] if market else 8

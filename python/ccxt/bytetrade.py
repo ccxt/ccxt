@@ -548,11 +548,11 @@ class bytetrade(Exchange):
         baseId = market['baseId']
         baseCurrency = self.currency(market['base'])
         amountTruncated = self.amount_to_precision(symbol, amount)
-        amountChain = self.toWei(amountTruncated, 'ether', baseCurrency['precision']['amount'])
+        amountChain = self.toWei(amountTruncated, baseCurrency['precision']['amount'])
         quoteId = market['quoteId']
         quoteCurrency = self.currency(market['quote'])
         priceRounded = self.price_to_precision(symbol, price)
-        priceChain = self.toWei(priceRounded, 'ether', quoteCurrency['precision']['amount'])
+        priceChain = self.toWei(priceRounded, quoteCurrency['precision']['amount'])
         now = self.milliseconds()
         expiration = self.milliseconds()
         datetime = self.iso8601(now)
@@ -859,7 +859,7 @@ class bytetrade(Exchange):
         self.load_markets()
         currency = self.currency(code)
         amountTruncate = self.decimal_to_precision(amount, TRUNCATE, currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING)
-        amountChain = self.toWei(amountTruncate, 'ether', currency['precision']['amount'])
+        amountChain = self.toWei(amountTruncate, currency['precision']['amount'])
         assetType = int(currency['id'])
         now = self.milliseconds()
         expiration = now
@@ -1106,7 +1106,7 @@ class bytetrade(Exchange):
         currency = self.currency(code)
         coinId = currency['id']
         amountTruncate = self.decimal_to_precision(amount, TRUNCATE, currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING)
-        amountChain = self.toWei(amountTruncate, 'ether', currency['info']['externalPrecision'])
+        amountChain = self.toWei(amountTruncate, currency['info']['externalPrecision'])
         eightBytes = self.integer_pow('2', '64')
         assetFee = 0
         byteStringArray = []
