@@ -12,6 +12,7 @@ module.exports = class theocean extends Exchange {
             'countries': [ 'US' ],
             'rateLimit': 3000,
             'version': 'v1',
+            'requiresWeb3': true,
             'timeframes': {
                 '5m': '300',
                 '15m': '900',
