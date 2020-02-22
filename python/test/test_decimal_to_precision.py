@@ -20,9 +20,56 @@ from ccxt.base.decimal_to_precision import TICK_SIZE             # noqa F401
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa F401
 from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401
 from ccxt.base.decimal_to_precision import number_to_string      # noqa F401
+from ccxt import Exchange
+
+
+def toWei(amount, decimals):
+    return Exchange.toWei(amount, decimals)
+
+
+def fromWei(amount, decimals):
+    return Exchange.fromWei(amount, decimals)
 
 # ----------------------------------------------------------------------------
+# toWei / fromWei
 
+assert(toWei(1, 18) == '1000000000000000000')
+assert(toWei(1, 17) == '100000000000000000')
+assert(toWei(1, 16) == '10000000000000000')
+assert(toWei('1', 18) == '1000000000000000000')
+assert(toWei('1', 17) == '100000000000000000')
+assert(toWei('1', 16) == '10000000000000000')
+assert(toWei(0, 18) == '0')
+assert(toWei(1, 0) == '1')
+assert(toWei(1, 1) == '10')
+assert(toWei(1.3, 18) == '1300000000000000000')
+assert(toWei('1.3', 18) == '1300000000000000000')
+assert(toWei(1.999, 17) == '199900000000000000')
+assert(toWei('1.999', 17) == '199900000000000000')
+assert(toWei('0.1', 18) == '100000000000000000')
+assert(toWei('0.01', 18) == '10000000000000000')
+assert(toWei('0.001', 18) == '1000000000000000')
+assert(toWei(0.1, 18) == '100000000000000000')
+assert(toWei(0.01, 18) == '10000000000000000')
+assert(toWei(0.001, 18) == '1000000000000000')
+
+# us test that we get the inverse for all these test
+assert(fromWei('1000000000000000000', 18) == '1')
+assert(fromWei('100000000000000000', 17) == '1')
+assert(fromWei('10000000000000000', 16) == '1')
+assert(fromWei(1000000000000000000, 18) == '1')
+assert(fromWei(100000000000000000, 17) == '1')
+assert(fromWei(10000000000000000, 16) == '1')
+assert(fromWei('1300000000000000000', 18) == '1.3')
+assert(fromWei(1300000000000000000, 18) == '1.3')
+assert(fromWei('199900000000000000', 17) == '1.999')
+assert(fromWei(199900000000000000, 17) ==  '1.999')
+assert(fromWei('100000000000000000', 18) == '0.1')
+assert(fromWei('10000000000000000', 18) == '0.01')
+assert(fromWei('1000000000000000', 18) == '0.001')
+assert(fromWei(100000000000000000, 18) == '0.1')
+assert(fromWei(10000000000000000, 18) == '0.01')
+assert(fromWei(1000000000000000, 18) == '0.001')
 
 # ----------------------------------------------------------------------------
 # number_to_string

@@ -1758,19 +1758,21 @@ class Exchange(object):
         if not Exchange.has_web3():
             raise NotSupported("Web3 functionality requires Python3 and web3 package installed: https://github.com/ethereum/web3.py")
 
-    def fromWei(self, amount, decimals=18):
+    @staticmethod
+    def fromWei(amount, decimals=18):
         amount_float = float(amount)
         exponential = '{:e}'.format(amount_float)
         n, exponent = exponential.split('e')
         new_exponent = int(exponent) - decimals
-        return self.number_to_string(n + 'e' + str(new_exponent))
+        return number_to_string(n + 'e' + str(new_exponent))
 
-    def toWei(self, amount, decimals=18):
+    @staticmethod
+    def toWei(amount, decimals=18):
         amount_float = float(amount)
         exponential = '{:e}'.format(amount_float)
         n, exponent = exponential.split('e')
         new_exponent = int(exponent) + decimals
-        return self.number_to_string(n + 'e' + str(new_exponent))
+        return number_to_string(n + 'e' + str(new_exponent))
 
     def privateKeyToAddress(self, privateKey):
         private_key_bytes = base64.b16decode(Exchange.encode(privateKey), True)

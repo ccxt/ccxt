@@ -1245,26 +1245,6 @@ module.exports = class Exchange {
         }
     }
 
-    fromWei (amount, decimals = 18) {
-        if (amount === undefined) {
-            return amount
-        }
-        const exponential = Math.floor (amount).toExponential () // wei must be whole numbers
-        const [ n, exponent ] = exponential.split ('e')
-        const newExponent = parseInt (exponent) - decimals
-        return this.numberToString (parseFloat (n + 'e' + newExponent))
-    }
-
-    toWei (amount, decimals = 18) {
-        if (amount === undefined) {
-            return amount
-        }
-        const exponential = amount.toExponential ()
-        const [ n, exponent ] = exponential.split ('e')
-        const newExponent = parseInt (exponent) + decimals
-        return this.numberToString (Math.floor (parseFloat (n + 'e' + newExponent))) // wei must be whole numbers
-    }
-
     soliditySha3 (array) {
         // we only support address, uint256, and string solidity types
         const encoded = []

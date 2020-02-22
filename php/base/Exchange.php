@@ -2590,14 +2590,14 @@ class Exchange {
         }
     }
 
-    public function fromWei($amount, $decimals = 18) {
+    public static function fromWei($amount, $decimals = 18) {
         $exponential = sprintf('%e', $amount);
         list($n, $exponent) = explode('e', $exponential);
         $new_exponent = intval($exponent) - $decimals;
         return static::number_to_string(floatval($n . 'e' . strval($new_exponent)));
     }
 
-    public function toWei($amount, $decimals = 18) {
+    public static function toWei($amount, $decimals = 18) {
         $exponential = sprintf('%e', $amount);
         list($n, $exponent) = explode('e', $exponential);
         $new_exponent = intval($exponent) + $decimals;
