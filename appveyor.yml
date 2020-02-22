@@ -12,6 +12,7 @@ install:
   # - python get-pip.py
   - python -m pip install --upgrade setuptools
   - pip install --no-use-pep517 enum34
+  - pip show enum34
   - dir "C:\Python27\lib\site-packages\enum34-1.1.8.dist-info"
   - python -c "import enum; print enum"
   - pip install tox
