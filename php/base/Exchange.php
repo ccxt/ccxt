@@ -2052,7 +2052,6 @@ class Exchange {
             $this->status = array_merge($this->status, array(
                 'updated' => $time,
             ));
-            return $this->status;
         }
         return $this->status;
     }
