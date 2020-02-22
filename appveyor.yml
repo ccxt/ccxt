@@ -8,6 +8,7 @@ install:
   - set PATH=%APPDATA%\npm;%PATH%
   - npm install
   - python -m pip install --upgrade pip setuptools
+  - pip install enum34
   - pip install tox
   - pip install requests
   - pip install cryptography
