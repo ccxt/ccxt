@@ -8,7 +8,7 @@ install:
   - set PATH=%APPDATA%\npm;%PATH%
   - npm install
   - python -m pip install --upgrade pip setuptools
-  - pip2 install enum34
+  - python -m pip install enum34
   - python -c "import enum; print enum"
   - pip install tox
   - pip install requests
