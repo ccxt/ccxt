@@ -971,34 +971,91 @@ class Transpiler {
             [ /module\.exports = [^\;]+\;\n/s, '' ],
         ]).trim ()
 
+        const message = 'Transpiling error hierachy →'
+        const root = errorHierarchy['BaseError']
+
         const { python3Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js })
 
-       const python3BodyIntellisense = python3Body + '\n\n' + Array.from (function* intellisense (map) {
-            for (const key in map) {
-                yield key + ' = Exception'
-                yield* intellisense (map[key])
+        // a helper to generate a list of exception class declarations
+        // properly derived from corresponding parent classes according
+        // to the error hierarchy
+
+        function intellisense (map, parent, generate, classes) {
+            function* generator(map, parent, generate, classes) {
+                for (const key in map) {
+                    yield generate (key, parent, classes)
+                    yield* generator (map[key], key, generate, classes)
+                }
             }
-        } (errorHierarchy['BaseError'])).join ('\n')
-
-        const message = 'Transpiling error hierachy →'
-
-        const python = {
-            filename: './python/ccxt/base/errors.py',
-            regex: /error_hierarchy = [\S\s]+= Exception/s,
-            replacement: python3BodyIntellisense,
+            return Array.from (generator (map, parent, generate, classes))
         }
 
-        log.bright.cyan (message, python.filename.yellow)
-        replaceInFile (... Object.values (python))
+        // Python -------------------------------------------------------------
 
-        const php = {
-            filename:'./php/base/errors.php',
-            regex: /\$error_hierarchy = .+?\n\)\;/s,
-            replacement: phpBody,
+        function pythonDeclareErrorClass (name, parent, classes) {
+            classes.push (name)
+            return [
+                'class ' + name + '(' + parent + '):',
+                '    pass',
+                '',
+                '',
+            ].join ('\n');
         }
 
-        log.bright.cyan (message, php.filename.yellow)
-        replaceInFile (... Object.values (php))
+        const pythonBaseError = [
+            'class BaseError(Exception):',
+            '    pass',
+            '',
+            '',
+        ].join ('\n');
+
+        const quote = (s) => "'" + s + "'" // helper to add quotes around class names
+
+        const pythonExports = [ 'error_hierarchy' ]
+        const pythonErrors = intellisense (root, 'BaseError', pythonDeclareErrorClass, pythonExports)
+        const pythonAll = '__all__ = [\n    ' + pythonExports.map (quote).join (',\n    ') + '\n]'
+
+        const python3BodyIntellisense = python3Body + '\n\n\n' + pythonBaseError + '\n' + pythonErrors.join ('\n') + '\n' + pythonAll + '\n'
+
+        const pythonFilename = './python/ccxt/base/errors.py'
+        log.bright.cyan (message, pythonFilename.yellow)
+        fs.writeFileSync (pythonFilename, python3BodyIntellisense)
+
+        // PHP ----------------------------------------------------------------
+
+        function phpDeclareErrorClass (name, parent) {
+            return 'class ' + name + ' extends ' + parent + ' {};'
+        }
+
+        const phpHeader = '<?php\n\nnamespace ccxt;\n\nuse Exception;\n\n'
+        const phpBaseError = 'class BaseError extends Exception {};'
+        const phpErrors = intellisense (root, 'BaseError', phpDeclareErrorClass)
+        const phpBodyIntellisense = phpHeader + phpBody + '\n\n' + phpBaseError + '\n' + phpErrors.join ('\n')
+
+        const phpFilename = './php/base/errors.php'
+        log.bright.cyan (message, phpFilename.yellow)
+        fs.writeFileSync (phpFilename, phpBodyIntellisense)
+
+        // TypeScript ---------------------------------------------------------
+
+        function tsDeclareErrorClass (name, parent) {
+            return 'export class ' + name + ' extends ' + parent + ' {}'
+        }
+
+        const tsBaseError = [
+            'export class BaseError extends Error {',
+            '    constructor(message: string);',
+            '}',
+        ].join ('\n    ')
+
+        const tsErrors = intellisense (root, 'BaseError', tsDeclareErrorClass)
+
+        const tsBodyIntellisense = tsBaseError + '\n\n    ' + tsErrors.join ('\n    ') + '\n\n'
+
+        const tsFilename = './ccxt.d.ts'
+        log.bright.cyan (message, tsFilename.yellow)
+        const regex = /export class BaseError[^}]+\}[\n][\n](?:\s+export class [a-zA-Z]+ extends [a-zA-Z]+ \{\}[\n])+[\n]/m
+        replaceInFile (tsFilename, regex, tsBodyIntellisense)
     }
 
     //-----------------------------------------------------------------------------
@@ -1193,6 +1250,8 @@ class Transpiler {
         createFolderRecursively (python3Folder)
         createFolderRecursively (phpFolder)
 
+        //*
+
         const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern)
 
         if (classes === null) {
@@ -1203,6 +1262,8 @@ class Transpiler {
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
         this.exportTypeScriptDeclarations (classes)
+
+        //*/
 
         this.transpileErrorHierarchy ()
 
