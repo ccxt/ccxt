@@ -1764,7 +1764,7 @@ class Exchange(object):
         exponential = '{:e}'.format(amount_float)
         n, exponent = exponential.split('e')
         new_exponent = int(exponent) - decimals
-        return number_to_string(n + 'e' + str(new_exponent))
+        return float(n + 'e' + str(new_exponent))
 
     @staticmethod
     def toWei(amount, decimals=18):

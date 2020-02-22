@@ -292,7 +292,7 @@ function fromWei (amount, decimals = 18) {
     const exponential = Math.floor (amount).toExponential () // wei must be whole numbers
     const [ n, exponent ] = exponential.split ('e')
     const newExponent = parseInt (exponent) - decimals
-    return numberToString (parseFloat (n + 'e' + newExponent))
+    return parseFloat (n + 'e' + newExponent)
 }
 
 function toWei (amount, decimals = 18) {

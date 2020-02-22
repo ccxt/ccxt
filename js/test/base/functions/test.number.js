@@ -27,12 +27,12 @@ assert (toWei (0.01, 18) === '10000000000000000');
 assert (toWei (0.001, 18) === '1000000000000000');
 
 // let us test that we get the inverse for all these test
-assert (fromWei ('1000000000000000000', 18) === 1);
-assert (fromWei ('100000000000000000', 17) === 1);
-assert (fromWei ('10000000000000000', 16) === 1);
-assert (fromWei (1000000000000000000, 18) === 1);
-assert (fromWei (100000000000000000, 17) === 1);
-assert (fromWei (10000000000000000, 16) === 1);
+assert (fromWei ('1000000000000000000', 18) === 1.0);
+assert (fromWei ('100000000000000000', 17) === 1.0);
+assert (fromWei ('10000000000000000', 16) === 1.0);
+assert (fromWei (1000000000000000000, 18) === 1.0);
+assert (fromWei (100000000000000000, 17) === 1.0);
+assert (fromWei (10000000000000000, 16) === 1.0);
 assert (fromWei ('1300000000000000000', 18) === 1.3);
 assert (fromWei (1300000000000000000, 18) === 1.3);
 assert (fromWei ('199900000000000000', 17) === 1.999);

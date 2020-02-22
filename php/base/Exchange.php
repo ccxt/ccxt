@@ -2594,7 +2594,7 @@ class Exchange {
         $exponential = sprintf('%e', $amount);
         list($n, $exponent) = explode('e', $exponential);
         $new_exponent = intval($exponent) - $decimals;
-        return static::number_to_string(floatval($n . 'e' . strval($new_exponent)));
+        return floatval($n . 'e' . strval($new_exponent));
     }
 
     public static function toWei($amount, $decimals = 18) {
