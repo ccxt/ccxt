@@ -972,27 +972,37 @@ class Transpiler {
         ]).trim ()
 
         const message = 'Transpiling error hierachy →'
+        const root = errorHierarchy['BaseError']
 
         const { python3Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js })
 
-        function* intellisense (map, parent, generate, classes) {
-            for (const key in map) {
-                yield generate (key, parent, classes)
-                yield* intellisense (map[key], key, generate, classes)
+        function intellisense (map, parent, generate, classes) {
+            function* generator(map, parent, generate, classes) {
+                for (const key in map) {
+                    yield generate (key, parent, classes)
+                    yield* generator (map[key], key, generate, classes)
+                }
             }
+            return Array.from (generator (map, parent, generate, classes))
         }
 
         // Python
 
         function declarePythonErrorClass (name, parent, classes) {
             classes.push (name)
-            return 'class ' + name + '(' + parent + '):\n    pass\n\n';
+            return [
+                'class ' + name + '(' + parent + '):',
+                '    pass',
+                '',
+                '',
+            ].join ('\n');
         }
 
         const pythonBaseError = 'class BaseError(Exception):\n    pass\n\n\n'
         const pythonClasses = []
-        const pythonErrors = Array.from (intellisense (errorHierarchy['BaseError'], 'BaseError', declarePythonErrorClass, pythonClasses))
-        const python3BodyIntellisense = python3Body + '\n\n\n' + pythonBaseError + pythonErrors.concat (['__all__ = [\n    error_hierarchy,\n    ' + pythonClasses.join (',\n    ') + '\n]']).join ('\n') + '\n'
+        const pythonErrors = intellisense (root, 'BaseError', declarePythonErrorClass, pythonClasses)
+        const pythonAll = '__all__ = [\n    error_hierarchy,\n    ' + pythonClasses.join (',\n    ') + '\n]'
+        const python3BodyIntellisense = python3Body + '\n\n\n' + pythonBaseError + pythonErrors.concat ([ pythonAll ]).join ('\n') + '\n'
 
         const pythonFilename = './python/ccxt/base/errors.py'
         log.bright.cyan (message, pythonFilename.yellow)
@@ -1001,17 +1011,23 @@ class Transpiler {
         // PHP
 
         function declarePHPErrorClass (name, parent) {
-            return 'class ' + name + ' extends ' + parent + ' {\n};\n'
+            return 'class ' + name + ' extends ' + parent + ' {};'
         }
 
         const phpHeader = '<?php\n\nnamespace ccxt;\n\nuse Exception;\n\n'
-        const phpBaseError = 'class BaseError extends Exception {\n};\n\n'
-        const phpErrors = Array.from (intellisense (errorHierarchy['BaseError'], 'BaseError', declarePHPErrorClass))
+        const phpBaseError = 'class BaseError extends Exception {};\n'
+        const phpErrors = intellisense (root, 'BaseError', declarePHPErrorClass)
         const phpBodyIntellisense = phpHeader + phpBody + '\n\n' + phpBaseError + phpErrors.join ('\n')
 
         const phpFilename = './php/base/errors.php'
         log.bright.cyan (message, phpFilename.yellow)
         fs.writeFileSync (phpFilename, phpBodyIntellisense)
+
+        // TypeScript
+
+        function declareTsErrorClass (name, parent) {
+            return 'export class ' + name + ' extends ' + parent + '{}'
+        }
     }
 
     //-----------------------------------------------------------------------------
