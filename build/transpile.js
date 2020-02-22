@@ -1015,7 +1015,7 @@ class Transpiler {
         const pythonErrors = intellisense (root, 'BaseError', declarePythonErrorClass, pythonExports)
         const pythonAll = '__all__ = [\n    ' + pythonExports.map (quote).join (',\n    ') + '\n]'
 
-        const python3BodyIntellisense = python3Body + '\n\n\n' + pythonBaseError + pythonErrors.join ('\n') + '\n' + pythonAll + '\n'
+        const python3BodyIntellisense = python3Body + '\n\n\n' + pythonBaseError + '\n' + pythonErrors.join ('\n') + '\n' + pythonAll + '\n'
 
         const pythonFilename = './python/ccxt/base/errors.py'
         log.bright.cyan (message, pythonFilename.yellow)
@@ -1235,8 +1235,6 @@ class Transpiler {
         createFolderRecursively (python3Folder)
         createFolderRecursively (phpFolder)
 
-        /*
-
         const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern)
 
         if (classes === null) {
@@ -1248,8 +1246,6 @@ class Transpiler {
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
         this.exportTypeScriptDeclarations (classes)
-
-        */
 
         this.transpileErrorHierarchy ()
 
