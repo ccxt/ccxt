@@ -1474,6 +1474,13 @@ class kucoin (Exchange):
             payload = timestamp + method + endpoint + endpart
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             headers['KC-API-SIGN'] = self.decode(signature)
+            partnerId = self.safe_string(self.options, 'partnerId')
+            partnerSecret = self.safe_string(self.options, 'partnerSecret')
+            if partnerId is not None and partnerSecret is not None:
+                partnerPayload = timestamp + partnerId + self.apiKey
+                partnerSignature = self.hmac(self.encode(partnerPayload), self.encode(partnerSecret), hashlib.sha256, 'base64')
+                headers['KC-API-PARTNER'] = partnerId
+                headers['KC-API-PARTNER-SIGN'] = self.decode(partnerSignature)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
