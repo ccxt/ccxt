@@ -337,12 +337,12 @@ class binance(Exchange):
         type = self.safe_string_2(self.options, 'fetchTime', 'defaultType', 'spot')
         method = 'publicGetTime' if (type == 'spot') else 'fapiPublicGetTime'
         response = await getattr(self, method)(params)
-        return self.safe_float(response, 'serverTime')
+        return self.safe_integer(response, 'serverTime')
 
     async def load_time_difference(self):
         serverTime = await self.fetch_time()
         after = self.milliseconds()
-        self.options['timeDifference'] = int(after - serverTime)
+        self.options['timeDifference'] = after - serverTime
         return self.options['timeDifference']
 
     async def fetch_markets(self, params={}):

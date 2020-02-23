@@ -332,13 +332,13 @@ class binance extends Exchange {
         $type = $this->safe_string_2($this->options, 'fetchTime', 'defaultType', 'spot');
         $method = ($type === 'spot') ? 'publicGetTime' : 'fapiPublicGetTime';
         $response = $this->$method ($params);
-        return $this->safe_float($response, 'serverTime');
+        return $this->safe_integer($response, 'serverTime');
     }
 
     public function load_time_difference () {
         $serverTime = $this->fetch_time ();
         $after = $this->milliseconds ();
-        $this->options['timeDifference'] = intval ($after - $serverTime);
+        $this->options['timeDifference'] = $after - $serverTime;
         return $this->options['timeDifference'];
     }
 
