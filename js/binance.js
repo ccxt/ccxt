@@ -332,7 +332,7 @@ module.exports = class binance extends Exchange {
     async loadTimeDifference () {
         const serverTime = await this.fetchTime ();
         const after = this.milliseconds ();
-        this.options['timeDifference'] = parseInt (after - serverTime);
+        this.options['timeDifference'] = after - serverTime;
         return this.options['timeDifference'];
     }
 
