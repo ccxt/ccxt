@@ -1,13 +1,12 @@
-'use strict';
-
-const { ROUND_UP, ROUND_DOWN } = require ('./number')
-const { NotSupported } = require ('./../errors')
+import { ROUND_UP, ROUND_DOWN } from  './number'
+import { NotSupported } from '../errors'
+import { Trade } from '../ExchangeBase'
 
 //-------------------------------------------------------------------------
 // converts timeframe to seconds
-const parseTimeframe = (timeframe) => {
+export const parseTimeframe = (timeframe: string) => {
 
-    const amount = timeframe.slice (0, -1)
+    const amount = +timeframe.slice (0, -1)
     const unit = timeframe.slice (-1)
     let scale = undefined;
 
@@ -32,7 +31,7 @@ const parseTimeframe = (timeframe) => {
     return amount * scale
 }
 
-const roundTimeframe = (timeframe, timestamp, direction = ROUND_DOWN) => {
+export const roundTimeframe = (timeframe: string, timestamp: number, direction = ROUND_DOWN) => {
     const ms = parseTimeframe (timeframe) * 1000
     // Get offset based on timeframe in milliseconds
     const offset = timestamp % ms
@@ -40,9 +39,9 @@ const roundTimeframe = (timeframe, timestamp, direction = ROUND_DOWN) => {
 }
 
 // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
-const buildOHLCVC = (trades, timeframe = '1m', since = -Infinity, limit = Infinity) => {
+export const buildOHLCVC = (trades: Trade[], timeframe = '1m', since = -Infinity, limit = Infinity) => {
     const ms = parseTimeframe (timeframe) * 1000;
-    const ohlcvs = [];
+    const ohlcvs: OHLCVC[] = [];
     const [ timestamp, /* open */, high, low, close, volume, count ] = [ 0, 1, 2, 3, 4, 5, 6 ];
     const oldest = Math.min (trades.length - 1, limit);
 
@@ -76,7 +75,7 @@ const buildOHLCVC = (trades, timeframe = '1m', since = -Infinity, limit = Infini
     return ohlcvs;
 }
 
-const extractParams = (string) => {
+export const extractParams = (string: string) => {
     const re = /{([\w-]+)}/g
     const matches = []
     let match = re.exec (string)
@@ -87,7 +86,7 @@ const extractParams = (string) => {
     return matches
 }
 
-const implodeParams = (string, params) => {
+export const implodeParams = (string: string, params: any) => {
     if (!Array.isArray (params)) {
         const keys = Object.keys (params)
         for (let i = 0; i < keys.length; i++) {
@@ -102,30 +101,17 @@ const implodeParams = (string, params) => {
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = {
+export function aggregate (bidasks: [string, string][]) {
+    const result: {[price: string]: string} = {}
 
-    aggregate (bidasks) {
-
-        const result = {}
-
-        for (let i = 0; i < bidasks.length; i++) {
-            const [ price, volume ] = bidasks[i];
-            if (volume > 0) {
-                result[price] = (result[price] || 0) + volume
-            }
+    for (let i = 0; i < bidasks.length; i++) {
+        const [ price, volume ] = bidasks[i];
+        if (+volume > 0) {
+            result[price] = (result[price] || 0) + volume
         }
+    }
 
-        return Object.keys (result).map (price => [parseFloat (price), parseFloat (result[price])])
-    },
-
-    parseTimeframe,
-    roundTimeframe,
-    buildOHLCVC,
-    ROUND_UP,
-    ROUND_DOWN,
-
-    implodeParams,
-    extractParams
+    return Object.keys (result).map (price => [parseFloat (price), parseFloat (result[price])])
 }
 
 /*  ------------------------------------------------------------------------ */

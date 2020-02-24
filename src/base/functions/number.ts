@@ -1,5 +1,3 @@
-'use strict'
-
 /*  ------------------------------------------------------------------------
 
     NB: initially, I used objects for options passing:
@@ -286,7 +284,6 @@ const decimalToPrecision = (x: number, roundingMode: number
 /*  ------------------------------------------------------------------------ */
 
 export {
-
     numberToString,
     precisionFromString,
     decimalToPrecision,

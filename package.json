@@ -49,7 +49,10 @@
   "types": "./ccxt.d.ts",
   "dependencies": {},
   "devDependencies": {
+    "@types/bn.js": "^4.11.6",
+    "@types/crypto-js": "^3.1.43",
     "@types/node": "^13.7.4",
+    "@types/qs": "^6.9.1",
     "ansicolor": "1.1.81",
     "as-table": "1.0.37",
     "asciichart": "1.5.7",

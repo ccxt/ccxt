@@ -6,15 +6,15 @@ const CryptoJS = require ('../../static_dependencies/crypto-js/crypto-js')
 const { capitalize } = require ('./string')
 const { stringToBase64, utf16ToBase64, urlencodeBase64 } = require ('./encode')
 const NodeRSA = require ('./../../static_dependencies/node-rsa/NodeRSA')
-const { numberToLE } = require ('./encode')
+import { numberToLE } from  './encode'
 const EC = require ('./../../static_dependencies/elliptic/lib/elliptic').ec
 const { ArgumentsRequired } = require ('./../errors')
 const BN = require ('../../static_dependencies/BN/bn.js')
 
 /*  ------------------------------------------------------------------------ */
 
-const hash = (request, hash = 'md5', digest = 'hex') => {
-    const options = {}
+export const hash = (request: any, hash = 'md5', digest = 'hex') => {
+    const options = {} as any
     if (hash === 'keccak') {
         hash = 'SHA3'
         options['outputLength'] = 256
@@ -25,7 +25,7 @@ const hash = (request, hash = 'md5', digest = 'hex') => {
 
 /*  .............................................   */
 
-const hmac = (request, secret, hash = 'sha256', digest = 'hex') => {
+export const hmac = (request: any, secret: string, hash = 'sha256', digest = 'hex') => {
     const result = CryptoJS['Hmac' + hash.toUpperCase ()] (request, secret)
     if (digest) {
         const encoding = (digest === 'binary') ? 'Latin1' : capitalize (digest)
@@ -36,8 +36,8 @@ const hmac = (request, secret, hash = 'sha256', digest = 'hex') => {
 
 /*  .............................................   */
 
-function rsa (request, secret, alg = 'RS256') {
-    const algos = {
+export function rsa (request: any, secret: string, alg = 'RS256') {
+    const algos: Dictionary<string> = {
         'RS256': 'pkcs1-sha256',
         'RS512': 'pkcs1-sha512',
     }
@@ -56,8 +56,8 @@ function rsa (request, secret, alg = 'RS256') {
 /**
  * @return {string}
  */
-function jwt (request, secret, alg = 'HS256') {
-    const algos = {
+export function jwt (request: any, secret: string, alg = 'HS256') {
+    const algos: Dictionary<string> = {
         'HS256': 'sha256',
         'HS384': 'sha384',
         'HS512': 'sha512',
@@ -76,7 +76,7 @@ function jwt (request, secret, alg = 'HS256') {
     return [ token, signature ].join ('.')
 }
 
-function ecdsa (request, secret, algorithm = 'p256', hashFunction = undefined, fixedLength = false) {
+export function ecdsa (request: any, secret: string, algorithm = 'p256', hashFunction = undefined, fixedLength = false) {
     let digest = request
     if (hashFunction !== undefined) {
         digest = hash (request, hashFunction, 'hex')
@@ -98,13 +98,13 @@ function ecdsa (request, secret, algorithm = 'p256', hashFunction = undefined, f
 
 /*  ------------------------------------------------------------------------ */
 
-const totp = (secret) => {
+export const totp = (secret: string) => {
 
-    const dec2hex = s => ((s < 15.5 ? '0' : '') + Math.round (s).toString (16))
-        , hex2dec = s => parseInt (s, 16)
-        , leftpad = (s, p) => (p + s).slice (-p.length) // both s and p are short strings
+    const dec2hex = (s: number) => ((s < 15.5 ? '0' : '') + Math.round (s).toString (16))
+        , hex2dec = (s: string) => parseInt (s, 16)
+        , leftpad = (s: string, p: string) => (p + s).slice (-p.length) // both s and p are short strings
 
-    const base32tohex = (base32) => {
+    const base32tohex = (base32: string) => {
         let base32chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
         let bits = ''
         let hex = ''
@@ -119,7 +119,7 @@ const totp = (secret) => {
         return hex
     }
 
-    const getOTP = (secret) => {
+    const getOTP = (secret: string) => {
         secret = secret.replace (' ', '') // support 2fa-secrets with spaces like "4TDV WOGO" → "4TDVWOGO"
         let epoch = Math.round (new Date ().getTime () / 1000.0)
         let time = leftpad (dec2hex (Math.floor (epoch / 30)), '0000000000000000')
@@ -132,16 +132,3 @@ const totp = (secret) => {
 
     return getOTP (secret)
 }
-
-/*  ------------------------------------------------------------------------ */
-
-module.exports = {
-    hash,
-    hmac,
-    jwt,
-    totp,
-    rsa,
-    ecdsa,
-}
-
-/*  ------------------------------------------------------------------------ */
