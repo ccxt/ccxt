@@ -214,6 +214,8 @@ class Exchange(object):
     transactions = None
     ohlcvs = None
     tickers = None
+    base_currencies = None
+    quote_currencies = None
     currencies = None
     options = None  # Python does not allow to define properties in run-time with setattr
     accounts = None
@@ -1233,7 +1235,7 @@ class Exchange(object):
         if currencies:
             self.currencies = self.deep_extend(currencies, self.currencies)
         else:
-            base_currencies = [{
+            self.base_currencies = [{
                 'id': market['baseId'] if 'baseId' in market else market['base'],
                 'numericId': market['baseNumericId'] if 'baseNumericId' in market else None,
                 'code': market['base'],
@@ -1243,7 +1245,7 @@ class Exchange(object):
                     )
                 ) if 'precision' in market else 8,
             } for market in values if 'base' in market]
-            quote_currencies = [{
+            self.quote_currencies = [{
                 'id': market['quoteId'] if 'quoteId' in market else market['quote'],
                 'numericId': market['quoteNumericId'] if 'quoteNumericId' in market else None,
                 'code': market['quote'],
@@ -1253,7 +1255,7 @@ class Exchange(object):
                     )
                 ) if 'precision' in market else 8,
             } for market in values if 'quote' in market]
-            currencies = self.sort_by(base_currencies + quote_currencies, 'code')
+            currencies = self.sort_by(self.base_currencies + self.quote_currencies, 'code')
             self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
         self.currencies_by_id = self.index_by(list(self.currencies.values()), 'id')
         return self.markets
@@ -1294,6 +1296,14 @@ class Exchange(object):
         # this is for historical reasons
         # and may be changed for consistency later
         return self.to_array(self.markets)
+
+    def fetch_base_currencies(self, params={}):
+        # returned as a list
+        return self.base_currencies
+
+    def fetch_quote_currencies(self, params={}):
+        # returned as a list
+        return self.quote_currencies
 
     def fetch_currencies(self, params={}):
         # markets are returned as a list
