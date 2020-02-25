@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { NotSupported, DDoSProtection, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce } = require ('./base/errors');
+const { NotSupported, RateLimitExceeded, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce } = require ('./base/errors');
 const { SIGNIFICANT_DIGITS } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -60,6 +60,7 @@ module.exports = class bitfinex extends Exchange {
                     'private': 'https://api.bitfinex.com',
                 },
                 'www': 'https://www.bitfinex.com',
+                'referral': 'https://www.bitfinex.com/?refcode=P61eYxFL',
                 'doc': [
                     'https://docs.bitfinex.com/v1/docs',
                     'https://github.com/bitfinexcom/bitfinex-api-node',
@@ -273,9 +274,12 @@ module.exports = class bitfinex extends Exchange {
                     },
                 },
             },
+            // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
             'commonCurrencies': {
                 'ABS': 'ABYSS',
                 'AIO': 'AION',
+                'ALG': 'ALGO', // https://github.com/ccxt/ccxt/issues/6034
+                'AMP': 'AMPL',
                 'ATM': 'ATMI',
                 'ATO': 'ATOM', // https://github.com/ccxt/ccxt/issues/5118
                 'BAB': 'BCH',
@@ -283,6 +287,7 @@ module.exports = class bitfinex extends Exchange {
                 'DAD': 'DADI',
                 'DAT': 'DATA',
                 'DSH': 'DASH',
+                'DRK': 'DRK',
                 'GSD': 'GUSD',
                 'HOT': 'Hydro Protocol',
                 'IOS': 'IOST',
@@ -304,7 +309,10 @@ module.exports = class bitfinex extends Exchange {
                 'UDC': 'USDC',
                 'UST': 'USDT',
                 'UTN': 'UTNP',
+                'VSY': 'VSYS',
+                'WAX': 'WAXP',
                 'XCH': 'XCHF',
+                'ZBT': 'ZB',
             },
             'exceptions': {
                 'exact': {
@@ -315,16 +323,16 @@ module.exports = class bitfinex extends Exchange {
                     'Could not find a key matching the given X-BFX-APIKEY.': AuthenticationError,
                     'Key price should be a decimal number, e.g. "123.456"': InvalidOrder, // on isNaN (price)
                     'Key amount should be a decimal number, e.g. "123.456"': InvalidOrder, // on isNaN (amount)
-                    'ERR_RATE_LIMIT': DDoSProtection,
-                    'Ratelimit': DDoSProtection,
+                    'ERR_RATE_LIMIT': RateLimitExceeded,
+                    'Ratelimit': RateLimitExceeded,
                     'Nonce is too small.': InvalidNonce,
                     'No summary found.': ExchangeError, // fetchTradingFees (summary) endpoint can give this vague error message
                     'Cannot evaluate your available balance, please try again': ExchangeNotAvailable,
                 },
                 'broad': {
                     'This API key does not have permission': PermissionDenied, // authenticated but not authorized
-                    'Invalid order: not enough exchange balance for ': InsufficientFunds, // when buying cost is greater than the available quote currency
-                    'Invalid order: minimum size for ': InvalidOrder, // when amount below limits.amount.min
+                    'not enough exchange balance for ': InsufficientFunds, // when buying cost is greater than the available quote currency
+                    'minimum size for ': InvalidOrder, // when amount below limits.amount.min
                     'Invalid order': InvalidOrder, // ?
                     'The available balance is only': InsufficientFunds, // {"status":"error","message":"Cannot withdraw 1.0027 ETH from your exchange wallet. The available balance is only 0.0 ETH. If you have limit orders, open positions, unused or active margin funding, this will decrease your available balance. To increase it, you can cancel limit orders or reduce/close your positions.","withdrawal_id":0,"fees":"0.0027"}
                 },
@@ -338,7 +346,9 @@ module.exports = class bitfinex extends Exchange {
                     'ANT': 'ant',
                     'AVT': 'aventus', // #1811
                     'BAT': 'bat',
-                    'BCH': 'bcash', // undocumented
+                    // https://github.com/ccxt/ccxt/issues/5833
+                    'BCH': 'bab', // undocumented
+                    // 'BCH': 'bcash', // undocumented
                     'BCI': 'bci',
                     'BFT': 'bft',
                     'BTC': 'bitcoin',
@@ -359,6 +369,9 @@ module.exports = class bitfinex extends Exchange {
                     'GNT': 'golem',
                     'IOST': 'ios',
                     'IOTA': 'iota',
+                    // https://github.com/ccxt/ccxt/issues/5833
+                    'LEO': 'let', // ETH chain
+                    // 'LEO': 'les', // EOS chain
                     'LRC': 'lrc',
                     'LTC': 'litecoin',
                     'LYM': 'lym',
@@ -385,8 +398,13 @@ module.exports = class bitfinex extends Exchange {
                     'TNB': 'tnb',
                     'TRX': 'trx',
                     'USD': 'wire',
+                    'USDC': 'udc', // https://github.com/ccxt/ccxt/issues/5833
                     'UTK': 'utk',
-                    'USDT': 'tetheruso', // undocumented
+                    'USDT': 'tetheruso', // Tether on Omni
+                    // 'USDT': 'tetheruse', // Tether on ERC20
+                    // 'USDT': 'tetherusl', // Tether on Liquid
+                    // 'USDT': 'tetherusx', // Tether on Tron
+                    // 'USDT': 'tetheruss', // Tether on EOS
                     'VEE': 'vee',
                     'WAX': 'wax',
                     'XLM': 'xlm',
@@ -396,7 +414,7 @@ module.exports = class bitfinex extends Exchange {
                     'YOYOW': 'yoyow',
                     'ZEC': 'zcash',
                     'ZRX': 'zrx',
-                    'XTZ': 'tezos',
+                    'XTZ': 'xtz',
                 },
                 'orderTypes': {
                     'limit': 'exchange limit',
@@ -414,11 +432,7 @@ module.exports = class bitfinex extends Exchange {
         const ids = Object.keys (fees);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            let code = id;
-            if (id in this.currencies_by_id) {
-                const currency = this.currencies_by_id[id];
-                code = currency['code'];
-            }
+            const code = this.safeCurrencyCode (id);
             withdraw[code] = this.safeFloat (fees, id);
         }
         return {
@@ -471,10 +485,18 @@ module.exports = class bitfinex extends Exchange {
                 continue;
             }
             id = id.toUpperCase ();
-            const baseId = id.slice (0, 3);
-            const quoteId = id.slice (3, 6);
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            let baseId = undefined;
+            let quoteId = undefined;
+            if (id.indexOf (':') >= 0) {
+                const parts = id.split (':');
+                baseId = parts[0];
+                quoteId = parts[1];
+            } else {
+                baseId = id.slice (0, 3);
+                quoteId = id.slice (3, 6);
+            }
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
                 'price': market['price_precision'],
@@ -524,11 +546,19 @@ module.exports = class bitfinex extends Exchange {
         } else {
             key = 'base';
         }
+        const code = market[key];
+        const currency = this.safeValue (this.currencies, code);
+        if (currency !== undefined) {
+            const precision = this.safeInteger (currency, 'precision');
+            if (precision !== undefined) {
+                cost = parseFloat (this.currencyToPrecision (code, cost));
+            }
+        }
         return {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': parseFloat (this.currencyToPrecision (market[key], cost)),
+            'cost': cost,
         };
     }
 
@@ -542,8 +572,7 @@ module.exports = class bitfinex extends Exchange {
             const balance = response[i];
             if (balance['type'] === balanceType) {
                 const currencyId = this.safeString (balance, 'currency');
-                let code = currencyId.toUpperCase ();
-                code = this.commonCurrencyCode (code);
+                const code = this.safeCurrencyCode (currencyId);
                 // bitfinex had BCH previously, now it's BAB, but the old
                 // BCH symbol is kept for backward-compatibility
                 // we need a workaround here so that the old BCH balance
@@ -600,22 +629,23 @@ module.exports = class bitfinex extends Exchange {
         if (timestamp !== undefined) {
             timestamp *= 1000;
         }
+        timestamp = parseInt (timestamp);
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         } else if ('pair' in ticker) {
             const marketId = this.safeString (ticker, 'pair');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            } else {
-                const baseId = marketId.slice (0, 3);
-                const quoteId = marketId.slice (3, 6);
-                const base = this.commonCurrencyCode (baseId);
-                const quote = this.commonCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
+            if (marketId !== undefined) {
+                if (marketId in this.markets_by_id) {
+                    market = this.markets_by_id[marketId];
+                    symbol = market['symbol'];
+                } else {
+                    const baseId = marketId.slice (0, 3);
+                    const quoteId = marketId.slice (3, 6);
+                    const base = this.safeCurrencyCode (baseId);
+                    const quote = this.safeCurrencyCode (quoteId);
+                    symbol = base + '/' + quote;
+                }
             }
         }
         const last = this.safeFloat (ticker, 'last_price');
@@ -650,10 +680,7 @@ module.exports = class bitfinex extends Exchange {
             timestamp = parseInt (timestamp) * 1000;
         }
         const type = undefined;
-        let side = this.safeString (trade, 'type');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (trade, 'type');
         const orderId = this.safeString (trade, 'order_id');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
@@ -667,12 +694,7 @@ module.exports = class bitfinex extends Exchange {
         if ('fee_amount' in trade) {
             const feeCost = -this.safeFloat (trade, 'fee_amount');
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
-            let feeCurrencyCode = undefined;
-            if (feeCurrencyId in this.currencies_by_id) {
-                feeCurrencyCode = this.currencies_by_id[feeCurrencyId]['code'];
-            } else {
-                feeCurrencyCode = this.commonCurrencyCode (feeCurrencyId);
-            }
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -798,9 +820,8 @@ module.exports = class bitfinex extends Exchange {
         }
         let symbol = undefined;
         if (market === undefined) {
-            let marketId = this.safeString (order, 'symbol');
+            const marketId = this.safeStringUpper (order, 'symbol');
             if (marketId !== undefined) {
-                marketId = marketId.toUpperCase ();
                 if (marketId in this.markets_by_id) {
                     market = this.markets_by_id[marketId];
                 }
@@ -910,6 +931,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     getCurrencyName (code) {
+        // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         if (code in this.options['currencyNames']) {
             return this.options['currencyNames'][code];
         }
@@ -922,18 +944,12 @@ module.exports = class bitfinex extends Exchange {
             'renew': 1,
         };
         const response = await this.fetchDepositAddress (code, this.extend (request, params));
-        const address = this.safeString (response, 'address');
-        this.checkAddress (address);
-        return {
-            'info': response['info'],
-            'currency': code,
-            'address': address,
-            'tag': undefined,
-        };
+        return response;
     }
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
+        // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         const name = this.getCurrencyName (code);
         const request = {
             'method': name,
@@ -992,6 +1008,8 @@ module.exports = class bitfinex extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
+        // crypto
+        //
         //     {
         //         "id": 12042490,
         //         "fee": "-0.02",
@@ -1007,6 +1025,23 @@ module.exports = class bitfinex extends Exchange {
         //         "timestamp_created": "1551730523.0"
         //     }
         //
+        // fiat
+        //
+        //     {
+        //         "id": 12725095,
+        //         "fee": "-60.0",
+        //         "txid": null,
+        //         "type": "WITHDRAWAL",
+        //         "amount": "9943.0",
+        //         "method": "WIRE",
+        //         "status": "SENDING",
+        //         "address": null,
+        //         "currency": "EUR",
+        //         "timestamp": "1561802484.0",
+        //         "description": "Name: bob, AccountAddress: some address, Account: someaccountno, Bank: bank address, SWIFT: foo, Country: UK, Details of Payment: withdrawal name, Intermediary Bank Name: , Intermediary Bank Address: , Intermediary Bank City: , Intermediary Bank Country: , Intermediary Bank Account: , Intermediary Bank SWIFT: , Fee: -60.0",
+        //         "timestamp_created": "1561716066.0"
+        //     }
+        //
         let timestamp = this.safeFloat (transaction, 'timestamp_created');
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp * 1000);
@@ -1015,22 +1050,9 @@ module.exports = class bitfinex extends Exchange {
         if (updated !== undefined) {
             updated = parseInt (updated * 1000);
         }
-        let code = undefined;
-        if (currency === undefined) {
-            const currencyId = this.safeString (transaction, 'currency');
-            if (currencyId in this.currencies_by_id) {
-                currency = this.currencies_by_id[currencyId];
-            } else {
-                code = this.commonCurrencyCode (currencyId);
-            }
-        }
-        if (currency !== undefined) {
-            code = currency['code'];
-        }
-        let type = this.safeString (transaction, 'type'); // DEPOSIT or WITHDRAWAL
-        if (type !== undefined) {
-            type = type.toLowerCase ();
-        }
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const type = this.safeStringLower (transaction, 'type'); // DEPOSIT or WITHDRAWAL
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         let feeCost = this.safeFloat (transaction, 'fee');
         if (feeCost !== undefined) {
@@ -1059,6 +1081,7 @@ module.exports = class bitfinex extends Exchange {
 
     parseTransactionStatus (status) {
         const statuses = {
+            'SENDING': 'pending',
             'CANCELED': 'canceled',
             'ZEROCONFIRMED': 'failed', // ZEROCONFIRMED happens e.g. in a double spend attempt (I had one in my movements!)
             'COMPLETED': 'ok',
@@ -1068,11 +1091,13 @@ module.exports = class bitfinex extends Exchange {
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
+        await this.loadMarkets ();
+        // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         const name = this.getCurrencyName (code);
         const request = {
             'withdraw_type': name,
             'walletselected': 'exchange',
-            'amount': amount.toString (),
+            'amount': this.numberToString (amount),
             'address': address,
         };
         if (tag !== undefined) {
@@ -1137,30 +1162,16 @@ module.exports = class bitfinex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return;
         }
         if (code >= 400) {
             if (body[0] === '{') {
-                const feedback = this.id + ' ' + this.json (response);
-                let message = undefined;
-                if ('message' in response) {
-                    message = response['message'];
-                } else if ('error' in response) {
-                    message = response['error'];
-                } else {
-                    throw new ExchangeError (feedback); // malformed (to our knowledge) response
-                }
-                const exact = this.exceptions['exact'];
-                if (message in exact) {
-                    throw new exact[message] (feedback);
-                }
-                const broad = this.exceptions['broad'];
-                const broadKey = this.findBroadlyMatchedKey (broad, message);
-                if (broadKey !== undefined) {
-                    throw new broad[broadKey] (feedback);
-                }
+                const feedback = this.id + ' ' + body;
+                const message = this.safeString2 (response, 'message', 'error');
+                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
                 throw new ExchangeError (feedback); // unknown message
             }
         }

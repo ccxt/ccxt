@@ -27,12 +27,26 @@ module.exports = class bitforex extends Exchange {
                 'fetchOrders': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchOHLCV': true,
+            },
+            'timeframes': {
+                '1m': '1min',
+                '5m': '5min',
+                '15m': '15min',
+                '30m': '30min',
+                '1h': '1hour',
+                '2h': '2hour',
+                '4h': '4hour',
+                '12h': '12hour',
+                '1d': '1day',
+                '1w': '1week',
+                '1M': '1month',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/44310033-69e9e600-a3d8-11e8-873d-54d74d1bc4e4.jpg',
                 'api': 'https://api.bitforex.com',
                 'www': 'https://www.bitforex.com',
-                'doc': 'https://github.com/bitforexapi/API_Docs/wiki',
+                'doc': 'https://github.com/githubdev2020/API_Doc_en/wiki',
                 'fees': 'https://help.bitforex.com/en_us/?cat=13',
                 'referral': 'https://www.bitforex.com/en/invitationRegister?inviterId=1867438',
             },
@@ -206,6 +220,9 @@ module.exports = class bitforex extends Exchange {
                     },
                 },
             },
+            'commonCurrencies': {
+                'UOS': 'UOS Network',
+            },
             'exceptions': {
                 '4004': OrderNotFound,
                 '1013': AuthenticationError,
@@ -226,8 +243,8 @@ module.exports = class bitforex extends Exchange {
             const symbolParts = id.split ('-');
             const baseId = symbolParts[2];
             const quoteId = symbolParts[1];
-            const base = this.commonCurrencyCode (baseId.toUpperCase ());
-            const quote = this.commonCurrencyCode (quoteId.toUpperCase ());
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const active = true;
             const precision = {
@@ -317,14 +334,14 @@ module.exports = class bitforex extends Exchange {
         const data = response['data'];
         const result = { 'info': response };
         for (let i = 0; i < data.length; i++) {
-            const current = data[i];
-            const currencyId = current['currency'];
-            const code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            const balance = data[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
+            account['used'] = this.safeFloat (balance, 'frozen');
+            account['free'] = this.safeFloat (balance, 'active');
+            account['total'] = this.safeFloat (balance, 'fix');
             result[code] = account;
-            result[code]['used'] = this.safeFloat (current, 'frozen');
-            result[code]['free'] = this.safeFloat (current, 'active');
-            result[code]['total'] = this.safeFloat (current, 'fix');
         }
         return this.parseBalance (result);
     }
@@ -362,6 +379,32 @@ module.exports = class bitforex extends Exchange {
         };
     }
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            this.safeInteger (ohlcv, 'time'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'vol'),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'ktype': this.timeframes[timeframe],
+        };
+        if (limit !== undefined) {
+            request['size'] = limit; // default 1, max 600
+        }
+        const response = await this.publicGetApiV1MarketKline (this.extend (request, params));
+        const ohlcvs = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
@@ -372,14 +415,9 @@ module.exports = class bitforex extends Exchange {
             request['size'] = limit;
         }
         const response = await this.publicGetApiV1MarketDepth (this.extend (request, params));
-        const data = response['data'];
-        const timestamp = response['time'];
-        const bidsKey = 'bids';
-        const asksKey = 'asks';
-        const priceKey = 'price';
-        const amountKey = 'amount';
-        const orderbook = this.parseOrderBook (data, timestamp, bidsKey, asksKey, priceKey, amountKey);
-        return orderbook;
+        const data = this.safeValue (response, 'data');
+        const timestamp = this.safeInteger (response, 'time');
+        return this.parseOrderBook (data, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     parseOrderStatus (status) {
@@ -540,7 +578,7 @@ module.exports = class bitforex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (typeof body !== 'string') {
             return; // fallback to default error handler
         }
@@ -550,11 +588,8 @@ module.exports = class bitforex extends Exchange {
             if (success !== undefined) {
                 if (!success) {
                     const code = this.safeString (response, 'code');
-                    if (code in this.exceptions) {
-                        throw new this.exceptions[code] (feedback);
-                    } else {
-                        throw new ExchangeError (feedback);
-                    }
+                    this.throwExactlyMatchedException (this.exceptions, code, feedback);
+                    throw new ExchangeError (feedback);
                 }
             }
         }

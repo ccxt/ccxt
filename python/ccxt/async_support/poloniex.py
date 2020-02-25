@@ -21,7 +21,7 @@ from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 
 
-class poloniex (Exchange):
+class poloniex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(poloniex, self).describe(), {
@@ -124,8 +124,9 @@ class poloniex (Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.15 / 100,
-                    'taker': 0.25 / 100,
+                    # starting from Jan 8 2020
+                    'maker': 0.0009,
+                    'taker': 0.0009,
                 },
                 'funding': {},
             },
@@ -218,41 +219,45 @@ class poloniex (Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
         return [
-            ohlcv['date'] * 1000,
-            ohlcv['open'],
-            ohlcv['high'],
-            ohlcv['low'],
-            ohlcv['close'],
-            ohlcv['quoteVolume'],
+            self.safe_timestamp(ohlcv, 'date'),
+            self.safe_float(ohlcv, 'open'),
+            self.safe_float(ohlcv, 'high'),
+            self.safe_float(ohlcv, 'low'),
+            self.safe_float(ohlcv, 'close'),
+            self.safe_float(ohlcv, 'quoteVolume'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        if since is None:
-            since = 0
         request = {
             'currencyPair': market['id'],
             'period': self.timeframes[timeframe],
-            'start': int(since / 1000),
         }
-        if limit is not None:
-            request['end'] = self.sum(request['start'], limit * self.timeframes[timeframe])
+        if since is None:
+            request['end'] = self.seconds()
+            if limit is None:
+                request['start'] = request['end'] - self.parse_timeframe('1w')  # max range = 1 week
+            else:
+                request['start'] = request['end'] - limit * self.parse_timeframe(timeframe)
         else:
-            request['end'] = self.sum(self.seconds(), 1)
+            request['start'] = int(since / 1000)
+            if limit is not None:
+                end = self.sum(request['start'], limit * self.parse_timeframe(timeframe))
+                request['end'] = end
         response = await self.publicGetReturnChartData(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def fetch_markets(self, params={}):
-        markets = await self.publicGetReturnTicker()
+        markets = await self.publicGetReturnTicker(params)
         keys = list(markets.keys())
         result = []
         for i in range(0, len(keys)):
             id = keys[i]
             market = markets[id]
             quoteId, baseId = id.split('_')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             limits = self.extend(self.limits, {
                 'cost': {
@@ -261,8 +266,10 @@ class poloniex (Exchange):
             })
             isFrozen = self.safe_string(market, 'isFrozen')
             active = (isFrozen != '1')
-            result.append(self.extend(self.fees['trading'], {
+            numericId = self.safe_integer(market, 'id')
+            result.append({
                 'id': id,
+                'numericId': numericId,
                 'symbol': symbol,
                 'baseId': baseId,
                 'quoteId': quoteId,
@@ -271,7 +278,7 @@ class poloniex (Exchange):
                 'active': active,
                 'limits': limits,
                 'info': market,
-            }))
+            })
         return result
 
     async def fetch_balance(self, params={}):
@@ -285,11 +292,7 @@ class poloniex (Exchange):
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             balance = self.safe_value(response, currencyId, {})
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'available')
             account['used'] = self.safe_float(balance, 'onOrders')
@@ -319,16 +322,13 @@ class poloniex (Exchange):
         orderbook['nonce'] = self.safe_integer(response, 'seq')
         return orderbook
 
-    async def fetch_order_books(self, symbols=None, params={}):
+    async def fetch_order_books(self, symbols=None, limit=None, params={}):
         await self.load_markets()
         request = {
             'currencyPair': 'all',
         }
-        #
-        #     if limit is not None:
-        #         request['depth'] = limit  # 100
-        #     }
-        #
+        if limit is not None:
+            request['depth'] = limit  # 100
         response = await self.publicGetReturnOrderBook(self.extend(request, params))
         marketIds = list(response.keys())
         result = {}
@@ -339,8 +339,8 @@ class poloniex (Exchange):
                 symbol = self.markets_by_id[marketId]['symbol']
             else:
                 quoteId, baseId = marketId.split('_')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
             orderbook = self.parse_order_book(response[marketId])
             orderbook['nonce'] = self.safe_integer(response[marketId], 'seq')
@@ -398,8 +398,8 @@ class poloniex (Exchange):
                 symbol = market['symbol']
             else:
                 quoteId, baseId = id.split('_')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
                 market = {'symbol': symbol}
             ticker = response[id]
@@ -417,10 +417,12 @@ class poloniex (Exchange):
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             precision = 8  # default precision, todo: fix "magic constants"
-            code = self.common_currency_code(id)
+            code = self.safe_currency_code(id)
             active = (currency['delisted'] == 0) and not currency['disabled']
+            numericId = self.safe_integer(currency, 'id')
             result[code] = {
                 'id': id,
+                'numericId': numericId,
                 'code': code,
                 'info': currency,
                 'name': currency['name'],
@@ -484,13 +486,25 @@ class poloniex (Exchange):
         #         category: 'exchange'
         #     }
         #
-        id = self.safe_string(trade, 'globalTradeID')
+        # createOrder(taker trades)
+        #
+        #     {
+        #         'amount': '200.00000000',
+        #         'date': '2019-12-15 16:04:10',
+        #         'rate': '0.00000355',
+        #         'total': '0.00071000',
+        #         'tradeID': '119871',
+        #         'type': 'buy',
+        #         'takerAdjustment': '200.00000000'
+        #     }
+        #
+        id = self.safe_string_2(trade, 'globalTradeID', 'tradeID')
         orderId = self.safe_string(trade, 'orderNumber')
         timestamp = self.parse8601(self.safe_string(trade, 'date'))
         symbol = None
         base = None
         quote = None
-        if (not market) and('currencyPair' in list(trade.keys())):
+        if (not market) and ('currencyPair' in trade):
             currencyPair = trade['currencyPair']
             if currencyPair in self.markets_by_id:
                 market = self.markets_by_id[currencyPair]
@@ -525,6 +539,10 @@ class poloniex (Exchange):
                 'cost': feeCost,
                 'currency': currency,
             }
+        takerOrMaker = None
+        takerAdjustment = self.safe_float(trade, 'takerAdjustment')
+        if takerAdjustment is not None:
+            takerOrMaker = 'taker'
         return {
             'id': id,
             'info': trade,
@@ -534,7 +552,7 @@ class poloniex (Exchange):
             'order': orderId,
             'type': 'limit',
             'side': side,
-            'takerOrMaker': None,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -562,7 +580,7 @@ class poloniex (Exchange):
         request = {'currencyPair': pair}
         if since is not None:
             request['start'] = int(since / 1000)
-            request['end'] = self.seconds() + 1  # adding 1 is a fix for  #3411
+            request['end'] = self.sum(self.seconds(), 1)  # adding 1 is a fix for  #3411
         # limit is disabled(does not really work as expected)
         if limit is not None:
             request['limit'] = int(limit)
@@ -635,14 +653,17 @@ class poloniex (Exchange):
                             result.append(trades[j])
                     else:
                         quoteId, baseId = id.split('_')
-                        base = self.common_currency_code(baseId)
-                        quote = self.common_currency_code(quoteId)
+                        base = self.safe_currency_code(baseId)
+                        quote = self.safe_currency_code(quoteId)
                         symbol = base + '/' + quote
                         trades = response[id]
                         for j in range(0, len(trades)):
-                            result.append(self.extend(self.parse_trade(trades[j]), {
+                            market = {
                                 'symbol': symbol,
-                            }))
+                                'base': base,
+                                'quote': quote,
+                            }
+                            result.append(self.parse_trade(trades[j], market))
         return self.filter_by_since_limit(result, since, limit)
 
     def parse_order_status(self, status):
@@ -680,6 +701,33 @@ class poloniex (Exchange):
         #         margin: 0,
         #     }
         #
+        # createOrder
+        #
+        #     {
+        #         'orderNumber': '9805453960',
+        #         'resultingTrades': [
+        #             {
+        #                 'amount': '200.00000000',
+        #                 'date': '2019-12-15 16:04:10',
+        #                 'rate': '0.00000355',
+        #                 'total': '0.00071000',
+        #                 'tradeID': '119871',
+        #                 'type': 'buy',
+        #                 'takerAdjustment': '200.00000000',
+        #             },
+        #         ],
+        #         'fee': '0.00000000',
+        #         'currencyPair': 'BTC_MANA',
+        #         # ---------------------------------------------------------
+        #         # the following fields are injected by createOrder
+        #         'timestamp': timestamp,
+        #         'status': 'open',
+        #         'type': type,
+        #         'side': side,
+        #         'price': price,
+        #         'amount': amount,
+        #     }
+        #
         timestamp = self.safe_integer(order, 'timestamp')
         if not timestamp:
             timestamp = self.parse8601(order['date'])
@@ -693,7 +741,7 @@ class poloniex (Exchange):
             symbol = market['symbol']
         price = self.safe_float_2(order, 'price', 'rate')
         remaining = self.safe_float(order, 'amount')
-        amount = self.safe_float(order, 'startingAmount', remaining)
+        amount = self.safe_float(order, 'startingAmount')
         filled = None
         cost = 0
         if amount is not None:
@@ -701,39 +749,63 @@ class poloniex (Exchange):
                 filled = amount - remaining
                 if price is not None:
                     cost = filled * price
+        else:
+            amount = remaining
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        average = None
+        lastTradeTimestamp = None
         if filled is None:
             if trades is not None:
                 filled = 0
                 cost = 0
-                for i in range(0, len(trades)):
-                    trade = trades[i]
-                    tradeAmount = trade['amount']
-                    tradePrice = trade['price']
-                    filled = self.sum(filled, tradeAmount)
-                    cost += tradePrice * tradeAmount
-        status = self.parse_order_status(self.safe_string(order, 'status'))
+                tradesLength = len(trades)
+                if tradesLength > 0:
+                    lastTradeTimestamp = trades[0]['timestamp']
+                    for i in range(0, tradesLength):
+                        trade = trades[i]
+                        tradeAmount = trade['amount']
+                        tradePrice = trade['price']
+                        filled = self.sum(filled, tradeAmount)
+                        cost = self.sum(cost, tradePrice * tradeAmount)
+                        lastTradeTimestamp = max(lastTradeTimestamp, trade['timestamp'])
+                remaining = max(amount - filled, 0)
+                if filled >= amount:
+                    status = 'closed'
+        if (filled is not None) and (cost is not None) and (filled > 0):
+            average = cost / filled
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side', type)
         if type == side:
             type = None
         id = self.safe_string(order, 'orderNumber')
+        fee = None
+        feeCost = self.safe_float(order, 'fee')
+        if feeCost is not None:
+            feeCurrencyCode = None
+            if market is not None:
+                feeCurrencyCode = market['base'] if (side == 'buy') else market['quote']
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            }
         return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
             'cost': cost,
+            'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'trades': trades,
-            'fee': None,
+            'fee': fee,
         }
 
     def parse_open_orders(self, orders, market, result):
@@ -824,18 +896,38 @@ class poloniex (Exchange):
         return self.filter_orders_by_status(orders, 'closed')
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if type == 'market':
+        if type != 'limit':
             raise ExchangeError(self.id + ' allows limit orders only')
         await self.load_markets()
         method = 'privatePost' + self.capitalize(side)
         market = self.market(symbol)
+        amount = self.amount_to_precision(symbol, amount)
         request = {
             'currencyPair': market['id'],
             'rate': self.price_to_precision(symbol, price),
-            'amount': self.amount_to_precision(symbol, amount),
+            'amount': amount,
         }
-        response = await getattr(self, method)(self.extend(request, params))
+        # remember the timestamp before issuing the request
         timestamp = self.milliseconds()
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         'orderNumber': '9805453960',
+        #         'resultingTrades': [
+        #             {
+        #                 'amount': '200.00000000',
+        #                 'date': '2019-12-15 16:04:10',
+        #                 'rate': '0.00000355',
+        #                 'total': '0.00071000',
+        #                 'tradeID': '119871',
+        #                 'type': 'buy',
+        #                 'takerAdjustment': '200.00000000',
+        #             },
+        #         ],
+        #         'fee': '0.00000000',
+        #         'currencyPair': 'BTC_MANA',
+        #     }
+        #
         order = self.parse_order(self.extend({
             'timestamp': timestamp,
             'status': 'open',
@@ -965,7 +1057,7 @@ class poloniex (Exchange):
         await self.load_markets()
         orders = await self.fetch_open_orders(symbol, None, None, params)
         indexed = self.index_by(orders, 'id')
-        return 'open' if (id in list(indexed.keys())) else 'closed'
+        return 'open' if (id in indexed) else 'closed'
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1098,8 +1190,8 @@ class poloniex (Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        withdrawals = self.parseTransactions(response['withdrawals'], currency, since, limit)
-        deposits = self.parseTransactions(response['deposits'], currency, since, limit)
+        withdrawals = self.parse_transactions(response['withdrawals'], currency, since, limit)
+        deposits = self.parse_transactions(response['deposits'], currency, since, limit)
         transactions = self.array_concat(deposits, withdrawals)
         return self.filterByCurrencySinceLimit(self.sort_by(transactions, 'timestamp'), code, since, limit)
 
@@ -1110,7 +1202,7 @@ class poloniex (Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        withdrawals = self.parseTransactions(response['withdrawals'], currency, since, limit)
+        withdrawals = self.parse_transactions(response['withdrawals'], currency, since, limit)
         return self.filterByCurrencySinceLimit(withdrawals, code, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
@@ -1120,7 +1212,7 @@ class poloniex (Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        deposits = self.parseTransactions(response['deposits'], currency, since, limit)
+        deposits = self.parse_transactions(response['deposits'], currency, since, limit)
         return self.filterByCurrencySinceLimit(deposits, code, since, limit)
 
     def parse_transaction_status(self, status):
@@ -1162,23 +1254,16 @@ class poloniex (Exchange):
         #         "withdrawalNumber": 11162900
         #     }
         #
-        timestamp = self.safe_integer(transaction, 'timestamp')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
-        code = None
+        timestamp = self.safe_timestamp(transaction, 'timestamp')
         currencyId = self.safe_string(transaction, 'currency')
-        currency = self.safe_value(self.currencies_by_id, currencyId)
-        if currency is None:
-            code = self.common_currency_code(currencyId)
-        if currency is not None:
-            code = currency['code']
+        code = self.safe_currency_code(currencyId)
         status = self.safe_string(transaction, 'status', 'pending')
         txid = self.safe_string(transaction, 'txid')
         if status is not None:
             parts = status.split(': ')
             numParts = len(parts)
             status = parts[0]
-            if (numParts > 1) and(txid is None):
+            if (numParts > 1) and (txid is None):
                 txid = parts[1]
             status = self.parse_transaction_status(status)
         type = self.safe_string(transaction, 'type')
@@ -1230,18 +1315,13 @@ class poloniex (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
         # {"error":"Permission denied."}
         if 'error' in response:
             message = response['error']
-            feedback = self.id + ' ' + self.json(response)
-            exact = self.exceptions['exact']
-            if message in exact:
-                raise exact[message](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

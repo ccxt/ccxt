@@ -5,10 +5,11 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NotSupported
 
 
-class bitstamp1 (Exchange):
+class bitstamp1(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitstamp1, self).describe(), {
@@ -81,7 +82,7 @@ class bitstamp1 (Exchange):
             raise ExchangeError(self.id + ' ' + self.version + " fetchOrderBook doesn't support " + symbol + ', use it for BTC/USD only')
         self.load_markets()
         orderbook = self.publicGetOrderBook(params)
-        timestamp = int(orderbook['timestamp']) * 1000
+        timestamp = self.safe_timestamp(orderbook, 'timestamp')
         return self.parse_order_book(orderbook, timestamp)
 
     def fetch_ticker(self, symbol, params={}):
@@ -89,7 +90,7 @@ class bitstamp1 (Exchange):
             raise ExchangeError(self.id + ' ' + self.version + " fetchTicker doesn't support " + symbol + ', use it for BTC/USD only')
         self.load_markets()
         ticker = self.publicGetTicker(params)
-        timestamp = int(ticker['timestamp']) * 1000
+        timestamp = self.safe_timestamp(ticker, 'timestamp')
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = None
@@ -120,9 +121,7 @@ class bitstamp1 (Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer_2(trade, 'date', 'datetime')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp_2(trade, 'date', 'datetime')
         side = 'buy' if (trade['type'] == 0) else 'sell'
         orderId = self.safe_string(trade, 'order_id')
         if 'currency_pair' in trade:
@@ -156,7 +155,7 @@ class bitstamp1 (Exchange):
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         if symbol != 'BTC/USD':
-            raise ExchangeError(self.id + ' ' + self.version + " fetchTrades doesn't support " + symbol + ', use it for BTC/USD only')
+            raise BadSymbol(self.id + ' ' + self.version + " fetchTrades doesn't support " + symbol + ', use it for BTC/USD only')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -174,9 +173,9 @@ class bitstamp1 (Exchange):
             currency = self.currency(code)
             currencyId = currency['id']
             account = self.account()
-            account['free'] = self.safe_float(balance, currencyId + '_available', 0.0)
-            account['used'] = self.safe_float(balance, currencyId + '_reserved', 0.0)
-            account['total'] = self.safe_float(balance, currencyId + '_balance', 0.0)
+            account['free'] = self.safe_float(balance, currencyId + '_available')
+            account['used'] = self.safe_float(balance, currencyId + '_reserved')
+            account['total'] = self.safe_float(balance, currencyId + '_balance')
             result[code] = account
         return self.parse_balance(result)
 

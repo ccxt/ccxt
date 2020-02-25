@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, NotSupported, InvalidOrder, OrderNotFound, ExchangeNotAvailable, DDoSProtection, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, NotSupported, InvalidOrder, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, InsufficientFunds } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -92,16 +92,19 @@ module.exports = class livecoin extends Exchange {
             },
             'commonCurrencies': {
                 'BTCH': 'Bithash',
-                'CPC': 'CapriCoin',
+                'CPC': 'Capricoin',
+                'CPT': 'Cryptos', // conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
                 'EDR': 'E-Dinar Coin', // conflicts with EDR for Endor Protocol and EDRCoin
                 'eETT': 'EETT',
                 'FirstBlood': '1ST',
                 'FORTYTWO': '42',
                 'LEO': 'LeoCoin',
                 'ORE': 'Orectic',
+                'PLN': 'Plutaneum', // conflict with Polish Zloty
                 'RUR': 'RUB',
                 'SCT': 'SpaceCoin',
                 'TPI': 'ThaneCoin',
+                'WAX': 'WAXP',
                 'wETT': 'WETT',
                 'XBT': 'Bricktox',
             },
@@ -122,10 +125,11 @@ module.exports = class livecoin extends Exchange {
                     '30': AuthenticationError,
                     '31': NotSupported,
                     '32': ExchangeError,
-                    '429': DDoSProtection,
+                    '429': RateLimitExceeded,
                     '503': ExchangeNotAvailable,
                 },
                 'broad': {
+                    'insufficient funds': InsufficientFunds, // https://github.com/ccxt/ccxt/issues/5749
                     'NOT FOUND': OrderNotFound,
                     'Cannot find order': OrderNotFound,
                     'Minimal amount is': InvalidOrder,
@@ -143,8 +147,8 @@ module.exports = class livecoin extends Exchange {
             const market = response[i];
             const id = this.safeString (market, 'symbol');
             const [ baseId, quoteId ] = id.split ('/');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const coinRestrictions = this.safeValue (restrictionsById, symbol);
             const precision = {
@@ -192,7 +196,7 @@ module.exports = class livecoin extends Exchange {
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            const code = this.commonCurrencyCode (id);
+            const code = this.safeCurrencyCode (id);
             const precision = 8; // default precision, todo: fix "magic constants"
             const walletStatus = this.safeString (currency, 'walletStatus');
             const active = (walletStatus === 'normal');
@@ -259,7 +263,7 @@ module.exports = class livecoin extends Exchange {
         ];
         currencies.push ({
             'id': 'RUR',
-            'code': this.commonCurrencyCode ('RUR'),
+            'code': this.safeCurrencyCode ('RUR'),
             'name': 'Russian ruble',
         });
         for (let i = 0; i < currencies.length; i++) {
@@ -277,12 +281,7 @@ module.exports = class livecoin extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId);
-            }
+            const code = this.safeCurrencyCode (currencyId);
             let account = undefined;
             if (code in result) {
                 account = result[code];
@@ -415,10 +414,7 @@ module.exports = class livecoin extends Exchange {
         //         "commission": 0,
         //         "clientorderid": 1472837650
         //     }
-        let timestamp = this.safeInteger2 (trade, 'time', 'datetime');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp2 (trade, 'time', 'datetime');
         let fee = undefined;
         const feeCost = this.safeFloat (trade, 'commission');
         if (feeCost !== undefined) {
@@ -430,10 +426,7 @@ module.exports = class livecoin extends Exchange {
         }
         const orderId = this.safeString (trade, 'clientorderid');
         const id = this.safeString (trade, 'id');
-        let side = this.safeString (trade, 'type');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (trade, 'type');
         const amount = this.safeFloat (trade, 'quantity');
         const price = this.safeFloat (trade, 'price');
         let cost = undefined;
@@ -577,11 +570,10 @@ module.exports = class livecoin extends Exchange {
                 market = this.markets_by_id[marketId];
             }
         }
-        let type = undefined;
+        let type = this.safeStringLower (order, 'type');
         let side = undefined;
-        if ('type' in order) {
-            const lowercaseType = order['type'].toLowerCase ();
-            const orderType = lowercaseType.split ('_');
+        if (type !== undefined) {
+            const orderType = type.split ('_');
             type = orderType[0];
             side = orderType[1];
         }
@@ -767,21 +759,15 @@ module.exports = class livecoin extends Exchange {
         //        "externalKey": "....87diPBy......3hTtuwUT78Yi", (address on deposits, tx on withdrawals)
         //        "documentId": 1110662453
         //    },
-        let code = undefined;
         let txid = undefined;
         let address = undefined;
         const id = this.safeString (transaction, 'documentId');
         const amount = this.safeFloat (transaction, 'amount');
         const timestamp = this.safeInteger (transaction, 'date');
-        const type = this.safeString (transaction, 'type').toLowerCase ();
+        const type = this.safeStringLower (transaction, 'type');
         const currencyId = this.safeString (transaction, 'fixedCurrency');
         const feeCost = this.safeFloat (transaction, 'fee');
-        currency = this.safeValue (this.currencies_by_id, currencyId);
-        if (currency !== undefined) {
-            code = currency['code'];
-        } else {
-            code = this.commonCurrencyCode (currencyId);
-        }
+        const code = this.safeCurrencyCode (currencyId, currency);
         if (type === 'withdrawal') {
             txid = this.safeString (transaction, 'externalKey');
             address = this.safeString (transaction, 'id');
@@ -900,34 +886,23 @@ module.exports = class livecoin extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return; // fallback to default error handler
         }
         if (code >= 300) {
             const feedback = this.id + ' ' + body;
-            const exact = this.exceptions['exact'];
             const errorCode = this.safeString (response, 'errorCode');
-            if (errorCode in exact) {
-                throw new exact[errorCode] (feedback);
-            } else {
-                throw new ExchangeError (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            throw new ExchangeError (feedback);
         }
         // returns status code 200 even if success === false
         const success = this.safeValue (response, 'success', true);
         if (!success) {
             const feedback = this.id + ' ' + body;
-            const broad = this.exceptions['broad'];
-            const message = this.safeString (response, 'message');
-            let broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
-            const exception = this.safeString (response, 'exception');
-            broadKey = this.findBroadlyMatchedKey (broad, exception);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
+            const message = this.safeString2 (response, 'message', 'exception');
+            if (message !== undefined) {
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             }
             throw new ExchangeError (feedback);
         }

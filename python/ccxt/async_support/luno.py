@@ -9,7 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 
 
-class luno (Exchange):
+class luno(Exchange):
 
     def describe(self):
         return self.deep_extend(super(luno, self).describe(), {
@@ -30,6 +30,7 @@ class luno (Exchange):
                 'fetchTradingFees': True,
             },
             'urls': {
+                'referral': 'https://www.luno.com/invite/44893A',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
                 'api': 'https://api.mybitx.com/api',
                 'www': 'https://www.luno.com',
@@ -93,8 +94,8 @@ class luno (Exchange):
             id = market['pair']
             baseId = id[0:3]
             quoteId = id[3:6]
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -115,11 +116,7 @@ class luno (Exchange):
         for i in range(0, len(wallets)):
             wallet = wallets[i]
             currencyId = self.safe_string(wallet, 'asset')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             reserved = self.safe_float(wallet, 'reserved')
             unconfirmed = self.safe_float(wallet, 'unconfirmed')
             balance = self.safe_float(wallet, 'balance')
@@ -146,9 +143,10 @@ class luno (Exchange):
         timestamp = self.safe_integer(order, 'creation_timestamp')
         status = 'open' if (order['state'] == 'PENDING') else 'closed'
         side = 'sell' if (order['type'] == 'ASK') else 'buy'
-        if market is None:
-            market = self.find_market(order['pair'])
+        marketId = self.safe_string(order, 'pair')
         symbol = None
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
         price = self.safe_float(order, 'limit_price')
@@ -163,11 +161,13 @@ class luno (Exchange):
                 remaining = max(0, amount - filled)
         fee = {'currency': None}
         if quoteFee:
-            fee['side'] = 'quote'
             fee['cost'] = quoteFee
+            if market is not None:
+                fee['currency'] = market['quote']
         else:
-            fee['side'] = 'base'
             fee['cost'] = baseFee
+            if market is not None:
+                fee['currency'] = market['base']
         id = self.safe_string(order, 'order_id')
         return {
             'id': id,
@@ -286,7 +286,7 @@ class luno (Exchange):
             else:
                 takerOrMaker = 'taker'
         else:
-            side = 'buy' if (trade['is_buy']) else 'sell'
+            side = 'buy' if trade['is_buy'] else 'sell'
         feeBase = self.safe_float(trade, 'fee_base')
         feeCounter = self.safe_float(trade, 'fee_counter')
         feeCurrency = None

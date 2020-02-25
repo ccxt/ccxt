@@ -38,10 +38,13 @@ module.exports = (exchange, item, code, now) => {
     expect (item.timestamp).to.be.lt (now)
     expect (item).to.have.property ('datetime')
     expect (item.datetime).to.be.equal (exchange.iso8601 (item.timestamp))
-    expect (item).to.have.property ('fee').that.is.an ('object')
-    expect (item.fee).to.have.property ('cost')
-    expect (typeof item.fee.cost).to.be.oneOf (['number', 'undefined'])
-    expect (item.fee).to.have.property ('currency')
-    expect (item.fee.currency).to.be.equal (item.currency)
+    expect (item).to.have.property ('fee')
+    if (item.fee !== undefined) {
+        expect (item.fee).to.be.an ('object')
+        expect (item.fee).to.have.property ('cost')
+        expect (typeof item.fee.cost).to.be.oneOf (['number', 'undefined'])
+        expect (item.fee).to.have.property ('currency')
+        expect (item.fee.currency).to.be.equal (item.currency)
+    }
     expect (item).to.have.property ('info').that.is.an ('object')
 }

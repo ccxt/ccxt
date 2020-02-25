@@ -7,7 +7,7 @@ The exchange is required to implement the following list of methods and structur
 #### Exchange Information, Fee Schedule and Trading Rules
 
 - [`fetchMarkets`](https://github.com/ccxt/ccxt/wiki/Manual#markets) – a list of trading pairs and their statuses + [market structure](https://github.com/ccxt/ccxt/wiki/Manual#market-structure)
-- `fetchCurrencies` – a list of tokens or assets and their statuses
+- [`fetchCurrencies`] – a list of tokens or assets and their statuses + [currency structure](https://github.com/ccxt/ccxt/wiki/Manual#currency-structure)
 - `fetchTradingLimits` – min/max order volume, price, cost, precision, etc...
 - `fetchTradingFees` – trading fees, either public or personal
 - `fetchFundingLimits` – a list of withdrawal limits
@@ -17,7 +17,7 @@ The exchange is required to implement the following list of methods and structur
 - [`fetchTicker`](https://github.com/ccxt/ccxt/wiki/Manual#price-tickers) – 24h volumes and stats + [ticker structure](https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure)
 - [`fetchOrderBook`](https://github.com/ccxt/ccxt/wiki/Manual#order-book) – L2/L3 + [orderbook structure](https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure)
 - [`fetchTrades`](https://github.com/ccxt/ccxt/wiki/Manual#trades-executions-transactions) – a list of recent public trades + [trade structure](https://github.com/ccxt/ccxt/wiki/Manual#trade-structure)
-- [`fetchOHLCV`](https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts) – a list of candles or kline data for traded volumes in different timeframes 1m, 15m, 1h, 1d, ... + [OHLCV structure](https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-structure
+- [`fetchOHLCV`](https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts) – a list of candles or kline data for traded volumes in different timeframes 1m, 15m, 1h, 1d, ... + [OHLCV structure](https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-structure)
 
 ## Private API
 

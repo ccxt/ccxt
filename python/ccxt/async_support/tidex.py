@@ -23,7 +23,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 
 
-class tidex (Exchange):
+class tidex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(tidex, self).describe(), {
@@ -55,6 +55,7 @@ class tidex (Exchange):
                 },
                 'www': 'https://tidex.com',
                 'doc': 'https://tidex.com/exchange/public-api',
+                'referral': 'https://tidex.com/exchange/?ref=57f5638d9cd7',
                 'fees': [
                     'https://tidex.com/exchange/assets-spec',
                     'https://tidex.com/exchange/pairs-spec',
@@ -82,6 +83,7 @@ class tidex (Exchange):
                 },
                 'private': {
                     'post': [
+                        'getInfoExt',
                         'getInfo',
                         'Trade',
                         'ActiveOrders',
@@ -144,8 +146,7 @@ class tidex (Exchange):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
             precision = currency['amountPoint']
-            code = id.upper()
-            code = self.common_currency_code(code)
+            code = self.safe_currency_code(id)
             active = currency['visible'] is True
             canWithdraw = currency['withdrawEnable'] is True
             canDeposit = currency['depositEnable'] is True
@@ -219,10 +220,8 @@ class tidex (Exchange):
             id = keys[i]
             market = markets[id]
             baseId, quoteId = id.split('_')
-            base = baseId.upper()
-            quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'decimal_places'),
@@ -260,28 +259,18 @@ class tidex (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privatePostGetInfo(params)
+        response = await self.privatePostGetInfoExt(params)
         balances = self.safe_value(response, 'return')
         result = {'info': balances}
         funds = self.safe_value(balances, 'funds', {})
         currencyIds = list(funds.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
-            total = None
-            used = None
-            if balances['open_orders'] == 0:
-                total = funds[currencyId]
-                used = 0.0
-            account = {
-                'free': funds[currencyId],
-                'used': used,
-                'total': total,
-            }
+            code = self.safe_currency_code(currencyId)
+            balance = self.safe_value(funds, currencyId, {})
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'value')
+            account['used'] = self.safe_float(balance, 'inOrders')
             result[code] = account
         return self.parse_balance(result)
 
@@ -294,13 +283,13 @@ class tidex (Exchange):
         if limit is not None:
             request['limit'] = limit  # default = 150, max = 2000
         response = await self.publicGetDepthPair(self.extend(request, params))
-        market_id_in_reponse = (market['id'] in list(response.keys()))
+        market_id_in_reponse = (market['id'] in response)
         if not market_id_in_reponse:
             raise ExchangeError(self.id + ' ' + market['symbol'] + ' order book is empty or not available')
         orderbook = response[market['id']]
         return self.parse_order_book(orderbook)
 
-    async def fetch_order_books(self, symbols=None, params={}):
+    async def fetch_order_books(self, symbols=None, limit=None, params={}):
         await self.load_markets()
         ids = None
         if symbols is None:
@@ -315,6 +304,8 @@ class tidex (Exchange):
         request = {
             'pair': ids,
         }
+        if limit is not None:
+            request['limit'] = limit  # default = 150, max = 2000
         response = await self.publicGetDepthPair(self.extend(request, params))
         result = {}
         ids = list(response.keys())
@@ -338,10 +329,12 @@ class tidex (Exchange):
         #        sell: 0.03377798,
         #     updated: 1537522009          }
         #
-        timestamp = ticker['updated'] * 1000
+        timestamp = self.safe_timestamp(ticker, 'updated')
         symbol = None
         if market is not None:
             symbol = market['symbol']
+            if not market['active']:
+                timestamp = None
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -400,9 +393,7 @@ class tidex (Exchange):
         return tickers[symbol]
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'timestamp')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(trade, 'timestamp')
         side = self.safe_string(trade, 'type')
         if side == 'ask':
             side = 'sell'
@@ -424,13 +415,7 @@ class tidex (Exchange):
         feeCost = self.safe_float(trade, 'commission')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'commissionCurrency')
-            feeCurrencyId = feeCurrencyId.upper()
-            feeCurrency = self.safe_value(self.currencies_by_id, feeCurrencyId)
-            feeCurrencyCode = None
-            if feeCurrency is not None:
-                feeCurrencyCode = feeCurrency['code']
-            else:
-                feeCurrencyCode = self.common_currency_code(feeCurrencyId)
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -545,9 +530,7 @@ class tidex (Exchange):
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 'id')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        timestamp = self.safe_integer(order, 'timestamp_created')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(order, 'timestamp_created')
         symbol = None
         if market is None:
             marketId = self.safe_string(order, 'pair')
@@ -610,7 +593,7 @@ class tidex (Exchange):
         response = await self.privatePostOrderInfo(self.extend(request, params))
         id = str(id)
         newOrder = self.parse_order(self.extend({'id': id}, response['return'][id]))
-        oldOrder = self.orders[id] if (id in list(self.orders.keys())) else {}
+        oldOrder = self.orders[id] if (id in self.orders) else {}
         self.orders[id] = self.extend(oldOrder, newOrder)
         return self.orders[id]
 
@@ -629,7 +612,7 @@ class tidex (Exchange):
             # - symbol mismatch(e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
             cachedOrderId = cachedOrderIds[k]
             cachedOrder = self.orders[cachedOrderId]
-            if not(cachedOrderId in list(openOrdersIndexedById.keys())):
+            if not (cachedOrderId in openOrdersIndexedById):
                 # cached order is not in open orders array
                 # if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
                 if symbol is not None and symbol != cachedOrder['symbol']:
@@ -751,7 +734,7 @@ class tidex (Exchange):
                     }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         if 'success' in response:
@@ -790,14 +773,8 @@ class tidex (Exchange):
             if not success:
                 code = self.safe_string(response, 'code')
                 message = self.safe_string(response, 'error')
-                feedback = self.id + ' ' + self.json(response)
-                exact = self.exceptions['exact']
-                if code in exact:
-                    raise exact[code](feedback)
-                elif message in exact:
-                    raise exact[message](feedback)
-                broad = self.exceptions['broad']
-                broadKey = self.findBroadlyMatchedKey(broad, message)
-                if broadKey is not None:
-                    raise broad[broadKey](feedback)
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 raise ExchangeError(feedback)  # unknown message

@@ -26,6 +26,15 @@ module.exports = async (exchange, symbol) => {
 
     const method = 'fetchTicker'
 
+    const skippedExchanges = [
+        'digifinex',
+    ]
+
+    if (skippedExchanges.includes (exchange.id)) {
+        log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...')
+        return
+    }
+
     if (exchange.has[method]) {
 
         // log (symbol.green, 'fetching ticker...')

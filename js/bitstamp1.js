@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, NotSupported } = require ('./base/errors');
+const { BadSymbol, ExchangeError, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -81,7 +81,7 @@ module.exports = class bitstamp1 extends Exchange {
         }
         await this.loadMarkets ();
         const orderbook = await this.publicGetOrderBook (params);
-        const timestamp = parseInt (orderbook['timestamp']) * 1000;
+        const timestamp = this.safeTimestamp (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, timestamp);
     }
 
@@ -91,7 +91,7 @@ module.exports = class bitstamp1 extends Exchange {
         }
         await this.loadMarkets ();
         const ticker = await this.publicGetTicker (params);
-        const timestamp = parseInt (ticker['timestamp']) * 1000;
+        const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const vwap = this.safeFloat (ticker, 'vwap');
         const baseVolume = this.safeFloat (ticker, 'volume');
         let quoteVolume = undefined;
@@ -124,10 +124,7 @@ module.exports = class bitstamp1 extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger2 (trade, 'date', 'datetime');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp2 (trade, 'date', 'datetime');
         const side = (trade['type'] === 0) ? 'buy' : 'sell';
         const orderId = this.safeString (trade, 'order_id');
         if ('currency_pair' in trade) {
@@ -167,7 +164,7 @@ module.exports = class bitstamp1 extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         if (symbol !== 'BTC/USD') {
-            throw new ExchangeError (this.id + ' ' + this.version + " fetchTrades doesn't support " + symbol + ', use it for BTC/USD only');
+            throw new BadSymbol (this.id + ' ' + this.version + " fetchTrades doesn't support " + symbol + ', use it for BTC/USD only');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -187,9 +184,9 @@ module.exports = class bitstamp1 extends Exchange {
             const currency = this.currency (code);
             const currencyId = currency['id'];
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, currencyId + '_available', 0.0);
-            account['used'] = this.safeFloat (balance, currencyId + '_reserved', 0.0);
-            account['total'] = this.safeFloat (balance, currencyId + '_balance', 0.0);
+            account['free'] = this.safeFloat (balance, currencyId + '_available');
+            account['used'] = this.safeFloat (balance, currencyId + '_reserved');
+            account['total'] = this.safeFloat (balance, currencyId + '_balance');
             result[code] = account;
         }
         return this.parseBalance (result);

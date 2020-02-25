@@ -19,10 +19,15 @@ module.exports = async (exchange) => {
         const method = 'fetchStatus'
         const status = await exchange[method] ()
 
-        expect (status).to.have.key('status')
-        expect (status).to.have.key('updated')
-        expect (status).to.have.key('eta')
-        expect (status).to.have.key('url')
+        const sampleStatus = {
+            'status': 'ok', // 'ok', 'shutdown', 'error', 'maintenance'
+            'updated': undefined, // integer, last updated timestamp in milliseconds if updated via the API
+            'eta': undefined, // when the maintenance or outage is expected to end
+            'url': undefined, // a link to a GitHub issue or to an exchange post on the subject
+        }
+
+        assert.containsAllKeys (status, sampleStatus)
+
         return status
 
     } else {
@@ -30,4 +35,3 @@ module.exports = async (exchange) => {
         log ('fetching status not supported')
     }
 }
-

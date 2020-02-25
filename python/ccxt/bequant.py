@@ -6,7 +6,7 @@
 from ccxt.hitbtc2 import hitbtc2
 
 
-class bequant (hitbtc2):
+class bequant(hitbtc2):
 
     def describe(self):
         return self.deep_extend(super(bequant, self).describe(), {

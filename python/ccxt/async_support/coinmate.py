@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 
 
-class coinmate (Exchange):
+class coinmate(Exchange):
 
     def describe(self):
         return self.deep_extend(super(coinmate, self).describe(), {
@@ -127,8 +127,8 @@ class coinmate (Exchange):
             id = self.safe_string(market, 'name')
             baseId = self.safe_string(market, 'firstCurrency')
             quoteId = self.safe_string(market, 'secondCurrency')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -168,7 +168,7 @@ class coinmate (Exchange):
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             balance = self.safe_value(balances, currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'available')
@@ -185,9 +185,7 @@ class coinmate (Exchange):
         }
         response = await self.publicGetOrderBook(self.extend(request, params))
         orderbook = response['data']
-        timestamp = self.safe_integer(orderbook, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(orderbook, 'timestamp')
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_ticker(self, symbol, params={}):
@@ -197,9 +195,7 @@ class coinmate (Exchange):
         }
         response = await self.publicGetTicker(self.extend(request, params))
         ticker = self.safe_value(response, 'data')
-        timestamp = self.safe_integer(ticker, 'timestamp')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(ticker, 'timestamp')
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -237,7 +233,7 @@ class coinmate (Exchange):
             request['currency'] = self.currencyId(code)
         response = await self.privatePostTransferHistory(self.extend(request, params))
         items = response['data']
-        return self.parseTransactions(items, None, since, limit)
+        return self.parse_transactions(items, None, since, limit)
 
     def parse_transaction_status(self, status):
         statuses = {
@@ -287,15 +283,9 @@ class coinmate (Exchange):
         txid = self.safe_string(item, 'txid')
         address = self.safe_string(item, 'destination')
         tag = self.safe_string(item, 'destinationTag')
-        code = None
         currencyId = self.safe_string(item, 'amountCurrency')
-        if currencyId in self.currencies_by_id:
-            code = self.currencies_by_id[currencyId]['code']
-        else:
-            code = self.commonCurrencyCide(currencyId)
-        type = self.safe_string(item, 'transferType')
-        if type is not None:
-            type = type.lower()
+        code = self.safe_currency_code(currencyId, currency)
+        type = self.safe_string_lower(item, 'transferType')
         status = self.parse_transaction_status(self.safe_string(item, 'transferStatus'))
         id = self.safe_string(item, 'transactionId')
         return {
@@ -366,8 +356,8 @@ class coinmate (Exchange):
                 quote = market['quote']
             else:
                 baseId, quoteId = marketId.split('_')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         if symbol is None:
             if market is not None:
@@ -378,12 +368,8 @@ class coinmate (Exchange):
         if amount is not None:
             if price is not None:
                 cost = price * amount
-        side = self.safe_string_2(trade, 'type', 'tradeType')
-        if side is not None:
-            side = side.lower()
-        type = self.safe_string(trade, 'orderType')
-        if type is not None:
-            type = type.lower()
+        side = self.safe_string_lower_2(trade, 'type', 'tradeType')
+        type = self.safe_string_lower(trade, 'orderType')
         orderId = self.safe_string(trade, 'orderId')
         id = self.safe_string(trade, 'transactionId')
         timestamp = self.safe_integer_2(trade, 'timestamp', 'createdTimestamp')

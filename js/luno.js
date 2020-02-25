@@ -27,6 +27,7 @@ module.exports = class luno extends Exchange {
                 'fetchTradingFees': true,
             },
             'urls': {
+                'referral': 'https://www.luno.com/invite/44893A',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
                 'api': 'https://api.mybitx.com/api',
                 'www': 'https://www.luno.com',
@@ -91,8 +92,8 @@ module.exports = class luno extends Exchange {
             const id = market['pair'];
             const baseId = id.slice (0, 3);
             const quoteId = id.slice (3, 6);
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
@@ -115,12 +116,7 @@ module.exports = class luno extends Exchange {
         for (let i = 0; i < wallets.length; i++) {
             const wallet = wallets[i];
             const currencyId = this.safeString (wallet, 'asset');
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId);
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const reserved = this.safeFloat (wallet, 'reserved');
             const unconfirmed = this.safeFloat (wallet, 'unconfirmed');
             const balance = this.safeFloat (wallet, 'balance');
@@ -152,10 +148,11 @@ module.exports = class luno extends Exchange {
         const timestamp = this.safeInteger (order, 'creation_timestamp');
         const status = (order['state'] === 'PENDING') ? 'open' : 'closed';
         const side = (order['type'] === 'ASK') ? 'sell' : 'buy';
-        if (market === undefined) {
-            market = this.findMarket (order['pair']);
-        }
+        const marketId = this.safeString (order, 'pair');
         let symbol = undefined;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
         if (market !== undefined) {
             symbol = market['symbol'];
         }
@@ -173,11 +170,15 @@ module.exports = class luno extends Exchange {
         }
         const fee = { 'currency': undefined };
         if (quoteFee) {
-            fee['side'] = 'quote';
             fee['cost'] = quoteFee;
+            if (market !== undefined) {
+                fee['currency'] = market['quote'];
+            }
         } else {
-            fee['side'] = 'base';
             fee['cost'] = baseFee;
+            if (market !== undefined) {
+                fee['currency'] = market['base'];
+            }
         }
         const id = this.safeString (order, 'order_id');
         return {
@@ -311,7 +312,7 @@ module.exports = class luno extends Exchange {
                 takerOrMaker = 'taker';
             }
         } else {
-            side = (trade['is_buy']) ? 'buy' : 'sell';
+            side = trade['is_buy'] ? 'buy' : 'sell';
         }
         const feeBase = this.safeFloat (trade, 'fee_base');
         const feeCounter = this.safeFloat (trade, 'fee_counter');

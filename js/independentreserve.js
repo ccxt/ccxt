@@ -71,6 +71,9 @@ module.exports = class independentreserve extends Exchange {
                     'tierBased': false,
                 },
             },
+            'commonCurrencies': {
+                'PLA': 'PlayChip',
+            },
         });
     }
 
@@ -80,12 +83,10 @@ module.exports = class independentreserve extends Exchange {
         const result = [];
         for (let i = 0; i < baseCurrencies.length; i++) {
             const baseId = baseCurrencies[i];
-            const baseIdUppercase = baseId.toUpperCase ();
-            const base = this.commonCurrencyCode (baseIdUppercase);
+            const base = this.safeCurrencyCode (baseId);
             for (let j = 0; j < quoteCurrencies.length; j++) {
                 const quoteId = quoteCurrencies[j];
-                const quoteIdUppercase = quoteId.toUpperCase ();
-                const quote = this.commonCurrencyCode (quoteIdUppercase);
+                const quote = this.safeCurrencyCode (quoteId);
                 const id = baseId + '/' + quoteId;
                 const symbol = base + '/' + quote;
                 result.push ({
@@ -109,12 +110,7 @@ module.exports = class independentreserve extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'CurrencyCode');
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId.toUpperCase ());
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'AvailableBalance');
             account['total'] = this.safeFloat (balance, 'TotalBalance');
@@ -179,10 +175,18 @@ module.exports = class independentreserve extends Exchange {
 
     parseOrder (order, market = undefined) {
         let symbol = undefined;
-        if (market === undefined) {
+        const baseId = this.safeString (order, 'PrimaryCurrencyCode');
+        const quoteId = this.safeString (order, 'PrimaryCurrencyCode');
+        let base = undefined;
+        let quote = undefined;
+        if ((baseId !== undefined) && (quoteId !== undefined)) {
+            base = this.safeCurrencyCode (baseId);
+            quote = this.safeCurrencyCode (quoteId);
+            symbol = base + '/' + quote;
+        } else if (market !== undefined) {
             symbol = market['symbol'];
-        } else {
-            market = this.findMarket (order['PrimaryCurrencyCode'] + '/' + order['SecondaryCurrencyCode']);
+            base = market['base'];
+            quote = market['quote'];
         }
         let orderType = this.safeValue (order, 'Type');
         if (orderType.indexOf ('Market') >= 0) {
@@ -196,7 +200,7 @@ module.exports = class independentreserve extends Exchange {
         } else if (orderType.indexOf ('Offer') >= 0) {
             side = 'sell';
         }
-        const timestamp = this.parse8601 (order['CreatedTimestampUtc']);
+        const timestamp = this.parse8601 (this.safeString (order, 'CreatedTimestampUtc'));
         let amount = this.safeFloat (order, 'VolumeOrdered');
         if (amount === undefined) {
             amount = this.safeFloat (order, 'Volume');
@@ -213,15 +217,10 @@ module.exports = class independentreserve extends Exchange {
                 }
             }
         }
-        let feeCurrency = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-            feeCurrency = market['base'];
-        }
         const fee = {
             'rate': feeRate,
             'cost': feeCost,
-            'currency': feeCurrency,
+            'currency': base,
         };
         const id = this.safeString (order, 'OrderGuid');
         const status = this.parseOrderStatus (this.safeString (order, 'Status'));

@@ -17,7 +17,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
 
 
-class bitso (Exchange):
+class bitso(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitso, self).describe(), {
@@ -27,7 +27,7 @@ class bitso (Exchange):
             'rateLimit': 2000,  # 30 requests per minute
             'version': 'v3',
             'has': {
-                'CORS': True,
+                'CORS': False,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -39,6 +39,14 @@ class bitso (Exchange):
                 'doc': 'https://bitso.com/api_info',
                 'fees': 'https://bitso.com/fees?l=es',
                 'referral': 'https://bitso.com/?ref=itej',
+            },
+            'options': {
+                'precision': {
+                    'XRP': 6,
+                    'MXN': 2,
+                    'TUSD': 2,
+                },
+                'defaultPrecision': 8,
             },
             'api': {
                 'public': {
@@ -110,8 +118,8 @@ class bitso (Exchange):
             baseId, quoteId = id.split('_')
             base = baseId.upper()
             quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(base)
+            quote = self.safe_currency_code(quote)
             symbol = base + '/' + quote
             limits = {
                 'amount': {
@@ -128,8 +136,8 @@ class bitso (Exchange):
                 },
             }
             precision = {
-                'amount': self.precision_from_string(market['minimum_amount']),
-                'price': self.precision_from_string(market['minimum_price']),
+                'amount': self.safe_integer(self.options['precision'], base, self.options['defaultPrecision']),
+                'price': self.safe_integer(self.options['precision'], quote, self.options['defaultPrecision']),
             }
             result.append({
                 'id': id,
@@ -152,11 +160,7 @@ class bitso (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = currencyId.upper()
+            code = self.safe_currency_code(currencyId)
             account = {
                 'free': self.safe_float(balance, 'available'),
                 'used': self.safe_float(balance, 'locked'),
@@ -228,10 +232,8 @@ class bitso (Exchange):
         fee = None
         feeCost = self.safe_float(trade, 'fees_amount')
         if feeCost is not None:
-            feeCurrency = self.safe_string(trade, 'fees_currency')
-            if feeCurrency is not None:
-                if feeCurrency in self.currencies_by_id:
-                    feeCurrency = self.currencies_by_id[feeCurrency]['code']
+            feeCurrencyId = self.safe_string(trade, 'fees_currency')
+            feeCurrency = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -273,7 +275,7 @@ class bitso (Exchange):
         # the don't support fetching trades starting from a date yet
         # use the `marker` extra param for that
         # self is not a typo, the variable name is 'marker'(don't confuse with 'market')
-        markerInParams = ('marker' in list(params.keys()))
+        markerInParams = ('marker' in params)
         # warn the user with an exception if the user wants to filter
         # starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if (since is not None) and not markerInParams:
@@ -334,8 +336,8 @@ class bitso (Exchange):
                 market = self.markets_by_id[marketId]
             else:
                 baseId, quoteId = marketId.split('_')
-                base = self.common_currency_code(baseId.upper())
-                quote = self.common_currency_code(quoteId.upper())
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         if symbol is None:
             if market is not None:
@@ -373,7 +375,7 @@ class bitso (Exchange):
         # the don't support fetching trades starting from a date yet
         # use the `marker` extra param for that
         # self is not a typo, the variable name is 'marker'(don't confuse with 'market')
-        markerInParams = ('marker' in list(params.keys()))
+        markerInParams = ('marker' in params)
         # warn the user with an exception if the user wants to filter
         # starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if (since is not None) and not markerInParams:
@@ -445,7 +447,7 @@ class bitso (Exchange):
             'BCH': 'Bcash',
             'LTC': 'Litecoin',
         }
-        method = methods[code] if (code in list(methods.keys())) else None
+        method = methods[code] if (code in methods) else None
         if method is None:
             raise ExchangeError(self.id + ' not valid withdraw coin: ' + code)
         request = {
@@ -483,7 +485,7 @@ class bitso (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         if 'success' in response:
@@ -502,11 +504,8 @@ class bitso (Exchange):
                 if error is None:
                     raise ExchangeError(feedback)
                 code = self.safe_string(error, 'code')
-                exceptions = self.exceptions
-                if code in exceptions:
-                    raise exceptions[code](feedback)
-                else:
-                    raise ExchangeError(feedback)
+                self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                raise ExchangeError(feedback)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)

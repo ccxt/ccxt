@@ -14,14 +14,16 @@ const log       = require ('ololog')
 module.exports = async (exchange, symbol) => {
 
     const skippedExchanges = [
+        'btcalpha', // issue with 404 on a documented endpoint https://travis-ci.org/ccxt/ccxt/builds/643930431#L2213
         'bitmex', // an issue with null values,to be resolved later
         'cex',
         'okex',
         'okcoinusd',
+        'mandala',
     ]
 
     if (skippedExchanges.includes (exchange.id)) {
-        log (exchange.id, 'found in ignored exchanges, skipping fetchMyTrades...')
+        log (exchange.id, 'found in ignored exchanges, skipping fetchOHLCV...')
         return
     }
 
@@ -42,7 +44,6 @@ module.exports = async (exchange, symbol) => {
             const ohlcv = ohlcvs[i]
             testOHLCV (exchange, ohlcv, symbol, now)
         }
-
 
         log (symbol.green, 'fetched', Object.keys (ohlcvs).length.toString ().green, 'OHLCVs')
 

@@ -97,6 +97,7 @@ def dump_error(*args):
     string = ' '.join([str(arg) for arg in args])
     print(string)
     sys.stderr.write(string + "\n")
+    sys.stderr.flush()
 
 
 # ------------------------------------------------------------------------------
@@ -158,6 +159,11 @@ def test_ohlcv(exchange, symbol):
 
 
 def test_tickers(exchange, symbol):
+    ignored_exchanges = [
+        'digifinex',  # requires apiKey to call v2 tickers
+    ]
+    if exchange.id in ignored_exchanges:
+        return
     if exchange.has['fetchTickers']:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
@@ -186,6 +192,11 @@ def is_active_symbol(exchange, symbol):
 
 
 def test_ticker(exchange, symbol):
+    ignored_exchanges = [
+        'digifinex',  # requires apiKey to call v2 tickers
+    ]
+    if exchange.id in ignored_exchanges:
+        return
     if exchange.has['fetchTicker']:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
@@ -321,9 +332,6 @@ def test_exchange(exchange):
 def try_all_proxies(exchange, proxies=['']):
     current_proxy = 0
     max_retries = len(proxies)
-    # a special case for ccex
-    if exchange.id == 'ccex' and max_retries > 1:
-        current_proxy = 1
     if exchange.proxy in proxies:
         current_proxy = proxies.index(exchange.proxy)
     for num_retries in range(0, max_retries):
@@ -364,7 +372,7 @@ with open(keys_file) as file:
 
 # instantiate all exchanges
 for id in ccxt.exchanges:
-    if id == 'theocean' or id == 'theocean1':
+    if id == 'theocean':
         continue
     exchange = getattr(ccxt, id)
     exchange_config = {'verbose': argv.verbose}
@@ -381,7 +389,7 @@ def main():
 
     if argv.exchange:
 
-        if argv.exchange != 'theocean' and argv.exchange != 'theocean1':
+        if argv.exchange != 'theocean':
 
             exchange = exchanges[argv.exchange]
             symbol = argv.symbol

@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { TICK_SIZE } = require ('./base/functions/number');
 const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
@@ -127,6 +128,7 @@ module.exports = class deribit extends Exchange {
                 '11030': ExchangeError, // "other_reject <Reason>" Some rejects which are not considered as very often, more info may be specified in <Reason>
                 '11031': ExchangeError, // "other_error <Error>" Some errors which are not considered as very often, more info may be specified in <Error>
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 'fetchTickerQuotes': true,
             },
@@ -142,30 +144,41 @@ module.exports = class deribit extends Exchange {
             const id = this.safeString (market, 'instrumentName');
             const baseId = this.safeString (market, 'baseCurrency');
             const quoteId = this.safeString (market, 'currency');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const type = this.safeString (market, 'kind');
+            const future = (type === 'future');
+            const option = (type === 'option');
+            const active = this.safeValue (market, 'isActive');
+            const precision = {
+                'amount': this.safeFloat (market, 'minTradeAmount'),
+                'price': this.safeFloat (market, 'tickSize'),
+            };
             result.push ({
                 'id': id,
                 'symbol': id,
                 'base': base,
                 'quote': quote,
-                'active': market['isActive'],
-                'precision': {
-                    'amount': market['minTradeSize'],
-                    'price': market['tickSize'],
-                },
+                'active': active,
+                'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': market['minTradeSize'],
+                        'min': this.safeFloat (market, 'minTradeAmount'),
+                        'max': undefined,
                     },
                     'price': {
-                        'min': market['tickSize'],
+                        'min': this.safeFloat (market, 'tickSize'),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
                     },
                 },
-                'type': market['kind'],
+                'type': type,
                 'spot': false,
-                'future': market['kind'] === 'future',
-                'option': market['kind'] === 'option',
+                'future': future,
+                'option': option,
                 'info': market,
             });
         }
@@ -173,22 +186,68 @@ module.exports = class deribit extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
         const response = await this.privateGetAccount (params);
+        //
+        //     {
+        //         "usOut":1569048827943520,
+        //         "usIn":1569048827943020,
+        //         "usDiff":500,
+        //         "testnet":false,
+        //         "success":true,
+        //         "result":{
+        //             "equity":2e-9,
+        //             "maintenanceMargin":0.0,
+        //             "initialMargin":0.0,
+        //             "availableFunds":0.0,
+        //             "balance":0.0,
+        //             "marginBalance":0.0,
+        //             "SUPL":0.0,
+        //             "SRPL":0.0,
+        //             "PNL":0.0,
+        //             "optionsPNL":0.0,
+        //             "optionsSUPL":0.0,
+        //             "optionsSRPL":0.0,
+        //             "optionsD":0.0,
+        //             "optionsG":0.0,
+        //             "optionsV":0.0,
+        //             "optionsTh":0.0,
+        //             "futuresPNL":0.0,
+        //             "futuresSUPL":0.0,
+        //             "futuresSRPL":0.0,
+        //             "deltaTotal":0.0,
+        //             "sessionFunding":0.0,
+        //             "depositAddress":"13tUtNsJSZa1F5GeCmwBywVrymHpZispzw",
+        //             "currency":"BTC"
+        //         },
+        //         "message":""
+        //     }
+        //
         const result = {
-            'BTC': {
-                'free': this.safeFloat (response['result'], 'availableFunds'),
-                'used': this.safeFloat (response['result'], 'maintenanceMargin'),
-                'total': this.safeFloat (response['result'], 'equity'),
-            },
+            'info': response,
         };
+        const balance = this.safeValue (response, 'result', {});
+        const currencyId = this.safeString (balance, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const account = this.account ();
+        account['free'] = this.safeFloat (balance, 'availableFunds');
+        account['used'] = this.safeFloat (balance, 'maintenanceMargin');
+        account['total'] = this.safeFloat (balance, 'equity');
+        result[code] = account;
         return this.parseBalance (result);
     }
 
-    async fetchDepositAddress (currency, params = {}) {
-        const response = await this.privateGetAccount (params);
-        const address = this.safeString (response, 'depositAddress');
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateGetAccount (this.extend (request, params));
+        const result = this.safeValue (response, 'result', {});
+        const address = this.safeString (result, 'depositAddress');
         return {
-            'currency': this.commonCurrencyCode ('BTC'),
+            'currency': code,
             'address': address,
             'tag': undefined,
             'info': response,
@@ -196,8 +255,36 @@ module.exports = class deribit extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "currentFunding":0.0,
+        //         "funding8h":0.0000017213784611422821,
+        //         "instrumentName":"BTC-PERPETUAL",
+        //         "openInterest":7600223,
+        //         "openInterestAmount":76002230,
+        //         "high":7665.5,
+        //         "low":7450.0,
+        //         "volume":12964792.0,
+        //         "volumeUsd":129647920,
+        //         "volumeBtc":17214.63595316,
+        //         "last":7520.5,
+        //         "bidPrice":7520.0,
+        //         "askPrice":7520.5,
+        //         "midPrice":7520.25,
+        //         "estDelPrice":"",
+        //         "markPrice":7521.0,
+        //         "created":"2019-12-09 15:17:00 GMT"
+        //     }
+        //
         const timestamp = this.safeInteger (ticker, 'created');
-        const symbol = this.findSymbol (this.safeString (ticker, 'instrumentName'), market);
+        let symbol = undefined;
+        const marketId = this.safeString (ticker, 'instrumentName');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -230,6 +317,35 @@ module.exports = class deribit extends Exchange {
             'instrument': market['id'],
         };
         const response = await this.publicGetGetsummary (this.extend (request, params));
+        //
+        //     {
+        //         "usOut":1575904620528163,
+        //         "usIn":1575904620528129,
+        //         "usDiff":34,
+        //         "testnet":false,
+        //         "success":true,
+        //         "result": {
+        //             "currentFunding":0.0,
+        //             "funding8h":0.0000017213784611422821,
+        //             "instrumentName":"BTC-PERPETUAL",
+        //             "openInterest":7600223,
+        //             "openInterestAmount":76002230,
+        //             "high":7665.5,
+        //             "low":7450.0,
+        //             "volume":12964792.0,
+        //             "volumeUsd":129647920,
+        //             "volumeBtc":17214.63595316,
+        //             "last":7520.5,
+        //             "bidPrice":7520.0,
+        //             "askPrice":7520.5,
+        //             "midPrice":7520.25,
+        //             "estDelPrice":"",
+        //             "markPrice":7521.0,
+        //             "created":"2019-12-09 15:17:00 GMT"
+        //         },
+        //         "message":""
+        //     }
+        //
         return this.parseTicker (response['result'], market);
     }
 
@@ -291,7 +407,7 @@ module.exports = class deribit extends Exchange {
         const feeCost = this.safeFloat (trade, 'fee');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeCurrency');
-            const feeCurrencyCode = this.commonCurrencyCode (feeCurrencyId);
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -428,10 +544,7 @@ module.exports = class deribit extends Exchange {
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
-        let side = this.safeString (order, 'direction');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (order, 'direction');
         let feeCost = this.safeFloat (order, 'commission');
         if (feeCost !== undefined) {
             feeCost = Math.abs (feeCost);
@@ -630,7 +743,7 @@ module.exports = class deribit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response) {
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             return; // fallback to default error handler
         }
@@ -640,10 +753,7 @@ module.exports = class deribit extends Exchange {
         const error = this.safeString (response, 'error');
         if ((error !== undefined) && (error !== '0')) {
             const feedback = this.id + ' ' + body;
-            const exceptions = this.exceptions;
-            if (error in exceptions) {
-                throw new exceptions[error] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions, error, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

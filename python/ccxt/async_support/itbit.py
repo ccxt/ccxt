@@ -9,7 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
 
-class itbit (Exchange):
+class itbit(Exchange):
 
     def describe(self):
         return self.deep_extend(super(itbit, self).describe(), {
@@ -21,6 +21,7 @@ class itbit (Exchange):
             'has': {
                 'CORS': True,
                 'createMarketOrder': False,
+                'fetchMyTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
@@ -153,7 +154,7 @@ class itbit (Exchange):
         #         "rate": "250.53000000",
         #         "commissionPaid": "0.00000000",   # net trade fee paid after using any available rebate balance
         #         "commissionCurrency": "USD",
-        #         "rebatesApplied": "-0.000125265",  # negative values represent amount of rebate balance used for trades removing liquidity from order book positive values represent amount of rebate balance earned from trades adding liquidity to order book
+        #         "rebatesApplied": "-0.000125265",  # negative values represent amount of rebate balance used for trades removing liquidity from order book; positive values represent amount of rebate balance earned from trades adding liquidity to order book
         #         "rebateCurrency": "USD",
         #         "executionId": "23132"
         #     }
@@ -164,12 +165,12 @@ class itbit (Exchange):
         orderId = self.safe_string(trade, 'orderId')
         feeCost = self.safe_float(trade, 'commissionPaid')
         feeCurrencyId = self.safe_string(trade, 'commissionCurrency')
-        feeCurrency = self.common_currency_code(feeCurrencyId)
+        feeCurrency = self.safe_currency_code(feeCurrencyId)
         rebatesApplied = self.safe_float(trade, 'rebatesApplied')
         if rebatesApplied is not None:
             rebatesApplied = -rebatesApplied
         rebateCurrencyId = self.safe_string(trade, 'rebateCurrency')
-        rebateCurrency = self.common_currency_code(rebateCurrencyId)
+        rebateCurrency = self.safe_currency_code(rebateCurrencyId)
         price = self.safe_float_2(trade, 'price', 'rate')
         amount = self.safe_float_2(trade, 'currency1Amount', 'amount')
         cost = None
@@ -184,8 +185,8 @@ class itbit (Exchange):
             else:
                 baseId = self.safe_string(trade, 'currency1')
                 quoteId = self.safe_string(trade, 'currency2')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         if symbol is None:
             if market is not None:
@@ -228,8 +229,8 @@ class itbit (Exchange):
                     'cost': feeCost,
                     'currency': feeCurrency,
                 }
-        if not('fee' in list(result.keys())):
-            if not('fees' in list(result.keys())):
+        if not ('fee' in result):
+            if not ('fees' in result):
                 result['fee'] = None
         return result
 
@@ -271,14 +272,14 @@ class itbit (Exchange):
             currency = self.safe_string(item, 'currency')
             destinationAddress = self.safe_string(item, 'destinationAddress')
             txnHash = self.safe_string(item, 'txnHash')
-            transactionType = self.safe_string(item, 'transactionType').lower()
+            transactionType = self.safe_string_lower(item, 'transactionType')
             transactionStatus = self.safe_string(item, 'status')
             status = self.parse_transfer_status(transactionStatus)
             result.append({
                 'id': self.safe_string(item, 'withdrawalId'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
-                'currency': self.common_currency_code(currency),
+                'currency': self.safe_currency_code(currency),
                 'address': destinationAddress,
                 'tag': None,
                 'txid': txnHash,
@@ -329,7 +330,7 @@ class itbit (Exchange):
         #                 "rate": "250.53000000",
         #                 "commissionPaid": "0.00000000",   # net trade fee paid after using any available rebate balance
         #                 "commissionCurrency": "USD",
-        #                 "rebatesApplied": "-0.000125265",  # negative values represent amount of rebate balance used for trades removing liquidity from order book positive values represent amount of rebate balance earned from trades adding liquidity to order book
+        #                 "rebatesApplied": "-0.000125265",  # negative values represent amount of rebate balance used for trades removing liquidity from order book; positive values represent amount of rebate balance earned from trades adding liquidity to order book
         #                 "rebateCurrency": "USD",
         #                 "executionId": "23132"
         #             },
@@ -373,11 +374,7 @@ class itbit (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'availableBalance')
             account['total'] = self.safe_float(balance, 'totalBalance')
@@ -385,6 +382,7 @@ class itbit (Exchange):
         return self.parse_balance(result)
 
     async def fetch_wallets(self, params={}):
+        await self.load_markets()
         if not self.uid:
             raise AuthenticationError(self.id + ' fetchWallets requires uid API credential')
         request = {
@@ -393,6 +391,7 @@ class itbit (Exchange):
         return await self.privateGetWallets(self.extend(request, params))
 
     async def fetch_wallet(self, walletId, params={}):
+        await self.load_markets()
         request = {
             'walletId': walletId,
         }
@@ -411,7 +410,11 @@ class itbit (Exchange):
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        walletIdInParams = ('walletId' in list(params.keys()))
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
             raise ExchangeError(self.id + ' fetchOrders requires a walletId parameter')
         walletId = params['walletId']
@@ -419,8 +422,17 @@ class itbit (Exchange):
             'walletId': walletId,
         }
         response = await self.privateGetWalletsWalletIdOrders(self.extend(request, params))
-        orders = self.parse_orders(response, None, since, limit)
-        return orders
+        return self.parse_orders(response, market, since, limit)
+
+    def parse_order_status(self, status):
+        statuses = {
+            'submitted': 'open',  # order pending book entry
+            'open': 'open',
+            'filled': 'closed',
+            'cancelled': 'canceled',
+            'rejected': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         side = order['side']
@@ -440,7 +452,7 @@ class itbit (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'status': order['status'],
+            'status': self.parse_order_status(self.safe_string(order, 'status')),
             'symbol': symbol,
             'type': type,
             'side': side,
@@ -458,9 +470,10 @@ class itbit (Exchange):
         return self.milliseconds()
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        await self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
-        walletIdInParams = ('walletId' in list(params.keys()))
+        walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
             raise ExchangeError(self.id + ' createOrder requires a walletId parameter')
         amount = str(amount)
@@ -482,7 +495,8 @@ class itbit (Exchange):
         }
 
     async def fetch_order(self, id, symbol=None, params={}):
-        walletIdInParams = ('walletId' in list(params.keys()))
+        await self.load_markets()
+        walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
             raise ExchangeError(self.id + ' fetchOrder requires a walletId parameter')
         request = {
@@ -492,7 +506,7 @@ class itbit (Exchange):
         return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
-        walletIdInParams = ('walletId' in list(params.keys()))
+        walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
             raise ExchangeError(self.id + ' cancelOrder requires a walletId parameter')
         request = {
@@ -519,7 +533,7 @@ class itbit (Exchange):
             binhash = self.binary_concat(binaryUrl, hash)
             signature = self.hmac(binhash, self.encode(self.secret), hashlib.sha512, 'base64')
             headers = {
-                'Authorization': self.apiKey + ':' + signature,
+                'Authorization': self.apiKey + ':' + self.decode(signature),
                 'Content-Type': 'application/json',
                 'X-Auth-Timestamp': timestamp,
                 'X-Auth-Nonce': nonce,

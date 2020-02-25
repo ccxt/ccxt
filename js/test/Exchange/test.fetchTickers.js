@@ -15,6 +15,7 @@ module.exports = async (exchange, symbol) => {
 
     const skippedExchanges = [
         'binance',
+        'digifinex',
     ]
 
     if (skippedExchanges.includes (exchange.id)) {

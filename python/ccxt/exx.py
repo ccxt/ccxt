@@ -11,7 +11,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ExchangeNotAvailable
 
 
-class exx (Exchange):
+class exx(Exchange):
 
     def describe(self):
         return self.deep_extend(super(exx, self).describe(), {
@@ -103,10 +103,8 @@ class exx (Exchange):
             id = ids[i]
             market = response[id]
             baseId, quoteId = id.split('_')
-            upper = id.upper()
-            base, quote = upper.split('_')
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             active = market['isOpen'] is True
             precision = {
@@ -185,7 +183,7 @@ class exx (Exchange):
         ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            if not(id in list(self.marketsById.keys())):
+            if not (id in self.marketsById):
                 continue
             market = self.marketsById[id]
             symbol = market['symbol']
@@ -202,12 +200,11 @@ class exx (Exchange):
             'currency': self.market_id(symbol),
         }
         response = self.publicGetDepth(self.extend(request, params))
-        return self.parse_order_book(response, response['timestamp'])
+        timestamp = self.safe_timestamp(response, 'timestamp')
+        return self.parse_order_book(response, timestamp)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(trade, 'date')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         cost = None
@@ -254,7 +251,7 @@ class exx (Exchange):
         for i in range(0, len(currencies)):
             currencyId = currencies[i]
             balance = balances[currencyId]
-            code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = {
                 'free': self.safe_float(balance, 'balance'),
                 'used': self.safe_float(balance, 'freeze'),
@@ -377,7 +374,7 @@ class exx (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         #
@@ -386,14 +383,12 @@ class exx (Exchange):
         #
         code = self.safe_string(response, 'code')
         message = self.safe_string(response, 'message')
-        feedback = self.id + ' ' + self.json(response)
+        feedback = self.id + ' ' + body
         if code == '100':
             return
         if code is not None:
-            exceptions = self.exceptions
-            if code in exceptions:
-                raise exceptions[code](feedback)
-            elif code == '308':
+            self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+            if code == '308':
                 # self is returned by the exchange when there are no open orders
                 # {"code":308,"message":"Not Found Transaction Record"}
                 return

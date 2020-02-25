@@ -4,25 +4,20 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 
 
-class gateio (Exchange):
+class gateio(Exchange):
 
     def describe(self):
         return self.deep_extend(super(gateio, self).describe(), {
@@ -50,18 +45,18 @@ class gateio (Exchange):
                 'fetchMyTrades': True,
             },
             'timeframes': {
-                '1m': '60',
-                '5m': '300',
-                '10m': '600',
-                '15m': '900',
-                '30m': '1800',
-                '1h': '3600',
-                '2h': '7200',
-                '4h': '14400',
-                '6h': '21600',
-                '12h': '43200',
-                '1d': '86400',
-                '1w': '604800',
+                '1m': 60,
+                '5m': 300,
+                '10m': 600,
+                '15m': 900,
+                '30m': 1800,
+                '1h': 3600,
+                '2h': 7200,
+                '4h': 14400,
+                '6h': 21600,
+                '12h': 43200,
+                '1d': 86400,
+                '1w': 604800,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
@@ -118,40 +113,46 @@ class gateio (Exchange):
                 },
             },
             'exceptions': {
-                '4': DDoSProtection,
-                '7': NotSupported,
-                '8': NotSupported,
-                '9': NotSupported,
-                '15': DDoSProtection,
-                '16': OrderNotFound,
-                '17': OrderNotFound,
-                '21': InsufficientFunds,
-            },
-            # https://gate.io/api2#errCode
-            'errorCodeNames': {
-                '1': 'Invalid request',
-                '2': 'Invalid version',
-                '3': 'Invalid request',
-                '4': 'Too many attempts',
-                '5': 'Invalid sign',
-                '6': 'Invalid sign',
-                '7': 'Currency is not supported',
-                '8': 'Currency is not supported',
-                '9': 'Currency is not supported',
-                '10': 'Verified failed',
-                '11': 'Obtaining address failed',
-                '12': 'Empty params',
-                '13': 'Internal error, please report to administrator',
-                '14': 'Invalid user',
-                '15': 'Cancel order too fast, please wait 1 min and try again',
-                '16': 'Invalid order id or order is already closed',
-                '17': 'Invalid orderid',
-                '18': 'Invalid amount',
-                '19': 'Not permitted or trade is disabled',
-                '20': 'Your order size is too small',
-                '21': 'You don\'t have enough fund',
+                'exact': {
+                    '4': DDoSProtection,
+                    '5': AuthenticationError,  # {result: "false", code:  5, message: "Error: invalid key or sign, please re-generate it from your account"}
+                    '6': AuthenticationError,  # {result: 'false', code: 6, message: 'Error: invalid data  '}
+                    '7': NotSupported,
+                    '8': NotSupported,
+                    '9': NotSupported,
+                    '15': DDoSProtection,
+                    '16': OrderNotFound,
+                    '17': OrderNotFound,
+                    '20': InvalidOrder,
+                    '21': InsufficientFunds,
+                },
+                # https://gate.io/api2#errCode
+                'errorCodeNames': {
+                    '1': 'Invalid request',
+                    '2': 'Invalid version',
+                    '3': 'Invalid request',
+                    '4': 'Too many attempts',
+                    '5': 'Invalid sign',
+                    '6': 'Invalid sign',
+                    '7': 'Currency is not supported',
+                    '8': 'Currency is not supported',
+                    '9': 'Currency is not supported',
+                    '10': 'Verified failed',
+                    '11': 'Obtaining address failed',
+                    '12': 'Empty params',
+                    '13': 'Internal error, please report to administrator',
+                    '14': 'Invalid user',
+                    '15': 'Cancel order too fast, please wait 1 min and try again',
+                    '16': 'Invalid order id or order is already closed',
+                    '17': 'Invalid orderid',
+                    '18': 'Invalid amount',
+                    '19': 'Not permitted or trade is disabled',
+                    '20': 'Your order size is too small',
+                    '21': 'You don\'t have enough fund',
+                },
             },
             'options': {
+                'fetchTradesMethod': 'public_get_tradehistory_id',  # 'public_get_tradehistory_id_tid'
                 'limits': {
                     'cost': {
                         'min': {
@@ -173,7 +174,7 @@ class gateio (Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             keys = list(market.keys())
-            id = keys[0]
+            id = self.safe_string(keys, 0)
             details = market[id]
             # all of their symbols are separated with an underscore
             # but not boe_eth_eth(BOE_ETH/ETH) which has two underscores
@@ -185,10 +186,8 @@ class gateio (Exchange):
             if numParts > 2:
                 baseId = parts[0] + '_' + parts[1]
                 quoteId = parts[2]
-            base = baseId.upper()
-            quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -241,7 +240,7 @@ class gateio (Exchange):
         currencyIds = list(available.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = self.common_currency_code(currencyId.upper())
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(available, currencyId)
             account['used'] = self.safe_float(locked, currencyId)
@@ -292,7 +291,8 @@ class gateio (Exchange):
         #         ]
         #     }
         #
-        return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
@@ -304,17 +304,19 @@ class gateio (Exchange):
         open = None
         change = None
         average = None
-        if (last is not None) and(percentage is not None):
+        if (last is not None) and (percentage is not None):
             relativeChange = percentage / 100
             open = last / self.sum(1, relativeChange)
             change = last - open
             average = self.sum(last, open) / 2
+        open = self.safe_float(ticker, 'open', open)
+        change = self.safe_float(ticker, 'change', change)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high24hr'),
-            'low': self.safe_float(ticker, 'low24hr'),
+            'high': self.safe_float_2(ticker, 'high24hr', 'high'),
+            'low': self.safe_float_2(ticker, 'low24hr', 'low'),
             'bid': self.safe_float(ticker, 'highestBid'),
             'bidVolume': None,
             'ask': self.safe_float(ticker, 'lowestAsk'),
@@ -327,28 +329,10 @@ class gateio (Exchange):
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': self.safe_float(ticker, 'baseVolume'),
-            'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
+            'baseVolume': self.safe_float(ticker, 'quoteVolume'),  # gateio has them reversed
+            'quoteVolume': self.safe_float(ticker, 'baseVolume'),
             'info': ticker,
         }
-
-    def handle_errors(self, code, reason, url, method, headers, body, response):
-        if response is None:
-            return
-        resultString = self.safe_string(response, 'result', '')
-        if resultString != 'false':
-            return
-        errorCode = self.safe_string(response, 'code')
-        if errorCode is not None:
-            exceptions = self.exceptions
-            errorCodeNames = self.errorCodeNames
-            if errorCode in exceptions:
-                message = ''
-                if errorCode in errorCodeNames:
-                    message = errorCodeNames[errorCode]
-                else:
-                    message = self.safe_string(response, 'message', '(unknown)')
-                raise exceptions[errorCode](message)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
@@ -360,20 +344,15 @@ class gateio (Exchange):
             baseId, quoteId = id.split('_')
             base = baseId.upper()
             quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(base)
+            quote = self.safe_currency_code(quote)
             symbol = base + '/' + quote
             market = None
             if symbol in self.markets:
                 market = self.markets[symbol]
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
-            ticker = self.parse_ticker(response[id], market)
-            # https://github.com/ccxt/ccxt/pull/5138
-            baseVolume = ticker['baseVolume']
-            ticker['baseVolume'] = ticker['quoteVolume']
-            ticker['quoteVolume'] = baseVolume
-            result[symbol] = ticker
+            result[symbol] = self.parse_ticker(response[id], market)
         return result
 
     def fetch_ticker(self, symbol, params={}):
@@ -385,13 +364,12 @@ class gateio (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer_2(trade, 'timestamp', 'time_unix')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp_2(trade, 'timestamp', 'time_unix')
+        timestamp = self.safe_timestamp(trade, 'time', timestamp)
         id = self.safe_string_2(trade, 'tradeID', 'id')
         # take either of orderid or orderId
         orderId = self.safe_string_2(trade, 'orderid', 'orderNumber')
-        price = self.safe_float(trade, 'rate')
+        price = self.safe_float_2(trade, 'rate', 'price')
         amount = self.safe_float(trade, 'amount')
         type = self.safe_string(trade, 'type')
         cost = None
@@ -423,7 +401,8 @@ class gateio (Exchange):
         request = {
             'id': market['id'],
         }
-        response = self.publicGetTradeHistoryId(self.extend(request, params))
+        method = self.safe_string(self.options, 'fetchTradesMethod', 'public_get_tradehistory_id')
+        response = getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response['data'], market, since, limit)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -466,35 +445,39 @@ class gateio (Exchange):
         #     'timestamp': 1531158583,
         #     'type': 'sell'},
         #
-        id = self.safe_string(order, 'orderNumber')
+        id = self.safe_string_2(order, 'orderNumber', 'id')
         symbol = None
         marketId = self.safe_string(order, 'currencyPair')
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
-        timestamp = self.safe_integer(order, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp_2(order, 'timestamp', 'ctime')
+        lastTradeTimestamp = self.safe_timestamp(order, 'mtime')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'type')
-        price = self.safe_float(order, 'filledRate')
-        amount = self.safe_float(order, 'initialAmount')
+        # handling for order.update messages
+        if side == '1':
+            side = 'sell'
+        elif side == '2':
+            side = 'buy'
+        price = self.safe_float_2(order, 'initialRate', 'price')
+        average = self.safe_float(order, 'filledRate')
+        amount = self.safe_float_2(order, 'initialAmount', 'amount')
         filled = self.safe_float(order, 'filledAmount')
         # In the order status response, self field has a different name.
         remaining = self.safe_float_2(order, 'leftAmount', 'left')
         feeCost = self.safe_float(order, 'feeValue')
-        feeCurrency = self.safe_string(order, 'feeCurrency')
+        feeCurrencyId = self.safe_string(order, 'feeCurrency')
+        feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
         feeRate = self.safe_float(order, 'feePercentage')
         if feeRate is not None:
             feeRate = feeRate / 100
-        if feeCurrency is not None:
-            if feeCurrency in self.currencies_by_id:
-                feeCurrency = self.currencies_by_id[feeCurrency]['code']
         return {
             'id': id,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
             'symbol': symbol,
             'type': 'limit',
@@ -504,10 +487,11 @@ class gateio (Exchange):
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
+            'average': average,
             'trades': None,
             'fee': {
                 'cost': feeCost,
-                'currency': feeCurrency,
+                'currency': feeCurrencyCode,
                 'rate': feeRate,
             },
             'info': order,
@@ -551,7 +535,7 @@ class gateio (Exchange):
         response = getattr(self, method)(self.extend(request, params))
         address = self.safe_string(response, 'addr')
         tag = None
-        if (address is not None) and(address.find('address') >= 0):
+        if (address is not None) and (address.find('address') >= 0):
             raise InvalidAddress(self.id + ' queryDepositAddress ' + address)
         if code == 'XRP':
             parts = address.split(' ')
@@ -592,7 +576,7 @@ class gateio (Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires symbol param')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires symbol param')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -654,7 +638,7 @@ class gateio (Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        return self.parseTransactions(transactions, currency, since, limit)
+        return self.parse_transactions(transactions, currency, since, limit)
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         return self.fetch_transactions_by_type(None, code, since, limit, params)
@@ -693,20 +677,15 @@ class gateio (Exchange):
         #         'type': 'withdrawal'
         #     }
         #
-        code = None
         currencyId = self.safe_string(transaction, 'currency')
-        currency = self.safe_value(self.currencies_by_id, currencyId)
-        if currency is None:
-            code = self.common_currency_code(currencyId)
-        if currency is not None:
-            code = currency['code']
+        code = self.safe_currency_code(currencyId, currency)
         id = self.safe_string(transaction, 'id')
         txid = self.safe_string(transaction, 'txid')
         amount = self.safe_float(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
-        timestamp = self.safe_integer(transaction, 'timestamp')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        if address == 'false':
+            address = None
+        timestamp = self.safe_timestamp(transaction, 'timestamp')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         type = self.parse_transaction_type(id[0])
         return {
@@ -728,6 +707,7 @@ class gateio (Exchange):
         statuses = {
             'PEND': 'pending',
             'REQUEST': 'pending',
+            'DMOVE': 'pending',
             'CANCEL': 'failed',
             'DONE': 'ok',
         }
@@ -740,16 +720,14 @@ class gateio (Exchange):
         }
         return self.safe_string(types, type, type)
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'result' in response:
-            result = response['result']
-            message = self.id + ' ' + self.json(response)
-            if result is None:
-                raise ExchangeError(message)
-            if isinstance(result, basestring):
-                if result != 'true':
-                    raise ExchangeError(message)
-            elif not result:
-                raise ExchangeError(message)
-        return response
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return
+        resultString = self.safe_string(response, 'result', '')
+        if resultString != 'false':
+            return
+        errorCode = self.safe_string(response, 'code')
+        message = self.safe_string(response, 'message', body)
+        if errorCode is not None:
+            feedback = self.safe_string(self.exceptions['errorCodeNames'], errorCode, message)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
