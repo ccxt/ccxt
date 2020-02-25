@@ -1099,10 +1099,10 @@ class cex(Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if isinstance(response, list):
             return response  # public endpoints may return []-arrays
+        if body == 'true':
+            return
         if response is None:
             raise NullResponse(self.id + ' returned ' + self.json(response))
-        if response is True or response == 'true':
-            return
         if 'e' in response:
             if 'ok' in response:
                 if response['ok'] == 'ok':

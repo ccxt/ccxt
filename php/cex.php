@@ -1160,11 +1160,11 @@ class cex extends Exchange {
         if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
             return $response; // public endpoints may return array()-arrays
         }
+        if ($body === 'true') {
+            return;
+        }
         if ($response === null) {
             throw new NullResponse($this->id . ' returned ' . $this->json ($response));
-        }
-        if ($response === true || $response === 'true') {
-            return;
         }
         if (is_array($response) && array_key_exists('e', $response)) {
             if (is_array($response) && array_key_exists('ok', $response)) {
