@@ -103,6 +103,7 @@ class idex extends Exchange {
                 'ONE' => 'Menlo One',
                 'FT' => 'Fabric Token',
                 'PLA' => 'PlayChip',
+                'WAX' => 'WAXP',
             ),
         ));
     }
@@ -386,13 +387,13 @@ class idex extends Exchange {
             if ($side === 'buy') {
                 $tokenBuy = $market['baseId'];
                 $tokenSell = $market['quoteId'];
-                $amountBuy = $this->toWei ($amount, 'ether', $market['precision']['amount']);
-                $amountSell = $this->toWei ($quoteAmount, 'ether', 18);
+                $amountBuy = $this->toWei ($amount, $market['precision']['amount']);
+                $amountSell = $this->toWei ($quoteAmount, 18);
             } else {
                 $tokenBuy = $market['quoteId'];
                 $tokenSell = $market['baseId'];
-                $amountBuy = $this->toWei ($quoteAmount, 'ether', 18);
-                $amountSell = $this->toWei ($amount, 'ether', $market['precision']['amount']);
+                $amountBuy = $this->toWei ($quoteAmount, 18);
+                $amountSell = $this->toWei ($amount, $market['precision']['amount']);
             }
             $nonce = $this->get_nonce ();
             $orderToHash = array(
@@ -992,7 +993,7 @@ class idex extends Exchange {
         $currency = $this->currency ($code);
         $tokenAddress = $currency['id'];
         $nonce = $this->get_nonce ();
-        $amount = $this->toWei ($amount, 'ether', $currency['precision']);
+        $amount = $this->toWei ($amount, $currency['precision']);
         $requestToHash = array(
             'contractAddress' => $this->get_contract_address (),
             'token' => $tokenAddress,

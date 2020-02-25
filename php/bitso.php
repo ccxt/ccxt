@@ -19,7 +19,7 @@ class bitso extends Exchange {
             'rateLimit' => 2000, // 30 requests per minute
             'version' => 'v3',
             'has' => array(
-                'CORS' => true,
+                'CORS' => false,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,

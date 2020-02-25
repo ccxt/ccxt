@@ -133,6 +133,15 @@ class binance(Exchange):
                         'sub-account/margin/account',
                         'sub-account/margin/accountSummary',
                         'sub-account/status',
+                        # lending endpoints
+                        'lending/daily/product/list',
+                        'lending/daily/userLeftQuota',
+                        'lending/daily/userRedemptionQuota',
+                        'lending/daily/token/position',
+                        'lending/union/account',
+                        'lending/union/purchaseRecord',
+                        'lending/union/redemptionRecord',
+                        'lending/union/interestHistory',
                     ],
                     'post': [
                         'asset/dust',
@@ -148,6 +157,9 @@ class binance(Exchange):
                         'sub-account/futures/enable',
                         'userDataStream',
                         'futures/transfer',
+                        # lending
+                        'lending/daily/purchase',
+                        'lending/daily/redeem',
                     ],
                     'put': [
                         'userDataStream',
@@ -192,9 +204,6 @@ class binance(Exchange):
                         'ticker/price',
                         'ticker/bookTicker',
                     ],
-                    'put': ['listenKey'],
-                    'post': ['listenKey'],
-                    'delete': ['listenKey'],
                 },
                 'fapiPrivate': {
                     'get': [
@@ -213,10 +222,15 @@ class binance(Exchange):
                         'marginType',
                         'order',
                         'leverage',
+                        'listenKey',
+                    ],
+                    'put': [
+                        'listenKey',
                     ],
                     'delete': [
                         'order',
                         'allOpenOrders',
+                        'listenKey',
                     ],
                 },
                 'v3': {
@@ -323,12 +337,12 @@ class binance(Exchange):
         type = self.safe_string_2(self.options, 'fetchTime', 'defaultType', 'spot')
         method = 'publicGetTime' if (type == 'spot') else 'fapiPublicGetTime'
         response = getattr(self, method)(params)
-        return self.safe_float(response, 'serverTime')
+        return self.safe_integer(response, 'serverTime')
 
     def load_time_difference(self):
         serverTime = self.fetch_time()
         after = self.milliseconds()
-        self.options['timeDifference'] = int(after - serverTime)
+        self.options['timeDifference'] = after - serverTime
         return self.options['timeDifference']
 
     def fetch_markets(self, params={}):
@@ -1157,11 +1171,17 @@ class binance(Exchange):
             raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
+        # https://github.com/ccxt/ccxt/issues/6507
+        origClientOrderId = self.safe_value(params, 'origClientOrderId')
         request = {
             'symbol': market['id'],
-            'orderId': int(id),
+            # 'orderId': int(id),
             # 'origClientOrderId': id,
         }
+        if origClientOrderId is None:
+            request['orderId'] = int(id)
+        else:
+            request['origClientOrderId'] = origClientOrderId
         method = 'privateDeleteOrder' if market['spot'] else 'fapiPrivateDeleteOrder'
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response)
@@ -1614,7 +1634,7 @@ class binance(Exchange):
         url += '/' + path
         if api == 'wapi':
             url += '.html'
-        userDataStream = ((path == 'userDataStream') or (path == 'listenKey'))
+        userDataStream = (path == 'userDataStream')
         if path == 'historicalTrades':
             if self.apiKey:
                 headers = {

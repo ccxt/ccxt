@@ -1135,7 +1135,14 @@ class bitmex(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.privateDeleteOrder(self.extend({'orderID': id}, params))
+        # https://github.com/ccxt/ccxt/issues/6507
+        clOrdID = self.safe_value(params, 'clOrdID')
+        request = {}
+        if clOrdID is None:
+            request['orderID'] = id
+        else:
+            request['clOrdID'] = clOrdID
+        response = await self.privateDeleteOrder(self.extend(request, params))
         order = response[0]
         error = self.safe_string(order, 'error')
         if error is not None:

@@ -101,6 +101,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Trade and Invest Smarter — The Reinforcement Learning Way](https://towardsdatascience.com/trade-smarter-w-reinforcement-learning-a5e91163f315) – A deep dive into  trading and investing using deep reinforcement learning with Python.
 
+[Cryptocurrencies and APIs](https://jonc.dev/cryptocurrency) – A presentation given to kick off the Bloomberg cryptocurrency hackathon and as a Recurse Center talk.
+
 [CCXTが便利な理由！CCXTライブラリをインストールしよう](https://ryota-trade.com/?p=476) – An article in Japanese on getting CCXT up and runining.
 
 [Bitflyerや各取引所の個別APIをCCXTライブラリ経由で直接利用する方法](https://ryota-trade.com/?p=629) – How to use Bitflyer and individual API of each exchange directly via the CCXT library.

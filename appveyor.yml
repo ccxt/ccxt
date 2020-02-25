@@ -8,10 +8,10 @@ install:
   - set PATH=%APPDATA%\npm;%PATH%
   - npm install
   - python -m pip install --upgrade pip setuptools
+  - pip install enum34==0.9
   - pip install tox
   - pip install requests
   - pip install cryptography
-  - cinst -y curl
   - SET PATH=C:\Program Files\curl;%PATH%
   - ps: Set-Service wuauserv -StartupType Manual
   - cinst -y php --allow-empty-checksums
@@ -33,6 +33,7 @@ test_script:
   - refreshenv
   - node --version
   - npm --version
+  - python --version
   - npm run build
   - npm run test-base
 cache:

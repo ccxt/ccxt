@@ -19,7 +19,7 @@ module.exports = class bittrex extends Exchange {
             'certified': true,
             // new metainfo interface
             'has': {
-                'CORS': true,
+                'CORS': false,
                 'createMarketOrder': false,
                 'fetchDepositAddress': true,
                 'fetchClosedOrders': true,

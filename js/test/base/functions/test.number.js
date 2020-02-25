@@ -1,7 +1,48 @@
 'use strict'
 
-const { numberToString, decimalToPrecision, ROUND, TRUNCATE, DECIMAL_PLACES, TICK_SIZE, PAD_WITH_ZERO, SIGNIFICANT_DIGITS } = require ('../../../../ccxt');
+const { numberToString, decimalToPrecision, ROUND, TRUNCATE, DECIMAL_PLACES, TICK_SIZE, PAD_WITH_ZERO, SIGNIFICANT_DIGITS, toWei, fromWei } = require ('../../../../ccxt');
 const assert = require ('assert');
+
+// ----------------------------------------------------------------------------
+// toWei / fromWei
+
+assert (toWei (1, 18) === '1000000000000000000');
+assert (toWei (1, 17) === '100000000000000000');
+assert (toWei (1, 16) === '10000000000000000');
+assert (toWei ('1', 18) === '1000000000000000000');
+assert (toWei ('1', 17) === '100000000000000000');
+assert (toWei ('1', 16) === '10000000000000000');
+assert (toWei (0, 18) === '0');
+assert (toWei (1, 0) === '1');
+assert (toWei (1, 1) === '10');
+assert (toWei (1.3, 18) === '1300000000000000000');
+assert (toWei ('1.3', 18) === '1300000000000000000');
+assert (toWei (1.999, 17) === '199900000000000000');
+assert (toWei ('1.999', 17) === '199900000000000000');
+assert (toWei ('0.1', 18) === '100000000000000000');
+assert (toWei ('0.01', 18) === '10000000000000000');
+assert (toWei ('0.001', 18) === '1000000000000000');
+assert (toWei (0.1, 18) === '100000000000000000');
+assert (toWei (0.01, 18) === '10000000000000000');
+assert (toWei (0.001, 18) === '1000000000000000');
+
+// let us test that we get the inverse for all these test
+assert (fromWei ('1000000000000000000', 18) === 1.0);
+assert (fromWei ('100000000000000000', 17) === 1.0);
+assert (fromWei ('10000000000000000', 16) === 1.0);
+assert (fromWei (1000000000000000000, 18) === 1.0);
+assert (fromWei (100000000000000000, 17) === 1.0);
+assert (fromWei (10000000000000000, 16) === 1.0);
+assert (fromWei ('1300000000000000000', 18) === 1.3);
+assert (fromWei (1300000000000000000, 18) === 1.3);
+assert (fromWei ('199900000000000000', 17) === 1.999);
+assert (fromWei (199900000000000000, 17) === 1.999);
+assert (fromWei ('100000000000000000', 18) === 0.1);
+assert (fromWei ('10000000000000000', 18) === 0.01);
+assert (fromWei ('1000000000000000', 18) === 0.001);
+assert (fromWei (100000000000000000, 18) === 0.1);
+assert (fromWei (10000000000000000, 18) === 0.01);
+assert (fromWei (1000000000000000, 18) === 0.001);
 
 // ----------------------------------------------------------------------------
 // numberToString
@@ -17,7 +58,7 @@ assert (numberToString (7.9e27) === '7900000000000000000000000000');
 assert (numberToString (-12.345) === '-12.345');
 assert (numberToString (12.345) === '12.345');
 assert (numberToString (0) === '0');
-// this line breaks the test
+// the following line breaks the test
 // see https://github.com/ccxt/ccxt/issues/5744
 // assert (numberToString (0.00000001) === '0.00000001');
 

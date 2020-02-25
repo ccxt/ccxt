@@ -33,7 +33,7 @@ class cex(Exchange):
             'countries': ['GB', 'EU', 'CY', 'RU'],
             'rateLimit': 1500,
             'has': {
-                'CORS': True,
+                'CORS': False,
                 'fetchCurrencies': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,

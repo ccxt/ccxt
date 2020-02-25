@@ -220,6 +220,9 @@ module.exports = class bitforex extends Exchange {
                     },
                 },
             },
+            'commonCurrencies': {
+                'UOS': 'UOS Network',
+            },
             'exceptions': {
                 '4004': OrderNotFound,
                 '1013': AuthenticationError,

@@ -27,7 +27,7 @@ class bitso(Exchange):
             'rateLimit': 2000,  # 30 requests per minute
             'version': 'v3',
             'has': {
-                'CORS': True,
+                'CORS': False,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
