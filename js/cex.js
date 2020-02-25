@@ -1154,11 +1154,11 @@ module.exports = class cex extends Exchange {
         if (Array.isArray (response)) {
             return response; // public endpoints may return []-arrays
         }
+        if (body === 'true') {
+            return;
+        }
         if (response === undefined) {
             throw new NullResponse (this.id + ' returned ' + this.json (response));
-        }
-        if (response === true || response === 'true') {
-            return;
         }
         if ('e' in response) {
             if ('ok' in response) {
