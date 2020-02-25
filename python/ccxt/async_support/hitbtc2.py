@@ -578,11 +578,13 @@ class hitbtc2 (hitbtc):
             symbol = base + '/' + quote
             lot = self.safe_float(market, 'quantityIncrement')
             step = self.safe_float(market, 'tickSize')
+            amount = -1 * int(math.log10(lot))
+            # We are setting precision amount to zero for all positive values.
+            if int(lot) > 0:
+                amount = 0
             precision = {
                 'price': self.precision_from_string(market['tickSize']),
-                # FIXME: for lots > 1 the following line returns 0
-                # 'amount': self.precision_from_string(market['quantityIncrement']),
-                'amount': -1 * int(math.log10(lot)),
+                'amount': amount,
             }
             taker = self.safe_float(market, 'takeLiquidityRate')
             maker = self.safe_float(market, 'provideLiquidityRate')

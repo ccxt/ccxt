@@ -571,11 +571,14 @@ class hitbtc2 extends hitbtc {
             $symbol = $base . '/' . $quote;
             $lot = $this->safe_float($market, 'quantityIncrement');
             $step = $this->safe_float($market, 'tickSize');
+            $amount = -1 * intval (log10 ($lot));
+            // We are setting $precision $amount to zero for all positive values.
+            if (intval ($lot) > 0) {
+                $amount = 0;
+            }
             $precision = array (
                 'price' => $this->precision_from_string($market['tickSize']),
-                // FIXME => for lots > 1 the following line returns 0
-                // 'amount' => $this->precision_from_string($market['quantityIncrement']),
-                'amount' => -1 * intval (log10 ($lot)),
+                'amount' => $amount,
             );
             $taker = $this->safe_float($market, 'takeLiquidityRate');
             $maker = $this->safe_float($market, 'provideLiquidityRate');
