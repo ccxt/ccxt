@@ -1105,7 +1105,7 @@ class okcoinusd extends Exchange {
         if ($response === null) {
             return; // fallback to default $error handler
         }
-        if (is_array($response) && array_key_exists('error_code', $response)) {
+        if ((is_array($response) && array_key_exists('error_code', $response)) && ($response['error_code'] !== 0)) {
             $error = $this->safe_string($response, 'error_code');
             $message = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions, $error, $message);
