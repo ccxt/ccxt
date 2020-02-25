@@ -1101,7 +1101,7 @@ module.exports = class okcoinusd extends Exchange {
         if (response === undefined) {
             return; // fallback to default error handler
         }
-        if ('error_code' in response) {
+        if (('error_code' in response) && (response['error_code'] !== 0)) {
             const error = this.safeString (response, 'error_code');
             const message = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions, error, message);
