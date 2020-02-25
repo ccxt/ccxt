@@ -580,7 +580,7 @@ class hitbtc2 (hitbtc):
             step = self.safe_float(market, 'tickSize')
             amount = -1 * int(math.log10(lot))
             # We are setting precision amount to zero for all positive values.
-            if int(lot) > 0:
+            if lot >= 1:
                 amount = 0
             precision = {
                 'price': self.precision_from_string(market['tickSize']),

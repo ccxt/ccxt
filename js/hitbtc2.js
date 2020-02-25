@@ -572,7 +572,7 @@ module.exports = class hitbtc2 extends hitbtc {
             const step = this.safeFloat (market, 'tickSize');
             let amount = -1 * parseInt (Math.log10 (lot));
             // We are setting precision amount to zero for all positive values.
-            if (parseInt (lot) > 0) {
+            if (lot >= 1) {
                 amount = 0;
             }
             const precision = {

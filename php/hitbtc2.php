@@ -573,7 +573,7 @@ class hitbtc2 extends hitbtc {
             $step = $this->safe_float($market, 'tickSize');
             $amount = -1 * intval (log10 ($lot));
             // We are setting $precision $amount to zero for all positive values.
-            if (intval ($lot) > 0) {
+            if ($lot >= 1) {
                 $amount = 0;
             }
             $precision = array (
