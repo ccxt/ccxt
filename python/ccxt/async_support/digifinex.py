@@ -149,6 +149,9 @@ class digifinex(Exchange):
                 'defaultType': 'spot',
                 'types': ['spot', 'margin', 'otc'],
             },
+            'commonCurrencies': {
+                'BHT': 'Black House Test',
+            },
         })
 
     async def fetch_markets_by_type(self, type, params={}):

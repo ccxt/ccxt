@@ -140,6 +140,9 @@ class digifinex extends Exchange {
                 'defaultType' => 'spot',
                 'types' => array( 'spot', 'margin', 'otc' ),
             ),
+            'commonCurrencies' => array(
+                'BHT' => 'Black House Test',
+            ),
         ));
     }
 
