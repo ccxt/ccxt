@@ -1640,8 +1640,6 @@ module.exports = class kucoin extends Exchange {
         const apiVersions = this.safeValue (versions, api);
         const methodVersions = this.safeValue (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.options['version']);
-        console.log (path, defaultVersion);
-        // process.exit ();
         const version = this.safeString (params, 'version', defaultVersion);
         params = this.omit (params, 'version');
         let endpoint = '/api/' + version + '/' + this.implodeParams (path, params);
