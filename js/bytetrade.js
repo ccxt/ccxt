@@ -904,7 +904,7 @@ module.exports = class bytetrade extends Exchange {
         };
     }
 
-    async transfer (code, amount, address, params = {}) {
+    async transfer (code, amount, address, message = '', params = {}) {
         this.checkRequiredDependencies ();
         if (this.apiKey === undefined) {
             throw new ArgumentsRequired ('transfer requires this.apiKey');
@@ -929,7 +929,7 @@ module.exports = class bytetrade extends Exchange {
             this.numberToLE (1, 1),
             this.numberToLE (Math.floor (expiration / 1000), 4),
             this.numberToLE (1, 1),
-            this.numberToLE (0, 1),
+            this.numberToLE (28, 1),
             this.numberToLE (0, 8),
             this.numberToLE (feeAmount, 8),  // string for 32 bit php
             this.numberToLE (this.apiKey.length, 1),
@@ -939,6 +939,9 @@ module.exports = class bytetrade extends Exchange {
             this.numberToLE (assetType, 4),
             this.numberToLE (this.integerDivide (amountChain, eightBytes), 8),
             this.numberToLE (this.integerModulo (amountChain, eightBytes), 8),
+            this.numberToLE (1, 1),
+            this.numberToLE (message.length, 1),
+            this.stringToBinary (this.encode (message)),
             this.numberToLE (0, 1),
             this.numberToLE (1, 1),
             this.numberToLE (chainName.length, 1),
@@ -956,13 +959,14 @@ module.exports = class bytetrade extends Exchange {
             'to': address,
             'asset_type': parseInt (currency['id']),
             'amount': amountChain.toString (),
+            'message': message,
         };
         const fatty = {
             'timestamp': datetime,
             'expiration': expirationDatetime,
             'operations': [
                 [
-                    0,
+                    28,
                     operation,
                 ],
             ],
