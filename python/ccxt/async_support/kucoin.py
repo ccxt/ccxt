@@ -86,6 +86,10 @@ class kucoin(Exchange):
                         'symbols',
                         'market/allTickers',
                         'market/orderbook/level{level}',
+                        'market/orderbook/level2',
+                        'market/orderbook/level2_20',
+                        'market/orderbook/level2_100',
+                        'market/orderbook/level3',
                         'market/histories',
                         'market/candles',
                         'market/stats',
@@ -117,6 +121,7 @@ class kucoin(Exchange):
                     'post': [
                         'accounts',
                         'accounts/inner-transfer',
+                        'accounts/sub-transfer',
                         'deposit-addresses',
                         'withdrawals',
                         'orders',
@@ -206,6 +211,23 @@ class kucoin(Exchange):
                 'fetchMyTradesMethod': 'private_get_fills',
                 'fetchBalance': {
                     'type': 'trade',  # or 'main'
+                },
+                # endpoint versions
+                'versions': {
+                    'public': {
+                        'GET': {
+                            'market/orderbook/level{level}': 'v1',
+                            'market/orderbook/level2': 'v2',
+                            'market/orderbook/level2_20': 'v1',
+                            'market/orderbook/level2_100': 'v1',
+                        },
+                    },
+                    'private': {
+                        'POST': {
+                            'accounts/inner-transfer': 'v2',
+                            'accounts/sub-transfer': 'v2',
+                        },
+                    },
                 },
             },
         })
@@ -1512,7 +1534,11 @@ class kucoin(Exchange):
         # the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         #                                †                 ↑
         #
-        version = self.safe_string(params, 'version', self.options['version'])
+        versions = self.safe_value(self.options, 'versions', {})
+        apiVersions = self.safe_value(versions, api)
+        methodVersions = self.safe_value(apiVersions, method, {})
+        defaultVersion = self.safe_string(methodVersions, path, self.options['version'])
+        version = self.safe_string(params, 'version', defaultVersion)
         params = self.omit(params, 'version')
         endpoint = '/api/' + version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
