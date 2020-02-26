@@ -16,7 +16,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
 
 
-class liquid (Exchange):
+class liquid(Exchange):
 
     def describe(self):
         return self.deep_extend(super(liquid, self).describe(), {
@@ -834,13 +834,10 @@ class liquid (Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if code >= 200 and code < 300:
             return
-        exceptions = self.exceptions
         if code == 401:
             # expected non-json response
-            if body in exceptions:
-                raise exceptions[body](self.id + ' ' + body)
-            else:
-                return
+            self.throw_exactly_matched_exception(self.exceptions, body, body)
+            return
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
         if response is None:
@@ -852,8 +849,7 @@ class liquid (Exchange):
             #
             #  {"message": "Order not found"}
             #
-            if message in exceptions:
-                raise exceptions[message](feedback)
+            self.throw_exactly_matched_exception(self.exceptions, message, feedback)
         elif errors is not None:
             #
             #  {"errors": {"user": ["not_enough_free_balance"]}}
@@ -866,7 +862,6 @@ class liquid (Exchange):
                 errorMessages = errors[type]
                 for j in range(0, len(errorMessages)):
                     message = errorMessages[j]
-                    if message in exceptions:
-                        raise exceptions[message](feedback)
+                    self.throw_exactly_matched_exception(self.exceptions, message, feedback)
         else:
             raise ExchangeError(feedback)

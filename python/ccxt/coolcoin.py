@@ -6,7 +6,7 @@
 from ccxt.coinegg import coinegg
 
 
-class coolcoin (coinegg):
+class coolcoin(coinegg):
 
     def describe(self):
         return self.deep_extend(super(coolcoin, self).describe(), {

@@ -8,7 +8,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 
 
-class acx (Exchange):
+class acx(Exchange):
 
     def describe(self):
         return self.deep_extend(super(acx, self).describe(), {
@@ -93,6 +93,9 @@ class acx (Exchange):
                     'percentage': True,
                     'withdraw': {},  # There is only 1% fee on withdrawals to your bank account.
                 },
+            },
+            'commonCurrencies': {
+                'PLA': 'Plair',
             },
             'exceptions': {
                 '2002': InsufficientFunds,
@@ -419,7 +422,5 @@ class acx (Exchange):
             error = self.safe_value(response, 'error')
             errorCode = self.safe_string(error, 'code')
             feedback = self.id + ' ' + self.json(response)
-            exceptions = self.exceptions
-            if errorCode in exceptions:
-                raise exceptions[errorCode](feedback)
+            self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
             # fallback to default error handler

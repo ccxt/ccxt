@@ -8,7 +8,7 @@ const ccxt = require ('../../ccxt.js')
     const apiKey = process.env['API_KEY']
     const secret = process.env['SECRET']
 
-    const ocean = new ccxt.theocean1({
+    const ocean = new ccxt.theocean({
         walletAddress,
         privateKey,
         apiKey,

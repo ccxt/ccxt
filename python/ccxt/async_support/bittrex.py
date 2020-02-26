@@ -28,7 +28,7 @@ from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 
-class bittrex (Exchange):
+class bittrex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bittrex, self).describe(), {
@@ -40,7 +40,7 @@ class bittrex (Exchange):
             'certified': True,
             # new metainfo interface
             'has': {
-                'CORS': True,
+                'CORS': False,
                 'createMarketOrder': False,
                 'fetchDepositAddress': True,
                 'fetchClosedOrders': True,
@@ -135,6 +135,8 @@ class bittrex (Exchange):
                 'v2': {
                     'get': [
                         'currencies/GetBTCPrice',
+                        'currencies/GetWalletHealth',
+                        'general/GetLatestAlert',
                         'market/GetTicks',
                         'market/GetLatestTick',
                         'Markets/GetMarketSummaries',
@@ -225,23 +227,30 @@ class bittrex (Exchange):
                 },
             },
             'exceptions': {
-                # 'Call to Cancel was throttled. Try again in 60 seconds.': DDoSProtection,
-                # 'Call to GetBalances was throttled. Try again in 60 seconds.': DDoSProtection,
-                'APISIGN_NOT_PROVIDED': AuthenticationError,
-                'INVALID_SIGNATURE': AuthenticationError,
-                'INVALID_CURRENCY': ExchangeError,
-                'INVALID_PERMISSION': AuthenticationError,
-                'INSUFFICIENT_FUNDS': InsufficientFunds,
-                'QUANTITY_NOT_PROVIDED': InvalidOrder,
-                'MIN_TRADE_REQUIREMENT_NOT_MET': InvalidOrder,
-                'ORDER_NOT_OPEN': OrderNotFound,
-                'INVALID_ORDER': InvalidOrder,
-                'UUID_INVALID': OrderNotFound,
-                'RATE_NOT_PROVIDED': InvalidOrder,  # createLimitBuyOrder('ETH/BTC', 1, 0)
-                'WHITELIST_VIOLATION_IP': PermissionDenied,
-                'DUST_TRADE_DISALLOWED_MIN_VALUE': InvalidOrder,
-                'RESTRICTED_MARKET': BadSymbol,
-                'We are down for scheduled maintenance, but we\u2019ll be back up shortly.': OnMaintenance,  # {"success":false,"message":"We are down for scheduled maintenance, but we\u2019ll be back up shortly.","result":null,"explanation":null}
+                'exact': {
+                    # 'Call to Cancel was throttled. Try again in 60 seconds.': DDoSProtection,
+                    # 'Call to GetBalances was throttled. Try again in 60 seconds.': DDoSProtection,
+                    'APISIGN_NOT_PROVIDED': AuthenticationError,
+                    'INVALID_SIGNATURE': AuthenticationError,
+                    'INVALID_CURRENCY': ExchangeError,
+                    'INVALID_PERMISSION': AuthenticationError,
+                    'INSUFFICIENT_FUNDS': InsufficientFunds,
+                    'QUANTITY_NOT_PROVIDED': InvalidOrder,
+                    'MIN_TRADE_REQUIREMENT_NOT_MET': InvalidOrder,
+                    'ORDER_NOT_OPEN': OrderNotFound,
+                    'INVALID_ORDER': InvalidOrder,
+                    'UUID_INVALID': OrderNotFound,
+                    'RATE_NOT_PROVIDED': InvalidOrder,  # createLimitBuyOrder('ETH/BTC', 1, 0)
+                    'INVALID_MARKET': BadSymbol,  # {"success":false,"message":"INVALID_MARKET","result":null,"explanation":null}
+                    'WHITELIST_VIOLATION_IP': PermissionDenied,
+                    'DUST_TRADE_DISALLOWED_MIN_VALUE': InvalidOrder,
+                    'RESTRICTED_MARKET': BadSymbol,
+                    'We are down for scheduled maintenance, but we\u2019ll be back up shortly.': OnMaintenance,  # {"success":false,"message":"We are down for scheduled maintenance, but we\u2019ll be back up shortly.","result":null,"explanation":null}
+                },
+                'broad': {
+                    'throttled': DDoSProtection,
+                    'problem': ExchangeNotAvailable,
+                },
             },
             'options': {
                 'parseOrderStatus': False,
@@ -986,13 +995,13 @@ class bittrex (Exchange):
         # We parse different fields in a very specific order.
         # Order might well be closed and then canceled.
         status = None
-        if ('Opened' in list(order.keys())) and order['Opened']:
+        if ('Opened' in order) and order['Opened']:
             status = 'open'
-        if ('Closed' in list(order.keys())) and order['Closed']:
+        if ('Closed' in order) and order['Closed']:
             status = 'closed'
-        if ('CancelInitiated' in list(order.keys())) and order['CancelInitiated']:
+        if ('CancelInitiated' in order) and order['CancelInitiated']:
             status = 'canceled'
-        if ('Status' in list(order.keys())) and self.options['parseOrderStatus']:
+        if ('Status' in order) and self.options['parseOrderStatus']:
             status = self.parse_order_status(self.safe_string(order, 'Status'))
         symbol = None
         if 'Exchange' in order:
@@ -1095,6 +1104,7 @@ class bittrex (Exchange):
             'id': self.safe_string(order, 'id'),
             'side': self.safe_string(order, 'side'),
             'order': self.safe_string(order, 'id'),
+            'type': self.safe_string(order, 'type'),
             'price': self.safe_float(order, 'average'),
             'amount': self.safe_float(order, 'filled'),
             'cost': self.safe_float(order, 'cost'),
@@ -1171,7 +1181,7 @@ class bittrex (Exchange):
         #     {success:    True,
         #       message:   "",
         #        result: {Currency: "INCNT",
-        #                   Address: "3PHvQt9bK21f7eVQVdJzrNPcsMzXabEA5Ha"} }}
+        #                   Address: "3PHvQt9bK21f7eVQVdJzrNPcsMzXabEA5Ha"}}}
         #
         address = self.safe_string(response['result'], 'Address')
         message = self.safe_string(response, 'message')
@@ -1283,8 +1293,7 @@ class bittrex (Exchange):
                 success = True if (success == 'true') else False
             if (success is not None and not success):
                 message = self.safe_string(response, 'message')
-                feedback = self.id + ' ' + self.json(response)
-                exceptions = self.exceptions
+                feedback = self.id + ' ' + body
                 if message == 'APIKEY_INVALID':
                     if self.options['hasAlreadyAuthenticatedSuccessfully']:
                         raise DDoSProtection(feedback)
@@ -1321,13 +1330,9 @@ class bittrex (Exchange):
                                 raise OrderNotFound(self.id + ' cancelOrder ' + orderId + ' ' + self.json(response))
                             else:
                                 raise OrderNotFound(self.id + ' cancelOrder ' + self.json(response))
-                if message in exceptions:
-                    raise exceptions[message](feedback)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 if message is not None:
-                    if message.find('throttled. Try again') >= 0:
-                        raise DDoSProtection(feedback)
-                    if message.find('problem') >= 0:
-                        raise ExchangeNotAvailable(feedback)  # 'There was a problem processing your request.  If self problem persists, please contact...')
+                    self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 raise ExchangeError(feedback)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

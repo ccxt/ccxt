@@ -30,6 +30,7 @@ before_install:
 - pip install --upgrade setuptools
 - pip install --upgrade web3 aiohttp requests cryptography pyopenssl
 - pip2 install requests[security]
+- git pull --tags
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
 - cp package.json LICENSE.txt keys.json python
@@ -39,16 +40,12 @@ script:
 - tox -e doc
 - cd ..
 - npm run test-base
-- set +e # (we deactivate set -e here, to prevent sudden log truncation in Travis, as it was suggested by the support team)
-- node run-tests --js --python 5; export TESTS_FAILED=$?
-- set -e # activate it again!
-- if [ "$TESTS_FAILED" -ne 0 ]; then exit 1; fi
+- bash -c 'node run-tests --js --python 5' 2>&1
 # - export TWINE_REPOSITORY_URL=https://pypi.python.org/pypi
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh; fi
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then cd python && env PYPI_PASSWORD=${PYPI_PASSWORD} ./deploy.sh && cd ..; fi
 after_failure:
 - dmesg | grep -i kill
-- sleep 4 # to prevent sudden log truncation, as it was suggested by someone on the internetz (doesn't seem to work...)
 deploy:
   - provider: npm
     email: igor.kroitor@gmail.com

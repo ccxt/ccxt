@@ -13,6 +13,12 @@ module.exports =
     { json:   (data, params = undefined) => JSON.stringify (data)
     , unjson: JSON.parse
 
+    , isJsonEncodedObject: object => (
+        (typeof object === 'string') &&
+        (object.length >= 2) &&
+        ((object[0] === '{') || (object[0] === '['))
+    )
+
     , stringToBinary (str) {
         const arr = new Uint8Array (str.length)
         for (let i = 0; i < str.length; i++) { arr[i] = str.charCodeAt (i); }
@@ -30,6 +36,7 @@ module.exports =
     , binaryConcatArray: (arr) => arr.reduce ((a, b) => a.concat (b))
 
     , urlencode: object => qs.stringify (object)
+    , urlencodeWithArrayRepeat: object => qs.stringify (object, { arrayFormat: 'repeat' })
     , rawencode: object => qs.stringify (object, { encode: false })
     , encode: x => x
     , decode: x => x

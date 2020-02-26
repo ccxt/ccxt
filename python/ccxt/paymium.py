@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 
 
-class paymium (Exchange):
+class paymium(Exchange):
 
     def describe(self):
         return self.deep_extend(super(paymium, self).describe(), {

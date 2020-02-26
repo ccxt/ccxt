@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 
 
-class coinmate (Exchange):
+class coinmate(Exchange):
 
     def describe(self):
         return self.deep_extend(super(coinmate, self).describe(), {

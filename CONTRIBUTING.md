@@ -444,6 +444,14 @@ if some_dictionary.get('nonExistentKey'):
 
 Most languages will not tolerate an attempt to access a non-existent key in an object.
 
+For the above reasons, please, **never do this** in the transpiled JS files:
+
+```JavaScript
+// JavaScript
+const value = object['key'] || other_value; // will not work in Python or PHP!
+if (object['key'] || other_value) { /* will not work in Python or PHP! */ }
+```
+
 Therefore we have a family of `safe*` functions:
 
 - `safeInteger (object, key)`, `safeInteger2 (object, key1, key2)`

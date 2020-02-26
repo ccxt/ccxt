@@ -14,7 +14,7 @@ from ccxt.base.errors import AddressPending
 from ccxt.base.errors import NotSupported
 
 
-class buda (Exchange):
+class buda(Exchange):
 
     def describe(self):
         return self.deep_extend(super(buda, self).describe(), {
@@ -603,7 +603,7 @@ class buda (Exchange):
         statuses = {
             'rejected': 'failed',
             'confirmed': 'ok',
-            'anulled': 'canceled',
+            'aNoneed': 'canceled',
             'retained': 'canceled',
             'pending_confirmation': 'pending',
         }
@@ -618,7 +618,7 @@ class buda (Exchange):
         fee = float(transaction['fee'][0])
         feeCurrency = transaction['fee'][1]
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
-        type = 'deposit' if ('deposit_data' in list(transaction.keys())) else 'withdrawal'
+        type = 'deposit' if ('deposit_data' in transaction) else 'withdrawal'
         data = self.safe_value(transaction, type + '_data', {})
         address = self.safe_value(data, 'target_address')
         txid = self.safe_string(data, 'tx_hash')
@@ -719,9 +719,6 @@ class buda (Exchange):
             errorCode = self.safe_string(response, 'code')
             message = self.safe_string(response, 'message', body)
             feedback = self.id + ' ' + message
-            exceptions = self.exceptions
             if errorCode is not None:
-                if errorCode in exceptions:
-                    raise exceptions[errorCode](feedback)
-                else:
-                    raise ExchangeError(feedback)
+                self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+                raise ExchangeError(feedback)

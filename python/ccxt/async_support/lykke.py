@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import math
 
 
-class lykke (Exchange):
+class lykke(Exchange):
 
     def describe(self):
         return self.deep_extend(super(lykke, self).describe(), {
@@ -310,9 +310,9 @@ class lykke (Exchange):
             symbol = market['symbol']
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'LastMatchTime'))
         timestamp = None
-        if ('Registered' in list(order.keys())) and (order['Registered']):
+        if ('Registered' in order) and (order['Registered']):
             timestamp = self.parse8601(order['Registered'])
-        elif ('CreatedAt' in list(order.keys())) and (order['CreatedAt']):
+        elif ('CreatedAt' in order) and (order['CreatedAt']):
             timestamp = self.parse8601(order['CreatedAt'])
         price = self.safe_float(order, 'Price')
         amount = self.safe_float(order, 'Volume')

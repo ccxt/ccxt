@@ -15,13 +15,13 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 
 
-class bitfinex (Exchange):
+class bitfinex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitfinex, self).describe(), {
@@ -74,6 +74,7 @@ class bitfinex (Exchange):
                     'private': 'https://api.bitfinex.com',
                 },
                 'www': 'https://www.bitfinex.com',
+                'referral': 'https://www.bitfinex.com/?refcode=P61eYxFL',
                 'doc': [
                     'https://docs.bitfinex.com/v1/docs',
                     'https://github.com/bitfinexcom/bitfinex-api-node',
@@ -287,6 +288,7 @@ class bitfinex (Exchange):
                     },
                 },
             },
+            # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
             'commonCurrencies': {
                 'ABS': 'ABYSS',
                 'AIO': 'AION',
@@ -322,7 +324,9 @@ class bitfinex (Exchange):
                 'UST': 'USDT',
                 'UTN': 'UTNP',
                 'VSY': 'VSYS',
+                'WAX': 'WAXP',
                 'XCH': 'XCHF',
+                'ZBT': 'ZB',
             },
             'exceptions': {
                 'exact': {
@@ -333,16 +337,16 @@ class bitfinex (Exchange):
                     'Could not find a key matching the given X-BFX-APIKEY.': AuthenticationError,
                     'Key price should be a decimal number, e.g. "123.456"': InvalidOrder,  # on isNaN(price)
                     'Key amount should be a decimal number, e.g. "123.456"': InvalidOrder,  # on isNaN(amount)
-                    'ERR_RATE_LIMIT': DDoSProtection,
-                    'Ratelimit': DDoSProtection,
+                    'ERR_RATE_LIMIT': RateLimitExceeded,
+                    'Ratelimit': RateLimitExceeded,
                     'Nonce is too small.': InvalidNonce,
                     'No summary found.': ExchangeError,  # fetchTradingFees(summary) endpoint can give self vague error message
                     'Cannot evaluate your available balance, please try again': ExchangeNotAvailable,
                 },
                 'broad': {
                     'This API key does not have permission': PermissionDenied,  # authenticated but not authorized
-                    'Invalid order: not enough exchange balance for ': InsufficientFunds,  # when buying cost is greater than the available quote currency
-                    'Invalid order: minimum size for ': InvalidOrder,  # when amount below limits.amount.min
+                    'not enough exchange balance for ': InsufficientFunds,  # when buying cost is greater than the available quote currency
+                    'minimum size for ': InvalidOrder,  # when amount below limits.amount.min
                     'Invalid order': InvalidOrder,  # ?
                     'The available balance is only': InsufficientFunds,  # {"status":"error","message":"Cannot withdraw 1.0027 ETH from your exchange wallet. The available balance is only 0.0 ETH. If you have limit orders, open positions, unused or active margin funding, self will decrease your available balance. To increase it, you can cancel limit orders or reduce/close your positions.","withdrawal_id":0,"fees":"0.0027"}
                 },
@@ -424,7 +428,7 @@ class bitfinex (Exchange):
                     'YOYOW': 'yoyow',
                     'ZEC': 'zcash',
                     'ZRX': 'zrx',
-                    'XTZ': 'tezos',
+                    'XTZ': 'xtz',
                 },
                 'orderTypes': {
                     'limit': 'exchange limit',
@@ -546,11 +550,17 @@ class bitfinex (Exchange):
             cost *= price
         else:
             key = 'base'
+        code = market[key]
+        currency = self.safe_value(self.currencies, code)
+        if currency is not None:
+            precision = self.safe_integer(currency, 'precision')
+            if precision is not None:
+                cost = float(self.currency_to_precision(code, cost))
         return {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': float(self.currency_to_precision(market[key], cost)),
+            'cost': cost,
         }
 
     async def fetch_balance(self, params={}):
@@ -569,7 +579,7 @@ class bitfinex (Exchange):
                 # we need a workaround here so that the old BCH balance
                 # would not override the new BAB balance(BAB is unified to BCH)
                 # https://github.com/ccxt/ccxt/issues/4989
-                if not (code in list(result.keys())):
+                if not (code in result):
                     account = self.account()
                     account['free'] = self.safe_float(balance, 'available')
                     account['total'] = self.safe_float(balance, 'amount')
@@ -610,21 +620,22 @@ class bitfinex (Exchange):
         timestamp = self.safe_float(ticker, 'timestamp')
         if timestamp is not None:
             timestamp *= 1000
+        timestamp = int(timestamp)
         symbol = None
         if market is not None:
             symbol = market['symbol']
         elif 'pair' in ticker:
             marketId = self.safe_string(ticker, 'pair')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            if market is not None:
-                symbol = market['symbol']
-            else:
-                baseId = marketId[0:3]
-                quoteId = marketId[3:6]
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
+            if marketId is not None:
+                if marketId in self.markets_by_id:
+                    market = self.markets_by_id[marketId]
+                    symbol = market['symbol']
+                else:
+                    baseId = marketId[0:3]
+                    quoteId = marketId[3:6]
+                    base = self.safe_currency_code(baseId)
+                    quote = self.safe_currency_code(quoteId)
+                    symbol = base + '/' + quote
         last = self.safe_float(ticker, 'last_price')
         return {
             'symbol': symbol,
@@ -774,9 +785,8 @@ class bitfinex (Exchange):
             status = 'closed'
         symbol = None
         if market is None:
-            marketId = self.safe_string(order, 'symbol')
+            marketId = self.safe_string_upper(order, 'symbol')
             if marketId is not None:
-                marketId = marketId.upper()
                 if marketId in self.markets_by_id:
                     market = self.markets_by_id[marketId]
         if market is not None:
@@ -811,7 +821,7 @@ class bitfinex (Exchange):
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         if symbol is not None:
-            if not (symbol in list(self.markets.keys())):
+            if not (symbol in self.markets):
                 raise ExchangeError(self.id + ' has no symbol ' + symbol)
         response = await self.privatePostOrders(params)
         orders = self.parse_orders(response, None, since, limit)
@@ -867,6 +877,7 @@ class bitfinex (Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def get_currency_name(self, code):
+        # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         if code in self.options['currencyNames']:
             return self.options['currencyNames'][code]
         raise NotSupported(self.id + ' ' + code + ' not supported for withdrawal')
@@ -877,17 +888,11 @@ class bitfinex (Exchange):
             'renew': 1,
         }
         response = await self.fetch_deposit_address(code, self.extend(request, params))
-        address = self.safe_string(response, 'address')
-        self.check_address(address)
-        return {
-            'info': response['info'],
-            'currency': code,
-            'address': address,
-            'tag': None,
-        }
+        return response
 
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
+        # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         name = self.get_currency_name(code)
         request = {
             'method': name,
@@ -1019,11 +1024,13 @@ class bitfinex (Exchange):
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
+        await self.load_markets()
+        # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         name = self.get_currency_name(code)
         request = {
             'withdraw_type': name,
             'walletselected': 'exchange',
-            'amount': str(amount),
+            'amount': self.number_to_string(amount),
             'address': address,
         }
         if tag is not None:
@@ -1032,7 +1039,7 @@ class bitfinex (Exchange):
         response = responses[0]
         id = self.safe_string(response, 'withdrawal_id')
         message = self.safe_string(response, 'message')
-        errorMessage = self.findBroadlyMatchedKey(self.exceptions['broad'], message)
+        errorMessage = self.find_broadly_matched_key(self.exceptions['broad'], message)
         if id == 0:
             if errorMessage is not None:
                 ExceptionClass = self.exceptions['broad'][errorMessage]
@@ -1083,19 +1090,8 @@ class bitfinex (Exchange):
             return
         if code >= 400:
             if body[0] == '{':
-                feedback = self.id + ' ' + self.json(response)
-                message = None
-                if 'message' in response:
-                    message = response['message']
-                elif 'error' in response:
-                    message = response['error']
-                else:
-                    raise ExchangeError(feedback)  # malformed(to our knowledge) response
-                exact = self.exceptions['exact']
-                if message in exact:
-                    raise exact[message](feedback)
-                broad = self.exceptions['broad']
-                broadKey = self.findBroadlyMatchedKey(broad, message)
-                if broadKey is not None:
-                    raise broad[broadKey](feedback)
+                feedback = self.id + ' ' + body
+                message = self.safe_string_2(response, 'message', 'error')
+                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 raise ExchangeError(feedback)  # unknown message

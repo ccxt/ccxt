@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 import hashlib
 
 
-class southxchange (Exchange):
+class southxchange(Exchange):
 
     def describe(self):
         return self.deep_extend(super(southxchange, self).describe(), {
@@ -76,7 +76,7 @@ class southxchange (Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            id = symbol
+            id = baseId + '/' + quoteId
             result.append({
                 'id': id,
                 'symbol': symbol,

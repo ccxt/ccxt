@@ -8,7 +8,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 
 
-class btctradeua (Exchange):
+class btctradeua(Exchange):
 
     def describe(self):
         return self.deep_extend(super(btctradeua, self).describe(), {
@@ -17,7 +17,7 @@ class btctradeua (Exchange):
             'countries': ['UA'],  # Ukraine,
             'rateLimit': 3000,
             'has': {
-                'CORS': True,
+                'CORS': False,
                 'createMarketOrder': False,
                 'fetchOpenOrders': True,
             },

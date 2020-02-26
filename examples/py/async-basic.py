@@ -11,9 +11,9 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 
 async def test_binance():
-    binance = ccxt.binance()
-    markets = await binance.load_markets()
-    await binance.close()
+    exchange = ccxt.binance({'enableRateLimit': True)
+    markets = await exchange.load_markets()
+    await exchange.close()
     return markets
 
 if __name__ == '__main__':

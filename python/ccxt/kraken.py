@@ -18,6 +18,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
@@ -31,7 +32,7 @@ from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 
-class kraken (Exchange):
+class kraken(Exchange):
 
     def describe(self):
         return self.deep_extend(super(kraken, self).describe(), {
@@ -62,15 +63,15 @@ class kraken (Exchange):
             },
             'marketsByAltname': {},
             'timeframes': {
-                '1m': '1',
-                '5m': '5',
-                '15m': '15',
-                '30m': '30',
-                '1h': '60',
-                '4h': '240',
-                '1d': '1440',
-                '1w': '10080',
-                '2w': '21600',
+                '1m': 1,
+                '5m': 5,
+                '15m': 15,
+                '30m': 30,
+                '1h': 60,
+                '4h': 240,
+                '1d': 1440,
+                '1w': 10080,
+                '2w': 21600,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg',
@@ -200,6 +201,7 @@ class kraken (Exchange):
                         'DepositMethods',
                         'DepositStatus',
                         'ExportStatus',
+                        'GetWebSocketsToken',
                         'Ledgers',
                         'OpenOrders',
                         'OpenPositions',
@@ -230,6 +232,7 @@ class kraken (Exchange):
                 'inactiveCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
             },
             'exceptions': {
+                'EQuery:Invalid asset pair': BadSymbol,  # {"error":["EQuery:Invalid asset pair"]}
                 'EAPI:Invalid key': AuthenticationError,
                 'EFunding:Unknown withdraw key': ExchangeError,
                 'EFunding:Invalid amount': InsufficientFunds,
@@ -657,7 +660,7 @@ class kraken (Exchange):
         #                                        asset: "XETH",
         #                                       amount: "-0.2805800000",
         #                                          fee: "0.0050000000",
-        #                                      balance: "0.0000051000"           }} }
+        #                                      balance: "0.0000051000"           }}}
         result = response['result']
         keys = list(result.keys())
         items = []
@@ -1219,7 +1222,7 @@ class kraken (Exchange):
         if method is None:
             if self.options['cacheDepositMethodsOnFetchDepositAddress']:
                 # cache depositMethods
-                if not (code in list(self.options['depositMethods'].keys())):
+                if not (code in self.options['depositMethods']):
                     self.options['depositMethods'][code] = self.fetch_deposit_methods(code)
                 method = self.options['depositMethods'][code][0]['method']
             else:
@@ -1307,8 +1310,8 @@ class kraken (Exchange):
                 if 'error' in response:
                     numErrors = len(response['error'])
                     if numErrors:
-                        message = self.id + ' ' + self.json(response)
+                        message = self.id + ' ' + body
                         for i in range(0, len(response['error'])):
-                            if response['error'][i] in self.exceptions:
-                                raise self.exceptions[response['error'][i]](message)
+                            error = response['error'][i]
+                            self.throw_exactly_matched_exception(self.exceptions, error, message)
                         raise ExchangeError(message)

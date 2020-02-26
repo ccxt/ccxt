@@ -96,6 +96,12 @@ module.exports = class idex extends Exchange {
                 'apiKey': false,
                 'secret': false,
             },
+            'commonCurrencies': {
+                'ONE': 'Menlo One',
+                'FT': 'Fabric Token',
+                'PLA': 'PlayChip',
+                'WAX': 'WAXP',
+            },
         });
     }
 
@@ -202,8 +208,8 @@ module.exports = class idex extends Exchange {
             'change': undefined,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'baseVolume': quoteVolume,
+            'quoteVolume': baseVolume,
             'info': ticker,
         };
     }
@@ -248,7 +254,7 @@ module.exports = class idex extends Exchange {
             const ticker = response[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -378,13 +384,13 @@ module.exports = class idex extends Exchange {
             if (side === 'buy') {
                 tokenBuy = market['baseId'];
                 tokenSell = market['quoteId'];
-                amountBuy = this.toWei (amount, 'ether', market['precision']['amount']);
-                amountSell = this.toWei (quoteAmount, 'ether', 18);
+                amountBuy = this.toWei (amount, market['precision']['amount']);
+                amountSell = this.toWei (quoteAmount, 18);
             } else {
                 tokenBuy = market['quoteId'];
                 tokenSell = market['baseId'];
-                amountBuy = this.toWei (quoteAmount, 'ether', 18);
-                amountSell = this.toWei (amount, 'ether', market['precision']['amount']);
+                amountBuy = this.toWei (quoteAmount, 18);
+                amountSell = this.toWei (amount, market['precision']['amount']);
             }
             const nonce = await this.getNonce ();
             const orderToHash = {
@@ -984,7 +990,7 @@ module.exports = class idex extends Exchange {
         const currency = this.currency (code);
         const tokenAddress = currency['id'];
         const nonce = await this.getNonce ();
-        amount = this.toWei (amount, 'ether', currency['precision']);
+        amount = this.toWei (amount, currency['precision']);
         const requestToHash = {
             'contractAddress': await this.getContractAddress (),
             'token': tokenAddress,

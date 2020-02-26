@@ -6,66 +6,89 @@ const { groupBy }  = require ('../ccxt.js')
 const { values }   = Object
 const assert       = require ('assert')
 
-const tags = execSync ('git tag').toString ().split ('\n').filter (s => s).map (t => {
+function cleanupOldTags () {
 
-    const [major, minor, patch] = t.replace ('v', '').split ('.').map (Number)
+    const tags = execSync ('git tag').toString ().split ('\n').filter (s => s).map (t => {
 
-    assert (major < 100)
-    assert (minor < 100)
+        const [major, minor, patch] = t.replace ('v', '').split ('.').map (Number)
 
-    return {
-        key: (major * 100) + minor,
-        tag: t,
-        major,
-        minor,
-        patch,
+        assert (major < 100)
+        assert (minor < 100)
+
+        return {
+            key: (major * 100) + minor,
+            tag: t,
+            major,
+            minor,
+            patch,
+        }
+    })
+
+    const tagsByMajorMinor = values (groupBy (tags, 'key')).sort ((a, b) => a[0].key - b[0].key)
+
+    // Preserve all tags for first 3 minor versions
+
+    for (let i = 0; i < 3; i++) {
+
+        const tags = tagsByMajorMinor.pop ()
+
+        if (tags) {
+            log.green.bright ('Preserving', tags[0].tag, '...', tags[tags.length - 1].tag)
+        }
     }
-})
 
-const tagsByMajorMinor = values (groupBy (tags, 'key')).sort ((a, b) => a[0].key - b[0].key)
+    // For older versions, leave only "round" numbered versions (1/10th)
 
-// Preserve all tags for first 3 minor versions
+    let tagsToDelete = []
 
-for (let i = 0; i < 3; i++) {
+    for (const tags of tagsByMajorMinor) {
 
-    const tags = tagsByMajorMinor.pop ()
-    
-    if (tags) {
-        log.green.bright ('Preserving', tags[0].tag, '...', tags[tags.length - 1].tag)
+        for (const { tag, patch } of tags) {
+
+            if (patch === 1) {
+                log.green ('Preserving', tag)
+
+            } else {
+                tagsToDelete.push (tag)
+            }
+        }
     }
-}
 
-// For older versions, leave only "round" numbered versions (1/10th)
+    log.bright.red ('Deleting', tagsToDelete.length, 'tags...')
 
-let tagsToDelete = []
+    if (!process.argv.includes ('--paper')) {
 
-for (const tags of tagsByMajorMinor) {
+    /*  If it happens on a CI server, we don't want it to fail the build because of a super
+        long execution time (one tag deletion takes ~5 sec...), hence that limit here                 */
 
-    for (const { tag, patch } of tags) {
+        if (process.argv.includes ('--limit')) {
+            tagsToDelete = tagsToDelete.slice (-500)
+        }
 
-        if (patch === 1) {
-            log.green ('Preserving', tag)
+        for (const tag of tagsToDelete) {
 
-        } else {
-            tagsToDelete.push (tag)
+            log.dim ('Deleting', tag)
+            execSync (`git tag -d ${tag} && git push origin :refs/tags/${tag}`)
         }
     }
 }
 
-log.bright.red ('Deleting', tagsToDelete.length, 'tags...')
+// ============================================================================
+// main entry point
 
-if (!process.argv.includes ('--paper')) {
+if (require.main === module) {
 
-/*  If it happens on a CI server, we don't want it to fail the build because of a super
-    long execution time (one tag deletion takes ~5 sec...), hence that limit here                 */
+    // if called directly like `node module`
 
-    if (process.argv.includes ('--limit')) {
-        tagsToDelete = tagsToDelete.slice (-500)
-    }
+    cleanupOldTags ()
 
-    for (const tag of tagsToDelete) {
+} else {
 
-        log.dim ('Deleting', tag)
-        execSync (`git tag -d ${tag} && git push origin :refs/tags/${tag}`)
-    }
+    // do nothing if required as a module
+}
+
+// ============================================================================
+
+module.exports = {
+    cleanupOldTags,
 }

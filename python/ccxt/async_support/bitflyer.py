@@ -9,7 +9,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import OrderNotFound
 
 
-class bitflyer (Exchange):
+class bitflyer(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitflyer, self).describe(), {
@@ -125,7 +125,7 @@ class bitflyer (Exchange):
             spot = True
             future = False
             type = 'spot'
-            if ('alias' in list(market.keys())) or (currencies[0] == 'FX'):
+            if ('alias' in market) or (currencies[0] == 'FX'):
                 type = 'future'
                 future = True
                 spot = False

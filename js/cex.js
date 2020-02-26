@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, NullResponse, InvalidOrder, NotSupported, InsufficientFunds, InvalidNonce, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, NotSupported, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ module.exports = class cex extends Exchange {
             'countries': [ 'GB', 'EU', 'CY', 'RU' ],
             'rateLimit': 1500,
             'has': {
-                'CORS': true,
+                'CORS': false,
                 'fetchCurrencies': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
@@ -125,6 +125,9 @@ module.exports = class cex extends Exchange {
                     'Nonce must be incremented': InvalidNonce,
                     'Invalid Order': InvalidOrder,
                     'Order not found': OrderNotFound,
+                    'Rate limit exceeded': RateLimitExceeded,
+                    'Invalid API key': AuthenticationError,
+                    'There was an error while placing your order': InvalidOrder,
                 },
             },
             'options': {
@@ -652,7 +655,7 @@ module.exports = class cex extends Exchange {
             for (let i = 0; i < order['vtx'].length; i++) {
                 const item = order['vtx'][i];
                 const tradeSide = this.safeString (item, 'type');
-                if (item['type'] === 'cancel') {
+                if (tradeSide === 'cancel') {
                     // looks like this might represent the cancelled part of an order
                     //   { id: '4426729543',
                     //     type: 'cancel',
@@ -673,7 +676,8 @@ module.exports = class cex extends Exchange {
                     //     ds: 0 }
                     continue;
                 }
-                if (!item['price']) {
+                const tradePrice = this.safeFloat (item, 'price');
+                if (tradePrice === undefined) {
                     // this represents the order
                     //   {
                     //     "a": "0.47000000",
@@ -695,17 +699,15 @@ module.exports = class cex extends Exchange {
                     //     "balance": "1432.93000000" }
                     continue;
                 }
-                // if (item['type'] === 'costsNothing')
-                //     console.log (item);
                 // todo: deal with these
-                if (item['type'] === 'costsNothing') {
+                if (tradeSide === 'costsNothing') {
                     continue;
                 }
                 // --
                 // if (side !== tradeSide)
-                //     throw Error (JSON.stringify (order, null, 2));
+                //     throw new Error (JSON.stringify (order, null, 2));
                 // if (orderId !== item['order'])
-                //     throw Error (JSON.stringify (order, null, 2));
+                //     throw new Error (JSON.stringify (order, null, 2));
                 // --
                 // partial buy trade
                 //   {
@@ -777,10 +779,8 @@ module.exports = class cex extends Exchange {
                 //     "symbol2": "BTC",
                 //     "fee_amount": "0.03"
                 //   }
-                const tradeTime = this.safeString (item, 'time');
-                const tradeTimestamp = this.parse8601 (tradeTime);
+                const tradeTimestamp = this.parse8601 (this.safeString (item, 'time'));
                 const tradeAmount = this.safeFloat (item, 'amount');
-                const tradePrice = this.safeFloat (item, 'price');
                 const feeCost = this.safeFloat (item, 'fee_amount');
                 let absTradeAmount = (tradeAmount < 0) ? -tradeAmount : tradeAmount;
                 let tradeCost = undefined;
@@ -815,7 +815,7 @@ module.exports = class cex extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': undefined,
+            'type': (price === undefined) ? 'market' : 'limit',
             'side': side,
             'price': price,
             'cost': cost,
@@ -1010,17 +1010,20 @@ module.exports = class cex extends Exchange {
             //     "lastTxTime": "2018-05-23T12:42:58.315Z",
             //     "tradingFeeTaker": "0.25",
             //     "tradingFeeUserVolumeAmount": "56294576" }
-            const item = response[i];
-            const status = this.parseOrderStatus (this.safeString (item, 'status'));
-            const baseId = item['symbol1'];
-            const quoteId = item['symbol2'];
-            const side = item['type'];
-            const baseAmount = this.safeFloat (item, 'a:' + baseId + ':cds');
-            const quoteAmount = this.safeFloat (item, 'a:' + quoteId + ':cds');
-            const fee = this.safeFloat (item, 'f:' + quoteId + ':cds');
-            const amount = this.safeFloat (item, 'amount');
-            const price = this.safeFloat (item, 'price');
-            const remaining = this.safeFloat (item, 'remains');
+            const order = response[i];
+            const status = this.parseOrderStatus (this.safeString (order, 'status'));
+            const baseId = this.safeString (order, 'symbol1');
+            const quoteId = this.safeString (order, 'symbol2');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const side = this.safeString (order, 'type');
+            const baseAmount = this.safeFloat (order, 'a:' + baseId + ':cds');
+            const quoteAmount = this.safeFloat (order, 'a:' + quoteId + ':cds');
+            const fee = this.safeFloat (order, 'f:' + quoteId + ':cds');
+            const amount = this.safeFloat (order, 'amount');
+            const price = this.safeFloat (order, 'price');
+            const remaining = this.safeFloat (order, 'remains');
             const filled = amount - remaining;
             let orderAmount = undefined;
             let cost = undefined;
@@ -1032,29 +1035,29 @@ module.exports = class cex extends Exchange {
                 cost = quoteAmount;
                 average = orderAmount / cost;
             } else {
-                const ta = this.safeFloat (item, 'ta:' + quoteId, 0);
-                const tta = this.safeFloat (item, 'tta:' + quoteId, 0);
-                const fa = this.safeFloat (item, 'fa:' + quoteId, 0);
-                const tfa = this.safeFloat (item, 'tfa:' + quoteId, 0);
+                const ta = this.safeFloat (order, 'ta:' + quoteId, 0);
+                const tta = this.safeFloat (order, 'tta:' + quoteId, 0);
+                const fa = this.safeFloat (order, 'fa:' + quoteId, 0);
+                const tfa = this.safeFloat (order, 'tfa:' + quoteId, 0);
                 if (side === 'sell') {
-                    cost = ta + tta + (fa + tfa);
+                    cost = this.sum (this.sum (ta, tta), this.sum (fa, tfa));
                 } else {
-                    cost = ta + tta - (fa + tfa);
+                    cost = this.sum (ta, tta) - this.sum (fa, tfa);
                 }
                 type = 'limit';
                 orderAmount = amount;
                 average = cost / filled;
             }
-            const time = this.safeString (item, 'time');
-            const lastTxTime = this.safeString (item, 'lastTxTime');
+            const time = this.safeString (order, 'time');
+            const lastTxTime = this.safeString (order, 'lastTxTime');
             const timestamp = this.parse8601 (time);
             results.push ({
-                'id': item['id'],
+                'id': this.safeString (order, 'id'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'lastUpdated': this.parse8601 (lastTxTime),
                 'status': status,
-                'symbol': this.findSymbol (baseId + '/' + quoteId),
+                'symbol': symbol,
                 'side': side,
                 'price': price,
                 'amount': orderAmount,
@@ -1065,9 +1068,9 @@ module.exports = class cex extends Exchange {
                 'remaining': remaining,
                 'fee': {
                     'cost': fee,
-                    'currency': this.currencyId (quoteId),
+                    'currency': quote,
                 },
-                'info': item,
+                'info': order,
             });
         }
         return results;
@@ -1151,11 +1154,11 @@ module.exports = class cex extends Exchange {
         if (Array.isArray (response)) {
             return response; // public endpoints may return []-arrays
         }
-        if (!response) {
-            throw new NullResponse (this.id + ' returned ' + this.json (response));
-        }
-        if (response === true || response === 'true') {
+        if (body === 'true') {
             return;
+        }
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' returned ' + this.json (response));
         }
         if ('e' in response) {
             if ('ok' in response) {
@@ -1167,15 +1170,8 @@ module.exports = class cex extends Exchange {
         if ('error' in response) {
             const message = this.safeString (response, 'error');
             const feedback = this.id + ' ' + body;
-            const exact = this.exceptions['exact'];
-            if (message in exact) {
-                throw new exact[message] (feedback);
-            }
-            const broad = this.exceptions['broad'];
-            const broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback);
         }
     }

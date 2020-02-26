@@ -106,9 +106,12 @@ const decimalToPrecision = (x, roundingMode
 
 /*  handle tick size */
     if (countingMode === TICK_SIZE) {
+        const precisionDigitsString = decimalToPrecision (numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING)
+        const newNumPrecisionDigits = precisionFromString (precisionDigitsString)
         const missing = x % numPrecisionDigits
-        const reminder = x / numPrecisionDigits
-        if (reminder !== Math.floor (reminder)) {
+        // See: https://github.com/ccxt/ccxt/pull/6486
+        const fpError = decimalToPrecision (missing / numPrecisionDigits, ROUND, Math.max (newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING)
+        if (precisionFromString (fpError) !== 0) {
             if (roundingMode === ROUND) {
                 if (x > 0) {
                     if (missing >= numPrecisionDigits / 2) {
@@ -127,8 +130,6 @@ const decimalToPrecision = (x, roundingMode
                 x = x - missing
             }
         }
-        const precisionDigitsString = decimalToPrecision (numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING)
-        const newNumPrecisionDigits = precisionFromString (precisionDigitsString)
         return decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
     }
 
@@ -282,10 +283,33 @@ const decimalToPrecision = (x, roundingMode
     return String.fromCharCode (...out)
 }
 
+// toWei / fromWei
+
+function fromWei (amount, decimals = 18) {
+    if (amount === undefined) {
+        return amount
+    }
+    const exponential = Math.floor (amount).toExponential () // wei must be whole numbers
+    const [ n, exponent ] = exponential.split ('e')
+    const newExponent = parseInt (exponent) - decimals
+    return parseFloat (n + 'e' + newExponent)
+}
+
+function toWei (amount, decimals = 18) {
+    if (amount === undefined) {
+        return amount
+    }
+    const exponential = parseFloat (amount).toExponential ()
+    const [ n, exponent ] = exponential.split ('e')
+    const newExponent = parseInt (exponent) + decimals
+    return numberToString (Math.floor (parseFloat (n + 'e' + newExponent))) // wei must be whole numbers
+}
+
 /*  ------------------------------------------------------------------------ */
 
 module.exports = {
-
+    toWei,
+    fromWei,
     numberToString,
     precisionFromString,
     decimalToPrecision,

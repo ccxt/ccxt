@@ -19,7 +19,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
 
 
-class digifinex (Exchange):
+class digifinex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(digifinex, self).describe(), {
@@ -903,6 +903,9 @@ class digifinex (Exchange):
         orderType = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
         self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         request = {
             'market': orderType,
             'order_id': id,
@@ -929,7 +932,8 @@ class digifinex (Exchange):
         #         ]
         #     }
         #
-        return self.parse_order(response)
+        data = self.safe_value(response, 'data', {})
+        return self.parse_order(data, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
