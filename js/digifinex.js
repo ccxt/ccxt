@@ -136,6 +136,9 @@ module.exports = class digifinex extends Exchange {
                 'defaultType': 'spot',
                 'types': [ 'spot', 'margin', 'otc' ],
             },
+            'commonCurrencies': {
+                'BHT': 'Black House Test',
+            },
         });
     }
 
