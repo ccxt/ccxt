@@ -481,17 +481,13 @@ class bitmart(Exchange):
             raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        # limit is required, must be in the range(0, 50)
-        maxLimit = 50
+        maxLimit = 1000
         limit = maxLimit if (limit is None) else min(limit, maxLimit)
         request = {
             'symbol': market['id'],
             'offset': 0,  # current page, starts from 0
+            'limit': limit,  # required
         }
-        if limit is not None:
-            request['limit'] = limit  # default 500, max 1000
-        else:
-            request['limit'] = 1000
         response = await self.privateGetTrades(self.extend(request, params))
         #
         #     {

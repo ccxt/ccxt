@@ -498,8 +498,7 @@ module.exports = class bitmart extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // limit is required, must be in the range (0, 50)
-        const maxLimit = 50;
+        const maxLimit = 1000;
         limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
         const request = {
             'symbol': market['id'],

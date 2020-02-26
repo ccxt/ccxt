@@ -503,8 +503,7 @@ class bitmart extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        // $limit is required, must be in the range (0, 50)
-        $maxLimit = 50;
+        $maxLimit = 1000;
         $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
         $request = array(
             'symbol' => $market['id'],
