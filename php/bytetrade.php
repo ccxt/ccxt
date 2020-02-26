@@ -908,7 +908,7 @@ class bytetrade extends Exchange {
         );
     }
 
-    public function transfer ($code, $amount, $address, $params = array ()) {
+    public function transfer ($code, $amount, $address, $message = '', $params = array ()) {
         $this->check_required_dependencies();
         if ($this->apiKey === null) {
             throw new ArgumentsRequired('transfer requires $this->apiKey');
@@ -933,7 +933,7 @@ class bytetrade extends Exchange {
             $this->numberToLE (1, 1),
             $this->numberToLE ((int) floor($expiration / 1000), 4),
             $this->numberToLE (1, 1),
-            $this->numberToLE (0, 1),
+            $this->numberToLE (28, 1),
             $this->numberToLE (0, 8),
             $this->numberToLE ($feeAmount, 8),  // string for 32 bit php
             $this->numberToLE (strlen($this->apiKey), 1),
@@ -943,6 +943,9 @@ class bytetrade extends Exchange {
             $this->numberToLE ($assetType, 4),
             $this->numberToLE ($this->integer_divide ($amountChain, $eightBytes), 8),
             $this->numberToLE ($this->integer_modulo ($amountChain, $eightBytes), 8),
+            $this->numberToLE (1, 1),
+            $this->numberToLE (strlen($message), 1),
+            $this->encode ($message),
             $this->numberToLE (0, 1),
             $this->numberToLE (1, 1),
             $this->numberToLE (strlen($chainName), 1),
@@ -960,13 +963,14 @@ class bytetrade extends Exchange {
             'to' => $address,
             'asset_type' => intval ($currency['id']),
             'amount' => (string) $amountChain,
+            'message' => $message,
         );
         $fatty = array(
             'timestamp' => $datetime,
             'expiration' => $expirationDatetime,
             'operations' => array(
                 array(
-                    0,
+                    28,
                     $operation,
                 ),
             ),

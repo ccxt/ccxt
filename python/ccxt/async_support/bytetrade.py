@@ -852,7 +852,7 @@ class bytetrade(Exchange):
             'fee': None,
         }
 
-    async def transfer(self, code, amount, address, params={}):
+    async def transfer(self, code, amount, address, message='', params={}):
         self.check_required_dependencies()
         if self.apiKey is None:
             raise ArgumentsRequired('transfer requires self.apiKey')
@@ -876,7 +876,7 @@ class bytetrade(Exchange):
             self.numberToLE(1, 1),
             self.numberToLE(int(math.floor(expiration / 1000)), 4),
             self.numberToLE(1, 1),
-            self.numberToLE(0, 1),
+            self.numberToLE(28, 1),
             self.numberToLE(0, 8),
             self.numberToLE(feeAmount, 8),  # string for 32 bit php
             self.numberToLE(len(self.apiKey), 1),
@@ -886,6 +886,9 @@ class bytetrade(Exchange):
             self.numberToLE(assetType, 4),
             self.numberToLE(self.integer_divide(amountChain, eightBytes), 8),
             self.numberToLE(self.integer_modulo(amountChain, eightBytes), 8),
+            self.numberToLE(1, 1),
+            self.numberToLE(len(message), 1),
+            self.encode(message),
             self.numberToLE(0, 1),
             self.numberToLE(1, 1),
             self.numberToLE(len(chainName), 1),
@@ -903,13 +906,14 @@ class bytetrade(Exchange):
             'to': address,
             'asset_type': int(currency['id']),
             'amount': str(amountChain),
+            'message': message,
         }
         fatty = {
             'timestamp': datetime,
             'expiration': expirationDatetime,
             'operations': [
                 [
-                    0,
+                    28,
                     operation,
                 ],
             ],
