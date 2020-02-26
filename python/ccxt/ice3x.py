@@ -10,7 +10,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
 
-class ice3x (Exchange):
+class ice3x(Exchange):
 
     def describe(self):
         return self.deep_extend(super(ice3x, self).describe(), {
@@ -283,7 +283,7 @@ class ice3x (Exchange):
     def parse_order(self, order, market=None):
         pairId = self.safe_integer(order, 'pair_id')
         symbol = None
-        if pairId and not market and (pairId in list(self.marketsById.keys())):
+        if pairId and not market and (pairId in self.marketsById):
             market = self.marketsById[pairId]
             symbol = market['symbol']
         timestamp = self.safe_timestamp(order, 'created')

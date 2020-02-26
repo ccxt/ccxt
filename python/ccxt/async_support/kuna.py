@@ -8,7 +8,7 @@ import math
 from ccxt.base.errors import ArgumentsRequired
 
 
-class kuna (acx):
+class kuna(acx):
 
     def describe(self):
         return self.deep_extend(super(kuna, self).describe(), {
@@ -130,7 +130,7 @@ class kuna (acx):
         symbol = None
         if market:
             symbol = market['symbol']
-        side = self.safe_string(trade, 'side')
+        side = self.safe_string_2(trade, 'side', 'trend')
         if side is not None:
             sideMap = {
                 'ask': 'sell',

@@ -6,7 +6,7 @@
 from ccxt.binance import binance
 
 
-class binanceus (binance):
+class binanceus(binance):
 
     def describe(self):
         return self.deep_extend(super(binanceus, self).describe(), {

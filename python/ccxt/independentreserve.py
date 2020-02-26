@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 
 
-class independentreserve (Exchange):
+class independentreserve(Exchange):
 
     def describe(self):
         return self.deep_extend(super(independentreserve, self).describe(), {
@@ -71,6 +71,9 @@ class independentreserve (Exchange):
                     'percentage': True,
                     'tierBased': False,
                 },
+            },
+            'commonCurrencies': {
+                'PLA': 'PlayChip',
             },
         })
 
@@ -163,10 +166,18 @@ class independentreserve (Exchange):
 
     def parse_order(self, order, market=None):
         symbol = None
-        if market is None:
+        baseId = self.safe_string(order, 'PrimaryCurrencyCode')
+        quoteId = self.safe_string(order, 'PrimaryCurrencyCode')
+        base = None
+        quote = None
+        if (baseId is not None) and (quoteId is not None):
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
+        elif market is not None:
             symbol = market['symbol']
-        else:
-            market = self.find_market(order['PrimaryCurrencyCode'] + '/' + order['SecondaryCurrencyCode'])
+            base = market['base']
+            quote = market['quote']
         orderType = self.safe_value(order, 'Type')
         if orderType.find('Market') >= 0:
             orderType = 'market'
@@ -177,7 +188,7 @@ class independentreserve (Exchange):
             side = 'buy'
         elif orderType.find('Offer') >= 0:
             side = 'sell'
-        timestamp = self.parse8601(order['CreatedTimestampUtc'])
+        timestamp = self.parse8601(self.safe_string(order, 'CreatedTimestampUtc'))
         amount = self.safe_float(order, 'VolumeOrdered')
         if amount is None:
             amount = self.safe_float(order, 'Volume')
@@ -190,14 +201,10 @@ class independentreserve (Exchange):
                 remaining = amount - filled
                 if feeRate is not None:
                     feeCost = feeRate * filled
-        feeCurrency = None
-        if market is not None:
-            symbol = market['symbol']
-            feeCurrency = market['base']
         fee = {
             'rate': feeRate,
             'cost': feeCost,
-            'currency': feeCurrency,
+            'currency': base,
         }
         id = self.safe_string(order, 'OrderGuid')
         status = self.parse_order_status(self.safe_string(order, 'Status'))

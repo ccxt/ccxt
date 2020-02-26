@@ -147,11 +147,10 @@ module.exports = class bithumb extends Exchange {
             const code = codes[i];
             const account = this.account ();
             const currency = this.currency (code);
-            const currencyId = currency['id'];
-            const lowercase = currencyId.toLowerCase ();
-            account['total'] = this.safeFloat (balances, 'total_' + lowercase);
-            account['used'] = this.safeFloat (balances, 'in_use_' + lowercase);
-            account['free'] = this.safeFloat (balances, 'available_' + lowercase);
+            const lowerCurrencyId = this.safeStringLower (currency, 'id');
+            account['total'] = this.safeFloat (balances, 'total_' + lowerCurrencyId);
+            account['used'] = this.safeFloat (balances, 'in_use_' + lowerCurrencyId);
+            account['free'] = this.safeFloat (balances, 'available_' + lowerCurrencyId);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -429,15 +428,10 @@ module.exports = class bithumb extends Exchange {
                 if (status === '0000') {
                     return; // no error
                 }
-                const feedback = this.id + ' ' + this.json (response);
-                const exceptions = this.exceptions;
-                if (status in exceptions) {
-                    throw new exceptions[status] (feedback);
-                } else if (message in exceptions) {
-                    throw new exceptions[message] (feedback);
-                } else {
-                    throw new ExchangeError (feedback);
-                }
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (this.exceptions, status, feedback);
+                this.throwExactlyMatchedException (this.exceptions, message, feedback);
+                throw new ExchangeError (feedback);
             }
         }
     }

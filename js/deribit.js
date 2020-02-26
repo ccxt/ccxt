@@ -255,8 +255,36 @@ module.exports = class deribit extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "currentFunding":0.0,
+        //         "funding8h":0.0000017213784611422821,
+        //         "instrumentName":"BTC-PERPETUAL",
+        //         "openInterest":7600223,
+        //         "openInterestAmount":76002230,
+        //         "high":7665.5,
+        //         "low":7450.0,
+        //         "volume":12964792.0,
+        //         "volumeUsd":129647920,
+        //         "volumeBtc":17214.63595316,
+        //         "last":7520.5,
+        //         "bidPrice":7520.0,
+        //         "askPrice":7520.5,
+        //         "midPrice":7520.25,
+        //         "estDelPrice":"",
+        //         "markPrice":7521.0,
+        //         "created":"2019-12-09 15:17:00 GMT"
+        //     }
+        //
         const timestamp = this.safeInteger (ticker, 'created');
-        const symbol = this.findSymbol (this.safeString (ticker, 'instrumentName'), market);
+        let symbol = undefined;
+        const marketId = this.safeString (ticker, 'instrumentName');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -289,6 +317,35 @@ module.exports = class deribit extends Exchange {
             'instrument': market['id'],
         };
         const response = await this.publicGetGetsummary (this.extend (request, params));
+        //
+        //     {
+        //         "usOut":1575904620528163,
+        //         "usIn":1575904620528129,
+        //         "usDiff":34,
+        //         "testnet":false,
+        //         "success":true,
+        //         "result": {
+        //             "currentFunding":0.0,
+        //             "funding8h":0.0000017213784611422821,
+        //             "instrumentName":"BTC-PERPETUAL",
+        //             "openInterest":7600223,
+        //             "openInterestAmount":76002230,
+        //             "high":7665.5,
+        //             "low":7450.0,
+        //             "volume":12964792.0,
+        //             "volumeUsd":129647920,
+        //             "volumeBtc":17214.63595316,
+        //             "last":7520.5,
+        //             "bidPrice":7520.0,
+        //             "askPrice":7520.5,
+        //             "midPrice":7520.25,
+        //             "estDelPrice":"",
+        //             "markPrice":7521.0,
+        //             "created":"2019-12-09 15:17:00 GMT"
+        //         },
+        //         "message":""
+        //     }
+        //
         return this.parseTicker (response['result'], market);
     }
 
@@ -696,10 +753,7 @@ module.exports = class deribit extends Exchange {
         const error = this.safeString (response, 'error');
         if ((error !== undefined) && (error !== '0')) {
             const feedback = this.id + ' ' + body;
-            const exceptions = this.exceptions;
-            if (error in exceptions) {
-                throw new exceptions[error] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions, error, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

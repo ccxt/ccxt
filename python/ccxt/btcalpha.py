@@ -12,7 +12,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
 
 
-class btcalpha (Exchange):
+class btcalpha(Exchange):
 
     def describe(self):
         return self.deep_extend(super(btcalpha, self).describe(), {
@@ -167,8 +167,16 @@ class btcalpha (Exchange):
         if limit:
             request['limit_sell'] = limit
             request['limit_buy'] = limit
-        reponse = self.publicGetOrderbookPairName(self.extend(request, params))
-        return self.parse_order_book(reponse, None, 'buy', 'sell', 'price', 'amount')
+        response = self.publicGetOrderbookPairName(self.extend(request, params))
+        return self.parse_order_book(response, None, 'buy', 'sell', 'price', 'amount')
+
+    def parse_bids_asks(self, bidasks, priceKey=0, amountKey=1):
+        result = []
+        for i in range(0, len(bidasks)):
+            bidask = bidasks[i]
+            if bidask:
+                result.append(self.parse_bid_ask(bidask, priceKey, amountKey))
+        return result
 
     def parse_trade(self, trade, market=None):
         symbol = None
@@ -405,13 +413,8 @@ class btcalpha (Exchange):
         error = self.safe_string(response, 'error')
         feedback = self.id + ' ' + body
         if error is not None:
-            exact = self.exceptions['exact']
-            if error in exact:
-                raise exact[error](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, error)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
         if code == 401 or code == 403:
             raise AuthenticationError(feedback)
         elif code == 429:

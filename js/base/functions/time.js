@@ -4,6 +4,7 @@
 
 const now = Date.now // TODO: figure out how to utilize performance.now () properly – it's not as easy as it does not return a unix timestamp...
 const microseconds = () => now () * 1000 // TODO: utilize performance.now for that purpose
+const milliseconds = now
 const seconds      = () => Math.floor (now () / 1000)
 
 /*  ------------------------------------------------------------------------ */
@@ -17,7 +18,7 @@ const setTimeout_safe = (done, ms, setTimeout = setTimeout_original /* overridea
     let clearInnerTimeout = () => {}
     let active = true
 
-    let id = setTimeout (() => {
+    const id = setTimeout (() => {
         active = true
         const rest = targetTime - now ()
         if (rest > 0) {
@@ -52,7 +53,7 @@ class TimedOut extends Error {
 /*  ------------------------------------------------------------------------ */
 
 const iso8601 = (timestamp) => {
-    let _timestampNumber;
+    let _timestampNumber = undefined;
     if (typeof timestamp === 'number') {
         _timestampNumber = Math.floor (timestamp);
     } else {
@@ -157,6 +158,7 @@ module.exports =
     {
         now
         , microseconds
+        , milliseconds
         , seconds
         , iso8601
         , parse8601

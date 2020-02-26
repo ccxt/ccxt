@@ -944,6 +944,10 @@ module.exports = class digifinex extends Exchange {
         const orderType = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
         await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const request = {
             'market': orderType,
             'order_id': id,
@@ -970,7 +974,8 @@ module.exports = class digifinex extends Exchange {
         //         ]
         //     }
         //
-        return this.parseOrder (response);
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

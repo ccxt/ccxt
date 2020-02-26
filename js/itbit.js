@@ -410,6 +410,7 @@ module.exports = class itbit extends Exchange {
     }
 
     async fetchWallets (params = {}) {
+        await this.loadMarkets ();
         if (!this.uid) {
             throw new AuthenticationError (this.id + ' fetchWallets requires uid API credential');
         }
@@ -420,6 +421,7 @@ module.exports = class itbit extends Exchange {
     }
 
     async fetchWallet (walletId, params = {}) {
+        await this.loadMarkets ();
         const request = {
             'walletId': walletId,
         };
@@ -441,6 +443,11 @@ module.exports = class itbit extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const walletIdInParams = ('walletId' in params);
         if (!walletIdInParams) {
             throw new ExchangeError (this.id + ' fetchOrders requires a walletId parameter');
@@ -450,8 +457,18 @@ module.exports = class itbit extends Exchange {
             'walletId': walletId,
         };
         const response = await this.privateGetWalletsWalletIdOrders (this.extend (request, params));
-        const orders = this.parseOrders (response, undefined, since, limit);
-        return orders;
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'submitted': 'open', // order pending book entry
+            'open': 'open',
+            'filled': 'closed',
+            'cancelled': 'canceled',
+            'rejected': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
@@ -472,7 +489,7 @@ module.exports = class itbit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'status': order['status'],
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'symbol': symbol,
             'type': type,
             'side': side,
@@ -492,6 +509,7 @@ module.exports = class itbit extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
         if (type === 'market') {
             throw new ExchangeError (this.id + ' allows limit orders only');
         }
@@ -519,6 +537,7 @@ module.exports = class itbit extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         const walletIdInParams = ('walletId' in params);
         if (!walletIdInParams) {
             throw new ExchangeError (this.id + ' fetchOrder requires a walletId parameter');

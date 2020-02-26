@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, DDoSProtection, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -104,6 +104,13 @@ module.exports = class whitebit extends Exchange {
             },
             'options': {
                 'fetchTradesMethod': 'fetchTradesV1',
+            },
+            'exceptions': {
+                'exact': {
+                },
+                'broad': {
+                    'Market is not available': BadSymbol, // {"success":false,"message":{"market":["Market is not available"]},"result":[]}
+                },
             },
         });
     }
@@ -612,16 +619,9 @@ module.exports = class whitebit extends Exchange {
                 const feedback = this.id + ' ' + body;
                 const message = this.safeValue (response, 'message');
                 if (typeof message === 'string') {
-                    const exact = this.safeValue (this.exceptions, 'exact', {});
-                    if (message in exact) {
-                        throw new exact[message] (feedback);
-                    }
-                    const broad = this.safeValue (this.exceptions, 'broad', {});
-                    const broadKey = this.findBroadlyMatchedKey (broad, message);
-                    if (broadKey !== undefined) {
-                        throw new broad[broadKey] (feedback);
-                    }
+                    this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
                 }
+                this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
                 throw new ExchangeError (feedback);
             }
         }

@@ -10,7 +10,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 
 
-class zaif (Exchange):
+class zaif(Exchange):
 
     def describe(self):
         return self.deep_extend(super(zaif, self).describe(), {
@@ -395,7 +395,7 @@ class zaif (Exchange):
             'currency': currency['id'],
             'amount': amount,
             'address': address,
-            # 'message': 'Hinot ',  # XEM and others
+            # 'message': 'Hi!',  # XEM and others
             # 'opt_fee': 0.003,  # BTC and MONA only
         }
         if tag is not None:
@@ -446,13 +446,8 @@ class zaif (Exchange):
         feedback = self.id + ' ' + body
         error = self.safe_string(response, 'error')
         if error is not None:
-            exact = self.exceptions['exact']
-            if error in exact:
-                raise exact[error](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, error)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             raise ExchangeError(feedback)  # unknown message
         success = self.safe_value(response, 'success', True)
         if not success:

@@ -9,7 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 
 
-class luno (Exchange):
+class luno(Exchange):
 
     def describe(self):
         return self.deep_extend(super(luno, self).describe(), {
@@ -143,9 +143,10 @@ class luno (Exchange):
         timestamp = self.safe_integer(order, 'creation_timestamp')
         status = 'open' if (order['state'] == 'PENDING') else 'closed'
         side = 'sell' if (order['type'] == 'ASK') else 'buy'
-        if market is None:
-            market = self.find_market(order['pair'])
+        marketId = self.safe_string(order, 'pair')
         symbol = None
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
         price = self.safe_float(order, 'limit_price')
@@ -160,11 +161,13 @@ class luno (Exchange):
                 remaining = max(0, amount - filled)
         fee = {'currency': None}
         if quoteFee:
-            fee['side'] = 'quote'
             fee['cost'] = quoteFee
+            if market is not None:
+                fee['currency'] = market['quote']
         else:
-            fee['side'] = 'base'
             fee['cost'] = baseFee
+            if market is not None:
+                fee['currency'] = market['base']
         id = self.safe_string(order, 'order_id')
         return {
             'id': id,

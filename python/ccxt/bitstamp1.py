@@ -9,7 +9,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NotSupported
 
 
-class bitstamp1 (Exchange):
+class bitstamp1(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitstamp1, self).describe(), {

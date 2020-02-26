@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, OrderNotFound } = require ('./base/errors');
+const { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, OnMaintenance } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -114,8 +114,10 @@ module.exports = class coinone extends Exchange {
                 },
             },
             'exceptions': {
-                '405': ExchangeNotAvailable,
+                '405': OnMaintenance, // {"errorCode":"405","status":"maintenance","result":"error"}
                 '104': OrderNotFound,
+                '108': BadSymbol, // {"errorCode":"108","errorMsg":"Unknown CryptoCurrency","result":"error"}
+                '107': BadRequest, // {"errorCode":"107","errorMsg":"Parameter error","result":"error"}
             },
         });
     }
@@ -495,14 +497,10 @@ module.exports = class coinone extends Exchange {
                 //
                 //    {  "errorCode": "405",  "status": "maintenance",  "result": "error"}
                 //
-                const code = this.safeString (response, 'errorCode');
-                const feedback = this.id + ' ' + this.json (response);
-                const exceptions = this.exceptions;
-                if (code in exceptions) {
-                    throw new exceptions[code] (feedback);
-                } else {
-                    throw new ExchangeError (feedback);
-                }
+                const errorCode = this.safeString (response, 'errorCode');
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
+                throw new ExchangeError (feedback);
             }
         } else {
             throw new ExchangeError (this.id + ' ' + body);

@@ -8,7 +8,7 @@ import base64
 import hashlib
 
 
-class bl3p (Exchange):
+class bl3p(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bl3p, self).describe(), {

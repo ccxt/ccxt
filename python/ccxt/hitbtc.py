@@ -12,7 +12,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
-class hitbtc (Exchange):
+class hitbtc(Exchange):
 
     def describe(self):
         return self.deep_extend(super(hitbtc, self).describe(), {
@@ -293,8 +293,8 @@ class hitbtc (Exchange):
                         'ZSC': 191,
                     },
                     'deposit': {
-                        'BTC': 0.0006,
-                        'ETH': 0.003,
+                        'BTC': 0,
+                        'ETH': 0,
                         'BCH': 0,
                         'USDT': 0,
                         'BTG': 0,
@@ -492,11 +492,13 @@ class hitbtc (Exchange):
             'commonCurrencies': {
                 'BET': 'DAO.Casino',
                 'CAT': 'BitClave',
+                'CPT': 'Cryptaur',  # conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
                 'DRK': 'DASH',
                 'EMGO': 'MGO',
                 'GET': 'Themis',
                 'HSR': 'HC',
                 'LNC': 'LinkerCoin',
+                'PLA': 'PlayChip',
                 'UNC': 'Unigame',
                 'USD': 'USDT',
                 'XBT': 'BTC',
@@ -969,12 +971,7 @@ class hitbtc (Exchange):
         error = self.safe_value(response, 'error')
         if error:
             code = self.safe_value(error, 'code')
-            feedback = self.id + ' ' + self.json(response)
-            exact = self.exceptions['exact']
-            if code in exact:
-                raise exact[code](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, error)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             raise ExchangeError(feedback)  # unknown error

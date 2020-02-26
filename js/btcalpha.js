@@ -165,8 +165,19 @@ module.exports = class btcalpha extends Exchange {
             request['limit_sell'] = limit;
             request['limit_buy'] = limit;
         }
-        const reponse = await this.publicGetOrderbookPairName (this.extend (request, params));
-        return this.parseOrderBook (reponse, undefined, 'buy', 'sell', 'price', 'amount');
+        const response = await this.publicGetOrderbookPairName (this.extend (request, params));
+        return this.parseOrderBook (response, undefined, 'buy', 'sell', 'price', 'amount');
+    }
+
+    parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
+        const result = [];
+        for (let i = 0; i < bidasks.length; i++) {
+            const bidask = bidasks[i];
+            if (bidask) {
+                result.push (this.parseBidAsk (bidask, priceKey, amountKey));
+            }
+        }
+        return result;
     }
 
     parseTrade (trade, market = undefined) {
@@ -444,15 +455,8 @@ module.exports = class btcalpha extends Exchange {
         const error = this.safeString (response, 'error');
         const feedback = this.id + ' ' + body;
         if (error !== undefined) {
-            const exact = this.exceptions['exact'];
-            if (error in exact) {
-                throw new exact[error] (feedback);
-            }
-            const broad = this.exceptions['broad'];
-            const broadKey = this.findBroadlyMatchedKey (broad, error);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
         }
         if (code === 401 || code === 403) {
             throw new AuthenticationError (feedback);

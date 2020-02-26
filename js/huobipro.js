@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, RequestTimeout } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -41,6 +41,7 @@ module.exports = class huobipro extends Exchange {
                 '15m': '15min',
                 '30m': '30min',
                 '1h': '60min',
+                '4h': '4hour',
                 '1d': '1day',
                 '1w': '1week',
                 '1M': '1mon',
@@ -86,13 +87,22 @@ module.exports = class huobipro extends Exchange {
                     ],
                 },
                 'private': {
+                    // todo add v2 endpoints
+                    // 'GET /v2/account/withdraw/quota
+                    // 'GET /v2/reference/currencies
+                    // 'GET /v2/account/deposit/address
                     'get': [
                         'account/accounts', // 查询当前用户的所有账户(即account-id)
                         'account/accounts/{id}/balance', // 查询指定账户的余额
+                        'account/accounts/{sub-uid}',
+                        'account/history',
+                        'cross-margin/loan-info',
+                        'fee/fee-rate/get',
                         'order/openOrders',
                         'order/orders',
                         'order/orders/{id}', // 查询某个订单详情
                         'order/orders/{id}/matchresults', // 查询某个订单的成交明细
+                        'order/orders/getClientOrder',
                         'order/history', // 查询当前委托、历史委托
                         'order/matchresults', // 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
@@ -102,9 +112,17 @@ module.exports = class huobipro extends Exchange {
                         'points/actions',
                         'points/orders',
                         'subuser/aggregate-balance',
+                        'stable-coin/exchange_rate',
+                        'stable-coin/quote',
                     ],
+                    // todo add v2 endpoints
+                    // POST /v2/sub-user/management
                     'post': [
+                        'futures/transfer',
+                        'order/batch-orders',
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
+                        'order/orders/submitCancelClientOrder',
+                        'order/orders/batchCancelOpenOrders',
                         'order/orders', // 创建一个新的订单请求 （仅创建订单，不执行下单）
                         'order/orders/{id}/place', // 执行一个订单 （仅执行已创建的订单）
                         'order/orders/{id}/submitcancel', // 申请撤销一个订单请求
@@ -118,6 +136,7 @@ module.exports = class huobipro extends Exchange {
                         'dw/transfer-out/margin', // 借贷账户划出至现货账户
                         'margin/orders', // 申请借贷
                         'margin/orders/{id}/repay', // 归还借贷
+                        'stable-coin/exchange',
                         'subuser/transfer',
                     ],
                 },
@@ -149,6 +168,8 @@ module.exports = class huobipro extends Exchange {
                     'base-record-invalid': OrderNotFound, // https://github.com/ccxt/ccxt/issues/5750
                     // err-msg
                     'invalid symbol': BadSymbol, // {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
+                    'invalid-parameter': BadRequest, // {"ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"}
+                    'base-symbol-trade-disabled': BadSymbol, // {"status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for this symbol","data":null}
                 },
             },
             'options': {
@@ -162,6 +183,10 @@ module.exports = class huobipro extends Exchange {
                 'language': 'en-US',
             },
             'commonCurrencies': {
+                // https://github.com/ccxt/ccxt/issues/6081
+                // https://github.com/ccxt/ccxt/issues/3365
+                // https://github.com/ccxt/ccxt/issues/2873
+                'GET': 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
                 'HOT': 'Hydro Protocol', // conflict with HOT (Holo) https://github.com/ccxt/ccxt/issues/4929
             },
         });
@@ -258,6 +283,7 @@ module.exports = class huobipro extends Exchange {
             const maker = (base === 'OMG') ? 0 : 0.2 / 100;
             const taker = (base === 'OMG') ? 0 : 0.2 / 100;
             const minAmount = this.safeFloat (market, 'min-order-amt', Math.pow (10, -precision['amount']));
+            const maxAmount = this.safeFloat (market, 'max-order-amt');
             const minCost = this.safeFloat (market, 'min-order-value', 0);
             const state = this.safeString (market, 'state');
             const active = (state === 'online');
@@ -275,7 +301,7 @@ module.exports = class huobipro extends Exchange {
                 'limits': {
                     'amount': {
                         'min': minAmount,
-                        'max': undefined,
+                        'max': maxAmount,
                     },
                     'price': {
                         'min': Math.pow (10, -precision['price']),
@@ -703,6 +729,9 @@ module.exports = class huobipro extends Exchange {
     }
 
     async fetchOpenOrdersV1 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrdersV1 requires a symbol argument');
+        }
         return await this.fetchOrdersByStates ('pre-submitted,submitted,partial-filled', symbol, since, limit, params);
     }
 
@@ -1005,12 +1034,16 @@ module.exports = class huobipro extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.ymdhms (this.milliseconds (), 'T');
-            const request = this.keysort (this.extend ({
+            let request = {
                 'SignatureMethod': 'HmacSHA256',
                 'SignatureVersion': '2',
                 'AccessKeyId': this.apiKey,
                 'Timestamp': timestamp,
-            }, query));
+            };
+            if (method !== 'POST') {
+                request = this.extend (request, query);
+            }
+            request = this.keysort (request);
             let auth = this.urlencode (request);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             // eslint-disable-next-line quotes
@@ -1050,15 +1083,10 @@ module.exports = class huobipro extends Exchange {
             const status = this.safeString (response, 'status');
             if (status === 'error') {
                 const code = this.safeString (response, 'err-code');
-                const feedback = this.id + ' ' + this.json (response);
-                const exceptions = this.exceptions['exact'];
-                if (code in exceptions) {
-                    throw new exceptions[code] (feedback);
-                }
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
                 const message = this.safeString (response, 'err-msg');
-                if (message in exceptions) {
-                    throw new exceptions[message] (feedback);
-                }
+                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
                 throw new ExchangeError (feedback);
             }
         }

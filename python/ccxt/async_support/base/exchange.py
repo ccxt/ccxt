@@ -2,16 +2,13 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1348'
+__version__ = '1.22.97'
 
 # -----------------------------------------------------------------------------
 
 import asyncio
 import concurrent
 import socket
-import time
-import math
-import random
 import certifi
 import aiohttp
 import ssl
@@ -87,30 +84,10 @@ class Exchange(BaseExchange):
                 await self.session.close()
             self.session = None
 
-    async def wait_for_token(self):
-        while self.rateLimitTokens <= 1:
-            # if self.verbose:
-            #     print('Waiting for tokens: Exchange: {0}'.format(self.id))
-            self.add_new_tokens()
-            seconds_delays = [0.001, 0.005, 0.022, 0.106, 0.5]
-            delay = random.choice(seconds_delays)
-            await asyncio.sleep(delay)
-        self.rateLimitTokens -= 1
-
-    def add_new_tokens(self):
-        # if self.verbose:
-        #     print('Adding new tokens: Exchange: {0}'.format(self.id))
-        now = time.monotonic()
-        time_since_update = now - self.rateLimitUpdateTime
-        new_tokens = math.floor((0.8 * 1000.0 * time_since_update) / self.rateLimit)
-        if new_tokens > 1:
-            self.rateLimitTokens = min(self.rateLimitTokens + new_tokens, self.rateLimitMaxTokens)
-            self.rateLimitUpdateTime = now
-
     async def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None):
         """A better wrapper over request for deferred signing"""
         if self.enableRateLimit:
-            await self.throttle()
+            await self.throttle(self.rateLimit)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
@@ -171,7 +148,9 @@ class Exchange(BaseExchange):
         self.handle_rest_response(http_response, json_response, url, method)
         if json_response is not None:
             return json_response
-        return http_response
+        if self.is_text_response(headers):
+            return http_response
+        return response.content
 
     async def load_markets(self, reload=False, params={}):
         if not reload:

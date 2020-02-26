@@ -16,7 +16,7 @@ from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import ROUND
 
 
-class latoken (Exchange):
+class latoken(Exchange):
 
     def describe(self):
         return self.deep_extend(super(latoken, self).describe(), {
@@ -30,7 +30,7 @@ class latoken (Exchange):
             'has': {
                 'CORS': False,
                 'publicAPI': True,
-                'pivateAPI': True,
+                'privateAPI': True,
                 'cancelOrder': True,
                 'cancelAllOrders': True,
                 'createMarketOrder': False,
@@ -70,6 +70,7 @@ class latoken (Exchange):
                         'MarketData/tickers',
                         'MarketData/ticker/{symbol}',
                         'MarketData/orderBook/{symbol}',
+                        'MarketData/orderBook/{symbol}/{limit}',
                         'MarketData/trades/{symbol}',
                         'MarketData/trades/{symbol}/{limit}',
                     ],
@@ -272,7 +273,7 @@ class latoken (Exchange):
             'cost': float(cost),
         }
 
-    async def fetch_balance(self, currency=None, params={}):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetAccountBalances(params)
         #
@@ -311,25 +312,45 @@ class latoken (Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
+            'limit': 10,
         }
-        response = await self.publicGetMarketDataOrderBookSymbol(self.extend(request, params))
+        if limit is not None:
+            request['limit'] = limit  # default 10, max 100
+        response = await self.publicGetMarketDataOrderBookSymbolLimit(self.extend(request, params))
         #
         #     {
         #         "pairId": 502,
         #         "symbol": "LAETH",
         #         "spread": 0.07,
         #         "asks": [
-        #             {"price": 136.3, "amount": 7.024}
+        #             {"price": 136.3, "quantity": 7.024}
         #         ],
         #         "bids": [
-        #             {"price": 136.2, "amount": 6.554}
+        #             {"price": 136.2, "quantity": 6.554}
         #         ]
         #     }
         #
-        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'quantity')
 
     def parse_ticker(self, ticker, market=None):
-        symbol = self.find_symbol(self.safe_string(ticker, 'symbol'), market)
+        #
+        #     {
+        #         "pairId":"63b41092-f3f6-4ea4-9e7c-4525ed250dad",
+        #         "symbol":"ETHBTC",
+        #         "volume":11317.037494474000000000,
+        #         "open":0.020033000000000000,
+        #         "low":0.019791000000000000,
+        #         "high":0.020375000000000000,
+        #         "close":0.019923000000000000,
+        #         "priceChange":-0.1500
+        #     }
+        #
+        symbol = None
+        marketId = self.safe_string(ticker, 'symbol')
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
         open = self.safe_float(ticker, 'open')
         close = self.safe_float(ticker, 'close')
         change = None
@@ -795,7 +816,7 @@ class latoken (Exchange):
         if not response:
             return
         #
-        #     {"message": "Request limit reachednot ", "details": "Request limit reached. Maximum allowed: 1 per 1s. Please try again in 1 second(s)."}
+        #     {"message": "Request limit reached!", "details": "Request limit reached. Maximum allowed: 1 per 1s. Please try again in 1 second(s)."}
         #     {"error": {"message": "Pair 370 is not found","errorType":"RequestError","statusCode":400}}
         #     {"error": {"message": "Signature or ApiKey is not valid","errorType":"RequestError","statusCode":400}}
         #     {"error": {"message": "Request is out of time", "errorType": "RequestError", "statusCode":400}}
@@ -806,21 +827,13 @@ class latoken (Exchange):
         #     {"error": {"message": "Order 1563460289.571254.704945@0370:1 is not found","errorType":"RequestError","statusCode":400}}
         #
         message = self.safe_string(response, 'message')
-        exact = self.exceptions['exact']
-        broad = self.exceptions['broad']
         feedback = self.id + ' ' + body
         if message is not None:
-            if message in exact:
-                raise exact[message](feedback)
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
         error = self.safe_value(response, 'error', {})
         errorMessage = self.safe_string(error, 'message')
         if errorMessage is not None:
-            if errorMessage in exact:
-                raise exact[errorMessage](feedback)
-            broadKey = self.findBroadlyMatchedKey(broad, errorMessage)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorMessage, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
             raise ExchangeError(feedback)  # unknown message

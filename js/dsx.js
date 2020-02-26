@@ -444,7 +444,7 @@ module.exports = class dsx extends Exchange {
         return this.parseOrderBook (orderbook);
     }
 
-    async fetchOrderBooks (symbols = undefined, params = {}) {
+    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
         if (symbols === undefined) {
@@ -461,6 +461,9 @@ module.exports = class dsx extends Exchange {
         const request = {
             'pair': ids,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default = 150, max = 2000
+        }
         const response = await this.publicGetDepthPair (this.extend (request, params));
         const result = {};
         ids = Object.keys (response);
@@ -1251,18 +1254,10 @@ module.exports = class dsx extends Exchange {
             if (!success) {
                 const code = this.safeString (response, 'code');
                 const message = this.safeString (response, 'error');
-                const feedback = this.id + ' ' + this.json (response);
-                const exact = this.exceptions['exact'];
-                if (code in exact) {
-                    throw new exact[code] (feedback);
-                } else if (message in exact) {
-                    throw new exact[message] (feedback);
-                }
-                const broad = this.exceptions['broad'];
-                const broadKey = this.findBroadlyMatchedKey (broad, message);
-                if (broadKey !== undefined) {
-                    throw new broad[broadKey] (feedback);
-                }
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
                 throw new ExchangeError (feedback); // unknown message
             }
         }

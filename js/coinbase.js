@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, RateLimitExceeded } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchClosedOrders': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
-                'fetchMarkets': false,
+                'fetchMarkets': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
                 'fetchOpenOrders': false,
@@ -138,24 +138,13 @@ module.exports = class coinbase extends Exchange {
                 'expired_token': AuthenticationError, // 401 Expired Oauth token
                 'invalid_scope': AuthenticationError, // 403 User hasn’t authenticated necessary scope
                 'not_found': ExchangeError, // 404 Resource not found
-                'rate_limit_exceeded': DDoSProtection, // 429 Rate limit exceeded
+                'rate_limit_exceeded': RateLimitExceeded, // 429 Rate limit exceeded
                 'internal_server_error': ExchangeError, // 500 Internal server error
             },
-            'markets': {
-                'BTC/USD': { 'id': 'btc-usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
-                'LTC/USD': { 'id': 'ltc-usd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD' },
-                'ETH/USD': { 'id': 'eth-usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD' },
-                'BCH/USD': { 'id': 'bch-usd', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD' },
-                'BTC/EUR': { 'id': 'btc-eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
-                'LTC/EUR': { 'id': 'ltc-eur', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR' },
-                'ETH/EUR': { 'id': 'eth-eur', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR' },
-                'BCH/EUR': { 'id': 'bch-eur', 'symbol': 'BCH/EUR', 'base': 'BCH', 'quote': 'EUR' },
-                'BTC/GBP': { 'id': 'btc-gbp', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP' },
-                'LTC/GBP': { 'id': 'ltc-gbp', 'symbol': 'LTC/GBP', 'base': 'LTC', 'quote': 'GBP' },
-                'ETH/GBP': { 'id': 'eth-gbp', 'symbol': 'ETH/GBP', 'base': 'ETH', 'quote': 'GBP' },
-                'BCH/GBP': { 'id': 'bch-gbp', 'symbol': 'BCH/GBP', 'base': 'BCH', 'quote': 'GBP' },
-            },
             'options': {
+                'fetchCurrencies': {
+                    'expires': 5000,
+                },
                 'accounts': [
                     'wallet',
                     'fiat',
@@ -396,14 +385,14 @@ module.exports = class coinbase extends Exchange {
         //         "next_step": null
         //     }
         //
-        const amountObject = this.safeValue (transaction, 'amount', {});
+        const subtotalObject = this.safeValue (transaction, 'subtotal', {});
         const feeObject = this.safeValue (transaction, 'fee', {});
         const id = this.safeString (transaction, 'id');
         const timestamp = this.parse8601 (this.safeValue (transaction, 'created_at'));
         const updated = this.parse8601 (this.safeValue (transaction, 'updated_at'));
         const type = this.safeString (transaction, 'resource');
-        const amount = this.safeFloat (amountObject, 'amount');
-        const currencyId = this.safeString (amountObject, 'currency');
+        const amount = this.safeFloat (subtotalObject, 'amount');
+        const currencyId = this.safeString (subtotalObject, 'currency');
         const currency = this.safeCurrencyCode (currencyId);
         const feeCost = this.safeFloat (feeObject, 'amount');
         const feeCurrencyId = this.safeString (feeObject, 'currency');
@@ -513,27 +502,133 @@ module.exports = class coinbase extends Exchange {
         };
     }
 
+    async fetchMarkets (params = {}) {
+        const response = await this.fetchCurrenciesFromCache (params);
+        const currencies = this.safeValue (response, 'currencies', {});
+        const exchangeRates = this.safeValue (response, 'exchangeRates', {});
+        const data = this.safeValue (currencies, 'data', []);
+        const dataById = this.indexBy (data, 'id');
+        const rates = this.safeValue (this.safeValue (exchangeRates, 'data', {}), 'rates', {});
+        const baseIds = Object.keys (rates);
+        const result = [];
+        for (let i = 0; i < baseIds.length; i++) {
+            const baseId = baseIds[i];
+            const base = this.safeCurrencyCode (baseId);
+            const type = (baseId in dataById) ? 'fiat' : 'crypto';
+            // https://github.com/ccxt/ccxt/issues/6066
+            if (type === 'crypto') {
+                for (let j = 0; j < data.length; j++) {
+                    const quoteCurrency = data[j];
+                    const quoteId = this.safeString (quoteCurrency, 'id');
+                    const quote = this.safeCurrencyCode (quoteId);
+                    const symbol = base + '/' + quote;
+                    const id = baseId + '-' + quoteId;
+                    result.push ({
+                        'id': id,
+                        'symbol': symbol,
+                        'base': base,
+                        'quote': quote,
+                        'baseId': baseId,
+                        'quoteId': quoteId,
+                        'active': undefined,
+                        'info': quoteCurrency,
+                        'precision': {
+                            'amount': undefined,
+                            'price': undefined,
+                        },
+                        'limits': {
+                            'amount': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'price': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'cost': {
+                                'min': this.safeFloat (quoteCurrency, 'min_size'),
+                                'max': undefined,
+                            },
+                        },
+                    });
+                }
+            }
+        }
+        return result;
+    }
+
+    async fetchCurrenciesFromCache (params = {}) {
+        const options = this.safeValue (this.options, 'fetchCurrencies', {});
+        const timestamp = this.safeInteger (options, 'timestamp');
+        const expires = this.safeInteger (options, 'expires', 1000);
+        const now = this.milliseconds ();
+        if ((timestamp === undefined) || ((now - timestamp) > expires)) {
+            const currencies = await this.publicGetCurrencies (params);
+            const exchangeRates = await this.publicGetExchangeRates (params);
+            this.options['fetchCurrencies'] = this.extend (options, {
+                'currencies': currencies,
+                'exchangeRates': exchangeRates,
+                'timestamp': now,
+            });
+        }
+        return this.safeValue (this.options, 'fetchCurrencies', {});
+    }
+
     async fetchCurrencies (params = {}) {
-        const response = await this.publicGetCurrencies (params);
-        const currencies = response['data'];
+        const response = await this.fetchCurrenciesFromCache (params);
+        const currencies = this.safeValue (response, 'currencies', {});
+        //
+        //     {
+        //         "data":[
+        //             {"id":"AED","name":"United Arab Emirates Dirham","min_size":"0.01000000"},
+        //             {"id":"AFN","name":"Afghan Afghani","min_size":"0.01000000"},
+        //             {"id":"ALL","name":"Albanian Lek","min_size":"0.01000000"},
+        //             {"id":"AMD","name":"Armenian Dram","min_size":"0.01000000"},
+        //             {"id":"ANG","name":"Netherlands Antillean Gulden","min_size":"0.01000000"},
+        //             // ...
+        //         ],
+        //     }
+        //
+        const exchangeRates = this.safeValue (response, 'exchangeRates', {});
+        //
+        //     {
+        //         "data":{
+        //             "currency":"USD",
+        //             "rates":{
+        //                 "AED":"3.67",
+        //                 "AFN":"78.21",
+        //                 "ALL":"110.42",
+        //                 "AMD":"474.18",
+        //                 "ANG":"1.75",
+        //                 // ...
+        //             },
+        //         }
+        //     }
+        //
+        const data = this.safeValue (currencies, 'data', []);
+        const dataById = this.indexBy (data, 'id');
+        const rates = this.safeValue (this.safeValue (exchangeRates, 'data', {}), 'rates', {});
+        const keys = Object.keys (rates);
         const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const id = this.safeString (currency, 'id');
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const type = (key in dataById) ? 'fiat' : 'crypto';
+            const currency = this.safeValue (dataById, key, {});
+            const id = this.safeString (currency, 'id', key);
             const name = this.safeString (currency, 'name');
             const code = this.safeCurrencyCode (id);
-            const minimum = this.safeFloat (currency, 'min_size');
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency, // the original payload
+                'type': type,
                 'name': name,
                 'active': true,
                 'fee': undefined,
                 'precision': undefined,
                 'limits': {
                     'amount': {
-                        'min': minimum,
+                        'min': this.safeFloat (currency, 'min_size'),
                         'max': undefined,
                     },
                     'price': {
@@ -1063,14 +1158,10 @@ module.exports = class coinbase extends Exchange {
         //      ]
         //    }
         //
-        const exceptions = this.exceptions;
         let errorCode = this.safeString (response, 'error');
         if (errorCode !== undefined) {
-            if (errorCode in exceptions) {
-                throw new exceptions[errorCode] (feedback);
-            } else {
-                throw new ExchangeError (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
+            throw new ExchangeError (feedback);
         }
         const errors = this.safeValue (response, 'errors');
         if (errors !== undefined) {
@@ -1079,11 +1170,8 @@ module.exports = class coinbase extends Exchange {
                 if (numErrors > 0) {
                     errorCode = this.safeString (errors[0], 'id');
                     if (errorCode !== undefined) {
-                        if (errorCode in exceptions) {
-                            throw new exceptions[errorCode] (feedback);
-                        } else {
-                            throw new ExchangeError (feedback);
-                        }
+                        this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
+                        throw new ExchangeError (feedback);
                     }
                 }
             }

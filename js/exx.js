@@ -203,7 +203,8 @@ module.exports = class exx extends Exchange {
             'currency': this.marketId (symbol),
         };
         const response = await this.publicGetDepth (this.extend (request, params));
-        return this.parseOrderBook (response, response['timestamp']);
+        const timestamp = this.safeTimestamp (response, 'timestamp');
+        return this.parseOrderBook (response, timestamp);
     }
 
     parseTrade (trade, market = undefined) {
@@ -406,15 +407,13 @@ module.exports = class exx extends Exchange {
         //
         const code = this.safeString (response, 'code');
         const message = this.safeString (response, 'message');
-        const feedback = this.id + ' ' + this.json (response);
+        const feedback = this.id + ' ' + body;
         if (code === '100') {
             return;
         }
         if (code !== undefined) {
-            const exceptions = this.exceptions;
-            if (code in exceptions) {
-                throw new exceptions[code] (feedback);
-            } else if (code === '308') {
+            this.throwExactlyMatchedException (this.exceptions, code, feedback);
+            if (code === '308') {
                 // this is returned by the exchange when there are no open orders
                 // {"code":308,"message":"Not Found Transaction Record"}
                 return;

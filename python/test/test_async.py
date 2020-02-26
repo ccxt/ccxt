@@ -98,6 +98,7 @@ def dump_error(*args):
     string = ' '.join([str(arg) for arg in args])
     print(string)
     sys.stderr.write(string + "\n")
+    sys.stderr.flush()
 
 
 # ------------------------------------------------------------------------------
@@ -360,9 +361,6 @@ async def test_exchange(exchange):
 async def try_all_proxies(exchange, proxies=['']):
     current_proxy = 0
     max_retries = len(proxies)
-    # a special case for ccex
-    if exchange.id == 'ccex' and max_retries > 1:
-        current_proxy = 1
     if exchange.proxy in proxies:
         current_proxy = proxies.index(exchange.proxy)
     for num_retries in range(0, max_retries):
@@ -403,7 +401,7 @@ with open(keys_file) as file:
 
 # instantiate all exchanges
 for id in ccxt.exchanges:
-    if id == 'theocean' or id == 'theocean1':
+    if id == 'theocean':
         continue
     exchange = getattr(ccxt, id)
     exchange_config = {'verbose': argv.verbose}
@@ -420,7 +418,7 @@ async def main():
 
     if argv.exchange:
 
-        if argv.exchange != 'theocean' and argv.exchange != 'theocean1':
+        if argv.exchange != 'theocean':
 
             exchange = exchanges[argv.exchange]
             symbol = argv.symbol
