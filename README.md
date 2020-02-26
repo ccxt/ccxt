@@ -70,7 +70,7 @@ $loop->run ();
 ## CCXT Pro License
 
 ```diff
-- It is illegal to republish or redistribute the CCXT Pro source code without a separate permission from us.
+- It is illegal to publish, distribute or sell the CCXT Pro source code without a separate permission from us.
 - Violation of the licensing terms will trigger a ban followed by a legal pursuit.
 ```
 
