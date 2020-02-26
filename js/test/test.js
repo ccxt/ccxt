@@ -33,8 +33,7 @@ log.bright ('\nTESTING', { exchange: exchangeId, symbol: exchangeSymbol || 'all'
 
 let proxies = [
     '',
-    'https://cors-anywhere.herokuapp.com/',
-    // 'https://crossorigin.me/',
+    'https://cors-anywhere.herokuapp.com/'
 ]
 
 //-----------------------------------------------------------------------------
