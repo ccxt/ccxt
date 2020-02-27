@@ -92,8 +92,8 @@ module.exports = class bytetrade extends Exchange {
                 },
             },
             'commonCurrencies': {
+                '44': 'ByteHub',
                 '48': 'Blocktonic',
-                '57': 'ByteHub',
             },
             'exceptions': {
                 'vertify error': AuthenticationError, // typo on the exchange side, 'vertify'
