@@ -103,7 +103,7 @@ class bytetrade(Exchange):
             },
             'commonCurrencies': {
                 '48': 'Blocktonic',
-                'BHT': 'ByteHub',
+                '57': 'ByteHub',
             },
             'exceptions': {
                 'vertify error': AuthenticationError,  # typo on the exchange side, 'vertify'
