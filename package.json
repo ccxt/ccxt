@@ -56,6 +56,7 @@
     "ansicolor": "1.1.81",
     "as-table": "1.0.37",
     "asciichart": "1.5.7",
+    "binance-api-node": "^0.9.15",
     "browserify": "14.5.0",
     "chai": "4.1.2",
     "chai-as-promised": "7.1.1",

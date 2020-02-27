@@ -101,7 +101,7 @@ declare abstract class ExchangeDescription {
 
     markets: Dictionary<Market> // to be filled manually or by fetchMarkets
     currencies: Dictionary<Currency> // to be filled manually or by fetchMarkets
-    timeframes: Dictionary<number | string> // redefine if the exchange has.fetchOHLCV
+    timeframes: Dictionary<string> // redefine if the exchange has.fetchOHLCV
     
     fees: {
         trading: {

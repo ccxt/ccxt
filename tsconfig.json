@@ -2,6 +2,10 @@
   "compilerOptions": {
     "module": "CommonJS",
     "target": "ES2018",
+    "lib": [
+      "ES2018",
+      "WebWorker",
+    ],
     "baseUrl": "./src",
     "outDir": "./js",
     "allowJs": true,

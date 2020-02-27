@@ -37,13 +37,11 @@ import {
     , RateLimitExceeded
 } from './errors'
 
-// import * as ccxt from 'ccxt'
-
 const { TRUNCATE, ROUND, DECIMAL_PLACES } = functions.precisionConstants
 
 // const BN = require ('../static_dependencies/BN/bn')
 import * as BN from 'bn.js'
-import { ExchangeBase, Balance, OrderBook, Ticker, Order, Trade, Transaction, OHLCV, Market, Currency, Params, TradingViewOHLCV, PartialBalances, Balances, TickerSymbol } from './ExchangeBase'
+import { ExchangeBase, Balance, OrderBook, Ticker, Order, Trade, Transaction, OHLCV, Market, Currency, Params, TradingViewOHLCV, PartialBalances, Balances, TickerSymbol, LedgerEntry, TradingFee } from './ExchangeBase'
 import { ExchangeDescription } from './ExchangeDescription'
 
 // ----------------------------------------------------------------------------
@@ -882,7 +880,7 @@ export abstract class Exchange extends ExchangeBase {
     commonCurrencyCode (currency: string) {
         if (!this.substituteCommonCurrencyCodes)
             return currency
-        return this.fn.safeString (this.commonCurrencies, currency, currency) as string
+        return this.fn.safeString (this.commonCurrencies, currency, currency)
     }
 
     currencyId (commonCode: string) {
@@ -905,7 +903,7 @@ export abstract class Exchange extends ExchangeBase {
         return this.fn.safeString (currencyIds, commonCode, commonCode)
     }
 
-    currency (code: string) {
+    currency (code: string): Currency {
 
         if (this.currencies === undefined)
             throw new ExchangeError (this.id + ' currencies not loaded')
@@ -948,13 +946,13 @@ export abstract class Exchange extends ExchangeBase {
         return result
     }
 
-    parseBidAsk (bidask: [string, string], priceKey = 0, amountKey = 1) {
+    parseBidAsk (bidask: string[], priceKey = 0, amountKey = 1) {
         const price = parseFloat (bidask[priceKey])
         const amount = parseFloat (bidask[amountKey])
-        return [ price, amount ]
+        return [ price, amount ] as [number, number]
     }
 
-    parseBidsAsks (bidasks: [string, string][], priceKey = 0, amountKey = 1) {
+    parseBidsAsks (bidasks: string[][], priceKey = 0, amountKey = 1) {
         return Object.values (bidasks || []).map (bidask => this.parseBidAsk (bidask, priceKey, amountKey))
     }
 
@@ -966,12 +964,12 @@ export abstract class Exchange extends ExchangeBase {
         })
     }
 
-    parseOrderBook (orderbook: any, timestamp: number, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
-        return {
+    parseOrderBook (orderbook: any, timestamp?: number, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
+        return <OrderBook>{
             'bids': sortBy ((bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [], 0, true),
             'asks': sortBy ((asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [], 0),
             'timestamp': timestamp,
-            'datetime': this.fn.iso8601 (timestamp),
+            'datetime': this.fn.iso8601 (timestamp as number),
             'nonce': undefined,
         }
     }
@@ -1038,15 +1036,16 @@ export abstract class Exchange extends ExchangeBase {
         return this.status
     }
 
-    async fetchTradingFees (params: Params = {}) {
+    async fetchTradingFees (params: Params = {}): Promise<Dictionary<TradingFee>> {
         throw new NotSupported (this.id + ' fetchTradingFees not supported yet')
     }
 
-    async fetchTradingFee (symbol: TickerSymbol, params: Params = {}) {
+    async fetchTradingFee (symbol: TickerSymbol, params: Params = {}): Promise<TradingFee> {
         if (!this.has['fetchTradingFees']) {
             throw new NotSupported (this.id + ' fetchTradingFee not supported yet')
         }
-        return await this.fetchTradingFees (params)
+        const tradingFees = await this.fetchTradingFees (params)
+        return this.fn.safeValue (tradingFees, 0, {})
     }
 
     async loadTradingLimits (symbols: TickerSymbol[], reload = false, params: Params = {}) {
@@ -1121,9 +1120,9 @@ export abstract class Exchange extends ExchangeBase {
         return this._filterByArray(objects, key, values, true) as Dictionary<T>;
     }
 
-    abstract parseTrade: Function
+    abstract parseTrade (trade: any, market?: Market): any;
 
-    parseTrades (trades: Trade[], market?: Market, since?: number, limit?: number, params: Params = {}) {
+    parseTrades (trades: any[], market?: Market, since?: number, limit?: number, params: Params = {}) {
         // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (trades)) {
         //     throw new ExchangeError (this.id + ' parseTrades expected an array in the trades argument, but got ' + typeof trades);
@@ -1134,9 +1133,9 @@ export abstract class Exchange extends ExchangeBase {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
     }
 
-    abstract parseTransaction: Function
+    abstract parseTransaction (transaction: any, currency: Currency, since?: number, limit?: number, params?: Params): Transaction;
 
-    parseTransactions (transactions: Transaction[], currency?: Dictionary<string>, since?: number, limit?: number, params: Params = {}) {
+    parseTransactions <T>(transactions: T[], currency: Currency, since?: number, limit?: number, params: Params = {}) {
         // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (transactions)) {
         //     throw new ExchangeError (this.id + ' parseTransactions expected an array in the transactions argument, but got ' + typeof transactions);
@@ -1147,7 +1146,9 @@ export abstract class Exchange extends ExchangeBase {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    abstract parseLedgerEntry: Function
+    parseLedgerEntry (item: any, currency?: Currency): LedgerEntry {
+        throw new Error('parseLedgerEntry not implemented.');
+    }
 
     parseLedger (data: any, currency?: Currency, since?: number, limit?: number, params: Params = {}) {
         let result: any[] = [];
@@ -1167,9 +1168,9 @@ export abstract class Exchange extends ExchangeBase {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    abstract parseOrder: Function
+    abstract parseOrder (order: any, market?: Market): Order;
 
-    parseOrders (orders: Order[], market?: Market, since?: number, limit?: number, params: Params = {}) {
+    parseOrders (orders: any[], market?: Market, since?: number, limit?: number, params: Params = {}): Order[] {
         // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (orders)) {
         //     throw new ExchangeError (this.id + ' parseOrders expected an array in the orders argument, but got ' + typeof orders);
@@ -1180,7 +1181,7 @@ export abstract class Exchange extends ExchangeBase {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
     }
 
-    safeCurrencyCode (currencyId: string, currency?: Dictionary<string>) {
+    safeCurrencyCode (currencyId: string, currency?: Currency) {
         let code = undefined
         if (currencyId !== undefined) {
             if (this.currencies_by_id !== undefined && currencyId in this.currencies_by_id) {
@@ -1192,18 +1193,18 @@ export abstract class Exchange extends ExchangeBase {
         if (code === undefined && currency !== undefined) {
             code = currency['code']
         }
-        return code
+        return code as string
     }
 
     filterBySymbol (array: {symbol: TickerSymbol}[], symbol = undefined) {
         return ((symbol !== undefined) ? array.filter (entry => entry.symbol === symbol) : array)
     }
 
-    parseOHLCV (ohlcv: OHLCV, market = undefined, timeframe = '1m', since?: number, limit?: number) {
+    parseOHLCV (ohlcv: any[], market?: Market, timeframe = '1m', since?: number, limit?: number) {
         return Array.isArray (ohlcv) ? ohlcv.slice (0, 6) : ohlcv
     }
 
-    parseOHLCVs (ohlcvs: OHLCV[], market = undefined, timeframe = '1m', since?: number, limit?: number) {
+    parseOHLCVs (ohlcvs: OHLCV[], market?: Market, timeframe = '1m', since?: number, limit?: number) {
         // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (ohlcvs)) {
         //     throw new ExchangeError (this.id + ' parseOHLCVs expected an array in the ohlcvs argument, but got ' + typeof ohlcvs);
@@ -1288,7 +1289,7 @@ export abstract class Exchange extends ExchangeBase {
 
     calculateFee (symbol: TickerSymbol, type: Order['type'], side: Order['side'], amount: number, price: number, takerOrMaker: 'taker' | 'maker' = 'taker', params: Params = {}) {
         const market = this.markets[symbol as string]
-        const rate = market[takerOrMaker]
+        const rate = market[takerOrMaker] as number
         const cost = parseFloat (this.costToPrecision (symbol, amount * price))
         return {
             'type': takerOrMaker,

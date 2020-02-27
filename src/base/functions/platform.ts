@@ -8,6 +8,10 @@
 // - make sure it works with Angular.js
 // - make sure it does not break other possible usage scenarios
 
+declare global {
+    const window: any;
+}
+
 export const isBrowser = typeof window !== 'undefined'
 
 export const isElectron = typeof process !== 'undefined' &&

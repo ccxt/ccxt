@@ -130,7 +130,7 @@ export const
       ]
     */
 
-    , filterBy = (x: Dictionary<any>, k: string, value = undefined, out: any[] = []) => {
+    , filterBy = <T>(x: Collection<T>, k: keyof T, value: T[keyof T], out: T[] = []) => {
 
         for (const v of values (x))
             if (v[k] === value)

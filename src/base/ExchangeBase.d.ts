@@ -84,7 +84,7 @@ declare abstract class ExchangeBase extends ExchangeDescription {
     fetchDepositAddress (currency: string, params?: Params): Promise<DepositAddressResponse>;
     fetchDeposits (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
     fetchFreeBalance (params?: Params): Promise<PartialBalances>;
-    fetchFundingFees (...args: any): Promise<any>; // TODO: add function signatures
+    fetchFundingFees (codes?: string, params?: Params): Promise<FundingFees>;
     fetchL2OrderBook (...args: any): Promise<any>; // TODO: add function signatures
     fetchLedger (...args: any): Promise<any>; // TODO: add function signatures
     fetchMarkets (): Promise<Market[]>;
@@ -139,13 +139,16 @@ interface Market {
     quote: string;
     baseId: string,
     quoteId: string,
+    type: 'spot' | 'future',
+    spot: boolean,
     active: boolean;
+    future: boolean,
     precision: { base: number, quote: number, amount: number, price: number };
     limits: { amount: MinMax, price: MinMax, cost?: MinMax };
-    tierBased: boolean,
-    percentage: boolean,
-    taker: number,
-    maker: number,
+    tierBased?: boolean,
+    percentage?: boolean,
+    taker?: number,
+    maker?: number,
     info: any,
 }
 
@@ -153,7 +156,7 @@ interface Order {
     id: string;
     datetime: string;
     timestamp: number;
-    lastTradeTimestamp: number;
+    lastTradeTimestamp?: number;
     status: 'open' | 'closed' | 'canceled';
     symbol: TickerSymbol;
     type: 'market' | 'limit';
@@ -170,11 +173,11 @@ interface Order {
 }
 
 interface OrderBook {
-    asks: [string, string][];
-    bids: [string, string][];
+    asks: [number, number][];
+    bids: [number, number][];
     datetime: string;
     timestamp: number;
-    nonce: number;
+    nonce?: number;
 }
 
 interface Trade {
@@ -263,10 +266,17 @@ interface DepositAddress {
 }
 
 interface Fee {
-    type: 'taker' | 'maker';
+    type?: 'taker' | 'maker';
     currency: string;
-    rate: number;
+    rate?: number;
     cost: number;
+}
+
+interface TradingFee {
+    info: any;
+    symbol: TickerSymbol;
+    maker: number;
+    taker: number;
 }
 
 interface WithdrawalResponse {
@@ -281,9 +291,33 @@ interface DepositAddressResponse {
     tag?: string;
 }
 
+interface LedgerEntry {
+    info: any;
+    id: string;
+    timestamp: number;
+    datetime: Date;
+    direction: number;
+    account: string;
+    referenceId: string;
+    referenceAccount: string;
+    type: string;
+    currency: string;
+    amount: number;
+    before: number;
+    after: number;
+    status: string;
+    fee: number;
+}
+
+interface FundingFees {
+    info: any;
+    withdraw: Dictionary<any>;
+    deposit: Dictionary<any>;
+}
+
 type MinMax = {
-    min: number;
-    max: number | undefined;
+    min?: number;
+    max?: number;
 }
 
 /** Request parameters */

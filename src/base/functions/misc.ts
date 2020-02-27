@@ -1,6 +1,6 @@
 import { ROUND_UP, ROUND_DOWN } from  './number'
 import { NotSupported } from '../errors'
-import { Trade } from '../ExchangeBase'
+import { Trade, OHLCVC } from '../ExchangeBase'
 
 //-------------------------------------------------------------------------
 // converts timeframe to seconds
@@ -101,17 +101,17 @@ export const implodeParams = (string: string, params: any) => {
 
 /*  ------------------------------------------------------------------------ */
 
-export function aggregate (bidasks: [string, string][]) {
-    const result: {[price: string]: string} = {}
+export function aggregate (bidasks: [number, number][]) {
+    const result: {[price: string]: number} = {}
 
     for (let i = 0; i < bidasks.length; i++) {
         const [ price, volume ] = bidasks[i];
-        if (+volume > 0) {
-            result[price] = (result[price] || 0) + volume
+        if (volume > 0) {
+            result[price] = (result[price] ?? 0) + volume
         }
     }
 
-    return Object.keys (result).map (price => [parseFloat (price), parseFloat (result[price])])
+    return Object.keys (result).map (price => [parseFloat (price), parseFloat (result[price] as any)] as [number, number])
 }
 
 /*  ------------------------------------------------------------------------ */
