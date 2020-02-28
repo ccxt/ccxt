@@ -171,11 +171,11 @@ class tidex extends Exchange {
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => $currency['withdrawMinAmout'],
+                        'min' => $this->safe_float($currency, 'withdrawMinAmount'),
                         'max' => null,
                     ),
                     'deposit' => array(
-                        'min' => $currency['depositMinAmount'],
+                        'min' => $this->safe_float($currency, 'depositMinAmount'),
                         'max' => null,
                     ),
                 ),
