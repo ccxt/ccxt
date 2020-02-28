@@ -192,15 +192,18 @@ class binance extends Exchange {
                         'historicalTrades',
                         'aggTrades',
                         'klines',
+                        'fundingRate',
                         'premiumIndex',
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
+                        'leverageBracket',
                     ),
                 ),
                 'fapiPrivate' => array(
                     'get' => array(
                         'allOrders',
+                        'openOrder',
                         'openOrders',
                         'order',
                         'account',
