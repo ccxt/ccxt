@@ -186,10 +186,12 @@ module.exports = class binance extends Exchange {
                         'historicalTrades',
                         'aggTrades',
                         'klines',
+                        'fundingRate',
                         'premiumIndex',
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
+                        'leverageBracket',
                     ],
                 },
                 'fapiPrivate': {
