@@ -103,8 +103,9 @@ class idex(Exchange):
                 'secret': False,
             },
             'commonCurrencies': {
-                'ONE': 'Menlo One',
                 'FT': 'Fabric Token',
+                'MT': 'Monarch',
+                'ONE': 'Menlo One',
                 'PLA': 'PlayChip',
                 'WAX': 'WAXP',
             },

@@ -101,6 +101,7 @@ class latoken(Exchange):
                 },
             },
             'commonCurrencies': {
+                'MT': 'Monarch',
                 'TSL': 'Treasure SL',
             },
             'options': {
