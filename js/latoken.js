@@ -92,6 +92,7 @@ module.exports = class latoken extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'MT': 'Monarch',
                 'TSL': 'Treasure SL',
             },
             'options': {
