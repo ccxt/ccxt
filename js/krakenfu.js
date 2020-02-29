@@ -198,17 +198,17 @@ module.exports = class krakenfu extends Exchange {
                 'amount': undefined,
                 'price': undefined,
             };
-            const contractSize = this.safeFloat (market, 'contractSize');
+            const lotSize = this.safeFloat (market, 'contractSize');
             const tickSize = this.safeFloat (market, 'tickSize');
-            if (contractSize !== undefined) {
-                precision['amount'] = contractSize;
+            if (lotSize !== undefined) {
+                precision['amount'] = 1.0;
             }
             if (tickSize !== undefined) {
                 precision['price'] = tickSize;
             }
             const limits = {
                 'amount': {
-                    'min': contractSize,
+                    'min': precision['amount'],
                     'max': undefined,
                 },
                 'price': {
@@ -236,6 +236,7 @@ module.exports = class krakenfu extends Exchange {
                 'future': future,
                 'prediction': prediction,
                 'perpetual': perpetual,
+                'lotSize': lotSize,
                 'info': market,
             });
         }
