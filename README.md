@@ -3,7 +3,7 @@
 
 CCXT Pro is a professional tool for algorithmic crypto-trading. It is a high-performance superset of the CCXT library, one of the world's leading open-source frameworks for crypto finance. CCXT Pro includes the standard CCXT library and wraps it with powerful new features and useful enhancements.
 
-## [Home](https://ccxt.pro) · [Install](#install) · [Usage](#usage) · [Manual](https://github.com/ccxt/ccxt/wiki/ccxt.pro) · [Examples](https://github.com/kroitor/ccxt.pro/tree/master/examples) · [Support](#support)
+## [Home](https://ccxt.pro) · [License](#license) · [Install](#install) · [Usage](#usage) · [Manual](https://github.com/ccxt/ccxt/wiki/ccxt.pro) · [Examples](https://github.com/kroitor/ccxt.pro/tree/master/examples) · [Support](#support)
 
 ## Features:
 
@@ -16,7 +16,11 @@ CCXT Pro is a professional tool for algorithmic crypto-trading. It is a high-per
 - Backward-compatible CCXT ←→ CCXT Pro adapters
 - FIX protocol transports <sup>*planned*</sup>
 
-## CCXT Pro License
+## License
+
+### See [LICENSE.txt](https://github.com/kroitor/ccxt.pro/tree/master/LICENSE.txt) for details
+
+### Important Notes
 
 ```diff
 - It is illegal to publish, distribute or sell the CCXT Pro source code without a separate permission from us.
@@ -134,3 +138,5 @@ $loop->run ();
 ## Support
 
 ## [Manual](https://github.com/ccxt/ccxt/wiki/ccxt.pro) · [New issue](https://github.com/ccxt/ccxt/labels/pro) · [Slack](https://github.com/ccxt/ccxt/labels/pro) · [Gitter](https://gitter.im/ccxt-dev/ccxt) · [info@ccxt.pro](mailto:info@ccxt.pro)
+
+© 2020 CCXT Pro
