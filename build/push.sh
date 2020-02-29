@@ -41,13 +41,13 @@ echo "Pushing to ccxt.wiki"
 
 cd build/ccxt.wiki
 echo "STEP 1"
-cp ../../wiki/* .
+cp -R ../../wiki/* .
 echo "STEP 2"
-cd ccxt.pro
-echo "STEP 3"
-cp ../../../wiki/ccxt.pro/* .
-echo "STEP 4"
-cd ..
+# cd ccxt.pro
+# echo "STEP 3"
+# cp ../../../wiki/ccxt.pro/* .
+# echo "STEP 4"
+# cd ..
 echo "STEP 5"
 git commit -a -m ${COMMIT_MESSAGE} || true
 echo "STEP 6"
