@@ -1,3 +1,5 @@
+# [CCXT Pro](ccxt.pro)
+
 # Overview
 
 The CCXT Pro stack is built upon [CCXT](https://ccxt.trade) and extends the core CCXT classes, using:
@@ -387,13 +389,13 @@ if exchange.has['watchOrderBook']:
 ```PHP
 // PHP
 if ($exchange->has['watchOrderBook']) {
-    $main = function ($symbol, $limit) use (&$exchange, &$main) {
+    $main = function () use (&$exchange, &$main, $symbol, $limit) {
         $exchange->watch_order_book($symbol, $limit)->then(function($orderbook) use (&$main, $symbol, $limit) {
             echo date('c'), ' ', $symbol, ' ', json_encode(array($orderbook['asks'][0], $orderbook['bids'][0])), "\n";
-            $main($symbol, $limit);
+            $main();
         })->otherwise(function (\Exception $e) use (&$main, $symbol, $limit) {
             echo get_class ($e) . ' ' . $e->getMessage (). "\n";
-            $main($symbol, $limit);
+            $main();
             // stop the loop on exception or leave it commented to retry
             // throw $e;
         })

@@ -20,12 +20,12 @@
         - [`watchTrades (symbol, since, limit, params)`](ccxt.pro.manual#watchTrades)
     - [Private Methods](ccxt.pro.manual#private-methods)
       - [Authentication](ccxt.pro.manual#authentication)
-      - [Trading](ccxt.pro.manual#trading) <sup>wip</sup>
+      - [Trading](ccxt.pro.manual#trading)
         - [`watchBalance (params)`](ccxt.pro.manual#watchBalance)
-        - [`watchOrders (symbol, since, limit, params)`](ccxt.pro.manual#watchOrders)
-        - [`watchCreateOrder (symbol, type, side, amount, price, params)`](ccxt.pro.manual#watchCreateOrder)
-        - [`watchCancelOrder (id, symbol, params)`](ccxt.pro.manual#watchCancelOrder)
-        - [`watchMyTrades (symbol, since, limit, params)`](https://github.com/ccxt-dev/ccxt/wiki/ccxt.pro/Manual#watchMyTrades)
+        - [`watchOrders (symbol, since, limit, params)`](ccxt.pro.manual#watchOrders) <sup>wip</sup>
+        - [`watchCreateOrder (symbol, type, side, amount, price, params)`](ccxt.pro.manual#watchCreateOrder) <sup>wip</sup>
+        - [`watchCancelOrder (id, symbol, params)`](ccxt.pro.manual#watchCancelOrder) <sup>wip</sup>
+        - [`watchMyTrades (symbol, since, limit, params)`](https://github.com/ccxt-dev/ccxt/wiki/ccxt.pro/Manual#watchMyTrades) <sup>wip</sup>
       - [Funding](ccxt.pro.manual#funding) <sup>wip</sup>
         - [Deposit](https://github.com/ccxt/ccxt/wiki/Manual#deposit)
         - [Withdraw](https://github.com/ccxt/ccxt/wiki/Manual#withdraw)
