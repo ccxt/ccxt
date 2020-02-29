@@ -44,9 +44,9 @@
     "pandoc-doc-install": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/install.rst wiki/Install.md",
     "pandoc-doc-exchanges": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges.rst wiki/Exchange-Markets.md",
     "pandoc-doc-exchanges-by-country": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges-by-country.rst wiki/Exchange-Markets-By-Country.md",
-    "pandoc-doc-ccxtpro-readme": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/ccxt-pro.rst wiki/CCXT-Pro.md",
-    "pandoc-doc-ccxtpro-install": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/ccxt-pro-install.rst wiki/CCXT-Pro-Install.md",
-    "pandoc-doc-ccxtpro-manual": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/ccxt-pro-manual.rst wiki/CCXT-Pro-Manual.md",
+    "pandoc-doc-ccxtpro-readme": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/ccxt.pro.rst wiki/ccxt.pro.md",
+    "pandoc-doc-ccxtpro-install": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/ccxt.pro.install.rst wiki/ccxt.pro.install.md",
+    "pandoc-doc-ccxtpro-manual": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/ccxt.pro.manual.rst wiki/ccxt.pro.manual.md",
     "postinstall": "node postinstall"
   },
   "types": "./ccxt.d.ts",
