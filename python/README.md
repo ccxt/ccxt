@@ -58,7 +58,7 @@ $loop->run ();
 
 ## Features:
 
-- Unified public and private WebSockets APIs <sup>*wip now*</sup>
+- Unified public and private WebSockets APIs
 - Auto-connection and re-connection
 - Connection timeouts
 - Re-connection exponential backoff delay
