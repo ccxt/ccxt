@@ -1,9 +1,9 @@
-![CCXT Pro](https://user-images.githubusercontent.com/1294454/71230147-79917b80-22f9-11ea-9c7e-dcd40123a1d0.png)
+[![CCXT Pro](https://user-images.githubusercontent.com/1294454/71230147-79917b80-22f9-11ea-9c7e-dcd40123a1d0.png)](https://ccxt.pro)
 &nbsp;
 
 CCXT Pro is a professional tool for algorithmic crypto-trading. It is a high-performance superset of the CCXT library, one of the world's leading open-source frameworks for crypto finance. CCXT Pro includes the standard CCXT library and wraps it with powerful new features and useful enhancements.
 
-## [https://ccxt.pro](https://ccxt.pro) · [Install](#install) · [Usage](#usage) · [Manual](https://github.com/ccxt/ccxt/wiki/ccxt.pro) · [Examples](https://github.com/kroitor/ccxt.pro/tree/master/examples) · [Support](#support)
+## [ccxt.pro](https://ccxt.pro) · [Install](#install) · [Usage](#usage) · [Manual](https://github.com/ccxt/ccxt/wiki/ccxt.pro) · [Examples](https://github.com/kroitor/ccxt.pro/tree/master/examples) · [Support](#support)
 
 ## Features:
 
