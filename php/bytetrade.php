@@ -221,6 +221,9 @@ class bytetrade extends Exchange {
             $id = $this->safe_string($market, 'symbol');
             $base = $this->safe_string($market, 'baseName');
             $quote = $this->safe_string($market, 'quoteName');
+            $normalBase = explode('@', $base)[0];
+            $normalQuote = explode('@', $quote)[0];
+            $normalSymbol = $normalBase . '/' . $normalQuote;
             $baseId = $this->safe_string($market, 'base');
             $quoteId = $this->safe_string($market, 'quote');
             if (is_array($this->commonCurrencies) && array_key_exists($baseId, $this->commonCurrencies)) {
@@ -235,9 +238,6 @@ class bytetrade extends Exchange {
             $price = $this->safe_value($limits, 'price', array());
             $precision = $this->safe_value($market, 'precision', array());
             $active = $this->safe_string($market, 'active');
-            $normalBase = explode('@', $base)[0];
-            $normalQuote = explode('@', $quote)[0];
-            $normalSymbol = $normalBase . '/' . $normalQuote;
             $entry = array(
                 'id' => $id,
                 'symbol' => $symbol,
