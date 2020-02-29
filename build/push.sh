@@ -25,23 +25,11 @@ fi
 echo "Pushing to ccxt.wiki"
 
 cd build/ccxt.wiki
-echo "STEP 1"
 cp -R ../../wiki/* .
-echo "STEP 2"
-# cd ccxt.pro
-# echo "STEP 3"
-# cp ../../../wiki/ccxt.pro/* .
-# echo "STEP 4"
-# cd ..
-echo "STEP 5"
 git commit -a -m ${COMMIT_MESSAGE} || true
-echo "STEP 6"
 git remote remove origin
-echo "STEP 7"
 git remote add origin https://${GITHUB_TOKEN}@github.com/ccxt/ccxt.wiki.git
-echo "STEP 8"
 git push origin HEAD:master
-echo "STEP 9"
 cd ../..
 
 # ---------------------------------------------------------------------------------
