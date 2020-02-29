@@ -130,3 +130,7 @@ $main = function () use (&$exchange, &$main) {
 $loop->futureTick($main);
 $loop->run ();
 ```
+
+## Support
+
+## [Manual](https://github.com/ccxt/ccxt/wiki/ccxt.pro) · [New issue](https://github.com/ccxt/ccxt/labels/pro) · [Slack](https://github.com/ccxt/ccxt/labels/pro) · [Gitter](https://gitter.im/ccxt-dev/ccxt) · [info@ccxt.pro](mailto:info@ccxt.pro)
