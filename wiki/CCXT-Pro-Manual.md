@@ -269,7 +269,7 @@ import ccxtpro
 exchange = ccxtpro.kraken({'enableRateLimit': True})
 ```
 
-In PHP the async primitives are borrowed from ReactPHP. The PHP implementation of CCXT Pro relies on [Promise](https://github.com/reactphp/promise) and [EventLoop](https://github.com/reactphp/event-loop). In PHP the user is required to supply a ReactPHP's event loop instance in the constructor arguments as shown below:
+In PHP the async primitives are borrowed from [ReactPHP](https://reactphp.org). The PHP implementation of CCXT Pro relies on [Promise](https://github.com/reactphp/promise) and [EventLoop](https://github.com/reactphp/event-loop) in particular. In PHP the user is required to supply a ReactPHP's event loop instance in the constructor arguments as shown below:
 
 ```PHP
 // PHP
