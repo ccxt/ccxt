@@ -25,6 +25,24 @@ A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce wi
    manual.rst
 
 .. toctree::
+   :includehidden:
+   :caption: CCXT Pro
+
+   ccxt.pro/README.rst
+
+.. toctree::
+   :includehidden:
+   :caption: CCXT Pro Install
+
+   ccxt.pro/Install.rst
+
+.. toctree::
+   :includehidden:
+   :caption: CCXT Pro Manual
+
+   ccxt.pro/Manual.rst
+
+.. toctree::
    :maxdepth: 2
    :caption: Frequently Asked Questions
 
