@@ -331,7 +331,7 @@ CCXT Pro goes with the modern approach and it is designed for the async syntax. 
 
 The same is true not only for JS/ES6 but also for Python 3 async code as well. In PHP the async primitives are borrowed from [ReactPHP](https://reactphp.org/).
 
-Modern async syntax allows you to combine and split the execution into parallel execution pathways, and then merge them, group them, prioritize them, and what not. With promises one can easily convert from direct async-style to inverted callback-style, back and forth.
+Modern async syntax allows you to combine and split the execution into parallel pathways and then merge them, group them, prioritize them, and what not. With promises one can easily convert from direct async-style control flow to inverted callback-style control flow, back and forth.
 
 ### Public Methods
 
@@ -365,7 +365,7 @@ if (exchnage.has['watchOrderBook']) {
         } catch (e) {
             console.log (e)
             // stop the loop on exception or leave it commented to retry
-            // break
+            // throw e
         }
     }
 }
@@ -381,22 +381,25 @@ if exchange.has['watchOrderBook']:
         except Exception as e:
             print(e)
             # stop the loop on exception or leave it commented to retry
-            # break
+            # rasie e
 ```
 
 ```PHP
 // PHP
-$main = function ($symbol, $limit) use (&$exchange, &$main) {
-    $exchange->watch_order_book($symbol, $limit)->then(function($orderbook) use (&$main, $symbol, $limit) {
-        echo date('c'), ' ', $symbol, ' ', json_encode(array($orderbook['asks'][0], $orderbook['bids'][0])), "\n";
-        $main($symbol, $limit);
-    })->otherwise(function (\Exception $e) use (&$main, $symbol, $limit) {
-        echo get_class ($e) . ' ' . $e->getMessage (). "\n";
-        $main($symbol, $limit);
-        // stop the loop on exception or leave it commented to retry
-        // throw $e;
-    })
-};
+if ($exchange->has['watchOrderBook']) {
+    $main = function ($symbol, $limit) use (&$exchange, &$main) {
+        $exchange->watch_order_book($symbol, $limit)->then(function($orderbook) use (&$main, $symbol, $limit) {
+            echo date('c'), ' ', $symbol, ' ', json_encode(array($orderbook['asks'][0], $orderbook['bids'][0])), "\n";
+            $main($symbol, $limit);
+        })->otherwise(function (\Exception $e) use (&$main, $symbol, $limit) {
+            echo get_class ($e) . ' ' . $e->getMessage (). "\n";
+            $main($symbol, $limit);
+            // stop the loop on exception or leave it commented to retry
+            // throw $e;
+        })
+    };
+    $loop->futureTick($main);
+}
 ```
 
 ##### watchTicker
