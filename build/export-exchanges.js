@@ -252,6 +252,9 @@ function exportWikiToGitHub (wikiPath, gitWikiPath) {
         'Manual.md': 'Manual.md',
         'Exchange-Markets.md': 'Exchange-Markets.md',
         'Exchange-Markets-By-Country.md': 'Exchange-Markets-By-Country.md',
+        'ccxt.pro/README.md': 'ccxt.pro/README.md',
+        'ccxt.pro/Install.md': 'ccxt.pro/Install.md',
+        'ccxt.pro/Manual.md': 'ccxt.pro/Manual.md',
     }
 
     for (const [ sourceFile, destinationFile ] of entries (ccxtWikiFiles)) {
