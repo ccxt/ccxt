@@ -221,6 +221,9 @@ class bytetrade(Exchange):
             id = self.safe_string(market, 'symbol')
             base = self.safe_string(market, 'baseName')
             quote = self.safe_string(market, 'quoteName')
+            normalBase = base.split('@')[0]
+            normalQuote = quote.split('@')[0]
+            normalSymbol = normalBase + '/' + normalQuote
             baseId = self.safe_string(market, 'base')
             quoteId = self.safe_string(market, 'quote')
             if baseId in self.commonCurrencies:
@@ -233,9 +236,6 @@ class bytetrade(Exchange):
             price = self.safe_value(limits, 'price', {})
             precision = self.safe_value(market, 'precision', {})
             active = self.safe_string(market, 'active')
-            normalBase = base.split('@')[0]
-            normalQuote = quote.split('@')[0]
-            normalSymbol = normalBase + '/' + normalQuote
             entry = {
                 'id': id,
                 'symbol': symbol,
