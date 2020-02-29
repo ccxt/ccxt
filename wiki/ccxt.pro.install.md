@@ -1,6 +1,6 @@
-# [CCXT Pro](ccxt.pro)
+[&#8962; Home](ccxt.pro)
 
-## How To Install
+# How To Install
 
 Installing CCXT Pro requires visiting the https://ccxt.pro website and obtaining a CCXT Pro license. The license gives you the access to the CCXT Pro codebase in a private GitHub repository.
 
@@ -10,7 +10,7 @@ Installing CCXT Pro requires visiting the https://ccxt.pro website and obtaining
 - feedback and pull requests appreciated
 ```
 
-### JavaScript
+## JavaScript
 
 ```shell
 # in your project directory
@@ -22,7 +22,7 @@ npm install git+https://github.com/kroitor/ccxt.pro.git
 npm install git@github.com/kroitor/ccxt.pro.git
 ```
 
-### Python
+## Python
 
 ```shell
 # if you're using Git/HTTPS authentication
