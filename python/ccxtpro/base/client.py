@@ -24,6 +24,7 @@ class Client(object):
     maxPingPongMisses = 2.0  # how many missed pongs to raise a timeout
     lastPong = None
     ping = None  # ping-function if defined
+    verbose = False  # verbose output
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
         defaults = {
@@ -33,6 +34,7 @@ class Client(object):
             'on_message_callback': on_message_callback,
             'on_error_callback': on_error_callback,
             'on_close_callback': on_close_callback,
+            'verbose': False,  # verbose output
             'ping': None,  # ping-function if defined
             'connectionStarted': None,  # initiation timestamp, ms
             'connectionEstablished': None,  # success timestamp, ms
@@ -95,7 +97,8 @@ class Client(object):
         return result
 
     async def receive_loop(self):
-        print(Exchange.iso8601(Exchange.milliseconds()), 'receive loop')
+        if self.verbose:
+            print(Exchange.iso8601(Exchange.milliseconds()), 'receive loop')
         while not self.closed():
             try:
                 message = await self.receive()
@@ -103,31 +106,36 @@ class Client(object):
                 self.handle_message(message)
             except Exception as e:
                 error = NetworkError(str(e))
-                print(Exchange.iso8601(Exchange.milliseconds()), 'receive_loop', 'Exception', error)
+                if self.verbose:
+                    print(Exchange.iso8601(Exchange.milliseconds()), 'receive_loop', 'Exception', error)
                 self.reset(error)
 
     async def open(self, session, backoff_delay=0):
         # exponential backoff for consequent connections if necessary
         if backoff_delay:
             await sleep(backoff_delay)
-        print(Exchange.iso8601(Exchange.milliseconds()), 'connecting to', self.url, 'with timeout', self.connectionTimeout, 'ms')
+        if self.verbose:
+            print(Exchange.iso8601(Exchange.milliseconds()), 'connecting to', self.url, 'with timeout', self.connectionTimeout, 'ms')
         self.connectionStarted = Exchange.milliseconds()
         try:
             coroutine = self.create_connection(session)
             self.connection = await wait_for(coroutine, timeout=int(self.connectionTimeout / 1000))
-            print(Exchange.iso8601(Exchange.milliseconds()), 'connected')
+            if self.verbose:
+                print(Exchange.iso8601(Exchange.milliseconds()), 'connected')
             self.connected.resolve()
             # run both loops forever
             await gather(self.ping_loop(), self.receive_loop())
         except TimeoutError as e:
             # connection timeout
             error = RequestTimeout('Connection timeout')
-            print(Exchange.iso8601(Exchange.milliseconds()), 'RequestTimeout', error)
+            if self.verbose:
+                print(Exchange.iso8601(Exchange.milliseconds()), 'RequestTimeout', error)
             self.on_error(error)
         except Exception as e:
             # connection failed or rejected (ConnectionRefusedError, ClientConnectorError)
             error = NetworkError(e)
-            print(Exchange.iso8601(Exchange.milliseconds()), 'NetworkError', error)
+            if self.verbose:
+                print(Exchange.iso8601(Exchange.milliseconds()), 'NetworkError', error)
             self.on_error(error)
 
     def connect(self, session, backoff_delay=0):
@@ -137,7 +145,8 @@ class Client(object):
         return self.connected
 
     def on_error(self, error):
-        print(Exchange.iso8601(Exchange.milliseconds()), 'on_error', error)
+        if self.verbose:
+            print(Exchange.iso8601(Exchange.milliseconds()), 'on_error', error)
         self.error = error
         self.reset(error)
         self.on_error_callback(self, error)
@@ -145,7 +154,8 @@ class Client(object):
             ensure_future(self.close(1006))
 
     def on_close(self, code):
-        print(Exchange.iso8601(Exchange.milliseconds()), 'on_close', code)
+        if self.verbose:
+            print(Exchange.iso8601(Exchange.milliseconds()), 'on_close', code)
         if not self.error:
             self.reset(NetworkError(code))
         self.on_close_callback(self, code)
@@ -157,7 +167,8 @@ class Client(object):
         self.reject(error)
 
     async def ping_loop(self):
-        print(Exchange.iso8601(Exchange.milliseconds()), 'ping loop')
+        if self.verbose:
+            print(Exchange.iso8601(Exchange.milliseconds()), 'ping loop')
         pass
 
     def receive(self):
