@@ -339,6 +339,8 @@ Modern async syntax allows you to combine and split the execution into parallel 
 
 #### Market Data
 
+-------------------------------------------------------------------------------
+
 ##### watchOrderBook
 
 ```JavaScript
@@ -387,6 +389,8 @@ if ($exchange->has['watchOrderBook']) {
     $loop->futureTick($main);
 }
 ```
+
+-------------------------------------------------------------------------------
 
 ##### watchTicker
 
@@ -437,6 +441,8 @@ if ($exchange->has['watchTicker']) {
 }
 ```
 
+-------------------------------------------------------------------------------
+
 ##### watchTickers
 
 ```JavaScript
@@ -485,6 +491,8 @@ if ($exchange->has['watchTickers']) {
     $loop->futureTick($main);
 }
 ```
+
+-------------------------------------------------------------------------------
 
 ##### watchOHLCV
 
@@ -537,6 +545,8 @@ if ($exchange->has['watchOHLCV']) {
 }
 ```
 
+-------------------------------------------------------------------------------
+
 ##### watchTrades
 
 ```JavaScript
@@ -586,6 +596,8 @@ if ($exchange->has['watchTrades']) {
 }
 ```
 
+-------------------------------------------------------------------------------
+
 ### Private Methods
 
 ```diff
@@ -598,22 +610,58 @@ In most cases the authentication logic is borrowed from CCXT since the exchanges
 
 #### Trading
 
+-------------------------------------------------------------------------------
+
 ##### watchBalance
 
 ```JavaScript
 // JavaScript
-watchBalance (params = {})
+if (exchange.has['watchBalance']) {
+    while (true) {
+        try {
+            const balance = await exchange.watchBalance (params)
+            console.log (new Date (), balance)
+        } catch (e) {
+            console.log (e)
+            // stop the loop on exception or leave it commented to retry
+            // throw e
+        }
+    }
+}
 ```
 
 ```Python
 # Python
-watch_balance(params={})
+if exchange.has['watchBalance']:
+    while True:
+        try:
+            balance = await exchange.watch_balance(params)
+            print(exchange.iso8601(exchange.milliseconds()), balance)
+        except Exception as e:
+            print(e)
+            # stop the loop on exception or leave it commented to retry
+            # rasie e
 ```
 
 ```PHP
 // PHP
-watch_balance($params = array());
+if ($exchange->has['watchBalance']) {
+    $main = function () use (&$exchange, &$main, $params) {
+        $exchange->watch_balance($params)->then(function($balance) use (&$main) {
+            echo date('c'), ' ', json_encode($balance), "\n";
+            $main();
+        })->otherwise(function (\Exception $e) use (&$main) {
+            echo get_class ($e) . ' ' . $e->getMessage (). "\n";
+            $main();
+            // stop the loop on exception or leave it commented to retry
+            // throw $e;
+        })
+    };
+    $loop->futureTick($main);
+}
 ```
+
+-------------------------------------------------------------------------------
 
 ##### watchOrders
 
@@ -621,11 +669,15 @@ watch_balance($params = array());
 - work in progress now
 ```
 
+-------------------------------------------------------------------------------
+
 ##### watchCreateOrder
 
 ```diff
 - work in progress now
 ```
+
+-------------------------------------------------------------------------------
 
 ##### watchCancelOrder
 
@@ -633,7 +685,13 @@ watch_balance($params = array());
 - work in progress now
 ```
 
+-------------------------------------------------------------------------------
+
 ##### watchMyTrades
+
+```diff
+- work in progress now
+```
 
 ```JavaScript
 // JavaScript
@@ -649,6 +707,8 @@ watch_my_trades(symbol=None, since=None, limit=None, params={})
 // PHP
 watch_my_trades($symbol = null, $since = null, $lmit = null, $params = array());
 ```
+
+-------------------------------------------------------------------------------
 
 #### Funding
 
