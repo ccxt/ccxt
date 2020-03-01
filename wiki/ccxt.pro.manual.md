@@ -1,4 +1,4 @@
-# Overview
+# Manual
 
 The CCXT Pro stack is built upon [CCXT](https://ccxt.trade) and extends the core CCXT classes, using:
 
@@ -337,8 +337,6 @@ Modern async syntax allows you to combine and split the execution into parallel 
 
 #### Market Data
 
--------------------------------------------------------------------------------
-
 ##### watchOrderBook
 
 ```JavaScript
@@ -387,8 +385,6 @@ if ($exchange->has['watchOrderBook']) {
     $loop->futureTick($main);
 }
 ```
-
--------------------------------------------------------------------------------
 
 ##### watchTicker
 
@@ -439,8 +435,6 @@ if ($exchange->has['watchTicker']) {
 }
 ```
 
--------------------------------------------------------------------------------
-
 ##### watchTickers
 
 ```JavaScript
@@ -489,8 +483,6 @@ if ($exchange->has['watchTickers']) {
     $loop->futureTick($main);
 }
 ```
-
--------------------------------------------------------------------------------
 
 ##### watchOHLCV
 
@@ -543,8 +535,6 @@ if ($exchange->has['watchOHLCV']) {
 }
 ```
 
--------------------------------------------------------------------------------
-
 ##### watchTrades
 
 ```JavaScript
@@ -594,8 +584,6 @@ if ($exchange->has['watchTrades']) {
 }
 ```
 
--------------------------------------------------------------------------------
-
 ### Private Methods
 
 ```diff
@@ -607,8 +595,6 @@ if ($exchange->has['watchTrades']) {
 In most cases the authentication logic is borrowed from CCXT since the exchanges use the same keypairs and signing algorithms for REST APIs and WebSocket APIs. See [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup) for more details.
 
 #### Trading
-
--------------------------------------------------------------------------------
 
 ##### watchBalance
 
@@ -659,15 +645,11 @@ if ($exchange->has['watchBalance']) {
 }
 ```
 
--------------------------------------------------------------------------------
-
 ##### watchOrders
 
 ```diff
 - work in progress now
 ```
-
--------------------------------------------------------------------------------
 
 ##### watchCreateOrder
 
@@ -675,15 +657,11 @@ if ($exchange->has['watchBalance']) {
 - work in progress now
 ```
 
--------------------------------------------------------------------------------
-
 ##### watchCancelOrder
 
 ```diff
 - work in progress now
 ```
-
--------------------------------------------------------------------------------
 
 ##### watchMyTrades
 
@@ -705,8 +683,6 @@ watch_my_trades(symbol=None, since=None, limit=None, params={})
 // PHP
 watch_my_trades($symbol = null, $since = null, $lmit = null, $params = array());
 ```
-
--------------------------------------------------------------------------------
 
 #### Funding
 
