@@ -333,6 +333,49 @@ The same is true not only for JS/ES6 but also for Python 3 async code as well. I
 
 Modern async syntax allows you to combine and split the execution into parallel pathways and then merge them, group them, prioritize them, and what not. With promises one can easily convert from direct async-style control flow to inverted callback-style control flow, back and forth.
 
+### Real-Time vs Throttling
+
+CCXT Pro supports two modes of tick function loops – the real-time mode and the throttling mode. Both of them are shown below in pseudocode:
+
+```JavaScript
+// real-time mode
+const limit = 5 // optional
+while (true) {
+    try {
+        const orderbook = await exchange.watchOrderBook (symbol, limit)
+        // your reaction to the update takes place here
+        // you arrive here after receiving the update from the exchange in real time
+        console.log (orderbook) // every update
+    } catch (e) {
+        console.log (e)
+        // throw e // uncomment to stop the loop on exceptions
+    }
+}
+```
+
+```JavaScript
+// throttling mode
+const limit = 5 // optional
+// await is optional, alternatively you can launch it in bg without await
+await exchange.watchOrderBook (symbol, limit)
+while (true) {
+    // your reaction takes place here
+    // you arrive here every 100 ms regardless of whether there was an update or not
+    if (exchange.orderbook[symbol]) {
+        console.log (exchange.orderbooks[symbol].limit (limit))
+    }
+    await sleep (100) // every 100 ms
+}
+```
+
+In **real-time mode** CCXT Pro will return the result as soon as each new delta arrives from the exchange. The general logic of a unified call in a real-time loop is to await for the next delta and immediately return the unified result structure to the user, over and over again. This is useful when reaction time is critical, or has to be as fast as possible.
+
+However, the real-time mode requires programming experience with async flows when it comes to synchronizing multiple parallel tick loops. Apart from that, the exchanges can stream a very large number of updates during periods of high activity or high volatility. Therefore the user developing a real-time algorithm has to make sure that the userland code is capable of consuming data that fast. Working in real-time mode may be more demanding for resources sometimes.
+
+In **throttling mode** CCXT Pro will receive and manage the data in the background. The user is responsible for calling the results from time to time when necessary. The general logic of the throttling loop is to sleep for the most time and wake up to check results occasionally. This is usually done at some fixed frequency, or, "frame rate". The code inside a throttling loop is often easier to synchronize across multiple exchanges. The rationing of time spent in a throttled loop also helps reduce resource usage to a minimum. This is handy when your algorithm is heavy and you want to control the execution precisely to avoid running it too often.
+
+The obvious downside of the throttling mode is being less reactive or responsive to updates. When a trading algorithm has to wait some number milliseconds before being executed – an update or two may arrive sooner than that time expires. In throttling mode the user will only check for those updates upon next wakeup (loop iteration), so the reaction delay may vary within some number of milliseconds over time.
+
 ### Public Methods
 
 #### Market Data
