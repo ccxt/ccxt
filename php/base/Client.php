@@ -34,6 +34,7 @@ class Client {
     public $maxPingPongMisses = 2.0;
     public $lastPong = null;
     public $ping = null;
+    public $verbose = false; // verbose output
     public $connection = null;
     public $connected; // connection-related Future
     public $isConnected = false;
@@ -132,10 +133,14 @@ class Client {
     public function create_connection() {
         $connector = $this->connector;
         $timeout = $this->connectionTimeout / 1000;
-        echo date('c'), ' connecting to ', $this->url, "\n";
+        if ($this->verbose) {
+            echo date('c'), ' connecting to ', $this->url, "\n";
+        }
         Timer\timeout($connector($this->url), $timeout, $this->loop)->then(
             function($connection) {
-                echo date('c'), " connected\n";
+                if ($this->verbose) {
+                    echo date('c'), " connected\n";
+                }
                 $this->connection = $connection;
                 $this->connection->on('message', array($this, 'on_message'));
                 $this->connection->on('close', array($this, 'on_close'));
@@ -164,11 +169,15 @@ class Client {
         if (!$this->connection) {
             $this->connection = true;
             if ($backoff_delay) {
-                echo date('c'), ' backoff delay ', $backoff_delay, " seconds\n";
+                if ($this->verbose) {
+                    echo date('c'), ' backoff delay ', $backoff_delay, " seconds\n";
+                }
                 $callback = array($this, 'create_connection');
                 $this->loop->addTimer(((float)$backoff_delay) / 1000, $callback);
             } else {
-                echo date('c'), ' no backoff delay', "\n";
+                if ($this->verbose) {
+                    echo date('c'), ' no backoff delay', "\n";
+                }
                 $this->create_connection();
             }
         }
@@ -177,7 +186,9 @@ class Client {
 
     public function send($data) {
         $message = Exchange::json($data);
-        echo date('c'), ' sending ', $message, "\n";
+        if ($this->verbose) {
+            echo date('c'), ' sending ', $message, "\n";
+        }
         return $this->connection->send($message);
     }
 
@@ -191,7 +202,9 @@ class Client {
     }
 
     public function on_error($error) {
-        echo date('c'), ' on_error ', get_class($error), ' ', $error->getMessage(), "\n";
+        if ($this->verbose) {
+            echo date('c'), ' on_error ', get_class($error), ' ', $error->getMessage(), "\n";
+        }
         $this->error = $error;
         $on_error_callback = $this->on_error_callback;
         $on_error_callback($this, $error);
@@ -199,7 +212,9 @@ class Client {
     }
 
     public function on_close($message) {
-        echo date('c'), ' on_close ', (string) $message, "\n";
+        if ($this->verbose) {
+            echo date('c'), ' on_close ', (string) $message, "\n";
+        }
         $on_close_callback = $this->on_close_callback;
         $on_close_callback($this, $message);
         if (!$this->error) {
@@ -209,13 +224,17 @@ class Client {
     }
 
     public function on_message(Message $message) {
-        // echo date('c'), ' on_message ', (string) $message, "\n";
+        if ($this->verbose) {
+            echo date('c'), ' on_message ', (string) $message, "\n";
+        }
         try {
             // todo: add json detection in php
             $message = json_decode($message, true);
             // message = isJsonEncodedObject (message) ? JSON.parse (message) : message
         } catch (Exception $e) {
-            echo date('c'), ' on_message json_decode ', $e->getMessage(), "\n";
+            if ($this->verbose) {
+                echo date('c'), ' on_message json_decode ', $e->getMessage(), "\n";
+            }
             // reset with a json encoding error ?
         }
         $on_message_callback = $this->on_message_callback;
