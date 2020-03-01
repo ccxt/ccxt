@@ -490,34 +490,100 @@ if ($exchange->has['watchTickers']) {
 
 ```JavaScript
 // JavaScript
-watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {})
+if (exchange.has['watchOHLCV']) {
+    while (true) {
+        try {
+            const candles = await exchange.watchOHLCV (symbol, since, limit, params)
+            console.log (new Date (), candles)
+        } catch (e) {
+            console.log (e)
+            // stop the loop on exception or leave it commented to retry
+            // throw e
+        }
+    }
+}
 ```
 
 ```Python
 # Python
-watch_ohlcv(symbol, timeframe='1m', since=None, limit=None, params={})
+if exchange.has['watchOHLCV']:
+    while True:
+        try:
+            candles = await exchange.watch_ohlcv(symbol, since, limit, params)
+            print(exchange.iso8601(exchange.milliseconds()), candles)
+        except Exception as e:
+            print(e)
+            # stop the loop on exception or leave it commented to retry
+            # rasie e
 ```
 
 ```PHP
 // PHP
-watch_ohlcv($symbol, $timeframe = '1m', $since = null, $lmit = null, $params = array());
+if ($exchange->has['watchOHLCV']) {
+    $main = function () use (&$exchange, &$main, $symbol, $timeframe, $since, $limit, $params) {
+        $exchange->watch_ohlcv($symbol, $timeframe, $since, $limit, $params)->then(
+            function($candles) use (&$main, $symbol, $timeframe) {
+                echo date('c'), ' ', $symbol, ' ', $timeframe, ' ', json_encode($candles), "\n";
+                $main();
+            }
+        )->otherwise(function (\Exception $e) use (&$main) {
+            echo get_class ($e) . ' ' . $e->getMessage (). "\n";
+            $main();
+            // stop the loop on exception or leave it commented to retry
+            // throw $e;
+        })
+    };
+    $loop->futureTick($main);
+}
 ```
 
 ##### watchTrades
 
 ```JavaScript
 // JavaScript
-watchTrades (symbol, since = undefined, limit = undefined, params = {})
+if (exchange.has['watchTrades']) {
+    while (true) {
+        try {
+            const trades = await exchange.watchTrades (symbol, since, limit, params)
+            console.log (new Date (), trades)
+        } catch (e) {
+            console.log (e)
+            // stop the loop on exception or leave it commented to retry
+            // throw e
+        }
+    }
+}
 ```
 
 ```Python
 # Python
-watch_trades(symbol, since=None, limit=None, params={})
+if exchange.has['watchTrades']:
+    while True:
+        try:
+            trades = await exchange.watch_trades(symbol, since, limit, params)
+            print(exchange.iso8601(exchange.milliseconds()), trades)
+        except Exception as e:
+            print(e)
+            # stop the loop on exception or leave it commented to retry
+            # rasie e
 ```
 
 ```PHP
 // PHP
-watch_trades($symbol, $since = null, $lmit = null, $params = array());
+if ($exchange->has['watchTrades']) {
+    $main = function () use (&$exchange, &$main, $symbol, $since, $limit, $params) {
+        $exchange->watch_trades($symbol, $since, $limit, $params)->then(function($trades) use (&$main) {
+            echo date('c'), ' ', json_encode($trades), "\n";
+            $main();
+        })->otherwise(function (\Exception $e) use (&$main) {
+            echo get_class ($e) . ' ' . $e->getMessage (). "\n";
+            $main();
+            // stop the loop on exception or leave it commented to retry
+            // throw $e;
+        })
+    };
+    $loop->futureTick($main);
+}
 ```
 
 ### Private Methods
@@ -527,6 +593,9 @@ watch_trades($symbol, $since = null, $lmit = null, $params = array());
 ```
 
 #### Authentication
+
+In most cases the authentication logic is borrowed from CCXT since the exchanges use the same keypairs and signing algorithms for REST APIs and WebSocket APIs. See [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup) for more details.
+
 #### Trading
 
 ##### watchBalance
