@@ -38,6 +38,7 @@ trait ClientTrait {
             $on_error = array($this, 'on_error');
             $on_close = array($this, 'on_close');
             $config = array_replace_recursive(array(
+                'verbose' => $this->verbose,
                 'loop' => $this->loop, // reactphp-specific
             ), $this->streaming);
             $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $config);
@@ -100,7 +101,9 @@ trait ClientTrait {
                 }
             },
             function($error) {
-                echo date('c '), get_class($error), ' ', $error->getMessage(), "\n";
+                if ($this->verbose) {
+                    echo date('c '), get_class($error), ' ', $error->getMessage(), "\n";
+                }
                 // we do nothing and don't return a resolvable value from here
                 // we leave it in a rejected state to avoid triggering the
                 // then-clauses that will follow (if any)
