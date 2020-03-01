@@ -18,6 +18,8 @@ CCXT Pro is a professional tool for algorithmic crypto-trading. It is a high-per
 
 ## Exchanges
 
+<img width="834" alt="Screen Shot 2020-03-01 at 09 29 00" src="https://user-images.githubusercontent.com/1294454/75620934-5d367880-5b9f-11ea-9817-900cad6b09ff.png">
+
 The CCXT Pro library currently supports the following 12 cryptocurrency exchange markets and trading APIs:
 
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;logo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                                                                                       | id                 | name                                                                                    | ver | doc                                                                                          | certified                                                                                                                   | pro                                                                         |
@@ -156,6 +158,6 @@ $loop->run ();
 
 ## Support
 
-## [Manual](https://github.com/ccxt/ccxt/wiki/ccxt.pro) · [New issue](https://github.com/ccxt/ccxt/labels/pro) · [Slack](https://github.com/ccxt/ccxt/labels/pro) · [Gitter](https://gitter.im/ccxt-dev/ccxt) · [info@ccxt.pro](mailto:info@ccxt.pro)
+## [Manual](https://github.com/ccxt/ccxt/wiki/ccxt.pro) · [New issue](https://github.com/ccxt/ccxt/labels/pro) · [Slack](https://slack.com/share/IUP8ZDR8C/IJwlcK21ARi8hG10BJmRBx71/enQtOTc1MzA1NDY3Mjg0LWZkOGE1NDNhOTg2ZDdmYzQ0ZGRhZWFlOWExYjVkYmRhZWRjMWM2ZmVlMGQyOGM0NDMyYWNmMGE0MjM3OTI1ZDQ) · [Gitter](https://gitter.im/ccxt-dev/ccxt) · [info@ccxt.pro](mailto:info@ccxt.pro)
 
 © 2020 CCXT Pro
