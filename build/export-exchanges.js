@@ -101,9 +101,9 @@ function exportSupportedAndCertifiedExchanges (exchanges, wikiPath) {
     const countryName = (code) => countries[code] || code
 
     const ccxtCertifiedBadge = '[![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification)'
-    const ccxtProBadge = '[![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-green)](https://ccxt.pro)'
+    const ccxtProBadge = '[![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-000000)](https://ccxt.pro)'
     const logoHeading = '&nbsp;'.repeat (7) + 'logo' + '&nbsp;'.repeat (7)
-    const tableHeadings = [ logoHeading, 'id', 'name', 'ver', 'doc', 'certified', 'pro' ]
+    const tableHeadings = [ logoHeading, 'id', 'name', 'ver', 'doc', 'certified', 'Pro' ]
     const exchangesByCountryHeading = [ 'country / region', ... tableHeadings.slice (0, 5) ]
 
     // ----------------------------------------------------------------------------
