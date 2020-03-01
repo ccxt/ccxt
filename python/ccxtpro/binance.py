@@ -261,7 +261,7 @@ class binance(Exchange, ccxt.binance):
 
     def handle_order_book_subscription(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
-        limit = self.safe_string(subscription, 'limit')
+        limit = self.safe_integer(subscription, 'limit')
         if symbol in self.orderbooks:
             del self.orderbooks[symbol]
         self.orderbooks[symbol] = self.order_book({}, limit)

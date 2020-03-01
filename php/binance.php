@@ -293,7 +293,7 @@ class binance extends \ccxt\binance {
 
     public function handle_order_book_subscription ($client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
-        $limit = $this->safe_string($subscription, 'limit');
+        $limit = $this->safe_integer($subscription, 'limit');
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
