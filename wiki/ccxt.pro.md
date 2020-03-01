@@ -1,6 +1,4 @@
-# CCXT Pro
-
-## [https://ccxt.pro](https://ccxt.pro)
+# [CCXT Pro](https://ccxt.pro)
 
 - [Install](ccxt.pro.install)
 - [User Manual](ccxt.pro.manual)
@@ -33,4 +31,4 @@
 - [Error Handling](ccxt.pro.manual#error-handling)
 - [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting)
 - [How To Submit An Issue](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-submit-an-issue)
-- [Usage Examples](https://github.com/ccxt/ccxt/tree/master/examples/pro) <sup>wip</sup>
+- [Usage Examples](https://github.com/ccxt/ccxt/tree/master/examples) <sup>wip</sup>
