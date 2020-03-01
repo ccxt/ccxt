@@ -16,6 +16,15 @@ module.exports = async (exchange, symbol) => {
 
     const method = 'watchTrades'
 
+    const skippedExchanges = [
+        'binanceje'
+    ]
+
+    if (skippedExchanges.includes (exchange.id)) {
+        log (exchange.id, method, 'test skipped')
+        return
+    }
+
     if (!exchange.has[method]) {
         log (exchange.id, 'does not support', method + '() method')
         return
