@@ -807,6 +807,7 @@ class Exchange {
         $this->countries = null;
         $this->version = null;
         $this->certified = false;
+        $this->pro = false;
         $this->urls = array();
         $this->api = array();
         $this->comment = null;

@@ -15,6 +15,7 @@ module.exports = class gateio extends Exchange {
             'countries': [ 'CN' ],
             'version': '2',
             'rateLimit': 1000,
+            'pro': true,
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,

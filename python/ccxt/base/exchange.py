@@ -110,6 +110,7 @@ class Exchange(object):
     id = None
     version = None
     certified = False
+    pro = False
 
     # rate limiter settings
     enableRateLimit = False
