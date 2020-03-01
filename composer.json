@@ -226,7 +226,7 @@
     },
     "require": {
         "php": ">=5.4.0",
-        "ccxt/ccxt": ">=1.22.91",
+        "ccxt/ccxt": ">=1.23.18",
         "ratchet/pawl": "^0.3.4",
         "ext-ds": "*"
     },
@@ -239,7 +239,5 @@
             "/python",
             "/wiki"
         ]
-    },
-    "require-dev": {
     }
 }
