@@ -739,8 +739,11 @@ class idex extends Exchange {
             $amount = $this->safe_float($order, 'amount');
         }
         $filled = $this->safe_float($order, 'filled');
-        $cost = $this->safe_float($order, 'total');
         $price = $this->safe_float($order, 'price');
+        $cost = $this->safe_float($order, 'total');
+        if (($cost !== null) && ($filled !== null) && !$cost) {
+            $cost = $filled * $price;
+        }
         if (is_array($order) && array_key_exists('market', $order)) {
             $marketId = $order['market'];
             $symbol = $this->markets_by_id[$marketId]['symbol'];
