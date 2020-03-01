@@ -17,6 +17,7 @@ module.exports = class bitmex extends Exchange {
             'version': 'v1',
             'userAgent': undefined,
             'rateLimit': 2000,
+            'pro': true,
             'has': {
                 'CORS': false,
                 'fetchOHLCV': true,

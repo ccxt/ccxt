@@ -15,6 +15,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'countries': [ 'VG' ],
             'version': 'v2',
             'certified': false,
+            'pro': false,
             // new metainfo interface
             'has': {
                 'CORS': false,

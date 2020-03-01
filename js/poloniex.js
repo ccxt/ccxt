@@ -15,6 +15,7 @@ module.exports = class poloniex extends Exchange {
             'countries': [ 'US' ],
             'rateLimit': 1000, // up to 6 calls per second
             'certified': true, // 2019-06-07
+            'pro': true,
             'has': {
                 'CORS': false,
                 'createDepositAddress': true,
