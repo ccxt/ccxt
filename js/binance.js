@@ -289,7 +289,7 @@ module.exports = class binance extends ccxt.binance {
 
     handleOrderBookSubscription (client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeString (subscription, 'limit');
+        const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
