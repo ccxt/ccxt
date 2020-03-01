@@ -343,26 +343,10 @@ Modern async syntax allows you to combine and split the execution into parallel 
 
 ```JavaScript
 // JavaScript
-watchOrderBook (symbol, limit = undefined, params = {})
-```
-
-```Python
-# Python
-watch_order_book(symbol, limit=None, params={})
-```
-
-```PHP
-// PHP
-watch_order_book($symbol, $limit = null, $params = array());
-```
-
-```JavaScript
-// JavaScript
-
-if (exchnage.has['watchOrderBook']) {
+if (exchange.has['watchOrderBook']) {
     while (true) {
         try {
-            const orderbook = await exchange.watchOrderBook (symbol, limit)
+            const orderbook = await exchange.watchOrderBook (symbol, limit, params)
             console.log (new Date (), symbol, orderbook['asks'][0], orderbook['bids'][0])
         } catch (e) {
             console.log (e)
@@ -378,7 +362,7 @@ if (exchnage.has['watchOrderBook']) {
 if exchange.has['watchOrderBook']:
     while True:
         try:
-            orderbook = await exchange.watch_order_book(symbol, limit)
+            orderbook = await exchange.watch_order_book(symbol, limit, params)
             print(exchange.iso8601(exchange.milliseconds()), symbol, orderbook['asks'][0], orderbook['bids'][0])
         except Exception as e:
             print(e)
@@ -389,11 +373,11 @@ if exchange.has['watchOrderBook']:
 ```PHP
 // PHP
 if ($exchange->has['watchOrderBook']) {
-    $main = function () use (&$exchange, &$main, $symbol, $limit) {
-        $exchange->watch_order_book($symbol, $limit)->then(function($orderbook) use (&$main, $symbol, $limit) {
+    $main = function () use (&$exchange, &$main, $symbol, $limit, $params) {
+        $exchange->watch_order_book($symbol, $limit, $params)->then(function($orderbook) use (&$main, $symbol) {
             echo date('c'), ' ', $symbol, ' ', json_encode(array($orderbook['asks'][0], $orderbook['bids'][0])), "\n";
             $main();
-        })->otherwise(function (\Exception $e) use (&$main, $symbol, $limit) {
+        })->otherwise(function (\Exception $e) use (&$main) {
             echo get_class ($e) . ' ' . $e->getMessage (). "\n";
             $main();
             // stop the loop on exception or leave it commented to retry
@@ -408,38 +392,98 @@ if ($exchange->has['watchOrderBook']) {
 
 ```JavaScript
 // JavaScript
-watchTicker (symbol, params = {})
+if (exchange.has['watchTicker']) {
+    while (true) {
+        try {
+            const ticker = await exchange.watchTicker (symbol, params)
+            console.log (new Date (), ticker)
+        } catch (e) {
+            console.log (e)
+            // stop the loop on exception or leave it commented to retry
+            // throw e
+        }
+    }
+}
 ```
 
 ```Python
 # Python
-watch_ticker(symbol, params={})
+if exchange.has['watchTicker']:
+    while True:
+        try:
+            ticker = await exchange.watch_ticker(symbol, params)
+            print(exchange.iso8601(exchange.milliseconds()), ticker)
+        except Exception as e:
+            print(e)
+            # stop the loop on exception or leave it commented to retry
+            # rasie e
 ```
 
 ```PHP
 // PHP
-watch_ticker($symbol, $params = array());
+if ($exchange->has['watchTicker']) {
+    $main = function () use (&$exchange, &$main, $symbol, $params) {
+        $exchange->watch_ticker($symbol, $params)->then(function($ticker) use (&$main) {
+            echo date('c'), ' ', json_encode($ticker), "\n";
+            $main();
+        })->otherwise(function (\Exception $e) use (&$main) {
+            echo get_class ($e) . ' ' . $e->getMessage (). "\n";
+            $main();
+            // stop the loop on exception or leave it commented to retry
+            // throw $e;
+        })
+    };
+    $loop->futureTick($main);
+}
 ```
 
 ##### watchTickers
 
-```diff
-- work in progress now
-```
-
 ```JavaScript
 // JavaScript
-watchTickers (symbol, params = {})
+if (exchange.has['watchTickers']) {
+    while (true) {
+        try {
+            const tickers = await exchange.watchTickers (symbols, params)
+            console.log (new Date (), tickers)
+        } catch (e) {
+            console.log (e)
+            // stop the loop on exception or leave it commented to retry
+            // throw e
+        }
+    }
+}
 ```
 
 ```Python
 # Python
-watch_tickers(symbol, params={})
+if exchange.has['watchTickers']:
+    while True:
+        try:
+            tickers = await exchange.watch_tickers(symbols, params)
+            print(exchange.iso8601(exchange.milliseconds()), tickers)
+        except Exception as e:
+            print(e)
+            # stop the loop on exception or leave it commented to retry
+            # rasie e
 ```
 
 ```PHP
 // PHP
-watch_tickers($symbol, $params = array());
+if ($exchange->has['watchTickers']) {
+    $main = function () use (&$exchange, &$main, $symbols, $params) {
+        $exchange->watch_tickers($symbols, $params)->then(function($tickers) use (&$main) {
+            echo date('c'), ' ', json_encode($tickers), "\n";
+            $main();
+        })->otherwise(function (\Exception $e) use (&$main) {
+            echo get_class ($e) . ' ' . $e->getMessage (). "\n";
+            $main();
+            // stop the loop on exception or leave it commented to retry
+            // throw $e;
+        })
+    };
+    $loop->futureTick($main);
+}
 ```
 
 ##### watchOHLCV
