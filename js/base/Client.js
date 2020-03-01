@@ -20,6 +20,7 @@ module.exports = class Client {
             onMessageCallback,
             onErrorCallback,
             onCloseCallback,
+            verbose: false, // verbose output
             protocols: undefined, // ws-specific protocols
             options: undefined, // ws-specific options
             futures: {},
@@ -165,7 +166,9 @@ module.exports = class Client {
     }
 
     onOpen () {
-        console.log (new Date (), 'onOpen')
+        if (this.verbose) {
+            console.log (new Date (), 'onOpen')
+        }
         this.connectionEstablished = milliseconds ()
         this.connected.resolve (this.url)
         // this.connection.terminate () // debugging
@@ -177,16 +180,22 @@ module.exports = class Client {
     // respond to pings coming from the server with pongs automatically
     // however, some devs may want to track connection states in their app
     onPing () {
-        console.log (new Date (), 'onPing')
+        if (this.verbose) {
+            console.log (new Date (), 'onPing')
+        }
     }
 
     onPong () {
         this.lastPong = milliseconds ()
-        console.log (new Date (), 'onPong')
+        if (this.verbose) {
+            console.log (new Date (), 'onPong')
+        }
     }
 
     onError (error) {
-        console.log (new Date (), 'onError', error.message)
+        if (this.verbose) {
+            console.log (new Date (), 'onError', error.message)
+        }
         // convert ws errors to ccxt errors if necessary
         // this.error = new NetworkError (error.message)
         this.error = error
@@ -195,7 +204,9 @@ module.exports = class Client {
     }
 
     onClose (message) {
-        console.log (new Date (), 'onClose', message)
+        if (this.verbose) {
+            console.log (new Date (), 'onClose', message)
+        }
         if (!this.error) {
             // todo: exception types for server-side disconnects
             this.reset (new NetworkError (message))
@@ -206,11 +217,15 @@ module.exports = class Client {
     // this method is not used at this time
     // but may be used to read protocol-level data like cookies, headers, etc
     onUpgrade (message) {
-        console.log (new Date (), 'onUpgrade')
+        if (this.verbose) {
+            console.log (new Date (), 'onUpgrade')
+        }
     }
 
     send (message) {
-        console.log (new Date (), 'sending', message)
+        if (this.verbose) {
+            console.log (new Date (), 'sending', message)
+        }
         this.connection.send (JSON.stringify (message))
     }
 
@@ -225,7 +240,9 @@ module.exports = class Client {
         message = message.data
         try {
             message = isJsonEncodedObject (message) ? JSON.parse (message) : message
-            // console.log (new Date (), 'onMessage', message)
+            if (this.verbose) {
+                console.log (new Date (), 'onMessage', message)
+            }
         } catch (e) {
             console.log (new Date (), 'onMessage JSON.parse', e)
             // reset with a json encoding error ?
