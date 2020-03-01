@@ -19,6 +19,7 @@ class Exchange extends \ccxt\Exchange {
 Exchange::$exchanges = array(
     'binance',
     'binanceje',
+    'binanceus',
     'bitfinex',
     'bitmex',
     'bittrex',
