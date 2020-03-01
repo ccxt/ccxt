@@ -5,7 +5,7 @@
   - [Architecture Overview](ccxt.pro.manual#overview)
   - [Prerequisites](ccxt.pro.manual#prerequisites)
   - [Streaming Specifics](ccxt.pro.manual#streaming-specifics)
-  - [Linking Against CCXT Pro](ccxt.pro.manual#linking-against-ccxt-pro)
+  - [Linking](ccxt.pro.manual#linking)
   - [Instantiation](ccxt.pro.manual#instantiation)
   - [Exchange Properties](ccxt.pro.manual#exchange-properties)
   - [Unified API](ccxt.pro.manual#unified-api)
