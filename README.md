@@ -18,8 +18,6 @@ CCXT Pro is a professional tool for algorithmic crypto-trading. It is a high-per
 
 ## Exchanges
 
-<img width="834" alt="Screen Shot 2020-03-01 at 09 29 00" src="https://user-images.githubusercontent.com/1294454/75620934-5d367880-5b9f-11ea-9817-900cad6b09ff.png">
-
 The CCXT Pro library currently supports the following 12 cryptocurrency exchange markets and trading APIs:
 
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;logo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                                                                                       | id                 | name                                                                                    | ver | doc                                                                                          | certified                                                                                                                   | pro                                                                         |
