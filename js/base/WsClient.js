@@ -12,7 +12,9 @@ const ccxt = require ('ccxt')
 module.exports = class WsClient extends Client {
 
     createConnection () {
-        console.log (new Date (), 'connecting to', this.url)
+        if (this.verbose) {
+            console.log (new Date (), 'connecting to', this.url)
+        }
         this.connectionStarted = milliseconds ()
         this.setConnectionTimeout ()
         this.connection = new WebSocket (this.url, this.protocols, this.options)
