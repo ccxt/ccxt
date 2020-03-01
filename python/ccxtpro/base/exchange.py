@@ -57,7 +57,8 @@ class Exchange(BaseExchange):
             on_close = self.on_close
             # decide client type here: aiohttp ws / websockets / signalr / socketio
             options = self.extend(self.streaming, {
-                'ping': getattr(self, 'ping', None)
+                'ping': getattr(self, 'ping', None),
+                'verbose': self.verbose,
             })
             self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, options)
         return self.clients[url]
@@ -108,7 +109,8 @@ class Exchange(BaseExchange):
                 await client.send(message)
         except Exception as e:
             client.reject(e, message_hash)
-            print(self.iso8601(self.milliseconds()), 'connect_client', 'Exception', e)
+            if self.verbose:
+                print(self.iso8601(self.milliseconds()), 'connect_client', 'Exception', e)
 
     def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
         client = self.client(url)
