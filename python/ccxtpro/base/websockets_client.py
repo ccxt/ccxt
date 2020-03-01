@@ -25,7 +25,8 @@ class WebsocketsClient(Client):
         return connect(self.url, ping_interval=self.keepAlive, ping_timeout=self.keepAlive)
 
     def send(self, message):
-        print(Exchange.iso8601(Exchange.milliseconds()), 'sending', message)
+        if self.verbose:
+            print(Exchange.iso8601(Exchange.milliseconds()), 'sending', message)
         return self.connection.send(json.dumps(message, separators=(',', ':')))
 
     async def close(self, code):
