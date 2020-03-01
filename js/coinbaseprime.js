@@ -11,6 +11,7 @@ module.exports = class coinbaseprime extends coinbasepro {
         return this.deepExtend (super.describe (), {
             'id': 'coinbaseprime',
             'name': 'Coinbase Prime',
+            'pro': true,
             'urls': {
                 'test': {
                     'public': 'https://api-public.sandbox.prime.coinbase.com',

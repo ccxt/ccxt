@@ -73,6 +73,7 @@ module.exports = class Exchange {
             'enableRateLimit': false,
             'rateLimit': 2000, // milliseconds = seconds * 1000
             'certified': false,
+            'pro': false,
             'has': {
                 'cancelAllOrders': false,
                 'cancelOrder': true,
