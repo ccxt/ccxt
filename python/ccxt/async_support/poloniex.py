@@ -30,6 +30,7 @@ class poloniex(Exchange):
             'countries': ['US'],
             'rateLimit': 1000,  # up to 6 calls per second
             'certified': True,  # 2019-06-07
+            'pro': True,
             'has': {
                 'CORS': False,
                 'createDepositAddress': True,

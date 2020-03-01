@@ -20,6 +20,7 @@ class poloniex extends Exchange {
             'countries' => array( 'US' ),
             'rateLimit' => 1000, // up to 6 calls per second
             'certified' => true, // 2019-06-07
+            'pro' => true,
             'has' => array(
                 'CORS' => false,
                 'createDepositAddress' => true,

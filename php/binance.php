@@ -22,6 +22,7 @@ class binance extends Exchange {
             'countries' => array( 'JP', 'MT' ), // Japan, Malta
             'rateLimit' => 500,
             'certified' => true,
+            'pro' => true,
             // new metainfo interface
             'has' => array(
                 'fetchDepositAddress' => true,

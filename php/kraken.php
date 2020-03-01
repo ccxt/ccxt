@@ -27,6 +27,7 @@ class kraken extends Exchange {
             'version' => '0',
             'rateLimit' => 3000,
             'certified' => true,
+            'pro' => true,
             'has' => array(
                 'createDepositAddress' => true,
                 'fetchDepositAddress' => true,

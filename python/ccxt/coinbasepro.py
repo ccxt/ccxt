@@ -34,6 +34,7 @@ class coinbasepro(Exchange):
             'countries': ['US'],
             'rateLimit': 1000,
             'userAgent': self.userAgents['chrome'],
+            'pro': True,
             'has': {
                 'cancelAllOrders': True,
                 'CORS': True,

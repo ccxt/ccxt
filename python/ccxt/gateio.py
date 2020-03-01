@@ -26,6 +26,7 @@ class gateio(Exchange):
             'countries': ['CN'],
             'version': '2',
             'rateLimit': 1000,
+            'pro': True,
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,

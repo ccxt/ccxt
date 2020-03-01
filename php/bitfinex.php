@@ -20,6 +20,7 @@ class bitfinex extends Exchange {
             'version' => 'v1',
             'rateLimit' => 1500,
             'certified' => true,
+            'pro' => true,
             // new metainfo interface
             'has' => array(
                 'CORS' => false,

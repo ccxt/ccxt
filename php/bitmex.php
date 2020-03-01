@@ -21,6 +21,7 @@ class bitmex extends Exchange {
             'version' => 'v1',
             'userAgent' => null,
             'rateLimit' => 2000,
+            'pro' => true,
             'has' => array(
                 'CORS' => false,
                 'fetchOHLCV' => true,

@@ -316,7 +316,7 @@ Every CCXT Pro instance contains all properties of the underlying CCXT instance.
 
    {
        'has': { // an associative array of extended exchange capabilities
-           'ws': true,
+           'ws': true, // only available in CCXT Pro
            'watchOrderBook': true,
            'watchTicker': true,
            'watchTrades': true,

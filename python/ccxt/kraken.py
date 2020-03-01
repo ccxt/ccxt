@@ -42,6 +42,7 @@ class kraken(Exchange):
             'version': '0',
             'rateLimit': 3000,
             'certified': True,
+            'pro': True,
             'has': {
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,

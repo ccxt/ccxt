@@ -29,6 +29,7 @@ class binance(Exchange):
             'countries': ['JP', 'MT'],  # Japan, Malta
             'rateLimit': 500,
             'certified': True,
+            'pro': True,
             # new metainfo interface
             'has': {
                 'fetchDepositAddress': True,

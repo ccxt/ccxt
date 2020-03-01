@@ -14,6 +14,7 @@ class binanceje(binance):
             'name': 'Binance Jersey',
             'countries': ['JE'],  # Jersey
             'certified': False,
+            'pro': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/54874009-d526eb00-4df3-11e9-928c-ce6a2b914cd1.jpg',
                 'api': {

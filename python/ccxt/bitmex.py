@@ -26,6 +26,7 @@ class bitmex(Exchange):
             'version': 'v1',
             'userAgent': None,
             'rateLimit': 2000,
+            'pro': True,
             'has': {
                 'CORS': False,
                 'fetchOHLCV': True,

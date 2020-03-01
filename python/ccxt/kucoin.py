@@ -31,6 +31,7 @@ class kucoin(Exchange):
             'rateLimit': 334,
             'version': 'v2',
             'certified': False,
+            'pro': True,
             'comment': 'Platform 2.0',
             'has': {
                 'CORS': False,

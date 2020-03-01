@@ -20,6 +20,7 @@ class coinbasepro extends Exchange {
             'countries' => array( 'US' ),
             'rateLimit' => 1000,
             'userAgent' => $this->userAgents['chrome'],
+            'pro' => true,
             'has' => array(
                 'cancelAllOrders' => true,
                 'CORS' => true,
