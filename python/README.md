@@ -111,6 +111,7 @@ Read the [Manual](https://github.com/ccxt/ccxt/wiki/ccxt.pro) for more details.
 ```JavaScript
 'use strict';
 const ccxtpro = require ('ccxt.pro');
+
 (async () => {
     const exchange = new ccxtpro.binance ({ enableRateLimit: true })
     while (true) {
