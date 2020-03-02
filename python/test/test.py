@@ -54,7 +54,8 @@ if 'site-packages' in os.path.dirname(ccxtpro.__file__):
 # ------------------------------------------------------------------------------
 
 def handle_all_unhandled_exceptions(type, value, traceback):
-    print('handle_all_unhandled_exceptions', type, value, '\n\n' + '\n'.join(format_tb(traceback)))
+    sys.stderr.write('handle_all_unhandled_exceptions' + type + value + '\n\n' + '\n'.join(format_tb(traceback)) + "\n")
+    sys.stderr.flush()
     _exit(1)  # unrecoverable crash
 
 
