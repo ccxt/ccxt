@@ -82,7 +82,7 @@ npm install git+https://github.com/kroitor/ccxt.pro.git
 npm install ssh://git@github.com/kroitor/ccxt.pro.git
 # or
 npm install git@ssh://github.com/kroitor/ccxt.pro.git
-# or if you have git in your ~/.ssh/config
+# or if you have git and github.com in your ~/.ssh/config
 npm install ssh://github.com/kroitor/ccxt.pro.git
 ```
 
