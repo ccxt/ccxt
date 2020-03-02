@@ -294,7 +294,7 @@ import aiohttp_socks
 
 async def test():
 
-    connector = aiohttp_socks.SocksConnector.from_url('socks5://user:password@127.0.0.1:1080')
+    connector = aiohttp_socks.ProxyConnector.from_url('socks5://user:password@127.0.0.1:1080')
     session = aiohttp.ClientSession(connector=connector)
 
     exchange = ccxt.binance({
