@@ -19,7 +19,7 @@ Installing CCXT Pro requires visiting the https://ccxt.pro website and obtaining
 npm install git+https://github.com/kroitor/ccxt.pro.git
 
 # if you are connecting to GitHub with SSH
-npm install git@github.com/kroitor/ccxt.pro.git
+npm install git@https://github.com/kroitor/ccxt.pro.git
 ```
 
 ## Python
