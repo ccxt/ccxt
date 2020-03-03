@@ -886,21 +886,84 @@ module.exports = class hollaex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchDepositAddress (code = undefined, params = {}) {
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires a code argument');
-        }
+    async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        const curr = await this.currency (code);
-        const currency = this.safeString (curr, 'name').toLowerCase ();
-        const response = await this.privateGetUser ();
-        const info = this.safeValue (response, 'crypto_wallet');
-        const address = this.safeString (info, currency);
+        const currency = this.currency (code);
+        const response = await this.privateGetUser (params);
+        //
+        //     {
+        //         "id": 620,
+        //         "email": "email@gmail.com",
+        //         "full_name": "",
+        //         "name_verified": false,
+        //         "gender": false,
+        //         "nationality": "",
+        //         "phone_number": "",
+        //         "address": { "city": "", "address": "", "country": "", "postal_code": "" },
+        //         "id_data": { "note": "", "type": "", "number": "", "status": 0 },
+        //         "bank_account":[],
+        //         "crypto_wallet":{
+        //             "xrp": "rJtoECs6rPkJoAfgtR8SDDshV6hRHe3X7y:391496555"
+        //             "usdt":"0x1fb4248e167901dfa0d8cdda2243a2126d7ce48d"
+        //             // ...
+        //         },
+        //         "verification_level": 1,
+        //         "otp_enabled": true,
+        //         "activated": true,
+        //         "note": "",
+        //         "username": "user",
+        //         "affiliation_code": "QSWA6G",
+        //         "settings": {
+        //             "chat": { "set_username": false },
+        //             "risk": { "order_portfolio_percentage": 20 },
+        //             "audio": {
+        //                 "public_trade": false,
+        //                 "order_completed": true,
+        //                 "order_partially_completed": true
+        //             },
+        //             "language": "en",
+        //             "interface": { "theme": "white","order_book_levels": 10 },
+        //             "notification": {
+        //                 "popup_order_completed": true,
+        //                 "popup_order_confirmation": true,
+        //                 "popup_order_partially_filled": true
+        //             }
+        //         },
+        //         "flagged": false,
+        //         "is_hap": false,
+        //         "pin": false,
+        //         "discount": 0,
+        //         "created_at": "2020-03-02T22:27:38.331Z",
+        //         "updated_at": "2020-03-03T07:54:58.315Z",
+        //         "balance": {
+        //             "xht_balance": 0,
+        //             "xht_pending": 0,
+        //             "xht_available": 0,
+        //             // ...
+        //             "updated_at": "2020-03-03T10:21:05.430Z"
+        //         },
+        //         "images": [],
+        //         "fees": {
+        //             "btc-usdt": { "maker_fee": 0.1, "taker_fee": 0.3 },
+        //             "eth-usdt": { "maker_fee": 0.1, "taker_fee": 0.3 },
+        //             // ...
+        //         }
+        //     }
+        //
+        const cryptoWallet = this.safeValue (response, 'crypto_wallet');
+        let address = this.safeString (cryptoWallet, currency['id']);
+        let tag = undefined;
+        if (address !== undefined) {
+            const parts = address.split (':');
+            address = this.safeString (parts, 0);
+            tag = this.safeString (parts, 1);
+        }
+        this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
-            'tag': undefined,
-            'info': info[currency],
+            'tag': tag,
+            'info': response,
         };
     }
 
