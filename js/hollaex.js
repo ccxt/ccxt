@@ -33,6 +33,7 @@ module.exports = class hollaex extends Exchange {
                 'createMarketBuyOrder': true,
                 'createMarketSellOrder': true,
                 'cancelOrder': true,
+                'cancelAllOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': false,
                 'fetchOpenOrder': true,
@@ -768,6 +769,7 @@ module.exports = class hollaex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         const request = {
             'orderId': id,
         };
@@ -786,6 +788,33 @@ module.exports = class hollaex extends Exchange {
         //     }
         //
         return this.parseOrder (response);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.markets (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateDeleteUserOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "title": "string",
+        //             "symbol": "xht-usdt",
+        //             "side": "sell",
+        //             "size": 1,
+        //             "type": "limit",
+        //             "price": 0.1,
+        //             "id": "string",
+        //             "created_by": 34,
+        //             "filled": 0
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
