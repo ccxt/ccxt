@@ -187,7 +187,7 @@ module.exports = class hollaex extends Exchange {
                 'active': active,
                 'precision': {
                     'price': this.safeFloat (market, 'increment_price'),
-                    'size': this.safeFloat (market, 'increment_size'),
+                    'amount': this.safeFloat (market, 'increment_size'),
                 },
                 'limits': {
                     'amount': {
@@ -208,45 +208,52 @@ module.exports = class hollaex extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetConstant (params);
-        const coins = this.safeValue (response, 'coins');
-        const currencies = Object.keys (coins);
+        const coins = this.safeValue (response, 'coins', {});
+        const keys = Object.keys (coins);
         const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = coins[currencies[i]];
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const currency = coins[key];
             const id = this.safeString (currency, 'symbol');
-            const code = id.toUpperCase ();
+            const numericId = this.safeInteger (currency, 'id');
+            const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'fullname');
             const active = this.safeValue (currency, 'active');
-            const fee = this.safeValue (currency, 'fee');
+            const fee = this.safeFloat (currency, 'withdrawal_fee');
             let min = this.safeFloat (currency, 'min');
-            let precision = 0;
+            let precision = this.safeFloat (currency, 'increment_unit');
             for (let i = 1; i >= 0 && min < 1; i++) {
                 min = min * 10;
                 precision = i;
             }
-            const limits = {
-                'amount': {
-                    'min': min,
-                    'max': this.safeFloat (currency, 'max'),
-                },
-                'price': {
-                    'min': min,
-                    'max': this.safeFloat (currency, 'max'),
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
+            const withdrawalLimits = this.safeValue (currency, 'withdrawal_limits', []);
             result[code] = {
                 'id': id,
+                'numericId': numericId,
                 'code': code,
                 'info': currency,
                 'name': name,
                 'active': active,
                 'fee': fee,
                 'precision': precision,
-                'limits': limits,
+                'limits': {
+                    'amount': {
+                        'min': this.safeFloat (currency, 'min'),
+                        'max': this.safeFloat (currency, 'max'),
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': this.safeValue (withdrawalLimits, 0),
+                    },
+                },
             };
         }
         return result;
