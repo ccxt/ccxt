@@ -852,7 +852,8 @@ module.exports = class hollaex extends Exchange {
         await this.loadMarkets ();
         const request = {
             // 'symbol': market['id'],
-            // 'page': 1, // Page of data to retrieve
+            // 'limit': 50, // default 50, max 100
+            // 'page': 1, // page of data to retrieve
             // 'order_by': 'timestamp', // field to order data
             // 'order': 'asc', // asc or desc
             // 'start_date': 123, // starting date of queried data
@@ -972,16 +973,52 @@ module.exports = class hollaex extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        const request = {
+            // 'currency': currency['id'],
+            // 'limit': 50, // default 50, max 100
+            // 'page': 1, // page of data to retrieve
+            // 'order_by': 'timestamp', // field to order data
+            // 'order': 'asc', // asc or desc
+            // 'start_date': 123, // starting date of queried data
+            // 'end_date': 321, // ending date of queried data
+        };
+        let currency = undefined;
         if (code !== undefined) {
-            const currency = this.currency (code)['id'];
-            request['currency'] = currency;
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = limit; // default 50, max 100
+        }
+        if (since !== undefined) {
+            request['start_date'] = this.iso8601 (since);
         }
         const response = await this.privateGetUserDeposits (this.extend (request, params));
-        return this.parseTransactions (response.data);
+        //
+        //     {
+        //         "count": 1,
+        //         "data": [
+        //             {
+        //                 "id": 539,
+        //                 "amount": 20,
+        //                 "fee": 0,
+        //                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
+        //                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
+        //                 "status": true,
+        //                 "dismissed": false,
+        //                 "rejected": false,
+        //                 "description": "",
+        //                 "type": "deposit",
+        //                 "currency": "usdt",
+        //                 "created_at": "2020-03-03T07:56:36.198Z",
+        //                 "updated_at": "2020-03-03T08:00:05.674Z",
+        //                 "user_id": 620
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
