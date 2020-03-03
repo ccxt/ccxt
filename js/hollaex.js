@@ -117,7 +117,7 @@ module.exports = class hollaex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetConstant ();
+        const response = await this.publicGetConstant (params);
         const markets = this.safeValue (response, 'pairs');
         const pairs = Object.keys (markets);
         const result = [];
