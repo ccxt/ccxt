@@ -57,12 +57,17 @@ module.exports = class hollaex extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'health',
+                        'constant',
                         'ticker',
                         'ticker/all',
                         'orderbooks',
                         'trades',
-                        'constant',
                         'chart',
+                        // TradingView data
+                        'udf/config',
+                        'udf/history',
+                        'udf/symbols',
                     ],
                 },
                 'private': {
@@ -74,13 +79,15 @@ module.exports = class hollaex extends Exchange {
                         'user/orders/{orderId}',
                         'user/deposits',
                         'user/withdrawals',
+                        'user/withdraw/{currency}/fee',
                     ],
                     'post': [
                         'user/request-withdrawal',
                         'order',
                     ],
                     'delete': [
-                        'user/orders/{orderId}',
+                        'user/orders',
+                        'user/orders/{order_id}',
                     ],
                 },
             },
