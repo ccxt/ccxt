@@ -305,32 +305,53 @@ module.exports = class hollaex extends Exchange {
         return this.parseOrderBook (orderbook, timestamp);
     }
 
-    async fetchTicker (symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTicker requires a symbol argument');
-        }
+    async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
+        //
+        //     {
+        //         open: 8615.55,
+        //         close: 8841.05,
+        //         high: 8921.1,
+        //         low: 8607,
+        //         last: 8841.05,
+        //         volume: 20.2802,
+        //         timestamp: '2020-03-03T03:11:18.964Z'
+        //     }
+        //
         return this.parseTicker (response, market);
     }
 
-    async fetchTickers (symbol = undefined, params = {}) {
-        const markets = await this.loadMarkets ();
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
         const response = await this.publicGetTickerAll (this.extend (params));
-        return this.parseTickers (response, markets);
+        return this.parseTickers (response, symbols);
     }
 
-    parseTickers (response, markets) {
-        const result = [];
-        const keys = Object.keys (response);
-        for (let i = 0; i < keys.length; i++) {
-            result.push (this.parseTicker (response[keys[i]], this.marketsById[keys[i]]));
+    parseTickers (response, symbols = undefined) {
+        const result = {};
+        const marketIds = Object.keys (response);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const ticker = response[marketId];
+            let symbol = marketId;
+            let market = undefined;
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+            result[symbol] = this.parseTicker (ticker, market);
         }
-        return this.filterByArray (result, 'symbol');
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     parseTicker (response, market = undefined) {
