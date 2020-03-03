@@ -583,32 +583,30 @@ module.exports = class hollaex extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetUserBalance (params);
-        const result = {
-            'info': response,
-            'free': undefined,
-            'used': undefined,
-            'total': undefined,
-        };
-        const free = {};
-        const used = {};
-        const total = {};
-        const currencyId = Object.keys (this.currencies_by_id);
-        for (let i = 0; i < currencyId.length; i++) {
-            const currency = this.currencies_by_id[currencyId[i]]['code'];
-            const responseCurr = currencyId[i];
-            free[currency] = response[responseCurr + '_available'];
-            total[currency] = response[responseCurr + '_balance'];
-            used[currency] = parseFloat (this.currencyToPrecision (currency, total[currency] - free[currency]));
-            result[currency] = {
-                'free': free[currency],
-                'used': used[currency],
-                'total': total[currency],
+        //
+        //     {
+        //         "updated_at": "2020-03-02T22:27:38.428Z",
+        //         "btc_balance": 0,
+        //         "btc_pending": 0,
+        //         "btc_available": 0,
+        //         "eth_balance": 0,
+        //         "eth_pending": 0,
+        //         "eth_available": 0,
+        //         // ...
+        //     }
+        //
+        const result = { 'info': response };
+        const currencyIds = Object.keys (this.currencies_by_id);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
+            result[code] = {
+                'free': this.safeFloat (response, currencyId + '_available'),
+                'used': this.safeFloat (response, currencyId + '_pending'),
+                'total': this.safeFloat (response, currencyId + '_balance'),
             };
         }
-        result['free'] = free;
-        result['used'] = used;
-        result['total'] = total;
-        return result;
+        return this.parseBalance (result);
     }
 
     async fetchOrder (id = undefined, symbol = undefined, params = {}) {
