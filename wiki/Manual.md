@@ -1459,7 +1459,7 @@ if exchange.has['fetchOrders']:
         orders = await exchange.fetch_orders(symbol, since, limit, params)
         if len(orders):
             # not thread-safu and exchange-specific !
-            cursor = exchange.last_http_headers['CB-AFTER']
+            cursor = exchange.last_response_headers['CB-AFTER']
             all_orders += orders
         else:
             break
