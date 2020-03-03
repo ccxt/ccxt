@@ -510,25 +510,33 @@ module.exports = class hollaex extends Exchange {
         return result;
     }
 
-    async fetchOHLCV (symbol = undefined, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a symbol argument');
-        }
+    async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const to = this.seconds ();
-        let fromTime = since;
-        if (fromTime === undefined) {
-            fromTime = to - 2592000; // default to a month
-        } else {
-            fromTime /= 1000;
-        }
         const request = {
-            'from': fromTime,
-            'to': to,
             'symbol': market['id'],
             'resolution': this.timeframes[timeframe],
         };
+        const duration = this.parseTimeframe (timeframe);
+        if (since === undefined) {
+            if (limit === undefined) {
+                throw new ArgumentsRequired (this.id + " fetchOHLCV requires a 'since' or a 'limit' argument");
+            } else {
+                const to = this.seconds ();
+                const from = to - duration * limit;
+                request['to'] = to;
+                request['from'] = from;
+            }
+        } else {
+            if (limit === undefined) {
+                request['from'] = parseInt (since / 1000);
+                request['to'] = this.seconds ();
+            } else {
+                const from = parseInt (since / 1000);
+                request['from'] = from;
+                request['to'] = this.sum (from, duration * limit);
+            }
+        }
         const response = await this.publicGetChart (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
