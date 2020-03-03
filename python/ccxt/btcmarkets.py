@@ -397,7 +397,7 @@ class btcmarkets(Exchange):
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_timestamp(trade, 'timestamp')
+        timestamp = self.safe_timestamp(trade, 'date')
         symbol = None
         if market is not None:
             symbol = market['symbol']

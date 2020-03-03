@@ -415,7 +415,7 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeTimestamp (trade, 'timestamp');
+        const timestamp = this.safeTimestamp (trade, 'date');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
