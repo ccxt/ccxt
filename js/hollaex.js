@@ -1047,7 +1047,7 @@ module.exports = class hollaex extends Exchange {
         if (response === undefined) {
             return;
         }
-        if (code >= 400 && code <= 503) {
+        if ((code >= 400) && (code <= 503)) {
             //
             //  { "message": "Invalid token" }
             //
