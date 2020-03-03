@@ -489,8 +489,30 @@ module.exports = class hollaex extends Exchange {
         //
         // fetchMyTrades (private)
         //
+        //     {
+        //         "side": "buy",
+        //         "symbol": "eth-usdt",
+        //         "size": 0.086,
+        //         "price": 226.19,
+        //         "timestamp": "2020-03-03T08:03:55.459Z",
+        //         "fee": 0.1
+        //     }
+        //
         let symbol = undefined;
-        if (market !== undefined) {
+        const marketId = this.safeString (trade, 'symbol');
+        let quote = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
         const datetime = this.safeString (trade, 'timestamp');
@@ -503,6 +525,15 @@ module.exports = class hollaex extends Exchange {
             if (amount !== undefined) {
                 cost = price * amount;
             }
+        }
+        const feeCost = this.safeFloat (trade, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrencyCode = (market !== undefined) ? market['quote'] : quote;
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
         }
         const result = {
             'info': trade,
@@ -517,7 +548,7 @@ module.exports = class hollaex extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
         return result;
     }
