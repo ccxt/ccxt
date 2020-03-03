@@ -34,10 +34,11 @@ module.exports = class hollaex extends Exchange {
                 'createMarketSellOrder': true,
                 'cancelOrder': true,
                 'fetchOpenOrders': true,
+                'fetchClosedOrders': false,
                 'fetchOrder': true,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchMyTrades': true,
                 'withdraw': true,
                 'fetchDepositAddress': true,
@@ -632,21 +633,32 @@ module.exports = class hollaex extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.privateGetUserOrders (this.extend (request, params));
-        return this.parseOrders (response, market);
-    }
-
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrders (symbol, since, limit, params);
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateGetUserOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "created_at":"2020-03-03T08:02:18.639Z",
+        //             "title":"5419ff3f-9d25-4af7-bcc2-803926518d76",
+        //             "side":"buy",
+        //             "type":"limit",
+        //             "price":226.19,
+        //             "size":0.086,
+        //             "symbol":"eth-usdt",
+        //             "id":"5419ff3f-9d25-4af7-bcc2-803926518d76",
+        //             "created_by":620,
+        //             "filled":0
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market);
     }
 
     parseOrder (order, market = undefined) {
@@ -883,14 +895,14 @@ module.exports = class hollaex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'];
         path = '/' + this.version + '/' + this.implodeParams (path, params);
-        url += path;
-        if (api === 'public') {
+        if (method === 'GET') {
             if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+                path += '?' + this.urlencode (query);
             }
-        } else if (api === 'private') {
+        }
+        const url = this.urls['api'] + path;
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             const defaultExpires = this.safeInteger2 (this.options, 'api-expires', 'expires', parseInt (this.timeout / 1000));
             const expires = this.sum (this.seconds (), defaultExpires);
@@ -902,11 +914,7 @@ module.exports = class hollaex extends Exchange {
                 'api-signature': signature,
                 'api-expires': expiresString,
             };
-            if (method === 'GET') {
-                if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
-                }
-            } else {
+            if (method !== 'GET') {
                 headers['Content-Type'] = 'application/json';
                 if (Object.keys (query).length) {
                     body = this.json (query);
