@@ -866,6 +866,9 @@ module.exports = class hollaex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50, max 100
         }
+        if (since !== undefined) {
+            request['start_date'] = this.iso8601 (since);
+        }
         const response = await this.privateGetUserTrades (this.extend (request, params));
         //
         //     {
