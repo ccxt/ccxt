@@ -335,8 +335,9 @@ let tryAllProxies = async function (exchange, proxies) {
             exchange.proxy = proxies[currentProxy]
 
             // add random origin for proxies
-            if (exchange.proxy.length > 0)
+            if (exchange.proxy.length > 0) {
                 exchange.origin = exchange.uuid ()
+            }
 
             await testExchange (exchange)
 
