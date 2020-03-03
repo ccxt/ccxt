@@ -63,6 +63,7 @@ class southxchange extends Exchange {
             'commonCurrencies' => array(
                 'SMT' => 'SmartNode',
                 'MTC' => 'Marinecoin',
+                'BHD' => 'Bithold',
             ),
         ));
     }

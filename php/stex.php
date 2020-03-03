@@ -179,6 +179,9 @@ class stex extends Exchange {
                     'maker' => 0.002,
                 ),
             ),
+            'commonCurrencies' => array(
+                'BHD' => 'Bithold',
+            ),
             'options' => array(
                 'parseOrderToPrecision' => false,
             ),
