@@ -1099,21 +1099,16 @@ module.exports = class hollaex extends Exchange {
         const amount = this.safeFloat (transaction, 'amount');
         let address = this.safeString (transaction, 'address');
         let addressTo = undefined;
-        let addressFrom = undefined;
+        const addressFrom = undefined;
         let tag = undefined;
         let tagTo = undefined;
-        let tagFrom = undefined;
+        const tagFrom = undefined;
         if (address !== undefined) {
             const parts = address.split (':');
             address = this.safeString (parts, 0);
             tag = this.safeString (parts, 1);
-            if (type === 'deposit') {
-                addressTo = address;
-                tagTo = tag;
-            } else {
-                addressFrom = address;
-                tagFrom = tag;
-            }
+            addressTo = address;
+            tagTo = tag;
         }
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
