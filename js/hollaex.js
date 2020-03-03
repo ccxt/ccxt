@@ -896,7 +896,7 @@ module.exports = class hollaex extends Exchange {
             this.checkRequiredCredentials ();
             const defaultExpires = this.safeInteger2 (this.options, 'api-expires', 'expires', parseInt (this.timeout / 1000));
             const expires = this.sum (this.seconds (), defaultExpires);
-            const expiresString = expires.toString ()
+            const expiresString = expires.toString ();
             const auth = method + path + expiresString;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret));
             headers = {
