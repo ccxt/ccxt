@@ -447,41 +447,65 @@ module.exports = class hollaex extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetTrades (this.extend (request, params));
+        //
+        //     {
+        //         "btc-usdt": [
+        //             {
+        //                 "size": 0.5,
+        //                 "price": 8830,
+        //                 "side": "buy",
+        //                 "timestamp": "2020-03-03T04:44:33.034Z"
+        //             },
+        //             // ...
+        //         ]
+        //     }
+        //
         const trades = await this.safeValue (response, market['id'], []);
         return this.parseTrades (trades, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "size": 0.5,
+        //         "price": 8830,
+        //         "side": "buy",
+        //         "timestamp": "2020-03-03T04:44:33.034Z"
+        //     }
+        //
+        // fetchMyTrades (private)
+        //
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const info = trade;
-        const id = undefined;
         const datetime = this.safeString (trade, 'timestamp');
         const timestamp = this.parse8601 (datetime);
-        const order = undefined;
-        const type = undefined;
         const side = this.safeString (trade, 'side');
-        const takerOrMaker = undefined;
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'size');
-        const cost = parseFloat (this.amountToPrecision (symbol, price * amount));
-        const fee = undefined;
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
         const result = {
-            'info': info,
-            'id': id,
+            'info': trade,
+            'id': undefined,
             'timestamp': timestamp,
             'datetime': datetime,
             'symbol': symbol,
-            'order': order,
-            'type': type,
+            'order': undefined,
+            'type': undefined,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': fee,
+            'fee': undefined,
         };
         return result;
     }
