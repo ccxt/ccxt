@@ -424,9 +424,6 @@ module.exports = class poloniex extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const currency = response[id];
-            // todo: will need to rethink the fees
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
             const precision = 8; // default precision, todo: fix "magic constants"
             const code = this.safeCurrencyCode (id);
             const active = (currency['delisted'] === 0) && !currency['disabled'];
