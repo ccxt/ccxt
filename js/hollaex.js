@@ -758,20 +758,17 @@ module.exports = class hollaex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return;
+        }
         if (code >= 400 && code <= 503) {
-            const exceptions = this.exceptions;
+            const feedback = this.id + ' ' + body;
             const message = this.safeString (response, 'message');
-            const keys = Object.keys (exceptions);
-            if (keys.indexOf (message) !== -1) {
-                const ExceptionClass = exceptions[message];
-                throw new ExceptionClass (this.id + ' ' + message);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             const status = code.toString ();
-            if (keys.indexOf (status) !== -1) {
-                const ExceptionClass = exceptions[status];
-                throw new ExceptionClass (this.id + ' ' + message);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
         }
     }
 };
