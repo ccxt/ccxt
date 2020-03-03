@@ -91,15 +91,20 @@ module.exports = class hollaex extends Exchange {
                 },
             },
             'exceptions': {
-                'Order not found': OrderNotFound,
-                '400': BadRequest,
-                '403': AuthenticationError,
-                '404': BadRequest,
-                '405': BadRequest,
-                '410': BadRequest,
-                '429': BadRequest,
-                '500': NetworkError,
-                '503': NetworkError,
+                'broad': {
+                    'Invalid token': AuthenticationError,
+                    'Order not found': OrderNotFound,
+                },
+                'exact': {
+                    '400': BadRequest,
+                    '403': AuthenticationError,
+                    '404': BadRequest,
+                    '405': BadRequest,
+                    '410': BadRequest,
+                    '429': BadRequest,
+                    '500': NetworkError,
+                    '503': NetworkError,
+                },
             },
         });
     }
@@ -763,9 +768,11 @@ module.exports = class hollaex extends Exchange {
             return;
         }
         if (code >= 400 && code <= 503) {
+            //
+            //  { "message": "Invalid token" }
+            //
             const feedback = this.id + ' ' + body;
             const message = this.safeString (response, 'message');
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             const status = code.toString ();
             this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
