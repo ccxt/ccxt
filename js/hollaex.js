@@ -207,7 +207,7 @@ module.exports = class hollaex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.publicGetConstant ();
+        const response = await this.publicGetConstant (params);
         const coins = this.safeValue (response, 'coins');
         const currencies = Object.keys (coins);
         const result = {};
