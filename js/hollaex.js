@@ -726,22 +726,6 @@ module.exports = class hollaex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async createLimitBuyOrder (symbol = undefined, amount = undefined, price = undefined, params = {}) {
-        return this.createOrder (symbol, 'limit', 'buy', amount, price, params);
-    }
-
-    async createLimitSellOrder (symbol = undefined, amount = undefined, price = undefined, params = {}) {
-        return this.createOrder (symbol, 'limit', 'sell', amount, price, params);
-    }
-
-    async createMarketBuyOrder (symbol = undefined, amount = undefined, params = {}) {
-        return this.createOrder (symbol, 'market', 'buy', amount, undefined, params);
-    }
-
-    async createMarketSellOrder (symbol = undefined, amount = undefined, params = {}) {
-        return this.createOrder (symbol, 'market', 'sell', amount, undefined, params);
-    }
-
     async cancelOrder (id = undefined, symbol = undefined, params = {}) {
         if (id === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder requires an id argument');
