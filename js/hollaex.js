@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -50,9 +51,10 @@ module.exports = class hollaex extends Exchange {
                 'www': 'https://hollaex.com',
                 'doc': 'https://apidocs.hollaex.com',
             },
+            'precisionMode': TICK_SIZE,
             'requiredCredentials': {
                 'apiKey': true,
-                'secret': false,
+                'secret': true,
             },
             'api': {
                 'public': {
@@ -118,51 +120,64 @@ module.exports = class hollaex extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetConstant (params);
-        const markets = this.safeValue (response, 'pairs');
-        const pairs = Object.keys (markets);
+        //
+        //     {
+        //         coins: {
+        //             xmr: {
+        //                 id: 7,
+        //                 fullname: "Monero",
+        //                 symbol: "xmr",
+        //                 active: true,
+        //                 allow_deposit: true,
+        //                 allow_withdrawal: true,
+        //                 withdrawal_fee: 0.02,
+        //                 min: 0.001,
+        //                 max: 100000,
+        //                 increment_unit: 0.001,
+        //                 deposit_limits: { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0 },
+        //                 withdrawal_limits: { '1': 10, '2': 15, '3': 100, '4': 100, '5': 200, '6': 300, '7': 350, '8': 400, '9': 500, '10': -1 },
+        //                 created_at: "2019-12-09T07:14:02.720Z",
+        //                 updated_at: "2020-01-16T12:12:53.162Z"
+        //             },
+        //             // ...
+        //         },
+        //         pairs: {
+        //             'btc-usdt': {
+        //                 id: 2,
+        //                 name: "btc-usdt",
+        //                 pair_base: "btc",
+        //                 pair_2: "usdt",
+        //                 taker_fees: { '1': 0.3, '2': 0.25, '3': 0.2, '4': 0.18, '5': 0.1, '6': 0.09, '7': 0.08, '8': 0.06, '9': 0.04, '10': 0 },
+        //                 maker_fees: { '1': 0.1, '2': 0.08, '3': 0.05, '4': 0.03, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0, '10': 0 },
+        //                 min_size: 0.0001,
+        //                 max_size: 1000,
+        //                 min_price: 100,
+        //                 max_price: 100000,
+        //                 increment_size: 0.0001,
+        //                 increment_price: 0.05,
+        //                 active: true,
+        //                 created_at: "2019-12-09T07:15:54.537Z",
+        //                 updated_at: "2019-12-09T07:15:54.537Z"
+        //             },
+        //         },
+        //         config: { tiers: 10 },
+        //         status: true
+        //     }
+        //
+        const pairs = this.safeValue (response, 'pairs', {});
+        const keys = Object.keys (pairs);
         const result = [];
-        for (let i = 0; i < pairs.length; i++) {
-            const market = markets[pairs[i]];
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const market = pairs[key];
             const id = this.safeString (market, 'name');
             const baseId = this.safeString (market, 'pair_base');
             const quoteId = this.safeString (market, 'pair_2');
-            let increment_price = this.safeFloat (market, 'increment_price');
-            let pricePrecision = 0;
-            for (let i = 1; i >= 0 && increment_price < 1; i++) {
-                increment_price = increment_price * 10;
-                pricePrecision = i;
-            }
-            let increment_size = this.safeFloat (market, 'increment_size');
-            let amountPrecision = 0;
-            for (let i = 1; i >= 0 && increment_size < 1; i++) {
-                increment_size = increment_size * 10;
-                amountPrecision = i;
-            }
-            const precision = {
-                'cost': undefined,
-                'price': pricePrecision,
-                'amount': amountPrecision,
-            };
-            if (quoteId === 'eur') {
-                precision['price'] = 4;
-            }
-            const base = this.commonCurrencyCode (baseId).toUpperCase ();
-            const quote = this.commonCurrencyCode (quoteId).toUpperCase ();
+            const base = this.commonCurrencyCode (baseId.toUpperCase ());
+            const quote = this.commonCurrencyCode (quoteId.toUpperCase ());
             const symbol = base + '/' + quote;
             const active = this.safeValue (market, 'active');
-            const limits = {
-                'amount': {
-                    'min': this.safeFloat (market, 'min_size'),
-                    'max': this.safeFloat (market, 'max_size'),
-                },
-                'price': {
-                    'min': this.safeFloat (market, 'min_price'),
-                    'max': this.safeFloat (market, 'max_price'),
-                },
-                'cost': undefined,
-            };
-            const info = market;
-            const entry = {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -170,11 +185,23 @@ module.exports = class hollaex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'precision': precision,
-                'limits': limits,
-                'info': info,
-            };
-            result.push (entry);
+                'precision': {
+                    'price': this.safeFloat (market, 'increment_price'),
+                    'size': this.safeFloat (market, 'increment_size'),
+                },
+                'limits': {
+                    'amount': {
+                        'min': this.safeFloat (market, 'min_size'),
+                        'max': this.safeFloat (market, 'max_size'),
+                    },
+                    'price': {
+                        'min': this.safeFloat (market, 'min_price'),
+                        'max': this.safeFloat (market, 'max_price'),
+                    },
+                    'cost': { 'min': undefined, 'max': undefined },
+                },
+                'info': market,
+            });
         }
         return result;
     }
