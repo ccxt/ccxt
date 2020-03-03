@@ -818,19 +818,41 @@ module.exports = class hollaex extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            // 'symbol': market['id'],
+            // 'page': 1, // Page of data to retrieve
+            // 'order_by': 'timestamp', // field to order data
+            // 'order': 'asc', // asc or desc
+            // 'start_date': 123, // starting date of queried data
+            // 'end_date': 321, // ending date of queried data
         };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = limit; // default 50, max 100
         }
         const response = await this.privateGetUserTrades (this.extend (request, params));
-        return this.parseTrades (response['data'], market, since, limit);
+        //
+        //     {
+        //         "count": 1,
+        //         "data": [
+        //             {
+        //                 "side": "buy",
+        //                 "symbol": "eth-usdt",
+        //                 "size": 0.086,
+        //                 "price": 226.19,
+        //                 "timestamp": "2020-03-03T08:03:55.459Z",
+        //                 "fee": 0.1
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     async fetchDepositAddress (code = undefined, params = {}) {
