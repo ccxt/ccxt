@@ -522,39 +522,57 @@ module.exports = class hollaex extends Exchange {
             if (limit === undefined) {
                 throw new ArgumentsRequired (this.id + " fetchOHLCV requires a 'since' or a 'limit' argument");
             } else {
-                const to = this.seconds ();
-                const from = to - duration * limit;
-                request['to'] = to;
-                request['from'] = from;
+                const end = this.seconds ();
+                const start = end - duration * limit;
+                request['to'] = end;
+                request['from'] = start;
             }
         } else {
             if (limit === undefined) {
                 request['from'] = parseInt (since / 1000);
                 request['to'] = this.seconds ();
             } else {
-                const from = parseInt (since / 1000);
-                request['from'] = from;
-                request['to'] = this.sum (from, duration * limit);
+                const start = parseInt (since / 1000);
+                request['from'] = start;
+                request['to'] = this.sum (start, duration * limit);
             }
         }
         const response = await this.publicGetChart (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "time":"2020-03-02T20:00:00.000Z",
+        //             "close":8872.1,
+        //             "high":8872.1,
+        //             "low":8858.6,
+        //             "open":8858.6,
+        //             "symbol":"btc-usdt",
+        //             "volume":1.2922
+        //         },
+        //     ]
+        //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     parseOHLCV (response, market = undefined, timeframe = '1h', since = undefined, limit = undefined) {
-        const time = this.parse8601 (this.safeString (response, 'time'));
-        const open = this.safeFloat (response, 'open');
-        const high = this.safeFloat (response, 'high');
-        const low = this.safeFloat (response, 'low');
-        const close = this.safeFloat (response, 'close');
-        const volume = this.safeFloat (response, 'volume');
+        //
+        //     {
+        //         "time":"2020-03-02T20:00:00.000Z",
+        //         "close":8872.1,
+        //         "high":8872.1,
+        //         "low":8858.6,
+        //         "open":8858.6,
+        //         "symbol":"btc-usdt",
+        //         "volume":1.2922
+        //     }
+        //
         return [
-            time,
-            open,
-            high,
-            low,
-            close,
-            volume,
+            this.parse8601 (this.safeString (response, 'time')),
+            this.safeFloat (response, 'open'),
+            this.safeFloat (response, 'high'),
+            this.safeFloat (response, 'low'),
+            this.safeFloat (response, 'close'),
+            this.safeFloat (response, 'volume'),
         ];
     }
 
