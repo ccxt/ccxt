@@ -23,6 +23,7 @@ module.exports = class hollaex extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchOrderBook': true,
+                'fetchOrderBooks': true,
                 'fetchTrades': true,
                 'fetchOHLCV': true,
                 'fetchBalance': true,
@@ -220,12 +221,7 @@ module.exports = class hollaex extends Exchange {
             const name = this.safeString (currency, 'fullname');
             const active = this.safeValue (currency, 'active');
             const fee = this.safeFloat (currency, 'withdrawal_fee');
-            let min = this.safeFloat (currency, 'min');
-            let precision = this.safeFloat (currency, 'increment_unit');
-            for (let i = 1; i >= 0 && min < 1; i++) {
-                min = min * 10;
-                precision = i;
-            }
+            const precision = this.safeFloat (currency, 'increment_unit');
             const withdrawalLimits = this.safeValue (currency, 'withdrawal_limits', []);
             result[code] = {
                 'id': id,
@@ -259,6 +255,25 @@ module.exports = class hollaex extends Exchange {
         return result;
     }
 
+    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetOrderbooks (params);
+        const result = {};
+        const marketIds = Object.keys (response);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const orderbook = response[marketId];
+            let symbol = marketId;
+            if (marketId in this.markets_by_id) {
+                const market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            }
+            const timestamp = this.parse8601 (this.safeString (orderbook, 'timestamp'));
+            result[symbol] = this.parseOrderBook (response[marketId], timestamp);
+        }
+        return result;
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
@@ -266,9 +281,27 @@ module.exports = class hollaex extends Exchange {
             'symbol': marketId,
         };
         const response = await this.publicGetOrderbooks (this.extend (request, params));
+        //
+        //     {
+        //         "btc-usdt": {
+        //             "bids": [
+        //                 [ 8836.4, 1.022 ],
+        //                 [ 8800, 0.0668 ],
+        //                 [ 8797.75, 0.2398 ],
+        //             ],
+        //             "asks": [
+        //                 [ 8839.35, 1.5334 ],
+        //                 [ 8852.6, 0.0579 ],
+        //                 [ 8860.45, 0.1815 ],
+        //             ],
+        //             "timestamp": "2020-03-03T02:27:25.147Z"
+        //         },
+        //         "eth-usdt": {},
+        //         // ...
+        //     }
+        //
         const orderbook = this.safeValue (response, marketId);
-        const datetime = this.safeString (orderbook, 'timestamp');
-        const timestamp = this.parse8601 (datetime);
+        const timestamp = this.parse8601 (this.safeString (orderbook, 'timestamp'));
         return this.parseOrderBook (orderbook, timestamp);
     }
 
