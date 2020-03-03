@@ -35,7 +35,8 @@ module.exports = class hollaex extends Exchange {
                 'cancelOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': false,
-                'fetchOrder': true,
+                'fetchOpenOrder': true,
+                'fetchOrder': false,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
                 'fetchOrders': false,
@@ -272,6 +273,11 @@ module.exports = class hollaex extends Exchange {
             if (marketId in this.markets_by_id) {
                 const market = this.markets_by_id[marketId];
                 symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
             }
             const timestamp = this.parse8601 (this.safeString (orderbook, 'timestamp'));
             result[symbol] = this.parseOrderBook (response[marketId], timestamp);
@@ -601,16 +607,15 @@ module.exports = class hollaex extends Exchange {
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            result[code] = {
-                'free': this.safeFloat (response, currencyId + '_available'),
-                'used': this.safeFloat (response, currencyId + '_pending'),
-                'total': this.safeFloat (response, currencyId + '_balance'),
-            };
+            const account = this.account ();
+            account['free'] = this.safeFloat (response, currencyId + '_available');
+            account['total'] = this.safeFloat (response, currencyId + '_balance');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOpenOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'order_id': id,
@@ -662,35 +667,61 @@ module.exports = class hollaex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // fetchOpenOrder, fetchOpenOrders
+        //
+        //     {
+        //         "created_at":"2020-03-03T08:02:18.639Z",
+        //         "title":"5419ff3f-9d25-4af7-bcc2-803926518d76",
+        //         "side":"buy",
+        //         "type":"limit",
+        //         "price":226.19,
+        //         "size":0.086,
+        //         "symbol":"eth-usdt",
+        //         "id":"5419ff3f-9d25-4af7-bcc2-803926518d76",
+        //         "created_by":620,
+        //         "filled":0
+        //     }
+        //
         let symbol = undefined;
-        if (market !== undefined) {
+        const marketId = this.safeString (order, 'symbol');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
         const id = this.safeString (order, 'id');
-        const datetime = this.safeString (order, 'created_at');
-        const timestamp = this.parse8601 (datetime);
-        const lastTradeTimestamp = undefined;
+        const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'size');
         const filled = this.safeFloat (order, 'filled');
-        const remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
         let cost = undefined;
-        let status = 'open';
-        if (type === 'market') {
-            status = 'closed';
-        } else {
-            cost = parseFloat (this.priceToPrecision (symbol, filled * price));
+        let remaining = undefined;
+        if (filled !== undefined) {
+            if (amount !== undefined) {
+                remaining = amount - filled;
+            }
+            if (price !== undefined) {
+                cost = filled * price;
+            }
         }
-        const trades = undefined;
-        const fee = undefined;
-        const info = order;
+        const status = (type === 'market') ? 'closed' : 'open';
         const result = {
             'id': id,
-            'datetime': datetime,
             'timestamp': timestamp,
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': type,
@@ -700,32 +731,14 @@ module.exports = class hollaex extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'cost': cost,
-            'trades': trades,
-            'fee': fee,
-            'info': info,
+            'trades': undefined,
+            'fee': undefined,
+            'info': order,
         };
         return result;
     }
 
-    async createOrder (symbol = undefined, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder requires a symbol argument');
-        }
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder requires a type argument');
-        }
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder requires a side argument');
-        }
-        if (amount === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder requires an amount argument');
-        }
-        if (type === 'limit' && price === undefined) {
-            throw new ArgumentsRequired (this.id + ' limit createOrder requires a price argument');
-        }
-        if (type === 'market' && price !== undefined) {
-            throw new BadRequest (this.id + ' market createOrder does not require a price argument');
-        }
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const order = {
@@ -733,21 +746,45 @@ module.exports = class hollaex extends Exchange {
             'side': side,
             'size': amount,
             'type': type,
-            'price': price,
         };
+        if (type === 'market') {
+            order['price'] = price;
+        }
         const response = await this.privatePostOrder (this.extend (order, params));
-        response['created_at'] = this.iso8601 (this.milliseconds ());
+        //
+        //     {
+        //         "symbol": "xht-usdt",
+        //         "side": "sell",
+        //         "size": 1,
+        //         "type": "limit",
+        //         "price": 0.1,
+        //         "id": "string",
+        //         "created_by": 34,
+        //         "filled": 0,
+        //         "status": "pending"
+        //     }
+        //
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id = undefined, symbol = undefined, params = {}) {
-        if (id === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires an id argument');
-        }
+    async cancelOrder (id, symbol = undefined, params = {}) {
         const request = {
             'orderId': id,
         };
         const response = await this.privateDeleteUserOrdersOrderId (this.extend (request, params));
+        //
+        //     {
+        //         "title": "string",
+        //         "symbol": "xht-usdt",
+        //         "side": "sell",
+        //         "size": 1,
+        //         "type": "limit",
+        //         "price": 0.1,
+        //         "id": "string",
+        //         "created_by": 34,
+        //         "filled": 0
+        //     }
+        //
         return this.parseOrder (response);
     }
 
