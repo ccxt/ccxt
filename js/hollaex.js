@@ -40,6 +40,7 @@ module.exports = class hollaex extends Exchange {
                 'fetchOrder': false,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
+                'fetchTransactions': false,
                 'fetchOrders': false,
                 'fetchMyTrades': true,
                 'withdraw': true,
@@ -1072,44 +1073,72 @@ module.exports = class hollaex extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
-        const id = this.safeFloat (transaction, 'id');
+        //
+        //     {
+        //         "id": 539,
+        //         "amount": 20,
+        //         "fee": 0,
+        //         "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
+        //         "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
+        //         "status": true,
+        //         "dismissed": false,
+        //         "rejected": false,
+        //         "description": "",
+        //         "type": "withdrawal",
+        //         "currency": "usdt",
+        //         "created_at": "2020-03-03T07:56:36.198Z",
+        //         "updated_at": "2020-03-03T08:00:05.674Z",
+        //         "user_id": 620
+        //     }
+        //
+        const id = this.safeString (transaction, 'id');
         const txid = this.safeString (transaction, 'transaction_id');
-        const datetime = this.safeString (transaction, 'created_at');
-        const timestamp = this.parse8601 (datetime);
-        const addressFrom = undefined;
-        const address = undefined;
-        const addressTo = undefined;
-        const tagFrom = undefined;
-        const tag = undefined;
-        const tagTo = undefined;
+        const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
+        const updated = this.parse8601 (this.safeString (transaction, 'updated_at'));
         const type = this.safeString (transaction, 'type');
         const amount = this.safeFloat (transaction, 'amount');
-        const currencyId = this.safeString (transaction, 'currency');
-        currency = this.currencies_by_id[currencyId]['code'];
-        let message = 'pending';
-        const status = transaction['status'];
-        const dismissed = transaction['dismissed'];
-        const rejected = transaction['rejected'];
-        if (status) {
-            message = 'ok';
-        } else if (dismissed) {
-            message = 'canceled';
-        } else if (rejected) {
-            message = 'failed';
+        let address = this.safeString (transaction, 'address');
+        let addressTo = undefined;
+        let addressFrom = undefined;
+        let tag = undefined;
+        let tagTo = undefined;
+        let tagFrom = undefined;
+        if (address !== undefined) {
+            const parts = address.split (':');
+            address = this.safeString (parts, 0);
+            tag = this.safeString (parts, 1);
+            if (type === 'deposit') {
+                addressTo = address;
+                tagTo = tag;
+            } else {
+                addressFrom = address;
+                tagFrom = tag;
+            }
         }
-        const updated = undefined;
-        const comment = this.safeString (transaction, 'description');
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        let status = this.safeValue (transaction, 'status');
+        const dismissed = this.safeValue (transaction, 'dismissed');
+        const rejected = this.safeValue (transaction, 'rejected');
+        if (status) {
+            status = 'ok';
+        } else if (dismissed) {
+            status = 'canceled';
+        } else if (rejected) {
+            status = 'failed';
+        } else {
+            status = 'pending';
+        }
         const fee = {
-            'currency': currency,
+            'currency': code,
             'cost': this.safeFloat (transaction, 'fee'),
-            'rate': undefined,
         };
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'addressFrom': addressFrom,
             'address': address,
             'addressTo': addressTo,
@@ -1118,10 +1147,9 @@ module.exports = class hollaex extends Exchange {
             'tagTo': tagTo,
             'type': type,
             'amount': amount,
-            'currency': currency,
-            'status': message,
+            'currency': code,
+            'status': status,
             'updated': updated,
-            'comment': comment,
             'fee': fee,
         };
     }
