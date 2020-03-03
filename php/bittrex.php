@@ -423,9 +423,6 @@ class bittrex extends Exchange {
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $this->safe_string($currency, 'Currency');
-            // todo => will need to rethink the fees
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
             $code = $this->safe_currency_code($id);
             $precision = 8; // default $precision, todo => fix "magic constants"
             $address = $this->safe_value($currency, 'BaseAddress');
@@ -435,9 +432,9 @@ class bittrex extends Exchange {
                 'code' => $code,
                 'address' => $address,
                 'info' => $currency,
-                'type' => $currency['CoinType'],
-                'name' => $currency['CurrencyLong'],
-                'active' => $currency['IsActive'],
+                'type' => $this->safe_string($currency, 'CoinType'),
+                'name' => $this->safe_string($currency, 'CurrencyLong'),
+                'active' => $this->safe_value($currency, 'IsActive'),
                 'fee' => $fee,
                 'precision' => $precision,
                 'limits' => array(

@@ -429,9 +429,6 @@ class poloniex extends Exchange {
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $currency = $response[$id];
-            // todo => will need to rethink the fees
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
             $precision = 8; // default $precision, todo => fix "magic constants"
             $code = $this->safe_currency_code($id);
             $active = ($currency['delisted'] === 0) && !$currency['disabled'];
