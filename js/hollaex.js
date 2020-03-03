@@ -329,17 +329,33 @@ module.exports = class hollaex extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetTickerAll (this.extend (params));
+        //
+        //     {
+        //         "bch-usdt": {
+        //             "time": "2020-03-02T04:29:45.011Z",
+        //             "open": 341.65,
+        //             "close":337.9,
+        //             "high":341.65,
+        //             "low":337.3,
+        //             "last":337.9,
+        //             "volume":0.054,
+        //             "symbol":"bch-usdt"
+        //         },
+        //         // ...
+        //     }
+        //
         return this.parseTickers (response, symbols);
     }
 
     parseTickers (response, symbols = undefined) {
         const result = {};
-        const marketIds = Object.keys (response);
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            const ticker = response[marketId];
-            let symbol = marketId;
+        const keys = Object.keys (response);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const ticker = response[key];
+            let symbol = key;
             let market = undefined;
+            const marketId = this.safeString (ticker, 'symbol', key);
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
                 symbol = market['symbol'];
@@ -354,60 +370,72 @@ module.exports = class hollaex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseTicker (response, market = undefined) {
+    parseTicker (ticker, market = undefined) {
+        //
+        // fetchTicker
+        //
+        //     {
+        //         open: 8615.55,
+        //         close: 8841.05,
+        //         high: 8921.1,
+        //         low: 8607,
+        //         last: 8841.05,
+        //         volume: 20.2802,
+        //         timestamp: '2020-03-03T03:11:18.964Z',
+        //     }
+        //
+        // fetchTickers
+        //
+        //     {
+        //         "time": "2020-03-02T04:29:45.011Z",
+        //         "open": 341.65,
+        //         "close": 337.9,
+        //         "high": 341.65,
+        //         "low": 337.3,
+        //         "last": 337.9,
+        //         "volume": 0.054,
+        //         "symbol": "bch-usdt"
+        //     }
+        //
         let symbol = undefined;
-        if (market !== undefined) {
+        const marketId = this.safeString (ticker, 'symbol');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const info = response;
-        const time = this.safeString (response, 'time');
-        let datetime = undefined;
-        if (time === undefined) {
-            datetime = this.safeString (response, 'timestamp');
-        } else {
-            datetime = time;
-        }
-        const timestamp = this.parse8601 (datetime);
-        const high = this.safeFloat (response, 'high');
-        const low = this.safeFloat (response, 'low');
-        const bid = undefined;
-        const bidVolume = undefined;
-        const ask = undefined;
-        const askVolume = undefined;
-        const vwap = undefined;
-        const open = this.safeFloat (response, 'open');
-        const close = this.safeFloat (response, 'close');
-        let last = this.safeFloat (response, 'last');
-        if (last === undefined) {
-            last = close;
-        }
-        const previousClose = undefined;
-        const change = undefined;
-        const percentage = undefined;
-        const average = undefined;
-        const baseVolume = this.safeFloat (response, 'volume');
-        const quoteVolume = undefined;
+        const timestamp = this.parse8601 (this.safeString2 (ticker, 'time', 'timestamp'));
+        const close = this.safeFloat (ticker, 'close');
         const result = {
             'symbol': symbol,
-            'info': info,
+            'info': ticker,
             'timestamp': timestamp,
-            'datetime': datetime,
-            'high': high,
-            'low': low,
-            'bid': bid,
-            'bidVolume': bidVolume,
-            'ask': ask,
-            'askVolume': askVolume,
-            'vwap': vwap,
-            'open': open,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeFloat (ticker, 'open'),
             'close': close,
-            'last': last,
-            'previousClose': previousClose,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'last': this.safeFloat (ticker, 'last', close),
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'quoteVolume': undefined,
         };
         return result;
     }
