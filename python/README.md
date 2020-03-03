@@ -50,9 +50,9 @@ The CCXT Pro is hosted in a private repository on GitHub. The access to the repo
 
 CCXT Pro does not enforce technical restrictions that would affect the efficiency of direct communications between the users and the exchanges. The protection is not technical but legal. We do not impose unnecessary limitations or intermediary code. If your CCXT Pro license expires, your software or system will not break down and will keep working fine with your most recent version by that time. However, if you discontinue your paid license you will lose the updates that will follow.
 
-Any licensed user, developer, team, or company, having obtained paid access to the CCXT repository from us, can use CCXT Pro as a dependency, subject to the terms and limitations of the CCXT Pro paid subscription plans.
+Any licensed user, developer, team, or company, having obtained paid access to the CCXT Pro repository from us, can use CCXT Pro as a dependency, subject to the terms and limitations of the CCXT Pro paid subscription plans.
 
-Licensees can use, copy, and modify CCXT Pro as long as they<br />**DO NOT VENDOR, PUBLISH, SELL OR REDISTRIBUTE THE SOURCE CODE OF CCXT PRO**.
+Licensees can use, copy, and modify CCXT Pro as long as they<br />**DO NOT VENDOR, PUBLISH, SELL OR DISTRIBUTE THE SOURCE CODE OF CCXT PRO**.
 
 It is allowed to specify CCXT Pro as a dependency of your software as long as you<br />**DO NOT INCLUDE A COPY OF THE CCXT PRO SOURCE CODE IN YOUR SOFTWARE**.
 
