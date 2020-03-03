@@ -161,6 +161,6 @@ $loop->run ();
 
 ## Support
 
-## [Manual](https://github.com/ccxt/ccxt/wiki/ccxt.pro) · [New issue](https://github.com/ccxt/ccxt/labels/ccxt.pro) · [Slack](https://slack.com/share/IUP8ZDR8C/IJwlcK21ARi8hG10BJmRBx71/enQtOTc1MzA1NDY3Mjg0LWZkOGE1NDNhOTg2ZDdmYzQ0ZGRhZWFlOWExYjVkYmRhZWRjMWM2ZmVlMGQyOGM0NDMyYWNmMGE0MjM3OTI1ZDQ) · [Gitter](https://gitter.im/ccxt-dev/ccxt) · [info@ccxt.pro](mailto:info@ccxt.pro)
+## [Manual](https://github.com/ccxt/ccxt/wiki/ccxt.pro) · [New issue](https://github.com/ccxt/ccxt/labels/ccxt.pro) · [Gitter](https://gitter.im/ccxt-dev/ccxt) · [info@ccxt.pro](mailto:info@ccxt.pro)
 
 © 2020 CCXT Pro
