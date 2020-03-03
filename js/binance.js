@@ -905,6 +905,9 @@ module.exports = class binance extends Exchange {
         //   which is different from actual trade id
         // - setting both fromId and time window results in error
         const method = this.safeValue (this.options, 'fetchTradesMethod', 'publicGetTrades');
+        if ((!market['spot']) && (method === 'publicGetAggTrades')) {
+            method = 'fapiPublicGetAggTrades';
+        }
         const response = await this[method] (this.extend (request, params));
         //
         // aggregate trades
