@@ -259,27 +259,17 @@ module.exports = class hollaex extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderBook requires a symbol argument');
-        }
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const marketId = this.marketId (symbol);
         const request = {
-            'symbol': market['id'],
+            'symbol': marketId,
         };
-        let response = await this.publicGetOrderbooks (this.extend (request, params));
-        response = response[market['id']];
-        const datetime = this.safeString (response, 'timestamp');
+        const response = await this.publicGetOrderbooks (this.extend (request, params));
+        const orderbook = this.safeValue (response, marketId);
+        const datetime = this.safeString (orderbook, 'timestamp');
         const timestamp = this.parse8601 (datetime);
-        const result = {
-            'bids': response['bids'],
-            'asks': response['asks'],
-            'timestamp': timestamp,
-            'datetime': datetime,
-            'nonce': this.milliseconds (),
-        };
-        return result;
+        return this.parseOrderBook (orderbook, timestamp);
     }
 
     async fetchTicker (symbol = undefined, params = {}) {
