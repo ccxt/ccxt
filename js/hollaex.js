@@ -116,6 +116,10 @@ module.exports = class hollaex extends Exchange {
                     '503': NetworkError,
                 },
             },
+            'options': {
+                // how many seconds before the authenticated request expires
+                'api-expires': parseInt (this.timeout / 1000),
+            },
         });
     }
 
@@ -880,28 +884,34 @@ module.exports = class hollaex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version;
+        const query = this.omit (params, this.extractParams (path));
+        let url = this.urls['api'];
+        path = '/' + this.version + '/' + this.implodeParams (path, params);
+        url += path;
         if (api === 'public') {
-            const query = this.omit (params, this.extractParams (path));
-            url += '/' + this.implodeParams (path, params);
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            const query = this.omit (params, this.extractParams (path));
-            url += '/' + this.implodeParams (path, params);
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-            const accessToken = 'Bearer ' + this.apiKey;
+            const defaultExpires = this.safeInteger2 (this.options, 'api-expires', 'expires', parseInt (this.timeout / 1000));
+            const expires = this.sum (this.seconds (), defaultExpires);
+            const expiresString = expires.toString ()
+            const auth = method + path + expiresString;
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
             headers = {
-                'Content-Type': 'application/json',
-                'Authorization': accessToken,
+                'api-key': this.encode (this.apiKey),
+                'api-signature': signature,
+                'api-expires': expiresString,
             };
-            if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-                if (Object.keys (params).length) {
-                    body = this.json (params);
+            if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            } else {
+                headers['Content-Type'] = 'application/json';
+                if (Object.keys (query).length) {
+                    body = this.json (query);
                 }
             }
         }
