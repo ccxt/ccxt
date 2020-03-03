@@ -146,16 +146,16 @@ class theocean extends Exchange {
                 'price' => -intval ($quoteToken['precision']),
             );
             $amountLimits = array(
-                'min' => $this->fromWei ($this->safe_string($baseToken, 'minAmount'), 'ether', $baseDecimals),
-                'max' => $this->fromWei ($this->safe_string($baseToken, 'maxAmount'), 'ether', $baseDecimals),
+                'min' => $this->fromWei ($this->safe_string($baseToken, 'minAmount'), $baseDecimals),
+                'max' => $this->fromWei ($this->safe_string($baseToken, 'maxAmount'), $baseDecimals),
             );
             $priceLimits = array(
                 'min' => null,
                 'max' => null,
             );
             $costLimits = array(
-                'min' => $this->fromWei ($this->safe_string($quoteToken, 'minAmount'), 'ether', $quoteDecimals),
-                'max' => $this->fromWei ($this->safe_string($quoteToken, 'maxAmount'), 'ether', $quoteDecimals),
+                'min' => $this->fromWei ($this->safe_string($quoteToken, 'minAmount'), $quoteDecimals),
+                'max' => $this->fromWei ($this->safe_string($quoteToken, 'maxAmount'), $quoteDecimals),
             );
             $limits = array(
                 'amount' => $amountLimits,
@@ -187,7 +187,7 @@ class theocean extends Exchange {
             $this->safe_float($ohlcv, 'high'),
             $this->safe_float($ohlcv, 'low'),
             $this->safe_float($ohlcv, 'close'),
-            $this->fromWei ($this->safe_string($ohlcv, 'baseVolume'), 'ether', $baseDecimals),
+            $this->fromWei ($this->safe_string($ohlcv, 'baseVolume'), $baseDecimals),
         );
     }
 
@@ -244,9 +244,9 @@ class theocean extends Exchange {
         //     array("available":"0","committed":"0","$total":"0")
         //
         $decimals = $this->safe_integer($this->options['decimals'], $code, 18);
-        $free = $this->fromWei ($this->safe_string($response, 'available'), 'ether', $decimals);
-        $used = $this->fromWei ($this->safe_string($response, 'committed'), 'ether', $decimals);
-        $total = $this->fromWei ($this->safe_string($response, 'total'), 'ether', $decimals);
+        $free = $this->fromWei ($this->safe_string($response, 'available'), $decimals);
+        $used = $this->fromWei ($this->safe_string($response, 'committed'), $decimals);
+        $total = $this->fromWei ($this->safe_string($response, 'total'), $decimals);
         return array(
             'free' => $free,
             'used' => $used,
@@ -357,7 +357,7 @@ class theocean extends Exchange {
             $base = $market['base'];
         }
         $baseDecimals = $this->safe_integer($this->options['decimals'], $base, 18);
-        $baseVolume = $this->fromWei ($this->safe_string($ticker, 'volume'), 'ether', $baseDecimals);
+        $baseVolume = $this->fromWei ($this->safe_string($ticker, 'volume'), $baseDecimals);
         $last = $this->safe_float($ticker, 'last');
         return array(
             'symbol' => $symbol,
@@ -464,7 +464,7 @@ class theocean extends Exchange {
             $base = $market['base'];
         }
         $baseDecimals = $this->safe_integer($this->options['decimals'], $base, 18);
-        $amount = $this->fromWei ($this->safe_string($trade, 'amount'), 'ether', $baseDecimals);
+        $amount = $this->fromWei ($this->safe_string($trade, 'amount'), $baseDecimals);
         $cost = null;
         if ($amount !== null && $price !== null) {
             $cost = $amount * $price;
@@ -549,7 +549,7 @@ class theocean extends Exchange {
             'baseTokenAddress' => $market['baseId'], // Base token address
             'quoteTokenAddress' => $market['quoteId'], // Quote token address
             'side' => $side, // "buy" or "sell"
-            'amount' => $this->toWei ($this->amount_to_precision($symbol, $amount), 'ether', $baseDecimals), // Base token $amount in wei
+            'amount' => $this->toWei ($this->amount_to_precision($symbol, $amount), $baseDecimals), // Base token $amount in wei
         );
         $method = null;
         if ($type === 'limit') {
@@ -635,13 +635,13 @@ class theocean extends Exchange {
         }
         $baseDecimals = $this->safe_integer($this->options['decimals'], $base, 18);
         $price = $this->safe_float($order, 'price');
-        $filledAmount = $this->fromWei ($this->safe_string($order, 'filledAmount'), 'ether', $baseDecimals);
-        $settledAmount = $this->fromWei ($this->safe_string($order, 'settledAmount'), 'ether', $baseDecimals);
-        $confirmedAmount = $this->fromWei ($this->safe_string($order, 'confirmedAmount'), 'ether', $baseDecimals);
-        $failedAmount = $this->fromWei ($this->safe_string($order, 'failedAmount'), 'ether', $baseDecimals);
-        $deadAmount = $this->fromWei ($this->safe_string($order, 'deadAmount'), 'ether', $baseDecimals);
-        $prunedAmount = $this->fromWei ($this->safe_string($order, 'prunedAmount'), 'ether', $baseDecimals);
-        $amount = $this->fromWei ($this->safe_string($order, 'initialAmount'), 'ether', $baseDecimals);
+        $filledAmount = $this->fromWei ($this->safe_string($order, 'filledAmount'), $baseDecimals);
+        $settledAmount = $this->fromWei ($this->safe_string($order, 'settledAmount'), $baseDecimals);
+        $confirmedAmount = $this->fromWei ($this->safe_string($order, 'confirmedAmount'), $baseDecimals);
+        $failedAmount = $this->fromWei ($this->safe_string($order, 'failedAmount'), $baseDecimals);
+        $deadAmount = $this->fromWei ($this->safe_string($order, 'deadAmount'), $baseDecimals);
+        $prunedAmount = $this->fromWei ($this->safe_string($order, 'prunedAmount'), $baseDecimals);
+        $amount = $this->fromWei ($this->safe_string($order, 'initialAmount'), $baseDecimals);
         $filled = $this->sum ($filledAmount, $settledAmount, $confirmedAmount);
         $remaining = null;
         $lastTradeTimestamp = null;
@@ -701,7 +701,7 @@ class theocean extends Exchange {
             }
             $feeDecimals = $this->safe_integer($this->options['decimals'], $feeCurrency, 18);
             $fee = array(
-                'cost' => $this->fromWei ($feeCost, 'ether', $feeDecimals),
+                'cost' => $this->fromWei ($feeCost, $feeDecimals),
                 'currency' => $feeCurrency,
             );
         }

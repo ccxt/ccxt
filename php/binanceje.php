@@ -15,6 +15,7 @@ class binanceje extends binance {
             'name' => 'Binance Jersey',
             'countries' => array( 'JE' ), // Jersey
             'certified' => false,
+            'pro' => true,
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/54874009-d526eb00-4df3-11e9-928c-ce6a2b914cd1.jpg',
                 'api' => array(

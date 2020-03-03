@@ -19,6 +19,7 @@ class gateio extends Exchange {
             'countries' => array( 'CN' ),
             'version' => '2',
             'rateLimit' => 1000,
+            'pro' => true,
             'has' => array(
                 'CORS' => false,
                 'createMarketOrder' => false,

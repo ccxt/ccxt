@@ -13,6 +13,7 @@ class coinbaseprime extends coinbasepro {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'coinbaseprime',
             'name' => 'Coinbase Prime',
+            'pro' => true,
             'urls' => array(
                 'test' => array(
                     'public' => 'https://api-public.sandbox.prime.coinbase.com',

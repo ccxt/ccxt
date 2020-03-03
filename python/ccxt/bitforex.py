@@ -232,6 +232,9 @@ class bitforex(Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'UOS': 'UOS Network',
+            },
             'exceptions': {
                 '4004': OrderNotFound,
                 '1013': AuthenticationError,

@@ -20,6 +20,7 @@ class poloniex extends Exchange {
             'countries' => array( 'US' ),
             'rateLimit' => 1000, // up to 6 calls per second
             'certified' => true, // 2019-06-07
+            'pro' => true,
             'has' => array(
                 'CORS' => false,
                 'createDepositAddress' => true,
@@ -428,9 +429,6 @@ class poloniex extends Exchange {
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $currency = $response[$id];
-            // todo => will need to rethink the fees
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
             $precision = 8; // default $precision, todo => fix "magic constants"
             $code = $this->safe_currency_code($id);
             $active = ($currency['delisted'] === 0) && !$currency['disabled'];

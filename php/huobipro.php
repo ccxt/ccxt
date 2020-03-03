@@ -733,6 +733,9 @@ class huobipro extends Exchange {
     }
 
     public function fetch_open_orders_v1 ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrdersV1 requires a $symbol argument');
+        }
         return $this->fetch_orders_by_states ('pre-submitted,submitted,partial-filled', $symbol, $since, $limit, $params);
     }
 

@@ -22,6 +22,7 @@ class binance extends Exchange {
             'countries' => array( 'JP', 'MT' ), // Japan, Malta
             'rateLimit' => 500,
             'certified' => true,
+            'pro' => true,
             // new metainfo interface
             'has' => array(
                 'fetchDepositAddress' => true,
@@ -126,6 +127,15 @@ class binance extends Exchange {
                         'sub-account/margin/account',
                         'sub-account/margin/accountSummary',
                         'sub-account/status',
+                        // lending endpoints
+                        'lending/daily/product/list',
+                        'lending/daily/userLeftQuota',
+                        'lending/daily/userRedemptionQuota',
+                        'lending/daily/token/position',
+                        'lending/union/account',
+                        'lending/union/purchaseRecord',
+                        'lending/union/redemptionRecord',
+                        'lending/union/interestHistory',
                     ),
                     'post' => array(
                         'asset/dust',
@@ -141,6 +151,9 @@ class binance extends Exchange {
                         'sub-account/futures/enable',
                         'userDataStream',
                         'futures/transfer',
+                        // lending
+                        'lending/daily/purchase',
+                        'lending/daily/redeem',
                     ),
                     'put' => array(
                         'userDataStream',
@@ -180,18 +193,18 @@ class binance extends Exchange {
                         'historicalTrades',
                         'aggTrades',
                         'klines',
+                        'fundingRate',
                         'premiumIndex',
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
+                        'leverageBracket',
                     ),
-                    'put' => array( 'listenKey' ),
-                    'post' => array( 'listenKey' ),
-                    'delete' => array( 'listenKey' ),
                 ),
                 'fapiPrivate' => array(
                     'get' => array(
                         'allOrders',
+                        'openOrder',
                         'openOrders',
                         'order',
                         'account',
@@ -206,10 +219,15 @@ class binance extends Exchange {
                         'marginType',
                         'order',
                         'leverage',
+                        'listenKey',
+                    ),
+                    'put' => array(
+                        'listenKey',
                     ),
                     'delete' => array(
                         'order',
                         'allOpenOrders',
+                        'listenKey',
                     ),
                 ),
                 'v3' => array(
@@ -318,13 +336,13 @@ class binance extends Exchange {
         $type = $this->safe_string_2($this->options, 'fetchTime', 'defaultType', 'spot');
         $method = ($type === 'spot') ? 'publicGetTime' : 'fapiPublicGetTime';
         $response = $this->$method ($params);
-        return $this->safe_float($response, 'serverTime');
+        return $this->safe_integer($response, 'serverTime');
     }
 
     public function load_time_difference () {
         $serverTime = $this->fetch_time ();
         $after = $this->milliseconds ();
-        $this->options['timeDifference'] = intval ($after - $serverTime);
+        $this->options['timeDifference'] = $after - $serverTime;
         return $this->options['timeDifference'];
     }
 
@@ -1241,11 +1259,18 @@ class binance extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
+        // https://github.com/ccxt/ccxt/issues/6507
+        $origClientOrderId = $this->safe_value($params, 'origClientOrderId');
         $request = array(
             'symbol' => $market['id'],
-            'orderId' => intval ($id),
+            // 'orderId' => intval ($id),
             // 'origClientOrderId' => $id,
         );
+        if ($origClientOrderId === null) {
+            $request['orderId'] = intval ($id);
+        } else {
+            $request['origClientOrderId'] = $origClientOrderId;
+        }
         $method = $market['spot'] ? 'privateDeleteOrder' : 'fapiPrivateDeleteOrder';
         $response = $this->$method (array_merge($request, $params));
         return $this->parse_order($response);
@@ -1737,7 +1762,7 @@ class binance extends Exchange {
         if ($api === 'wapi') {
             $url .= '.html';
         }
-        $userDataStream = (($path === 'userDataStream') || ($path === 'listenKey'));
+        $userDataStream = ($path === 'userDataStream');
         if ($path === 'historicalTrades') {
             if ($this->apiKey) {
                 $headers = array(
@@ -1841,6 +1866,10 @@ class binance extends Exchange {
                 // checks against $error codes
                 $error = $this->safe_string($response, 'code');
                 if ($error !== null) {
+                    // https://github.com/ccxt/ccxt/issues/6501
+                    if ($error === '200') {
+                        return;
+                    }
                     // a workaround for array("$code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
                     // despite that their $message is very confusing, it is raised by Binance
                     // on a temporary ban (the API key is valid, but disabled for a while)

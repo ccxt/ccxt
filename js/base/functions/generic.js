@@ -31,6 +31,7 @@ module.exports =
     , index
     , ordered: x => x // a stub to keep assoc keys in order (in JS it does nothing, it's mostly for Python)
     , unique:  x => Array.from (index (x))
+    , arrayConcat: (a, b) => a.concat (b)
 
     /*  .............................................   */
 
@@ -199,7 +200,7 @@ module.exports =
 
             return out
         }
-        
+
         return x
     }
 

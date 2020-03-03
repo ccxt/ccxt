@@ -21,6 +21,7 @@ class bitmex extends Exchange {
             'version' => 'v1',
             'userAgent' => null,
             'rateLimit' => 2000,
+            'pro' => true,
             'has' => array(
                 'CORS' => false,
                 'fetchOHLCV' => true,
@@ -1215,7 +1216,15 @@ class bitmex extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privateDeleteOrder (array_merge(array( 'orderID' => $id ), $params));
+        // https://github.com/ccxt/ccxt/issues/6507
+        $clOrdID = $this->safe_value($params, 'clOrdID');
+        $request = array();
+        if ($clOrdID === null) {
+            $request['orderID'] = $id;
+        } else {
+            $request['clOrdID'] = $clOrdID;
+        }
+        $response = $this->privateDeleteOrder (array_merge($request, $params));
         $order = $response[0];
         $error = $this->safe_string($order, 'error');
         if ($error !== null) {

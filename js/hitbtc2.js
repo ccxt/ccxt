@@ -18,7 +18,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'has': {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
-                'CORS': true,
+                'CORS': false,
                 'editOrder': true,
                 'fetchCurrencies': true,
                 'fetchOHLCV': true,

@@ -100,10 +100,11 @@ function exportSupportedAndCertifiedExchanges (exchanges, wikiPath) {
 
     const countryName = (code) => countries[code] || code
 
-    const ccxtCertifiedBadge = '[![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification)'
+    const ccxtCertifiedBadge = '[![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification)'
+    const ccxtProBadge = '[![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)'
     const logoHeading = '&nbsp;'.repeat (7) + 'logo' + '&nbsp;'.repeat (7)
-    const tableHeadings = [ logoHeading, 'id', 'name', 'ver', 'doc', 'certified', ]
-    const exchangesByCountryHeading = [ 'country / region', ... tableHeadings ]
+    const tableHeadings = [ logoHeading, 'id', 'name', 'ver', 'doc', 'certified', 'pro' ]
+    const exchangesByCountryHeading = [ 'country / region', ... tableHeadings.slice (0, 5) ]
 
     // ----------------------------------------------------------------------------
     // list all supported exchanges
@@ -116,7 +117,6 @@ function exportSupportedAndCertifiedExchanges (exchanges, wikiPath) {
             let logo = exchange.urls['logo']
             let website = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
             let url = exchange.urls.referral || website
-            let countries = Array.isArray (exchange.countries) ? exchange.countries.map (countryName).join (', ') : countryName (exchange.countries)
             let doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
             let version = exchange.version ? exchange.version : '\*'
             let matches = version.match (/[^0-9]*([0-9].*)/)
@@ -130,7 +130,7 @@ function exportSupportedAndCertifiedExchanges (exchanges, wikiPath) {
                 version,
                 '[API](' + doc + ')',
                 exchange.certified ? ccxtCertifiedBadge : '',
-                countries,
+                exchange.pro ? ccxtProBadge : '',
             ]
         })
 
@@ -252,6 +252,9 @@ function exportWikiToGitHub (wikiPath, gitWikiPath) {
         'Manual.md': 'Manual.md',
         'Exchange-Markets.md': 'Exchange-Markets.md',
         'Exchange-Markets-By-Country.md': 'Exchange-Markets-By-Country.md',
+        'ccxt.pro.md': 'ccxt.pro.md',
+        'ccxt.pro.install.md': 'ccxt.pro.install.md',
+        'ccxt.pro.manual.md': 'ccxt.pro.manual.md',
     }
 
     for (const [ sourceFile, destinationFile ] of entries (ccxtWikiFiles)) {

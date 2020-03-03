@@ -17,9 +17,10 @@ module.exports = class bittrex extends Exchange {
             'version': 'v1.1',
             'rateLimit': 1500,
             'certified': true,
+            'pro': true,
             // new metainfo interface
             'has': {
-                'CORS': true,
+                'CORS': false,
                 'createMarketOrder': false,
                 'fetchDepositAddress': true,
                 'fetchClosedOrders': true,
@@ -416,9 +417,6 @@ module.exports = class bittrex extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'Currency');
-            // todo: will need to rethink the fees
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
             const code = this.safeCurrencyCode (id);
             const precision = 8; // default precision, todo: fix "magic constants"
             const address = this.safeValue (currency, 'BaseAddress');
@@ -428,9 +426,9 @@ module.exports = class bittrex extends Exchange {
                 'code': code,
                 'address': address,
                 'info': currency,
-                'type': currency['CoinType'],
-                'name': currency['CurrencyLong'],
-                'active': currency['IsActive'],
+                'type': this.safeString (currency, 'CoinType'),
+                'name': this.safeString (currency, 'CurrencyLong'),
+                'active': this.safeValue (currency, 'IsActive'),
                 'fee': fee,
                 'precision': precision,
                 'limits': {

@@ -15,6 +15,7 @@ class binanceus extends binance {
             'name' => 'Binance US',
             'countries' => array( 'US' ), // US
             'certified' => false,
+            'pro' => true,
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg',
                 'api' => array(

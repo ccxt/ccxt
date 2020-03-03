@@ -68,6 +68,10 @@ Welcome to the ccxt wiki!
       - [Trading Fees](https://github.com/ccxt/ccxt/wiki/Manual#trading-fees)
       - [Funding Fees](https://github.com/ccxt/ccxt/wiki/Manual#funding-fees)
 
+## WebSocket Support
+
+- [CCXT Pro](https://github.com/ccxt/ccxt/wiki/ccxt.pro)
+
 ## Troubleshooting
 
 - [Frequently Asked Questions](https://github.com/ccxt/ccxt/wiki/FAQ)

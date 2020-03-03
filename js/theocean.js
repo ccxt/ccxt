@@ -134,16 +134,16 @@ module.exports = class theocean extends Exchange {
                 'price': -parseInt (quoteToken['precision']),
             };
             const amountLimits = {
-                'min': this.fromWei (this.safeString (baseToken, 'minAmount'), 'ether', baseDecimals),
-                'max': this.fromWei (this.safeString (baseToken, 'maxAmount'), 'ether', baseDecimals),
+                'min': this.fromWei (this.safeString (baseToken, 'minAmount'), baseDecimals),
+                'max': this.fromWei (this.safeString (baseToken, 'maxAmount'), baseDecimals),
             };
             const priceLimits = {
                 'min': undefined,
                 'max': undefined,
             };
             const costLimits = {
-                'min': this.fromWei (this.safeString (quoteToken, 'minAmount'), 'ether', quoteDecimals),
-                'max': this.fromWei (this.safeString (quoteToken, 'maxAmount'), 'ether', quoteDecimals),
+                'min': this.fromWei (this.safeString (quoteToken, 'minAmount'), quoteDecimals),
+                'max': this.fromWei (this.safeString (quoteToken, 'maxAmount'), quoteDecimals),
             };
             const limits = {
                 'amount': amountLimits,
@@ -175,7 +175,7 @@ module.exports = class theocean extends Exchange {
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
             this.safeFloat (ohlcv, 'close'),
-            this.fromWei (this.safeString (ohlcv, 'baseVolume'), 'ether', baseDecimals),
+            this.fromWei (this.safeString (ohlcv, 'baseVolume'), baseDecimals),
         ];
     }
 
@@ -232,9 +232,9 @@ module.exports = class theocean extends Exchange {
         //     {"available":"0","committed":"0","total":"0"}
         //
         const decimals = this.safeInteger (this.options['decimals'], code, 18);
-        const free = this.fromWei (this.safeString (response, 'available'), 'ether', decimals);
-        const used = this.fromWei (this.safeString (response, 'committed'), 'ether', decimals);
-        const total = this.fromWei (this.safeString (response, 'total'), 'ether', decimals);
+        const free = this.fromWei (this.safeString (response, 'available'), decimals);
+        const used = this.fromWei (this.safeString (response, 'committed'), decimals);
+        const total = this.fromWei (this.safeString (response, 'total'), decimals);
         return {
             'free': free,
             'used': used,
@@ -345,7 +345,7 @@ module.exports = class theocean extends Exchange {
             base = market['base'];
         }
         const baseDecimals = this.safeInteger (this.options['decimals'], base, 18);
-        const baseVolume = this.fromWei (this.safeString (ticker, 'volume'), 'ether', baseDecimals);
+        const baseVolume = this.fromWei (this.safeString (ticker, 'volume'), baseDecimals);
         const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -452,7 +452,7 @@ module.exports = class theocean extends Exchange {
             base = market['base'];
         }
         const baseDecimals = this.safeInteger (this.options['decimals'], base, 18);
-        const amount = this.fromWei (this.safeString (trade, 'amount'), 'ether', baseDecimals);
+        const amount = this.fromWei (this.safeString (trade, 'amount'), baseDecimals);
         let cost = undefined;
         if (amount !== undefined && price !== undefined) {
             cost = amount * price;
@@ -537,7 +537,7 @@ module.exports = class theocean extends Exchange {
             'baseTokenAddress': market['baseId'], // Base token address
             'quoteTokenAddress': market['quoteId'], // Quote token address
             'side': side, // "buy" or "sell"
-            'amount': this.toWei (this.amountToPrecision (symbol, amount), 'ether', baseDecimals), // Base token amount in wei
+            'amount': this.toWei (this.amountToPrecision (symbol, amount), baseDecimals), // Base token amount in wei
         };
         let method = undefined;
         if (type === 'limit') {
@@ -623,13 +623,13 @@ module.exports = class theocean extends Exchange {
         }
         const baseDecimals = this.safeInteger (this.options['decimals'], base, 18);
         const price = this.safeFloat (order, 'price');
-        const filledAmount = this.fromWei (this.safeString (order, 'filledAmount'), 'ether', baseDecimals);
-        const settledAmount = this.fromWei (this.safeString (order, 'settledAmount'), 'ether', baseDecimals);
-        const confirmedAmount = this.fromWei (this.safeString (order, 'confirmedAmount'), 'ether', baseDecimals);
-        const failedAmount = this.fromWei (this.safeString (order, 'failedAmount'), 'ether', baseDecimals);
-        const deadAmount = this.fromWei (this.safeString (order, 'deadAmount'), 'ether', baseDecimals);
-        const prunedAmount = this.fromWei (this.safeString (order, 'prunedAmount'), 'ether', baseDecimals);
-        const amount = this.fromWei (this.safeString (order, 'initialAmount'), 'ether', baseDecimals);
+        const filledAmount = this.fromWei (this.safeString (order, 'filledAmount'), baseDecimals);
+        const settledAmount = this.fromWei (this.safeString (order, 'settledAmount'), baseDecimals);
+        const confirmedAmount = this.fromWei (this.safeString (order, 'confirmedAmount'), baseDecimals);
+        const failedAmount = this.fromWei (this.safeString (order, 'failedAmount'), baseDecimals);
+        const deadAmount = this.fromWei (this.safeString (order, 'deadAmount'), baseDecimals);
+        const prunedAmount = this.fromWei (this.safeString (order, 'prunedAmount'), baseDecimals);
+        const amount = this.fromWei (this.safeString (order, 'initialAmount'), baseDecimals);
         const filled = this.sum (filledAmount, settledAmount, confirmedAmount);
         let remaining = undefined;
         let lastTradeTimestamp = undefined;
@@ -689,7 +689,7 @@ module.exports = class theocean extends Exchange {
             }
             const feeDecimals = this.safeInteger (this.options['decimals'], feeCurrency, 18);
             fee = {
-                'cost': this.fromWei (feeCost, 'ether', feeDecimals),
+                'cost': this.fromWei (feeCost, feeDecimals),
                 'currency': feeCurrency,
             };
         }

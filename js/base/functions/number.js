@@ -283,10 +283,33 @@ const decimalToPrecision = (x, roundingMode
     return String.fromCharCode (...out)
 }
 
+// toWei / fromWei
+
+function fromWei (amount, decimals = 18) {
+    if (amount === undefined) {
+        return amount
+    }
+    const exponential = Math.floor (amount).toExponential () // wei must be whole numbers
+    const [ n, exponent ] = exponential.split ('e')
+    const newExponent = parseInt (exponent) - decimals
+    return parseFloat (n + 'e' + newExponent)
+}
+
+function toWei (amount, decimals = 18) {
+    if (amount === undefined) {
+        return amount
+    }
+    const exponential = parseFloat (amount).toExponential ()
+    const [ n, exponent ] = exponential.split ('e')
+    const newExponent = parseInt (exponent) + decimals
+    return numberToString (Math.floor (parseFloat (n + 'e' + newExponent))) // wei must be whole numbers
+}
+
 /*  ------------------------------------------------------------------------ */
 
 module.exports = {
-
+    toWei,
+    fromWei,
     numberToString,
     precisionFromString,
     decimalToPrecision,

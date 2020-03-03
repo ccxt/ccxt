@@ -100,9 +100,11 @@ class idex extends Exchange {
                 'secret' => false,
             ),
             'commonCurrencies' => array(
-                'ONE' => 'Menlo One',
                 'FT' => 'Fabric Token',
+                'MT' => 'Monarch',
+                'ONE' => 'Menlo One',
                 'PLA' => 'PlayChip',
+                'WAX' => 'WAXP',
             ),
         ));
     }
@@ -386,13 +388,13 @@ class idex extends Exchange {
             if ($side === 'buy') {
                 $tokenBuy = $market['baseId'];
                 $tokenSell = $market['quoteId'];
-                $amountBuy = $this->toWei ($amount, 'ether', $market['precision']['amount']);
-                $amountSell = $this->toWei ($quoteAmount, 'ether', 18);
+                $amountBuy = $this->toWei ($amount, $market['precision']['amount']);
+                $amountSell = $this->toWei ($quoteAmount, 18);
             } else {
                 $tokenBuy = $market['quoteId'];
                 $tokenSell = $market['baseId'];
-                $amountBuy = $this->toWei ($quoteAmount, 'ether', 18);
-                $amountSell = $this->toWei ($amount, 'ether', $market['precision']['amount']);
+                $amountBuy = $this->toWei ($quoteAmount, 18);
+                $amountSell = $this->toWei ($amount, $market['precision']['amount']);
             }
             $nonce = $this->get_nonce ();
             $orderToHash = array(
@@ -737,8 +739,11 @@ class idex extends Exchange {
             $amount = $this->safe_float($order, 'amount');
         }
         $filled = $this->safe_float($order, 'filled');
-        $cost = $this->safe_float($order, 'total');
         $price = $this->safe_float($order, 'price');
+        $cost = $this->safe_float($order, 'total');
+        if (($cost !== null) && ($filled !== null) && !$cost) {
+            $cost = $filled * $price;
+        }
         if (is_array($order) && array_key_exists('market', $order)) {
             $marketId = $order['market'];
             $symbol = $this->markets_by_id[$marketId]['symbol'];
@@ -992,7 +997,7 @@ class idex extends Exchange {
         $currency = $this->currency ($code);
         $tokenAddress = $currency['id'];
         $nonce = $this->get_nonce ();
-        $amount = $this->toWei ($amount, 'ether', $currency['precision']);
+        $amount = $this->toWei ($amount, $currency['precision']);
         $requestToHash = array(
             'contractAddress' => $this->get_contract_address (),
             'token' => $tokenAddress,

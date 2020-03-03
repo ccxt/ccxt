@@ -75,6 +75,7 @@
     "oceanex":       { "skip": true },
     "okcoincny":     { "skip": true },
     "okcoinusd":     { "skip": true },
+    "okex":          { "skip": true },
     "okex3":         { "skip": true },
     "paymium":       { "skip": true },
     "poloniex":      { "skip": true, "timeout": 20000 },

@@ -103,9 +103,11 @@ class idex(Exchange):
                 'secret': False,
             },
             'commonCurrencies': {
-                'ONE': 'Menlo One',
                 'FT': 'Fabric Token',
+                'MT': 'Monarch',
+                'ONE': 'Menlo One',
                 'PLA': 'PlayChip',
+                'WAX': 'WAXP',
             },
         })
 
@@ -373,13 +375,13 @@ class idex(Exchange):
             if side == 'buy':
                 tokenBuy = market['baseId']
                 tokenSell = market['quoteId']
-                amountBuy = self.toWei(amount, 'ether', market['precision']['amount'])
-                amountSell = self.toWei(quoteAmount, 'ether', 18)
+                amountBuy = self.toWei(amount, market['precision']['amount'])
+                amountSell = self.toWei(quoteAmount, 18)
             else:
                 tokenBuy = market['quoteId']
                 tokenSell = market['baseId']
-                amountBuy = self.toWei(quoteAmount, 'ether', 18)
-                amountSell = self.toWei(amount, 'ether', market['precision']['amount'])
+                amountBuy = self.toWei(quoteAmount, 18)
+                amountSell = self.toWei(amount, market['precision']['amount'])
             nonce = await self.get_nonce()
             orderToHash = {
                 'contractAddress': contractAddress,
@@ -703,8 +705,10 @@ class idex(Exchange):
         else:
             amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'filled')
-        cost = self.safe_float(order, 'total')
         price = self.safe_float(order, 'price')
+        cost = self.safe_float(order, 'total')
+        if (cost is not None) and (filled is not None) and not cost:
+            cost = filled * price
         if 'market' in order:
             marketId = order['market']
             symbol = self.markets_by_id[marketId]['symbol']
@@ -935,7 +939,7 @@ class idex(Exchange):
         currency = self.currency(code)
         tokenAddress = currency['id']
         nonce = await self.get_nonce()
-        amount = self.toWei(amount, 'ether', currency['precision'])
+        amount = self.toWei(amount, currency['precision'])
         requestToHash = {
             'contractAddress': await self.get_contract_address(),
             'token': tokenAddress,
