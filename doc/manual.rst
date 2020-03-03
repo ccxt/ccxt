@@ -976,7 +976,7 @@ In order to load markets manually beforehand call the ``loadMarkets ()`` / ``loa
 
 Apart from the market info, the ``loadMarkets()`` call will also load the currencies from the exchange and will cache the info in the ``.markets`` and the ``.currencies`` properties respectively.
 
-The user can also bypass the cache and call unified methods for fetching that information from the exchange endpoints directly, ``fetchMarkets()`` and ``fetchCurrencies()``, though using these methods is not recommended. The recommended way to preload markets is by calling the ``loadMarkets()`` unified method.
+The user can also bypass the cache and call unified methods for fetching that information from the exchange endpoints directly, ``fetchMarkets()`` and ``fetchCurrencies()``, though using these methods is not recommended for end-users. The recommended way to preload markets is by calling the ``loadMarkets()`` unified method. However, new exchange integrations are required to implement these methods if the underlying exchange has the corresponding API endpoints.
 
 Symbols And Market Ids
 ----------------------
@@ -1364,6 +1364,7 @@ Unified API
 The unified ccxt API is a subset of methods common among the exchanges. It currently contains the following methods:
 
 -  ``fetchMarkets ()``: Fetches a list of all available markets from an exchange and returns an array of markets (objects with properties such as ``symbol``, ``base``, ``quote`` etc.). Some exchanges do not have means for obtaining a list of markets via their online API. For those, the list of markets is hardcoded.
+-  ``fetchCurrencies ()``: Fetches all available currencies an exchange and returns an associative dictionary of currencies (objects with properties such as ``code``, ``name``, etc.). Some exchanges do not have means for obtaining currencies via their online API. For those, the currencies will be extracted from market pairs or hardcoded.
 -  ``loadMarkets ([reload])``: Returns the list of markets as an object indexed by symbol and caches it with the exchange instance. Returns cached markets if loaded already, unless the ``reload = true`` flag is forced.
 -  ``fetchOrderBook (symbol[, limit = undefined[, params = {}]])``: Fetch L2/L3 order book for a particular market trading symbol.
 -  ``fetchStatus ([, params = {}])``: Returns information regarding the exchange status from either the info hardcoded in the exchange instance or the API, if available.
