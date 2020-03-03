@@ -440,17 +440,15 @@ module.exports = class hollaex extends Exchange {
         return result;
     }
 
-    async fetchTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTrades requires a symbol argument');
-        }
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
         const response = await this.publicGetTrades (this.extend (request, params));
-        return this.parseTrades (response[market['id']], market);
+        const trades = await this.safeValue (response, market['id'], []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
