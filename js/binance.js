@@ -284,7 +284,7 @@ module.exports = class binance extends Exchange {
             },
             // exchange-specific options
             'options': {
-                'fetchTradesMethod': 'publicGetAggTrades',
+                'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType': 'limit', // or 'limit_maker'
@@ -885,13 +885,23 @@ module.exports = class binance extends Exchange {
             // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
             // 'limit': 500,     // default = 500, maximum = 1000
         };
-        if (this.options['fetchTradesMethod'] === 'publicGetAggTrades') {
+        const defaultType = this.safeString2 (this.options, 'fetchTrades', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        const defaultMethod = (type === 'future') ? 'fapiPublicGetTrades' : 'publicGetTrades';
+        let method = this.safeString (this.options, 'fetchTradesMethod', defaultMethod);
+        if (method === 'publicGetAggTrades') {
             if (since !== undefined) {
                 request['startTime'] = since;
                 // https://github.com/ccxt/ccxt/issues/6400
                 // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
                 request['endTime'] = this.sum (since, 3600000);
             }
+            if (type === 'future') {
+                method = 'fapiPublicGetAggTrades';
+            }
+        } else if ((method === 'publicGetHistoricalTrades') && (type === 'future')) {
+            method = 'fapiPublicGetHistoricalTrades';
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default = 500, maximum = 1000
@@ -905,8 +915,7 @@ module.exports = class binance extends Exchange {
         // - 'tradeId' accepted and returned by this method is "aggregate" trade id
         //   which is different from actual trade id
         // - setting both fromId and time window results in error
-        const method = this.safeValue (this.options, 'fetchTradesMethod', 'publicGetTrades');
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // aggregate trades
         //
