@@ -298,7 +298,7 @@ class binance(Exchange):
             },
             # exchange-specific options
             'options': {
-                'fetchTradesMethod': 'publicGetAggTrades',
+                'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
                 'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType': 'limit',  # or 'limit_maker'
@@ -858,12 +858,21 @@ class binance(Exchange):
             # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
             # 'limit': 500,     # default = 500, maximum = 1000
         }
-        if self.options['fetchTradesMethod'] == 'publicGetAggTrades':
+        defaultType = self.safe_string_2(self.options, 'fetchTrades', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        query = self.omit(params, 'type')
+        defaultMethod = 'fapiPublicGetTrades' if (type == 'future') else 'publicGetTrades'
+        method = self.safe_string(self.options, 'fetchTradesMethod', defaultMethod)
+        if method == 'publicGetAggTrades':
             if since is not None:
                 request['startTime'] = since
                 # https://github.com/ccxt/ccxt/issues/6400
                 # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
                 request['endTime'] = self.sum(since, 3600000)
+            if type == 'future':
+                method = 'fapiPublicGetAggTrades'
+        elif (method == 'publicGetHistoricalTrades') and (type == 'future'):
+            method = 'fapiPublicGetHistoricalTrades'
         if limit is not None:
             request['limit'] = limit  # default = 500, maximum = 1000
         #
@@ -875,8 +884,7 @@ class binance(Exchange):
         # - 'tradeId' accepted and returned by self method is "aggregate" trade id
         #   which is different from actual trade id
         # - setting both fromId and time window results in error
-        method = self.safe_value(self.options, 'fetchTradesMethod', 'publicGetTrades')
-        response = await getattr(self, method)(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, query))
         #
         # aggregate trades
         #
