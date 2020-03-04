@@ -38,25 +38,6 @@ module.exports = class binance extends ccxt.binance {
         });
     }
 
-    async loadMarkets (reload = false, params = {}) {
-        const markets = await super.loadMarkets (reload, params);
-        let marketsByLowercaseId = this.safeValue (this.options, 'marketsByLowercaseId');
-        if ((marketsByLowercaseId === undefined) || reload) {
-            marketsByLowercaseId = {};
-            for (let i = 0; i < this.symbols.length; i++) {
-                const symbol = this.symbols[i];
-                const market = this.markets[symbol];
-                const lowercaseId = this.safeStringLower (market, 'id');
-                market['lowercaseId'] = lowercaseId;
-                this.markets_by_id[market['id']] = market;
-                this.markets[symbol] = market;
-                marketsByLowercaseId[lowercaseId] = this.markets[symbol];
-            }
-            this.options['marketsByLowercaseId'] = marketsByLowercaseId;
-        }
-        return markets;
-    }
-
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         //
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams
@@ -514,6 +495,7 @@ module.exports = class binance extends ccxt.binance {
     async watchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        // console.log ('\n\n\n\n', market, '\n\n\n\n\n');
         const marketId = market['lowercaseId'];
         const name = 'ticker';
         const messageHash = marketId + '@' + name;
