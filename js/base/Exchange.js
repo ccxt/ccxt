@@ -686,10 +686,14 @@ module.exports = class Exchange {
         } else {
             if (!this.marketsLoading) {
                 this.marketsLoading = new Promise (async (resolve, reject) => {
-                    const result = await this.loadMarketsHelper (reload, params)
-                    this.marketsLoaded = true
-                    this.marketsLoading = false
-                    resolve (result)
+                    try {
+                        const result = await this.loadMarketsHelper (reload, params)
+                        this.marketsLoaded = true
+                        this.marketsLoading = false
+                        resolve (result)
+                    } catch (e) {
+                        reject (e)
+                    }
                 })
             }
             return this.marketsLoading
