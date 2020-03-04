@@ -662,7 +662,7 @@ module.exports = class Exchange {
         return this.markets
     }
 
-    async loadMarkets (reload = false, params = {}) {
+    async loadMarketsHelper (reload = false, params = {}) {
         if (!reload && this.markets) {
             if (!this.markets_by_id) {
                 return this.setMarkets (this.markets)
@@ -675,6 +675,25 @@ module.exports = class Exchange {
         }
         const markets = await this.fetchMarkets (params)
         return this.setMarkets (markets, currencies)
+    }
+
+    async loadMarkets (reload = false, params = {}) {
+        if (this.marketsLoaded) {
+            if (reload) {
+                return this.loadMarketsHelper (reload, params)
+            }
+            return this.markets
+        } else {
+            if (!this.marketsLoading) {
+                this.marketsLoading = new Promise (async (resolve, reject) => {
+                    const result = await this.loadMarketsHelper (reload, params)
+                    this.marketsLoaded = true
+                    this.marketsLoading = false
+                    resolve (result)
+                })
+            }
+            return this.marketsLoading
+        }
     }
 
     async loadAccounts (reload = false, params = {}) {
