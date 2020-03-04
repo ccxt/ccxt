@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound } = require ('./base/errors');
+const { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -108,6 +108,7 @@ module.exports = class hollaex extends Exchange {
                 'broad': {
                     'Invalid token': AuthenticationError,
                     'Order not found': OrderNotFound,
+                    'Insufficient balance': InsufficientFunds,
                 },
                 'exact': {
                     '400': BadRequest,
@@ -1161,6 +1162,14 @@ module.exports = class hollaex extends Exchange {
             'amount': amount,
             'address': address,
         };
+        // one time password
+        let otp = this.safeString (params, 'otp_code');
+        if ((otp !== undefined) || (this.twofa !== undefined)) {
+            if (otp === undefined) {
+                otp = this.oath ();
+            }
+            request['otp_code'] = otp;
+        }
         const response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
         return {
             'info': response,
