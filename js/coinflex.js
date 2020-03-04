@@ -19,6 +19,7 @@ module.exports = class coinflex extends Exchange {
                 'api': {
                     'public': 'https://webapi.coinflex.com',
                     'private': 'https://webapi.coinflex.com',
+                    'trades': 'https://86fb80dd8578c824262aed45dd005a63.coinflex.com',
                 },
                 'fees': 'https://coinflex.com/fees/',
                 'doc': [
@@ -51,6 +52,11 @@ module.exports = class coinflex extends Exchange {
                         'orders/{id}',
                     ],
                 },
+                'trades': {
+                    'get': [
+                        '{market}/trades'
+                    ]
+                },
             },
             'has': {
                 'fetchCurrencies': true,
@@ -64,7 +70,7 @@ module.exports = class coinflex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'fetchMyTrades': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchOHLCV': false,
             },
             'requiredCredentials': {
@@ -383,19 +389,57 @@ module.exports = class coinflex extends Exchange {
         return this.parseTrades (response, undefined, since, limit);
     }
 
+    async fetchTrades (symbol, since = undefined, limit, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (since === undefined) {
+            const tempDate = new Date();
+            tempDate.setDate(tempDate.getDate() - 7);
+            since = tempDate.getTime();
+        }
+        const request = {
+            'market': market['id'],
+            'since': since * 1000,
+        };
+        const response = await this.tradesGetMarketTrades (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
+    }
+
     parseTrade (trade, market) {
-        const id = this.safeString (trade, 'time');
+        let id = undefined;
+        if ('tid' in trade) {
+            id = this.safeString (trade, 'tid');
+        } else {
+            id = this.safeString (trade, 'time');
+        }
         const timestamp = parseInt (id / 1000);
-        const baseId = this.safeInteger (trade, 'base');
-        const base = this.findCurrencyById (this.currencies, baseId);
-        const baseAsset = this.currencies[base];
-        const baseScale = this.safeInteger (baseAsset['info'], 'scale');
-        const quoteId = this.safeInteger (trade, 'counter');
-        const quote = this.findCurrencyById (this.currencies, quoteId);
-        const quoteAsset = this.currencies[quote];
-        const quoteScale = this.safeInteger (quoteAsset['info'], 'scale');
-        const symbol = base + '/' + quote;
-        market = this.market (symbol);
+        let baseId = undefined;
+        let base = undefined;
+        let baseAsset = undefined;
+        let baseScale = undefined;
+        if ('baseId' in trade) {
+            baseId = this.safeInteger (trade, 'base');
+            base = this.findCurrencyById (this.currencies, baseId);
+            baseAsset = this.currencies[base];
+            baseScale = this.safeInteger (baseAsset['info'], 'scale');
+        }
+        let quoteId = undefined;
+        let quote = undefined;
+        let quoteAsset = undefined;
+        let quoteScale = undefined;
+        if ('counter' in trade) {
+            quoteId = this.safeInteger (trade, 'counter');
+            quote = this.findCurrencyById (this.currencies, quoteId);
+            quoteAsset = this.currencies[quote];
+            quoteScale = this.safeInteger (quoteAsset['info'], 'scale');
+        }
+        let symbol = market['symbol'];
+        if (!symbol && base && quote) {
+            symbol = base + '/' + quote;
+        }
+        if (!market) {
+            market = this.market(symbol);
+        }
         let amount = this.safeInteger (trade, 'quantity');
         let side = undefined;
         if (amount !== undefined) {
@@ -408,6 +452,9 @@ module.exports = class coinflex extends Exchange {
             if (baseScale > 0) {
                 amount /= baseScale;
             }
+        }
+        if (amount === undefined) {
+            amount = this.safeFloat (trade, 'amount');
         }
         let price = this.safeFloat (trade, 'price');
         if (price !== undefined) {
