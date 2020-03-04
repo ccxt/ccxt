@@ -662,27 +662,37 @@ module.exports = class Exchange {
         return this.markets
     }
 
+    async loadMarketsHelper (reload = false, params = {}) {
+        if (!reload && this.markets) {
+            if (!this.markets_by_id) {
+                return this.setMarkets (this.markets)
+            }
+            return this.markets
+        }
+        let currencies = undefined
+        if (this.has.fetchCurrencies) {
+            currencies = await this.fetchCurrencies ()
+        }
+        const markets = await this.fetchMarkets (params)
+        return this.setMarkets (markets, currencies)
+    }
+
     async loadMarkets (reload = false, params = {}) {
-        if (this.loadingMarkets) {
-            return this.loadingMarkets
+        if (this.marketsLoaded) {
+            if (reload) {
+                return this.loadMarketsHelper (reload, params)
+            }
+            return this.markets
         } else {
-            this.loadingMarkets = new Promise (async (resolve, reject) => {
-                if (!reload && this.markets) {
-                    if (!this.markets_by_id) {
-                        return this.setMarkets (this.markets)
-                    }
-                    return this.markets
-                }
-                let currencies = undefined
-                if (this.has.fetchCurrencies) {
-                    currencies = await this.fetchCurrencies ()
-                }
-                const markets = await this.fetchMarkets (params)
-                const result = this.setMarkets (markets, currencies)
-                this.loadingMarkets = false
-                return result
-            })
-            return this.loadingMarkets
+            if (!this.marketsLoading) {
+                this.marketsLoading = new Promise (async (resolve, reject) => {
+                    const result = await this.loadMarketsHelper (reload, params)
+                    this.marketsLoaded = true
+                    this.marketsLoading = false
+                    resolve (result)
+                })
+            }
+            return this.marketsLoading
         }
     }
 
