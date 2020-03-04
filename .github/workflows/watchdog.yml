@@ -7,7 +7,7 @@ on:
       - '**' # all branches
     # patterns matched against refs/tags
     tags:
-      - * # all tags
+      - '**' # all tags
 
 jobs:
   build:
