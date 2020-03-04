@@ -1029,7 +1029,7 @@ class okcoinusd(Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
-        error = self.safe_string(response, 'error_code', 'code')
+        error = self.safe_string_2(response, 'error_code', 'code')
         if (error is not None) and (error != '0'):
             message = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions, error, message)
