@@ -1182,19 +1182,20 @@ module.exports = class hollaex extends Exchange {
             const defaultExpires = this.safeInteger2 (this.options, 'api-expires', 'expires', parseInt (this.timeout / 1000));
             const expires = this.sum (this.seconds (), defaultExpires);
             const expiresString = expires.toString ();
-            const auth = method + path + expiresString;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            let auth = method + path + expiresString;
             headers = {
                 'api-key': this.encode (this.apiKey),
-                'api-signature': signature,
                 'api-expires': expiresString,
             };
-            if (method !== 'GET') {
+            if (method === 'POST') {
                 headers['Content-type'] = 'application/json';
                 if (Object.keys (query).length) {
                     body = this.json (query);
+                    auth += body;
                 }
             }
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            headers['api-signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
