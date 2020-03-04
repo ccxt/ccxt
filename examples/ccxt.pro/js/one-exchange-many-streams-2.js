@@ -1,3 +1,5 @@
+'use strict';
+
 const ccxtpro = require ('ccxt.pro');
 
 (async () => {
