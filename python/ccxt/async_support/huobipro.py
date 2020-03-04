@@ -400,7 +400,11 @@ class huobipro(Exchange):
             'symbol': market['id'],
         }
         response = await self.marketGetDetailMerged(self.extend(request, params))
-        return self.parse_ticker(response['tick'], market)
+        ticker = self.parse_ticker(response['tick'], market)
+        timestamp = self.safe_value(response, 'ts')
+        ticker['timestamp'] = timestamp
+        ticker['datetime'] = self.iso8601(timestamp)
+        return ticker
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
