@@ -55,6 +55,7 @@ module.exports = class hollaex extends Exchange {
                 'api': 'https://api.hollaex.com',
                 'www': 'https://hollaex.com',
                 'doc': 'https://apidocs.hollaex.com',
+                'referral': 'https://pro.hollaex.com/signup?affiliation_code=QSWA6G',
             },
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
