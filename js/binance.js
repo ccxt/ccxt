@@ -434,6 +434,7 @@ module.exports = class binance extends Exchange {
             const spot = !future;
             const marketType = spot ? 'spot' : 'future';
             const id = this.safeString (market, 'symbol');
+            const lowercaseId = this.safeStringLower (market, 'symbol');
             const baseId = market['baseAsset'];
             const quoteId = market['quoteAsset'];
             const base = this.safeCurrencyCode (baseId);
@@ -450,6 +451,7 @@ module.exports = class binance extends Exchange {
             const active = (status === 'TRADING');
             const entry = {
                 'id': id,
+                'lowercaseId': lowercaseId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
