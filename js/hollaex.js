@@ -780,7 +780,7 @@ module.exports = class hollaex extends Exchange {
             'size': amount,
             'type': type,
         };
-        if (type === 'market') {
+        if (type !== 'market') {
             order['price'] = price;
         }
         const response = await this.privatePostOrder (this.extend (order, params));
@@ -1149,21 +1149,15 @@ module.exports = class hollaex extends Exchange {
         };
     }
 
-    async withdraw (code = undefined, amount = undefined, address = undefined, tag = undefined, params = {}) {
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' withdraw requires a code argument');
-        }
-        if (amount === undefined) {
-            throw new ArgumentsRequired (this.id + ' withdraw requires an amount argument');
-        }
-        if (address === undefined) {
-            throw new ArgumentsRequired (this.id + ' withdraw requires an address argument');
-        }
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        const currency = this.currencies[code]['id'];
+        const currency = this.currency (code);
+        if (tag !== undefined) {
+            address += ':' + tag;
+        }
         const request = {
-            'currency': currency,
+            'currency': currency['id'],
             'amount': amount,
             'address': address,
         };
@@ -1196,7 +1190,7 @@ module.exports = class hollaex extends Exchange {
                 'api-expires': expiresString,
             };
             if (method !== 'GET') {
-                headers['Content-Type'] = 'application/json';
+                headers['Content-type'] = 'application/json';
                 if (Object.keys (query).length) {
                     body = this.json (query);
                 }
