@@ -16,7 +16,7 @@ async def loop(exchange, symbol):
 
 async def main():
     exchange = ccxtpro.poloniex({'enableRateLimit': True})
-    symbols = [ 'BTC/USDT', 'ETH/USDT', 'ETH/BTC' ]
+    symbols = ['BTC/USDT', 'ETH/USDT', 'ETH/BTC']
     await asyncio.gather(*[loop(exchange, symbol) for symbol in symbols])
     await exchange.close()
 
