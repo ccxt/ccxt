@@ -18,7 +18,7 @@ module.exports = class currencycom extends Exchange {
             'certified': false,
             // new metainfo interface
             'has': {
-                'fetchDepositAddress': true,
+                'fetchDepositAddress': false,
                 'CORS': false,
                 'fetchBidsAsks': true,
                 'fetchTickers': true,
@@ -28,10 +28,10 @@ module.exports = class currencycom extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                'withdraw': true,
+                'withdraw': false,
                 'fetchFundingFees': true,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
+                'fetchDeposits': false,
+                'fetchWithdrawals': false,
                 'fetchTransactions': false,
             },
             'timeframes': {
@@ -62,32 +62,6 @@ module.exports = class currencycom extends Exchange {
                 'fees': 'https://currency.com/fees-charges', // TODO
             },
             'api': {
-                'web': {
-                    'get': [
-                        'exchange/public/product',
-                        'assetWithdraw/getAllAsset.html',
-                    ],
-                },
-                'wapi': {
-                    'post': [
-                        'withdraw',
-                        'sub-account/transfer',
-                    ],
-                    'get': [
-                        'depositHistory',
-                        'withdrawHistory',
-                        'depositAddress',
-                        'accountStatus',
-                        'systemStatus',
-                        'apiTradingStatus',
-                        'userAssetDribbletLog',
-                        'tradeFee',
-                        'assetDetail',
-                        'sub-account/list',
-                        'sub-account/transfer/history',
-                        'sub-account/assets',
-                    ],
-                },
                 'v3': {
                     'get': [
                         'ticker/price',
