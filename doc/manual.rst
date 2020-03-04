@@ -44,7 +44,7 @@ The structure of the library can be outlined as follows:
        │                              .                              |
        +=============================================================+
 
-Full public and private HTTP REST APIs for all exchanges are implemented. WebSocket and FIX implementations in JavaScript, PHP, Python and other languages coming soon.
+Full public and private HTTP REST APIs for all exchanges are implemented. WebSocket and FIX implementations in JavaScript, PHP, Python are available in `CCXT Pro <https://ccxt.pro>`__, which is a professional addon to CCXT with support for WebSocket streams.
 
 -  `Exchanges <#exchanges>`__
 -  `Markets <#markets>`__
