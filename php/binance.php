@@ -440,6 +440,7 @@ class binance extends Exchange {
             $spot = !$future;
             $marketType = $spot ? 'spot' : 'future';
             $id = $this->safe_string($market, 'symbol');
+            $lowercaseId = $this->safe_string_lower($market, 'symbol');
             $baseId = $market['baseAsset'];
             $quoteId = $market['quoteAsset'];
             $base = $this->safe_currency_code($baseId);
@@ -456,6 +457,7 @@ class binance extends Exchange {
             $active = ($status === 'TRADING');
             $entry = array(
                 'id' => $id,
+                'lowercaseId' => $lowercaseId,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,

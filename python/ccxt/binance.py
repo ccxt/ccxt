@@ -443,6 +443,7 @@ class binance(Exchange):
             spot = not future
             marketType = 'spot' if spot else 'future'
             id = self.safe_string(market, 'symbol')
+            lowercaseId = self.safe_string_lower(market, 'symbol')
             baseId = market['baseAsset']
             quoteId = market['quoteAsset']
             base = self.safe_currency_code(baseId)
@@ -459,6 +460,7 @@ class binance(Exchange):
             active = (status == 'TRADING')
             entry = {
                 'id': id,
+                'lowercaseId': lowercaseId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
