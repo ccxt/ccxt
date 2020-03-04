@@ -409,7 +409,11 @@ module.exports = class huobipro extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.marketGetDetailMerged (this.extend (request, params));
-        return this.parseTicker (response['tick'], market);
+        const ticker = this.parseTicker (response['tick'], market);
+        const timestamp = this.safeValue (response, 'ts');
+        ticker['timestamp'] = timestamp;
+        ticker['datetime'] = this.iso8601 (timestamp);
+        return ticker;
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
