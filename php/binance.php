@@ -42,25 +42,6 @@ class binance extends \ccxt\binance {
         ));
     }
 
-    public function load_markets ($reload = false, $params = array ()) {
-        $markets = parent::load_markets($reload, $params);
-        $marketsByLowercaseId = $this->safe_value($this->options, 'marketsByLowercaseId');
-        if (($marketsByLowercaseId === null) || $reload) {
-            $marketsByLowercaseId = array();
-            for ($i = 0; $i < count($this->symbols); $i++) {
-                $symbol = $this->symbols[$i];
-                $market = $this->markets[$symbol];
-                $lowercaseId = $this->safe_string_lower($market, 'id');
-                $market['lowercaseId'] = $lowercaseId;
-                $this->markets_by_id[$market['id']] = $market;
-                $this->markets[$symbol] = $market;
-                $marketsByLowercaseId[$lowercaseId] = $this->markets[$symbol];
-            }
-            $this->options['marketsByLowercaseId'] = $marketsByLowercaseId;
-        }
-        return $markets;
-    }
-
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
         //
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams
@@ -518,6 +499,7 @@ class binance extends \ccxt\binance {
     public function watch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
+        // var_dump ('\n\n\n\n', $market, '\n\n\n\n\n');
         $marketId = $market['lowercaseId'];
         $name = 'ticker';
         $messageHash = $marketId . '@' . $name;

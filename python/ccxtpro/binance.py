@@ -39,22 +39,6 @@ class binance(Exchange, ccxt.binance):
             },
         })
 
-    async def load_markets(self, reload=False, params={}):
-        markets = await super(binance, self).load_markets(reload, params)
-        marketsByLowercaseId = self.safe_value(self.options, 'marketsByLowercaseId')
-        if (marketsByLowercaseId is None) or reload:
-            marketsByLowercaseId = {}
-            for i in range(0, len(self.symbols)):
-                symbol = self.symbols[i]
-                market = self.markets[symbol]
-                lowercaseId = self.safe_string_lower(market, 'id')
-                market['lowercaseId'] = lowercaseId
-                self.markets_by_id[market['id']] = market
-                self.markets[symbol] = market
-                marketsByLowercaseId[lowercaseId] = self.markets[symbol]
-            self.options['marketsByLowercaseId'] = marketsByLowercaseId
-        return markets
-
     async def watch_order_book(self, symbol, limit=None, params={}):
         #
         # https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams
@@ -463,6 +447,7 @@ class binance(Exchange, ccxt.binance):
     async def watch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        # print('\n\n\n\n', market, '\n\n\n\n\n')
         marketId = market['lowercaseId']
         name = 'ticker'
         messageHash = marketId + '@' + name
