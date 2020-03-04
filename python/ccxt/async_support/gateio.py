@@ -365,6 +365,18 @@ class gateio(Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
+        # {
+        #     "tradeID": 3175762,
+        #     "date": "2017-08-25 07:24:28",
+        #     "type": "sell",
+        #     "rate": 29011,
+        #     "amount": 0.0019,
+        #     "total": 55.1209,
+        #     "fee": "0",
+        #     "fee_coin": "btc",
+        #     "gt_fee":"0",
+        #     "point_fee":"0.1213",
+        # },
         timestamp = self.safe_timestamp_2(trade, 'timestamp', 'time_unix')
         timestamp = self.safe_timestamp(trade, 'time', timestamp)
         id = self.safe_string_2(trade, 'tradeID', 'id')
@@ -373,6 +385,7 @@ class gateio(Exchange):
         price = self.safe_float_2(trade, 'rate', 'price')
         amount = self.safe_float(trade, 'amount')
         type = self.safe_string(trade, 'type')
+        takerOrMaker = self.safe_string(trade, 'role')
         cost = None
         if price is not None:
             if amount is not None:
@@ -380,6 +393,22 @@ class gateio(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
+        fee = None
+        feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee_coin'))
+        feeCost = self.safe_float(trade, 'point_fee')
+        if (feeCost is None) or (feeCost == 0):
+            feeCost = self.safe_float(trade, 'gt_fee')
+            if (feeCost is None) or (feeCost == 0):
+                feeCost = self.safe_float(trade, 'fee')
+            else:
+                feeCurrency = self.safe_currency_code('GT')
+        else:
+            feeCurrency = self.safe_currency_code('POINT')
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            }
         return {
             'id': id,
             'info': trade,
@@ -389,11 +418,11 @@ class gateio(Exchange):
             'order': orderId,
             'type': None,
             'side': type,
-            'takerOrMaker': None,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': None,
+            'fee': fee,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
