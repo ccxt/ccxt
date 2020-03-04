@@ -889,7 +889,7 @@ module.exports = class binance extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
         const defaultMethod = (type === 'future') ? 'fapiPublicGetTrades' : 'publicGetTrades';
-        let method = this.safeValue (this.options, 'fetchTradesMethod', defaultMethod);
+        let method = this.safeString (this.options, 'fetchTradesMethod', defaultMethod);
         if (method === 'publicGetAggTrades') {
             if (since !== undefined) {
                 request['startTime'] = since;
