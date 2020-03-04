@@ -184,6 +184,9 @@ class stex(Exchange):
                     'maker': 0.002,
                 },
             },
+            'commonCurrencies': {
+                'BHD': 'Bithold',
+            },
             'options': {
                 'parseOrderToPrecision': False,
             },
