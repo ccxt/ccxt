@@ -663,18 +663,27 @@ module.exports = class Exchange {
     }
 
     async loadMarkets (reload = false, params = {}) {
-        if (!reload && this.markets) {
-            if (!this.markets_by_id) {
-                return this.setMarkets (this.markets)
-            }
-            return this.markets
+        if (this.loadingMarkets) {
+            return this.loadingMarkets
+        } else {
+            this.loadingMarkets = new Promise (async (resolve, reject) => {
+                if (!reload && this.markets) {
+                    if (!this.markets_by_id) {
+                        return this.setMarkets (this.markets)
+                    }
+                    return this.markets
+                }
+                let currencies = undefined
+                if (this.has.fetchCurrencies) {
+                    currencies = await this.fetchCurrencies ()
+                }
+                const markets = await this.fetchMarkets (params)
+                const result = this.setMarkets (markets, currencies)
+                this.loadingMarkets = false
+                return result
+            })
+            return this.loadingMarkets
         }
-        let currencies = undefined
-        if (this.has.fetchCurrencies) {
-            currencies = await this.fetchCurrencies ()
-        }
-        const markets = await this.fetchMarkets (params)
-        return this.setMarkets (markets, currencies)
     }
 
     async loadAccounts (reload = false, params = {}) {
