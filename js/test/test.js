@@ -119,7 +119,7 @@ let testSymbol = async (exchange, symbol) => {
 
     } else if (exchange.id === 'coinbase') {
 
-        // do nothing for now
+        // nothing for now
 
     } else {
 
