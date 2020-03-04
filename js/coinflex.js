@@ -270,6 +270,12 @@ module.exports = class coinflex extends Exchange {
         return this.parseOrderBook (response);
     }
 
+    parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
+        const price = parseFloat (bidask[priceKey]) / 10000;
+        const amount = parseFloat (bidask[amountKey]) / 10000;
+        return [ price, amount ]
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
