@@ -248,6 +248,13 @@ All of that functionality is handled by CCXT Pro for the user. To work with CCXT
 
 Each incoming update says which parts of the data have changed and the receiving side “increments” local state S by merging the update on top of current state S and moves to next local state S’. In terms CCXT Pro that is called *“incremental state”* and the structures involved in the process of storing and updating the cached state are called *“incremental structures”*. CCXT Pro introduces several new base classes to handle the incremental state where necessary.
 
+The incremental structures returned from the unified methods of CCXT Pro is often one of two types:
+
+1. JSON-decoded object (``object`` in JavaScript, ``dict`` in Python, ``array()`` in PHP). This type may be returned from public and private methods like ``watchTicker``, ``watchBalance``, ``watchOrder``, etc.
+2. An array/list of objects (usually sorted in chronological order). This type may be returned from methods like ``watchOHLCV``, ``watchTrades``, ``watchMyTrades``, ``watchOrders``, etc.
+
+In the latter case the CCXT Pro library has to keep a reasonable limit on the number of objects kept in memory. The allowed maximum can be configured by the user upon instantiation or later.
+
 Linking
 -------
 
@@ -413,7 +420,7 @@ Market Data
 watchOrderBook
 ''''''''''''''
 
-The ``watchOrderBook``\ ’s interface is identical to ``fetchOrderBook``. It accepts three arguments:
+The ``watchOrderBook``\ ’s interface is identical to ```fetchOrderBook`` <https://github.com/ccxt/ccxt/wiki/Manual#order-book>`__. It accepts three arguments:
 
 -  ``symbol`` – string, a unified CCXT symbol, required
 -  ``limit`` – integer, the max number of bids/asks returned, optional
@@ -428,7 +435,7 @@ If the exchange accepts a limiting argument, the ``limit`` argument is sent towa
 
 If the underlying exchange does not accept a limiting argument, the limiting is done on the client side.
 
-The ``limit`` argument does not guarantee that the number of bids or asks will always be equal to ``limit``. It designates the upper boundary or the maximum, so at some moment in time there may be less than ``limit`` bids or asks, but never more than ``limit`` bids or asks. This is the case when the exchange does not have enough volume on the orderbook, or when one of the top orders in the orderbook gets matched and removed from the orderbook, leaving less than ``limit`` entries on either bids side or asks side. The free space in the orderbook usually gets quickly filled with new data.
+The ``limit`` argument does not guarantee that the number of bids or asks will always be equal to ``limit``. It designates the upper boundary or the maximum, so at some moment in time there may be less than ``limit`` bids or asks, but never more than ``limit`` bids or asks. This is the case when the exchange does not have enough orders on the orderbook, or when one of the top orders in the orderbook gets matched and removed from the orderbook, leaving less than ``limit`` entries on either bids side or asks side. The free space in the orderbook usually gets quickly filled with new data.
 
 .. code:: javascript
 
