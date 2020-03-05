@@ -442,7 +442,7 @@ if ($exchange->has['watchOrderBook']) {
             echo date('c'), ' ', $symbol, ' ', json_encode(array($orderbook['asks'][0], $orderbook['bids'][0])), "\n";
             $main();
         })->otherwise(function (\Exception $e) use (&$main) {
-            echo get_class ($e) . ' ' . $e->getMessage (). "\n";
+            echo get_class ($e), ' ', $e->getMessage (), "\n";
             $main();
             // stop the loop on exception or leave it commented to retry
             // throw $e;
@@ -491,7 +491,7 @@ if ($exchange->has['watchTicker']) {
             echo date('c'), ' ', json_encode($ticker), "\n";
             $main();
         })->otherwise(function (\Exception $e) use (&$main) {
-            echo get_class ($e) . ' ' . $e->getMessage (). "\n";
+            echo get_class ($e), ' ', $e->getMessage (), "\n";
             $main();
             // stop the loop on exception or leave it commented to retry
             // throw $e;
@@ -540,7 +540,7 @@ if ($exchange->has['watchTickers']) {
             echo date('c'), ' ', json_encode($tickers), "\n";
             $main();
         })->otherwise(function (\Exception $e) use (&$main) {
-            echo get_class ($e) . ' ' . $e->getMessage (). "\n";
+            echo get_class ($e), ' ', $e->getMessage (), "\n";
             $main();
             // stop the loop on exception or leave it commented to retry
             // throw $e;
@@ -591,7 +591,7 @@ if ($exchange->has['watchOHLCV']) {
                 $main();
             }
         )->otherwise(function (\Exception $e) use (&$main) {
-            echo get_class ($e) . ' ' . $e->getMessage (). "\n";
+            echo get_class ($e), ' ', $e->getMessage (), "\n";
             $main();
             // stop the loop on exception or leave it commented to retry
             // throw $e;
@@ -640,7 +640,7 @@ if ($exchange->has['watchTrades']) {
             echo date('c'), ' ', json_encode($trades), "\n";
             $main();
         })->otherwise(function (\Exception $e) use (&$main) {
-            echo get_class ($e) . ' ' . $e->getMessage (). "\n";
+            echo get_class ($e), ' ', $e->getMessage (), "\n";
             $main();
             // stop the loop on exception or leave it commented to retry
             // throw $e;
@@ -701,7 +701,7 @@ if ($exchange->has['watchBalance']) {
             echo date('c'), ' ', json_encode($balance), "\n";
             $main();
         })->otherwise(function (\Exception $e) use (&$main) {
-            echo get_class ($e) . ' ' . $e->getMessage (). "\n";
+            echo get_class ($e), ' ', $e->getMessage (), "\n";
             $main();
             // stop the loop on exception or leave it commented to retry
             // throw $e;
