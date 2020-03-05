@@ -211,6 +211,8 @@ assert (decimalToPrecision ('1.2', ROUND, 0.02, TICK_SIZE) === '1.2');
 assert (decimalToPrecision ('-1.2', ROUND, 0.02, TICK_SIZE) === '-1.2');
 assert (decimalToPrecision ('44', ROUND, 4.4, TICK_SIZE) === '44');
 assert (decimalToPrecision ('-44', ROUND, 4.4, TICK_SIZE) === '-44');
+assert (decimalToPrecision ('44.00000001', ROUND, 4.4, TICK_SIZE) === '44');
+assert (decimalToPrecision ('-44.00000001', ROUND, 4.4, TICK_SIZE) === '-44');
 
 // ----------------------------------------------------------------------------
 // testDecimalToPrecisionNegativeNumbers
