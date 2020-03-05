@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.23.60",
+  "version": "1.23.61",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -493,7 +493,9 @@
     "TimeX",
     "bitz.com",
     "topliq.com",
-    "TOP.Q"
+    "TOP.Q",
+    "hollaex.com",
+    "HollaEx"
   ],
   "collective": {
     "type": "opencollective",
