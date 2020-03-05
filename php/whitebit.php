@@ -110,6 +110,7 @@ class whitebit extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
+                    '503' => '\\ccxt\\ExchangeNotAvailable', // array("response":null,"status":503,"errors":array("message":[""]),"notification":null,"warning":null,"_token":null)
                 ),
                 'broad' => array(
                     'Market is not available' => '\\ccxt\\BadSymbol', // array("success":false,"message":array("market":["Market is not available"]),"result":array())
@@ -620,9 +621,9 @@ class whitebit extends Exchange {
             $success = $this->safe_value($response, 'success');
             if (!$success) {
                 $feedback = $this->id . ' ' . $body;
-                $message = $this->safe_value($response, 'message');
-                if (gettype($message) === 'string') {
-                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+                $status = $this->safe_string($response, 'status');
+                if (gettype($status) === 'string') {
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $status, $feedback);
                 }
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
                 throw new ExchangeError($feedback);
