@@ -362,14 +362,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.23.61/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.23.61/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.23.62/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.23.62/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.23.61/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.23.62/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
@@ -465,7 +465,7 @@ Private APIs allow the following:
 -  transfer funds between accounts
 -  use merchant services
 
-This library implements full public and private REST APIs for all exchanges. WebSocket and FIX implementations in JavaScript, PHP, Python and other languages coming soon.
+This library implements full public and private REST APIs for all exchanges. WebSocket and FIX implementations in JavaScript, PHP, Python are available in `CCXT Pro <https://ccxt.pro>`__, which is a professional addon to CCXT with support for WebSocket streams.
 
 The CCXT library supports both camelcase notation (preferred in JavaScript) and underscore notation (preferred in Python and PHP), therefore all methods can be called in either notation or coding style in any language.
 
