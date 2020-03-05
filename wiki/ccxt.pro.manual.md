@@ -446,7 +446,7 @@ if ($exchange->has['watchOrderBook']) {
             $main();
             // stop the loop on exception or leave it commented to retry
             // throw $e;
-        })
+        });
     };
     $loop->futureTick($main);
 }
@@ -495,7 +495,7 @@ if ($exchange->has['watchTicker']) {
             $main();
             // stop the loop on exception or leave it commented to retry
             // throw $e;
-        })
+        });
     };
     $loop->futureTick($main);
 }
@@ -544,7 +544,7 @@ if ($exchange->has['watchTickers']) {
             $main();
             // stop the loop on exception or leave it commented to retry
             // throw $e;
-        })
+        });
     };
     $loop->futureTick($main);
 }
@@ -595,7 +595,7 @@ if ($exchange->has['watchOHLCV']) {
             $main();
             // stop the loop on exception or leave it commented to retry
             // throw $e;
-        })
+        });
     };
     $loop->futureTick($main);
 }
@@ -644,7 +644,7 @@ if ($exchange->has['watchTrades']) {
             $main();
             // stop the loop on exception or leave it commented to retry
             // throw $e;
-        })
+        });
     };
     $loop->futureTick($main);
 }
@@ -705,7 +705,7 @@ if ($exchange->has['watchBalance']) {
             $main();
             // stop the loop on exception or leave it commented to retry
             // throw $e;
-        })
+        });
     };
     $loop->futureTick($main);
 }
