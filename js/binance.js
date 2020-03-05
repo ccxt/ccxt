@@ -1115,6 +1115,9 @@ module.exports = class binance extends Exchange {
             timeInForceIsRequired = true;
         } else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
             stopPriceIsRequired = true;
+            if (market['future']) {
+                priceIsRequired = true;
+            }
         } else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
             stopPriceIsRequired = true;
             priceIsRequired = true;
