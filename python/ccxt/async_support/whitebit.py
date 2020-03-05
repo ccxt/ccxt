@@ -14,6 +14,7 @@ except NameError:
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class whitebit(Exchange):
@@ -117,6 +118,7 @@ class whitebit(Exchange):
             },
             'exceptions': {
                 'exact': {
+                    '503': ExchangeNotAvailable,  # {"response":null,"status":503,"errors":{"message":[""]},"notification":null,"warning":null,"_token":null}
                 },
                 'broad': {
                     'Market is not available': BadSymbol,  # {"success":false,"message":{"market":["Market is not available"]},"result":[]}
@@ -592,8 +594,8 @@ class whitebit(Exchange):
             success = self.safe_value(response, 'success')
             if not success:
                 feedback = self.id + ' ' + body
-                message = self.safe_value(response, 'message')
-                if isinstance(message, basestring):
-                    self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+                status = self.safe_string(response, 'status')
+                if isinstance(status, basestring):
+                    self.throw_exactly_matched_exception(self.exceptions['exact'], status, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
                 raise ExchangeError(feedback)

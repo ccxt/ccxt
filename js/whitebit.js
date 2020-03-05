@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection, BadSymbol } = require ('./base/errors');
+const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -107,6 +107,7 @@ module.exports = class whitebit extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '503': ExchangeNotAvailable, // {"response":null,"status":503,"errors":{"message":[""]},"notification":null,"warning":null,"_token":null}
                 },
                 'broad': {
                     'Market is not available': BadSymbol, // {"success":false,"message":{"market":["Market is not available"]},"result":[]}
@@ -617,9 +618,9 @@ module.exports = class whitebit extends Exchange {
             const success = this.safeValue (response, 'success');
             if (!success) {
                 const feedback = this.id + ' ' + body;
-                const message = this.safeValue (response, 'message');
-                if (typeof message === 'string') {
-                    this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                const status = this.safeString (response, 'status');
+                if (typeof status === 'string') {
+                    this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
                 }
                 this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
                 throw new ExchangeError (feedback);

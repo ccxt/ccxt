@@ -413,7 +413,11 @@ class huobipro extends Exchange {
             'symbol' => $market['id'],
         );
         $response = $this->marketGetDetailMerged (array_merge($request, $params));
-        return $this->parse_ticker($response['tick'], $market);
+        $ticker = $this->parse_ticker($response['tick'], $market);
+        $timestamp = $this->safe_value($response, 'ts');
+        $ticker['timestamp'] = $timestamp;
+        $ticker['datetime'] = $this->iso8601 ($timestamp);
+        return $ticker;
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
