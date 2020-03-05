@@ -74,6 +74,7 @@ class bibox extends Exchange {
                 'private' => array(
                     'post' => array(
                         'cquery',
+                        'ctrade',
                         'user',
                         'orderpending',
                         'transfer',
