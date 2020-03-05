@@ -63,7 +63,6 @@ module.exports = class bibox extends Exchange {
                     ],
                     'get': [
                         'cquery',
-                        'ctrade',
                         'mdata',
                     ],
                 },
