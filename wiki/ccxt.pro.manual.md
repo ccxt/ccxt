@@ -381,6 +381,23 @@ The obvious downside of the throttling mode is being less reactive or responsive
 
 ##### watchOrderBook
 
+The `watchOrderBook`'s interface is identical to `fetchOrderBook`. It accepts three arguments:
+
+- `symbol` – string, a unified CCXT symbol, required
+- `limit` – integer, the max number of bids/asks returned, optional
+- `params` – assoc dictionary, optional overrides as described in [Overriding Unified API Params](https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-api-params)
+
+In general, the exchanges can be divided in two categories:
+
+1. the exchanges that support limited orderbooks (streaming just the top part of the stack of orders)
+2. the exchanges that stream full orderbooks only
+
+If the exchange accepts a limiting argument, the `limit` argument is sent towards the exchange upon subscribing to the orderbook stream over a WebSocket connection. The exchange will then send only the specified amount of orders which helps reduce the traffic. Some exchanges may only accept certain values of `limit`, like 10, 25, 50, 100 and so on.
+
+If the underlying exchange does not accept a limiting argument, the limiting is done on the client side.
+
+The `limit` argument does not guarantee that the number of bids or asks will always be equal to `limit`. It designates the upper boundary or the maximum, so at some moment in time there may be less than `limit` bids or asks, but never more than `limit` bids or asks. This is the case when the exchange does not have enough volume on the orderbook, or when one of the top orders in the orderbook gets matched and removed from the orderbook, leaving less than `limit` entries on either bids side or asks side. The free space in the orderbook usually gets quickly filled with new data.
+
 ```JavaScript
 // JavaScript
 if (exchange.has['watchOrderBook']) {
