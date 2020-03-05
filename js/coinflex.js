@@ -395,12 +395,12 @@ module.exports = class coinflex extends Exchange {
         return this.parseTrades (response, undefined, since, limit);
     }
 
-    async fetchTrades (symbol, since = undefined, limit, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (since === undefined) {
             const tempDate = new Date();
-            tempDate.setDate(tempDate.getDate() - 7);
+            tempDate.setDate(tempDate.getDate() - 3);
             since = tempDate.getTime();
         }
         const request = {
