@@ -89,6 +89,7 @@ class bibox(Exchange):
                 'private': {
                     'post': [
                         'cquery',
+                        'ctrade',
                         'user',
                         'orderpending',
                         'transfer',
