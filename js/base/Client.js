@@ -10,6 +10,7 @@ const ccxt = require ('ccxt')
         deepExtend,
         milliseconds,
     } = ccxt
+    , { inflate, gunzip } = require ('./functions')
     , Future = require ('./Future')
 
 module.exports = class Client {
@@ -40,6 +41,7 @@ module.exports = class Client {
             connection: {
                 readyState: undefined,
             },
+            gunzip: false,
         }
         Object.assign (this, deepExtend (defaults, config))
         // connection-related Future
@@ -238,6 +240,9 @@ module.exports = class Client {
         // if we use onmessage we get MessageEvent objects
         // MessageEvent {isTrusted: true, data: "{"e":"depthUpdate","E":1581358737706,"s":"ETHBTC",…"0.06200000"]],"a":[["0.02261300","0.00000000"]]}", origin: "wss://stream.binance.com:9443", lastEventId: "", source: null, …}
         message = message.data
+        if (this.gunzip) {
+            message = gunzip (message)
+        }
         try {
             message = isJsonEncodedObject (message) ? JSON.parse (message) : message
             if (this.verbose) {
@@ -247,12 +252,6 @@ module.exports = class Client {
             console.log (new Date (), 'onMessage JSON.parse', e)
             // reset with a json encoding error ?
         }
-        if (this.onMessageCallback.constructor.name === "AsyncFunction") {
-            this.onMessageCallback (this, message).catch ((e) => {
-                // todo: handle async onMessageCallback errors
-            })
-        } else {
-            this.onMessageCallback (this, message)
-        }
+        this.onMessageCallback (this, message)
     }
 }
