@@ -206,7 +206,7 @@ module.exports = class kraken extends ccxt.kraken {
             } else {
                 stored.push (result);
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                if (this.sum (length, 1) > limit) {
+                if (length >= limit) {
                     stored.shift ();
                 }
             }
