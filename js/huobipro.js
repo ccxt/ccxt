@@ -50,7 +50,7 @@ module.exports = class huobipro extends ccxt.huobipro {
         const market = this.market (symbol);
         // only supports a limit of 150 at this time
         const messageHash = 'market.' + market['id'] + '.detail';
-        const options = this.safeString (this.options, 'ws', {});
+        const options = this.safeValue (this.options, 'ws', {});
         const api = this.safeString (options, 'api', 'api');
         const url = this.urls['api']['ws'][api]['public'];
         const requestId = this.milliseconds ();
@@ -107,7 +107,7 @@ module.exports = class huobipro extends ccxt.huobipro {
         const market = this.market (symbol);
         // only supports a limit of 150 at this time
         const messageHash = 'market.' + market['id'] + '.trade.detail';
-        const options = this.safeString (this.options, 'ws', {});
+        const options = this.safeValue (this.options, 'ws', {});
         const api = this.safeString (options, 'api', 'api');
         const url = this.urls['api']['ws'][api]['public'];
         const requestId = this.milliseconds ();
@@ -174,7 +174,7 @@ module.exports = class huobipro extends ccxt.huobipro {
         const market = this.market (symbol);
         const interval = this.timeframes[timeframe];
         const messageHash = 'market.' + market['id'] + '.kline.' + interval;
-        const options = this.safeString (this.options, 'ws', {});
+        const options = this.safeValue (this.options, 'ws', {});
         const api = this.safeString (options, 'api', 'api');
         const url = this.urls['api']['ws'][api]['public'];
         const requestId = this.milliseconds ();
@@ -258,7 +258,7 @@ module.exports = class huobipro extends ccxt.huobipro {
         // only supports a limit of 150 at this time
         limit = (limit === undefined) ? 150 : limit;
         const messageHash = 'market.' + market['id'] + '.mbp.' + limit.toString ();
-        const options = this.safeString (this.options, 'ws', {});
+        const options = this.safeValue (this.options, 'ws', {});
         const api = this.safeString (options, 'api', 'api');
         const url = this.urls['api']['ws'][api]['public'];
         const requestId = this.milliseconds ();
@@ -447,7 +447,7 @@ module.exports = class huobipro extends ccxt.huobipro {
 
     handleOrderBookSubscription (client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeString (subscription, 'limit');
+        const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
