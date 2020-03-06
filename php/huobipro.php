@@ -395,13 +395,35 @@ class huobipro extends Exchange {
             'type' => 'step0',
         );
         $response = $this->marketGetDepth (array_merge($request, $params));
+        //
+        //     {
+        //         "status" => "ok",
+        //         "ch" => "$market->btcusdt.depth.step0",
+        //         "ts" => 1583474832790,
+        //         "$tick" => {
+        //             "bids" => array(
+        //                 array( 9100.290000000000000000, 0.200000000000000000 ),
+        //                 array( 9099.820000000000000000, 0.200000000000000000 ),
+        //                 array( 9099.610000000000000000, 0.205000000000000000 ),
+        //             ),
+        //             "asks" => array(
+        //                 array( 9100.640000000000000000, 0.005904000000000000 ),
+        //                 array( 9101.010000000000000000, 0.287311000000000000 ),
+        //                 array( 9101.030000000000000000, 0.012121000000000000 ),
+        //             ),
+        //             "ts":1583474832008,
+        //             "version":104999698780
+        //         }
+        //     }
+        //
         if (is_array($response) && array_key_exists('tick', $response)) {
             if (!$response['tick']) {
                 throw new ExchangeError($this->id . ' fetchOrderBook() returned empty $response => ' . $this->json ($response));
             }
-            $orderbook = $this->safe_value($response, 'tick');
-            $result = $this->parse_order_book($orderbook, $orderbook['ts']);
-            $result['nonce'] = $orderbook['version'];
+            $tick = $this->safe_value($response, 'tick');
+            $timestamp = $this->safe_integer($tick, 'ts', $this->safe_integer($response, 'ts'));
+            $result = $this->parse_order_book($tick, $timestamp);
+            $result['nonce'] = $this->safe_integer($tick, 'version');
             return $result;
         }
         throw new ExchangeError($this->id . ' fetchOrderBook() returned unrecognized $response => ' . $this->json ($response));

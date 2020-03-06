@@ -386,12 +386,34 @@ class huobipro(Exchange):
             'type': 'step0',
         }
         response = self.marketGetDepth(self.extend(request, params))
+        #
+        #     {
+        #         "status": "ok",
+        #         "ch": "market.btcusdt.depth.step0",
+        #         "ts": 1583474832790,
+        #         "tick": {
+        #             "bids": [
+        #                 [9100.290000000000000000, 0.200000000000000000],
+        #                 [9099.820000000000000000, 0.200000000000000000],
+        #                 [9099.610000000000000000, 0.205000000000000000],
+        #             ],
+        #             "asks": [
+        #                 [9100.640000000000000000, 0.005904000000000000],
+        #                 [9101.010000000000000000, 0.287311000000000000],
+        #                 [9101.030000000000000000, 0.012121000000000000],
+        #             ],
+        #             "ts":1583474832008,
+        #             "version":104999698780
+        #         }
+        #     }
+        #
         if 'tick' in response:
             if not response['tick']:
                 raise ExchangeError(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
-            orderbook = self.safe_value(response, 'tick')
-            result = self.parse_order_book(orderbook, orderbook['ts'])
-            result['nonce'] = orderbook['version']
+            tick = self.safe_value(response, 'tick')
+            timestamp = self.safe_integer(tick, 'ts', self.safe_integer(response, 'ts'))
+            result = self.parse_order_book(tick, timestamp)
+            result['nonce'] = self.safe_integer(tick, 'version')
             return result
         raise ExchangeError(self.id + ' fetchOrderBook() returned unrecognized response: ' + self.json(response))
 
