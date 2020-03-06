@@ -6,8 +6,7 @@ __version__ = '0.0.54'
 
 # -----------------------------------------------------------------------------
 
-from zlib import decompress, MAX_WBITS
-from base64 import b64decode
+from ccxtpro.base.functions import inflate, gunzip
 from asyncio import ensure_future
 from ccxtpro.base.aiohttp_client import AiohttpClient
 from ccxt.async_support import Exchange as BaseExchange
@@ -38,7 +37,11 @@ class Exchange(BaseExchange):
 
     @staticmethod
     def inflate(string):
-        return decompress(b64decode(string), -MAX_WBITS)
+        return inflate(string)
+
+    @staticmethod
+    def gunzip(data):
+        return gunzip(data)
 
     def order_book(self, snapshot={}, depth=float('inf')):
         return OrderBook(snapshot, depth)
@@ -56,10 +59,11 @@ class Exchange(BaseExchange):
             on_error = self.on_error
             on_close = self.on_close
             # decide client type here: aiohttp ws / websockets / signalr / socketio
+            ws_options = self.safe_value(self.options, 'ws', {})
             options = self.extend(self.streaming, {
                 'ping': getattr(self, 'ping', None),
                 'verbose': self.verbose,
-            })
+            }, ws_options)
             self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, options)
         return self.clients[url]
 
@@ -77,7 +81,7 @@ class Exchange(BaseExchange):
     async def spawn_async(self, method, *args):
         try:
             await method(*args)
-        except Exception as e:
+        except Exception:
             # todo: handle spawned errors
             pass
 
