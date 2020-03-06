@@ -320,6 +320,21 @@ module.exports = class huobipro extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "amount": 26228.672978342216,
+        //         "open": 9078.95,
+        //         "close": 9146.86,
+        //         "high": 9155.41,
+        //         "id": 209988544334,
+        //         "count": 265846,
+        //         "low": 8988.0,
+        //         "version": 209988544334,
+        //         "ask": [ 9146.87, 0.156134 ],
+        //         "vol": 2.3822168242201668E8,
+        //         "bid": [ 9146.86, 0.080758 ],
+        //     }
+        //
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -432,6 +447,26 @@ module.exports = class huobipro extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.marketGetDetailMerged (this.extend (request, params));
+        //
+        //     {
+        //         "status": "ok",
+        //         "ch": "market.btcusdt.detail.merged",
+        //         "ts": 1583494336669,
+        //         "tick": {
+        //             "amount": 26228.672978342216,
+        //             "open": 9078.95,
+        //             "close": 9146.86,
+        //             "high": 9155.41,
+        //             "id": 209988544334,
+        //             "count": 265846,
+        //             "low": 8988.0,
+        //             "version": 209988544334,
+        //             "ask": [ 9146.87, 0.156134 ],
+        //             "vol": 2.3822168242201668E8,
+        //             "bid": [ 9146.86, 0.080758 ],
+        //         }
+        //     }
+        //
         const ticker = this.parseTicker (response['tick'], market);
         const timestamp = this.safeValue (response, 'ts');
         ticker['timestamp'] = timestamp;
@@ -461,6 +496,20 @@ module.exports = class huobipro extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "amount": 0.010411000000000000,
+        //         "trade-id": 102090736910,
+        //         "ts": 1583497692182,
+        //         "id": 10500517034273194594947,
+        //         "price": 9096.050000000000000000,
+        //         "direction": "sell"
+        //     }
+        //
+        // fetchMyTrades (private)
+        //
         let symbol = undefined;
         if (market === undefined) {
             const marketId = this.safeString (trade, 'symbol');
@@ -508,7 +557,8 @@ module.exports = class huobipro extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        const id = this.safeString (trade, 'id');
+        const tradeId = this.safeString2 (trade, 'trade-id', 'tradeId');
+        const id = this.safeString (trade, 'id', tradeId);
         return {
             'id': id,
             'info': trade,
@@ -555,6 +605,30 @@ module.exports = class huobipro extends Exchange {
             request['size'] = limit;
         }
         const response = await this.marketGetHistoryTrade (this.extend (request, params));
+        //
+        //     {
+        //         "status": "ok",
+        //         "ch": "market.btcusdt.trade.detail",
+        //         "ts": 1583497692365,
+        //         "data": [
+        //             {
+        //                 "id": 105005170342,
+        //                 "ts": 1583497692182,
+        //                 "data": [
+        //                     {
+        //                         "amount": 0.010411000000000000,
+        //                         "trade-id": 102090736910,
+        //                         "ts": 1583497692182,
+        //                         "id": 10500517034273194594947,
+        //                         "price": 9096.050000000000000000,
+        //                         "direction": "sell"
+        //                     }
+        //                 ]
+        //             },
+        //             // ...
+        //         ]
+        //     }
+        //
         const data = this.safeValue (response, 'data');
         let result = [];
         for (let i = 0; i < data.length; i++) {
