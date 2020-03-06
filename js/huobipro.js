@@ -419,7 +419,7 @@ module.exports = class huobipro extends Exchange {
             const tick = this.safeValue (response, 'tick');
             const timestamp = this.safeInteger (tick, 'ts', this.safeInteger (response, 'ts'));
             const result = this.parseOrderBook (tick, timestamp);
-            result['nonce'] = this.safeInteger2 (tick, 'version', 'seqNum');
+            result['nonce'] = this.safeInteger (tick, 'version');
             return result;
         }
         throw new ExchangeError (this.id + ' fetchOrderBook() returned unrecognized response: ' + this.json (response));
