@@ -14,7 +14,7 @@ module.exports = class huobipro extends ccxt.huobipro {
                 'ws': true,
                 'watchOrderBook': true,
                 'watchTickers': false, // for now
-                'watchTicker': false, // for now
+                'watchTicker': true,
                 'watchTrades': false, // for now
                 'watchBalance': false, // for now
                 'watchOHLCV': false, // for now
@@ -44,158 +44,59 @@ module.exports = class huobipro extends ccxt.huobipro {
         });
     }
 
-    // To receive data you have to send a "sub" message first.
-    //
-    // {
-    //     "sub": "market.btcusdt.kline.1min",
-    //     "id": "id1"
-    // }
-    //
-    // { "sub": "topic to sub", "id": "id generate by client" }
-    //
-    // After successfully subscribed, you will receive a response to confirm subscription
-    //
-    // {
-    //     "id": "id1",
-    //     "status": "ok",
-    //     "subbed": "market.btcusdt.kline.1min",
-    //     "ts": 1489474081631
-    // }
-    //
-    // Then, you will received message when there is update in this topic
-    //
-    // {
-    //     "ch": "market.btcusdt.kline.1min",
-    //     "ts": 1489474082831,
-    //     "tick": {
-    //         "id": 1489464480,
-    //         "amount": 0.0,
-    //         "count": 0,
-    //         "open": 7962.62,
-    //         "close": 7962.62,
-    //         "low": 7962.62,
-    //         "high": 7962.62,
-    //         "vol": 0.0
-    //     }
-    // }
-    //
-    // Unsubscribe
-    //
-    // To unsubscribe, you need to send below message
-    //
-    // {
-    //     "unsub": "market.btcusdt.trade.detail",
-    //     "id": "id4"
-    // }
-    //
-    // { "unsub": "topic to unsub", "id": "id generate by client" }
-    //
-    // And you will receive a message to confirm the unsubscribe
-    // {
-    //     "id": "id4",
-    //     "status": "ok",
-    //     "unsubbed": "market.btcusdt.trade.detail",
-    //     "ts": 1494326028889
-    // }
-    //
-    // Pull Data
-    //
-    // While connected to websocket, you can also use it in pull style by sending
-    // message to the server. To request pull style data, you send below message
-    //
-    // {
-    //     "req": "market.ethbtc.kline.1min",
-    //     "id": "id10"
-    // }
-    //
-    // { "req": "topic to req", "id": "id generate by client" }
-    //
-    // You will receive a response accordingly and immediately
-    //
-    // async subscribe (negotiation, topic, method, symbol, params = {}) {
-    //     await this.loadMarkets ();
-    //     const market = this.market (symbol);
-    //     const data = this.safeValue (negotiation, 'data', {});
-    //     const instanceServers = this.safeValue (data, 'instanceServers', []);
-    //     const firstServer = this.safeValue (instanceServers, 0, {});
-    //     const endpoint = this.safeString (firstServer, 'endpoint');
-    //     const token = this.safeString (data, 'token');
-    //     const nonce = this.nonce ();
-    //     const query = {
-    //         'token': token,
-    //         'acceptUserMessage': 'true',
-    //         // 'connectId': nonce, // user-defined id is supported, received by handleSystemStatus
-    //     };
-    //     const url = endpoint + '?' + this.urlencode (query);
-    //     // const topic = '/market/snapshot'; // '/market/ticker';
-    //     const messageHash = topic + ':' + market['id'];
-    //     const subscribe = {
-    //         'id': nonce,
-    //         'type': 'subscribe',
-    //         'topic': messageHash,
-    //         'response': true,
-    //     };
-    //     const subscription = {
-    //         'id': nonce.toString (),
-    //         'symbol': symbol,
-    //         'topic': topic,
-    //         'messageHash': messageHash,
-    //         'method': method,
-    //     };
-    //     const request = this.extend (subscribe, params);
-    //     return await this.watch (url, messageHash, request, messageHash, subscription);
-    // }
-
     async watchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        const negotiate = this.negotiate ();
-        const topic = '/market/snapshot';
-        return await this.afterAsync (negotiate, this.subscribe, topic, undefined, symbol, params);
+        const market = this.market (symbol);
+        // only supports a limit of 150 at this time
+        const messageHash = 'market.' + market['id'] + '.detail';
+        const options = this.safeString (this.options, 'ws', {});
+        const api = this.safeString (options, 'api', 'api');
+        const url = this.urls['api']['ws'][api]['public'];
+        const requestId = this.milliseconds ();
+        const request = {
+            'sub': messageHash,
+            'id': requestId,
+        };
+        const subscription = {
+            'id': requestId,
+            'messageHash': messageHash,
+            'symbol': symbol,
+            'params': params,
+        }
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
     handleTicker (client, message) {
         //
-        // updates come in every 2 sec unless there
-        // were no changes since the previous update
-        //
         //     {
-        //         "data": {
-        //             "sequence": "1545896669291",
-        //             "data": {
-        //                 "trading": true,
-        //                 "symbol": "KCS-BTC",
-        //                 "buy": 0.00011,
-        //                 "sell": 0.00012,
-        //                 "sort": 100,
-        //                 "volValue": 3.13851792584, // total
-        //                 "baseCurrency": "KCS",
-        //                 "market": "BTC",
-        //                 "quoteCurrency": "BTC",
-        //                 "symbolCode": "KCS-BTC",
-        //                 "datetime": 1548388122031,
-        //                 "high": 0.00013,
-        //                 "vol": 27514.34842,
-        //                 "low": 0.0001,
-        //                 "changePrice": -1.0e-5,
-        //                 "changeRate": -0.0769,
-        //                 "lastTradedPrice": 0.00012,
-        //                 "board": 0,
-        //                 "mark": 0
-        //             }
-        //         },
-        //         "subject": "trade.snapshot",
-        //         "topic": "/market/snapshot:KCS-BTC",
-        //         "type": "message"
+        //         ch: 'market.btcusdt.detail',
+        //         ts: 1583494163784,
+        //         tick: {
+        //             id: 209988464418,
+        //             low: 8988,
+        //             high: 9155.41,
+        //             open: 9078.91,
+        //             close: 9136.46,
+        //             vol: 237813910.5928412,
+        //             amount: 26184.202558551195,
+        //             version: 209988464418,
+        //             count: 265673
+        //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
-        const rawTicker = this.safeValue (data, 'data', {});
-        const ticker = this.parseTicker (rawTicker);
-        const symbol = ticker['symbol'];
-        this.tickers[symbol] = ticker;
-        const messageHash = this.safeString (message, 'topic');
-        if (messageHash !== undefined) {
-            client.resolve (ticker, messageHash);
+        const tick = this.safeValue (message, 'tick', {});
+        const ch = this.safeString (message, 'ch');
+        const parts = ch.split ('.');
+        const marketId = this.safeString (parts, 1);
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            const ticker = this.parseTicker (tick, market);
+            const timestamp = this.safeValue (message, 'ts');
+            ticker['timestamp'] = timestamp;
+            ticker['datetime'] = this.iso8601 (timestamp);
+            const symbol = ticker['symbol'];
+            this.tickers[symbol] = ticker;
+            client.resolve (ticker, ch);
         }
         return message;
     }
@@ -526,6 +427,7 @@ module.exports = class huobipro extends ccxt.huobipro {
             }
             const methods = {
                 'mbp.150': this.handleOrderBook,
+                'detail': this.handleTicker,
                 // ...
             };
             const method = this.safeValue (methods, methodName);
