@@ -401,6 +401,7 @@ module.exports = class binance extends ccxt.binance {
     }
 
     findTimeframe (timeframe) {
+        // redo to use reverse lookups in a static map instead
         const keys = Object.keys (this.timeframes);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -443,6 +444,7 @@ module.exports = class binance extends ccxt.binance {
         const event = this.safeString (message, 'e');
         const kline = this.safeValue (message, 'k');
         const interval = this.safeString (kline, 'i');
+        // use a reverse lookup in a static map instead
         const timeframe = this.findTimeframe (interval);
         const messageHash = lowercaseMarketId + '@' + event + '_' + interval;
         const parsed = [
