@@ -166,6 +166,7 @@ module.exports = class Exchange {
                 '429': RateLimitExceeded,
                 '404': ExchangeNotAvailable,
                 '409': ExchangeNotAvailable,
+                '410': ExchangeNotAvailable,
                 '500': ExchangeNotAvailable,
                 '501': ExchangeNotAvailable,
                 '502': ExchangeNotAvailable,
