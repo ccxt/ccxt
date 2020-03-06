@@ -468,7 +468,7 @@ module.exports = class binance extends ccxt.binance {
         } else {
             stored.push (parsed);
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            if (this.sum (length, 1) > limit) {
+            if (length >= limit) {
                 stored.shift ();
             }
         }
