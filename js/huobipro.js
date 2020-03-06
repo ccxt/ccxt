@@ -15,7 +15,7 @@ module.exports = class huobipro extends ccxt.huobipro {
                 'watchOrderBook': true,
                 'watchTickers': false, // for now
                 'watchTicker': true,
-                'watchTrades': false, // for now
+                'watchTrades': true,
                 'watchBalance': false, // for now
                 'watchOHLCV': false, // for now
             },
@@ -62,7 +62,7 @@ module.exports = class huobipro extends ccxt.huobipro {
             'messageHash': messageHash,
             'symbol': symbol,
             'params': params,
-        }
+        };
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
@@ -103,45 +103,158 @@ module.exports = class huobipro extends ccxt.huobipro {
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const negotiate = this.negotiate ();
-        const topic = '/market/match';
-        const future = this.afterAsync (negotiate, this.subscribe, topic, undefined, symbol, since, params);
+        const market = this.market (symbol);
+        // only supports a limit of 150 at this time
+        const messageHash = 'market.' + market['id'] + '.trade.detail';
+        const options = this.safeString (this.options, 'ws', {});
+        const api = this.safeString (options, 'api', 'api');
+        const url = this.urls['api']['ws'][api]['public'];
+        const requestId = this.milliseconds ();
+        const request = {
+            'sub': messageHash,
+            'id': requestId,
+        };
+        const subscription = {
+            'id': requestId,
+            'messageHash': messageHash,
+            'symbol': symbol,
+            'params': params,
+        };
+        const future = this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
         return await this.after (future, this.filterBySinceLimit, since, limit);
     }
 
-    handleTrade (client, message) {
+    handleTrades (client, message) {
         //
         //     {
-        //         data: {
-        //             sequence: '1568787654360',
-        //             symbol: 'BTC-USDT',
-        //             side: 'buy',
-        //             size: '0.00536577',
-        //             price: '9345',
-        //             takerOrderId: '5e356c4a9f1a790008f8d921',
-        //             time: '1580559434436443257',
-        //             type: 'match',
-        //             makerOrderId: '5e356bffedf0010008fa5d7f',
-        //             tradeId: '5e356c4aeefabd62c62a1ece'
-        //         },
-        //         subject: 'trade.l3match',
-        //         topic: '/market/match:BTC-USDT',
-        //         type: 'message'
+        //         ch: "market.btcusdt.trade.detail",
+        //         ts: 1583495834011,
+        //         tick: {
+        //             id: 105004645372,
+        //             ts: 1583495833751,
+        //             data: [
+        //                 {
+        //                     id: 1.050046453727319e+22,
+        //                     ts: 1583495833751,
+        //                     tradeId: 102090727790,
+        //                     amount: 0.003893,
+        //                     price: 9150.01,
+        //                     direction: "sell"
+        //                 }
+        //             ]
+        //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
-        const trade = this.parseTrade (data);
-        const messageHash = this.safeString (message, 'topic');
-        const symbol = trade['symbol'];
-        const array = this.safeValue (this.trades, symbol, []);
-        array.push (trade);
-        const length = array.length;
-        if (length > this.options['tradesLimit']) {
-            array.shift ();
+        const tick = this.safeValue (message, 'tick', {});
+        const data = this.safeValue (tick, 'data', {});
+        const ch = this.safeString (message, 'ch');
+        const parts = ch.split ('.');
+        const marketId = this.safeString (parts, 1);
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            const symbol = market['symbol'];
+            const array = this.safeValue (this.trades, symbol, []);
+            for (let i = 0; i < data.length; i++) {
+                const trade = this.parseTrade (data[i], market);
+                array.push (trade);
+                const length = array.length;
+                if (length > this.options['tradesLimit']) {
+                    array.shift ();
+                }
+                this.trades[symbol] = array;
+            }
+            client.resolve (array, ch);
         }
-        this.trades[symbol] = array;
-        client.resolve (array, messageHash);
         return message;
+    }
+
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const interval = this.timeframes[timeframe];
+        const messageHash = 'market.' + market['id'] + '.kline.' + interval;
+        const options = this.safeString (this.options, 'ws', {});
+        const api = this.safeString (options, 'api', 'api');
+        const url = this.urls['api']['ws'][api]['public'];
+        const requestId = this.milliseconds ();
+        const request = {
+            'sub': messageHash,
+            'id': requestId,
+        };
+        const subscription = {
+            'id': requestId,
+            'messageHash': messageHash,
+            'symbol': symbol,
+            'timeframe': timeframe,
+            'params': params,
+        };
+        const future = this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        return await this.after (future, this.filterBySinceLimit, since, limit);
+    }
+
+    handleOHLCV (client, message) {
+        console.log ('handleOHLCV', message);
+        process.exit ();
+        //
+        //     {
+        //         e: 'kline',
+        //         E: 1579482921215,
+        //         s: 'ETHBTC',
+        //         k: {
+        //             t: 1579482900000,
+        //             T: 1579482959999,
+        //             s: 'ETHBTC',
+        //             i: '1m',
+        //             f: 158411535,
+        //             L: 158411550,
+        //             o: '0.01913200',
+        //             c: '0.01913500',
+        //             h: '0.01913700',
+        //             l: '0.01913200',
+        //             v: '5.08400000',
+        //             n: 16,
+        //             x: false,
+        //             q: '0.09728060',
+        //             V: '3.30200000',
+        //             Q: '0.06318500',
+        //             B: '0'
+        //         }
+        //     }
+        //
+        const marketId = this.safeString (message, 's');
+        const lowercaseMarketId = this.safeStringLower (message, 's');
+        const event = this.safeString (message, 'e');
+        const kline = this.safeValue (message, 'k');
+        const interval = this.safeString (kline, 'i');
+        // use a reverse lookup in a static map instead
+        const timeframe = this.findTimeframe (interval);
+        const messageHash = lowercaseMarketId + '@' + event + '_' + interval;
+        const parsed = [
+            this.safeInteger (kline, 't'),
+            this.safeFloat (kline, 'o'),
+            this.safeFloat (kline, 'h'),
+            this.safeFloat (kline, 'l'),
+            this.safeFloat (kline, 'c'),
+            this.safeFloat (kline, 'v'),
+        ];
+        let symbol = marketId;
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        }
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
+        const length = stored.length;
+        if (length && parsed[0] === stored[length - 1][0]) {
+            stored[length - 1] = parsed;
+        } else {
+            stored.push (parsed);
+            if (length + 1 > this.options['OHLCVLimit']) {
+                stored.shift ();
+            }
+        }
+        this.ohlcvs[symbol][timeframe] = stored;
+        client.resolve (stored, messageHash);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -213,7 +326,6 @@ module.exports = class huobipro extends ccxt.huobipro {
         }
         this.orderbooks[symbol] = orderbook;
         client.resolve (orderbook, messageHash);
-
     }
 
     async watchOrderBookSnapshot (client, message, subscription) {
@@ -221,11 +333,9 @@ module.exports = class huobipro extends ccxt.huobipro {
         const limit = this.safeInteger (subscription, 'limit');
         const params = this.safeValue (subscription, 'params');
         const messageHash = this.safeString (subscription, 'messageHash');
-        // new code cp from bittrex
         const options = this.safeValue (this.options, 'ws', {});
         const api = this.safeValue (options, 'api');
         const url = this.urls['api']['ws'][api]['public'];
-        // const method = 'QueryBalanceState';
         const requestId = this.milliseconds ();
         const request = {
             'req': messageHash,
@@ -281,15 +391,11 @@ module.exports = class huobipro extends ccxt.huobipro {
         const tick = this.safeValue (message, 'tick', {});
         const seqNum = this.safeInteger (tick, 'seqNum');
         const prevSeqNum = this.safeInteger (tick, 'prevSeqNum');
-        if (seqNum > orderbook['nonce']) {
-            if (prevSeqNum !== orderbook['nonce']) {
-                // todo: client.reject from handleOrderBookMessage properly
-                throw new ExchangeError (this.id + ' handleOrderBookMessage received an out-of-order nonce ' + prevSeqNum.toString () + ' !== ' + orderbook['nonce'].toString ());
-            }
+        if ((prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
             const asks = this.safeValue (tick, 'asks', []);
             const bids = this.safeValue (tick, 'bids', []);
-            this.handleDeltas (orderbook['asks'], asks, orderbook['nonce']);
-            this.handleDeltas (orderbook['bids'], bids, orderbook['nonce']);
+            this.handleDeltas (orderbook['asks'], asks);
+            this.handleDeltas (orderbook['bids'], bids);
             orderbook['nonce'] = seqNum;
             const timestamp = this.safeInteger (message, 'ts');
             orderbook['timestamp'] = timestamp;
@@ -418,16 +524,12 @@ module.exports = class huobipro extends ccxt.huobipro {
         const parts = ch.split ('.');
         const type = this.safeString (parts, 0);
         if (type === 'market') {
-            // const marketId = this.safeString (parts, 1);
-            const subject = this.safeString (parts, 2);
-            const level = this.safeString (parts, 3);
-            let methodName = subject;
-            if (level !== undefined) {
-                methodName += '.' + level;
-            }
+            const methodName = this.safeString (parts, 2);
             const methods = {
-                'mbp.150': this.handleOrderBook,
+                'mbp': this.handleOrderBook,
                 'detail': this.handleTicker,
+                'trade': this.handleTrades,
+                'kline': this.handleOHLCV,
                 // ...
             };
             const method = this.safeValue (methods, methodName);
