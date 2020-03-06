@@ -17,7 +17,7 @@ module.exports = class huobipro extends ccxt.huobipro {
                 'watchTicker': true,
                 'watchTrades': true,
                 'watchBalance': false, // for now
-                'watchOHLCV': false, // for now
+                'watchOHLCV': true,
             },
             'urls': {
                 'api': {
@@ -30,12 +30,13 @@ module.exports = class huobipro extends ccxt.huobipro {
                         'api-aws': {
                             'public': 'wss://api-aws.huobi.pro/ws',
                             'private': 'wss://api-aws.huobi.pro/ws/v2',
-                        }
-                    }
+                        },
+                    },
                 },
             },
             'options': {
                 'tradesLimit': 1000,
+                'OHLCVLimit': 1000,
                 'ws': {
                     'api': 'api', // or api-aws for clients hosted on AWS
                     'gunzip': true,
@@ -192,69 +193,60 @@ module.exports = class huobipro extends ccxt.huobipro {
         return await this.after (future, this.filterBySinceLimit, since, limit);
     }
 
+    findTimeframe (timeframe) {
+        // redo to use reverse lookups in a static map instead
+        const keys = Object.keys (this.timeframes);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.timeframes[key] === timeframe) {
+                return key;
+            }
+        }
+        return undefined;
+    }
+
     handleOHLCV (client, message) {
-        console.log ('handleOHLCV', message);
-        process.exit ();
         //
         //     {
-        //         e: 'kline',
-        //         E: 1579482921215,
-        //         s: 'ETHBTC',
-        //         k: {
-        //             t: 1579482900000,
-        //             T: 1579482959999,
-        //             s: 'ETHBTC',
-        //             i: '1m',
-        //             f: 158411535,
-        //             L: 158411550,
-        //             o: '0.01913200',
-        //             c: '0.01913500',
-        //             h: '0.01913700',
-        //             l: '0.01913200',
-        //             v: '5.08400000',
-        //             n: 16,
-        //             x: false,
-        //             q: '0.09728060',
-        //             V: '3.30200000',
-        //             Q: '0.06318500',
-        //             B: '0'
+        //         ch: 'market.btcusdt.kline.1min',
+        //         ts: 1583501786794,
+        //         tick: {
+        //             id: 1583501760,
+        //             open: 9094.5,
+        //             close: 9094.51,
+        //             low: 9094.5,
+        //             high: 9094.51,
+        //             amount: 0.44639786263800907,
+        //             vol: 4059.76919054,
+        //             count: 16
         //         }
         //     }
         //
-        const marketId = this.safeString (message, 's');
-        const lowercaseMarketId = this.safeStringLower (message, 's');
-        const event = this.safeString (message, 'e');
-        const kline = this.safeValue (message, 'k');
-        const interval = this.safeString (kline, 'i');
-        // use a reverse lookup in a static map instead
-        const timeframe = this.findTimeframe (interval);
-        const messageHash = lowercaseMarketId + '@' + event + '_' + interval;
-        const parsed = [
-            this.safeInteger (kline, 't'),
-            this.safeFloat (kline, 'o'),
-            this.safeFloat (kline, 'h'),
-            this.safeFloat (kline, 'l'),
-            this.safeFloat (kline, 'c'),
-            this.safeFloat (kline, 'v'),
-        ];
-        let symbol = marketId;
+        const ch = this.safeString (message, 'ch');
+        const parts = ch.split ('.');
+        const marketId = this.safeString (parts, 1);
         if (marketId in this.markets_by_id) {
             const market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
-        const length = stored.length;
-        if (length && parsed[0] === stored[length - 1][0]) {
-            stored[length - 1] = parsed;
-        } else {
-            stored.push (parsed);
-            if (length + 1 > this.options['OHLCVLimit']) {
-                stored.shift ();
+            const symbol = market['symbol'];
+            const interval = this.safeString (parts, 3);
+            const timeframe = this.findTimeframe (interval);
+            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
+            const tick = this.safeValue (message, 'tick');
+            const parsed = this.parseOHLCV (tick, market, timeframe, undefined, undefined);
+            const length = stored.length;
+            if (length && parsed[0] === stored[length - 1][0]) {
+                stored[length - 1] = parsed;
+            } else {
+                stored.push (parsed);
+                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                if (length >= limit) {
+                    stored.shift ();
+                }
             }
+            this.ohlcvs[symbol][timeframe] = stored;
+            client.resolve (stored, ch);
         }
-        this.ohlcvs[symbol][timeframe] = stored;
-        client.resolve (stored, messageHash);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -559,16 +551,11 @@ module.exports = class huobipro extends ccxt.huobipro {
             //
             if ('id' in message) {
                 this.handleSubscriptionStatus (client, message);
-            } else
-            // route by channel aka topic aka subject
-            if ('ch' in message) {
+            } else if ('ch' in message) {
+                // route by channel aka topic aka subject
                 this.handleSubject (client, message);
             } else if ('ping' in message) {
                 this.handlePing (client, message);
-            } else {
-                const log = require ('ololog');
-                log ('handleMessage', message);
-                process.exit ();
             }
         }
     }
