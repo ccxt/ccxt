@@ -276,7 +276,7 @@ module.exports = class huobipro extends ccxt.huobipro {
         return orderbook.limit (limit);
     }
 
-    async handleOrderBookSnapshot (client, message, subscription) {
+    handleOrderBookSnapshot (client, message, subscription) {
         console.log ('handleOrderBookSubscription', message, subscription);
         process.exit ();
     }
@@ -376,27 +376,30 @@ module.exports = class huobipro extends ccxt.huobipro {
 
     handleOrderBook (client, message) {
         //
-        // initial snapshot is fetched with ccxt's fetchOrderBook
-        // the feed does not include a snapshot, just the deltas
+        // deltas
         //
         //     {
-        //         "type":"message",
-        //         "topic":"/market/level2:BTC-USDT",
-        //         "subject":"trade.l2update",
-        //         "data":{
-        //             "sequenceStart":1545896669105,
-        //             "sequenceEnd":1545896669106,
-        //             "symbol":"BTC-USDT",
-        //             "changes": {
-        //                 "asks": [["6","1","1545896669105"]], // price, size, sequence
-        //                 "bids": [["4","1","1545896669106"]]
-        //             }
+        //         ch: "market.btcusdt.mbp.150",
+        //         ts: 1583472025885,
+        //         tick: {
+        //             seqNum: 104998984994,
+        //             prevSeqNum: 104998984977,
+        //             bids: [
+        //                 [9058.27, 0],
+        //                 [9058.43, 0],
+        //                 [9058.99, 0],
+        //             ],
+        //             asks: [
+        //                 [9084.27, 0.2],
+        //                 [9085.69, 0],
+        //                 [9085.81, 0],
+        //             ]
         //         }
         //     }
         //
         const log = require ('ololog');
         log.red ('handleOrderBook', message);
-        process.exit ();
+        // process.exit ();
         const messageHash = this.safeString (message, 'topic');
         const data = this.safeValue (message, 'data');
         const marketId = this.safeString (data, 'symbol');
