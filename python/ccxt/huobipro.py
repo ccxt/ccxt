@@ -324,6 +324,21 @@ class huobipro(Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         "amount": 26228.672978342216,
+        #         "open": 9078.95,
+        #         "close": 9146.86,
+        #         "high": 9155.41,
+        #         "id": 209988544334,
+        #         "count": 265846,
+        #         "low": 8988.0,
+        #         "version": 209988544334,
+        #         "ask": [9146.87, 0.156134],
+        #         "vol": 2.3822168242201668E8,
+        #         "bid": [9146.86, 0.080758],
+        #     }
+        #
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -424,6 +439,26 @@ class huobipro(Exchange):
             'symbol': market['id'],
         }
         response = self.marketGetDetailMerged(self.extend(request, params))
+        #
+        #     {
+        #         "status": "ok",
+        #         "ch": "market.btcusdt.detail.merged",
+        #         "ts": 1583494336669,
+        #         "tick": {
+        #             "amount": 26228.672978342216,
+        #             "open": 9078.95,
+        #             "close": 9146.86,
+        #             "high": 9155.41,
+        #             "id": 209988544334,
+        #             "count": 265846,
+        #             "low": 8988.0,
+        #             "version": 209988544334,
+        #             "ask": [9146.87, 0.156134],
+        #             "vol": 2.3822168242201668E8,
+        #             "bid": [9146.86, 0.080758],
+        #         }
+        #     }
+        #
         ticker = self.parse_ticker(response['tick'], market)
         timestamp = self.safe_value(response, 'ts')
         ticker['timestamp'] = timestamp
@@ -449,6 +484,20 @@ class huobipro(Exchange):
         return result
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #     {
+        #         "amount": 0.010411000000000000,
+        #         "trade-id": 102090736910,
+        #         "ts": 1583497692182,
+        #         "id": 10500517034273194594947,
+        #         "price": 9096.050000000000000000,
+        #         "direction": "sell"
+        #     }
+        #
+        # fetchMyTrades(private)
+        #
         symbol = None
         if market is None:
             marketId = self.safe_string(trade, 'symbol')
@@ -486,7 +535,8 @@ class huobipro(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        id = self.safe_string(trade, 'id')
+        tradeId = self.safe_string_2(trade, 'trade-id', 'tradeId')
+        id = self.safe_string(trade, 'id', tradeId)
         return {
             'id': id,
             'info': trade,
@@ -527,6 +577,30 @@ class huobipro(Exchange):
         if limit is not None:
             request['size'] = limit
         response = self.marketGetHistoryTrade(self.extend(request, params))
+        #
+        #     {
+        #         "status": "ok",
+        #         "ch": "market.btcusdt.trade.detail",
+        #         "ts": 1583497692365,
+        #         "data": [
+        #             {
+        #                 "id": 105005170342,
+        #                 "ts": 1583497692182,
+        #                 "data": [
+        #                     {
+        #                         "amount": 0.010411000000000000,
+        #                         "trade-id": 102090736910,
+        #                         "ts": 1583497692182,
+        #                         "id": 10500517034273194594947,
+        #                         "price": 9096.050000000000000000,
+        #                         "direction": "sell"
+        #                     }
+        #                 ]
+        #             },
+        #             # ...
+        #         ]
+        #     }
+        #
         data = self.safe_value(response, 'data')
         result = []
         for i in range(0, len(data)):

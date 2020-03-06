@@ -324,6 +324,21 @@ class huobipro extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
+        //
+        //     {
+        //         "amount" => 26228.672978342216,
+        //         "$open" => 9078.95,
+        //         "$close" => 9146.86,
+        //         "high" => 9155.41,
+        //         "id" => 209988544334,
+        //         "count" => 265846,
+        //         "low" => 8988.0,
+        //         "version" => 209988544334,
+        //         "$ask" => array( 9146.87, 0.156134 ),
+        //         "vol" => 2.3822168242201668E8,
+        //         "$bid" => array( 9146.86, 0.080758 ),
+        //     }
+        //
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -436,6 +451,26 @@ class huobipro extends Exchange {
             'symbol' => $market['id'],
         );
         $response = $this->marketGetDetailMerged (array_merge($request, $params));
+        //
+        //     {
+        //         "status" => "ok",
+        //         "ch" => "$market->btcusdt.detail.merged",
+        //         "ts" => 1583494336669,
+        //         "tick" => {
+        //             "amount" => 26228.672978342216,
+        //             "open" => 9078.95,
+        //             "close" => 9146.86,
+        //             "high" => 9155.41,
+        //             "id" => 209988544334,
+        //             "count" => 265846,
+        //             "low" => 8988.0,
+        //             "version" => 209988544334,
+        //             "ask" => array( 9146.87, 0.156134 ),
+        //             "vol" => 2.3822168242201668E8,
+        //             "bid" => array( 9146.86, 0.080758 ),
+        //         }
+        //     }
+        //
         $ticker = $this->parse_ticker($response['tick'], $market);
         $timestamp = $this->safe_value($response, 'ts');
         $ticker['timestamp'] = $timestamp;
@@ -465,6 +500,20 @@ class huobipro extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "$amount" => 0.010411000000000000,
+        //         "$trade-$id" => 102090736910,
+        //         "ts" => 1583497692182,
+        //         "$id" => 10500517034273194594947,
+        //         "$price" => 9096.050000000000000000,
+        //         "direction" => "sell"
+        //     }
+        //
+        // fetchMyTrades (private)
+        //
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($trade, 'symbol');
@@ -512,7 +561,8 @@ class huobipro extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
-        $id = $this->safe_string($trade, 'id');
+        $tradeId = $this->safe_string_2($trade, 'trade-id', 'tradeId');
+        $id = $this->safe_string($trade, 'id', $tradeId);
         return array(
             'id' => $id,
             'info' => $trade,
@@ -559,6 +609,30 @@ class huobipro extends Exchange {
             $request['size'] = $limit;
         }
         $response = $this->marketGetHistoryTrade (array_merge($request, $params));
+        //
+        //     {
+        //         "status" => "ok",
+        //         "ch" => "$market->btcusdt.trade.detail",
+        //         "ts" => 1583497692365,
+        //         "$data" => array(
+        //             {
+        //                 "id" => 105005170342,
+        //                 "ts" => 1583497692182,
+        //                 "$data" => array(
+        //                     array(
+        //                         "amount" => 0.010411000000000000,
+        //                         "$trade-id" => 102090736910,
+        //                         "ts" => 1583497692182,
+        //                         "id" => 10500517034273194594947,
+        //                         "price" => 9096.050000000000000000,
+        //                         "direction" => "sell"
+        //                     }
+        //                 )
+        //             ),
+        //             // ...
+        //         )
+        //     }
+        //
         $data = $this->safe_value($response, 'data');
         $result = array();
         for ($i = 0; $i < count($data); $i++) {

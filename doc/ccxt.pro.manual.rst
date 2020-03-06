@@ -100,7 +100,7 @@ The best way to understand CCXT Pro is to make sure you grasp the entire CCXT Ma
 
 -  the concepts of public API and private authenticated API
 -  markets, symbols, currency codes and ids
--  unified data structures and formats, orderbooks, trades, orders, candles, …
+-  unified data structures and formats, orderbooks, trades, orders, candles, timeframes, …
 -  exceptions and error mappings
 -  authentication and API keys (for private feeds and calls)
 -  configuration options
