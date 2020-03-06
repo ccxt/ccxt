@@ -832,6 +832,7 @@ module.exports = class bittrex extends ccxt.bittrex {
             'method': this.handleBalanceState,
         };
         const future = this.watch (url, requestId, request, requestId, subscription);
+        // has to be fixed here for the reasons explained above
         return await this.after (future, this.limitOrderBook, params);
     }
 
