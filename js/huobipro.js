@@ -391,13 +391,35 @@ module.exports = class huobipro extends Exchange {
             'type': 'step0',
         };
         const response = await this.marketGetDepth (this.extend (request, params));
+        //
+        //     {
+        //         "status": "ok",
+        //         "ch": "market.btcusdt.depth.step0",
+        //         "ts": 1583474832790,
+        //         "tick": {
+        //             "bids": [
+        //                 [ 9100.290000000000000000, 0.200000000000000000 ],
+        //                 [ 9099.820000000000000000, 0.200000000000000000 ],
+        //                 [ 9099.610000000000000000, 0.205000000000000000 ],
+        //             ],
+        //             "asks": [
+        //                 [ 9100.640000000000000000, 0.005904000000000000 ],
+        //                 [ 9101.010000000000000000, 0.287311000000000000 ],
+        //                 [ 9101.030000000000000000, 0.012121000000000000 ],
+        //             ],
+        //             "ts":1583474832008,
+        //             "version":104999698780
+        //         }
+        //     }
+        //
         if ('tick' in response) {
             if (!response['tick']) {
                 throw new ExchangeError (this.id + ' fetchOrderBook() returned empty response: ' + this.json (response));
             }
-            const orderbook = this.safeValue (response, 'tick');
-            const result = this.parseOrderBook (orderbook, orderbook['ts']);
-            result['nonce'] = orderbook['version'];
+            const tick = this.safeValue (response, 'tick');
+            const timestamp = this.safeInteger (tick, 'ts', this.safeInteger (response, 'ts'));
+            const result = this.parseOrderBook (tick, timestamp);
+            result['nonce'] = this.safeInteger2 (tick, 'version', 'seqNum');
             return result;
         }
         throw new ExchangeError (this.id + ' fetchOrderBook() returned unrecognized response: ' + this.json (response));
