@@ -45,7 +45,7 @@ module.exports = class huobipro extends ccxt.huobipro {
     }
 
     // To receive data you have to send a "sub" message first.
-
+    //
     // {
     //     "sub": "market.btcusdt.kline.1min",
     //     "id": "id1"
@@ -111,7 +111,7 @@ module.exports = class huobipro extends ccxt.huobipro {
     // { "req": "topic to req", "id": "id generate by client" }
     //
     // You will receive a response accordingly and immediately
-
+    //
     // async subscribe (negotiation, topic, method, symbol, params = {}) {
     //     await this.loadMarkets ();
     //     const market = this.market (symbol);
@@ -277,8 +277,42 @@ module.exports = class huobipro extends ccxt.huobipro {
     }
 
     handleOrderBookSnapshot (client, message, subscription) {
-        console.log ('handleOrderBookSubscription', message, subscription);
-        process.exit ();
+        //
+        //     {
+        //         id: 1583473663565,
+        //         rep: 'market.btcusdt.mbp.150',
+        //         status: 'ok',
+        //         data: {
+        //             seqNum: 104999417756,
+        //             bids: [
+        //                 [9058.27, 0],
+        //                 [9058.43, 0],
+        //                 [9058.99, 0],
+        //             ],
+        //             asks: [
+        //                 [9084.27, 0.2],
+        //                 [9085.69, 0],
+        //                 [9085.81, 0],
+        //             ]
+        //         }
+        //     }
+        //
+        const symbol = this.safeString (subscription, 'symbol');
+        const messageHash = this.safeString (subscription, 'messageHash');
+        const orderbook = this.orderbooks[symbol];
+        const data = this.safeValue (message, 'data');
+        const snapshot = this.parseOrderBook (data);
+        snapshot['nonce'] = this.safeInteger (data, 'seqNum');
+        orderbook.reset (snapshot);
+        // unroll the accumulated deltas
+        const messages = orderbook.cache;
+        for (let i = 0; i < messages.length; i++) {
+            const message = messages[i];
+            this.handleOrderBookMessage (client, message, orderbook);
+        }
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
+
     }
 
     async watchOrderBookSnapshot (client, message, subscription) {
@@ -310,66 +344,55 @@ module.exports = class huobipro extends ccxt.huobipro {
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
-    handleDelta (bookside, delta, nonce) {
+    handleDelta (bookside, delta) {
         const price = this.safeFloat (delta, 0);
-        if (price > 0) {
-            const sequence = this.safeInteger (delta, 2);
-            if (sequence > nonce) {
-                const amount = this.safeFloat (delta, 1);
-                bookside.store (price, amount);
-            }
-        }
+        const amount = this.safeFloat (delta, 1);
+        bookside.store (price, amount);
     }
 
-    handleDeltas (bookside, deltas, nonce) {
+    handleDeltas (bookside, deltas) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, deltas[i], nonce);
+            this.handleDelta (bookside, deltas[i]);
         }
     }
 
     handleOrderBookMessage (client, message, orderbook) {
         //
         //     {
-        //         "type":"message",
-        //         "topic":"/market/level2:BTC-USDT",
-        //         "subject":"trade.l2update",
-        //         "data":{
-        //             "sequenceStart":1545896669105,
-        //             "sequenceEnd":1545896669106,
-        //             "symbol":"BTC-USDT",
-        //             "changes": {
-        //                 "asks": [["6","1","1545896669105"]], // price, size, sequence
-        //                 "bids": [["4","1","1545896669106"]]
-        //             }
+        //         ch: "market.btcusdt.mbp.150",
+        //         ts: 1583472025885,
+        //         tick: {
+        //             seqNum: 104998984994,
+        //             prevSeqNum: 104998984977,
+        //             bids: [
+        //                 [9058.27, 0],
+        //                 [9058.43, 0],
+        //                 [9058.99, 0],
+        //             ],
+        //             asks: [
+        //                 [9084.27, 0.2],
+        //                 [9085.69, 0],
+        //                 [9085.81, 0],
+        //             ]
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
-        const sequenceEnd = this.safeInteger (data, 'sequenceEnd');
-        // 4. Apply the new Level 2 data flow to the local snapshot to ensure that
-        // the sequence of the new Level 2 update lines up with the sequence of
-        // the previous Level 2 data. Discard all the message prior to that
-        // sequence, and then playback the change to snapshot.
-        if (sequenceEnd > orderbook['nonce']) {
-            const sequenceStart = this.safeInteger (message, 'sequenceStart');
-            if ((sequenceStart !== undefined) && ((sequenceStart - 1) > orderbook['nonce'])) {
+        const tick = this.safeValue (message, 'tick', {});
+        const seqNum = this.safeInteger (tick, 'seqNum');
+        const prevSeqNum = this.safeInteger (tick, 'prevSeqNum');
+        if (seqNum > orderbook['nonce']) {
+            if (prevSeqNum !== orderbook['nonce']) {
                 // todo: client.reject from handleOrderBookMessage properly
-                throw new ExchangeError (this.id + ' handleOrderBook received an out-of-order nonce');
+                throw new ExchangeError (this.id + ' handleOrderBookMessage received an out-of-order nonce ' + prevSeqNum.toString () + ' !== ' + orderbook['nonce'].toString ());
             }
-            const changes = this.safeValue (data, 'changes', {});
-            let asks = this.safeValue (changes, 'asks', []);
-            let bids = this.safeValue (changes, 'bids', []);
-            asks = this.sortBy (asks, 2); // sort by sequence
-            bids = this.sortBy (bids, 2);
-            // 5. Update the level2 full data based on sequence according to the
-            // size. If the price is 0, ignore the messages and update the sequence.
-            // If the size=0, update the sequence and remove the price of which the
-            // size is 0 out of level 2. For other cases, please update the price.
+            const asks = this.safeValue (tick, 'asks', []);
+            const bids = this.safeValue (tick, 'bids', []);
             this.handleDeltas (orderbook['asks'], asks, orderbook['nonce']);
             this.handleDeltas (orderbook['bids'], bids, orderbook['nonce']);
-            orderbook['nonce'] = sequenceEnd;
-            orderbook['timestamp'] = undefined;
-            orderbook['datetime'] = undefined;
+            orderbook['nonce'] = seqNum;
+            const timestamp = this.safeInteger (message, 'ts');
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
         }
         return orderbook;
     }
@@ -397,12 +420,10 @@ module.exports = class huobipro extends ccxt.huobipro {
         //         }
         //     }
         //
-        const log = require ('ololog');
-        log.red ('handleOrderBook', message);
-        // process.exit ();
-        const messageHash = this.safeString (message, 'topic');
-        const data = this.safeValue (message, 'data');
-        const marketId = this.safeString (data, 'symbol');
+        const messageHash = this.safeString (message, 'ch');
+        const ch = this.safeValue (message, 'ch');
+        const parts = ch.split ('.');
+        const marketId = this.safeString (parts, 1);
         let market = undefined;
         let symbol = undefined;
         if (marketId !== undefined) {
@@ -413,7 +434,6 @@ module.exports = class huobipro extends ccxt.huobipro {
         }
         const orderbook = this.orderbooks[symbol];
         if (orderbook['nonce'] === undefined) {
-            // 1. After receiving the websocket Level 2 data flow, cache the data.
             orderbook.cache.push (message);
         } else {
             this.handleOrderBookMessage (client, message, orderbook);
@@ -422,7 +442,7 @@ module.exports = class huobipro extends ccxt.huobipro {
     }
 
     signMessage (client, messageHash, message, params = {}) {
-        // todo: implement kucoin signMessage
+        // todo: implement huobipro signMessage
         return message;
     }
 
@@ -514,30 +534,15 @@ module.exports = class huobipro extends ccxt.huobipro {
             } else {
                 return method.call (this, client, message);
             }
-            // const subject = this.safeString (message, 'subject');
-        } else {
-            const log = require ('ololog');
-            log.red ('handleSubject', type, message);
-            process.exit ();
         }
     }
 
-    // ping (client) {
-    //     // kucoin does not support built-in ws protocol-level ping-pong
-    //     // instead it requires a custom json-based text ping-pong
-    //     // https://docs.kucoin.com/#ping
-    //     const id = this.nonce ().toString ();
-    //     return {
-    //         'id': id,
-    //         'type': 'ping',
-    //     };
-    // }
-
-    // handlePong (client, message) {
-    //     // https://docs.kucoin.com/#ping
-    //     client.lastPong = this.milliseconds ();
-    //     return message;
-    // }
+    handlePing (client, message) {
+        //
+        //     { ping: 1583491673714 }
+        //
+        client.send ({ 'pong': this.safeInteger (message, 'ping') });
+    }
 
     handleErrorMessage (client, message) {
         return message;
@@ -550,56 +555,17 @@ module.exports = class huobipro extends ccxt.huobipro {
             //
             if ('id' in message) {
                 this.handleSubscriptionStatus (client, message);
-            }
+            } else
             // route by channel aka topic aka subject
             if ('ch' in message) {
                 this.handleSubject (client, message);
+            } else if ('ping' in message) {
+                this.handlePing (client, message);
+            } else {
+                const log = require ('ololog');
+                log ('handleMessage', message);
+                process.exit ();
             }
         }
-        //
-        // console.log ('----', message);
-        // process.exit ();
-        // // // For Node v6+
-        // // // Be less strict when decoding compressed responses, since sometimes
-        // // // servers send slightly invalid responses that are still accepted
-        // // // by common browsers.
-        // // // Always using Z_SYNC_FLUSH is what cURL does.
-        // // const zlibOptions = {
-        // // 	flush: zlib.Z_SYNC_FLUSH,
-        // // 	finishFlush: zlib.Z_SYNC_FLUSH
-        // // };
-        // // // for gzip
-        // // if (codings == 'gzip' || codings == 'x-gzip') {
-        // // 	body = body.pipe(zlib.createGunzip(zlibOptions));
-        // // 	resolve(new Response(body, response_options));
-        // // 	return;
-        // // }
-        // // // for deflate
-        // // if (codings == 'deflate' || codings == 'x-deflate') {
-        // // 	// handle the infamous raw deflate response from old servers
-        // // 	// a hack for old IIS and Apache servers
-        // // 	const raw = res.pipe(new PassThrough$1());
-        // // 	raw.once('data', function (chunk) {
-        // // 		// see http://stackoverflow.com/questions/37519828
-        // // 		if ((chunk[0] & 0x0F) === 0x08) {
-        // // 			body = body.pipe(zlib.createInflate());
-        // // 		} else {
-        // // 			body = body.pipe(zlib.createInflateRaw());
-        // // 		}
-        // // 		resolve(new Response(body, response_options));
-        // // 	});
-        // // 	return;
-        // // }
-        // // // otherwise, use response as-is
-        // // resolve(new Response(body, response_options));
-        //
-        // // zlib.deflateRaw(buffer[, options], callback)#
-        // // History
-        // // buffer <Buffer> | <TypedArray> | <DataView> | <ArrayBuffer> | <string>
-        // // options <zlib options>
-        // // callback <Function></Function>
-        //
-        // // process.exit ();
-        //
     }
 };
