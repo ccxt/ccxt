@@ -220,9 +220,9 @@ The ccxt library currently supports the following 123 cryptocurrency exchange ma
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | hollaex            | `HollaEx <https://pro.hollaex.com/signup?affiliation_code=QSWA6G>`__                       | 1   | `API <https://apidocs.hollaex.com>`__                                                           |                                                                      |                                 |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| huobipro           | `Huobi Pro <https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3>`__                | 1   | `API <https://huobiapi.github.io/docs/spot/v1/cn/>`__                                           |                                                                      |                                 |
+| huobipro           | `Huobi Pro <https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3>`__                | 1   | `API <https://huobiapi.github.io/docs/spot/v1/cn/>`__                                           |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| huobiru            | `Huobi Russia <https://www.huobi.com.ru/invite?invite_code=esc74>`__                       | 1   | `API <https://github.com/cloudapidoc/API_Docs_en>`__                                            |                                                                      |                                 |
+| huobiru            | `Huobi Russia <https://www.huobi.com.ru/invite?invite_code=esc74>`__                       | 1   | `API <https://github.com/cloudapidoc/API_Docs_en>`__                                            |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | ice3x              | `ICE3X <https://ice3x.com?ref=14341802>`__                                                 | 1   | `API <https://ice3x.co.za/ice-cubed-bitcoin-exchange-api-documentation-1-june-2017>`__          |                                                                      |                                 |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
@@ -362,14 +362,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.23.71/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.23.71/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.23.72/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.23.72/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.23.71/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.23.72/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
