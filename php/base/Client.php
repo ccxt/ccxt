@@ -35,6 +35,7 @@ class Client {
     public $lastPong = null;
     public $ping = null;
     public $verbose = false; // verbose output
+    public $gunzip = false;
     public $connection = null;
     public $connected; // connection-related Future
     public $isConnected = false;
@@ -224,6 +225,9 @@ class Client {
     }
 
     public function on_message(Message $message) {
+        if ($this->gunzip) {
+            $message = \ccxtpro\gunzip($message);
+        }
         if ($this->verbose) {
             echo date('c'), ' on_message ', (string) $message, "\n";
         }
