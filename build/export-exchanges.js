@@ -93,7 +93,7 @@ function createExchanges (ids) {
 // ----------------------------------------------------------------------------
 // TODO: REWRITE THIS ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
 
-function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, certifiedExchangesPaths, exchangesByCountriesPaths }) {
+function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, certifiedExchangesPaths, exchangesByCountriesPaths, proExchangesPaths }) {
 
     // ............................................................................
     // markup constants and helper functions
@@ -111,7 +111,8 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
 
     const exchangesNotListedInDocs = []
 
-    let tableData = values (exchanges)
+    function makeTableData (exchanges) {
+        return (values (exchanges)
         .filter (exchange => !exchangesNotListedInDocs.includes (exchange.id))
         .map (exchange => {
             let logo = exchange.urls['logo']
@@ -132,10 +133,9 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
                 exchange.certified ? ccxtCertifiedBadge : '',
                 exchange.pro ? ccxtProBadge : '',
             ]
-        })
+        }))
+    }
 
-    // prepend the table header
-    tableData.splice (0, 0, tableHeadings)
 
     function makeTable (jsonArray) {
         let table = asTable.configure ({ 'delimiter': ' | ' }) (jsonArray)
@@ -150,9 +150,12 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
 
     if (allExchangesPaths) {
 
+        const tableData = makeTableData (values (exchanges))
+        // prepend the table header
+        tableData.splice (0, 0, tableHeadings)
         const exchangesTable = makeTable (tableData)
         const numExchanges = keys (exchanges).length
-        const beginning = "The ccxt library currently supports the following "
+        const beginning = "The CCXT library currently supports the following "
         const ending = " cryptocurrency exchange markets and trading APIs:\n\n"
         const totalString = beginning + numExchanges + ending
         const allExchanges = totalString + exchangesTable + "$1"
@@ -167,12 +170,31 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
         // logExportExchanges (wikiPath + '/Exchange-Markets.md', allExchangesRegex, allExchanges)
     }
 
-    if (certifiedExchangesPaths) {
+    if (proExchangesPaths) {
+        const pro = values (exchanges).filter (exchange => exchange.pro)
+        const tableData = makeTableData (pro)
+        // prepend the table header
+        tableData.splice (0, 0, tableHeadings)
+        const exchangesTable = makeTable (tableData)
+        const numExchanges = pro.length
+        const beginning = "The CCXT Pro library currently supports the following "
+        const ending = " cryptocurrency exchange markets and WebSocket trading APIs:\n\n"
+        const totalString = beginning + numExchanges + ending
+        const proExchanges = totalString + exchangesTable + "$1"
+        const proExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
 
-        const certifiedFieldIndex = tableHeadings.indexOf ('certified')
-        const certified = tableData.filter ((x) => x[certifiedFieldIndex] !== '' )
+        for (const path of proExchangesPaths) {
+            logExportExchanges (path, proExchangesRegex, proExchanges)
+        }
+    }
+
+    if (certifiedExchangesPaths) {
+        const certified = values (exchanges).filter (exchange => exchange.certified)
+        const tableData = makeTableData (certified)
+        // prepend the table header
+        tableData.splice (0, 0, tableHeadings)
         const certifiedExchangesRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
-        const certifiedExchangesTable = makeTable (certified)
+        const certifiedExchangesTable = makeTable (tableData)
         const certifiedExchanges = '$1' + certifiedExchangesTable + "\n"
 
         for (const path of certifiedExchangesPaths) {
@@ -365,6 +387,9 @@ function exportEverything () {
         ],
         exchangesByCountriesPaths: [
             wikiPath + '/Exchange-Markets-By-Country.md'
+        ],
+        proExchangesPaths: [
+            wikiPath + '/ccxt.pro.manual.md',
         ],
     })
 
