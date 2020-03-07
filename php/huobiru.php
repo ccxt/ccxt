@@ -15,12 +15,13 @@ class huobiru extends huobipro {
             'name' => 'Huobi Russia',
             'countries' => array( 'RU' ),
             'hostname' => 'www.huobi.com.ru',
+            'pro' => true,
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/52978816-e8552e00-33e3-11e9-98ed-845acfece834.jpg',
                 'api' => array(
-                    'market' => 'https://www.huobi.com.ru/api',
-                    'public' => 'https://www.huobi.com.ru/api',
-                    'private' => 'https://www.huobi.com.ru/api',
+                    'market' => 'https://{hostname}/api',
+                    'public' => 'https://{hostname}/api',
+                    'private' => 'https://{hostname}/api',
                     'zendesk' => 'https://huobiglobal.zendesk.com/hc/en-us/articles',
                 ),
                 'www' => 'https://www.huobi.com.ru/ru-ru',
