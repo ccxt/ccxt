@@ -183,69 +183,70 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     }
 
     if (exchangesByCountriesPaths) {
-    let exchangesByCountries = []
-    keys (countries).forEach (code => {
-        let country = countries[code]
-        let result = []
-        keys (exchanges).forEach (id => {
-            let exchange = exchanges[id]
-            let logo = exchange.urls['logo']
-            let website = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
-            let url = exchange.urls.referral || website
-            let doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
-            let version = exchange.version ? exchange.version : '\*'
-            let matches = version.match (/[^0-9]*([0-9].*)/)
-            if (matches)
-                version = matches[1];
-            let shouldInclude = false
-            if (Array.isArray (exchange.countries)) {
-                if (exchange.countries.indexOf (code) > -1)
-                    shouldInclude = true
+        let exchangesByCountries = []
+        keys (countries).forEach (code => {
+            let country = countries[code]
+            let result = []
+            keys (exchanges).forEach (id => {
+                let exchange = exchanges[id]
+                let logo = exchange.urls['logo']
+                let website = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
+                let url = exchange.urls.referral || website
+                let doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
+                let version = exchange.version ? exchange.version : '\*'
+                let matches = version.match (/[^0-9]*([0-9].*)/)
+                if (matches)
+                    version = matches[1];
+                let shouldInclude = false
+                if (Array.isArray (exchange.countries)) {
+                    if (exchange.countries.indexOf (code) > -1)
+                        shouldInclude = true
+                } else {
+                    if (code == exchange.countries)
+                        shouldInclude = true
+                }
+                if (shouldInclude) {
+                    let entry = [
+                        country,
+                        '[![' + exchange.id + '](' + logo + ')](' + url + ')',
+                        exchange.id,
+                        '[' + exchange.name + '](' + url + ')',
+                        version,
+                        '[API](' + doc + ')',
+                        // doesn't fit in width
+                        // exchange.certified ? ccxtCertifiedBadge : '',
+                    ]
+                    result.push (entry)
+                }
+            })
+            exchangesByCountries = exchangesByCountries.concat (result)
+        });
+
+        const countryKeyIndex = exchangesByCountryHeading.indexOf ('country / region')
+        exchangesByCountries = exchangesByCountries.sort ((a, b) => {
+            const countryA = a[countryKeyIndex].toLowerCase ()
+            const countryB = b[countryKeyIndex].toLowerCase ()
+            if (countryA > countryB) {
+                return 1
+            } else if (countryA < countryB) {
+                return -1;
             } else {
-                if (code == exchange.countries)
-                    shouldInclude = true
-            }
-            if (shouldInclude) {
-                let entry = [
-                    country,
-                    '[![' + exchange.id + '](' + logo + ')](' + url + ')',
-                    exchange.id,
-                    '[' + exchange.name + '](' + url + ')',
-                    version,
-                    '[API](' + doc + ')',
-                    // doesn't fit in width
-                    // exchange.certified ? ccxtCertifiedBadge : '',
-                ]
-                result.push (entry)
+                if (a['id'] > b['id'])
+                    return 1;
+                else if (a['id'] < b['id'])
+                    return -1;
+                else
+                    return 0;
             }
         })
-        exchangesByCountries = exchangesByCountries.concat (result)
-    });
 
-    const countryKeyIndex = exchangesByCountryHeading.indexOf ('country / region')
-    exchangesByCountries = exchangesByCountries.sort ((a, b) => {
-        const countryA = a[countryKeyIndex].toLowerCase ()
-        const countryB = b[countryKeyIndex].toLowerCase ()
-        if (countryA > countryB) {
-            return 1
-        } else if (countryA < countryB) {
-            return -1;
-        } else {
-            if (a['id'] > b['id'])
-                return 1;
-            else if (a['id'] < b['id'])
-                return -1;
-            else
-                return 0;
+        exchangesByCountries.splice (0, 0, exchangesByCountryHeading)
+        const lines = makeTable (exchangesByCountries)
+        const result = "# Exchanges By Country\n\nThe ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:\n\n" + lines + "\n\n"
+        for (const path of exchangesByCountriesPaths) {
+            fs.truncateSync (path)
+            fs.writeFileSync (path, result)
         }
-    })
-
-    exchangesByCountries.splice (0, 0, exchangesByCountryHeading)
-    const lines = makeTable (exchangesByCountries)
-    const result = "# Exchanges By Country\n\nThe ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:\n\n" + lines + "\n\n"
-    for (const path of exchangesByCountriesPaths) {
-        fs.truncateSync (path)
-        fs.writeFileSync (path, result)
     }
 }
 
