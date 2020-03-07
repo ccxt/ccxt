@@ -23,8 +23,8 @@ module.exports = class huobipro extends ccxt.huobipro {
                 'api': {
                     'ws': {
                         'api': {
-                            'public': 'wss://api.huobi.pro/ws',
-                            'private': 'wss://api.huobi.pro/ws/v2',
+                            'public': 'wss://{hostname}/ws',
+                            'private': 'wss://{hostname}/ws/v2',
                         },
                         // these settings work faster for clients hosted on AWS
                         'api-aws': {
@@ -52,7 +52,8 @@ module.exports = class huobipro extends ccxt.huobipro {
         const messageHash = 'market.' + market['id'] + '.detail';
         const options = this.safeValue (this.options, 'ws', {});
         const api = this.safeString (options, 'api', 'api');
-        const url = this.urls['api']['ws'][api]['public'];
+        let url = this.urls['api']['ws'][api]['public'];
+        url = this.implodeParams (url, { 'hostname': this.hostname });
         const requestId = this.milliseconds ().toString ();
         const request = {
             'sub': messageHash,
@@ -109,7 +110,8 @@ module.exports = class huobipro extends ccxt.huobipro {
         const messageHash = 'market.' + market['id'] + '.trade.detail';
         const options = this.safeValue (this.options, 'ws', {});
         const api = this.safeString (options, 'api', 'api');
-        const url = this.urls['api']['ws'][api]['public'];
+        let url = this.urls['api']['ws'][api]['public'];
+        url = this.implodeParams (url, { 'hostname': this.hostname });
         const requestId = this.milliseconds ().toString ();
         const request = {
             'sub': messageHash,
@@ -176,7 +178,8 @@ module.exports = class huobipro extends ccxt.huobipro {
         const messageHash = 'market.' + market['id'] + '.kline.' + interval;
         const options = this.safeValue (this.options, 'ws', {});
         const api = this.safeString (options, 'api', 'api');
-        const url = this.urls['api']['ws'][api]['public'];
+        let url = this.urls['api']['ws'][api]['public'];
+        url = this.implodeParams (url, { 'hostname': this.hostname });
         const requestId = this.milliseconds ().toString ();
         const request = {
             'sub': messageHash,
@@ -260,7 +263,8 @@ module.exports = class huobipro extends ccxt.huobipro {
         const messageHash = 'market.' + market['id'] + '.mbp.' + limit.toString ();
         const options = this.safeValue (this.options, 'ws', {});
         const api = this.safeString (options, 'api', 'api');
-        const url = this.urls['api']['ws'][api]['public'];
+        let url = this.urls['api']['ws'][api]['public'];
+        url = this.implodeParams (url, { 'hostname': this.hostname });
         const requestId = this.milliseconds ().toString ();
         const request = {
             'sub': messageHash,
@@ -327,7 +331,8 @@ module.exports = class huobipro extends ccxt.huobipro {
         const messageHash = this.safeString (subscription, 'messageHash');
         const options = this.safeValue (this.options, 'ws', {});
         const api = this.safeValue (options, 'api');
-        const url = this.urls['api']['ws'][api]['public'];
+        let url = this.urls['api']['ws'][api]['public'];
+        url = this.implodeParams (url, { 'hostname': this.hostname });
         const requestId = this.milliseconds ().toString ();
         const request = {
             'req': messageHash,
