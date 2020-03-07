@@ -19,6 +19,7 @@ module.exports = class huobipro extends Exchange {
             'accounts': undefined,
             'accountsById': undefined,
             'hostname': 'api.huobi.pro',
+            'pro': true,
             'has': {
                 'CORS': false,
                 'fetchTickers': true,
