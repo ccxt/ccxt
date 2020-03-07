@@ -150,9 +150,16 @@ async def test():
         'verbose': argv.verbose,
     }, apiKeys))
 
-    print(exchange.id, argv.verbose)
-    await exchange.load_markets()
-    await test_exchange(exchange)
+    if hasattr(exchange, 'skip') and exchange.skip:
+        # sys.stderr.write(exchange.id + ' [Skipped]')
+        # sys.stderr.flush()
+        # print(exchange.id, '[Skipped]')
+        sys.stdout.write(exchange.id + ' [Skipped]\n')
+        sys.stdout.flush()
+    else:
+        print(exchange.id, argv.verbose)
+        await exchange.load_markets()
+        await test_exchange(exchange)
     await exchange.close()
 
 
