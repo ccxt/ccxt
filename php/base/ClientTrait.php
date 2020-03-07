@@ -17,7 +17,11 @@ trait ClientTrait {
     public $loop = null; // reactphp's loop
 
     public function inflate($string) {
-        return zlib_decode(base64_decode($string));
+        return \ccxtpro\inflate($string); // zlib_decode(base64_decode($string));
+    }
+
+    public function gunzip($data) {
+        return \ccxtpro\gunzip($data);
     }
 
     public function order_book ($snapshot = array(), $depth = PHP_INT_MAX) {
@@ -37,10 +41,11 @@ trait ClientTrait {
             $on_message = array($this, 'handle_message');
             $on_error = array($this, 'on_error');
             $on_close = array($this, 'on_close');
+            $options = $this->safe_value($this->options, 'ws', array());
             $config = array_replace_recursive(array(
                 'verbose' => $this->verbose,
                 'loop' => $this->loop, // reactphp-specific
-            ), $this->streaming);
+            ), $this->streaming, $options);
             $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $config);
         }
         return $this->clients[$url];
