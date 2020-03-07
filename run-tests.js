@@ -76,18 +76,21 @@ const exec = (bin, ...args) =>
             output = ansi.strip (output.trim ())
             stderr = ansi.strip (stderr)
 
-            const regex = /^\[[^\] ]+\]/mg
+            const regex = /\[[a-z]+?\]/gmi
 
             let match = undefined
             const warnings = []
 
             match = regex.exec (output)
 
-            do {
-                if (match = regex.exec (output)) {
-                    warnings.push (match[0])
-                }
-            } while (match);
+            if (match) {
+                warnings.push (match[0])
+                do {
+                    if (match = regex.exec (output)) {
+                        warnings.push (match[0])
+                    }
+                } while (match);
+            }
 
             return_ ({
                 failed: code !== 0,
@@ -150,6 +153,7 @@ const testExchange = async (exchange) => {
     const result = (failed      ? 'FAIL'.red :
                    (hasWarnings ? (warnings.length ? warnings.join (' ') : 'WARN').yellow
                                                                          : 'OK'.green))
+
     const date = (new Date()).toISOString ()
     log.bright (date, ('[' + percentsDone + ']').dim, 'Testing', exchange.cyan, result)
 
