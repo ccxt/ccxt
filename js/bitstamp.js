@@ -1101,7 +1101,8 @@ module.exports = class bitstamp extends Exchange {
                         headers['Content-Type'] = contentType;
                     }
                 }
-                const auth = xAuth + method + url.replace ('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + (body ? body : '');
+                const authBody = body ? body : '';
+                const auth = xAuth + method + url.replace ('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody;
                 const signature = this.encode (this.hmac (this.encode (auth), this.encode (this.secret)));
                 headers['X-Auth-Signature'] = signature;
             } else {
