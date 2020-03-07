@@ -109,12 +109,21 @@ $test = function () use ($id, $config, $loop, $verbose) {
 
     echo 'Testing ', $exchange->id, "\n";
 
-    $exchange->load_markets();
+    if ($exchange->skip) {
 
-    test_exchange($exchange)->then(function() {
+        echo $exchange->id, " [Skipped]\n";
         echo "Done.\n";
         exit ();
-    });
+
+    } else {
+
+        $exchange->load_markets();
+
+        test_exchange($exchange)->then(function() {
+            echo "Done.\n";
+            exit ();
+        });
+    }
 };
 
 // ----------------------------------------------------------------------------

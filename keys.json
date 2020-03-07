@@ -1,1 +1,3 @@
-{}
+{
+    "poloniex": { "skip": true }
+}
