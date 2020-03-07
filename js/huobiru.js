@@ -13,6 +13,7 @@ module.exports = class huobiru extends huobipro {
             'name': 'Huobi Russia',
             'countries': [ 'RU' ],
             'hostname': 'www.huobi.com.ru',
+            'pro': true,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/52978816-e8552e00-33e3-11e9-98ed-845acfece834.jpg',
                 'api': {
