@@ -14,7 +14,7 @@ const log = require ('ololog').unlimited
         getIncludedExchangeIds,
         exportExchanges,
         createExchanges,
-        // exportSupportedAndCertifiedExchanges,
+        exportSupportedAndCertifiedExchanges,
         exportExchangeIdsToExchangesJson,
         // exportWikiToGitHub,
         exportKeywordsToPackageJson,
@@ -65,7 +65,11 @@ function exportEverything () {
     // strategically placed exactly here (we can require it AFTER the export)
     const exchanges = createExchanges (ids)
 
-    // exportSupportedAndCertifiedExchanges (exchanges, wikiPath)
+    exportSupportedAndCertifiedExchanges (exchanges, {
+        proExchangesPaths: [
+            'README.md',
+        ],
+    })
     exportExchangeIdsToExchangesJson (exchanges)
     // exportWikiToGitHub (wikiPath, gitWikiPath)
     exportKeywordsToPackageJson (exchanges)
