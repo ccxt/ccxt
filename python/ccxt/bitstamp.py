@@ -999,18 +999,41 @@ class bitstamp(Exchange):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            nonce = str(self.nonce())
-            auth = nonce + self.uid + self.apiKey
-            signature = self.encode(self.hmac(self.encode(auth), self.encode(self.secret)))
-            query = self.extend({
-                'key': self.apiKey,
-                'signature': signature.upper(),
-                'nonce': nonce,
-            }, query)
-            body = self.urlencode(query)
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            }
+            authVersion = self.safe_value(self.options, 'auth', 'v2')
+            if authVersion == 'v2':
+                xAuth = 'BITSTAMP ' + self.apiKey
+                xAuthNonce = self.uuid()
+                xAuthTimestamp = str(self.milliseconds())
+                xAuthVersion = 'v2'
+                contentType = ''
+                headers = {
+                    'X-Auth': xAuth,
+                    'X-Auth-Nonce': xAuthNonce,
+                    'X-Auth-Timestamp': xAuthTimestamp,
+                    'X-Auth-Version': xAuthVersion,
+                }
+                if method == 'POST':
+                    if query:
+                        body = self.urlencode(query)
+                        contentType = 'application/x-www-form-urlencoded'
+                        headers['Content-Type'] = contentType
+                authBody = body if body else ''
+                auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody
+                signature = self.encode(self.hmac(self.encode(auth), self.encode(self.secret)))
+                headers['X-Auth-Signature'] = signature
+            else:
+                nonce = str(self.nonce())
+                auth = nonce + self.uid + self.apiKey
+                signature = self.encode(self.hmac(self.encode(auth), self.encode(self.secret)))
+                query = self.extend({
+                    'key': self.apiKey,
+                    'signature': signature.upper(),
+                    'nonce': nonce,
+                }, query)
+                body = self.urlencode(query)
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
