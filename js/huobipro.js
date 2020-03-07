@@ -473,6 +473,10 @@ module.exports = class huobipro extends ccxt.huobipro {
             if (method !== undefined) {
                 return method.call (this, client, message, subscription);
             }
+            // clean up
+            if (id in client.subscriptions) {
+                delete client.subscriptions[id];
+            }
         }
         return message;
     }
@@ -533,11 +537,15 @@ module.exports = class huobipro extends ccxt.huobipro {
         }
     }
 
-    handlePing (client, message) {
+    async pong (client, message) {
         //
         //     { ping: 1583491673714 }
         //
-        client.send ({ 'pong': this.safeInteger (message, 'ping') });
+        await client.send ({ 'pong': this.safeInteger (message, 'ping') });
+    }
+
+    handlePing (client, message) {
+        this.spawn (this.pong, client, message);
     }
 
     handleErrorMessage (client, message) {
