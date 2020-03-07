@@ -36,8 +36,16 @@ class binance(Exchange, ccxt.binance):
                 'watchOrderBookRate': 100,
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
+                'requestId': {},
             },
         })
+
+    def request_id(self, url):
+        options = self.safe_value(self.options, 'requestId', {})
+        previousValue = self.safe_integer(options, url, 0)
+        newValue = self.sum(previousValue, 1)
+        self.options['requestId'][url] = newValue
+        return newValue
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         #
@@ -93,7 +101,7 @@ class binance(Exchange, ccxt.binance):
         name = 'depth'
         messageHash = market['lowercaseId'] + '@' + name
         url = self.urls['api']['ws'][type]  # + '/' + messageHash
-        requestId = self.nonce()
+        requestId = self.request_id(url)
         watchOrderBookRate = self.safe_string(self.options, 'watchOrderBookRate', '100')
         request = {
             'method': 'SUBSCRIBE',
@@ -433,7 +441,8 @@ class binance(Exchange, ccxt.binance):
         defaultType = self.safe_string_2(self.options, 'watchOrderBook', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
-        requestId = self.nonce()
+        url = self.urls['api']['ws'][type]
+        requestId = self.request_id(url)
         request = {
             'method': 'SUBSCRIBE',
             'params': [
@@ -444,7 +453,6 @@ class binance(Exchange, ccxt.binance):
         subscribe = {
             'id': requestId,
         }
-        url = self.urls['api']['ws'][type]
         return await self.watch(url, messageHash, self.extend(request, query), messageHash, subscribe)
 
     async def watch_ticker(self, symbol, params={}):
@@ -538,7 +546,7 @@ class binance(Exchange, ccxt.binance):
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
         url = self.urls['api']['ws'][type] + '/' + self.options['listenKey']
-        requestId = self.nonce()
+        requestId = self.request_id(url)
         request = {
             'method': 'SUBSCRIBE',
             'params': [
@@ -603,7 +611,7 @@ class binance(Exchange, ccxt.binance):
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
         url = self.urls['api']['ws'][type] + '/' + self.options['listenKey']
-        requestId = self.nonce()
+        requestId = self.request_id(url)
         request = {
             'method': 'SUBSCRIBE',
             'params': [

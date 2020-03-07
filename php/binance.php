@@ -38,8 +38,17 @@ class binance extends \ccxt\binance {
                 'watchOrderBookRate' => 100,
                 'tradesLimit' => 1000,
                 'OHLCVLimit' => 1000,
+                'requestId' => array(),
             ),
         ));
+    }
+
+    public function request_id ($url) {
+        $options = $this->safe_value($this->options, 'requestId', array());
+        $previousValue = $this->safe_integer($options, $url, 0);
+        $newValue = $this->sum ($previousValue, 1);
+        $this->options['requestId'][$url] = $newValue;
+        return $newValue;
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
@@ -96,7 +105,7 @@ class binance extends \ccxt\binance {
         $name = 'depth';
         $messageHash = $market['lowercaseId'] . '@' . $name;
         $url = $this->urls['api']['ws'][$type]; // . '/' . $messageHash;
-        $requestId = $this->nonce ();
+        $requestId = $this->request_id ($url);
         $watchOrderBookRate = $this->safe_string($this->options, 'watchOrderBookRate', '100');
         $request = array(
             'method' => 'SUBSCRIBE',
@@ -484,7 +493,8 @@ class binance extends \ccxt\binance {
         $defaultType = $this->safe_string_2($this->options, 'watchOrderBook', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit ($params, 'type');
-        $requestId = $this->nonce ();
+        $url = $this->urls['api']['ws'][$type];
+        $requestId = $this->request_id ($url);
         $request = array(
             'method' => 'SUBSCRIBE',
             'params' => array(
@@ -495,7 +505,6 @@ class binance extends \ccxt\binance {
         $subscribe = array(
             'id' => $requestId,
         );
-        $url = $this->urls['api']['ws'][$type];
         return $this->watch ($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe);
     }
 
@@ -595,7 +604,7 @@ class binance extends \ccxt\binance {
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit ($params, 'type');
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options['listenKey'];
-        $requestId = $this->nonce ();
+        $requestId = $this->request_id ($url);
         $request = array(
             'method' => 'SUBSCRIBE',
             'params' => array(
@@ -663,7 +672,7 @@ class binance extends \ccxt\binance {
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit ($params, 'type');
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options['listenKey'];
-        $requestId = $this->nonce ();
+        $requestId = $this->request_id ($url);
         $request = array(
             'method' => 'SUBSCRIBE',
             'params' => array(
