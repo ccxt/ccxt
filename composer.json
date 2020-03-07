@@ -222,7 +222,7 @@
         "psr-4": {
             "ccxtpro\\" : "php/"
         },
-        "files": [ "ccxtpro.php" ]
+        "files": [ "ccxtpro.php", "php/base/functions.php" ]
     },
     "require": {
         "php": ">=5.4.0",
