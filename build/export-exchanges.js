@@ -353,8 +353,6 @@ function exportEverything () {
 
     cloneGitHubWiki (gitWikiPath)
 
-    const allExchangesPaths =
-
     exportSupportedAndCertifiedExchanges (exchanges, {
         allExchangesPaths: [
             'README.md',
