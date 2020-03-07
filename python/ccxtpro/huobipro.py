@@ -25,8 +25,8 @@ class huobipro(Exchange, ccxt.huobipro):
                 'api': {
                     'ws': {
                         'api': {
-                            'public': 'wss://api.huobi.pro/ws',
-                            'private': 'wss://api.huobi.pro/ws/v2',
+                            'public': 'wss://{hostname}/ws',
+                            'private': 'wss://{hostname}/ws/v2',
                         },
                         # these settings work faster for clients hosted on AWS
                         'api-aws': {
@@ -54,6 +54,7 @@ class huobipro(Exchange, ccxt.huobipro):
         options = self.safe_value(self.options, 'ws', {})
         api = self.safe_string(options, 'api', 'api')
         url = self.urls['api']['ws'][api]['public']
+        url = self.implode_params(url, {'hostname': self.hostname})
         requestId = str(self.milliseconds())
         request = {
             'sub': messageHash,
@@ -108,6 +109,7 @@ class huobipro(Exchange, ccxt.huobipro):
         options = self.safe_value(self.options, 'ws', {})
         api = self.safe_string(options, 'api', 'api')
         url = self.urls['api']['ws'][api]['public']
+        url = self.implode_params(url, {'hostname': self.hostname})
         requestId = str(self.milliseconds())
         request = {
             'sub': messageHash,
@@ -170,6 +172,7 @@ class huobipro(Exchange, ccxt.huobipro):
         options = self.safe_value(self.options, 'ws', {})
         api = self.safe_string(options, 'api', 'api')
         url = self.urls['api']['ws'][api]['public']
+        url = self.implode_params(url, {'hostname': self.hostname})
         requestId = str(self.milliseconds())
         request = {
             'sub': messageHash,
@@ -245,6 +248,7 @@ class huobipro(Exchange, ccxt.huobipro):
         options = self.safe_value(self.options, 'ws', {})
         api = self.safe_string(options, 'api', 'api')
         url = self.urls['api']['ws'][api]['public']
+        url = self.implode_params(url, {'hostname': self.hostname})
         requestId = str(self.milliseconds())
         request = {
             'sub': messageHash,
@@ -308,6 +312,7 @@ class huobipro(Exchange, ccxt.huobipro):
         options = self.safe_value(self.options, 'ws', {})
         api = self.safe_value(options, 'api')
         url = self.urls['api']['ws'][api]['public']
+        url = self.implode_params(url, {'hostname': self.hostname})
         requestId = str(self.milliseconds())
         request = {
             'req': messageHash,
