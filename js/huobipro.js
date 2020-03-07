@@ -53,7 +53,7 @@ module.exports = class huobipro extends ccxt.huobipro {
         const options = this.safeValue (this.options, 'ws', {});
         const api = this.safeString (options, 'api', 'api');
         const url = this.urls['api']['ws'][api]['public'];
-        const requestId = this.milliseconds ();
+        const requestId = this.milliseconds ().toString ();
         const request = {
             'sub': messageHash,
             'id': requestId,
@@ -110,7 +110,7 @@ module.exports = class huobipro extends ccxt.huobipro {
         const options = this.safeValue (this.options, 'ws', {});
         const api = this.safeString (options, 'api', 'api');
         const url = this.urls['api']['ws'][api]['public'];
-        const requestId = this.milliseconds ();
+        const requestId = this.milliseconds ().toString ();
         const request = {
             'sub': messageHash,
             'id': requestId,
@@ -177,7 +177,7 @@ module.exports = class huobipro extends ccxt.huobipro {
         const options = this.safeValue (this.options, 'ws', {});
         const api = this.safeString (options, 'api', 'api');
         const url = this.urls['api']['ws'][api]['public'];
-        const requestId = this.milliseconds ();
+        const requestId = this.milliseconds ().toString ();
         const request = {
             'sub': messageHash,
             'id': requestId,
@@ -261,7 +261,7 @@ module.exports = class huobipro extends ccxt.huobipro {
         const options = this.safeValue (this.options, 'ws', {});
         const api = this.safeString (options, 'api', 'api');
         const url = this.urls['api']['ws'][api]['public'];
-        const requestId = this.milliseconds ();
+        const requestId = this.milliseconds ().toString ();
         const request = {
             'sub': messageHash,
             'id': requestId,
@@ -328,7 +328,7 @@ module.exports = class huobipro extends ccxt.huobipro {
         const options = this.safeValue (this.options, 'ws', {});
         const api = this.safeValue (options, 'api');
         const url = this.urls['api']['ws'][api]['public'];
-        const requestId = this.milliseconds ();
+        const requestId = this.milliseconds ().toString ();
         const request = {
             'req': messageHash,
             'id': requestId,
@@ -465,7 +465,7 @@ module.exports = class huobipro extends ccxt.huobipro {
         //         "ts": 1583414229143
         //     }
         //
-        const id = this.safeInteger (message, 'id');
+        const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeValue (subscriptionsById, id);
         if (subscription !== undefined) {
