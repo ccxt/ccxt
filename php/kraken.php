@@ -38,6 +38,7 @@ class kraken extends \ccxt\kraken {
             ),
             'options' => array(
                 'tradesLimit' => 1000,
+                'OHLCVLimit' => 1000,
             ),
             'exceptions' => array(
                 'ws' => array(
@@ -208,7 +209,8 @@ class kraken extends \ccxt\kraken {
                 $stored[$length - 1] = $result;
             } else {
                 $stored[] = $result;
-                if ($length . 1 > $this->options['OHLCVLimit']) {
+                $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+                if ($length >= $limit) {
                     array_shift($stored);
                 }
             }

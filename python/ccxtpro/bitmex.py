@@ -32,6 +32,7 @@ class bitmex(Exchange, ccxt.bitmex):
             'options': {
                 'watchOrderBookLevel': 'orderBookL2',  # 'orderBookL2' = L2 full order book, 'orderBookL2_25' = L2 top 25, 'orderBook10' L3 top 10
                 'tradesLimit': 1000,
+                'OHLCVLimit': 1000,
             },
             'exceptions': {
                 'ws': {
@@ -544,7 +545,8 @@ class bitmex(Exchange, ccxt.bitmex):
                     stored[length - 1] = result
                 else:
                     stored.append(result)
-                    if length + 1 > self.options['OHLCVLimit']:
+                    limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+                    if length >= limit:
                         stored.pop(0)
                 self.ohlcvs[symbol][timeframe] = stored
                 results[messageHash] = stored

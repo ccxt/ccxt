@@ -778,6 +778,7 @@ class bittrex(Exchange, ccxt.bittrex):
             'method': self.handle_balance_state,
         }
         future = self.watch(url, requestId, request, requestId, subscription)
+        # has to be fixed here for the reasons explained above
         return await self.after(future, self.limit_order_book, params)
 
     def handle_balance_state(self, client, message, subscription):

@@ -361,6 +361,7 @@ class binance(Exchange, ccxt.binance):
         return await self.after(future, self.filterBySinceLimit, since, limit, 0)
 
     def find_timeframe(self, timeframe):
+        # redo to use reverse lookups in a static map instead
         keys = list(self.timeframes.keys())
         for i in range(0, len(keys)):
             key = keys[i]
@@ -400,6 +401,7 @@ class binance(Exchange, ccxt.binance):
         event = self.safe_string(message, 'e')
         kline = self.safe_value(message, 'k')
         interval = self.safe_string(kline, 'i')
+        # use a reverse lookup in a static map instead
         timeframe = self.find_timeframe(interval)
         messageHash = lowercaseMarketId + '@' + event + '_' + interval
         parsed = [
@@ -421,7 +423,8 @@ class binance(Exchange, ccxt.binance):
             stored[length - 1] = parsed
         else:
             stored.append(parsed)
-            if length + 1 > self.options['OHLCVLimit']:
+            limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+            if length >= limit:
                 stored.pop(0)
         self.ohlcvs[symbol][timeframe] = stored
         client.resolve(stored, messageHash)

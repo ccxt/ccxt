@@ -33,6 +33,7 @@ class bitmex extends \ccxt\bitmex {
             'options' => array(
                 'watchOrderBookLevel' => 'orderBookL2', // 'orderBookL2' = L2 full order book, 'orderBookL2_25' = L2 top 25, 'orderBook10' L3 top 10
                 'tradesLimit' => 1000,
+                'OHLCVLimit' => 1000,
             ),
             'exceptions' => array(
                 'ws' => array(
@@ -564,7 +565,8 @@ class bitmex extends \ccxt\bitmex {
                     $stored[$length - 1] = $result;
                 } else {
                     $stored[] = $result;
-                    if ($length . 1 > $this->options['OHLCVLimit']) {
+                    $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+                    if ($length >= $limit) {
                         array_shift($stored);
                     }
                 }

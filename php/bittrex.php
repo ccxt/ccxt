@@ -836,6 +836,7 @@ class bittrex extends \ccxt\bittrex {
             'method' => array($this, 'handle_balance_state'),
         );
         $future = $this->watch ($url, $requestId, $request, $requestId, $subscription);
+        // has to be fixed here for the reasons explained above
         return $this->after ($future, array($this, 'limit_order_book'), $params);
     }
 

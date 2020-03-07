@@ -405,6 +405,7 @@ class binance extends \ccxt\binance {
     }
 
     public function find_timeframe ($timeframe) {
+        // redo to use reverse lookups in a static map instead
         $keys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
@@ -447,6 +448,7 @@ class binance extends \ccxt\binance {
         $event = $this->safe_string($message, 'e');
         $kline = $this->safe_value($message, 'k');
         $interval = $this->safe_string($kline, 'i');
+        // use a reverse lookup in a static map instead
         $timeframe = $this->find_timeframe ($interval);
         $messageHash = $lowercaseMarketId . '@' . $event . '_' . $interval;
         $parsed = array(
@@ -469,7 +471,8 @@ class binance extends \ccxt\binance {
             $stored[$length - 1] = $parsed;
         } else {
             $stored[] = $parsed;
-            if ($length . 1 > $this->options['OHLCVLimit']) {
+            $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+            if ($length >= $limit) {
                 array_shift($stored);
             }
         }

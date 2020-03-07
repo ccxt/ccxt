@@ -38,6 +38,7 @@ class kraken(Exchange, ccxt.kraken):
             },
             'options': {
                 'tradesLimit': 1000,
+                'OHLCVLimit': 1000,
             },
             'exceptions': {
                 'ws': {
@@ -198,7 +199,8 @@ class kraken(Exchange, ccxt.kraken):
                 stored[length - 1] = result
             else:
                 stored.append(result)
-                if length + 1 > self.options['OHLCVLimit']:
+                limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+                if length >= limit:
                     stored.pop(0)
             self.ohlcvs[symbol][timeframe] = stored
             client.resolve(stored, messageHash)
