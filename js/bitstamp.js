@@ -1081,18 +1081,43 @@ module.exports = class bitstamp extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
-            const auth = nonce + this.uid + this.apiKey;
-            const signature = this.encode (this.hmac (this.encode (auth), this.encode (this.secret)));
-            query = this.extend ({
-                'key': this.apiKey,
-                'signature': signature.toUpperCase (),
-                'nonce': nonce,
-            }, query);
-            body = this.urlencode (query);
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            };
+            const authVersion = this.safeValue (this.options, 'auth', 'v2');
+            if (authVersion === 'v2') {
+                const xAuth = 'BITSTAMP ' + this.apiKey;
+                const xAuthNonce = this.uuid ();
+                const xAuthTimestamp = this.milliseconds ().toString ();
+                const xAuthVersion = 'v2';
+                let contentType = '';
+                headers = {
+                    'X-Auth': xAuth,
+                    'X-Auth-Nonce': xAuthNonce,
+                    'X-Auth-Timestamp': xAuthTimestamp,
+                    'X-Auth-Version': xAuthVersion,
+                };
+                if (method === 'POST') {
+                    if (Object.keys (query).length) {
+                        body = this.urlencode (query);
+                        contentType = 'application/x-www-form-urlencoded';
+                        headers['Content-Type'] = contentType;
+                    }
+                }
+                const auth = xAuth + method + url.replace ('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + (body ? body : '');
+                const signature = this.encode (this.hmac (this.encode (auth), this.encode (this.secret)));
+                headers['X-Auth-Signature'] = signature;
+            } else {
+                const nonce = this.nonce ().toString ();
+                const auth = nonce + this.uid + this.apiKey;
+                const signature = this.encode (this.hmac (this.encode (auth), this.encode (this.secret)));
+                query = this.extend ({
+                    'key': this.apiKey,
+                    'signature': signature.toUpperCase (),
+                    'nonce': nonce,
+                }, query);
+                body = this.urlencode (query);
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                };
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
