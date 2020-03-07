@@ -43,6 +43,7 @@ module.exports = async (exchange, symbol) => {
 
         response = response.map (ohlcv => [
             exchange.iso8601 (ohlcv[0]),
+            symbol,
             ohlcv[1],
             ohlcv[2],
             ohlcv[3],

@@ -5,6 +5,7 @@ from asyncio import sleep, ensure_future
 from aiohttp import WSMsgType
 from ccxt.async_support import Exchange
 from ccxtpro.base.client import Client
+from ccxtpro.base.functions import gunzip
 from ccxt import NetworkError, RequestTimeout
 
 
@@ -16,18 +17,20 @@ class AiohttpClient(Client):
     def receive(self):
         return self.connection.receive()
 
+    # helper method for binary and text messages
+    def handle_text_or_binary_message(self, data):
+        if self.verbose:
+            print(Exchange.iso8601(Exchange.milliseconds()), 'message', data)
+        decoded = json.loads(data) if Exchange.is_json_encoded_object(data) else data
+        self.on_message_callback(self, decoded)
+
     def handle_message(self, message):
         # print(Exchange.iso8601(Exchange.milliseconds()), message)
         if message.type == WSMsgType.TEXT:
-            if self.verbose:
-                print(Exchange.iso8601(Exchange.milliseconds()), 'message', message)
-            data = message.data
-            decoded = json.loads(data) if Exchange.is_json_encoded_object(data) else data
-            self.on_message_callback(self, decoded)
+            self.handle_text_or_binary_message(message.data)
         elif message.type == WSMsgType.BINARY:
-            if self.verbose:
-                print(Exchange.iso8601(Exchange.milliseconds()), 'binary', message)
-            pass
+            data = gunzip(message.data) if self.gunzip else message.data
+            self.handle_text_or_binary_message(data)
         # autoping is responsible for automatically replying with pong
         # to a ping incoming from a server, we have to disable autoping
         # with aiohttp's websockets and respond with pong manually

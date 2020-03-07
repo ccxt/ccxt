@@ -1,18 +1,22 @@
 "use strict";
 
 const ccxt = require ('ccxt')
-    , { inflateRawSync } = require ('zlib')
     , WsClient = require ('./WsClient')
     , {
         OrderBook,
         IndexedOrderBook,
         CountedOrderBook,
     } = require ('./OrderBook')
+    , functions = require ('./functions')
 
 module.exports = class Exchange extends ccxt.Exchange {
 
     inflate (string) {
-        return inflateRawSync (Buffer.from (string, 'base64')).toString ()
+        return functions.inflate (string)
+    }
+
+    gunzip (data) {
+        return functions.gunzip (data)
     }
 
     orderBook (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
@@ -34,10 +38,11 @@ module.exports = class Exchange extends ccxt.Exchange {
             const onError = this.onError.bind (this)
             const onClose = this.onClose.bind (this)
             // decide client type here: ws / signalr / socketio
+            const wsOptions = this.safeValue (this.options, 'ws', {})
             const options = this.extend (this.streaming, {
                 'ping': this.ping ? this.ping.bind (this) : this.ping,
                 'verbose': this.verbose,
-            })
+            }, wsOptions)
             this.clients[url] = new WsClient (url, onMessage, onError, onClose, options)
         }
         return this.clients[url]

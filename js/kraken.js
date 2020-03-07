@@ -34,6 +34,7 @@ module.exports = class kraken extends ccxt.kraken {
             },
             'options': {
                 'tradesLimit': 1000,
+                'OHLCVLimit': 1000,
             },
             'exceptions': {
                 'ws': {
@@ -204,7 +205,8 @@ module.exports = class kraken extends ccxt.kraken {
                 stored[length - 1] = result;
             } else {
                 stored.push (result);
-                if (length + 1 > this.options['OHLCVLimit']) {
+                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                if (length >= limit) {
                     stored.shift ();
                 }
             }
