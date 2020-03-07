@@ -34,8 +34,17 @@ module.exports = class binance extends ccxt.binance {
                 'watchOrderBookRate': 100,
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
+                'requestId': {},
             },
         });
+    }
+
+    requestId (url) {
+        const options = this.safeValue (this.options, 'requestId', {});
+        const previousValue = this.safeInteger (options, url, 0);
+        const newValue = this.sum (previousValue, 1);
+        this.options['requestId'][url] = newValue;
+        return newValue;
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -92,7 +101,7 @@ module.exports = class binance extends ccxt.binance {
         const name = 'depth';
         const messageHash = market['lowercaseId'] + '@' + name;
         const url = this.urls['api']['ws'][type]; // + '/' + messageHash;
-        const requestId = this.nonce ();
+        const requestId = this.requestId (url);
         const watchOrderBookRate = this.safeString (this.options, 'watchOrderBookRate', '100');
         const request = {
             'method': 'SUBSCRIBE',
@@ -480,7 +489,8 @@ module.exports = class binance extends ccxt.binance {
         const defaultType = this.safeString2 (this.options, 'watchOrderBook', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
-        const requestId = this.nonce ();
+        const url = this.urls['api']['ws'][type];
+        const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
             'params': [
@@ -491,7 +501,6 @@ module.exports = class binance extends ccxt.binance {
         const subscribe = {
             'id': requestId,
         };
-        const url = this.urls['api']['ws'][type];
         return await this.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
     }
 
@@ -591,7 +600,7 @@ module.exports = class binance extends ccxt.binance {
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
         const url = this.urls['api']['ws'][type] + '/' + this.options['listenKey'];
-        const requestId = this.nonce ();
+        const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
             'params': [
@@ -659,7 +668,7 @@ module.exports = class binance extends ccxt.binance {
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
         const url = this.urls['api']['ws'][type] + '/' + this.options['listenKey'];
-        const requestId = this.nonce ();
+        const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
             'params': [
