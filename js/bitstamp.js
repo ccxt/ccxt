@@ -234,8 +234,27 @@ module.exports = class bitstamp extends Exchange {
             'pair': this.marketId (symbol),
         };
         const response = await this.publicGetOrderBookPair (this.extend (request, params));
-        const timestamp = this.safeTimestamp (response, 'timestamp');
-        return this.parseOrderBook (response, timestamp);
+        //
+        //     {
+        //         "timestamp": "1583652948",
+        //         "microtimestamp": "1583652948955826",
+        //         "bids": [
+        //             [ "8750.00", "1.33685271" ],
+        //             [ "8749.39", "0.07700000" ],
+        //             [ "8746.98", "0.07400000" ],
+        //         ]
+        //         "asks": [
+        //             [ "8754.10", "1.51995636" ],
+        //             [ "8754.71", "1.40000000" ],
+        //             [ "8754.72", "2.50000000" ],
+        //         ]
+        //     }
+        //
+        const microtimestamp = this.safeInteger (response, 'microtimestamp');
+        const timestamp = parseInt (microtimestamp / 1000);
+        const orderbook = this.parseOrderBook (response, timestamp);
+        orderbook['nonce'] = microtimestamp;
+        return orderbook;
     }
 
     async fetchTicker (symbol, params = {}) {
