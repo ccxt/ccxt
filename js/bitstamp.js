@@ -16,6 +16,7 @@ module.exports = class bitstamp extends Exchange {
             'rateLimit': 1000,
             'version': 'v2',
             'userAgent': this.userAgents['chrome'],
+            'pro': true,
             'has': {
                 'CORS': true,
                 'fetchDepositAddress': true,
