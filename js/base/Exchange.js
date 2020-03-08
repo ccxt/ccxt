@@ -117,9 +117,13 @@ module.exports = class Exchange extends ccxt.Exchange {
         connected.then (() => {
             if (message && !client.subscriptions[subscribeHash]) {
                 client.subscriptions[subscribeHash] = subscription || true
-                // todo: decouple signing from subscriptions
-                message = this.signMessage (client, messageHash, message)
-                client.send (message)
+                const options = this.safeValue (this.options, 'ws');
+                const rateLimit = this.safeValue (options, 'rateLimit', this.rateLimit);
+                this.throttle (rateLimit).then (() => {
+                    // todo: decouple signing from subscriptions
+                    message = this.signMessage (client, messageHash, message)
+                    client.send (message)
+                }).catch ((e) => { throw e })
             }
         }).catch ((error) => {
             // we do nothing and don't return a resolvable value from here
