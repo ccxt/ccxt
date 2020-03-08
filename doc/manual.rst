@@ -3829,7 +3829,9 @@ Thus it’s advised to handle this type of exception in the following manner:
 ExchangeNotAvailable
 ~~~~~~~~~~~~~~~~~~~~
 
-The ccxt library throws this error if it detects any of the following keywords in response:
+This type of exception is thrown when the underlying exchange is unreachable.
+
+The ccxt library also throws this error if it detects any of the following keywords in response:
 
 -  ``offline``
 -  ``unavailable``
