@@ -372,6 +372,8 @@ module.exports = class kraken extends ccxt.kraken {
         //
         const messageLength = message.length;
         const wsName = message[messageLength - 1];
+        const bookDepthString = message[messageLength - 2];
+        const depth = parseInt (bookDepthString.split ('-')[1]);
         const market = this.safeValue (this.options['marketsByWsName'], wsName);
         const symbol = market['symbol'];
         let timestamp = undefined;
@@ -379,7 +381,7 @@ module.exports = class kraken extends ccxt.kraken {
         // if this is a snapshot
         if ('as' in message[1]) {
             // todo get depth from marketsByWsName
-            this.orderbooks[symbol] = this.orderBook ({}, 10);
+            this.orderbooks[symbol] = this.orderBook ({}, depth);
             const orderbook = this.orderbooks[symbol];
             const sides = {
                 'as': 'asks',
