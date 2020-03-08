@@ -81,6 +81,7 @@
     "altcoins",
     "api",
     "arbitrage",
+    "websocket",
     "backtest",
     "backtesting",
     "bitcoin",
