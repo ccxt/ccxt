@@ -69,16 +69,18 @@ module.exports = class bitstamp extends ccxt.bitstamp {
         const messageHash = this.safeString (subscription, 'messageHash');
         // todo: this is a synch blocking call in ccxt.php - make it async
         const snapshot = await this.fetchOrderBook (symbol, limit, params);
-        const orderbook = this.orderbooks[symbol];
-        orderbook.reset (snapshot);
-        // unroll the accumulated deltas
-        const messages = orderbook.cache;
-        for (let i = 0; i < messages.length; i++) {
-            const message = messages[i];
-            this.handleOrderBookMessage (client, message, orderbook);
+        const orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook !== undefined) {
+            orderbook.reset (snapshot);
+            // unroll the accumulated deltas
+            const messages = orderbook.cache;
+            for (let i = 0; i < messages.length; i++) {
+                const message = messages[i];
+                this.handleOrderBookMessage (client, message, orderbook);
+            }
+            this.orderbooks[symbol] = orderbook;
+            client.resolve (orderbook, messageHash);
         }
-        this.orderbooks[symbol] = orderbook;
-        client.resolve (orderbook, messageHash);
     }
 
     handleDelta (bookside, delta) {
@@ -141,7 +143,10 @@ module.exports = class bitstamp extends ccxt.bitstamp {
         const subscription = this.safeValue (client.subscriptions, channel);
         const symbol = this.safeString (subscription, 'symbol');
         const type = this.safeString (subscription, 'type');
-        const orderbook = this.orderbooks[symbol];
+        const orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            return message;
+        }
         if (type === 'order_book') {
             orderbook.reset ({});
             this.handleOrderBookMessage (client, message, orderbook);
