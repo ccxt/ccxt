@@ -119,11 +119,17 @@ module.exports = class Exchange extends ccxt.Exchange {
                 client.subscriptions[subscribeHash] = subscription || true
                 const options = this.safeValue (this.options, 'ws');
                 const rateLimit = this.safeValue (options, 'rateLimit', this.rateLimit);
-                this.throttle (rateLimit).then (() => {
+                if (this.enableRateLimit) {
+                    this.throttle (rateLimit).then (() => {
+                        // todo: decouple signing from subscriptions
+                        message = this.signMessage (client, messageHash, message)
+                        client.send (message)
+                    }).catch ((e) => { throw e })
+                } else {
                     // todo: decouple signing from subscriptions
                     message = this.signMessage (client, messageHash, message)
                     client.send (message)
-                }).catch ((e) => { throw e })
+                }
             }
         }).catch ((error) => {
             // we do nothing and don't return a resolvable value from here
