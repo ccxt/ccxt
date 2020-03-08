@@ -376,14 +376,17 @@ class kraken extends \ccxt\kraken {
         //
         $messageLength = is_array($message) ? count($message) : 0;
         $wsName = $message[$messageLength - 1];
+        $bookDepthString = $message[$messageLength - 2];
+        $parts = explode('-', $bookDepthString);
+        $depth = $this->safe_integer($parts, 1, 10);
         $market = $this->safe_value($this->options['marketsByWsName'], $wsName);
         $symbol = $market['symbol'];
         $timestamp = null;
         $messageHash = 'book:' . $wsName;
         // if this is $a snapshot
         if (is_array($message[1]) && array_key_exists('as', $message[1])) {
-            // todo get depth from marketsByWsName
-            $this->orderbooks[$symbol] = $this->order_book (array(), 10);
+            // todo get $depth from marketsByWsName
+            $this->orderbooks[$symbol] = $this->order_book (array(), $depth);
             $orderbook = $this->orderbooks[$symbol];
             $sides = array(
                 'as' => 'asks',

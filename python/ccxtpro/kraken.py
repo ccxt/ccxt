@@ -348,6 +348,9 @@ class kraken(Exchange, ccxt.kraken):
         #
         messageLength = len(message)
         wsName = message[messageLength - 1]
+        bookDepthString = message[messageLength - 2]
+        parts = bookDepthString.split('-')
+        depth = self.safe_integer(parts, 1, 10)
         market = self.safe_value(self.options['marketsByWsName'], wsName)
         symbol = market['symbol']
         timestamp = None
@@ -355,7 +358,7 @@ class kraken(Exchange, ccxt.kraken):
         # if self is a snapshot
         if 'as' in message[1]:
             # todo get depth from marketsByWsName
-            self.orderbooks[symbol] = self.order_book({}, 10)
+            self.orderbooks[symbol] = self.order_book({}, depth)
             orderbook = self.orderbooks[symbol]
             sides = {
                 'as': 'asks',
