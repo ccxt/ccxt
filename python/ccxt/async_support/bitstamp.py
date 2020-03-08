@@ -34,6 +34,7 @@ class bitstamp(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'userAgent': self.userAgents['chrome'],
+            'pro': True,
             'has': {
                 'CORS': True,
                 'fetchDepositAddress': True,
