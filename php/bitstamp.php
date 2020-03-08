@@ -238,8 +238,27 @@ class bitstamp extends Exchange {
             'pair' => $this->market_id($symbol),
         );
         $response = $this->publicGetOrderBookPair (array_merge($request, $params));
-        $timestamp = $this->safe_timestamp($response, 'timestamp');
-        return $this->parse_order_book($response, $timestamp);
+        //
+        //     {
+        //         "$timestamp" => "1583652948",
+        //         "$microtimestamp" => "1583652948955826",
+        //         "bids" => array(
+        //             array( "8750.00", "1.33685271" ),
+        //             array( "8749.39", "0.07700000" ),
+        //             array( "8746.98", "0.07400000" ),
+        //         )
+        //         "asks" => array(
+        //             array( "8754.10", "1.51995636" ),
+        //             array( "8754.71", "1.40000000" ),
+        //             array( "8754.72", "2.50000000" ),
+        //         )
+        //     }
+        //
+        $microtimestamp = $this->safe_integer($response, 'microtimestamp');
+        $timestamp = intval ($microtimestamp / 1000);
+        $orderbook = $this->parse_order_book($response, $timestamp);
+        $orderbook['nonce'] = $microtimestamp;
+        return $orderbook;
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

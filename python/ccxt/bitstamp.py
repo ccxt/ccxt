@@ -249,8 +249,27 @@ class bitstamp(Exchange):
             'pair': self.market_id(symbol),
         }
         response = self.publicGetOrderBookPair(self.extend(request, params))
-        timestamp = self.safe_timestamp(response, 'timestamp')
-        return self.parse_order_book(response, timestamp)
+        #
+        #     {
+        #         "timestamp": "1583652948",
+        #         "microtimestamp": "1583652948955826",
+        #         "bids": [
+        #             ["8750.00", "1.33685271"],
+        #             ["8749.39", "0.07700000"],
+        #             ["8746.98", "0.07400000"],
+        #         ]
+        #         "asks": [
+        #             ["8754.10", "1.51995636"],
+        #             ["8754.71", "1.40000000"],
+        #             ["8754.72", "2.50000000"],
+        #         ]
+        #     }
+        #
+        microtimestamp = self.safe_integer(response, 'microtimestamp')
+        timestamp = int(microtimestamp / 1000)
+        orderbook = self.parse_order_book(response, timestamp)
+        orderbook['nonce'] = microtimestamp
+        return orderbook
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
