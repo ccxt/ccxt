@@ -980,10 +980,9 @@ module.exports = class deribit extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const timestamp = this.milliseconds ().toString ();
-            let requestBody = '';
+            const requestBody = '';
             if (Object.keys (params).length) {
-                requestBody = this.urlencode (params);
-                request += '?' + requestBody;
+                request += '?' + this.urlencode (params);
             }
             const requestData = method + "\n" + request + "\n" + requestBody + "\n";
             const auth = timestamp + "\n" + nonce + "\n" + requestData;
