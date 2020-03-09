@@ -8,246 +8,13 @@ const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied,
 
 //  ---------------------------------------------------------------------------
 
-// Authentication
-// /public/auth
-// /public/exchange_token
-// /public/fork_token
-// /private/logout
-
-// Session management
-// /public/set_heartbeat
-// /public/disable_heartbeat
-// /private/enable_cancel_on_disconnect
-// /private/disable_cancel_on_disconnect
-// /private/get_cancel_on_disconnect
-
-// Supporting
-// /public/get_time
-// /public/hello
-// /public/test
-
-// Subscription management
-// /public/subscribe
-// /public/unsubscribe
-// /private/subscribe
-// /private/unsubscribe
-
-// Account management
-// /public/get_announcements
-// /private/change_api_key_name
-// /private/change_scope_in_api_key
-// /private/change_subaccount_name
-// /private/create_api_key
-// /private/create_subaccount
-// /private/disable_api_key
-// /private/disable_tfa_for_subaccount
-// /private/enable_api_key
-// /private/get_account_summary
-// /private/get_email_language
-// /private/get_new_announcements
-// /private/get_position
-// /private/get_positions
-// /private/get_subaccounts
-// /private/list_api_keys
-// /private/remove_api_key
-// /private/reset_api_key
-// /private/set_announcement_as_read
-// /private/set_api_key_as_default
-// /private/set_email_for_subaccount
-// /private/set_email_language
-// /private/set_password_for_subaccount
-// /private/toggle_notifications_from_subaccount
-// /private/toggle_subaccount_login
-
-// Block Trade
-// /private/execute_block_trade
-// /private/get_block_trade
-// /private/get_last_block_trades_by_currency
-// /private/invalidate_block_trade_signature
-// /private/verify_block_trade
-
-// Trading
-// /private/buy
-// /private/sell
-// /private/edit
-// /private/cancel
-// /private/cancel_all
-// /private/cancel_all_by_currency
-// /private/cancel_all_by_instrument
-// /private/cancel_by_label
-// /private/close_position
-// /private/get_margins
-// /private/get_open_orders_by_currency
-// /private/get_open_orders_by_instrument
-// /private/get_order_history_by_currency
-// /private/get_order_history_by_instrument
-// /private/get_order_margin_by_ids
-// /private/get_order_state
-// /private/get_stop_order_history
-// /private/get_user_trades_by_currency
-// /private/get_user_trades_by_currency_and_time
-// /private/get_user_trades_by_instrument
-// /private/get_user_trades_by_instrument_and_time
-// /private/get_user_trades_by_order
-// /private/get_settlement_history_by_instrument
-// /private/get_settlement_history_by_currency
-
-// Market data
-// /public/get_book_summary_by_currency
-// /public/get_book_summary_by_instrument
-// /public/get_contract_size
-// /public/get_currencies
-// /public/get_funding_chart_data
-// /public/get_funding_rate_history
-// /public/get_funding_rate_value
-// /public/get_historical_volatility
-// /public/get_index
-// /public/get_instruments
-// /public/get_last_settlements_by_currency
-// /public/get_last_settlements_by_instrument
-// /public/get_last_trades_by_currency
-// /public/get_last_trades_by_currency_and_time
-// /public/get_last_trades_by_instrument
-// /public/get_last_trades_by_instrument_and_time
-// /public/get_order_book
-// /public/get_trade_volumes
-// /public/get_tradingview_chart_data
-// /public/ticker
-
-// Wallet
-// /private/cancel_transfer_by_id
-// /private/cancel_withdrawal
-// /private/create_deposit_address
-// /private/get_current_deposit_address
-// /private/get_deposits
-// /private/get_transfers
-// /private/get_withdrawals
-// /private/submit_transfer_to_subaccount
-// /private/submit_transfer_to_user
-// /private/withdraw
-
-// RPC Error Codes
-// Error Code	Short message	Description
-// 0 or absent		Success, No error.
-// 9999	"api_not_enabled"	User didn't enable API for the Account.
-// 10000	"authorization_required"	Authorization issue, invalid or absent signature etc.
-// 10001	"error"	Some general failure, no public information available.
-// 10002	"qty_too_low"	Order quantity is too low.
-// 10003	"order_overlap"	Rejection, order overlap is found and self-trading is not enabled.
-// 10004	"order_not_found"	Attempt to operate with order that can't be found by specified id.
-// 10005	"price_too_low <Limit>"	Price is too low, <Limit> defines current limit for the operation.
-// 10006	"price_too_low4idx <Limit>"	Price is too low for current index, <Limit> defines current bottom limit for the operation.
-// 10007	"price_too_high <Limit>"	Price is too high, <Limit> defines current up limit for the operation.
-// 10008	"price_too_high4idx <Limit>"	Price is too high for current index, <Limit> defines current up limit for the operation.
-// 10009	"not_enough_funds"	Account has not enough funds for the operation.
-// 10010	"already_closed"	Attempt of doing something with closed order.
-// 10011	"price_not_allowed"	This price is not allowed for some reason.
-// 10012	"book_closed"	Operation for instrument which order book had been closed.
-// 10013	"pme_max_total_open_orders <Limit>"	Total limit of open orders has been exceeded, it is applicable for PME users.
-// 10014	"pme_max_future_open_orders <Limit>"	Limit of count of futures' open orders has been exceeded, it is applicable for PME users.
-// 10015	"pme_max_option_open_orders <Limit>"	Limit of count of options' open orders has been exceeded, it is applicable for PME users.
-// 10016	"pme_max_future_open_orders_size <Limit>"	Limit of size for futures has been exceeded, it is applicable for PME users.
-// 10017	"pme_max_option_open_orders_size <Limit>"	Limit of size for options has been exceeded, it is applicable for PME users.
-// 10018	"non_pme_max_future_position_size <Limit>"	Limit of size for futures has been exceeded, it is applicable for non-PME users.
-// 10019	"locked_by_admin"	Trading is temporary locked by admin.
-// 10020	"invalid_or_unsupported_instrument"	Instrument name is not valid.
-// 10021	"invalid_amount"	Amount is not valid.
-// 10022	"invalid_quantity"	quantity was not recognized as a valid number (for API v1).
-// 10023	"invalid_price"	price was not recognized as a valid number.
-// 10024	"invalid_max_show"	max_show parameter was not recognized as a valid number.
-// 10025	"invalid_order_id"	Order id is missing or its format was not recognized as valid.
-// 10026	"price_precision_exceeded"	Extra precision of the price is not supported.
-// 10027	"non_integer_contract_amount"	Futures contract amount was not recognized as integer.
-// 10028	"too_many_requests"	Allowed request rate has been exceeded.
-// 10029	"not_owner_of_order"	Attempt to operate with not own order.
-// 10030	"must_be_websocket_request"	REST request where Websocket is expected.
-// 10031	"invalid_args_for_instrument"	Some of arguments are not recognized as valid.
-// 10032	"whole_cost_too_low"	Total cost is too low.
-// 10033	"not_implemented"	Method is not implemented yet.
-// 10034	"stop_price_too_high"	Stop price is too high.
-// 10035	"stop_price_too_low"	Stop price is too low.
-// 10036	"invalid_max_show_amount"	Max Show Amount is not valid.
-// 10040	"retry"	Request can't be processed right now and should be retried.
-// 10041	"settlement_in_progress"	Settlement is in progress. Every day at settlement time for several seconds, the system calculates user profits and updates balances. That time trading is paused for several seconds till the calculation is completed.
-// 10043	"price_wrong_tick"	Price has to be rounded to a certain tick size.
-// 10044	"stop_price_wrong_tick"	Stop Price has to be rounded to a certain tick size.
-// 10045	"can_not_cancel_liquidation_order"	Liquidation order can't be canceled.
-// 10046	"can_not_edit_liquidation_order"	Liquidation order can't be edited.
-// 10047	"matching_engine_queue_full"	Reached limit of pending Matching Engine requests for user.
-// 10048	"not_on_this_server"	The requested operation is not available on this server.
-// 11008	"already_filled"	This request is not allowed in regards to the filled order.
-// 11029	"invalid_arguments"	Some invalid input has been detected.
-// 11030	"other_reject <Reason>"	Some rejects which are not considered as very often, more info may be specified in <Reason>.
-// 11031	"other_error <Error>"	Some errors which are not considered as very often, more info may be specified in <Error>.
-// 11035	"no_more_stops <Limit>"	Allowed amount of stop orders has been exceeded.
-// 11036	"invalid_stoppx_for_index_or_last"	Invalid StopPx (too high or too low) as to current index or market.
-// 11037	"outdated_instrument_for_IV_order"	Instrument already not available for trading.
-// 11038	"no_adv_for_futures"	Advanced orders are not available for futures.
-// 11039	"no_adv_postonly"	Advanced post-only orders are not supported yet.
-// 11041	"not_adv_order"	Advanced order properties can't be set if the order is not advanced.
-// 11042	"permission_denied"	Permission for the operation has been denied.
-// 11043	"bad_argument"	Bad argument has been passed.
-// 11044	"not_open_order"	Attempt to do open order operations with the not open order.
-// 11045	"invalid_event"	Event name has not been recognized.
-// 11046	"outdated_instrument"	At several minutes to instrument expiration, corresponding advanced implied volatility orders are not allowed.
-// 11047	"unsupported_arg_combination"	The specified combination of arguments is not supported.
-// 11048	"wrong_max_show_for_option"	Wrong Max Show for options.
-// 11049	"bad_arguments"	Several bad arguments have been passed.
-// 11050	"bad_request"	Request has not been parsed properly.
-// 11051	"system_maintenance"	System is under maintenance.
-// 11052	"subscribe_error_unsubscribed"	Subscription error. However, subscription may fail without this error, please check list of subscribed channels returned, as some channels can be not subscribed due to wrong input or lack of permissions.
-// 11053	"transfer_not_found"	Specified transfer is not found.
-// 11090	"invalid_addr"	Invalid address.
-// 11091	"invalid_transfer_address"	Invalid addres for the transfer.
-// 11092	"address_already_exist"	The address already exists.
-// 11093	"max_addr_count_exceeded"	Limit of allowed addresses has been reached.
-// 11094	"internal_server_error"	Some unhandled error on server. Please report to admin. The details of the request will help to locate the problem.
-// 11095	"disabled_deposit_address_creation"	Deposit address creation has been disabled by admin.
-// 11096	"address_belongs_to_user"	Withdrawal instead of transfer.
-// 12000	"bad_tfa"	Wrong TFA code
-// 12001	"too_many_subaccounts"	Limit of subbacounts is reached.
-// 12002	"wrong_subaccount_name"	The input is not allowed as name of subaccount.
-// 12998	"tfa_over_limit"	The number of failed TFA attempts is limited.
-// 12003	"login_over_limit"	The number of failed login attempts is limited.
-// 12004	"registration_over_limit"	The number of registration requests is limited.
-// 12005	"country_is_banned"	The country is banned (possibly via IP check).
-// 12100	"transfer_not_allowed"	Transfer is not allowed. Possible wrong direction or other mistake.
-// 12999	"tfa_used"	TFA code is correct but it is already used. Please, use next code.
-// 13000	"invalid_login"	Login name is invalid (not allowed or it contains wrong characters).
-// 13001	"account_not_activated"	Account must be activated.
-// 13002	"account_blocked"	Account is blocked by admin.
-// 13003	"tfa_required"	This action requires TFA authentication.
-// 13004	"invalid_credentials"	Invalid credentials has been used.
-// 13005	"pwd_match_error"	Password confirmation error.
-// 13006	"security_error"	Invalid Security Code.
-// 13007	"user_not_found"	User's security code has been changed or wrong.
-// 13008	"request_failed"	Request failed because of invalid input or internal failure.
-// 13009	"unauthorized"	Wrong or expired authorization token or bad signature. For example, please check scope of the token, "connection" scope can't be reused for other connections.
-// 13010	"value_required"	Invalid input, missing value.
-// 13011	"value_too_short"	Input is too short.
-// 13012	"unavailable_in_subaccount"	Subaccount restrictions.
-// 13013	"invalid_phone_number"	Unsupported or invalid phone number.
-// 13014	"cannot_send_sms"	SMS sending failed -- phone number is wrong.
-// 13015	"invalid_sms_code"	Invalid SMS code.
-// 13016	"invalid_input"	Invalid input.
-// 13017	"subscription_failed"	Subscription hailed, invalid subscription parameters.
-// 13018	"invalid_content_type"	Invalid content type of the request.
-// 13019	"orderbook_closed"	Closed, expired order book.
-// 13020	"not_found"	Instrument is not found, invalid instrument name.
-// 13021	"forbidden"	Not enough permissions to execute the request, forbidden.
-// 13025	"method_switched_off_by_admin"	API method temporarily switched off by administrator.
-// -32602	"Invalid params"	see JSON-RPC spec.
-// -32601	"Method not found"	see JSON-RPC spec.
-// -32700	"Parse error"	see JSON-RPC spec.
-// -32000	"Missing params"	see JSON-RPC spec.
-
 module.exports = class deribit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'deribit',
             'name': 'Deribit',
             'countries': [ 'NL' ], // Netherlands
-            'version': 'v1',
+            'version': 'v2',
             'userAgent': undefined,
             'rateLimit': 2000,
             'has': {
@@ -275,38 +42,240 @@ module.exports = class deribit extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'ping',
+                        // Authentication
+                        'auth',
+                        'exchange_token',
+                        'fork_token',
+                        // Session management
+                        'set_heartbeat',
+                        'disable_heartbeat',
+                        // Supporting
+                        'get_time',
+                        'hello',
                         'test',
-                        'getinstruments',
-                        'index',
-                        'getcurrencies',
-                        'getorderbook',
-                        'getlasttrades',
-                        'getsummary',
-                        'stats',
-                        'getannouncments',
+                        // Subscription management
+                        'subscribe',
+                        'unsubscribe',
+                        // Account management
+                        'get_announcements',
+                        // Market data
+                        'get_book_summary_by_currency',
+                        'get_book_summary_by_instrument',
+                        'get_contract_size',
+                        'get_currencies',
+                        'get_funding_chart_data',
+                        'get_funding_rate_history',
+                        'get_funding_rate_value',
+                        'get_historical_volatility',
+                        'get_index',
+                        'get_instruments',
+                        'get_last_settlements_by_currency',
+                        'get_last_settlements_by_instrument',
+                        'get_last_trades_by_currency',
+                        'get_last_trades_by_currency_and_time',
+                        'get_last_trades_by_instrument',
+                        'get_last_trades_by_instrument_and_time',
+                        'get_order_book',
+                        'get_trade_volumes',
+                        'get_tradingview_chart_data',
+                        'ticker',
                     ],
                 },
                 'private': {
                     'get': [
-                        'account',
-                        'getopenorders',
-                        'positions',
-                        'orderhistory',
-                        'orderstate',
-                        'tradehistory',
-                        'newannouncements',
-                    ],
-                    'post': [
+                        // Authentication
+                        'logout',
+                        // Session management
+                        'enable_cancel_on_disconnect',
+                        'disable_cancel_on_disconnect',
+                        'get_cancel_on_disconnect',
+                        // Subscription management
+                        'subscribe',
+                        'unsubscribe',
+                        // Account management
+                        'change_api_key_name',
+                        'change_scope_in_api_key',
+                        'change_subaccount_name',
+                        'create_api_key',
+                        'create_subaccount',
+                        'disable_api_key',
+                        'disable_tfa_for_subaccount',
+                        'enable_api_key',
+                        'get_account_summary',
+                        'get_email_language',
+                        'get_new_announcements',
+                        'get_position',
+                        'get_positions',
+                        'get_subaccounts',
+                        'list_api_keys',
+                        'remove_api_key',
+                        'reset_api_key',
+                        'set_announcement_as_read',
+                        'set_api_key_as_default',
+                        'set_email_for_subaccount',
+                        'set_email_language',
+                        'set_password_for_subaccount',
+                        'toggle_notifications_from_subaccount',
+                        'toggle_subaccount_login',
+                        // Block Trade
+                        'execute_block_trade',
+                        'get_block_trade',
+                        'get_last_block_trades_by_currency',
+                        'invalidate_block_trade_signature',
+                        'verify_block_trade',
+                        // Trading
                         'buy',
                         'sell',
                         'edit',
                         'cancel',
-                        'cancelall',
+                        'cancel_all',
+                        'cancel_all_by_currency',
+                        'cancel_all_by_instrument',
+                        'cancel_by_label',
+                        'close_position',
+                        'get_margins',
+                        'get_open_orders_by_currency',
+                        'get_open_orders_by_instrument',
+                        'get_order_history_by_currency',
+                        'get_order_history_by_instrument',
+                        'get_order_margin_by_ids',
+                        'get_order_state',
+                        'get_stop_order_history',
+                        'get_user_trades_by_currency',
+                        'get_user_trades_by_currency_and_time',
+                        'get_user_trades_by_instrument',
+                        'get_user_trades_by_instrument_and_time',
+                        'get_user_trades_by_order',
+                        'get_settlement_history_by_instrument',
+                        'get_settlement_history_by_currency',
+                        // Wallet
+                        'cancel_transfer_by_id',
+                        'cancel_withdrawal',
+                        'create_deposit_address',
+                        'get_current_deposit_address',
+                        'get_deposits',
+                        'get_transfers',
+                        'get_withdrawals',
+                        'submit_transfer_to_subaccount',
+                        'submit_transfer_to_user',
+                        'withdraw',
                     ],
                 },
             },
             'exceptions': {
+                // 0 or absent  Success, No error.
+                // 9999 "api_not_enabled" User didn't enable API for the Account.
+                // 10000 "authorization_required" Authorization issue, invalid or absent signature etc.
+                // 10001 "error" Some general failure, no public information available.
+                // 10002 "qty_too_low" Order quantity is too low.
+                // 10003 "order_overlap" Rejection, order overlap is found and self-trading is not enabled.
+                // 10004 "order_not_found" Attempt to operate with order that can't be found by specified id.
+                // 10005 "price_too_low <Limit>" Price is too low, <Limit> defines current limit for the operation.
+                // 10006 "price_too_low4idx <Limit>" Price is too low for current index, <Limit> defines current bottom limit for the operation.
+                // 10007 "price_too_high <Limit>" Price is too high, <Limit> defines current up limit for the operation.
+                // 10008 "price_too_high4idx <Limit>" Price is too high for current index, <Limit> defines current up limit for the operation.
+                // 10009 "not_enough_funds" Account has not enough funds for the operation.
+                // 10010 "already_closed" Attempt of doing something with closed order.
+                // 10011 "price_not_allowed" This price is not allowed for some reason.
+                // 10012 "book_closed" Operation for instrument which order book had been closed.
+                // 10013 "pme_max_total_open_orders <Limit>" Total limit of open orders has been exceeded, it is applicable for PME users.
+                // 10014 "pme_max_future_open_orders <Limit>" Limit of count of futures' open orders has been exceeded, it is applicable for PME users.
+                // 10015 "pme_max_option_open_orders <Limit>" Limit of count of options' open orders has been exceeded, it is applicable for PME users.
+                // 10016 "pme_max_future_open_orders_size <Limit>" Limit of size for futures has been exceeded, it is applicable for PME users.
+                // 10017 "pme_max_option_open_orders_size <Limit>" Limit of size for options has been exceeded, it is applicable for PME users.
+                // 10018 "non_pme_max_future_position_size <Limit>" Limit of size for futures has been exceeded, it is applicable for non-PME users.
+                // 10019 "locked_by_admin" Trading is temporary locked by admin.
+                // 10020 "invalid_or_unsupported_instrument" Instrument name is not valid.
+                // 10021 "invalid_amount" Amount is not valid.
+                // 10022 "invalid_quantity" quantity was not recognized as a valid number (for API v1).
+                // 10023 "invalid_price" price was not recognized as a valid number.
+                // 10024 "invalid_max_show" max_show parameter was not recognized as a valid number.
+                // 10025 "invalid_order_id" Order id is missing or its format was not recognized as valid.
+                // 10026 "price_precision_exceeded" Extra precision of the price is not supported.
+                // 10027 "non_integer_contract_amount" Futures contract amount was not recognized as integer.
+                // 10028 "too_many_requests" Allowed request rate has been exceeded.
+                // 10029 "not_owner_of_order" Attempt to operate with not own order.
+                // 10030 "must_be_websocket_request" REST request where Websocket is expected.
+                // 10031 "invalid_args_for_instrument" Some of arguments are not recognized as valid.
+                // 10032 "whole_cost_too_low" Total cost is too low.
+                // 10033 "not_implemented" Method is not implemented yet.
+                // 10034 "stop_price_too_high" Stop price is too high.
+                // 10035 "stop_price_too_low" Stop price is too low.
+                // 10036 "invalid_max_show_amount" Max Show Amount is not valid.
+                // 10040 "retry" Request can't be processed right now and should be retried.
+                // 10041 "settlement_in_progress" Settlement is in progress. Every day at settlement time for several seconds, the system calculates user profits and updates balances. That time trading is paused for several seconds till the calculation is completed.
+                // 10043 "price_wrong_tick" Price has to be rounded to a certain tick size.
+                // 10044 "stop_price_wrong_tick" Stop Price has to be rounded to a certain tick size.
+                // 10045 "can_not_cancel_liquidation_order" Liquidation order can't be canceled.
+                // 10046 "can_not_edit_liquidation_order" Liquidation order can't be edited.
+                // 10047 "matching_engine_queue_full" Reached limit of pending Matching Engine requests for user.
+                // 10048 "not_on_this_server" The requested operation is not available on this server.
+                // 11008 "already_filled" This request is not allowed in regards to the filled order.
+                // 11029 "invalid_arguments" Some invalid input has been detected.
+                // 11030 "other_reject <Reason>" Some rejects which are not considered as very often, more info may be specified in <Reason>.
+                // 11031 "other_error <Error>" Some errors which are not considered as very often, more info may be specified in <Error>.
+                // 11035 "no_more_stops <Limit>" Allowed amount of stop orders has been exceeded.
+                // 11036 "invalid_stoppx_for_index_or_last" Invalid StopPx (too high or too low) as to current index or market.
+                // 11037 "outdated_instrument_for_IV_order" Instrument already not available for trading.
+                // 11038 "no_adv_for_futures" Advanced orders are not available for futures.
+                // 11039 "no_adv_postonly" Advanced post-only orders are not supported yet.
+                // 11041 "not_adv_order" Advanced order properties can't be set if the order is not advanced.
+                // 11042 "permission_denied" Permission for the operation has been denied.
+                // 11043 "bad_argument" Bad argument has been passed.
+                // 11044 "not_open_order" Attempt to do open order operations with the not open order.
+                // 11045 "invalid_event" Event name has not been recognized.
+                // 11046 "outdated_instrument" At several minutes to instrument expiration, corresponding advanced implied volatility orders are not allowed.
+                // 11047 "unsupported_arg_combination" The specified combination of arguments is not supported.
+                // 11048 "wrong_max_show_for_option" Wrong Max Show for options.
+                // 11049 "bad_arguments" Several bad arguments have been passed.
+                // 11050 "bad_request" Request has not been parsed properly.
+                // 11051 "system_maintenance" System is under maintenance.
+                // 11052 "subscribe_error_unsubscribed" Subscription error. However, subscription may fail without this error, please check list of subscribed channels returned, as some channels can be not subscribed due to wrong input or lack of permissions.
+                // 11053 "transfer_not_found" Specified transfer is not found.
+                // 11090 "invalid_addr" Invalid address.
+                // 11091 "invalid_transfer_address" Invalid addres for the transfer.
+                // 11092 "address_already_exist" The address already exists.
+                // 11093 "max_addr_count_exceeded" Limit of allowed addresses has been reached.
+                // 11094 "internal_server_error" Some unhandled error on server. Please report to admin. The details of the request will help to locate the problem.
+                // 11095 "disabled_deposit_address_creation" Deposit address creation has been disabled by admin.
+                // 11096 "address_belongs_to_user" Withdrawal instead of transfer.
+                // 12000 "bad_tfa" Wrong TFA code
+                // 12001 "too_many_subaccounts" Limit of subbacounts is reached.
+                // 12002 "wrong_subaccount_name" The input is not allowed as name of subaccount.
+                // 12998 "tfa_over_limit" The number of failed TFA attempts is limited.
+                // 12003 "login_over_limit" The number of failed login attempts is limited.
+                // 12004 "registration_over_limit" The number of registration requests is limited.
+                // 12005 "country_is_banned" The country is banned (possibly via IP check).
+                // 12100 "transfer_not_allowed" Transfer is not allowed. Possible wrong direction or other mistake.
+                // 12999 "tfa_used" TFA code is correct but it is already used. Please, use next code.
+                // 13000 "invalid_login" Login name is invalid (not allowed or it contains wrong characters).
+                // 13001 "account_not_activated" Account must be activated.
+                // 13002 "account_blocked" Account is blocked by admin.
+                // 13003 "tfa_required" This action requires TFA authentication.
+                // 13004 "invalid_credentials" Invalid credentials has been used.
+                // 13005 "pwd_match_error" Password confirmation error.
+                // 13006 "security_error" Invalid Security Code.
+                // 13007 "user_not_found" User's security code has been changed or wrong.
+                // 13008 "request_failed" Request failed because of invalid input or internal failure.
+                // 13009 "unauthorized" Wrong or expired authorization token or bad signature. For example, please check scope of the token, "connection" scope can't be reused for other connections.
+                // 13010 "value_required" Invalid input, missing value.
+                // 13011 "value_too_short" Input is too short.
+                // 13012 "unavailable_in_subaccount" Subaccount restrictions.
+                // 13013 "invalid_phone_number" Unsupported or invalid phone number.
+                // 13014 "cannot_send_sms" SMS sending failed -- phone number is wrong.
+                // 13015 "invalid_sms_code" Invalid SMS code.
+                // 13016 "invalid_input" Invalid input.
+                // 13017 "subscription_failed" Subscription hailed, invalid subscription parameters.
+                // 13018 "invalid_content_type" Invalid content type of the request.
+                // 13019 "orderbook_closed" Closed, expired order book.
+                // 13020 "not_found" Instrument is not found, invalid instrument name.
+                // 13021 "forbidden" Not enough permissions to execute the request, forbidden.
+                // 13025 "method_switched_off_by_admin" API method temporarily switched off by administrator.
+                // -32602 "Invalid params" see JSON-RPC spec.
+                // -32601 "Method not found" see JSON-RPC spec.
+                // -32700 "Parse error" see JSON-RPC spec.
+                // -32000 "Missing params" see JSON-RPC spec.
+                // ------------------------------------------------------------
                 // 0 or absent Success, No error
                 '9999': PermissionDenied,   // "api_not_enabled" User didn't enable API for the Account
                 '10000': AuthenticationError,  // "authorization_required" Authorization issue, invalid or absent signature etc
@@ -369,51 +338,113 @@ module.exports = class deribit extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetGetinstruments (params);
-        const markets = this.safeValue (response, 'result');
+        const currenciesResponse = await this.publicGetGetCurrencies (params);
+        //
+        //     {
+        //         jsonrpc: '2.0',
+        //         result: [
+        //             {
+        //                 withdrawal_priorities: [
+        //                     { value: 0.15, name: 'very_low' },
+        //                     { value: 1.5, name: 'very_high' },
+        //                 ],
+        //                 withdrawal_fee: 0.0005,
+        //                 min_withdrawal_fee: 0.0005,
+        //                 min_confirmations: 1,
+        //                 fee_precision: 4,
+        //                 currency_long: 'Bitcoin',
+        //                 currency: 'BTC',
+        //                 coin_type: 'BITCOIN'
+        //             }
+        //         ],
+        //         usIn: 1583761588590479,
+        //         usOut: 1583761588590544,
+        //         usDiff: 65,
+        //         testnet: false
+        //     }
+        //
+        const currenciesResult = this.safeValue (currenciesResponse, 'result', []);
         const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString (market, 'instrumentName');
-            const baseId = this.safeString (market, 'baseCurrency');
-            const quoteId = this.safeString (market, 'currency');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const type = this.safeString (market, 'kind');
-            const future = (type === 'future');
-            const option = (type === 'option');
-            const active = this.safeValue (market, 'isActive');
-            const precision = {
-                'amount': this.safeFloat (market, 'minTradeAmount'),
-                'price': this.safeFloat (market, 'tickSize'),
+        for (let i = 0; i < currenciesResult.length; i++) {
+            const currencyId = this.safeString (currenciesResult[i], 'currency');
+            const request = {
+                'currency': currencyId,
             };
-            result.push ({
-                'id': id,
-                'symbol': id,
-                'base': base,
-                'quote': quote,
-                'active': active,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': this.safeFloat (market, 'minTradeAmount'),
-                        'max': undefined,
+            const instrumentsResponse = await this.publicGetGetInstruments (this.extend (request, params));
+            //
+            //     {
+            //         jsonrpc: '2.0',
+            //         result: [
+            //             {
+            //                 tick_size: 0.0005,
+            //                 taker_commission: 0.0004,
+            //                 strike: 300,
+            //                 settlement_period: 'week',
+            //                 quote_currency: 'USD',
+            //                 option_type: 'call',
+            //                 min_trade_amount: 1,
+            //                 maker_commission: 0.0004,
+            //                 kind: 'option',
+            //                 is_active: true,
+            //                 instrument_name: 'ETH-13MAR20-300-C',
+            //                 expiration_timestamp: 1584086400000,
+            //                 creation_timestamp: 1582790403000,
+            //                 contract_size: 1,
+            //                 base_currency: 'ETH'
+            //             },
+            //         ],
+            //         usIn: 1583761889500586,
+            //         usOut: 1583761889505066,
+            //         usDiff: 4480,
+            //         testnet: false
+            //     }
+            //
+            const instrumentsResult = this.safeValue (instrumentsResponse, 'result', []);
+            for (let i = 0; i < instrumentsResult.length; i++) {
+                const market = instrumentsResult[i];
+                const id = this.safeString (market, 'instrument_name');
+                const baseId = this.safeString (market, 'base_currency');
+                const quoteId = this.safeString (market, 'quote_currency');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                const type = this.safeString (market, 'kind');
+                const future = (type === 'future');
+                const option = (type === 'option');
+                const active = this.safeValue (market, 'is_active');
+                const minTradeAmount = this.safeFloat (market, 'min_trade_amount');
+                const tickSize = this.safeFloat (market, 'tick_size');
+                const precision = {
+                    'amount': minTradeAmount,
+                    'price': tickSize,
+                };
+                result.push ({
+                    'id': id,
+                    'symbol': id,
+                    'base': base,
+                    'quote': quote,
+                    'active': active,
+                    'precision': precision,
+                    'limits': {
+                        'amount': {
+                            'min': minTradeAmount,
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': tickSize,
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'price': {
-                        'min': this.safeFloat (market, 'tickSize'),
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'type': type,
-                'spot': false,
-                'future': future,
-                'option': option,
-                'info': market,
-            });
+                    'type': type,
+                    'spot': false,
+                    'future': future,
+                    'option': option,
+                    'info': market,
+                });
+            }
         }
         return result;
     }
