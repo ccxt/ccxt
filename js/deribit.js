@@ -278,6 +278,7 @@ module.exports = class deribit extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'code': 'BTC',
                 'fetchBalance': {
                     'code': 'BTC',
                 },
@@ -399,8 +400,9 @@ module.exports = class deribit extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
+        const defaultCode = this.safeValue (this.options, 'code', 'BTC')
         const options = this.safeValue (this.options, 'fetchBalance', {});
-        const code = this.safeValue (options, 'code', 'BTC');
+        const code = this.safeValue (options, 'code', defaultCode);
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
@@ -480,6 +482,8 @@ module.exports = class deribit extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
+        // fetchTicker /public/ticker
+        //
         //     {
         //         timestamp: 1583778859480,
         //         stats: { volume: 60627.57263769, low: 7631.5, high: 8311.5 },
@@ -500,7 +504,30 @@ module.exports = class deribit extends Exchange {
         //         best_ask_amount: 343280
         //     }
         //
-        const timestamp = this.safeInteger (ticker, 'timestamp');
+        // fetchTicker /public/get_book_summary_by_instrument
+        // fetchTickers /public/get_book_summary_by_currency
+        //
+        //     {
+        //         volume: 124.1,
+        //         underlying_price: 7856.445926872601,
+        //         underlying_index: 'SYN.BTC-10MAR20',
+        //         quote_currency: 'USD',
+        //         open_interest: 121.8,
+        //         mid_price: 0.01975,
+        //         mark_price: 0.01984559,
+        //         low: 0.0095,
+        //         last: 0.0205,
+        //         interest_rate: 0,
+        //         instrument_name: 'BTC-10MAR20-7750-C',
+        //         high: 0.0295,
+        //         estimated_delivery_price: 7856.29,
+        //         creation_timestamp: 1583783678366,
+        //         bid_price: 0.0185,
+        //         base_currency: 'BTC',
+        //         ask_price: 0.021
+        //     },
+        //
+        const timestamp = this.safeInteger2 (ticker, 'timestamp', 'creation_timestamp');
         let symbol = undefined;
         const marketId = this.safeString (ticker, 'instrument_name');
         if (marketId in this.markets_by_id) {
@@ -509,17 +536,17 @@ module.exports = class deribit extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'last_price');
-        const stats = this.safeValue (ticker, 'stats', {});
+        const last = this.safeFloat2 (ticker, 'last_price', 'last');
+        const stats = this.safeValue (ticker, 'stats', ticker);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (stats, 'high'),
             'low': this.safeFloat (stats, 'low'),
-            'bid': this.safeFloat (ticker, 'best_bid_price'),
+            'bid': this.safeFloat2 (ticker, 'best_bid_price', 'bid_price'),
             'bidVolume': this.safeFloat (ticker, 'best_bid_amount'),
-            'ask': this.safeFloat (ticker, 'best_ask_price'),
+            'ask': this.safeFloat2 (ticker, 'best_ask_price', 'ask_price'),
             'askVolume': this.safeFloat (ticker, 'best_ask_amount'),
             'vwap': undefined,
             'open': undefined,
@@ -571,6 +598,56 @@ module.exports = class deribit extends Exchange {
         //     }
         //
         return this.parseTicker (response['result'], market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const defaultCode = this.safeValue (this.options, 'code', 'BTC');
+        const options = this.safeValue (this.options, 'fetchTickers', {});
+        const code = this.safeValue (options, 'code', defaultCode);
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.publicGetGetBookSummaryByCurrency (this.extend (request, params));
+        //
+        //     {
+        //         jsonrpc: '2.0',
+        //         result: [
+        //             {
+        //                 volume: 124.1,
+        //                 underlying_price: 7856.445926872601,
+        //                 underlying_index: 'SYN.BTC-10MAR20',
+        //                 quote_currency: 'USD',
+        //                 open_interest: 121.8,
+        //                 mid_price: 0.01975,
+        //                 mark_price: 0.01984559,
+        //                 low: 0.0095,
+        //                 last: 0.0205,
+        //                 interest_rate: 0,
+        //                 instrument_name: 'BTC-10MAR20-7750-C',
+        //                 high: 0.0295,
+        //                 estimated_delivery_price: 7856.29,
+        //                 creation_timestamp: 1583783678366,
+        //                 bid_price: 0.0185,
+        //                 base_currency: 'BTC',
+        //                 ask_price: 0.021
+        //             },
+        //         ],
+        //         usIn: 1583783678361966,
+        //         usOut: 1583783678372069,
+        //         usDiff: 10103,
+        //         testnet: false
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        const tickers = {};
+        for (let i = 0; i < result.length; i++) {
+            const ticker = this.parseTicker (result[i]);
+            const symbol = ticker['symbol'];
+            tickers[symbol] = ticker;
+        }
+        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     parseTrade (trade, market = undefined) {
