@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -163,172 +163,118 @@ module.exports = class deribit extends Exchange {
                 },
             },
             'exceptions': {
-                // 0 or absent  Success, No error.
-                // 9999 "api_not_enabled" User didn't enable API for the Account.
-                // 10000 "authorization_required" Authorization issue, invalid or absent signature etc.
-                // 10001 "error" Some general failure, no public information available.
-                // 10002 "qty_too_low" Order quantity is too low.
-                // 10003 "order_overlap" Rejection, order overlap is found and self-trading is not enabled.
-                // 10004 "order_not_found" Attempt to operate with order that can't be found by specified id.
-                // 10005 "price_too_low <Limit>" Price is too low, <Limit> defines current limit for the operation.
-                // 10006 "price_too_low4idx <Limit>" Price is too low for current index, <Limit> defines current bottom limit for the operation.
-                // 10007 "price_too_high <Limit>" Price is too high, <Limit> defines current up limit for the operation.
-                // 10008 "price_too_high4idx <Limit>" Price is too high for current index, <Limit> defines current up limit for the operation.
-                // 10009 "not_enough_funds" Account has not enough funds for the operation.
-                // 10010 "already_closed" Attempt of doing something with closed order.
-                // 10011 "price_not_allowed" This price is not allowed for some reason.
-                // 10012 "book_closed" Operation for instrument which order book had been closed.
-                // 10013 "pme_max_total_open_orders <Limit>" Total limit of open orders has been exceeded, it is applicable for PME users.
-                // 10014 "pme_max_future_open_orders <Limit>" Limit of count of futures' open orders has been exceeded, it is applicable for PME users.
-                // 10015 "pme_max_option_open_orders <Limit>" Limit of count of options' open orders has been exceeded, it is applicable for PME users.
-                // 10016 "pme_max_future_open_orders_size <Limit>" Limit of size for futures has been exceeded, it is applicable for PME users.
-                // 10017 "pme_max_option_open_orders_size <Limit>" Limit of size for options has been exceeded, it is applicable for PME users.
-                // 10018 "non_pme_max_future_position_size <Limit>" Limit of size for futures has been exceeded, it is applicable for non-PME users.
-                // 10019 "locked_by_admin" Trading is temporary locked by admin.
-                // 10020 "invalid_or_unsupported_instrument" Instrument name is not valid.
-                // 10021 "invalid_amount" Amount is not valid.
-                // 10022 "invalid_quantity" quantity was not recognized as a valid number (for API v1).
-                // 10023 "invalid_price" price was not recognized as a valid number.
-                // 10024 "invalid_max_show" max_show parameter was not recognized as a valid number.
-                // 10025 "invalid_order_id" Order id is missing or its format was not recognized as valid.
-                // 10026 "price_precision_exceeded" Extra precision of the price is not supported.
-                // 10027 "non_integer_contract_amount" Futures contract amount was not recognized as integer.
-                // 10028 "too_many_requests" Allowed request rate has been exceeded.
-                // 10029 "not_owner_of_order" Attempt to operate with not own order.
-                // 10030 "must_be_websocket_request" REST request where Websocket is expected.
-                // 10031 "invalid_args_for_instrument" Some of arguments are not recognized as valid.
-                // 10032 "whole_cost_too_low" Total cost is too low.
-                // 10033 "not_implemented" Method is not implemented yet.
-                // 10034 "stop_price_too_high" Stop price is too high.
-                // 10035 "stop_price_too_low" Stop price is too low.
-                // 10036 "invalid_max_show_amount" Max Show Amount is not valid.
-                // 10040 "retry" Request can't be processed right now and should be retried.
-                // 10041 "settlement_in_progress" Settlement is in progress. Every day at settlement time for several seconds, the system calculates user profits and updates balances. That time trading is paused for several seconds till the calculation is completed.
-                // 10043 "price_wrong_tick" Price has to be rounded to a certain tick size.
-                // 10044 "stop_price_wrong_tick" Stop Price has to be rounded to a certain tick size.
-                // 10045 "can_not_cancel_liquidation_order" Liquidation order can't be canceled.
-                // 10046 "can_not_edit_liquidation_order" Liquidation order can't be edited.
-                // 10047 "matching_engine_queue_full" Reached limit of pending Matching Engine requests for user.
-                // 10048 "not_on_this_server" The requested operation is not available on this server.
-                // 11008 "already_filled" This request is not allowed in regards to the filled order.
-                // 11029 "invalid_arguments" Some invalid input has been detected.
-                // 11030 "other_reject <Reason>" Some rejects which are not considered as very often, more info may be specified in <Reason>.
-                // 11031 "other_error <Error>" Some errors which are not considered as very often, more info may be specified in <Error>.
-                // 11035 "no_more_stops <Limit>" Allowed amount of stop orders has been exceeded.
-                // 11036 "invalid_stoppx_for_index_or_last" Invalid StopPx (too high or too low) as to current index or market.
-                // 11037 "outdated_instrument_for_IV_order" Instrument already not available for trading.
-                // 11038 "no_adv_for_futures" Advanced orders are not available for futures.
-                // 11039 "no_adv_postonly" Advanced post-only orders are not supported yet.
-                // 11041 "not_adv_order" Advanced order properties can't be set if the order is not advanced.
-                // 11042 "permission_denied" Permission for the operation has been denied.
-                // 11043 "bad_argument" Bad argument has been passed.
-                // 11044 "not_open_order" Attempt to do open order operations with the not open order.
-                // 11045 "invalid_event" Event name has not been recognized.
-                // 11046 "outdated_instrument" At several minutes to instrument expiration, corresponding advanced implied volatility orders are not allowed.
-                // 11047 "unsupported_arg_combination" The specified combination of arguments is not supported.
-                // 11048 "wrong_max_show_for_option" Wrong Max Show for options.
-                // 11049 "bad_arguments" Several bad arguments have been passed.
-                // 11050 "bad_request" Request has not been parsed properly.
-                // 11051 "system_maintenance" System is under maintenance.
-                // 11052 "subscribe_error_unsubscribed" Subscription error. However, subscription may fail without this error, please check list of subscribed channels returned, as some channels can be not subscribed due to wrong input or lack of permissions.
-                // 11053 "transfer_not_found" Specified transfer is not found.
-                // 11090 "invalid_addr" Invalid address.
-                // 11091 "invalid_transfer_address" Invalid addres for the transfer.
-                // 11092 "address_already_exist" The address already exists.
-                // 11093 "max_addr_count_exceeded" Limit of allowed addresses has been reached.
-                // 11094 "internal_server_error" Some unhandled error on server. Please report to admin. The details of the request will help to locate the problem.
-                // 11095 "disabled_deposit_address_creation" Deposit address creation has been disabled by admin.
-                // 11096 "address_belongs_to_user" Withdrawal instead of transfer.
-                // 12000 "bad_tfa" Wrong TFA code
-                // 12001 "too_many_subaccounts" Limit of subbacounts is reached.
-                // 12002 "wrong_subaccount_name" The input is not allowed as name of subaccount.
-                // 12998 "tfa_over_limit" The number of failed TFA attempts is limited.
-                // 12003 "login_over_limit" The number of failed login attempts is limited.
-                // 12004 "registration_over_limit" The number of registration requests is limited.
-                // 12005 "country_is_banned" The country is banned (possibly via IP check).
-                // 12100 "transfer_not_allowed" Transfer is not allowed. Possible wrong direction or other mistake.
-                // 12999 "tfa_used" TFA code is correct but it is already used. Please, use next code.
-                // 13000 "invalid_login" Login name is invalid (not allowed or it contains wrong characters).
-                // 13001 "account_not_activated" Account must be activated.
-                // 13002 "account_blocked" Account is blocked by admin.
-                // 13003 "tfa_required" This action requires TFA authentication.
-                // 13004 "invalid_credentials" Invalid credentials has been used.
-                // 13005 "pwd_match_error" Password confirmation error.
-                // 13006 "security_error" Invalid Security Code.
-                // 13007 "user_not_found" User's security code has been changed or wrong.
-                // 13008 "request_failed" Request failed because of invalid input or internal failure.
-                // 13009 "unauthorized" Wrong or expired authorization token or bad signature. For example, please check scope of the token, "connection" scope can't be reused for other connections.
-                // 13010 "value_required" Invalid input, missing value.
-                // 13011 "value_too_short" Input is too short.
-                // 13012 "unavailable_in_subaccount" Subaccount restrictions.
-                // 13013 "invalid_phone_number" Unsupported or invalid phone number.
-                // 13014 "cannot_send_sms" SMS sending failed -- phone number is wrong.
-                // 13015 "invalid_sms_code" Invalid SMS code.
-                // 13016 "invalid_input" Invalid input.
-                // 13017 "subscription_failed" Subscription hailed, invalid subscription parameters.
-                // 13018 "invalid_content_type" Invalid content type of the request.
-                // 13019 "orderbook_closed" Closed, expired order book.
-                // 13020 "not_found" Instrument is not found, invalid instrument name.
-                // 13021 "forbidden" Not enough permissions to execute the request, forbidden.
-                // 13025 "method_switched_off_by_admin" API method temporarily switched off by administrator.
-                // -32602 "Invalid params" see JSON-RPC spec.
-                // -32601 "Method not found" see JSON-RPC spec.
-                // -32700 "Parse error" see JSON-RPC spec.
-                // -32000 "Missing params" see JSON-RPC spec.
-                // ------------------------------------------------------------
-                // 0 or absent Success, No error
-                '9999': PermissionDenied,   // "api_not_enabled" User didn't enable API for the Account
-                '10000': AuthenticationError,  // "authorization_required" Authorization issue, invalid or absent signature etc
-                '10001': ExchangeError,     // "error" Some general failure, no public information available
-                '10002': InvalidOrder,      // "qty_too_low" Order quantity is too low
-                '10003': InvalidOrder,      // "order_overlap" Rejection, order overlap is found and self-trading is not enabled
-                '10004': OrderNotFound,     // "order_not_found" Attempt to operate with order that can't be found by specified id
-                '10005': InvalidOrder,      // "price_too_low <Limit>" Price is too low, <Limit> defines current limit for the operation
-                '10006': InvalidOrder,      // "price_too_low4idx <Limit>" Price is too low for current index, <Limit> defines current bottom limit for the operation
-                '10007': InvalidOrder, // "price_too_high <Limit>" Price is too high, <Limit> defines current up limit for the operation
-                '10008': InvalidOrder, // "price_too_high4idx <Limit>" Price is too high for current index, <Limit> defines current up limit for the operation
-                '10009': InsufficientFunds, // "not_enough_funds" Account has not enough funds for the operation
-                '10010': OrderNotFound, // "already_closed" Attempt of doing something with closed order
-                '10011': InvalidOrder, // "price_not_allowed" This price is not allowed for some reason
-                '10012': InvalidOrder, // "book_closed" Operation for instrument which order book had been closed
-                '10013': PermissionDenied, // "pme_max_total_open_orders <Limit>" Total limit of open orders has been exceeded, it is applicable for PME users
-                '10014': PermissionDenied, // "pme_max_future_open_orders <Limit>" Limit of count of futures' open orders has been exceeded, it is applicable for PME users
-                '10015': PermissionDenied, // "pme_max_option_open_orders <Limit>" Limit of count of options' open orders has been exceeded, it is applicable for PME users
-                '10016': PermissionDenied, // "pme_max_future_open_orders_size <Limit>" Limit of size for futures has been exceeded, it is applicable for PME users
-                '10017': PermissionDenied, // "pme_max_option_open_orders_size <Limit>" Limit of size for options has been exceeded, it is applicable for PME users
-                '10019': PermissionDenied, // "locked_by_admin" Trading is temporary locked by admin
-                '10020': ExchangeError, // "invalid_or_unsupported_instrument" Instrument name is not valid
-                '10022': InvalidOrder, // "invalid_quantity" quantity was not recognized as a valid number
-                '10023': InvalidOrder, // "invalid_price" price was not recognized as a valid number
-                '10024': InvalidOrder, // "invalid_max_show" max_show parameter was not recognized as a valid number
-                '10025': InvalidOrder, // "invalid_order_id" Order id is missing or its format was not recognized as valid
-                '10026': InvalidOrder, // "price_precision_exceeded" Extra precision of the price is not supported
-                '10027': InvalidOrder, // "non_integer_contract_amount" Futures contract amount was not recognized as integer
-                '10028': DDoSProtection, // "too_many_requests" Allowed request rate has been exceeded
-                '10029': OrderNotFound, // "not_owner_of_order" Attempt to operate with not own order
-                '10030': ExchangeError, // "must_be_websocket_request" REST request where Websocket is expected
-                '10031': ExchangeError, // "invalid_args_for_instrument" Some of arguments are not recognized as valid
-                '10032': InvalidOrder, // "whole_cost_too_low" Total cost is too low
-                '10033': NotSupported, // "not_implemented" Method is not implemented yet
-                '10034': InvalidOrder, // "stop_price_too_high" Stop price is too high
-                '10035': InvalidOrder, // "stop_price_too_low" Stop price is too low
-                '11035': InvalidOrder, // "no_more_stops <Limit>" Allowed amount of stop orders has been exceeded
-                '11036': InvalidOrder, // "invalid_stoppx_for_index_or_last" Invalid StopPx (too high or too low) as to current index or market
-                '11037': InvalidOrder, // "outdated_instrument_for_IV_order" Instrument already not available for trading
-                '11038': InvalidOrder, // "no_adv_for_futures" Advanced orders are not available for futures
-                '11039': InvalidOrder, // "no_adv_postonly" Advanced post-only orders are not supported yet
-                '11040': InvalidOrder, // "impv_not_in_range 0..499%" Implied volatility is out of allowed range
-                '11041': InvalidOrder, // "not_adv_order" Advanced order properties can't be set if the order is not advanced
-                '11042': PermissionDenied, // "permission_denied" Permission for the operation has been denied
-                '11044': OrderNotFound, // "not_open_order" Attempt to do open order operations with the not open order
-                '11045': ExchangeError, // "invalid_event" Event name has not been recognized
-                '11046': ExchangeError, // "outdated_instrument" At several minutes to instrument expiration, corresponding advanced implied volatility orders are not allowed
-                '11047': ExchangeError, // "unsupported_arg_combination" The specified combination of arguments is not supported
-                '11048': ExchangeError, // "not_on_this_server" The requested operation is not available on this server.
-                '11050': ExchangeError, // "invalid_request" Request has not been parsed properly
-                '11051': ExchangeNotAvailable, // "system_maintenance" System is under maintenance
-                '11030': ExchangeError, // "other_reject <Reason>" Some rejects which are not considered as very often, more info may be specified in <Reason>
-                '11031': ExchangeError, // "other_error <Error>" Some errors which are not considered as very often, more info may be specified in <Error>
+                // 0 or absent Success, No error.
+                '9999': PermissionDenied, // "api_not_enabled" User didn't enable API for the Account.
+                '10000': AuthenticationError, // "authorization_required" Authorization issue, invalid or absent signature etc.
+                '10001': ExchangeError, // "error" Some general failure, no public information available.
+                '10002': InvalidOrder, // "qty_too_low" Order quantity is too low.
+                '10003': InvalidOrder, // "order_overlap" Rejection, order overlap is found and self-trading is not enabled.
+                '10004': OrderNotFound, // "order_not_found" Attempt to operate with order that can't be found by specified id.
+                '10005': InvalidOrder, // "price_too_low <Limit>" Price is too low, <Limit> defines current limit for the operation.
+                '10006': InvalidOrder, // "price_too_low4idx <Limit>" Price is too low for current index, <Limit> defines current bottom limit for the operation.
+                '10007': InvalidOrder, // "price_too_high <Limit>" Price is too high, <Limit> defines current up limit for the operation.
+                '10008': InvalidOrder, // "price_too_high4idx <Limit>" Price is too high for current index, <Limit> defines current up limit for the operation.
+                '10009': InsufficientFunds, // "not_enough_funds" Account has not enough funds for the operation.
+                '10010': OrderNotFound, // "already_closed" Attempt of doing something with closed order.
+                '10011': InvalidOrder, // "price_not_allowed" This price is not allowed for some reason.
+                '10012': InvalidOrder, // "book_closed" Operation for instrument which order book had been closed.
+                '10013': PermissionDenied, // "pme_max_total_open_orders <Limit>" Total limit of open orders has been exceeded, it is applicable for PME users.
+                '10014': PermissionDenied, // "pme_max_future_open_orders <Limit>" Limit of count of futures' open orders has been exceeded, it is applicable for PME users.
+                '10015': PermissionDenied, // "pme_max_option_open_orders <Limit>" Limit of count of options' open orders has been exceeded, it is applicable for PME users.
+                '10016': PermissionDenied, // "pme_max_future_open_orders_size <Limit>" Limit of size for futures has been exceeded, it is applicable for PME users.
+                '10017': PermissionDenied, // "pme_max_option_open_orders_size <Limit>" Limit of size for options has been exceeded, it is applicable for PME users.
+                '10018': PermissionDenied, // "non_pme_max_future_position_size <Limit>" Limit of size for futures has been exceeded, it is applicable for non-PME users.
+                '10019': PermissionDenied, // "locked_by_admin" Trading is temporary locked by admin.
+                '10020': ExchangeError, // "invalid_or_unsupported_instrument" Instrument name is not valid.
+                '10021': InvalidOrder, // "invalid_amount" Amount is not valid.
+                '10022': InvalidOrder, // "invalid_quantity" quantity was not recognized as a valid number (for API v1).
+                '10023': InvalidOrder, // "invalid_price" price was not recognized as a valid number.
+                '10024': InvalidOrder, // "invalid_max_show" max_show parameter was not recognized as a valid number.
+                '10025': InvalidOrder, // "invalid_order_id" Order id is missing or its format was not recognized as valid.
+                '10026': InvalidOrder, // "price_precision_exceeded" Extra precision of the price is not supported.
+                '10027': InvalidOrder, // "non_integer_contract_amount" Futures contract amount was not recognized as integer.
+                '10028': DDoSProtection, // "too_many_requests" Allowed request rate has been exceeded.
+                '10029': OrderNotFound, // "not_owner_of_order" Attempt to operate with not own order.
+                '10030': ExchangeError, // "must_be_websocket_request" REST request where Websocket is expected.
+                '10031': ExchangeError, // "invalid_args_for_instrument" Some of arguments are not recognized as valid.
+                '10032': InvalidOrder, // "whole_cost_too_low" Total cost is too low.
+                '10033': NotSupported, // "not_implemented" Method is not implemented yet.
+                '10034': InvalidOrder, // "stop_price_too_high" Stop price is too high.
+                '10035': InvalidOrder, // "stop_price_too_low" Stop price is too low.
+                '10036': InvalidOrder, // "invalid_max_show_amount" Max Show Amount is not valid.
+                '10040': ExchangeNotAvailable, // "retry" Request can't be processed right now and should be retried.
+                '10041': OnMaintenance, // "settlement_in_progress" Settlement is in progress. Every day at settlement time for several seconds, the system calculates user profits and updates balances. That time trading is paused for several seconds till the calculation is completed.
+                '10043': InvalidOrder, // "price_wrong_tick" Price has to be rounded to a certain tick size.
+                '10044': InvalidOrder, // "stop_price_wrong_tick" Stop Price has to be rounded to a certain tick size.
+                '10045': InvalidOrder, // "can_not_cancel_liquidation_order" Liquidation order can't be canceled.
+                '10046': InvalidOrder, // "can_not_edit_liquidation_order" Liquidation order can't be edited.
+                '10047': DDoSProtection, // "matching_engine_queue_full" Reached limit of pending Matching Engine requests for user.
+                '10048': ExchangeError, // "not_on_this_server" The requested operation is not available on this server.
+                '11008': InvalidOrder, // "already_filled" This request is not allowed in regards to the filled order.
+                '11029': BadRequest, // "invalid_arguments" Some invalid input has been detected.
+                '11030': ExchangeError, // "other_reject <Reason>" Some rejects which are not considered as very often, more info may be specified in <Reason>.
+                '11031': ExchangeError, // "other_error <Error>" Some errors which are not considered as very often, more info may be specified in <Error>.
+                '11035': DDoSProtection, // "no_more_stops <Limit>" Allowed amount of stop orders has been exceeded.
+                '11036': InvalidOrder, // "invalid_stoppx_for_index_or_last" Invalid StopPx (too high or too low) as to current index or market.
+                '11037': BadRequest, // "outdated_instrument_for_IV_order" Instrument already not available for trading.
+                '11038': InvalidOrder, // "no_adv_for_futures" Advanced orders are not available for futures.
+                '11039': InvalidOrder, // "no_adv_postonly" Advanced post-only orders are not supported yet.
+                '11041': InvalidOrder, // "not_adv_order" Advanced order properties can't be set if the order is not advanced.
+                '11042': PermissionDenied, // "permission_denied" Permission for the operation has been denied.
+                '11043': BadRequest, // "bad_argument" Bad argument has been passed.
+                '11044': InvalidOrder, // "not_open_order" Attempt to do open order operations with the not open order.
+                '11045': BadRequest, // "invalid_event" Event name has not been recognized.
+                '11046': BadRequest, // "outdated_instrument" At several minutes to instrument expiration, corresponding advanced implied volatility orders are not allowed.
+                '11047': BadRequest, // "unsupported_arg_combination" The specified combination of arguments is not supported.
+                '11048': ExchangeError, // "wrong_max_show_for_option" Wrong Max Show for options.
+                '11049': BadRequest, // "bad_arguments" Several bad arguments have been passed.
+                '11050': BadRequest, // "bad_request" Request has not been parsed properly.
+                '11051': OnMaintenance, // "system_maintenance" System is under maintenance.
+                '11052': ExchangeError, // "subscribe_error_unsubscribed" Subscription error. However, subscription may fail without this error, please check list of subscribed channels returned, as some channels can be not subscribed due to wrong input or lack of permissions.
+                '11053': ExchangeError, // "transfer_not_found" Specified transfer is not found.
+                '11090': InvalidAddress, // "invalid_addr" Invalid address.
+                '11091': InvalidAddress, // "invalid_transfer_address" Invalid addres for the transfer.
+                '11092': InvalidAddress, // "address_already_exist" The address already exists.
+                '11093': DDoSProtection, // "max_addr_count_exceeded" Limit of allowed addresses has been reached.
+                '11094': ExchangeError, // "internal_server_error" Some unhandled error on server. Please report to admin. The details of the request will help to locate the problem.
+                '11095': ExchangeError, // "disabled_deposit_address_creation" Deposit address creation has been disabled by admin.
+                '11096': ExchangeError, // "address_belongs_to_user" Withdrawal instead of transfer.
+                '12000': AuthenticationError, // "bad_tfa" Wrong TFA code
+                '12001': DDoSProtection, // "too_many_subaccounts" Limit of subbacounts is reached.
+                '12002': ExchangeError, // "wrong_subaccount_name" The input is not allowed as name of subaccount.
+                '12998': AuthenticationError, // "tfa_over_limit" The number of failed TFA attempts is limited.
+                '12003': AuthenticationError, // "login_over_limit" The number of failed login attempts is limited.
+                '12004': AuthenticationError, // "registration_over_limit" The number of registration requests is limited.
+                '12005': AuthenticationError, // "country_is_banned" The country is banned (possibly via IP check).
+                '12100': ExchangeError, // "transfer_not_allowed" Transfer is not allowed. Possible wrong direction or other mistake.
+                '12999': AuthenticationError, // "tfa_used" TFA code is correct but it is already used. Please, use next code.
+                '13000': AuthenticationError, // "invalid_login" Login name is invalid (not allowed or it contains wrong characters).
+                '13001': AuthenticationError, // "account_not_activated" Account must be activated.
+                '13002': PermissionDenied, // "account_blocked" Account is blocked by admin.
+                '13003': AuthenticationError, // "tfa_required" This action requires TFA authentication.
+                '13004': AuthenticationError, // "invalid_credentials" Invalid credentials has been used.
+                '13005': AuthenticationError, // "pwd_match_error" Password confirmation error.
+                '13006': AuthenticationError, // "security_error" Invalid Security Code.
+                '13007': AuthenticationError, // "user_not_found" User's security code has been changed or wrong.
+                '13008': ExchangeError, // "request_failed" Request failed because of invalid input or internal failure.
+                '13009': AuthenticationError, // "unauthorized" Wrong or expired authorization token or bad signature. For example, please check scope of the token, "connection" scope can't be reused for other connections.
+                '13010': BadRequest, // "value_required" Invalid input, missing value.
+                '13011': BadRequest, // "value_too_short" Input is too short.
+                '13012': PermissionDenied, // "unavailable_in_subaccount" Subaccount restrictions.
+                '13013': BadRequest, // "invalid_phone_number" Unsupported or invalid phone number.
+                '13014': BadRequest, // "cannot_send_sms" SMS sending failed -- phone number is wrong.
+                '13015': BadRequest, // "invalid_sms_code" Invalid SMS code.
+                '13016': BadRequest, // "invalid_input" Invalid input.
+                '13017': ExchangeError, // "subscription_failed" Subscription hailed, invalid subscription parameters.
+                '13018': ExchangeError, // "invalid_content_type" Invalid content type of the request.
+                '13019': ExchangeError, // "orderbook_closed" Closed, expired order book.
+                '13020': ExchangeError, // "not_found" Instrument is not found, invalid instrument name.
+                '13021': PermissionDenied, // "forbidden" Not enough permissions to execute the request, forbidden.
+                '13025': ExchangeError, // "method_switched_off_by_admin" API method temporarily switched off by administrator.
+                '-32602': BadRequest, // "Invalid params" see JSON-RPC spec.
+                '-32601': BadRequest, // "Method not found" see JSON-RPC spec.
+                '-32700': BadRequest, // "Parse error" see JSON-RPC spec.
+                '-32000': BadRequest, // "Missing params" see JSON-RPC spec.
             },
             'precisionMode': TICK_SIZE,
             'options': {
@@ -368,7 +314,7 @@ module.exports = class deribit extends Exchange {
         for (let i = 0; i < currenciesResult.length; i++) {
             const currencyId = this.safeString (currenciesResult[i], 'currency');
             const request = {
-                'currency': 'foo', // currencyId,
+                'currency': currencyId,
             };
             const instrumentsResponse = await this.publicGetGetInstruments (this.extend (request, params));
             //
