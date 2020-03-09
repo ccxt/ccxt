@@ -678,14 +678,57 @@ module.exports = class deribit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'instrument': market['id'],
+            'instrument_name': market['id'],
         };
-        const response = await this.publicGetGetorderbook (this.extend (request, params));
-        const timestamp = this.safeInteger (response, 'usOut') / 1000;
-        const orderbook = this.parseOrderBook (response['result'], timestamp, 'bids', 'asks', 'price', 'quantity');
-        return this.extend (orderbook, {
-            'nonce': this.safeInteger (response, 'tstamp'),
-        });
+        if (limit !== undefined) {
+            request['depth'] = limit;
+        }
+        const response = await this.publicGetGetOrderBook (this.extend (request, params));
+        //
+        //     {
+        //         jsonrpc: "2.0",
+        //         result: {
+        //             timestamp: 1583781354740,
+        //             stats: { volume: 61249.66735634, low: 7631.5, high: 8311.5 },
+        //             state: "open",
+        //             settlement_price: 7903.21,
+        //             open_interest: 111536690,
+        //             min_price: 7695.13,
+        //             max_price: 7929.49,
+        //             mark_price: 7813.06,
+        //             last_price: 7814.5,
+        //             instrument_name: "BTC-PERPETUAL",
+        //             index_price: 7810.12,
+        //             funding_8h: 0.0000031,
+        //             current_funding: 0,
+        //             change_id: 17538025952,
+        //             bids: [
+        //                 [7814, 351820],
+        //                 [7813.5, 207490],
+        //                 [7813, 32160],
+        //             ],
+        //             best_bid_price: 7814,
+        //             best_bid_amount: 351820,
+        //             best_ask_price: 7814.5,
+        //             best_ask_amount: 11880,
+        //             asks: [
+        //                 [7814.5, 11880],
+        //                 [7815, 18100],
+        //                 [7815.5, 2640],
+        //             ],
+        //         },
+        //         usIn: 1583781354745804,
+        //         usOut: 1583781354745932,
+        //         usDiff: 128,
+        //         testnet: false
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const timestamp = this.safeInteger (result, 'timestamp');
+        const nonce = this.safeInteger (result, 'change_id');
+        const orderbook = this.parseOrderBook (result, timestamp);
+        orderbook['nonce'] = nonce;
+        return orderbook;
     }
 
     parseOrderStatus (status) {
