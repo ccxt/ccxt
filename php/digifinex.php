@@ -47,7 +47,7 @@ class digifinex extends Exchange {
                 'doc' => array(
                     'https://docs.digifinex.vip',
                 ),
-                'fees' => 'https://digifinex.zendesk.com/hc/en-us/articles/360000328482-Fee-Structure-on-DigiFinex',
+                'fees' => 'https://digifinex.zendesk.com/hc/en-us/articles/360000328422-Fee-Structure-on-DigiFinex',
                 'referral' => 'https://www.digifinex.vip/en-ww/from/DhOzBg/3798****5114',
             ),
             'api' => array(
@@ -104,6 +104,14 @@ class digifinex extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array(
+                'trading' => array(
+                    'tierBased' => false,
+                    'percentage' => true,
+                    'maker' => 0.002,
+                    'taker' => 0.002,
+                ),
+            ),
             'exceptions' => array(
                 'exact' => array(
                     '10001' => array( '\\ccxt\\BadRequest', "Wrong request method, please check it's a GET ot POST request" ),
@@ -139,6 +147,9 @@ class digifinex extends Exchange {
             'options' => array(
                 'defaultType' => 'spot',
                 'types' => array( 'spot', 'margin', 'otc' ),
+            ),
+            'commonCurrencies' => array(
+                'BHT' => 'Black House Test',
             ),
         ));
     }

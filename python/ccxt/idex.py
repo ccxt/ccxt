@@ -103,8 +103,9 @@ class idex(Exchange):
                 'secret': False,
             },
             'commonCurrencies': {
-                'ONE': 'Menlo One',
                 'FT': 'Fabric Token',
+                'MT': 'Monarch',
+                'ONE': 'Menlo One',
                 'PLA': 'PlayChip',
                 'WAX': 'WAXP',
             },
@@ -704,8 +705,10 @@ class idex(Exchange):
         else:
             amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'filled')
-        cost = self.safe_float(order, 'total')
         price = self.safe_float(order, 'price')
+        cost = self.safe_float(order, 'total')
+        if (cost is not None) and (filled is not None) and not cost:
+            cost = filled * price
         if 'market' in order:
             marketId = order['market']
             symbol = self.markets_by_id[marketId]['symbol']

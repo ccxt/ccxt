@@ -47,6 +47,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 ## See Also
 
+[CCXT Pro](https://ccxt.pro) – a professional addon to CCXT with support for WebSocket streams.
+
 [The GDAX Trading Toolkit (GTT)](https://github.com/coinbase/gdax-tt) – a trading toolkit developed by the GDAX team that integrates the CCXT library!
 
 [Enigma Catalyst](https://blog.enigma.co/enigma-announces-catalyst-0-4-our-biggest-release-yet-fa31a5ffa4b1) – The major effort towards decentralized exchanges integrates ccxt!

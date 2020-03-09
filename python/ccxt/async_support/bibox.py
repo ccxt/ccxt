@@ -82,11 +82,14 @@ class bibox(Exchange):
                         'mdata',
                     ],
                     'get': [
+                        'cquery',
                         'mdata',
                     ],
                 },
                 'private': {
                     'post': [
+                        'cquery',
+                        'ctrade',
                         'user',
                         'orderpending',
                         'transfer',

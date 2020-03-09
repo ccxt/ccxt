@@ -183,11 +183,11 @@ class tidex(Exchange):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': currency['withdrawMinAmout'],
+                        'min': self.safe_float(currency, 'withdrawMinAmount'),
                         'max': None,
                     },
                     'deposit': {
-                        'min': currency['depositMinAmount'],
+                        'min': self.safe_float(currency, 'depositMinAmount'),
                         'max': None,
                     },
                 },

@@ -73,6 +73,7 @@ module.exports = class Exchange {
             'enableRateLimit': false,
             'rateLimit': 2000, // milliseconds = seconds * 1000
             'certified': false,
+            'pro': false,
             'has': {
                 'cancelAllOrders': false,
                 'cancelOrder': true,
@@ -165,6 +166,7 @@ module.exports = class Exchange {
                 '429': RateLimitExceeded,
                 '404': ExchangeNotAvailable,
                 '409': ExchangeNotAvailable,
+                '410': ExchangeNotAvailable,
                 '500': ExchangeNotAvailable,
                 '501': ExchangeNotAvailable,
                 '502': ExchangeNotAvailable,
@@ -661,7 +663,7 @@ module.exports = class Exchange {
         return this.markets
     }
 
-    async loadMarkets (reload = false, params = {}) {
+    async loadMarketsHelper (reload = false, params = {}) {
         if (!reload && this.markets) {
             if (!this.markets_by_id) {
                 return this.setMarkets (this.markets)
@@ -674,6 +676,21 @@ module.exports = class Exchange {
         }
         const markets = await this.fetchMarkets (params)
         return this.setMarkets (markets, currencies)
+    }
+
+    // is async (returns a promise)
+    loadMarkets (reload = false, params = {}) {
+        if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
+            this.reloadingMarkets = true
+            this.marketsLoading = this.loadMarketsHelper (reload, params).then ((resolved) => {
+                this.reloadingMarkets = false
+                return resolved
+            }, (error) => {
+                this.reloadingMarkets = false
+                throw error
+            })
+        }
+        return this.marketsLoading
     }
 
     async loadAccounts (reload = false, params = {}) {

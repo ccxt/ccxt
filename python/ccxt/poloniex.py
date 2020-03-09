@@ -30,6 +30,7 @@ class poloniex(Exchange):
             'countries': ['US'],
             'rateLimit': 1000,  # up to 6 calls per second
             'certified': True,  # 2019-06-07
+            'pro': True,
             'has': {
                 'CORS': False,
                 'createDepositAddress': True,
@@ -413,9 +414,6 @@ class poloniex(Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             currency = response[id]
-            # todo: will need to rethink the fees
-            # to add support for multiple withdrawal/deposit methods and
-            # differentiated fees for each particular method
             precision = 8  # default precision, todo: fix "magic constants"
             code = self.safe_currency_code(id)
             active = (currency['delisted'] == 0) and not currency['disabled']

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.22.96'
+__version__ = '1.23.85'
 
 # -----------------------------------------------------------------------------
 
@@ -52,6 +52,8 @@ class Exchange(BaseExchange):
         self.cafile = config.get('cafile', certifi.where())
         super(Exchange, self).__init__(config)
         self.init_rest_rate_limiter()
+        self.markets_loading = None
+        self.reloading_markets = False
 
     def init_rest_rate_limiter(self):
         self.throttle = throttle(self.extend({
@@ -152,7 +154,7 @@ class Exchange(BaseExchange):
             return http_response
         return response.content
 
-    async def load_markets(self, reload=False, params={}):
+    async def load_markets_helper(self, reload=False, params={}):
         if not reload:
             if self.markets:
                 if not self.markets_by_id:
@@ -163,6 +165,16 @@ class Exchange(BaseExchange):
             currencies = await self.fetch_currencies()
         markets = await self.fetch_markets(params)
         return self.set_markets(markets, currencies)
+
+    async def load_markets(self, reload=False, params={}):
+        if (reload and not self.reloading_markets) or not self.markets_loading:
+            self.reloading_markets = True
+            coroutine = self.load_markets_helper(reload, params)
+            # coroutines can only be awaited once so we wrap it in a task
+            self.markets_loading = asyncio.create_task(coroutine)
+        result = await self.markets_loading
+        self.reloading_markets = False
+        return result
 
     async def fetch_fees(self):
         trading = {}

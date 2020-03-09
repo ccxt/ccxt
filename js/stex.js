@@ -175,6 +175,9 @@ module.exports = class stex extends Exchange {
                     'maker': 0.002,
                 },
             },
+            'commonCurrencies': {
+                'BHD': 'Bithold',
+            },
             'options': {
                 'parseOrderToPrecision': false,
             },

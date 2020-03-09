@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.22.96';
+$version = '1.23.85';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.22.96';
+    const VERSION = '1.23.85';
 
     public static $exchanges = array(
         '_1btcxe',
@@ -133,6 +133,7 @@ class Exchange {
         'gemini',
         'hitbtc',
         'hitbtc2',
+        'hollaex',
         'huobipro',
         'huobiru',
         'ice3x',
@@ -807,6 +808,7 @@ class Exchange {
         $this->countries = null;
         $this->version = null;
         $this->certified = false;
+        $this->pro = false;
         $this->urls = array();
         $this->api = array();
         $this->comment = null;
@@ -847,6 +849,7 @@ class Exchange {
             '429' => 'RateLimitExceeded',
             '404' => 'ExchangeNotAvailable',
             '409' => 'ExchangeNotAvailable',
+            '410' => 'ExchangeNotAvailable',
             '500' => 'ExchangeNotAvailable',
             '501' => 'ExchangeNotAvailable',
             '502' => 'ExchangeNotAvailable',

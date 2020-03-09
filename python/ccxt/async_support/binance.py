@@ -8,6 +8,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
@@ -29,6 +30,7 @@ class binance(Exchange):
             'countries': ['JP', 'MT'],  # Japan, Malta
             'rateLimit': 500,
             'certified': True,
+            'pro': True,
             # new metainfo interface
             'has': {
                 'fetchDepositAddress': True,
@@ -199,15 +201,18 @@ class binance(Exchange):
                         'historicalTrades',
                         'aggTrades',
                         'klines',
+                        'fundingRate',
                         'premiumIndex',
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
+                        'leverageBracket',
                     ],
                 },
                 'fapiPrivate': {
                     'get': [
                         'allOrders',
+                        'openOrder',
                         'openOrders',
                         'order',
                         'account',
@@ -293,7 +298,7 @@ class binance(Exchange):
             },
             # exchange-specific options
             'options': {
-                'fetchTradesMethod': 'publicGetAggTrades',
+                'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
                 'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType': 'limit',  # or 'limit_maker'
@@ -314,6 +319,8 @@ class binance(Exchange):
                 'Order would trigger immediately.': InvalidOrder,
                 'Account has insufficient balance for requested action.': InsufficientFunds,
                 'Rest API trading is not enabled.': ExchangeNotAvailable,
+                "You don't have permission.": PermissionDenied,  # {"msg":"You don't have permission.","success":false}
+                'Market is closed.': ExchangeNotAvailable,  # {"code":-1013,"msg":"Market is closed."}
                 '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
                 '-1003': RateLimitExceeded,  # {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
                 '-1013': InvalidOrder,  # createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
@@ -437,6 +444,7 @@ class binance(Exchange):
             spot = not future
             marketType = 'spot' if spot else 'future'
             id = self.safe_string(market, 'symbol')
+            lowercaseId = self.safe_string_lower(market, 'symbol')
             baseId = market['baseAsset']
             quoteId = market['quoteAsset']
             base = self.safe_currency_code(baseId)
@@ -453,6 +461,7 @@ class binance(Exchange):
             active = (status == 'TRADING')
             entry = {
                 'id': id,
+                'lowercaseId': lowercaseId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -852,12 +861,21 @@ class binance(Exchange):
             # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
             # 'limit': 500,     # default = 500, maximum = 1000
         }
-        if self.options['fetchTradesMethod'] == 'publicGetAggTrades':
+        defaultType = self.safe_string_2(self.options, 'fetchTrades', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        query = self.omit(params, 'type')
+        defaultMethod = 'fapiPublicGetTrades' if (type == 'future') else 'publicGetTrades'
+        method = self.safe_string(self.options, 'fetchTradesMethod', defaultMethod)
+        if method == 'publicGetAggTrades':
             if since is not None:
                 request['startTime'] = since
                 # https://github.com/ccxt/ccxt/issues/6400
                 # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
                 request['endTime'] = self.sum(since, 3600000)
+            if type == 'future':
+                method = 'fapiPublicGetAggTrades'
+        elif (method == 'publicGetHistoricalTrades') and (type == 'future'):
+            method = 'fapiPublicGetHistoricalTrades'
         if limit is not None:
             request['limit'] = limit  # default = 500, maximum = 1000
         #
@@ -869,8 +887,7 @@ class binance(Exchange):
         # - 'tradeId' accepted and returned by self method is "aggregate" trade id
         #   which is different from actual trade id
         # - setting both fromId and time window results in error
-        method = self.safe_value(self.options, 'fetchTradesMethod', 'publicGetTrades')
-        response = await getattr(self, method)(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, query))
         #
         # aggregate trades
         #
@@ -1038,6 +1055,8 @@ class binance(Exchange):
             timeInForceIsRequired = True
         elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
             stopPriceIsRequired = True
+            if market['future']:
+                priceIsRequired = True
         elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
             stopPriceIsRequired = True
             priceIsRequired = True

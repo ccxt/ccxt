@@ -239,6 +239,8 @@ assert(decimal_to_precision('1.2', ROUND, 0.02, TICK_SIZE) == '1.2')
 assert(decimal_to_precision('-1.2', ROUND, 0.02, TICK_SIZE) == '-1.2')
 assert(decimal_to_precision('44', ROUND, 4.4, TICK_SIZE) == '44')
 assert(decimal_to_precision('-44', ROUND, 4.4, TICK_SIZE) == '-44')
+assert(decimal_to_precision('44.00000001', ROUND, 4.4, TICK_SIZE) == '44')
+assert(decimal_to_precision('-44.00000001', ROUND, 4.4, TICK_SIZE) == '-44')
 
 # ----------------------------------------------------------------------------
 # testDecimalToPrecisionNegativeNumbers

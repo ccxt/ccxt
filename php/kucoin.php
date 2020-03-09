@@ -19,6 +19,7 @@ class kucoin extends Exchange {
             'rateLimit' => 334,
             'version' => 'v2',
             'certified' => false,
+            'pro' => true,
             'comment' => 'Platform 2.0',
             'has' => array(
                 'CORS' => false,
@@ -74,6 +75,10 @@ class kucoin extends Exchange {
                         'symbols',
                         'market/allTickers',
                         'market/orderbook/level{level}',
+                        'market/orderbook/level2',
+                        'market/orderbook/level2_20',
+                        'market/orderbook/level2_100',
+                        'market/orderbook/level3',
                         'market/histories',
                         'market/candles',
                         'market/stats',
@@ -105,6 +110,7 @@ class kucoin extends Exchange {
                     'post' => array(
                         'accounts',
                         'accounts/inner-transfer',
+                        'accounts/sub-transfer',
                         'deposit-addresses',
                         'withdrawals',
                         'orders',
@@ -195,6 +201,23 @@ class kucoin extends Exchange {
                 'fetchBalance' => array(
                     'type' => 'trade', // or 'main'
                 ),
+                // endpoint versions
+                'versions' => array(
+                    'public' => array(
+                        'GET' => array(
+                            'market/orderbook/level{level}' => 'v1',
+                            'market/orderbook/level2' => 'v2',
+                            'market/orderbook/level2_20' => 'v1',
+                            'market/orderbook/level2_100' => 'v1',
+                        ),
+                    ),
+                    'private' => array(
+                        'POST' => array(
+                            'accounts/inner-transfer' => 'v2',
+                            'accounts/sub-transfer' => 'v2',
+                        ),
+                    ),
+                ),
             ),
         ));
     }
@@ -244,8 +267,7 @@ class kucoin extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
             $id = $this->safe_string($market, 'symbol');
-            $baseId = $this->safe_string($market, 'baseCurrency');
-            $quoteId = $this->safe_string($market, 'quoteCurrency');
+            list($baseId, $quoteId) = explode('-', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
@@ -1617,7 +1639,11 @@ class kucoin extends Exchange {
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                †                 ↑
         //
-        $version = $this->safe_string($params, 'version', $this->options['version']);
+        $versions = $this->safe_value($this->options, 'versions', array());
+        $apiVersions = $this->safe_value($versions, $api);
+        $methodVersions = $this->safe_value($apiVersions, $method, array());
+        $defaultVersion = $this->safe_string($methodVersions, $path, $this->options['version']);
+        $version = $this->safe_string($params, 'version', $defaultVersion);
         $params = $this->omit ($params, 'version');
         $endpoint = '/api/' . $version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));

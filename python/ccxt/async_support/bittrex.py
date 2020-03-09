@@ -38,6 +38,7 @@ class bittrex(Exchange):
             'version': 'v1.1',
             'rateLimit': 1500,
             'certified': True,
+            'pro': True,
             # new metainfo interface
             'has': {
                 'CORS': False,
@@ -427,9 +428,6 @@ class bittrex(Exchange):
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'Currency')
-            # todo: will need to rethink the fees
-            # to add support for multiple withdrawal/deposit methods and
-            # differentiated fees for each particular method
             code = self.safe_currency_code(id)
             precision = 8  # default precision, todo: fix "magic constants"
             address = self.safe_value(currency, 'BaseAddress')
@@ -439,9 +437,9 @@ class bittrex(Exchange):
                 'code': code,
                 'address': address,
                 'info': currency,
-                'type': currency['CoinType'],
-                'name': currency['CurrencyLong'],
-                'active': currency['IsActive'],
+                'type': self.safe_string(currency, 'CoinType'),
+                'name': self.safe_string(currency, 'CurrencyLong'),
+                'active': self.safe_value(currency, 'IsActive'),
                 'fee': fee,
                 'precision': precision,
                 'limits': {

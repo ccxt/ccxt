@@ -388,7 +388,7 @@ declare module 'ccxt' {
         fetchL2OrderBook (...args: any): Promise<any>; // TODO: add function signatures
         fetchLedger (...args: any): Promise<any>; // TODO: add function signatures
         fetchMarkets (): Promise<Market[]>;
-        fetchMyTrades (symbol?: string, since?: any, limit?: any, params?: Params): Promise<any>;
+        fetchMyTrades (symbol?: string, since?: any, limit?: any, params?: Params): Promise<Trade[]>;
         fetchOHLCV (symbol: string, timeframe?: string, since?: number, limit?: number, params?: Params): Promise<OHLCV[]>;
         fetchOpenOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
         fetchOrder (id: string, symbol: string, params?: Params): Promise<Order>;
@@ -409,7 +409,6 @@ declare module 'ccxt' {
         fetchUsedBalance (params?: Params): Promise<PartialBalances>;
         fetchWithdrawals (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
         getMarket (symbol: string): Market;
-        handleResponse (url: string, method: string, headers?: any, body?: any): any;
         initRestRateLimiter (): void;
         iso8601 (timestamp: number | string): string;
         loadMarkets (reload?: boolean): Promise<Dictionary<Market>>;
@@ -505,6 +504,7 @@ declare module 'ccxt' {
     export class gemini extends Exchange {}
     export class hitbtc extends Exchange {}
     export class hitbtc2 extends hitbtc {}
+    export class hollaex extends Exchange {}
     export class huobipro extends Exchange {}
     export class huobiru extends huobipro {}
     export class ice3x extends Exchange {}

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.22.96'
+__version__ = '1.23.85'
 
 # -----------------------------------------------------------------------------
 
@@ -110,6 +110,7 @@ class Exchange(object):
     id = None
     version = None
     certified = False
+    pro = False
 
     # rate limiter settings
     enableRateLimit = False
@@ -188,6 +189,7 @@ class Exchange(object):
         '429': RateLimitExceeded,
         '404': ExchangeNotAvailable,
         '409': ExchangeNotAvailable,
+        '410': ExchangeNotAvailable,
         '500': ExchangeNotAvailable,
         '501': ExchangeNotAvailable,
         '502': ExchangeNotAvailable,
@@ -569,9 +571,9 @@ class Exchange(object):
         except RequestException as e:  # base exception class
             error_string = str(e)
             if ('ECONNRESET' in error_string) or ('Connection aborted.' in error_string):
-                raise NetworkError(method + ' ' + url)
+                raise NetworkError(method + ' ' + url + ' ' + error_string)
             else:
-                raise ExchangeError(method + ' ' + url)
+                raise ExchangeError(method + ' ' + url + ' ' + error_string)
 
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
         self.handle_rest_response(http_response, json_response, url, method)

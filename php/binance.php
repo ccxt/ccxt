@@ -22,6 +22,7 @@ class binance extends Exchange {
             'countries' => array( 'JP', 'MT' ), // Japan, Malta
             'rateLimit' => 500,
             'certified' => true,
+            'pro' => true,
             // new metainfo interface
             'has' => array(
                 'fetchDepositAddress' => true,
@@ -192,15 +193,18 @@ class binance extends Exchange {
                         'historicalTrades',
                         'aggTrades',
                         'klines',
+                        'fundingRate',
                         'premiumIndex',
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
+                        'leverageBracket',
                     ),
                 ),
                 'fapiPrivate' => array(
                     'get' => array(
                         'allOrders',
+                        'openOrder',
                         'openOrders',
                         'order',
                         'account',
@@ -286,7 +290,7 @@ class binance extends Exchange {
             ),
             // exchange-specific options
             'options' => array(
-                'fetchTradesMethod' => 'publicGetAggTrades',
+                'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'fetchTickersMethod' => 'publicGetTicker24hr',
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType' => 'limit', // or 'limit_maker'
@@ -307,6 +311,8 @@ class binance extends Exchange {
                 'Order would trigger immediately.' => '\\ccxt\\InvalidOrder',
                 'Account has insufficient balance for requested action.' => '\\ccxt\\InsufficientFunds',
                 'Rest API trading is not enabled.' => '\\ccxt\\ExchangeNotAvailable',
+                "You don't have permission." => '\\ccxt\\PermissionDenied', // array("msg":"You don't have permission.","success":false)
+                'Market is closed.' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1013,"msg":"Market is closed.")
                 '-1000' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
                 '-1003' => '\\ccxt\\RateLimitExceeded', // array("code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API.")
                 '-1013' => '\\ccxt\\InvalidOrder', // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
@@ -435,6 +441,7 @@ class binance extends Exchange {
             $spot = !$future;
             $marketType = $spot ? 'spot' : 'future';
             $id = $this->safe_string($market, 'symbol');
+            $lowercaseId = $this->safe_string_lower($market, 'symbol');
             $baseId = $market['baseAsset'];
             $quoteId = $market['quoteAsset'];
             $base = $this->safe_currency_code($baseId);
@@ -451,6 +458,7 @@ class binance extends Exchange {
             $active = ($status === 'TRADING');
             $entry = array(
                 'id' => $id,
+                'lowercaseId' => $lowercaseId,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
@@ -886,13 +894,23 @@ class binance extends Exchange {
             // 'endTime' => 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
             // 'limit' => 500,     // default = 500, maximum = 1000
         );
-        if ($this->options['fetchTradesMethod'] === 'publicGetAggTrades') {
+        $defaultType = $this->safe_string_2($this->options, 'fetchTrades', 'defaultType', 'spot');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $query = $this->omit ($params, 'type');
+        $defaultMethod = ($type === 'future') ? 'fapiPublicGetTrades' : 'publicGetTrades';
+        $method = $this->safe_string($this->options, 'fetchTradesMethod', $defaultMethod);
+        if ($method === 'publicGetAggTrades') {
             if ($since !== null) {
                 $request['startTime'] = $since;
                 // https://github.com/ccxt/ccxt/issues/6400
                 // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
                 $request['endTime'] = $this->sum ($since, 3600000);
             }
+            if ($type === 'future') {
+                $method = 'fapiPublicGetAggTrades';
+            }
+        } else if (($method === 'publicGetHistoricalTrades') && ($type === 'future')) {
+            $method = 'fapiPublicGetHistoricalTrades';
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default = 500, maximum = 1000
@@ -906,8 +924,7 @@ class binance extends Exchange {
         // - 'tradeId' accepted and returned by this $method is "aggregate" trade id
         //   which is different from actual trade id
         // - setting both fromId and time window results in error
-        $method = $this->safe_value($this->options, 'fetchTradesMethod', 'publicGetTrades');
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $query));
         //
         // aggregate trades
         //
@@ -1104,6 +1121,9 @@ class binance extends Exchange {
             $timeInForceIsRequired = true;
         } else if (($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT')) {
             $stopPriceIsRequired = true;
+            if ($market['future']) {
+                $priceIsRequired = true;
+            }
         } else if (($uppercaseType === 'STOP_LOSS_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
             $stopPriceIsRequired = true;
             $priceIsRequired = true;
