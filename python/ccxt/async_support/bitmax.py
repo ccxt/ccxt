@@ -135,6 +135,10 @@ class bitmax(Exchange):
                 },
                 'broad': {},
             },
+            'commonCurrencies': {
+                'BTCBEAR': 'BEAR',
+                'BTCBULL': 'BULL',
+            },
         })
 
     async def fetch_currencies(self, params={}):
