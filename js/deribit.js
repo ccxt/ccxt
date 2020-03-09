@@ -1082,6 +1082,107 @@ module.exports = class deribit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateGetGetWithdrawals (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 2745,
+        //         "result": {
+        //             "count": 1,
+        //             "data": [
+        //                 {
+        //                     "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBz",
+        //                     "amount": 0.5,
+        //                     "confirmed_timestamp": null,
+        //                     "created_timestamp": 1550571443070,
+        //                     "currency": "BTC",
+        //                     "fee": 0.0001,
+        //                     "id": 1,
+        //                     "priority": 0.15,
+        //                     "state": "unconfirmed",
+        //                     "transaction_id": null,
+        //                     "updated_timestamp": 1550571443070
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const data = this.safeValue (result, 'data', []);
+        return this.parseTransactions (data, currency, since, limit, params);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'completed': 'ok',
+            'unconfirmed': 'pending',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //     {
+        //         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBz",
+        //         "amount": 0.5,
+        //         "confirmed_timestamp": null,
+        //         "created_timestamp": 1550571443070,
+        //         "currency": "BTC",
+        //         "fee": 0.0001,
+        //         "id": 1,
+        //         "priority": 0.15,
+        //         "state": "unconfirmed",
+        //         "transaction_id": null,
+        //         "updated_timestamp": 1550571443070
+        //     }
+        //
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.safeInteger (transaction, 'created_timestamp');
+        const updated = this.safeInteger (transaction, 'updated_timestamp');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const address = this.safeString (transaction, 'address');
+        const feeCost = this.safeFloat (transaction, 'fee');
+        let type = 'deposit';
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            type = 'withdrawal';
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
+        }
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'transaction_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': address,
+            'addressTo': address,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'TagFrom': undefined,
+            'type': type,
+            'amount': this.safeFloat (transaction, 'amount'),
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': fee,
+        };
+
+    }
+
     nonce () {
         return this.milliseconds ();
     }
