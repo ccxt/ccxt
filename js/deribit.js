@@ -408,45 +408,50 @@ module.exports = class deribit extends Exchange {
         const response = await this.privateGetGetAccountSummary (this.extend (request, params));
         //
         //     {
-        //         "usOut":1569048827943520,
-        //         "usIn":1569048827943020,
-        //         "usDiff":500,
-        //         "testnet":false,
-        //         "success":true,
-        //         "result":{
-        //             "equity":2e-9,
-        //             "maintenanceMargin":0.0,
-        //             "initialMargin":0.0,
-        //             "availableFunds":0.0,
-        //             "balance":0.0,
-        //             "marginBalance":0.0,
-        //             "SUPL":0.0,
-        //             "SRPL":0.0,
-        //             "PNL":0.0,
-        //             "optionsPNL":0.0,
-        //             "optionsSUPL":0.0,
-        //             "optionsSRPL":0.0,
-        //             "optionsD":0.0,
-        //             "optionsG":0.0,
-        //             "optionsV":0.0,
-        //             "optionsTh":0.0,
-        //             "futuresPNL":0.0,
-        //             "futuresSUPL":0.0,
-        //             "futuresSRPL":0.0,
-        //             "deltaTotal":0.0,
-        //             "sessionFunding":0.0,
-        //             "depositAddress":"13tUtNsJSZa1F5GeCmwBywVrymHpZispzw",
-        //             "currency":"BTC"
+        //         jsonrpc: '2.0',
+        //         result: {
+        //             total_pl: 0,
+        //             session_upl: 0,
+        //             session_rpl: 0,
+        //             session_funding: 0,
+        //             portfolio_margining_enabled: false,
+        //             options_vega: 0,
+        //             options_theta: 0,
+        //             options_session_upl: 0,
+        //             options_session_rpl: 0,
+        //             options_pl: 0,
+        //             options_gamma: 0,
+        //             options_delta: 0,
+        //             margin_balance: 0.00062359,
+        //             maintenance_margin: 0,
+        //             limits: {
+        //                 non_matching_engine_burst: 300,
+        //                 non_matching_engine: 200,
+        //                 matching_engine_burst: 20,
+        //                 matching_engine: 2
+        //             },
+        //             initial_margin: 0,
+        //             futures_session_upl: 0,
+        //             futures_session_rpl: 0,
+        //             futures_pl: 0,
+        //             equity: 0.00062359,
+        //             deposit_address: '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw',
+        //             delta_total: 0,
+        //             currency: 'BTC',
+        //             balance: 0.00062359,
+        //             available_withdrawal_funds: 0.00062359,
+        //             available_funds: 0.00062359
         //         },
-        //         "message":""
+        //         usIn: 1583775838115975,
+        //         usOut: 1583775838116520,
+        //         usDiff: 545,
+        //         testnet: false
         //     }
         //
         const result = {
             'info': response,
         };
         const balance = this.safeValue (response, 'result', {});
-        const currencyId = this.safeString (balance, 'currency');
-        // const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();
         account['free'] = this.safeFloat (balance, 'availableFunds');
         account['used'] = this.safeFloat (balance, 'maintenanceMargin');
@@ -461,9 +466,10 @@ module.exports = class deribit extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.privateGetAccount (this.extend (request, params));
+        const response = await this.privateGetGetAccountSummary (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
-        const address = this.safeString (result, 'depositAddress');
+        const address = this.safeString (result, 'deposit_address');
+        this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
