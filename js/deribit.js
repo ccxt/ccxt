@@ -481,45 +481,46 @@ module.exports = class deribit extends Exchange {
     parseTicker (ticker, market = undefined) {
         //
         //     {
-        //         "currentFunding":0.0,
-        //         "funding8h":0.0000017213784611422821,
-        //         "instrumentName":"BTC-PERPETUAL",
-        //         "openInterest":7600223,
-        //         "openInterestAmount":76002230,
-        //         "high":7665.5,
-        //         "low":7450.0,
-        //         "volume":12964792.0,
-        //         "volumeUsd":129647920,
-        //         "volumeBtc":17214.63595316,
-        //         "last":7520.5,
-        //         "bidPrice":7520.0,
-        //         "askPrice":7520.5,
-        //         "midPrice":7520.25,
-        //         "estDelPrice":"",
-        //         "markPrice":7521.0,
-        //         "created":"2019-12-09 15:17:00 GMT"
+        //         timestamp: 1583778859480,
+        //         stats: { volume: 60627.57263769, low: 7631.5, high: 8311.5 },
+        //         state: 'open',
+        //         settlement_price: 7903.21,
+        //         open_interest: 111543850,
+        //         min_price: 7634,
+        //         max_price: 7866.51,
+        //         mark_price: 7750.02,
+        //         last_price: 7750.5,
+        //         instrument_name: 'BTC-PERPETUAL',
+        //         index_price: 7748.01,
+        //         funding_8h: 0.0000026,
+        //         current_funding: 0,
+        //         best_bid_price: 7750,
+        //         best_bid_amount: 19470,
+        //         best_ask_price: 7750.5,
+        //         best_ask_amount: 343280
         //     }
         //
-        const timestamp = this.safeInteger (ticker, 'created');
+        const timestamp = this.safeInteger (ticker, 'timestamp');
         let symbol = undefined;
-        const marketId = this.safeString (ticker, 'instrumentName');
+        const marketId = this.safeString (ticker, 'instrument_name');
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
         }
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeFloat (ticker, 'last_price');
+        const stats = this.safeValue (ticker, 'stats', {});
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bidPrice'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'askPrice'),
-            'askVolume': undefined,
+            'high': this.safeFloat (stats, 'high'),
+            'low': this.safeFloat (stats, 'low'),
+            'bid': this.safeFloat (ticker, 'best_bid_price'),
+            'bidVolume': this.safeFloat (ticker, 'best_bid_amount'),
+            'ask': this.safeFloat (ticker, 'best_ask_price'),
+            'askVolume': this.safeFloat (ticker, 'best_ask_amount'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -529,7 +530,7 @@ module.exports = class deribit extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, 'volume'),
+            'quoteVolume': this.safeFloat (stats, 'volume'),
             'info': ticker,
         };
     }
@@ -538,36 +539,35 @@ module.exports = class deribit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'instrument': market['id'],
+            'instrument_name': market['id'],
         };
-        const response = await this.publicGetGetsummary (this.extend (request, params));
+        const response = await this.publicGetTicker (this.extend (request, params));
         //
         //     {
-        //         "usOut":1575904620528163,
-        //         "usIn":1575904620528129,
-        //         "usDiff":34,
-        //         "testnet":false,
-        //         "success":true,
-        //         "result": {
-        //             "currentFunding":0.0,
-        //             "funding8h":0.0000017213784611422821,
-        //             "instrumentName":"BTC-PERPETUAL",
-        //             "openInterest":7600223,
-        //             "openInterestAmount":76002230,
-        //             "high":7665.5,
-        //             "low":7450.0,
-        //             "volume":12964792.0,
-        //             "volumeUsd":129647920,
-        //             "volumeBtc":17214.63595316,
-        //             "last":7520.5,
-        //             "bidPrice":7520.0,
-        //             "askPrice":7520.5,
-        //             "midPrice":7520.25,
-        //             "estDelPrice":"",
-        //             "markPrice":7521.0,
-        //             "created":"2019-12-09 15:17:00 GMT"
+        //         jsonrpc: '2.0',
+        //         result: {
+        //             timestamp: 1583778859480,
+        //             stats: { volume: 60627.57263769, low: 7631.5, high: 8311.5 },
+        //             state: 'open',
+        //             settlement_price: 7903.21,
+        //             open_interest: 111543850,
+        //             min_price: 7634,
+        //             max_price: 7866.51,
+        //             mark_price: 7750.02,
+        //             last_price: 7750.5,
+        //             instrument_name: 'BTC-PERPETUAL',
+        //             index_price: 7748.01,
+        //             funding_8h: 0.0000026,
+        //             current_funding: 0,
+        //             best_bid_price: 7750,
+        //             best_bid_amount: 19470,
+        //             best_ask_price: 7750.5,
+        //             best_ask_amount: 343280
         //         },
-        //         "message":""
+        //         usIn: 1583778859483941,
+        //         usOut: 1583778859484075,
+        //         usDiff: 134,
+        //         testnet: false
         //     }
         //
         return this.parseTicker (response['result'], market);
