@@ -127,6 +127,10 @@ module.exports = class bitmax extends Exchange {
                 },
                 'broad': {},
             },
+            'commonCurrencies': {
+                'BTCBEAR': 'BEAR',
+                'BTCBULL': 'BULL',
+            },
         });
     }
 
