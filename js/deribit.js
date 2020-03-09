@@ -402,7 +402,7 @@ module.exports = class deribit extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const defaultCode = this.safeValue (this.options, 'code', 'BTC')
+        const defaultCode = this.safeValue (this.options, 'code', 'BTC');
         const options = this.safeValue (this.options, 'fetchBalance', {});
         const code = this.safeValue (options, 'code', defaultCode);
         const currency = this.currency (code);
