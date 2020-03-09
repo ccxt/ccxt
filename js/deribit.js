@@ -368,7 +368,7 @@ module.exports = class deribit extends Exchange {
         for (let i = 0; i < currenciesResult.length; i++) {
             const currencyId = this.safeString (currenciesResult[i], 'currency');
             const request = {
-                'currency': currencyId,
+                'currency': 'foo', // currencyId,
             };
             const instrumentsResponse = await this.publicGetGetInstruments (this.extend (request, params));
             //
@@ -1012,12 +1012,24 @@ module.exports = class deribit extends Exchange {
             return; // fallback to default error handler
         }
         //
-        //     {"usOut":1535877098645376,"usIn":1535877098643364,"usDiff":2012,"testnet":false,"success":false,"message":"order_not_found","error":10004}
+        //     {
+        //         jsonrpc: '2.0',
+        //         error: {
+        //             message: 'Invalid params',
+        //             data: { reason: 'invalid currency', param: 'currency' },
+        //             code: -32602
+        //         },
+        //         testnet: false,
+        //         usIn: 1583763842150374,
+        //         usOut: 1583763842150410,
+        //         usDiff: 36
+        //     }
         //
-        const error = this.safeString (response, 'error');
-        if ((error !== undefined) && (error !== '0')) {
+        const error = this.safeValue (response, 'error');
+        if (error !== undefined) {
+            const errorCode = this.safeString (error, 'code');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions, error, feedback);
+            this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }
