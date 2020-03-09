@@ -405,7 +405,7 @@ module.exports = class deribit extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.privateGetGetAccountSummary (params);
+        const response = await this.privateGetGetAccountSummary (this.extend (request, params));
         //
         //     {
         //         "usOut":1569048827943520,
