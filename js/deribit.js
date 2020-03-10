@@ -717,6 +717,28 @@ module.exports = class deribit extends Exchange {
         //
         // fetchMyTrades (private)
         //
+        //     {
+        //         "trade_seq": 3,
+        //         "trade_id": "ETH-34066",
+        //         "timestamp": 1550219814585,
+        //         "tick_direction": 1,
+        //         "state": "open",
+        //         "self_trade": false,
+        //         "reduce_only": false,
+        //         "price": 0.04,
+        //         "post_only": false,
+        //         "order_type": "limit",
+        //         "order_id": "ETH-334607",
+        //         "matching_id": null,
+        //         "liquidity": "M",
+        //         "iv": 56.83,
+        //         "instrument_name": "ETH-22FEB19-120-C",
+        //         "index_price": 121.37,
+        //         "fee_currency": "ETH",
+        //         "fee": 0.0011,
+        //         "direction": "buy",
+        //         "amount": 11
+        //     }
         //
         const id = this.safeString (trade, 'trade_id');
         let symbol = undefined;
@@ -738,20 +760,36 @@ module.exports = class deribit extends Exchange {
                 cost = amount * price;
             }
         }
+        const liquidity = this.safeString (trade, 'liquidity');
+        let takerOrMaker = undefined;
+        if (liquidity !== undefined) {
+            // M = maker, T = taker, MT = both
+            takerOrMaker = (liquidity === 'M') ? 'maker' : 'taker';
+        }
+        const feeCost = this.safeFloat (trade, 'feeCost');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'fee_currency');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,s
+            };
+        }
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'order': undefined,
-            'type': undefined,
+            'order': this.safeString (trade, 'order_id'),
+            'type': this.safeString (trade, 'order_type'),
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
