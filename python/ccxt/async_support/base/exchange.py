@@ -172,7 +172,12 @@ class Exchange(BaseExchange):
             coroutine = self.load_markets_helper(reload, params)
             # coroutines can only be awaited once so we wrap it in a task
             self.markets_loading = asyncio.create_task(coroutine)
-        result = await self.markets_loading
+        try:
+            result = await self.markets_loading
+        except Exception as e:
+            self.reloading_markets = False
+            self.markets_loading = None
+            raise e
         self.reloading_markets = False
         return result
 
