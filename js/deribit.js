@@ -30,6 +30,7 @@ module.exports = class deribit extends Exchange {
                 'createDepositAddress': true,
                 'fetchOrderTrades': true,
                 'createOrder': true,
+                'cancelOrder': true,
             },
             'urls': {
                 'test': 'https://test.deribit.com',
@@ -1140,10 +1141,11 @@ module.exports = class deribit extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'orderId': id,
+            'order_id': id,
         };
-        const response = await this.privatePostCancel (this.extend (request, params));
-        return this.parseOrder (response['result']['order']);
+        const response = await this.privateGetCancel (this.extend (request, params));
+        const result = this.safeValue (response, 'result', {});
+        return this.parseOrder (result);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
