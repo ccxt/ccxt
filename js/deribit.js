@@ -1010,45 +1010,106 @@ module.exports = class deribit extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        // Parameter          Required    Type    Enum    Description
-        // instrument_name    true        string          Instrument name
-        // amount             true        number          It represents the requested order size. For perpetual and futures the amount is in USD units, for options it is amount of corresponding cryptocurrency contracts, e.g., BTC or ETH
-        // type               false       string  limit, stop_limit, market, stop_market    The order type, default: "limit"
-        // label              false       string          user defined label for the order (maximum 64 characters)
-        // price              false       number          The order price in base currency (Only for limit and stop_limit orders)
-        //     When adding order with advanced=usd, the field price should be the option price value in USD.
-        //     When adding order with advanced=implv, the field price should be a value of implied volatility in percentages. For example, price=100, means implied volatility of 100%
-        // time_in_force      false       string  good_til_cancelled, fill_or_kill, immediate_or_cancel Specifies how long the order remains in effect. Default "good_til_cancelled"
-        //     "good_til_cancelled" - unfilled order remains in order book until cancelled
-        //     "fill_or_kill" - execute a transaction immediately and completely or not at all
-        //     "immediate_or_cancel" - execute a transaction immediately, and any portion of the order that cannot be immediately filled is cancelled
-        // max_show           false       number           Maximum amount within an order to be shown to other customers, 0 for invisible order
-        // post_only          false       boolean          If true, the order is considered post-only. If the new price would cause the order to be filled immediately (as taker), the price will be changed to be just below the spread.
-        //     Only valid in combination with time_in_force="good_til_cancelled"
-        // reject_post_only   false       boolean          If order is considered post-only and this field is set to true than order is put to order book unmodified or request is rejected.
-        //     Only valid in combination with "post_only" set to true
-        // reduce_only        false       boolean          If true, the order is considered reduce-only which is intended to only reduce a current position
-        // stop_price         false       number           Stop price, required for stop limit orders (Only for stop orders)
-        // trigger            false       string  index_price, mark_price, last_price    Defines trigger type, required for "stop_limit" order type
-        // advanced           false       string  usd, implv    Advanced option order type. (Only for options)
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'instrument_name': market['id'],
+            // for perpetual and futures the amount is in USD
+            // for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
             'amount': this.amountToPrecision (symbol, amount),
-            'type': type,
-            // 'post_only': 'false' or 'true', https://github.com/ccxt/ccxt/issues/5159
+            'type': type, // limit, stop_limit, market, stop_market, default is limit
+            // 'label': 'string', // user-defined label for the order (maximum 64 characters)
+            // 'price': this.priceToPrecision (symbol, 123.45), // only for limit and stop_limit orders
+            // 'time_in_force' : 'good_til_cancelled', // fill_or_kill, immediate_or_cancel
+            // 'max_show': 123.45, // max amount within an order to be shown to other customers, 0 for invisible order
+            // 'post_only': false, // if the new price would cause the order to be filled immediately (as taker), the price will be changed to be just below the spread.
+            // 'reject_post_only': false, // if true the order is put to order book unmodified or request is rejected
+            // 'reduce_only': false, // if true, the order is intended to only reduce a current position
+            // 'stop_price': false, // stop price, required for stop_limit orders
+            // 'trigger': 'index_price', // mark_price, last_price, required for stop_limit orders
+            // 'advanced': 'usd', // 'implv', advanced option order type, options only
         };
-        if (price !== undefined) {
-            request['price'] = price;
+        let priceIsRequired = false;
+        let stopPriceIsRequired = false;
+        if (type === 'limit') {
+            priceIsRequired = true;
+        } else of (type === 'stop_limit') {
+            priceIsRequired = true;
+            stopPriceIsRequired = true;
         }
-        const method = 'privatePost' + this.capitalize (side);
+        if (priceIsRequired) {
+            if (price !== undefined) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            } else {
+                throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for a ' + type + ' order');
+            }
+        }
+        if (stopPriceIsRequired) {
+            const stopPrice = this.safeFloat2 (params, 'stop_price', 'stopPrice');
+            if (stopPrice === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder requires a stop_price or stopPrice param for a ' + type + ' order');
+            } else {
+                request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+            }
+        }
+        const method = 'privateGetGet' + this.capitalize (side);
         const response = await this[method] (this.extend (request, params));
-        const order = this.safeValue (response['result'], 'order');
-        if (order === undefined) {
-            return response;
-        }
-        return this.parseOrder (order);
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 5275,
+        //         "result": {
+        //             "trades": [
+        //                 {
+        //                     "trade_seq": 14151,
+        //                     "trade_id": "ETH-37435",
+        //                     "timestamp": 1550657341322,
+        //                     "tick_direction": 2,
+        //                     "state": "closed",
+        //                     "self_trade": false,
+        //                     "price": 143.81,
+        //                     "order_type": "market",
+        //                     "order_id": "ETH-349249",
+        //                     "matching_id": null,
+        //                     "liquidity": "T",
+        //                     "label": "market0000234",
+        //                     "instrument_name": "ETH-PERPETUAL",
+        //                     "index_price": 143.73,
+        //                     "fee_currency": "ETH",
+        //                     "fee": 0.000139,
+        //                     "direction": "buy",
+        //                     "amount": 40
+        //                 }
+        //             ],
+        //             "order": {
+        //                 "time_in_force": "good_til_cancelled",
+        //                 "reduce_only": false,
+        //                 "profit_loss": 0,
+        //                 "price": "market_price",
+        //                 "post_only": false,
+        //                 "order_type": "market",
+        //                 "order_state": "filled",
+        //                 "order_id": "ETH-349249",
+        //                 "max_show": 40,
+        //                 "last_update_timestamp": 1550657341322,
+        //                 "label": "market0000234",
+        //                 "is_liquidation": false,
+        //                 "instrument_name": "ETH-PERPETUAL",
+        //                 "filled_amount": 40,
+        //                 "direction": "buy",
+        //                 "creation_timestamp": 1550657341322,
+        //                 "commission": 0.000139,
+        //                 "average_price": 143.81,
+        //                 "api": true,
+        //                 "amount": 40
+        //             }
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const order = this.safeValue (result, 'order');
+        const trades = this.safeValue (result, 'trades', []);
+        return this.parseOrder (order, market);
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
