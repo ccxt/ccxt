@@ -1039,46 +1039,72 @@ module.exports = class deribit extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const request = {
-            'instrument': market['id'],
+            'include_old': true,
         };
-        if (limit !== undefined) {
-            request['count'] = limit; // default = 20
+        let market = undefined;
+        let method = undefined;
+        if (symbol === undefined) {
+            const defaultCode = this.safeValue (this.options, 'code', 'BTC');
+            const options = this.safeValue (this.options, 'fetchBalance', {});
+            const code = this.safeValue (options, 'code', defaultCode);
+            const currency = this.currency (code);
+            request['currency'] = currency['id'];
+            if (since === undefined) {
+                method = 'privateGetGetUserTradesByCurrency';
+            } else {
+                method = 'privateGetGetUserTradesByCurrencyAndTime';
+                request['start_timestamp'] = since;
+            }
+        } else {
+            market = this.market (symbol);
+            request['instrument_name'] = market['id'];
+            if (since === undefined) {
+                method = 'privateGetGetUserTradesByInstrument';
+            } else {
+                method = 'privateGetGetUserTradesByInstrumentAndTime';
+                request['start_timestamp'] = since;
+            }
         }
-        const response = await this.privateGetTradehistory (this.extend (request, params));
+        if (limit !== undefined) {
+            request['count'] = limit; // default 10
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
-        //         'usOut':1559611553394836,
-        //         'usIn':1559611553394000,
-        //         'usDiff':836,
-        //         'testnet':false,
-        //         'success':true,
-        //         'result': [
-        //             {
-        //                 'quantity':54,
-        //                 'amount':540.0,
-        //                 'tradeId':23087297,
-        //                 'instrument':'BTC-PERPETUAL',
-        //                 'timeStamp':1559604178803,
-        //                 'tradeSeq':8265011,
-        //                 'price':8213.0,
-        //                 'side':'sell',
-        //                 'orderId':12373631800,
-        //                 'matchingId':0,
-        //                 'liquidity':'T',
-        //                 'fee':0.000049312,
-        //                 'feeCurrency':'BTC',
-        //                 'tickDirection':3,
-        //                 'indexPrice':8251.94,
-        //                 'selfTrade':false
-        //             }
-        //         ],
-        //         'message':'',
-        //         'has_more':true
+        //         "jsonrpc": "2.0",
+        //         "id": 9367,
+        //         "result": {
+        //             "trades": [
+        //                 {
+        //                     "trade_seq": 3,
+        //                     "trade_id": "ETH-34066",
+        //                     "timestamp": 1550219814585,
+        //                     "tick_direction": 1,
+        //                     "state": "open",
+        //                     "self_trade": false,
+        //                     "reduce_only": false,
+        //                     "price": 0.04,
+        //                     "post_only": false,
+        //                     "order_type": "limit",
+        //                     "order_id": "ETH-334607",
+        //                     "matching_id": null,
+        //                     "liquidity": "M",
+        //                     "iv": 56.83,
+        //                     "instrument_name": "ETH-22FEB19-120-C",
+        //                     "index_price": 121.37,
+        //                     "fee_currency": "ETH",
+        //                     "fee": 0.0011,
+        //                     "direction": "buy",
+        //                     "amount": 11
+        //                 },
+        //             ],
+        //             "has_more": true
+        //         }
         //     }
         //
-        const trades = this.safeValue (response, 'result', []);
+        const result = this.safeValue (response, 'result', {});
+        const trades = this.safeValue (result, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1235,7 +1261,6 @@ module.exports = class deribit extends Exchange {
             'updated': updated,
             'fee': fee,
         };
-
     }
 
     nonce () {
