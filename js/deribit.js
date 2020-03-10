@@ -1082,6 +1082,44 @@ module.exports = class deribit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const response = await this.privateGetGetDeposits (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 5611,
+        //         "result": {
+        //             "count": 1,
+        //             "data": [
+        //                 {
+        //                     "address": "2N35qDKDY22zmJq9eSyiAerMD4enJ1xx6ax",
+        //                     "amount": 5,
+        //                     "currency": "BTC",
+        //                     "received_timestamp": 1549295017670,
+        //                     "state": "completed",
+        //                     "transaction_id": "230669110fdaf0a0dbcdc079b6b8b43d5af29cc73683835b9bc6b3406c065fda",
+        //                     "updated_timestamp": 1549295130159
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const data = this.safeValue (result, 'data', []);
+        return this.parseTransactions (data, currency, since, limit, params);
+    }
+
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
@@ -1091,6 +1129,9 @@ module.exports = class deribit extends Exchange {
         const request = {
             'currency': currency['id'],
         };
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
         const response = await this.privateGetGetWithdrawals (this.extend (request, params));
         //
         //     {
@@ -1131,6 +1172,8 @@ module.exports = class deribit extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
+        // fetchWithdrawals
+        //
         //     {
         //         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBz",
         //         "amount": 0.5,
@@ -1145,9 +1188,21 @@ module.exports = class deribit extends Exchange {
         //         "updated_timestamp": 1550571443070
         //     }
         //
+        // fetchDeposits
+        //
+        //     {
+        //         "address": "2N35qDKDY22zmJq9eSyiAerMD4enJ1xx6ax",
+        //         "amount": 5,
+        //         "currency": "BTC",
+        //         "received_timestamp": 1549295017670,
+        //         "state": "completed",
+        //         "transaction_id": "230669110fdaf0a0dbcdc079b6b8b43d5af29cc73683835b9bc6b3406c065fda",
+        //         "updated_timestamp": 1549295130159
+        //     }
+        //
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const timestamp = this.safeInteger (transaction, 'created_timestamp');
+        const timestamp = this.safeInteger (transaction, 'created_timestamp', 'received_timestamp');
         const updated = this.safeInteger (transaction, 'updated_timestamp');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
         const address = this.safeString (transaction, 'address');
