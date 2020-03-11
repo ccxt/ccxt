@@ -31,7 +31,7 @@ module.exports = class bybit extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 // 'fetchOrderTrades': true,
-                // 'createOrder': true,
+                'createOrder': true,
                 // 'cancelOrder': true,
                 // 'cancelAllOrders': true,
                 'fetchTime': true,
@@ -949,64 +949,41 @@ module.exports = class bybit extends Exchange {
             }
         }
         const response = await this.privatePostOrderCreate (this.extend (request, params));
-        console.log (response);
-        process.exit ();
         //
         //     {
-        //         "jsonrpc": "2.0",
-        //         "id": 5275,
+        //         "ret_code": 0,
+        //         "ret_msg": "OK",
+        //         "ext_code": "",
+        //         "ext_info": "",
         //         "result": {
-        //             "trades": [
-        //                 {
-        //                     "trade_seq": 14151,
-        //                     "trade_id": "ETH-37435",
-        //                     "timestamp": 1550657341322,
-        //                     "tick_direction": 2,
-        //                     "state": "closed",
-        //                     "self_trade": false,
-        //                     "price": 143.81,
-        //                     "order_type": "market",
-        //                     "order_id": "ETH-349249",
-        //                     "matching_id": null,
-        //                     "liquidity": "T",
-        //                     "label": "market0000234",
-        //                     "instrument_name": "ETH-PERPETUAL",
-        //                     "index_price": 143.73,
-        //                     "fee_currency": "ETH",
-        //                     "fee": 0.000139,
-        //                     "direction": "buy",
-        //                     "amount": 40
-        //                 }
-        //             ],
-        //             "order": {
-        //                 "time_in_force": "good_til_cancelled",
-        //                 "reduce_only": false,
-        //                 "profit_loss": 0,
-        //                 "price": "market_price",
-        //                 "post_only": false,
-        //                 "order_type": "market",
-        //                 "order_state": "filled",
-        //                 "order_id": "ETH-349249",
-        //                 "max_show": 40,
-        //                 "last_update_timestamp": 1550657341322,
-        //                 "label": "market0000234",
-        //                 "is_liquidation": false,
-        //                 "instrument_name": "ETH-PERPETUAL",
-        //                 "filled_amount": 40,
-        //                 "direction": "buy",
-        //                 "creation_timestamp": 1550657341322,
-        //                 "commission": 0.000139,
-        //                 "average_price": 143.81,
-        //                 "api": true,
-        //                 "amount": 40
-        //             }
-        //         }
+        //             "user_id": 1,
+        //             "order_id": "335fd977-e5a5-4781-b6d0-c772d5bfb95b",
+        //             "symbol": "BTCUSD",
+        //             "side": "Buy",
+        //             "order_type": "Limit",
+        //             "price": 8800,
+        //             "qty": 1,
+        //             "time_in_force": "GoodTillCancel",
+        //             "order_status": "Created",
+        //             "last_exec_time": 0,
+        //             "last_exec_price": 0,
+        //             "leaves_qty": 1,
+        //             "cum_exec_qty": 0,
+        //             "cum_exec_value": 0,
+        //             "cum_exec_fee": 0,
+        //             "reject_reason": "",
+        //             "order_link_id": "",
+        //             "created_at": "2019-11-30T11:03:43.452Z",
+        //             "updated_at": "2019-11-30T11:03:43.455Z"
+        //         },
+        //         "time_now": "1575111823.458705",
+        //         "rate_limit_status": 98,
+        //         "rate_limit_reset_ms": 1580885703683,
+        //         "rate_limit": 100
         //     }
         //
         const result = this.safeValue (response, 'result', {});
         const order = this.safeValue (result, 'order');
-        const trades = this.safeValue (result, 'trades', []);
-        order['trades'] = trades;
         return this.parseOrder (order, market);
     }
 
