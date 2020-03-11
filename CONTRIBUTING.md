@@ -59,7 +59,7 @@ If you found a security issue or a critical vulnerability and reporting it in pu
 
 Below is a list of functionality we would like to have implemented and fully **unified** in the library in the first place at this time. Most of these tasks are already in progress, implemented for some exchanges, but not all of them:
 
-– Margin trading
+- Margin trading
 - Leverage
 - Derivatives (futures, options)
 - Main account / subaccounts
