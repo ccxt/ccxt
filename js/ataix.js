@@ -131,9 +131,9 @@ module.exports = class ataix extends Exchange {
                 'quoteId': quoteId,
                 'lot': lot,
                 'step': step,
-                'active': market['isActive'],
+                'active': this.safeValue (market, 'isActive'),
                 'precision': {
-                    'amount': this.precisionFromString (market['lotSize'].toString ()),
+                    'amount': this.precisionFromString (this.numberToString (lot)),
                     'price': pricePrecision,
                 },
                 'limits': {
@@ -286,7 +286,7 @@ module.exports = class ataix extends Exchange {
         const datetime = this.safeString (ticker, 'timestamp');
         const last = this.safeFloat (ticker, 'last');
         const open = this.safeFloat (ticker, 'open');
-        const volume = this.safeFloat (ticker, 'volume');
+        const volume = this.safeValue (ticker, 'volume');
         return {
             'symbol': this.safeString (ticker, 'symbol'),
             'timestamp': this.parse8601 (datetime),
@@ -639,7 +639,7 @@ module.exports = class ataix extends Exchange {
         }
         const status = this.safeValue (response, 'status', false);
         if (!status) {
-            const type = response['type'];
+            const type = this.safeValue (response, 'type');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], type, feedback);
             // this.throwBroadlyMatchedException (this.exceptions['broad'], response, feedback);
