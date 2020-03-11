@@ -288,6 +288,7 @@ module.exports = class bybit extends Exchange {
             const quoteId = this.safeString (market, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
             const lotSizeFilter = this.safeValue (market, 'lot_size_filter', {});
             const priceFilter = this.safeValue (market, 'price_filter', {});
             const precision = {
@@ -296,7 +297,7 @@ module.exports = class bybit extends Exchange {
             };
             result.push ({
                 'id': id,
-                'symbol': id,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'active': undefined,
@@ -446,8 +447,8 @@ module.exports = class bybit extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (stats, 'high'),
-            'low': this.safeFloat (stats, 'low'),
+            'high': this.safeFloat2 (stats, 'high', 'max_price'),
+            'low': this.safeFloat2 (stats, 'low', 'min_price'),
             'bid': this.safeFloat2 (ticker, 'best_bid_price', 'bid_price'),
             'bidVolume': this.safeFloat (ticker, 'best_bid_amount'),
             'ask': this.safeFloat2 (ticker, 'best_ask_price', 'ask_price'),
@@ -470,9 +471,47 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'instrument_name': market['id'],
+            'symbol': market['id'],
         };
-        const response = await this.publicGetTicker (this.extend (request, params));
+        const response = await this.publicGetTickers (this.extend (request, params));
+        //
+        //     {
+        //         ret_code: 0,
+        //         ret_msg: 'OK',
+        //         ext_code: '',
+        //         ext_info: '',
+        //         result: [
+        //             {
+        //                 symbol: 'BTCUSD',
+        //                 bid_price: '7680',
+        //                 ask_price: '7680.5',
+        //                 last_price: '7680.00',
+        //                 last_tick_direction: 'MinusTick',
+        //                 prev_price_24h: '7870.50',
+        //                 price_24h_pcnt: '-0.024204',
+        //                 high_price_24h: '8035.00',
+        //                 low_price_24h: '7671.00',
+        //                 prev_price_1h: '7780.00',
+        //                 price_1h_pcnt: '-0.012853',
+        //                 mark_price: '7683.27',
+        //                 index_price: '7682.74',
+        //                 open_interest: 188829147,
+        //                 open_value: '23670.06',
+        //                 total_turnover: '25744224.90',
+        //                 turnover_24h: '102997.83',
+        //                 total_volume: 225448878806,
+        //                 volume_24h: 809919408,
+        //                 funding_rate: '0.0001',
+        //                 predicted_funding_rate: '0.0001',
+        //                 next_funding_time: '2020-03-12T00:00:00Z',
+        //                 countdown_hour: 7
+        //             }
+        //         ],
+        //         time_now: '1583948195.818255'
+        //     }
+        //
+        console.log (response);
+        process.exit ();
         //
         //     {
         //         jsonrpc: '2.0',
