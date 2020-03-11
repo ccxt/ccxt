@@ -670,7 +670,7 @@ class binance(Exchange):
         }
 
     def fetch_status(self, params={}):
-        response = self.wapiGetSystemStatus()
+        response = self.wapiGetSystemStatus(params)
         status = self.safe_value(response, 'status')
         if status is not None:
             status = 'ok' if (status == 0) else 'maintenance'

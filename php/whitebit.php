@@ -588,7 +588,7 @@ class whitebit extends Exchange {
     }
 
     public function fetch_status ($params = array ()) {
-        $response = $this->webGetV1Healthcheck ();
+        $response = $this->webGetV1Healthcheck ($params);
         $status = $this->safe_integer($response, 'status');
         $formattedStatus = 'ok';
         if ($status === 503) {

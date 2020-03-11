@@ -567,7 +567,7 @@ class whitebit(Exchange):
         ]
 
     def fetch_status(self, params={}):
-        response = self.webGetV1Healthcheck()
+        response = self.webGetV1Healthcheck(params)
         status = self.safe_integer(response, 'status')
         formattedStatus = 'ok'
         if status == 503:
