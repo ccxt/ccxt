@@ -68,7 +68,7 @@ Below is a list of functionality we would like to have implemented and fully **u
 - `fetchTransfer`
 - `fetchTransfers`
 - `fetchLedger`
-- `fetchPositions`
+- `fetchPositions`
 - `closePosition`
 - `closePositions`
 
