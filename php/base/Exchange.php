@@ -1482,6 +1482,8 @@ class Exchange {
             }, array_filter($values, function ($market) {
                 return array_key_exists('quote', $market);
             }));
+            $base_currencies = static::sort_by($base_currencies, 'code');
+            $quote_currencies = static::sort_by($quote_currencies, 'code');
             $this->base_currencies = static::index_by($base_currencies, 'code');
             $this->quote_currencies = static::index_by($quote_currencies, 'code');
             $currencies = array_merge($this->base_currencies, $this->quote_currencies);
