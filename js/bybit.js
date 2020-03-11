@@ -237,6 +237,7 @@ module.exports = class bybit extends Exchange {
         this.options['timeDifference'] = after - serverTime;
         return this.options['timeDifference'];
     }
+
     async fetchTime (params = {}) {
         const response = await this.publicGetTime (params);
         //
@@ -1509,10 +1510,6 @@ module.exports = class bybit extends Exchange {
         };
     }
 
-    nonce () {
-        return this.milliseconds ();
-    }
-
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'];
         let request = path;
@@ -1533,19 +1530,6 @@ module.exports = class bybit extends Exchange {
                 // position, user
                 request += '/' + api + '/' + request;
             }
-            // param_str = "api_key=B2Rou0PLPpGqcU0Vu2&leverage=100&symbol=BTCUSD&timestamp=1542434791747"
-            // # api_key=B2Rou0PLPpGqcU0Vu2&leverage=100&symbol=BTCUSD&timestamp=1542434791747
-            // GET /user/leverage?api_key=B2Rou0PLPpGqcU0Vu2&timestamp=1542434791000&sign=670e3e4aa32b243f2dedf1dafcec2fd17a440e71b05681550416507de591d908 HTTP/1.1
-            // POST /user/leverage/save HTTP/1.1
-            // Host: api-testnet.bybit.com
-            // Content-Type: application/json
-            // {
-            //     "api_key": "B2Rou0PLPpGqcU0Vu2",
-            //     "leverage": 100,
-            //     "symbol": "BTCUSD",
-            //     "timestamp": 1542434791000,
-            //     "sign": "670e3e4aa32b243f2dedf1dafcec2fd17a440e71b05681550416507de591d908"
-            // }
             const timestamp = this.nonce ();
             const query = this.extend (params, {
                 'api_key': this.apiKey,
@@ -1560,22 +1544,8 @@ module.exports = class bybit extends Exchange {
                 }));
                 headers['Content-Type'] = 'application/json';
             } else {
-                request += '?' + auth;
+                request += '?' + auth + '&sign=' + signature;
             }
-            // if (api === 'private') {
-            //     const nonce = this.nonce ().toString ();
-            //     const timestamp = this.milliseconds ().toString ();
-            //     const requestBody = '';
-            //     if (Object.keys (params).length) {
-            //         request += '?' + this.urlencode (params);
-            //     }
-            //     const requestData = method + "\n" + request + "\n" + requestBody + "\n"; // eslint-disable-line quotes
-            //     const auth = timestamp + "\n" + nonce + "\n" + requestData; // eslint-disable-line quotes
-            //     const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
-            //     headers = {
-            //         'Authorization': 'deri-hmac-sha256 id=' + this.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',nonce=' + nonce,
-            //     };
-            // }
         }
         url += request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
