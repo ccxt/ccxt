@@ -69,7 +69,7 @@ Below is a list of functionality we would like to have implemented and fully **u
 - Leverage
 - Derivatives (futures, options)
 - Main account / subaccounts
-- Triggered _"stop"_ orders (stop loss, take profit)
+- Conditional orders (stop loss, take profit)
 - `transfer` between subaccounts and main account
 - `fetchTransfer`
 - `fetchTransfers`
