@@ -1295,7 +1295,7 @@ module.exports = class deribit extends Exchange {
         let method = undefined;
         if (symbol === undefined) {
             const defaultCode = this.safeValue (this.options, 'code', 'BTC');
-            const options = this.safeValue (this.options, 'fetchOpenOrders', {});
+            const options = this.safeValue (this.options, 'fetchClosedOrders', {});
             const code = this.safeValue (options, 'code', defaultCode);
             const currency = this.currency (code);
             request['currency'] = currency['id'];
