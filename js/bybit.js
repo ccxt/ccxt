@@ -226,6 +226,20 @@ module.exports = class bybit extends Exchange {
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
             },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'taker': 0.00075,
+                    'maker': -0.00025,
+                },
+                'funding': {
+                    'tierBased': false,
+                    'percentage': false,
+                    'withdraw': {},
+                    'deposit': {},
+                },
+            },
         });
     }
 
@@ -791,75 +805,77 @@ module.exports = class bybit extends Exchange {
         // createOrder
         //
         //     {
-        //         "time_in_force": "good_til_cancelled",
-        //         "reduce_only": false,
-        //         "profit_loss": 0,
-        //         "price": "market_price",
-        //         "post_only": false,
-        //         "order_type": "market",
-        //         "order_state": "filled",
-        //         "order_id": "ETH-349249",
-        //         "max_show": 40,
-        //         "last_update_timestamp": 1550657341322,
-        //         "label": "market0000234",
-        //         "is_liquidation": false,
-        //         "instrument_name": "ETH-PERPETUAL",
-        //         "filled_amount": 40,
-        //         "direction": "buy",
-        //         "creation_timestamp": 1550657341322,
-        //         "commission": 0.000139,
-        //         "average_price": 143.81,
-        //         "api": true,
-        //         "amount": 40,
-        //         "trades": [], // injected by createOrder
+        //         "user_id": 1,
+        //         "order_id": "335fd977-e5a5-4781-b6d0-c772d5bfb95b",
+        //         "symbol": "BTCUSD",
+        //         "side": "Buy",
+        //         "order_type": "Limit",
+        //         "price": 8800,
+        //         "qty": 1,
+        //         "time_in_force": "GoodTillCancel",
+        //         "order_status": "Created",
+        //         "last_exec_time": 0,
+        //         "last_exec_price": 0,
+        //         "leaves_qty": 1,
+        //         "cum_exec_qty": 0,
+        //         "cum_exec_value": 0,
+        //         "cum_exec_fee": 0,
+        //         "reject_reason": "",
+        //         "order_link_id": "",
+        //         "created_at": "2019-11-30T11:03:43.452Z",
+        //         "updated_at": "2019-11-30T11:03:43.455Z"
         //     }
         //
-        const timestamp = this.safeInteger (order, 'creation_timestamp');
-        const lastUpdate = this.safeInteger (order, 'last_update_timestamp');
+        const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const id = this.safeString (order, 'order_id');
         const price = this.safeFloat (order, 'price');
         const average = this.safeFloat (order, 'average_price');
-        const amount = this.safeFloat (order, 'amount');
-        const filled = this.safeFloat (order, 'filled_amount');
-        let lastTradeTimestamp = undefined;
-        if (filled !== undefined) {
-            if (filled > 0) {
-                lastTradeTimestamp = lastUpdate;
-            }
+        const amount = this.safeFloat (order, 'qty');
+        let filled = this.safeFloat (order, 'cum_exec_qty');
+        let remaining = this.safeFloat (order, 'leaves_qty');
+        const lastTradeTimestamp = this.safeTimestamp (order, 'last_exec_time');
+        let cost = this.safeFloat (order, 'cum_exec_value');
+        if ((filled === undefined) && (amount !== undefined) && (remaining !== undefined)) {
+            filled = amount - remaining;
         }
-        let remaining = undefined;
-        let cost = undefined;
         if (filled !== undefined) {
-            if (amount !== undefined) {
+            if ((remaining === undefined) && (amount !== undefined)) {
                 remaining = amount - filled;
             }
-            if (price !== undefined) {
-                cost = price * filled;
+            if (cost === undefined) {
+                if (price !== undefined) {
+                    cost = price * filled;
+                }
             }
         }
-        const status = this.parseOrderStatus (this.safeString (order, 'order_state'));
-        const marketId = this.safeString (order, 'instrument_name');
+        const status = this.parseOrderStatus (this.safeString (order, 'order_status'));
+        const marketId = this.safeString (order, 'symbol');
         let symbol = undefined;
+        let base = undefined;
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
             symbol = market['symbol'];
+            base = market['base'];
         }
-        const side = this.safeStringLower (order, 'direction');
-        let feeCost = this.safeFloat (order, 'commission');
+        if (market !== undefined) {
+            if (symbol === undefined) {
+                symbol = market['symbol'];
+            }
+            if (base === undefined) {
+                base = market['base'];
+            }
+        }
+        const side = this.safeStringLower (order, 'side');
+        let feeCost = this.safeFloat (order, 'cum_exec_fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             feeCost = Math.abs (feeCost);
             fee = {
                 'cost': feeCost,
-                'currency': 'BTC',
+                'currency': base,
             };
         }
-        const type = this.safeString (order, 'order_type');
-        // injected in createOrder
-        let trades = this.safeValue (order, 'trades');
-        if (trades !== undefined) {
-            trades = this.parseTrades (trades, market);
-        }
+        const type = this.safeStringLower (order, 'order_type');
         return {
             'info': order,
             'id': id,
