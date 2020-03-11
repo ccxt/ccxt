@@ -20,6 +20,7 @@ module.exports = class deribit extends Exchange {
             'has': {
                 'CORS': true,
                 'editOrder': true,
+                'fetchBalance': true,
                 'fetchOrder': true,
                 'fetchOrders': false,
                 'fetchOpenOrders': true,
@@ -35,6 +36,9 @@ module.exports = class deribit extends Exchange {
                 'withdraw': true,
                 'fetchTime': true,
                 'fetchStatus': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
+                'fetchTransactions': false,
             },
             'timeframes': {
                 '1m': '1',
