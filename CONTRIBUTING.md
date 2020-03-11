@@ -57,16 +57,20 @@ If you found a security issue or a critical vulnerability and reporting it in pu
 
 ## Pending Tasks
 
-Below is a list of functionality we would like to have implemented in the library in the first place. Most of these tasks are already in progress, implemented for some exchanges, but not all of them:
+Below is a list of functionality we would like to have implemented and fully **unified** in the library in the first place at this time. Most of these tasks are already in progress, implemented for some exchanges, but not all of them:
 
-- Unified fetchOrder
-- Unified fetchOrders, fetchOpenOrders, fetchClosedOrders
-- Unified fetchMyTrades, fetchOrderTrades
-- Unified fetchDepositAddress, createDepositAddress
-- Unified withdraw
-- Unified fees
-- Unified fetchTransactions, fetchDeposits, fetchWithdrawals
-- Improved proxy support
+– Margin trading
+- Leverage
+- Derivatives (futures, options)
+- Main account / subaccounts
+- Triggered _"stop"_ orders (stop loss, take profit)
+- `transfer` between subaccounts and main account
+- `fetchTransfer`
+- `fetchTransfers`
+- `fetchLedger`
+– `fetchPositions`
+– `closePosition`
+- `closePositions`
 
 If you want to contribute by submitting partial implementations be sure to look up examples of how it's done inside the library (where implemented already) and copy the adopted practices.
 
