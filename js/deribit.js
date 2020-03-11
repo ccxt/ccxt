@@ -33,6 +33,7 @@ module.exports = class deribit extends Exchange {
                 'cancelOrder': true,
                 'cancelAllOrders': true,
                 'withdraw': true,
+                'fetchTime': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -305,6 +306,21 @@ module.exports = class deribit extends Exchange {
                 },
             },
         });
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetGetTime (params);
+        //
+        //     {
+        //         jsonrpc: '2.0',
+        //         result: 1583922446019,
+        //         usIn: 1583922446019955,
+        //         usOut: 1583922446019956,
+        //         usDiff: 1,
+        //         testnet: false
+        //     }
+        //
+        return this.safeInteger (response, 'result');
     }
 
     async fetchMarkets (params = {}) {
