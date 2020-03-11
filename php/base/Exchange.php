@@ -2068,37 +2068,36 @@ class Exchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function convert_trading_view_to_ohlcv($ohlcvs) {
+    public function convert_trading_view_to_ohlcv($ohlcvs, $t = 't', $o = 'o', $h = 'h', $l = 'l', $c = 'c', $v = 'v') {
         $result = array();
-        for ($i = 0; $i < count($ohlcvs['t']); $i++) {
+        for ($i = 0; $i < count($ohlcvs[$t]); $i++) {
             $result[] = array(
-                $ohlcvs['t'][$i] * 1000,
-                $ohlcvs['o'][$i],
-                $ohlcvs['h'][$i],
-                $ohlcvs['l'][$i],
-                $ohlcvs['c'][$i],
-                $ohlcvs['v'][$i],
+                $ohlcvs[$t][$i] * 1000,
+                $ohlcvs[$o][$i],
+                $ohlcvs[$h][$i],
+                $ohlcvs[$l][$i],
+                $ohlcvs[$c][$i],
+                $ohlcvs[$v][$i],
             );
         }
         return $result;
     }
 
-    public function convert_ohlcv_to_trading_view($ohlcvs) {
-        $result = array(
-            't' => array(),
-            'o' => array(),
-            'h' => array(),
-            'l' => array(),
-            'c' => array(),
-            'v' => array(),
-        );
+    public function convert_ohlcv_to_trading_view($ohlcvs, $t = 't', $o = 'o', $h = 'h', $l = 'l', $c = 'c', $v = 'v') {
+        $result = array();
+        $result[$t] = array();
+        $result[$o] = array();
+        $result[$h] = array();
+        $result[$l] = array();
+        $result[$c] = array();
+        $result[$v] = array();
         for ($i = 0; $i < count($ohlcvs); $i++) {
-            $result['t'][] = intval($ohlcvs[$i][0] / 1000);
-            $result['o'][] = $ohlcvs[$i][1];
-            $result['h'][] = $ohlcvs[$i][2];
-            $result['l'][] = $ohlcvs[$i][3];
-            $result['c'][] = $ohlcvs[$i][4];
-            $result['v'][] = $ohlcvs[$i][5];
+            $result[$t][] = intval($ohlcvs[$i][0] / 1000);
+            $result[$o][] = $ohlcvs[$i][1];
+            $result[$h][] = $ohlcvs[$i][2];
+            $result[$l][] = $ohlcvs[$i][3];
+            $result[$c][] = $ohlcvs[$i][4];
+            $result[$v][] = $ohlcvs[$i][5];
         }
         return $result;
     }
