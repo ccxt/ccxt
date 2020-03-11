@@ -225,7 +225,7 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.publicGetGetTime (params);
+        const response = await this.publicGetTime (params);
         //
         //     {
         //         jsonrpc: '2.0',
@@ -262,115 +262,73 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const currenciesResponse = await this.publicGetGetCurrencies (params);
+        const response = await this.publicGetSymbols (params);
         //
         //     {
-        //         jsonrpc: '2.0',
+        //         ret_code: 0,
+        //         ret_msg: 'OK',
+        //         ext_code: '',
+        //         ext_info: '',
         //         result: [
         //             {
-        //                 withdrawal_priorities: [
-        //                     { value: 0.15, name: 'very_low' },
-        //                     { value: 1.5, name: 'very_high' },
-        //                 ],
-        //                 withdrawal_fee: 0.0005,
-        //                 min_withdrawal_fee: 0.0005,
-        //                 min_confirmations: 1,
-        //                 fee_precision: 4,
-        //                 currency_long: 'Bitcoin',
-        //                 currency: 'BTC',
-        //                 coin_type: 'BITCOIN'
-        //             }
+        //                 name: 'BTCUSD',
+        //                 base_currency: 'BTC',
+        //                 quote_currency: 'USD',
+        //                 price_scale: 2,
+        //                 taker_fee: '0.00075',
+        //                 maker_fee: '-0.00025',
+        //                 leverage_filter: { min_leverage: 1, max_leverage: 100, leverage_step: '0.01' },
+        //                 price_filter: { min_price: '0.5', max_price: '999999.5', tick_size: '0.5' },
+        //                 lot_size_filter: { max_trading_qty: 1000000, min_trading_qty: 1, qty_step: 1 }
+        //             },
         //         ],
-        //         usIn: 1583761588590479,
-        //         usOut: 1583761588590544,
-        //         usDiff: 65,
-        //         testnet: false
+        //         time_now: '1583930495.454196'
         //     }
         //
-        const currenciesResult = this.safeValue (currenciesResponse, 'result', []);
+        const markets = this.safeValue (response, 'result', []);
         const result = [];
-        for (let i = 0; i < currenciesResult.length; i++) {
-            const currencyId = this.safeString (currenciesResult[i], 'currency');
-            const request = {
-                'currency': currencyId,
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString (market, 'name');
+            const baseId = this.safeString (market, 'base_currency');
+            const quoteId = this.safeString (market, 'quote_currency');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const lotSizeFilter = this.safeValue (market, 'lot_size_filter', {});
+            const priceFilter = this.safeValue (market, 'price_filter', {});
+            const precision = {
+                'amount': this.safeFloat (lotSizeFilter, 'qty_step'),
+                'price': this.safeFloat (priceFilter, 'tick_size'),
             };
-            const instrumentsResponse = await this.publicGetGetInstruments (this.extend (request, params));
-            //
-            //     {
-            //         jsonrpc: '2.0',
-            //         result: [
-            //             {
-            //                 tick_size: 0.0005,
-            //                 taker_commission: 0.0004,
-            //                 strike: 300,
-            //                 settlement_period: 'week',
-            //                 quote_currency: 'USD',
-            //                 option_type: 'call',
-            //                 min_trade_amount: 1,
-            //                 maker_commission: 0.0004,
-            //                 kind: 'option',
-            //                 is_active: true,
-            //                 instrument_name: 'ETH-13MAR20-300-C',
-            //                 expiration_timestamp: 1584086400000,
-            //                 creation_timestamp: 1582790403000,
-            //                 contract_size: 1,
-            //                 base_currency: 'ETH'
-            //             },
-            //         ],
-            //         usIn: 1583761889500586,
-            //         usOut: 1583761889505066,
-            //         usDiff: 4480,
-            //         testnet: false
-            //     }
-            //
-            const instrumentsResult = this.safeValue (instrumentsResponse, 'result', []);
-            for (let i = 0; i < instrumentsResult.length; i++) {
-                const market = instrumentsResult[i];
-                const id = this.safeString (market, 'instrument_name');
-                const baseId = this.safeString (market, 'base_currency');
-                const quoteId = this.safeString (market, 'quote_currency');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                const type = this.safeString (market, 'kind');
-                const future = (type === 'future');
-                const option = (type === 'option');
-                const active = this.safeValue (market, 'is_active');
-                const minTradeAmount = this.safeFloat (market, 'min_trade_amount');
-                const tickSize = this.safeFloat (market, 'tick_size');
-                const precision = {
-                    'amount': minTradeAmount,
-                    'price': tickSize,
-                };
-                result.push ({
-                    'id': id,
-                    'symbol': id,
-                    'base': base,
-                    'quote': quote,
-                    'active': active,
-                    'precision': precision,
-                    'taker': this.safeFloat (market, 'taker_commission'),
-                    'maker': this.safeFloat (market, 'maker_commission'),
-                    'limits': {
-                        'amount': {
-                            'min': minTradeAmount,
-                            'max': undefined,
-                        },
-                        'price': {
-                            'min': tickSize,
-                            'max': undefined,
-                        },
-                        'cost': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
+            result.push ({
+                'id': id,
+                'symbol': id,
+                'base': base,
+                'quote': quote,
+                'active': undefined,
+                'precision': precision,
+                'taker': this.safeFloat (market, 'taker_fee'),
+                'maker': this.safeFloat (market, 'maker_fee'),
+                'limits': {
+                    'amount': {
+                        'min': this.safeFloat (priceFilter, 'min_trading_qty'),
+                        'max': this.safeFloat (priceFilter, 'max_trading_qty'),
                     },
-                    'type': type,
-                    'spot': false,
-                    'future': future,
-                    'option': option,
-                    'info': market,
-                });
-            }
+                    'price': {
+                        'min': this.safeFloat (priceFilter, 'min_price'),
+                        'max': this.safeFloat (priceFilter, 'max_price'),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'type': 'future',
+                'spot': false,
+                'future': true,
+                'option': false,
+                'info': market,
+            });
         }
         return result;
     }
@@ -1560,27 +1518,35 @@ module.exports = class bybit extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + 'api/' + this.version + '/' + api + '/' + path;
+        let request = path;
+        if (api === 'openapi') {
+            request = '/open-api/' + request;
+        } else if ((api === 'public') || (api === 'private')) {
+            request = '/' + this.version + '/' + api + '/' + request;
+        } else {
+            request += '/' + api + '/' + request;
+        }
         if (api === 'public') {
             if (Object.keys (params).length) {
                 request += '?' + this.urlencode (params);
             }
+        } else {
         }
-        if (api === 'private') {
-            this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
-            const timestamp = this.milliseconds ().toString ();
-            const requestBody = '';
-            if (Object.keys (params).length) {
-                request += '?' + this.urlencode (params);
-            }
-            const requestData = method + "\n" + request + "\n" + requestBody + "\n"; // eslint-disable-line quotes
-            const auth = timestamp + "\n" + nonce + "\n" + requestData; // eslint-disable-line quotes
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
-            headers = {
-                'Authorization': 'deri-hmac-sha256 id=' + this.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',nonce=' + nonce,
-            };
-        }
+        // if (api === 'private') {
+        //     this.checkRequiredCredentials ();
+        //     const nonce = this.nonce ().toString ();
+        //     const timestamp = this.milliseconds ().toString ();
+        //     const requestBody = '';
+        //     if (Object.keys (params).length) {
+        //         request += '?' + this.urlencode (params);
+        //     }
+        //     const requestData = method + "\n" + request + "\n" + requestBody + "\n"; // eslint-disable-line quotes
+        //     const auth = timestamp + "\n" + nonce + "\n" + requestData; // eslint-disable-line quotes
+        //     const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
+        //     headers = {
+        //         'Authorization': 'deri-hmac-sha256 id=' + this.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',nonce=' + nonce,
+        //     };
+        // }
         const url = this.urls['api'] + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
