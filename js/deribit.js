@@ -778,7 +778,7 @@ module.exports = class deribit extends Exchange {
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCost,
-                'currency': feeCurrencyCode,s
+                'currency': feeCurrencyCode,
             };
         }
         return {
@@ -1009,13 +1009,38 @@ module.exports = class deribit extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'orderId': id,
+            'order_id': id,
         };
-        const response = await this.privateGetOrderstate (this.extend (request, params));
+        const response = await this.privateGetGetOrderState (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 4316,
+        //         "result": {
+        //             "time_in_force": "good_til_cancelled",
+        //             "reduce_only": false,
+        //             "profit_loss": 0.051134,
+        //             "price": 118.94,
+        //             "post_only": false,
+        //             "order_type": "limit",
+        //             "order_state": "filled",
+        //             "order_id": "ETH-331562",
+        //             "max_show": 37,
+        //             "last_update_timestamp": 1550219810944,
+        //             "label": "",
+        //             "is_liquidation": false,
+        //             "instrument_name": "ETH-PERPETUAL",
+        //             "filled_amount": 37,
+        //             "direction": "sell",
+        //             "creation_timestamp": 1550219749176,
+        //             "commission": 0.000031,
+        //             "average_price": 118.94,
+        //             "api": false,
+        //             "amount": 37
+        //         }
+        //     }
+        //
         const result = this.safeValue (response, 'result');
-        if (result === undefined) {
-            throw new OrderNotFound (this.id + ' fetchOrder() ' + this.json (response));
-        }
         return this.parseOrder (result);
     }
 
