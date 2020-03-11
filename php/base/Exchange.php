@@ -2068,11 +2068,11 @@ class Exchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function convert_trading_view_to_ohlcv($ohlcvs, $t = 't', $o = 'o', $h = 'h', $l = 'l', $c = 'c', $v = 'v') {
+    public function convert_trading_view_to_ohlcv($ohlcvs, $t = 't', $o = 'o', $h = 'h', $l = 'l', $c = 'c', $v = 'v', $ms = false) {
         $result = array();
         for ($i = 0; $i < count($ohlcvs[$t]); $i++) {
             $result[] = array(
-                $ohlcvs[$t][$i] * 1000,
+                $ms ? $ohlcvs[$t][$i] : ($ohlcvs[$t][$i] * 1000),
                 $ohlcvs[$o][$i],
                 $ohlcvs[$h][$i],
                 $ohlcvs[$l][$i],
@@ -2083,7 +2083,7 @@ class Exchange {
         return $result;
     }
 
-    public function convert_ohlcv_to_trading_view($ohlcvs, $t = 't', $o = 'o', $h = 'h', $l = 'l', $c = 'c', $v = 'v') {
+    public function convert_ohlcv_to_trading_view($ohlcvs, $t = 't', $o = 'o', $h = 'h', $l = 'l', $c = 'c', $v = 'v', $ms = false) {
         $result = array();
         $result[$t] = array();
         $result[$o] = array();
@@ -2092,7 +2092,7 @@ class Exchange {
         $result[$c] = array();
         $result[$v] = array();
         for ($i = 0; $i < count($ohlcvs); $i++) {
-            $result[$t][] = intval($ohlcvs[$i][0] / 1000);
+            $result[$t][] = $ms ? $ohlcvs[$i][0] : intval($ohlcvs[$i][0] / 1000);
             $result[$o][] = $ohlcvs[$i][1];
             $result[$h][] = $ohlcvs[$i][2];
             $result[$l][] = $ohlcvs[$i][3];
