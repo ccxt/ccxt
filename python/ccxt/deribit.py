@@ -47,6 +47,7 @@ class deribit(Exchange):
                 'cancelOrder': True,
                 'cancelAllOrders': True,
                 'withdraw': True,
+                'fetchTime': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -319,6 +320,20 @@ class deribit(Exchange):
                 },
             },
         })
+
+    def fetch_time(self, params={}):
+        response = self.publicGetGetTime(params)
+        #
+        #     {
+        #         jsonrpc: '2.0',
+        #         result: 1583922446019,
+        #         usIn: 1583922446019955,
+        #         usOut: 1583922446019956,
+        #         usDiff: 1,
+        #         testnet: False
+        #     }
+        #
+        return self.safe_integer(response, 'result')
 
     def fetch_markets(self, params={}):
         currenciesResponse = self.publicGetGetCurrencies(params)

@@ -35,6 +35,7 @@ class deribit extends Exchange {
                 'cancelOrder' => true,
                 'cancelAllOrders' => true,
                 'withdraw' => true,
+                'fetchTime' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -307,6 +308,21 @@ class deribit extends Exchange {
                 ),
             ),
         ));
+    }
+
+    public function fetch_time ($params = array ()) {
+        $response = $this->publicGetGetTime ($params);
+        //
+        //     {
+        //         jsonrpc => '2.0',
+        //         result => 1583922446019,
+        //         usIn => 1583922446019955,
+        //         usOut => 1583922446019956,
+        //         usDiff => 1,
+        //         testnet => false
+        //     }
+        //
+        return $this->safe_integer($response, 'result');
     }
 
     public function fetch_markets ($params = array ()) {
