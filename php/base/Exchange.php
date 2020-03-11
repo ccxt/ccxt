@@ -61,6 +61,7 @@ class Exchange {
         'acx',
         'adara',
         'anxpro',
+        'ataix',
         'bcex',
         'bequant',
         'bibox',
