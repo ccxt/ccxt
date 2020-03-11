@@ -720,6 +720,55 @@ module.exports = class deribit extends Exchange {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_name': market['id'],
+            'resolution': this.timeframes[timeframe],
+        };
+        const duration = this.parseTimeframe (timeframe);
+        const now = this.milliseconds ();
+        if (since === undefined) {
+            if (limit === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a since argument or a limit argument');
+            } else {
+                request['start_timestamp'] = now - (limit - 1) * duration * 1000;
+                request['end_timestamp'] = now;
+            }
+        } else {
+            request['start_timestamp'] = since;
+            if (limit === undefined) {
+                request['end_timestamp'] = now;
+            } else {
+                request['end_timestamp'] = this.sum (since, limit * duration * 1000);
+            }
+        }
+        const response = await this.publicGetGetTradingviewChartData (this.extend (request, params));
+        //
+        //     {
+        //         jsonrpc: '2.0',
+        //         result: {
+        //             volume: [ 3.6680847969999992, 22.682721123, 3.011587939, 0 ],
+        //             ticks: [ 1583916960000, 1583917020000, 1583917080000, 1583917140000 ],
+        //             status: 'ok',
+        //             open: [ 7834, 7839, 7833.5, 7833 ],
+        //             low: [ 7834, 7833.5, 7832.5, 7833 ],
+        //             high: [ 7839.5, 7839, 7833.5, 7833 ],
+        //             cost: [ 28740, 177740, 23590, 0 ],
+        //             close: [ 7839.5, 7833.5, 7833, 7833 ]
+        //         },
+        //         usIn: 1583917166709801,
+        //         usOut: 1583917166710175,
+        //         usDiff: 374,
+        //         testnet: false
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const ohlcvs = this.convertTradingViewToOHLCV (result, 'ticks', 'open', 'high', 'low', 'close', 'volume', true);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+    }
+
     parseTrade (trade, market = undefined) {
         //
         // fetchTrades (public)
