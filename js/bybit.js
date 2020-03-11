@@ -20,6 +20,7 @@ module.exports = class bybit extends Exchange {
             'has': {
                 'CORS': true,
                 'fetchMarkets': true,
+                'fetchBalance': true,
                 // 'editOrder': true,
                 // 'fetchOrder': true,
                 // 'fetchOrders': false,
@@ -338,48 +339,33 @@ module.exports = class bybit extends Exchange {
             'coin': currency['id'],
         };
         const response = await this.privateGetWalletBalance (this.extend (request, params));
-        console.log (response);
-        process.exit ();
         //
         //     {
-        //         jsonrpc: '2.0',
+        //         ret_code: 0,
+        //         ret_msg: 'OK',
+        //         ext_code: '',
+        //         ext_info: '',
         //         result: {
-        //             total_pl: 0,
-        //             session_upl: 0,
-        //             session_rpl: 0,
-        //             session_funding: 0,
-        //             portfolio_margining_enabled: false,
-        //             options_vega: 0,
-        //             options_theta: 0,
-        //             options_session_upl: 0,
-        //             options_session_rpl: 0,
-        //             options_pl: 0,
-        //             options_gamma: 0,
-        //             options_delta: 0,
-        //             margin_balance: 0.00062359,
-        //             maintenance_margin: 0,
-        //             limits: {
-        //                 non_matching_engine_burst: 300,
-        //                 non_matching_engine: 200,
-        //                 matching_engine_burst: 20,
-        //                 matching_engine: 2
-        //             },
-        //             initial_margin: 0,
-        //             futures_session_upl: 0,
-        //             futures_session_rpl: 0,
-        //             futures_pl: 0,
-        //             equity: 0.00062359,
-        //             deposit_address: '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw',
-        //             delta_total: 0,
-        //             currency: 'BTC',
-        //             balance: 0.00062359,
-        //             available_withdrawal_funds: 0.00062359,
-        //             available_funds: 0.00062359
+        //             BTC: {
+        //                 equity: 0,
+        //                 available_balance: 0,
+        //                 used_margin: 0,
+        //                 order_margin: 0,
+        //                 position_margin: 0,
+        //                 occ_closing_fee: 0,
+        //                 occ_funding_fee: 0,
+        //                 wallet_balance: 0,
+        //                 realised_pnl: 0,
+        //                 unrealised_pnl: 0,
+        //                 cum_realised_pnl: 0,
+        //                 given_cash: 0,
+        //                 service_cash: 0
+        //             }
         //         },
-        //         usIn: 1583775838115975,
-        //         usOut: 1583775838116520,
-        //         usDiff: 545,
-        //         testnet: false
+        //         time_now: '1583937810.370020',
+        //         rate_limit_status: 119,
+        //         rate_limit_reset_ms: 1583937810367,
+        //         rate_limit: 120
         //     }
         //
         const result = {
@@ -387,8 +373,8 @@ module.exports = class bybit extends Exchange {
         };
         const balance = this.safeValue (response, 'result', {});
         const account = this.account ();
-        account['free'] = this.safeFloat (balance, 'availableFunds');
-        account['used'] = this.safeFloat (balance, 'maintenanceMargin');
+        account['free'] = this.safeFloat (balance, 'available_balance');
+        account['used'] = this.safeFloat (balance, 'used_margin');
         account['total'] = this.safeFloat (balance, 'equity');
         result[code] = account;
         return this.parseBalance (result);
