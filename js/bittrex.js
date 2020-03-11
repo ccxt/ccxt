@@ -685,10 +685,10 @@ module.exports = class bittrex extends ccxt.bittrex {
         //         x: 1558572081843    // created timestamp
         //     }
         //
-        const previous = this.safeFloat (ticker, 'PD');
-        if (previous === undefined) {
-            return this.parseTicker (ticker, market);
+        if (!('PD' in ticker)) {
+            return super.parseTicker (ticker, market);
         }
+        const previous = this.safeFloat (ticker, 'PD');
         const timestamp = this.safeInteger (ticker, 'T');
         let symbol = undefined;
         const marketId = this.safeString (ticker, 'M');
