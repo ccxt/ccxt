@@ -36,6 +36,7 @@ class deribit extends Exchange {
                 'cancelAllOrders' => true,
                 'withdraw' => true,
                 'fetchTime' => true,
+                'fetchStatus' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -323,6 +324,28 @@ class deribit extends Exchange {
         //     }
         //
         return $this->safe_integer($response, 'result');
+    }
+
+    public function fetch_status ($params = array ()) {
+        $request = array(
+            // 'expected_result' => false, // true will trigger an error for testing purposes
+        );
+        $this->publicGetTest (array_merge($request, $params));
+        //
+        //     {
+        //         jsonrpc => '2.0',
+        //         result => array( version => '1.2.26' ),
+        //         usIn => 1583922623964485,
+        //         usOut => 1583922623964487,
+        //         usDiff => 2,
+        //         testnet => false
+        //     }
+        //
+        $this->status = array_merge($this->status, array(
+            'status' => 'ok',
+            'updated' => $this->milliseconds (),
+        ));
+        return $this->status;
     }
 
     public function fetch_markets ($params = array ()) {
