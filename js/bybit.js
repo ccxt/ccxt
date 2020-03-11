@@ -948,7 +948,7 @@ module.exports = class bybit extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for a ' + type + ' order');
             }
         }
-        const response = await this.postPrivateOrderCreate (this.extend (request, params));
+        const response = await this.privatePostOrderCreate (this.extend (request, params));
         console.log (response);
         process.exit ();
         //
@@ -1409,7 +1409,9 @@ module.exports = class bybit extends Exchange {
                 body = this.json (this.extend (query, {
                     'sign': signature,
                 }));
-                headers['Content-Type'] = 'application/json';
+                headers = {
+                    'Content-Type': 'application/json'
+                };
             } else {
                 request += '?' + auth + '&sign=' + signature;
             }
