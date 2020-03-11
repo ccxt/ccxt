@@ -1124,18 +1124,31 @@ module.exports = class deribit extends Exchange {
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder requires an amount argument');
+        }
+        if (price === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder requires a price argument');
+        }
         await this.loadMarkets ();
         const request = {
-            'orderId': id,
+            'order_id': id,
+            // for perpetual and futures the amount is in USD
+            // for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
+            'amount': this.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price), // required
+            // 'post_only': false, // if the new price would cause the order to be filled immediately (as taker), the price will be changed to be just below the spread.
+            // 'reject_post_only': false, // if true the order is put to order book unmodified or request is rejected
+            // 'reduce_only': false, // if true, the order is intended to only reduce a current position
+            // 'stop_price': false, // stop price, required for stop_limit orders
+            // 'advanced': 'usd', // 'implv', advanced option order type, options only
         };
-        if (amount !== undefined) {
-            request['quantity'] = amount;
-        }
-        if (price !== undefined) {
-            request['price'] = price;
-        }
-        const response = await this.privatePostEdit (this.extend (request, params));
-        return this.parseOrder (response['result']['order']);
+        const response = await this.privateGetEdit (this.extend (request, params));
+        const result = this.safeValue (response, 'result', {});
+        const order = this.safeValue (result, 'order');
+        const trades = this.safeValue (result, 'trades', []);
+        order['trades'] = trades;
+        return this.parseOrder (order);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
