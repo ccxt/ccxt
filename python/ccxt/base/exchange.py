@@ -1499,11 +1499,11 @@ class Exchange(object):
         result = self.convert_trading_view_to_ohlcv(ohlcvs)
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
-    def convert_trading_view_to_ohlcv(self, ohlcvs, t='t', o='o', h='h', l='l', c='c', v='v'):
+    def convert_trading_view_to_ohlcv(self, ohlcvs, t='t', o='o', h='h', l='l', c='c', v='v', ms=False):
         result = []
         for i in range(0, len(ohlcvs[t])):
             result.append([
-                ohlcvs[t][i] * 1000,
+                ohlcvs[t][i] if ms else (ohlcvs[t][i] * 1000),
                 ohlcvs[o][i],
                 ohlcvs[h][i],
                 ohlcvs[l][i],
@@ -1512,7 +1512,7 @@ class Exchange(object):
             ])
         return result
 
-    def convert_ohlcv_to_trading_view(self, ohlcvs, t='t', o='o', h='h', l='l', c='c', v='v'):
+    def convert_ohlcv_to_trading_view(self, ohlcvs, t='t', o='o', h='h', l='l', c='c', v='v', ms=False):
         result = {}
         result[t] = []
         result[o] = []
@@ -1521,7 +1521,7 @@ class Exchange(object):
         result[c] = []
         result[v] = []
         for i in range(0, len(ohlcvs)):
-            result[t].append(int(ohlcvs[i][0] / 1000))
+            result[t].append(ohlcvs[i][0] if ms else int(ohlcvs[i][0] / 1000))
             result[o].append(ohlcvs[i][1])
             result[h].append(ohlcvs[i][2])
             result[l].append(ohlcvs[i][3])
