@@ -318,9 +318,11 @@ module.exports = class bybit extends Exchange {
         const code = this.safeValue (options, 'code', defaultCode);
         const currency = this.currency (code);
         const request = {
-            'currency': currency['id'],
+            'coin': currency['id'],
         };
-        const response = await this.privateGetGetAccountSummary (this.extend (request, params));
+        const response = await this.privateGetWalletBalance (this.extend (request, params));
+        console.log (response);
+        process.exit ();
         //
         //     {
         //         jsonrpc: '2.0',
@@ -1497,34 +1499,37 @@ module.exports = class bybit extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = path;
+        // open api
         if (api === 'openapi') {
             request = '/open-api/' + request;
+        // public and private api v2
         } else if ((api === 'public') || (api === 'private')) {
             request = '/' + this.version + '/' + api + '/' + request;
+            if (api === 'public') {
+                if (Object.keys (params).length) {
+                    request += '?' + this.urlencode (params);
+                }
+            } else {
+                // if (api === 'private') {
+                //     this.checkRequiredCredentials ();
+                //     const nonce = this.nonce ().toString ();
+                //     const timestamp = this.milliseconds ().toString ();
+                //     const requestBody = '';
+                //     if (Object.keys (params).length) {
+                //         request += '?' + this.urlencode (params);
+                //     }
+                //     const requestData = method + "\n" + request + "\n" + requestBody + "\n"; // eslint-disable-line quotes
+                //     const auth = timestamp + "\n" + nonce + "\n" + requestData; // eslint-disable-line quotes
+                //     const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
+                //     headers = {
+                //         'Authorization': 'deri-hmac-sha256 id=' + this.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',nonce=' + nonce,
+                //     };
+                // }
+            }
+        // position, user
         } else {
             request += '/' + api + '/' + request;
         }
-        if (api === 'public') {
-            if (Object.keys (params).length) {
-                request += '?' + this.urlencode (params);
-            }
-        } else {
-        }
-        // if (api === 'private') {
-        //     this.checkRequiredCredentials ();
-        //     const nonce = this.nonce ().toString ();
-        //     const timestamp = this.milliseconds ().toString ();
-        //     const requestBody = '';
-        //     if (Object.keys (params).length) {
-        //         request += '?' + this.urlencode (params);
-        //     }
-        //     const requestData = method + "\n" + request + "\n" + requestBody + "\n"; // eslint-disable-line quotes
-        //     const auth = timestamp + "\n" + nonce + "\n" + requestData; // eslint-disable-line quotes
-        //     const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
-        //     headers = {
-        //         'Authorization': 'deri-hmac-sha256 id=' + this.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',nonce=' + nonce,
-        //     };
-        // }
         const url = this.urls['api'] + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -1535,21 +1540,18 @@ module.exports = class bybit extends Exchange {
         }
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         error: {
-        //             message: 'Invalid params',
-        //             data: { reason: 'invalid currency', param: 'currency' },
-        //             code: -32602
-        //         },
-        //         testnet: false,
-        //         usIn: 1583763842150374,
-        //         usOut: 1583763842150410,
-        //         usDiff: 36
+        //         ret_code: 10001,
+        //         ret_msg: 'ReadMapCB: expect { or n, but found \u0000, error ' +
+        //         'found in #0 byte of ...||..., bigger context ' +
+        //         '...||...',
+        //         ext_code: '',
+        //         ext_info: '',
+        //         result: null,
+        //         time_now: '1583934106.590436'
         //     }
         //
-        const error = this.safeValue (response, 'error');
-        if (error !== undefined) {
-            const errorCode = this.safeString (error, 'code');
+        const errorCode = this.safeValue (response, 'ret_code');
+        if (errorCode !== 0) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
             throw new ExchangeError (feedback); // unknown message
