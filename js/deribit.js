@@ -32,6 +32,7 @@ module.exports = class deribit extends Exchange {
                 'createOrder': true,
                 'cancelOrder': true,
                 'cancelAllOrders': true,
+                'withdraw': true,
             },
             'urls': {
                 'test': 'https://test.deribit.com',
@@ -39,7 +40,7 @@ module.exports = class deribit extends Exchange {
                 'api': 'https://www.deribit.com',
                 'www': 'https://www.deribit.com',
                 'doc': [
-                    'https://docs.deribit.com',
+                    'https://docs.deribit.com/v2',
                     'https://github.com/deribit',
                 ],
                 'fees': 'https://www.deribit.com/pages/information/fees',
