@@ -41,6 +41,7 @@ class deribit(Exchange):
                 'fetchClosedOrders': True,
                 'fetchMyTrades': True,
                 'fetchTickers': True,
+                'fetchOHLCV': True,
                 'fetchDepositAddress': True,
                 'createDepositAddress': True,
                 'fetchOrderTrades': True,

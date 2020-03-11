@@ -29,6 +29,7 @@ class deribit extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchMyTrades' => true,
                 'fetchTickers' => true,
+                'fetchOHLCV' => true,
                 'fetchDepositAddress' => true,
                 'createDepositAddress' => true,
                 'fetchOrderTrades' => true,
