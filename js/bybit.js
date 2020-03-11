@@ -27,7 +27,8 @@ module.exports = class bybit extends Exchange {
                 // 'fetchOpenOrders': true,
                 // 'fetchClosedOrders': true,
                 // 'fetchMyTrades': true,
-                // 'fetchTickers': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 // 'fetchOrderTrades': true,
                 // 'createOrder': true,
                 // 'cancelOrder': true,
@@ -510,77 +511,47 @@ module.exports = class bybit extends Exchange {
         //         time_now: '1583948195.818255'
         //     }
         //
-        console.log (response);
-        process.exit ();
-        //
-        //     {
-        //         jsonrpc: '2.0',
-        //         result: {
-        //             timestamp: 1583778859480,
-        //             stats: { volume: 60627.57263769, low: 7631.5, high: 8311.5 },
-        //             state: 'open',
-        //             settlement_price: 7903.21,
-        //             open_interest: 111543850,
-        //             min_price: 7634,
-        //             max_price: 7866.51,
-        //             mark_price: 7750.02,
-        //             last_price: 7750.5,
-        //             instrument_name: 'BTC-PERPETUAL',
-        //             index_price: 7748.01,
-        //             funding_8h: 0.0000026,
-        //             current_funding: 0,
-        //             best_bid_price: 7750,
-        //             best_bid_amount: 19470,
-        //             best_ask_price: 7750.5,
-        //             best_ask_amount: 343280
-        //         },
-        //         usIn: 1583778859483941,
-        //         usOut: 1583778859484075,
-        //         usDiff: 134,
-        //         testnet: false
-        //     }
-        //
-        return this.parseTicker (response['result'], market);
+        const result = this.safeValue (response, 'result');
+        return this.parseTicker (result, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const defaultCode = this.safeValue (this.options, 'code', 'BTC');
-        const options = this.safeValue (this.options, 'fetchTickers', {});
-        const code = this.safeValue (options, 'code', defaultCode);
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const response = await this.publicGetGetBookSummaryByCurrency (this.extend (request, params));
+        const response = await this.publicGetTickers (params);
         //
         //     {
-        //         jsonrpc: '2.0',
+        //         ret_code: 0,
+        //         ret_msg: 'OK',
+        //         ext_code: '',
+        //         ext_info: '',
         //         result: [
         //             {
-        //                 volume: 124.1,
-        //                 underlying_price: 7856.445926872601,
-        //                 underlying_index: 'SYN.BTC-10MAR20',
-        //                 quote_currency: 'USD',
-        //                 open_interest: 121.8,
-        //                 mid_price: 0.01975,
-        //                 mark_price: 0.01984559,
-        //                 low: 0.0095,
-        //                 last: 0.0205,
-        //                 interest_rate: 0,
-        //                 instrument_name: 'BTC-10MAR20-7750-C',
-        //                 high: 0.0295,
-        //                 estimated_delivery_price: 7856.29,
-        //                 creation_timestamp: 1583783678366,
-        //                 bid_price: 0.0185,
-        //                 base_currency: 'BTC',
-        //                 ask_price: 0.021
-        //             },
+        //                 symbol: 'BTCUSD',
+        //                 bid_price: '7680',
+        //                 ask_price: '7680.5',
+        //                 last_price: '7680.00',
+        //                 last_tick_direction: 'MinusTick',
+        //                 prev_price_24h: '7870.50',
+        //                 price_24h_pcnt: '-0.024204',
+        //                 high_price_24h: '8035.00',
+        //                 low_price_24h: '7671.00',
+        //                 prev_price_1h: '7780.00',
+        //                 price_1h_pcnt: '-0.012853',
+        //                 mark_price: '7683.27',
+        //                 index_price: '7682.74',
+        //                 open_interest: 188829147,
+        //                 open_value: '23670.06',
+        //                 total_turnover: '25744224.90',
+        //                 turnover_24h: '102997.83',
+        //                 total_volume: 225448878806,
+        //                 volume_24h: 809919408,
+        //                 funding_rate: '0.0001',
+        //                 predicted_funding_rate: '0.0001',
+        //                 next_funding_time: '2020-03-12T00:00:00Z',
+        //                 countdown_hour: 7
+        //             }
         //         ],
-        //         usIn: 1583783678361966,
-        //         usOut: 1583783678372069,
-        //         usDiff: 10103,
-        //         testnet: false
+        //         time_now: '1583948195.818255'
         //     }
         //
         const result = this.safeValue (response, 'result', []);
