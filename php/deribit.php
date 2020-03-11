@@ -18,7 +18,7 @@ class deribit extends Exchange {
             'countries' => array( 'NL' ), // Netherlands
             'version' => 'v2',
             'userAgent' => null,
-            'rateLimit' => 2000,
+            'rateLimit' => 500,
             'has' => array(
                 'CORS' => true,
                 'editOrder' => true,

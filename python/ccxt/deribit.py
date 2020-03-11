@@ -30,7 +30,7 @@ class deribit(Exchange):
             'countries': ['NL'],  # Netherlands
             'version': 'v2',
             'userAgent': None,
-            'rateLimit': 2000,
+            'rateLimit': 500,
             'has': {
                 'CORS': True,
                 'editOrder': True,
