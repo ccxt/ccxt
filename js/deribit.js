@@ -1075,9 +1075,19 @@ module.exports = class deribit extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'order_state'));
         const marketId = this.safeString (order, 'instrument_name');
         let symbol = undefined;
+        let base = undefined;
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
             symbol = market['symbol'];
+            base = market['base']
+        }
+        if (market !== undefined) {
+            if (symbol === undefined) {
+                symbol = market['symbol'];
+            }
+            if (base === undefined) {
+                base = market['base'];
+            }
         }
         const side = this.safeStringLower (order, 'direction');
         let feeCost = this.safeFloat (order, 'commission');
@@ -1086,7 +1096,7 @@ module.exports = class deribit extends Exchange {
             feeCost = Math.abs (feeCost);
             fee = {
                 'cost': feeCost,
-                'currency': 'BTC',
+                'currency': base,
             };
         }
         const type = this.safeString (order, 'order_type');
