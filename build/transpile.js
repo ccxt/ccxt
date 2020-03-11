@@ -60,6 +60,7 @@ class Transpiler {
             [ /\.parseTrades\s/g, '.parse_trades'],
             [ /\.parseTrade\s/g, '.parse_trade'],
             [ /\.parseTradingViewOHLCV\s/g, '.parse_trading_view_ohlcv'],
+            [ /\.convertTradingViewToOHLCV\s/g, '.convert_trading_view_to_ohlcv'],
             [ /\.parseTransaction\s/g, '.parse_transaction'],
             [ /\.parseTransactions\s/g, '.parse_transactions'],
             [ /\.parseOrderBook\s/g, '.parse_order_book'],
