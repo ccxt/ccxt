@@ -71,7 +71,6 @@ from ccxt._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.acx import acx                                    # noqa: F401
 from ccxt.adara import adara                                # noqa: F401
 from ccxt.anxpro import anxpro                              # noqa: F401
-from ccxt.ataix import ataix                                # noqa: F401
 from ccxt.bcex import bcex                                  # noqa: F401
 from ccxt.bequant import bequant                            # noqa: F401
 from ccxt.bibox import bibox                                # noqa: F401
@@ -197,7 +196,6 @@ exchanges = [
     'acx',
     'adara',
     'anxpro',
-    'ataix',
     'bcex',
     'bequant',
     'bibox',
