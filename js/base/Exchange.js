@@ -734,11 +734,11 @@ module.exports = class Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit)
     }
 
-    convertTradingViewToOHLCV (ohlcvs, t = 't', o = 'o', h = 'h', l = 'l', c = 'c', v = 'v') {
+    convertTradingViewToOHLCV (ohlcvs, t = 't', o = 'o', h = 'h', l = 'l', c = 'c', v = 'v', ms = false) {
         const result = [];
         for (let i = 0; i < ohlcvs[t].length; i++) {
             result.push ([
-                ohlcvs[t][i] * 1000,
+                ms ? ohlcvs[t][i] : (ohlcvs[t][i] * 1000),
                 ohlcvs[o][i],
                 ohlcvs[h][i],
                 ohlcvs[l][i],
@@ -749,7 +749,7 @@ module.exports = class Exchange {
         return result
     }
 
-    convertOHLCVToTradingView (ohlcvs, t = 't', o = 'o', h = 'h', l = 'l', c = 'c', v = 'v') {
+    convertOHLCVToTradingView (ohlcvs, t = 't', o = 'o', h = 'h', l = 'l', c = 'c', v = 'v', ms = false) {
         const result = {}
         result[t] = []
         result[o] = []
@@ -758,7 +758,7 @@ module.exports = class Exchange {
         result[c] = []
         result[v] = []
         for (let i = 0; i < ohlcvs.length; i++) {
-            result[t].push (parseInt (ohlcvs[i][0] / 1000))
+            result[t].push (ms ? ohlcvs[i][0] : parseInt (ohlcvs[i][0] / 1000))
             result[o].push (ohlcvs[i][1])
             result[h].push (ohlcvs[i][2])
             result[l].push (ohlcvs[i][3])
