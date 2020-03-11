@@ -22,6 +22,7 @@ class deribit extends Exchange {
             'has' => array(
                 'CORS' => true,
                 'editOrder' => true,
+                'fetchBalance' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => false,
                 'fetchOpenOrders' => true,
@@ -37,6 +38,9 @@ class deribit extends Exchange {
                 'withdraw' => true,
                 'fetchTime' => true,
                 'fetchStatus' => true,
+                'fetchDeposits' => true,
+                'fetchWithdrawals' => true,
+                'fetchTransactions' => false,
             ),
             'timeframes' => array(
                 '1m' => '1',
