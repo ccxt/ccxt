@@ -37,18 +37,20 @@ module.exports = class bybit extends Exchange {
                 'fetchTime': true,
             },
             'timeframes': {
-                // '1m': '1',
-                // '3m': '3',
-                // '5m': '5',
-                // '10m': '10',
-                // '15m': '15',
-                // '30m': '30',
-                // '1h': '60',
-                // '2h': '120',
-                // '3h': '180',
-                // '6h': '360',
-                // '12h': '720',
-                // '1d': '1D',
+                '1m': '1',
+                '3m': '3',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '2h': '120',
+                '3h': '180',
+                '6h': '360',
+                '12h': '720',
+                '1d': 'D',
+                '1w': 'W',
+                '1M': 'M',
+                '1y': 'Y',
             },
             'urls': {
                 'test': 'https://api-testnet.bybit.com',
@@ -564,6 +566,12 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        // Request Parameters
+        // parameter	required	type	comments
+        // symbol	true	string	Contract type
+        // interval	true	string	Data refresh interval. Enum : 1 3 5 15 30 60 120 240 360 720 "D" "M" "W" "Y"
+        // from	true	integer	From timestamp in seconds
+        // limit	false	integer	Limit for data size per page, max size is 200. Default as showing 200 pieces of data per page
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
