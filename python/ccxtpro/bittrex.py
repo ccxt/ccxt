@@ -640,9 +640,9 @@ class bittrex(Exchange, ccxt.bittrex):
         #         x: 1558572081843    # created timestamp
         #     }
         #
+        if not ('PD' in ticker):
+            return super(bittrex, self).parse_ticker(ticker, market)
         previous = self.safe_float(ticker, 'PD')
-        if previous is None:
-            return self.parse_ticker(ticker, market)
         timestamp = self.safe_integer(ticker, 'T')
         symbol = None
         marketId = self.safe_string(ticker, 'M')

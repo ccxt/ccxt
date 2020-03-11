@@ -689,10 +689,10 @@ class bittrex extends \ccxt\bittrex {
         //         x => 1558572081843    // created $timestamp
         //     }
         //
-        $previous = $this->safe_float($ticker, 'PD');
-        if ($previous === null) {
-            return $this->parse_ticker($ticker, $market);
+        if (!(is_array($ticker) && array_key_exists('PD', $ticker))) {
+            return parent::parse_ticker($ticker, $market);
         }
+        $previous = $this->safe_float($ticker, 'PD');
         $timestamp = $this->safe_integer($ticker, 'T');
         $symbol = null;
         $marketId = $this->safe_string($ticker, 'M');
