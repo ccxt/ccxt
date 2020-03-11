@@ -97,6 +97,7 @@ class okex3 extends Exchange {
                         'orders/{client_oid}',
                         'fills',
                         'algo',
+                        'trade_fee',
                         // public
                         'instruments',
                         'instruments/{instrument_id}/book',
@@ -154,6 +155,7 @@ class okex3 extends Exchange {
                         'orders/{instrument_id}/{order_id}',
                         'orders/{instrument_id}/{client_oid}',
                         'fills',
+                        'trade_fee',
                         // public
                         'instruments',
                         'instruments/{instrument_id}/book',
@@ -198,6 +200,7 @@ class okex3 extends Exchange {
                         'orders/{instrument_id}/{order_id}',
                         'orders/{instrument_id}/{client_oid}',
                         'fills',
+                        'trade_fee',
                         // public
                         'instruments',
                         'instruments/{instrument_id}/depth',
