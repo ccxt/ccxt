@@ -48,6 +48,7 @@ class deribit(Exchange):
                 'cancelAllOrders': True,
                 'withdraw': True,
                 'fetchTime': True,
+                'fetchStatus': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -334,6 +335,27 @@ class deribit(Exchange):
         #     }
         #
         return self.safe_integer(response, 'result')
+
+    async def fetch_status(self, params={}):
+        request = {
+            # 'expected_result': False,  # True will trigger an error for testing purposes
+        }
+        await self.publicGetTest(self.extend(request, params))
+        #
+        #     {
+        #         jsonrpc: '2.0',
+        #         result: {version: '1.2.26'},
+        #         usIn: 1583922623964485,
+        #         usOut: 1583922623964487,
+        #         usDiff: 2,
+        #         testnet: False
+        #     }
+        #
+        self.status = self.extend(self.status, {
+            'status': 'ok',
+            'updated': self.milliseconds(),
+        })
+        return self.status
 
     async def fetch_markets(self, params={}):
         currenciesResponse = await self.publicGetGetCurrencies(params)
