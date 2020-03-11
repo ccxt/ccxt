@@ -1516,6 +1516,27 @@ module.exports = class deribit extends Exchange {
         };
     }
 
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'address': address, // must be in the address book
+            'amount': amount,
+            // 'priority': 'high', // low, mid, high, very_high, extreme_high, insane
+            // 'tfa': '123456', // if enabled
+        };
+        if (this.twofa !== undefined) {
+            request['tfa'] = this.oath ();
+        }
+        const response = await this.privateGetWithdraw (this.extend (request, params));
+        return {
+            'info': response,
+            'id': this.safeString (response, 'id'),
+        };
+    }
+
     nonce () {
         return this.milliseconds ();
     }
