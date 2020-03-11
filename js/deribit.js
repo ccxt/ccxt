@@ -1225,16 +1225,25 @@ module.exports = class deribit extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a `symbol` argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'instrument': market['id'],
-        };
-        const response = await this.privateGetOrderhistory (this.extend (request, params));
-        return this.parseOrders (response['result'], market, since, limit);
+        const request = {};
+        let market = undefined;
+        let method = undefined;
+        if (symbol === undefined) {
+            const defaultCode = this.safeValue (this.options, 'code', 'BTC');
+            const options = this.safeValue (this.options, 'fetchOpenOrders', {});
+            const code = this.safeValue (options, 'code', defaultCode);
+            const currency = this.currency (code);
+            request['currency'] = currency['id'];
+            method = 'privateGetGetOrderHistoryByCurrency';
+        } else {
+            market = this.market (symbol);
+            request['instrument_name'] = market['id'];
+            method = 'privateGetGetOrderHistoryByInstrument';
+        }
+        const response = await this[method] (this.extend (request, params));
+        const result = this.safeValue (response, 'result', []);
+        return this.parseOrders (result, market, since, limit);
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
