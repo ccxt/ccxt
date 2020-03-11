@@ -567,7 +567,7 @@ class whitebit(Exchange):
         ]
 
     async def fetch_status(self, params={}):
-        response = await self.webGetV1Healthcheck()
+        response = await self.webGetV1Healthcheck(params)
         status = self.safe_integer(response, 'status')
         formattedStatus = 'ok'
         if status == 503:
