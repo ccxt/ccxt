@@ -21,6 +21,7 @@ module.exports = class bybit extends Exchange {
                 'CORS': true,
                 'fetchMarkets': true,
                 'fetchBalance': true,
+                'fetchOHLCV': true,
                 // 'editOrder': true,
                 // 'fetchOrder': true,
                 // 'fetchOrders': false,
@@ -640,45 +641,21 @@ module.exports = class bybit extends Exchange {
         // fetchTrades (public)
         //
         //     {
-        //         'trade_seq': 39201926,
-        //         'trade_id':' 64135724',
-        //         'timestamp': 1583174775400,
-        //         'tick_direction': 1,
-        //         'price': 8865.0,
-        //         'instrument_name': 'BTC-PERPETUAL',
-        //         'index_price': 8863.31,
-        //         'direction': 'buy',
-        //         'amount': 10.0
+        //         id: 43785688,
+        //         symbol: 'BTCUSD',
+        //         price: 7786,
+        //         qty: 67,
+        //         side: 'Sell',
+        //         time: '2020-03-11T19:18:30.123Z'
         //     }
         //
         // fetchMyTrades, fetchOrderTrades (private)
         //
-        //     {
-        //         "trade_seq": 3,
-        //         "trade_id": "ETH-34066",
-        //         "timestamp": 1550219814585,
-        //         "tick_direction": 1,
-        //         "state": "open",
-        //         "self_trade": false,
-        //         "reduce_only": false,
-        //         "price": 0.04,
-        //         "post_only": false,
-        //         "order_type": "limit",
-        //         "order_id": "ETH-334607",
-        //         "matching_id": null,
-        //         "liquidity": "M",
-        //         "iv": 56.83,
-        //         "instrument_name": "ETH-22FEB19-120-C",
-        //         "index_price": 121.37,
-        //         "fee_currency": "ETH",
-        //         "fee": 0.0011,
-        //         "direction": "buy",
-        //         "amount": 11
-        //     }
         //
-        const id = this.safeString (trade, 'trade_id');
+        //
+        const id = this.safeString (trade, 'id');
         let symbol = undefined;
-        const marketId = this.safeString (trade, 'instrument_name');
+        const marketId = this.safeString (trade, 'symbol');
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
             symbol = market['symbol'];
@@ -686,31 +663,15 @@ module.exports = class bybit extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const timestamp = this.safeInteger (trade, 'timestamp');
-        const side = this.safeString (trade, 'direction');
+        const timestamp = this.parse8601 (this.safeString (trade, 'time'));
+        const side = this.safeStringLower (trade, 'side');
         const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const amount = this.safeFloat (trade, 'qty');
         let cost = undefined;
         if (amount !== undefined) {
             if (price !== undefined) {
                 cost = amount * price;
             }
-        }
-        const liquidity = this.safeString (trade, 'liquidity');
-        let takerOrMaker = undefined;
-        if (liquidity !== undefined) {
-            // M = maker, T = taker, MT = both
-            takerOrMaker = (liquidity === 'M') ? 'maker' : 'taker';
-        }
-        const feeCost = this.safeFloat (trade, 'feeCost');
-        let fee = undefined;
-        if (feeCost !== undefined) {
-            const feeCurrencyId = this.safeString (trade, 'fee_currency');
-            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrencyCode,
-            };
         }
         return {
             'id': id,
@@ -718,14 +679,14 @@ module.exports = class bybit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'order': this.safeString (trade, 'order_id'),
-            'type': this.safeString (trade, 'order_type'),
+            'order': undefined,
+            'type': undefined,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': fee,
+            'fee': undefined,
         };
     }
 
@@ -733,45 +694,34 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'instrument_name': market['id'],
-            'include_old': true,
+            'symbol': market['id'],
+            // 'from': 123, // from id
         };
-        const method = (since === undefined) ? 'publicGetGetLastTradesByInstrument' : 'publicGetGetLastTradesByInstrumentAndTime';
-        if (since !== undefined) {
-            request['start_timestamp'] = since;
-        }
         if (limit !== undefined) {
-            request['count'] = limit; // default 10
+            request['count'] = limit; // default 500, max 1000
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.publicGetTradingRecords (this.extend (request, params));
         //
         //     {
-        //         'jsonrpc': '2.0',
-        //         'result': {
-        //             'trades': [
-        //                 {
-        //                     'trade_seq': 39201926,
-        //                     'trade_id':' 64135724',
-        //                     'timestamp': 1583174775400,
-        //                     'tick_direction': 1,
-        //                     'price': 8865.0,
-        //                     'instrument_name': 'BTC-PERPETUAL',
-        //                     'index_price': 8863.31,
-        //                     'direction': 'buy',
-        //                     'amount': 10.0
-        //                 },
-        //             ],
-        //             'has_more': true,
-        //         },
-        //         'usIn': 1583779594843931,
-        //         'usOut': 1583779594844446,
-        //         'usDiff': 515,
-        //         'testnet': false
+        //         ret_code: 0,
+        //         ret_msg: 'OK',
+        //         ext_code: '',
+        //         ext_info: '',
+        //         result: [
+        //             {
+        //                 id: 43785688,
+        //                 symbol: 'BTCUSD',
+        //                 price: 7786,
+        //                 qty: 67,
+        //                 side: 'Sell',
+        //                 time: '2020-03-11T19:18:30.123Z'
+        //             },
+        //         ],
+        //         time_now: '1583954313.393362'
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue (result, 'trades', []);
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (result, market, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
