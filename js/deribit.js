@@ -31,6 +31,7 @@ module.exports = class deribit extends Exchange {
                 'fetchOrderTrades': true,
                 'createOrder': true,
                 'cancelOrder': true,
+                'cancelAllOrders': true,
             },
             'urls': {
                 'test': 'https://test.deribit.com',
