@@ -1499,7 +1499,7 @@ class Exchange(object):
         result = self.convert_trading_view_to_ohlcv(ohlcvs)
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
-    def convert_trading_view_to_ohlcv(self, ohlcvs, t='t', o='o', h='h', l='l', c='c', v='v', ms=False):
+    def convert_trading_view_to_ohlcv(self, ohlcvs, t='t', o='o', h='h', l='l', c='c', v='v', ms=False):  # noqa E741
         result = []
         for i in range(0, len(ohlcvs[t])):
             result.append([
@@ -1512,7 +1512,7 @@ class Exchange(object):
             ])
         return result
 
-    def convert_ohlcv_to_trading_view(self, ohlcvs, t='t', o='o', h='h', l='l', c='c', v='v', ms=False):
+    def convert_ohlcv_to_trading_view(self, ohlcvs, t='t', o='o', h='h', l='l', c='c', v='v', ms=False):  # noqa E741
         result = {}
         result[t] = []
         result[o] = []
