@@ -388,53 +388,36 @@ module.exports = class bybit extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        // fetchTicker /public/ticker
+        // fetchTicker
         //
         //     {
-        //         timestamp: 1583778859480,
-        //         stats: { volume: 60627.57263769, low: 7631.5, high: 8311.5 },
-        //         state: 'open',
-        //         settlement_price: 7903.21,
-        //         open_interest: 111543850,
-        //         min_price: 7634,
-        //         max_price: 7866.51,
-        //         mark_price: 7750.02,
-        //         last_price: 7750.5,
-        //         instrument_name: 'BTC-PERPETUAL',
-        //         index_price: 7748.01,
-        //         funding_8h: 0.0000026,
-        //         current_funding: 0,
-        //         best_bid_price: 7750,
-        //         best_bid_amount: 19470,
-        //         best_ask_price: 7750.5,
-        //         best_ask_amount: 343280
+        //         symbol: 'BTCUSD',
+        //         bid_price: '7680',
+        //         ask_price: '7680.5',
+        //         last_price: '7680.00',
+        //         last_tick_direction: 'MinusTick',
+        //         prev_price_24h: '7870.50',
+        //         price_24h_pcnt: '-0.024204',
+        //         high_price_24h: '8035.00',
+        //         low_price_24h: '7671.00',
+        //         prev_price_1h: '7780.00',
+        //         price_1h_pcnt: '-0.012853',
+        //         mark_price: '7683.27',
+        //         index_price: '7682.74',
+        //         open_interest: 188829147,
+        //         open_value: '23670.06',
+        //         total_turnover: '25744224.90',
+        //         turnover_24h: '102997.83',
+        //         total_volume: 225448878806,
+        //         volume_24h: 809919408,
+        //         funding_rate: '0.0001',
+        //         predicted_funding_rate: '0.0001',
+        //         next_funding_time: '2020-03-12T00:00:00Z',
+        //         countdown_hour: 7
         //     }
         //
-        // fetchTicker /public/get_book_summary_by_instrument
-        // fetchTickers /public/get_book_summary_by_currency
-        //
-        //     {
-        //         volume: 124.1,
-        //         underlying_price: 7856.445926872601,
-        //         underlying_index: 'SYN.BTC-10MAR20',
-        //         quote_currency: 'USD',
-        //         open_interest: 121.8,
-        //         mid_price: 0.01975,
-        //         mark_price: 0.01984559,
-        //         low: 0.0095,
-        //         last: 0.0205,
-        //         interest_rate: 0,
-        //         instrument_name: 'BTC-10MAR20-7750-C',
-        //         high: 0.0295,
-        //         estimated_delivery_price: 7856.29,
-        //         creation_timestamp: 1583783678366,
-        //         bid_price: 0.0185,
-        //         base_currency: 'BTC',
-        //         ask_price: 0.021
-        //     },
-        //
-        const timestamp = this.safeInteger2 (ticker, 'timestamp', 'creation_timestamp');
-        const marketId = this.safeString (ticker, 'instrument_name');
+        const timestamp = undefined;
+        const marketId = this.safeString (ticker, 'symbol');
         let symbol = marketId;
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
@@ -442,28 +425,44 @@ module.exports = class bybit extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat2 (ticker, 'last_price', 'last');
-        const stats = this.safeValue (ticker, 'stats', ticker);
+        const last = this.safeFloat2 (ticker, 'last_price');
+        const open = this.safeFloat (ticker, 'prev_price_24h')
+        let percentage = this.safeFloat (ticker, 'price_24h_pcnt');
+        if (percentage !== undefined) {
+            percentage *= 100;
+        }
+        let change = undefined;
+        let average = undefined;
+        if ((last !== undefined) && (open !== undefined)) {
+            change = last - open;
+            average = this.sum (open, last) / 2;
+        }
+        const baseVolume = this.safeFloat (ticker, 'turnover_24h');
+        const quoteVolume = this.safeFloat (ticker, 'volume_24h');
+        let vwap = undefined;
+        if (quoteVolume !== undefined && baseVolume !== undefined) {
+            vwap = quoteVolume / baseVolume;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat2 (stats, 'high', 'max_price'),
-            'low': this.safeFloat2 (stats, 'low', 'min_price'),
-            'bid': this.safeFloat2 (ticker, 'best_bid_price', 'bid_price'),
+            'high': this.safeFloat2 (ticker, 'high_price_24h'),
+            'low': this.safeFloat2 (ticker, 'low_price_24h'),
+            'bid': this.safeFloat2 (ticker, 'bid_price'),
             'bidVolume': this.safeFloat (ticker, 'best_bid_amount'),
-            'ask': this.safeFloat2 (ticker, 'best_ask_price', 'ask_price'),
+            'ask': this.safeFloat2 (ticker, 'ask_price'),
             'askVolume': this.safeFloat (ticker, 'best_ask_amount'),
-            'vwap': undefined,
-            'open': undefined,
+            'vwap': vwap,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (stats, 'volume'),
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
