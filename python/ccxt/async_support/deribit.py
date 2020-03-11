@@ -658,8 +658,8 @@ class deribit(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(stats, 'high'),
-            'low': self.safe_float(stats, 'low'),
+            'high': self.safe_float_2(stats, 'high', 'max_price'),
+            'low': self.safe_float_2(stats, 'low', 'min_price'),
             'bid': self.safe_float_2(ticker, 'best_bid_price', 'bid_price'),
             'bidVolume': self.safe_float(ticker, 'best_bid_amount'),
             'ask': self.safe_float_2(ticker, 'best_ask_price', 'ask_price'),
@@ -712,7 +712,8 @@ class deribit(Exchange):
         #         testnet: False
         #     }
         #
-        return self.parse_ticker(response['result'], market)
+        result = self.safe_value(response, 'result')
+        return self.parse_ticker(result, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

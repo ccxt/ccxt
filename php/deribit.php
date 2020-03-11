@@ -657,8 +657,8 @@ class deribit extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => $this->safe_float($stats, 'high'),
-            'low' => $this->safe_float($stats, 'low'),
+            'high' => $this->safe_float_2($stats, 'high', 'max_price'),
+            'low' => $this->safe_float_2($stats, 'low', 'min_price'),
             'bid' => $this->safe_float_2($ticker, 'best_bid_price', 'bid_price'),
             'bidVolume' => $this->safe_float($ticker, 'best_bid_amount'),
             'ask' => $this->safe_float_2($ticker, 'best_ask_price', 'ask_price'),
@@ -687,7 +687,7 @@ class deribit extends Exchange {
         //
         //     {
         //         jsonrpc => '2.0',
-        //         result => array(
+        //         $result => array(
         //             timestamp => 1583778859480,
         //             stats => array( volume => 60627.57263769, low => 7631.5, high => 8311.5 ),
         //             state => 'open',
@@ -712,7 +712,8 @@ class deribit extends Exchange {
         //         testnet => false
         //     }
         //
-        return $this->parse_ticker($response['result'], $market);
+        $result = $this->safe_value($response, 'result');
+        return $this->parse_ticker($result, $market);
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
