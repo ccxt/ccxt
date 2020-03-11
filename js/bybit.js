@@ -19,6 +19,7 @@ module.exports = class bybit extends Exchange {
             'rateLimit': 100,
             'has': {
                 'CORS': true,
+                'fetchMarkets': true,
                 // 'editOrder': true,
                 // 'fetchOrder': true,
                 // 'fetchOrders': false,
@@ -33,8 +34,7 @@ module.exports = class bybit extends Exchange {
                 // 'cancelOrder': true,
                 // 'cancelAllOrders': true,
                 // 'withdraw': true,
-                // 'fetchTime': true,
-                // 'fetchStatus': true,
+                'fetchTime': true,
             },
             'timeframes': {
                 // '1m': '1',
@@ -228,37 +228,15 @@ module.exports = class bybit extends Exchange {
         const response = await this.publicGetTime (params);
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         result: 1583922446019,
-        //         usIn: 1583922446019955,
-        //         usOut: 1583922446019956,
-        //         usDiff: 1,
-        //         testnet: false
+        //         ret_code: 0,
+        //         ret_msg: 'OK',
+        //         ext_code: '',
+        //         ext_info: '',
+        //         result: {},
+        //         time_now: '1583933682.448826'
         //     }
         //
-        return this.safeInteger (response, 'result');
-    }
-
-    async fetchStatus (params = {}) {
-        const request = {
-            // 'expected_result': false, // true will trigger an error for testing purposes
-        };
-        await this.publicGetTest (this.extend (request, params));
-        //
-        //     {
-        //         jsonrpc: '2.0',
-        //         result: { version: '1.2.26' },
-        //         usIn: 1583922623964485,
-        //         usOut: 1583922623964487,
-        //         usDiff: 2,
-        //         testnet: false
-        //     }
-        //
-        this.status = this.extend (this.status, {
-            'status': 'ok',
-            'updated': this.milliseconds (),
-        });
-        return this.status;
+        return this.safeTimestamp (response, 'time_now');
     }
 
     async fetchMarkets (params = {}) {
@@ -311,8 +289,8 @@ module.exports = class bybit extends Exchange {
                 'maker': this.safeFloat (market, 'maker_fee'),
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (priceFilter, 'min_trading_qty'),
-                        'max': this.safeFloat (priceFilter, 'max_trading_qty'),
+                        'min': this.safeFloat (lotSizeFilter, 'min_trading_qty'),
+                        'max': this.safeFloat (lotSizeFilter, 'max_trading_qty'),
                     },
                     'price': {
                         'min': this.safeFloat (priceFilter, 'min_price'),
