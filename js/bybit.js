@@ -923,29 +923,23 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'instrument_name': market['id'],
-            // for perpetual and futures the amount is in USD
-            // for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
-            'amount': this.amountToPrecision (symbol, amount),
-            'type': type, // limit, stop_limit, market, stop_market, default is limit
-            // 'label': 'string', // user-defined label for the order (maximum 64 characters)
-            // 'price': this.priceToPrecision (symbol, 123.45), // only for limit and stop_limit orders
-            // 'time_in_force' : 'good_til_cancelled', // fill_or_kill, immediate_or_cancel
-            // 'max_show': 123.45, // max amount within an order to be shown to other customers, 0 for invisible order
-            // 'post_only': false, // if the new price would cause the order to be filled immediately (as taker), the price will be changed to be just below the spread.
-            // 'reject_post_only': false, // if true the order is put to order book unmodified or request is rejected
-            // 'reduce_only': false, // if true, the order is intended to only reduce a current position
-            // 'stop_price': false, // stop price, required for stop_limit orders
-            // 'trigger': 'index_price', // mark_price, last_price, required for stop_limit orders
-            // 'advanced': 'usd', // 'implv', advanced option order type, options only
+            'side': this.capitalize (side),
+            'symbol': market['id'],
+            'order_type': this.capitalize (type),
+            'qty': this.amountToPrecision (symbol, amount), // order quantity in USD, integer only
+            // 'price': this.priceToPrecision (symbol, price), // required for limit orders
+            'time_in_force': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
+            // 'take_profit': 123.45, // take profit price, only take effect upon opening the position
+            // 'stop_loss': 123.45, // stop loss price, only take effect upon opening the position
+            // 'reduce_only': false, // reduce only
+            // when creating a closing order, bybit recommends a True value for
+            // close_on_trigger to avoid failing due to insufficient available margin
+            // 'close_on_trigger': false,
+            // 'order_link_id': 'string', // unique client order id, max 36 characters
         };
         let priceIsRequired = false;
-        let stopPriceIsRequired = false;
         if (type === 'limit') {
             priceIsRequired = true;
-        } else if (type === 'stop_limit') {
-            priceIsRequired = true;
-            stopPriceIsRequired = true;
         }
         if (priceIsRequired) {
             if (price !== undefined) {
@@ -954,16 +948,9 @@ module.exports = class bybit extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for a ' + type + ' order');
             }
         }
-        if (stopPriceIsRequired) {
-            const stopPrice = this.safeFloat2 (params, 'stop_price', 'stopPrice');
-            if (stopPrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder requires a stop_price or stopPrice param for a ' + type + ' order');
-            } else {
-                request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
-            }
-        }
-        const method = 'privateGet' + this.capitalize (side);
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.postPrivateOrderCreate (this.extend (request, params));
+        console.log (response);
+        process.exit ();
         //
         //     {
         //         "jsonrpc": "2.0",
