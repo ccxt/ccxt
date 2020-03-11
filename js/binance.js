@@ -678,7 +678,7 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        const response = await this.wapiGetSystemStatus ();
+        const response = await this.wapiGetSystemStatus (params);
         let status = this.safeValue (response, 'status');
         if (status !== undefined) {
             status = (status === 0) ? 'ok' : 'maintenance';
