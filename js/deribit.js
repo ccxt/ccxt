@@ -1148,6 +1148,21 @@ module.exports = class deribit extends Exchange {
         return this.parseOrder (result);
     }
 
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let method = undefined;
+        if (symbol === undefined) {
+            method = 'privateGetCancelAll';
+        } else {
+            method = 'privateGetCancelAllByInstrument';
+            const market = this.market (symbol);
+            request['instrument_name'] = market['id'];
+        }
+        const response = await this[method] (this.extend (request, params));
+        return response;
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a `symbol` argument');
