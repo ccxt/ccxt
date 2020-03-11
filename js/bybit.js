@@ -843,7 +843,10 @@ module.exports = class bybit extends Exchange {
         const amount = this.safeFloat (order, 'qty');
         let filled = this.safeFloat (order, 'cum_exec_qty');
         let remaining = this.safeFloat (order, 'leaves_qty');
-        const lastTradeTimestamp = this.safeTimestamp (order, 'last_exec_time');
+        let lastTradeTimestamp = this.safeTimestamp (order, 'last_exec_time');
+        if (lastTradeTimestamp === 0) {
+            lastTradeTimestamp = undefined;
+        }
         let cost = this.safeFloat (order, 'cum_exec_value');
         if ((filled === undefined) && (amount !== undefined) && (remaining !== undefined)) {
             filled = amount - remaining;
@@ -1008,9 +1011,8 @@ module.exports = class bybit extends Exchange {
         //         "rate_limit": 100
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
-        const order = this.safeValue (result, 'order');
-        return this.parseOrder (order, market);
+        const result = this.safeValue (response, 'result');
+        return this.parseOrder (result, market);
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
