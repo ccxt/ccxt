@@ -1297,14 +1297,6 @@ class Exchange(object):
         # and may be changed for consistency later
         return self.to_array(self.markets)
 
-    def fetch_base_currencies(self, params={}):
-        # returned as a list
-        return self.base_currencies
-
-    def fetch_quote_currencies(self, params={}):
-        # returned as a list
-        return self.quote_currencies
-
     def fetch_currencies(self, params={}):
         # markets are returned as a list
         # currencies are returned as a dict
