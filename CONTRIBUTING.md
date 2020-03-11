@@ -48,6 +48,12 @@ If you found a security issue or a critical vulnerability and reporting it in pu
   - `/build/*` (these are generated automatically)
   - `/php/*` (except for base classes)
   - `/python/*` (except for base classes)
+  - `/ccxt.js`
+  - `/README.md` (exchange lists are generated automatically)
+  - `/package.json`
+  - `/package.lock`
+  - `/wiki/*` (except for real edits, exchange lists are generated automatically)
+  - `/dist/ccxt.browser.js` (this is also browserified automatically)
 
 
   These files are generated ([explained below](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support)) and will be overwritten upon build. Please don't commit them to avoid bloating the repository which is already quite large. Most often, you have to commit just one single source file to submit an edit to the implementation of an exchange.
