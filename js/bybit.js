@@ -34,7 +34,6 @@ module.exports = class bybit extends Exchange {
                 // 'createOrder': true,
                 // 'cancelOrder': true,
                 // 'cancelAllOrders': true,
-                // 'withdraw': true,
                 'fetchTime': true,
             },
             'timeframes': {
@@ -429,7 +428,7 @@ module.exports = class bybit extends Exchange {
             symbol = market['symbol'];
         }
         const last = this.safeFloat2 (ticker, 'last_price');
-        const open = this.safeFloat (ticker, 'prev_price_24h')
+        const open = this.safeFloat (ticker, 'prev_price_24h');
         let percentage = this.safeFloat (ticker, 'price_24h_pcnt');
         if (percentage !== undefined) {
             percentage *= 100;
@@ -746,7 +745,6 @@ module.exports = class bybit extends Exchange {
             'nonce': undefined,
         };
     }
-
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
@@ -1389,27 +1387,6 @@ module.exports = class bybit extends Exchange {
             'status': status,
             'updated': updated,
             'fee': fee,
-        };
-    }
-
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
-        this.checkAddress (address);
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-            'address': address, // must be in the address book
-            'amount': amount,
-            // 'priority': 'high', // low, mid, high, very_high, extreme_high, insane
-            // 'tfa': '123456', // if enabled
-        };
-        if (this.twofa !== undefined) {
-            request['tfa'] = this.oath ();
-        }
-        const response = await this.privateGetWithdraw (this.extend (request, params));
-        return {
-            'info': response,
-            'id': this.safeString (response, 'id'),
         };
     }
 
