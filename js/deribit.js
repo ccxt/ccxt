@@ -1079,7 +1079,7 @@ module.exports = class deribit extends Exchange {
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
             symbol = market['symbol'];
-            base = market['base']
+            base = market['base'];
         }
         if (market !== undefined) {
             if (symbol === undefined) {
