@@ -216,6 +216,8 @@ class Exchange(object):
     transactions = None
     ohlcvs = None
     tickers = None
+    base_currencies = None
+    quote_currencies = None
     currencies = None
     options = None  # Python does not allow to define properties in run-time with setattr
     accounts = None
@@ -1255,6 +1257,10 @@ class Exchange(object):
                     )
                 ) if 'precision' in market else 8,
             } for market in values if 'quote' in market]
+            base_currencies = self.sort_by(base_currencies, 'code')
+            quote_currencies = self.sort_by(quote_currencies, 'code')
+            self.base_currencies = self.index_by(base_currencies, 'code')
+            self.quote_currencies = self.index_by(quote_currencies, 'code')
             currencies = self.sort_by(base_currencies + quote_currencies, 'code')
             self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
         self.currencies_by_id = self.index_by(list(self.currencies.values()), 'id')
