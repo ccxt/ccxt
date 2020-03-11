@@ -47,6 +47,7 @@
     "exmo":          { "skip": true },
     "exx":           { "skip": true },
     "fcoin":         { "skip": true },
+    "fcoinjp":       { "skip": true },
     "flowbtc":       { "skip": true },
     "foxbit":        { "skip": true },
     "fybse":         { "skip": true },

@@ -30,10 +30,11 @@ class deribit(Exchange):
             'countries': ['NL'],  # Netherlands
             'version': 'v2',
             'userAgent': None,
-            'rateLimit': 2000,
+            'rateLimit': 500,
             'has': {
                 'CORS': True,
                 'editOrder': True,
+                'fetchBalance': True,
                 'fetchOrder': True,
                 'fetchOrders': False,
                 'fetchOpenOrders': True,
@@ -49,6 +50,9 @@ class deribit(Exchange):
                 'withdraw': True,
                 'fetchTime': True,
                 'fetchStatus': True,
+                'fetchDeposits': True,
+                'fetchWithdrawals': True,
+                'fetchTransactions': False,
             },
             'timeframes': {
                 '1m': '1',

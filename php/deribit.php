@@ -18,10 +18,11 @@ class deribit extends Exchange {
             'countries' => array( 'NL' ), // Netherlands
             'version' => 'v2',
             'userAgent' => null,
-            'rateLimit' => 2000,
+            'rateLimit' => 500,
             'has' => array(
                 'CORS' => true,
                 'editOrder' => true,
+                'fetchBalance' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => false,
                 'fetchOpenOrders' => true,
@@ -37,6 +38,9 @@ class deribit extends Exchange {
                 'withdraw' => true,
                 'fetchTime' => true,
                 'fetchStatus' => true,
+                'fetchDeposits' => true,
+                'fetchWithdrawals' => true,
+                'fetchTransactions' => false,
             ),
             'timeframes' => array(
                 '1m' => '1',
