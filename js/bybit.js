@@ -791,11 +791,21 @@ module.exports = class bybit extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
-            'open': 'open',
-            'cancelled': 'canceled',
-            'filled': 'closed',
-            'rejected': 'rejected',
-            // 'untriggered': 'open',
+            // basic orders
+            'Created': 'open',
+            'Rejected': 'rejected', // order is triggered but failed upon being placed
+            'New': 'open',
+            'PartiallyFilled': 'open',
+            'Filled': 'filled',
+            'Cancelled': 'canceled',
+            'PendingCancel': 'canceling', // the engine has received the cancellation but there is no guarantee that it will be successful
+            // conditional orders
+            'Active': 'open', // order is triggered and placed successfully
+            'Untriggered': 'open', // order waits to be triggered
+            'Triggered': 'open', // order is triggered
+            // 'Cancelled': 'canceled', // order is cancelled
+            // 'Rejected': 'rejected', // order is triggered but fail to be placed
+            'Deactivated': 'canceled', // conditional order was cancelled before triggering
         };
         return this.safeString (statuses, status, status);
     }
@@ -893,7 +903,7 @@ module.exports = class bybit extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
-            'trades': trades,
+            'trades': undefined,
         };
     }
 
