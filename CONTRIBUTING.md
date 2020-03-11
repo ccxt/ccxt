@@ -68,8 +68,8 @@ Below is a list of functionality we would like to have implemented and fully **u
 - `fetchTransfer`
 - `fetchTransfers`
 - `fetchLedger`
-– `fetchPositions`
-– `closePosition`
+- `fetchPositions`
+- `closePosition`
 - `closePositions`
 
 If you want to contribute by submitting partial implementations be sure to look up examples of how it's done inside the library (where implemented already) and copy the adopted practices.
