@@ -188,7 +188,7 @@ The CCXT library currently supports the following 123 cryptocurrency exchange ma
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | crex24             | `CREX24 <https://crex24.com/?refid=slxsjsjtil8xexl9hksr>`__                                | 2   | `API <https://docs.crex24.com/trade-api/v2>`__                                                  |                                                                      |                                 |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| deribit            | `Deribit <https://www.deribit.com/reg-1189.4038>`__                                        | 1   | `API <https://docs.deribit.com>`__                                                              |                                                                      |                                 |
+| deribit            | `Deribit <https://www.deribit.com/reg-1189.4038>`__                                        | 2   | `API <https://docs.deribit.com/v2>`__                                                           |                                                                      |                                 |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | digifinex          | `DigiFinex <https://www.digifinex.vip/en-ww/from/DhOzBg/3798****5114>`__                   | 3   | `API <https://docs.digifinex.vip>`__                                                            |                                                                      |                                 |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
@@ -362,14 +362,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.23.87/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.23.87/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.23.88/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.23.88/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.23.87/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.23.88/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
