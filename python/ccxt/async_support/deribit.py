@@ -1052,9 +1052,16 @@ class deribit(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'order_state'))
         marketId = self.safe_string(order, 'instrument_name')
         symbol = None
+        base = None
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
             symbol = market['symbol']
+            base = market['base']
+        if market is not None:
+            if symbol is None:
+                symbol = market['symbol']
+            if base is None:
+                base = market['base']
         side = self.safe_string_lower(order, 'direction')
         feeCost = self.safe_float(order, 'commission')
         fee = None
@@ -1062,7 +1069,7 @@ class deribit(Exchange):
             feeCost = abs(feeCost)
             fee = {
                 'cost': feeCost,
-                'currency': 'BTC',
+                'currency': base,
             }
         type = self.safe_string(order, 'order_type')
         # injected in createOrder

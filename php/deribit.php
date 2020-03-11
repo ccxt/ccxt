@@ -1077,9 +1077,19 @@ class deribit extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'order_state'));
         $marketId = $this->safe_string($order, 'instrument_name');
         $symbol = null;
+        $base = null;
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
             $symbol = $market['symbol'];
+            $base = $market['base'];
+        }
+        if ($market !== null) {
+            if ($symbol === null) {
+                $symbol = $market['symbol'];
+            }
+            if ($base === null) {
+                $base = $market['base'];
+            }
         }
         $side = $this->safe_string_lower($order, 'direction');
         $feeCost = $this->safe_float($order, 'commission');
@@ -1088,7 +1098,7 @@ class deribit extends Exchange {
             $feeCost = abs($feeCost);
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => 'BTC',
+                'currency' => $base,
             );
         }
         $type = $this->safe_string($order, 'order_type');
