@@ -194,6 +194,7 @@ module.exports = class okex3 extends Exchange {
                         'orders/{instrument_id}/{order_id}',
                         'orders/{instrument_id}/{client_oid}',
                         'fills',
+                        'trade_fee',
                         // public
                         'instruments',
                         'instruments/{instrument_id}/depth',
