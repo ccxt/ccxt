@@ -598,8 +598,8 @@ module.exports = class deribit extends Exchange {
         //     },
         //
         const timestamp = this.safeInteger2 (ticker, 'timestamp', 'creation_timestamp');
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'instrument_name');
+        let symbol = marketId;
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
         }
