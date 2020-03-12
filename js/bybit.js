@@ -66,7 +66,7 @@ module.exports = class bybit extends Exchange {
                     'https://github.com/bybit-exchange',
                 ],
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
-                'referral': 'https://www.deribit.com/reg-1189.4038',
+                'referral': 'https://www.bybit.com/app/register?ref=X7Prm',
             },
             'api': {
                 'public': {
