@@ -1187,6 +1187,9 @@ module.exports = class bybit extends Exchange {
             // 'page': 1,
             // 'limit': 20, // max 50
             // 'order_status': 'Created,New'
+            // conditional orders ---------------------------------------------
+            // 'stop_order_id': 'string',
+            // 'stop_order_status': 'Untriggered',
         };
         let market = undefined;
         if (symbol !== undefined) {
