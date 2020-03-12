@@ -1564,7 +1564,7 @@ class deribit(Exchange):
             'addressFrom': None,
             'tag': None,
             'tagTo': None,
-            'TagFrom': None,
+            'tagFrom': None,
             'type': type,
             'amount': self.safe_float(transaction, 'amount'),
             'currency': code,

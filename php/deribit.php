@@ -1627,7 +1627,7 @@ class deribit extends Exchange {
             'addressFrom' => null,
             'tag' => null,
             'tagTo' => null,
-            'TagFrom' => null,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $this->safe_float($transaction, 'amount'),
             'currency' => $code,
