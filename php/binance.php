@@ -1102,6 +1102,7 @@ class binance extends Exchange {
             $quoteOrderQty = $this->safe_float($params, 'quoteOrderQty');
             if ($quoteOrderQty !== null) {
                 $request['quoteOrderQty'] = $this->cost_to_precision($symbol, $quoteOrderQty);
+                $params = $this->omit ($params, 'quoteOrderQty');
             } else if ($price !== null) {
                 $request['quoteOrderQty'] = $this->cost_to_precision($symbol, $amount * $price);
             } else {

@@ -1039,6 +1039,7 @@ class binance(Exchange):
             quoteOrderQty = self.safe_float(params, 'quoteOrderQty')
             if quoteOrderQty is not None:
                 request['quoteOrderQty'] = self.cost_to_precision(symbol, quoteOrderQty)
+                params = self.omit(params, 'quoteOrderQty')
             elif price is not None:
                 request['quoteOrderQty'] = self.cost_to_precision(symbol, amount * price)
             else:
