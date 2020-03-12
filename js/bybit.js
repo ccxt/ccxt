@@ -453,7 +453,7 @@ module.exports = class bybit extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat2 (ticker, 'last_price');
+        const last = this.safeFloat (ticker, 'last_price');
         const open = this.safeFloat (ticker, 'prev_price_24h');
         let percentage = this.safeFloat (ticker, 'price_24h_pcnt');
         if (percentage !== undefined) {
@@ -475,8 +475,8 @@ module.exports = class bybit extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat2 (ticker, 'high_price_24h'),
-            'low': this.safeFloat2 (ticker, 'low_price_24h'),
+            'high': this.safeFloat (ticker, 'high_price_24h'),
+            'low': this.safeFloat (ticker, 'low_price_24h'),
             'bid': this.safeFloat (ticker, 'bid_price'),
             'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'ask_price'),
@@ -718,7 +718,7 @@ module.exports = class bybit extends Exchange {
             symbol = market['symbol'];
             base = market['base'];
         }
-        let timestamp = this.parse8601 (this.safeString2 (trade, 'time'));
+        let timestamp = this.parse8601 (this.safeString (trade, 'time'));
         if (timestamp === undefined) {
             timestamp = this.safeTimestamp (trade, 'exec_time');
         }
