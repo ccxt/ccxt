@@ -19,7 +19,6 @@ module.exports = class deribit extends Exchange {
             'rateLimit': 500,
             'has': {
                 'CORS': true,
-                'fetchOHLCV': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchOrder': true,
