@@ -23,7 +23,7 @@ module.exports = class bybit extends Exchange {
                 'fetchBalance': true,
                 'fetchOHLCV': true,
                 'editOrder': true,
-                // 'fetchOrder': true,
+                'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
@@ -139,7 +139,7 @@ module.exports = class bybit extends Exchange {
                 '10007': AuthenticationError, // api_key not found in your request parameters
                 '10010': PermissionDenied, // request ip mismatch
                 '10017': BadRequest, // request path not found or request method is invalid
-                '20001': InvalidOrder, // Order not exists
+                '20001': OrderNotFound, // Order not exists
                 '20003': InvalidOrder, // missing parameter side
                 '20004': InvalidOrder, // invalid parameter side
                 '20005': InvalidOrder, // missing parameter symbol
@@ -966,41 +966,81 @@ module.exports = class bybit extends Exchange {
             // GET /v2/private/stop-order
             // 'stop_order_id': id, // one of stop_order_id or order_link_id is required for conditional orders
         };
+        let method = 'privateGetOrder';
         const stopOrderId = this.safeString (params, 'stop_order_id');
-        if (stopOrderId !== undefined) {
-            method = ''
+        if (stopOrderId === undefined) {
+            request['order_id'] = id;
+        } else {
+            method = 'privateGetStopOrder';
         }
-        const response = await this.privateGetGetOrderState (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
-        //         "jsonrpc": "2.0",
-        //         "id": 4316,
+        //         "ret_code": 0,
+        //         "ret_msg": "OK",
+        //         "ext_code": "",
+        //         "ext_info": "",
         //         "result": {
-        //             "time_in_force": "good_til_cancelled",
-        //             "reduce_only": false,
-        //             "profit_loss": 0.051134,
-        //             "price": 118.94,
-        //             "post_only": false,
-        //             "order_type": "limit",
-        //             "order_state": "filled",
-        //             "order_id": "ETH-331562",
-        //             "max_show": 37,
-        //             "last_update_timestamp": 1550219810944,
-        //             "label": "",
-        //             "is_liquidation": false,
-        //             "instrument_name": "ETH-PERPETUAL",
-        //             "filled_amount": 37,
-        //             "direction": "sell",
-        //             "creation_timestamp": 1550219749176,
-        //             "commission": 0.000031,
-        //             "average_price": 118.94,
-        //             "api": false,
-        //             "amount": 37
-        //         }
+        //             "user_id": 1,
+        //             "symbol": "BTCUSD",
+        //             "side": "Sell",
+        //             "order_type": "Limit",
+        //             "price": "8083",
+        //             "qty": 10,
+        //             "time_in_force": "GoodTillCancel",
+        //             "order_status": "New",
+        //             "ext_fields": { "o_req_num": -308787, "xreq_type": "x_create", "xreq_offset": 4154640 },
+        //             "leaves_qty": 10,
+        //             "leaves_value": "0.00123716",
+        //             "cum_exec_qty": 0,
+        //             "reject_reason": "",
+        //             "order_link_id": "",
+        //             "created_at": "2019-10-21T07:28:19.396246Z",
+        //             "updated_at": "2019-10-21T07:28:19.396246Z",
+        //             "order_id": "efa44157-c355-4a98-b6d6-1d846a936b93"
+        //         },
+        //         "time_now": "1571651135.291930",
+        //         "rate_limit_status": 99, // The remaining number of accesses in one minute
+        //         "rate_limit_reset_ms": 1580885703683,
+        //         "rate_limit": 100
+        //     }
+        //
+        // conditional orders
+        //
+        //     {
+        //         "ret_code": 0,
+        //         "ret_msg": "OK",
+        //         "ext_code": "",
+        //         "ext_info": "",
+        //         "result": {
+        //             "user_id": 1,
+        //             "symbol": "BTCUSD",
+        //             "side": "Buy",
+        //             "order_type": "Limit",
+        //             "price": "8000",
+        //             "qty": 1,
+        //             "time_in_force": "GoodTillCancel",
+        //             "order_status": "Untriggered",
+        //             "ext_fields": {},
+        //             "leaves_qty": 1,
+        //             "leaves_value": "0.00013333",
+        //             "cum_exec_qty": 0,
+        //             "cum_exec_value": null,
+        //             "cum_exec_fee": null,
+        //             "reject_reason": "",
+        //             "order_link_id": "",
+        //             "created_at": "2019-12-27T19:56:24.052194Z",
+        //             "updated_at": "2019-12-27T19:56:24.052194Z",
+        //             "order_id": "378a1bbc-a93a-4e75-87f4-502ea754ba36"
+        //         },
+        //         "time_now": "1577476584.386958",
+        //         "rate_limit_status": 99,
+        //         "rate_limit_reset_ms": 1580885703683,
+        //         "rate_limit": 100
         //     }
         //
         const result = this.safeValue (response, 'result');
-        return this.parseOrder (result);
+        return this.parseOrder (result, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
