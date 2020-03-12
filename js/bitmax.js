@@ -3,10 +3,16 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol, NotSupported} = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
+
+const CASH = 'cash';
+const MARGIN = 'margin';
+const FUTURES = 'futures';
+
+const ALL_ACCOUNTS = [CASH, MARGIN, FUTURES];
 
 module.exports = class bitmax extends Exchange {
     describe () {
@@ -24,9 +30,9 @@ module.exports = class bitmax extends Exchange {
                 'fetchOHLCV': true,
                 'fetchMyTrades': false,
                 'fetchOrder': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOpenOrders': true,
-                'fetchOrderTrades': true,
+                'fetchOrderTrades': false,
                 'fetchClosedOrders': true,
                 'fetchTransactions': false,
                 'fetchCurrencies': true,
@@ -55,59 +61,76 @@ module.exports = class bitmax extends Exchange {
                 'test': 'https://bitmax-test.io/api',
                 'www': 'https://bitmax.io',
                 'doc': [
-                    'https://github.com/bitmax-exchange/api-doc/blob/master/bitmax-api-doc-v1.2.md',
+                    'https://bitmax-exchange.github.io/bitmax-pro-api/#rest-apis',
                 ],
                 'fees': 'https://bitmax.io/#/feeRate/tradeRate',
-                'referral': 'https://bitmax.io/#/register?inviteCode=EL6BXBQM',
+                'referral': 'https://bitmax.io/#/register?inviteCode=T6J9R0EB',
             },
             'api': {
                 'public': {
                     'get': [
                         'assets',
-                        'depth',
-                        'fees',
-                        'quote',
-                        'depth',
-                        'trades',
-                        'products',
-                        'ticker/24hr',
                         'barhist',
                         'barhist/info',
+                        'cash/assets',
+                        'cash/products',
+                        'depth',
+                        'fees',
+                        'futures/collateral',
+                        'futures/contracts',
+                        'depth',
+                        'margin/assets',
+                        'margin/products',
                         'margin/ref-price',
+                        'trades',
+                        'products',
+                        'ticker',
                     ],
                 },
                 'private': {
                     'get': [
-                        'deposit',
-                        'user/info',
-                        'balance',
-                        'order/batch',
-                        'order/open',
-                        'order',
-                        'order/history',
-                        'order/{coid}',
-                        'order/fills/{coid}',
-                        'transaction',
+                        'cash/balance',
+                        'cash/order/hist/current',
+                        'cash/order/open',
+                        'cash/order/status',
+                        'futures/balance',
+                        'futures/order/hist/current',
+                        'futures/order/open',
+                        'futures/order/status',
                         'margin/balance',
+                        'margin/order/hist/current',
                         'margin/order/open',
-                        'margin/order',
+                        'margin/order/status',
+                        'margin/risk',
+                        'order/hist',
+                        'transaction',
+                        'info',
+                        'wallet/deposit/address',
                     ],
                     'post': [
+                        'cash/order',
+                        'cash/order/batch',
+                        'futures/order',
+                        'futures/order/batch',
                         'margin/order',
-                        'order',
-                        'order/batch',
+                        'margin/order/batch',
                     ],
                     'delete': [
+                        'cash/order',
+                        'cash/order/all',
+                        'cash/order/batch',
                         'margin/order',
-                        'order',
-                        'order/all',
-                        'order/batch',
+                        'margin/order/all',
+                        'margin/order/batch',
+                        'futures/order',
+                        'futures/order/all',
+                        'futures/order/batch',
                     ],
                 },
             },
             'fees': {
                 'trading': {
-                    'tierBased': false,
+                    'tierBased': true,
                     'percentage': true,
                     'taker': 0.001,
                     'maker': 0.001,
@@ -119,6 +142,7 @@ module.exports = class bitmax extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    // TODO: fix error code mapping
                     '2100': AuthenticationError, // {"code":2100,"message":"ApiKeyFailure"}
                     '5002': BadSymbol, // {"code":5002,"message":"Invalid Symbol"}
                     '6010': InsufficientFunds, // {'code': 6010, 'message': 'Not enough balance.'}
@@ -130,24 +154,46 @@ module.exports = class bitmax extends Exchange {
         });
     }
 
+    getAccount(params = {}) {
+        const account = safeValue (params, 'account', this.options['account']);
+        return account.charAt(0).toUpperCase() + account.slice(1).toLowerCase();
+    }
+
+    setAccount(account) {
+        this.options['account'] = account;
+    }
+
+    getFuturesCollateral(params={}):
+        response = await this.publicGetFuturesCollateral (params);
+        return this.safeValue (response, 'data', []);
+
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetAssets (params);
         //
-        //     [
-        //         {
-        //           "assetCode" : "LTO",
-        //           "assetName" : "LTO",
-        //           "precisionScale" : 9,
-        //           "nativeScale" : 3,
-        //           "withdrawalFee" : 5.0,
-        //           "minWithdrawalAmt" : 10.0,
-        //           "status" : "Normal"
-        //         },
-        //     ]
+        //{
+        //    "code": 0,
+        //    "data": [
+        //        {
+        //            "assetCode": "ONG",
+        //            "assetName": "ONG",
+        //            "precisionScale": 9,
+        //            "nativeScale": 3,
+        //            "withdrawalFee": "1.0",
+        //            "minWithdrawalAmt": "2.0",
+        //            "status": "Normal"
+        //        }
+        //    ]
+        //}
         //
         const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
+
+        if (this.safeValue (response, 'code', -1) != 0)
+            return result;
+
+        const records = this.safeValue (response, 'data', []);
+
+        for (let i = 0; i < records.length; i++) {
+            const currency = records[i];
             const id = this.safeString (currency, 'assetCode');
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
@@ -164,6 +210,7 @@ module.exports = class bitmax extends Exchange {
                 'type': undefined,
                 'name': this.safeString (currency, 'assetName'),
                 'active': active,
+                // Todo: tiered fee make fee calculation complicated now. To provide separate fee related method.
                 'fee': fee,
                 'precision': precision,
                 'limits': {
@@ -192,39 +239,43 @@ module.exports = class bitmax extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.publicGetProducts (params);
         //
-        //     [
-        //         {
-        //             "symbol" : "BCH/USDT",
-        //             "domain" : "USDS",
-        //             "baseAsset" : "BCH",
-        //             "quoteAsset" : "USDT",
-        //             "priceScale" : 2,
-        //             "qtyScale" : 3,
-        //             "notionalScale" : 9,
-        //             "minQty" : "0.000000001",
-        //             "maxQty" : "1000000000",
-        //             "minNotional" : "5",
-        //             "maxNotional" : "200000",
-        //             "status" : "Normal",
-        //             "miningStatus" : "",
-        //             "marginTradable" : true,
-        //             "commissionType" : "Quote",
-        //             "commissionReserveRate" : 0.0010000000
-        //         },
-        //     ]
+        //{
+        //    "code": 0,
+        //    "data": [
+        //        {
+        //            "symbol": "DAD/USDT",
+        //            "baseAsset": "DAD",
+        //            "quoteAsset": "USDT",
+        //            "status": "Normal",
+        //            "minNotional": "5",
+        //            "maxNotional": "50000",
+        //            "marginTradable": False,
+        //            "commissionType": "Quote",
+        //            "commissionReserveRate": "0.001",
+        //            "tickSize": "0.00001",
+        //            "lotSize": "1"
+        //        }
+        //    ]
+        //}
         //
         const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
+
+        if (this.safeValue (response, 'code', -1) != 0)
+            return result;
+
+        const records = this.safeValue (response, 'data', []);
+
+        for (let i = 0; i < records.length; i++) {
+            const market = records[i];
             const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'baseAsset');
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            const symbol = symbol // base + '/' + quote;
             const precision = {
-                'amount': this.safeInteger (market, 'qtyScale'),
-                'price': this.safeInteger (market, 'notionalScale'),
+                'amount': this.precisionFromString (this.safeString (market, 'lotSize')),
+                'price': this.precisionFromString (this.safeString (market, 'tickSize')),
             };
             const status = this.safeString (market, 'status');
             const active = (status === 'Normal');
@@ -240,10 +291,13 @@ module.exports = class bitmax extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'minQty'),
-                        'max': this.safeFloat (market, 'maxQty'),
+                        'min': this.safeFloat (market, 'lotSize'),
+                        'max': undefined,
                     },
-                    'price': { 'min': undefined, 'max': undefined },
+                    'price': {
+                        'min': this.safeFloat (market, 'tickSize'),
+                        'max': undefined
+                    },
                     'cost': {
                         'min': this.safeFloat (market, 'minNotional'),
                         'max': this.safeFloat (market, 'maxNotional'),
@@ -254,6 +308,7 @@ module.exports = class bitmax extends Exchange {
         return result;
     }
 
+    // TODO: fee calculation here is incorrect, we need to support tiered fee calculation.
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         const market = this.markets[symbol];
         let key = 'quote';
@@ -277,22 +332,35 @@ module.exports = class bitmax extends Exchange {
 
     async fetchAccounts (params = {}) {
         let accountGroup = this.safeString (this.options, 'accountGroup');
-        let response = undefined;
+        let records = undefined;
         if (accountGroup === undefined) {
-            response = await this.privateGetUserInfo (params);
+            response = await this.privateGetInfo (params);
             //
-            //     {
-            //         "accountGroup": 5
-            //     }
+            //{'code': 0,
+            // 'data': {'email': 'xxxcc@gmail.com',
+            //          'accountGroup': 5,
+            //          'viewPermission': True,
+            //          'tradePermission': True,
+            //          'transferPermission': True,
+            //          'withdrawPermission': True,
+            //          'cashAccount': ['xxxxxxxxxxxxxxxxxxxxxxxxxx'],
+            //          'marginAccount': ['yyyyyyyyyyyyyyyyyyyyyyyyy'],
+            //          'futuresAccount': ['zzzzzzzzzzzzzzzzzzzzzzzzz'],
+            //          'userUID': 'U123456789'}
+            // }
             //
-            accountGroup = this.safeString (response, 'accountGroup');
+            if (response['code'] === 0) {
+                records = response['data']
+                accountGroup = this.safeString (records, 'accountGroup')
+                this.options['accountGroup'] = accountGroup
+             }
         }
         return [
             {
                 'id': accountGroup,
                 'type': undefined,
                 'currency': undefined,
-                'info': response,
+                'info': records,
             },
         ];
     }
@@ -302,31 +370,27 @@ module.exports = class bitmax extends Exchange {
         await this.loadAccounts ();
         const response = await this.privateGetBalance (params);
         //
-        //     {
-        //         "code": 0,
-        //         "status": "success", // this field will be deprecated soon
-        //         "email": "foo@bar.com", // this field will be deprecated soon
-        //         "data": [
-        //             {
-        //                 "assetCode": "TSC",
-        //                 "assetName": "Ethereum",
-        //                 "totalAmount": "20.03", // total balance amount
-        //                 "availableAmount": "20.03", // balance amount available to trade
-        //                 "inOrderAmount": "0.000", // in order amount
-        //                 "btcValue": "70.81"     // the current BTC value of the balance, may be missing
-        //             },
+        //{
+        //    'code': 0,
+        //    'data':
+        //        [
+        //            {
+        //                'asset': 'BCHSV',
+        //                'totalBalance': '64.298000048',
+        //                'availableBalance': '64.298000048'
+        //            },
         //         ]
-        //     }
+        //}
         //
         const result = { 'info': response };
         const balances = this.safeValue (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const code = this.safeCurrencyCode (this.safeString (balance, 'assetCode'));
+            const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'availableAmount');
-            account['used'] = this.safeFloat (balance, 'inOrderAmount');
             account['total'] = this.safeFloat (balance, 'totalAmount');
+            account['used'] = account['total'] - account['free'];
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -343,20 +407,37 @@ module.exports = class bitmax extends Exchange {
         }
         const response = await this.publicGetDepth (this.extend (request, params));
         //
-        //     {
-        //         "m":"depth",
-        //         "ts":1570866464777,
-        //         "seqnum":5124140078,
-        //         "s":"ETH/USDT",
-        //         "asks":[
-        //             ["183.57","5.92"],
-        //             ["183.6","10.185"]
-        //         ],
-        //         "bids":[
-        //             ["183.54","0.16"],
-        //             ["183.53","10.8"],
-        //         ]
-        //     }
+        //{
+        //    "code": 0,
+        //    "data": {
+        //        "m": "depth-snapshot",
+        //        "symbol": "BTC/USDT",
+        //        "data": {
+        //            "ts": 1583558793465,
+        //            "seqnum": 8273359781,
+        //            "asks": [
+        //                [
+        //                    "9082.73",
+        //                    "1.31752"
+        //                ],
+        //                [
+        //                    "9082.76",
+        //                    "0.00342"
+        //                ]
+        //            ],
+        //            "bid": [
+        //                [
+        //                    "5532.27",
+        //                    "0.00606"
+        //                ],
+        //                [
+        //                    "4858.54",
+        //                    "0.02789"
+        //                ]
+        //            ]
+        //        }
+        //    }
+        //}
         //
         const timestamp = this.safeInteger (response, 'ts');
         const result = this.parseOrderBook (response, timestamp);
@@ -366,18 +447,20 @@ module.exports = class bitmax extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        //     {
-        //         "symbol":"BCH/USDT",
-        //         "interval":"1d",
-        //         "barStartTime":1570866600000,
-        //         "openPrice":"225.16",
-        //         "closePrice":"224.05",
-        //         "highPrice":"226.08",
-        //         "lowPrice":"218.92",
-        //         "volume":"8607.036"
-        //     }
+        //{
+        //    'symbol': 'BTC/USDT',
+        //    'open': '8086.63',
+        //    'close': '7846.16',
+        //    'high': '7846.16',
+        //    'low': '7846.16',
+        //    'volume': '8100.10864',
+        //    'ask': ['7847.7', '0.52882'],
+        //    'bid': ['7846.87', '3.9718']
+        //}
         //
-        const timestamp = this.safeInteger (ticker, 'barStartTime');
+
+        let timestamp = this.milliseconds ();
+        timestamp = timestamp - timestamp % 60000;
         let symbol = undefined;
         const marketId = this.safeString (ticker, 'symbol');
         if (marketId in this.markets_by_id) {
@@ -391,19 +474,21 @@ module.exports = class bitmax extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'closePrice');
+        const last = this.safeFloat (ticker, 'close');
+        const bid = this.safeValue (ticker, 'bid', [undefined, undefined]);
+        const ask = this.safeValue (ticker, 'ask', [undefined, undefined]);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'highPrice'),
-            'low': this.safeFloat (ticker, 'lowPrice'),
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': bid[0],
+            'bidVolume': bid[1],
+            'ask': ask[0],
+            'askVolume': ask[1],
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'openPrice'),
+            'open': this.safeFloat (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined, // previous day close
@@ -430,34 +515,53 @@ module.exports = class bitmax extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetTicker24hr (this.extend (request, params));
-        return this.parseTicker (response, market);
+        const response = await this.publicGetTicker (this.extend (request, params));
+        //
+        //{
+        //    'code': 0,
+        //    'data':
+        //        {
+        //            'symbol': 'BTC/USDT',
+        //            'open': '8086.63',
+        //            'close': '7846.16',
+        //            'high': '7846.16',
+        //            'low': '7846.16',
+        //            'volume': '8100.10864',
+        //            'ask': ['7847.7', '0.52882'],
+        //            'bid': ['7846.87', '3.9718']
+        //        }
+        //}
+        //
+
+        return this.parseTicker (this.safeValue (response, 'data', {}), market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetTicker24hr (params);
+        const response = await this.publicGetTicker (params);
         return this.parseTickers (response, symbols);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcvMsg, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         //
-        //     {
-        //         "m":"bar",
-        //         "s":"ETH/BTC",
-        //         "ba":"ETH",
-        //         "qa":"BTC",
-        //         "i":"1",
-        //         "t":1570867020000,
-        //         "o":"0.022023",
-        //         "c":"0.022018",
-        //         "h":"0.022023",
-        //         "l":"0.022018",
-        //         "v":"2.510",
-        //     }
+        //{
+        //    'm': 'bar',
+        //    's': 'BTC/USDT',
+        //    'data':
+        //        {
+        //            'i': '1',
+        //            'ts': 1583901000000,
+        //            'o': '7924.98',
+        //            'c': '7926.80',
+        //            'h': '7926.80',
+        //            'l': '7924.98',
+        //            'v': '0.32144'
+        //        }
+        //}
         //
+        const ohlcv = this.safeValue (ohlcvMsg, 'data', {});
         return [
-            this.safeInteger (ohlcv, 't'),
+            this.safeInteger (ohlcv, 'ts'),
             this.safeFloat (ohlcv, 'o'),
             this.safeFloat (ohlcv, 'h'),
             this.safeFloat (ohlcv, 'l'),
@@ -496,48 +600,48 @@ module.exports = class bitmax extends Exchange {
         //     {
         //         "p": "13.75", // price
         //         "q": "6.68", // quantity
-        //         "t": 1528988084944, // timestamp
+        //         "ts": 1528988084944, // timestamp
         //         "bm": False, // if true, the buyer is the market maker, we only use this field to "define the side" of a public trade
         //     }
         //
-        // private fetchOrderTrades
+        // privateGetCashOrderStatus / privateGetMarginOrderStatus / privateGetFuturesOrderStatus
         //
-        //     {
-        //         "ap": "0.029062965", // average filled price
-        //         "bb": "36851.981", // base asset total balance
-        //         "bc": "0", // if possitive, this is the BTMX commission charged by reverse mining, if negative, this is the mining output of the current fill.
-        //         "bpb": "36851.981", // base asset pending balance
-        //         "btmxBal": "0.0", // optional, the BTMX balance of the current account. This field is only available when bc is non-zero.
-        //         "cat": "CASH", // account category: CASH/MARGIN
-        //         "coid": "41g6wtPRFrJXgg6YxjqI6Qoog139Dmoi", // client order id, (needed to cancel order)
-        //         "ei": "NULL_VAL", // execution instruction
-        //         "errorCode": "NULL_VAL", // if the order is rejected, this field explains why
-        //         "execId": "12562285", // for each user, this is a strictly increasing long integer (represented as string)
-        //         "f": "78.074", // filled quantity, this is the aggregated quantity executed by all past fills
-        //         "fa": "BTC", // fee asset
-        //         "fee": "0.000693608", // fee
-        //         'lp': "0.029064", // last price, the price executed by the last fill
-        //         "l": "11.932", // last quantity, the quantity executed by the last fill
-        //         "m": "order", // message type
-        //         "orderType": "Limit", // Limit, Market, StopLimit, StopMarket
-        //         "p": "0.029066", // limit price, only available for limit and stop limit orders
-        //         "q": "100.000", // order quantity
-        //         "qb": "98878.642957097", // quote asset total balance
-        //         "qpb": "98877.967247508", // quote asset pending balance
-        //         "s": "ETH/BTC", // symbol
-        //         "side": "Buy", // side
-        //         "status": "PartiallyFilled", // order status
-        //         "t": 1561131458389, // timestamp
-        //     }
+        //{
+        //    'seqNum': 4208248561,
+        //    'orderId': 'r170adcc717eU123456789bbtmabc3P',
+        //    'symbol': 'BTMX/USDT',
+        //    'orderType': 'Limit',
+        //    'lastExecTime': 1583463823205,
+        //    'price': '0.06043',
+        //    'orderQty': '100',
+        //    'side': 'Buy',
+        //    'status': 'Filled',
+        //    'avgPx': '0.06043',
+        //    'cumFilledQty': '100',
+        //    'stopPrice': '',
+        //    'errorCode': '',
+        //    'cumFee': '0.006043',
+        //    'feeAsset': 'USDT',
+        //    'execInst': 'NULL_VAL'
+        //}
         //
-        const timestamp = this.safeInteger (trade, 't');
-        const price = this.safeFloat (trade, 'p');
-        const amount = this.safeFloat (trade, 'q');
+        const timestamp = this.safeInteger (trade, 'ts');
+        const price = this.safeFloat (trade, 'price') || this.safeFloat (trade, 'p');
+        const amount = this.safeFloat (trade, 'orderQty') || this.safeFloat (trade, 'q');
         let cost = undefined;
         if ((price !== undefined) && (amount !== undefined)) {
             cost = price * amount;
         }
         const buyerIsMaker = this.safeValue (trade, 'bm');
+        let makerOrTaker = undefined;
+
+        if (buyerIsMaker != undefined){
+            if (buyerIsMaker) {
+                makerOrTaker = 'maker';
+            } else {
+                makerOrTaker = 'taker';
+            }
+        }
         let symbol = undefined;
         const marketId = this.safeString (trade, 's');
         if (marketId !== undefined) {
@@ -555,16 +659,16 @@ module.exports = class bitmax extends Exchange {
             symbol = market['symbol'];
         }
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeFloat (trade, 'cumFee');
         if (feeCost !== undefined) {
-            const feeCurrencyId = this.safeString (trade, 'fa');
+            const feeCurrencyId = this.safeString (trade, 'feeAsset');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             };
         }
-        const orderId = this.safeString (trade, 'coid');
+        const orderId = this.safeString (trade, 'orderId');
         let side = this.safeStringLower (trade, 'side');
         if ((side === undefined) && (buyerIsMaker !== undefined)) {
             side = buyerIsMaker ? 'buy' : 'sell';
@@ -578,7 +682,7 @@ module.exports = class bitmax extends Exchange {
             'id': undefined,
             'order': orderId,
             'type': type,
-            'takerOrMaker': undefined,
+            'takerOrMaker': makerOrTaker,
             'side': side,
             'price': price,
             'amount': amount,
@@ -598,20 +702,19 @@ module.exports = class bitmax extends Exchange {
         }
         const response = await this.publicGetTrades (this.extend (request, params));
         //
-        //     {
-        //         "m": "marketTrades", // message type
-        //         "s": "ETH/BTC", // symbol
-        //         "trades": [
-        //             {
-        //                 "p": "13.75", // price
-        //                 "q": "6.68", // quantity
-        //                 "t": 1528988084944, // timestamp
-        //                 "bm": False, // if true, the buyer is the market maker
-        //             },
-        //         ]
-        //     }
+        //{'code': 0,
+        // 'data': {'m': 'trades',
+        //          'symbol': 'BTC/USDT',
+        //          'data': [{'p': '7812.61',
+        //                    'q': '0.01998',
+        //                    'ts': 1583760687790,
+        //                    'bm': False, # if True, the buyer is the market maker
+        //                    'seqnum': 72057603463162642}]
+        //          }
+        // }
         //
-        const trades = this.safeValue (response, 'trades', []);
+        const records = this.safeValue (response, 'data', []);
+        const trades = this.safeValue (records, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -629,42 +732,37 @@ module.exports = class bitmax extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // createOrder
+        //createOrder
         //
-        //     {
-        //         "coid": "xxx...xxx",
-        //         "action": "new",
-        //         "success": true  // success = true means the order has been submitted to the matching engine.
-        //     }
+        //{
+        //    'symbol': 'BTC/USDT',
+        //    'orderType': 'Limit',
+        //    'action': 'new',
+        //    'timestamp': 1583812256973,
+        //    'id': '0e602eb4337d4aebbe3c438f6cc41aee',
+        //    'orderId': 'a170c29124378418641348f6cc41aee'
+        //}
         //
-        // fetchOrder, fetchOpenOrders, fetchClosedOrders
+        //fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
-        //     {
-        //         "accountCategory": "CASH",
-        //         "accountId": "cshKAhmTHQNUKhR1pQyrDOdotE3Tsnz4",
-        //         "avgPrice": "0.000000000",
-        //         "baseAsset": "ETH",
-        //         "btmxCommission": "0.000000000",
-        //         "coid": "41g6wtPRFrJXgg6Y7vpIkcCyWhgcK0cF", // the unique identifier, you will need, this value to cancel this order
-        //         "errorCode": "NULL_VAL",
-        //         "execId": "12452288",
-        //         "execInst": "NULL_VAL",
-        //         "fee": "0.000000000", // cumulative fee paid for this order
-        //         "feeAsset": "", // the asset
-        //         "filledQty": "0.000000000", // filled quantity
-        //         "notional": "0.000000000",
-        //         "orderPrice": "0.310000000", // only available for limit and stop limit orders
-        //         "orderQty": "1.000000000",
-        //         "orderType": "StopLimit",
-        //         "quoteAsset": "BTC",
-        //         "side": "Buy",
-        //         "status": "PendingNew",
-        //         "stopPrice": "0.300000000", // only available for stop market and stop limit orders
-        //         "symbol": "ETH/BTC",
-        //         "time": 1566091628227, // The last execution time of the order
-        //         "sendingTime": 1566091503547, // The sending time of the order
-        //         "userId": "supEQeSJQllKkxYSgLOoVk7hJAX59WSz"
-        //     }
+        //{
+        //    'avgPx': '9126.75',
+        //    'cumFee': '0.002738025',
+        //    'cumFilledQty': '0.0005',
+        //    'errorCode': '',
+        //    'execInst': 'NULL_VAL',
+        //    'feeAsset': 'USDT',
+        //    'lastExecTime': 1583443804918,
+        //    'orderId': 'r170ac9b032cU9490877774sbtcpeAAb',
+        //    'orderQty': '0.0005',
+        //    'orderType': 'Market',
+        //    'price': '8853',
+        //    'seqNum': 4204789616,
+        //    'side': 'Sell',
+        //    'status': 'Filled',
+        //    'stopPrice': '',
+        //    'symbol': 'BTC-PERP'
+        //}
         //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
@@ -682,27 +780,14 @@ module.exports = class bitmax extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const timestamp = this.safeInteger (order, 'sendingTime');
-        let price = this.safeFloat (order, 'orderPrice');
+        const timestamp = this.safeInteger (order, 'lastExecTime') || this.safeInteger (order, 'timestamp');
+        let price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'orderQty');
-        const filled = this.safeFloat (order, 'filledQty');
+        const avgFillPx = this.safeFloat (order, 'avgPx');
+        const filled = this.safeFloat (order, 'cumFilledQty');
         let remaining = undefined;
-        let cost = this.safeFloat (order, 'cummulativeQuoteQty');
-        if (filled !== undefined) {
-            if (amount !== undefined) {
-                remaining = amount - filled;
-                if (this.options['parseOrderToPrecision']) {
-                    remaining = parseFloat (this.amountToPrecision (symbol, remaining));
-                }
-                remaining = Math.max (remaining, 0.0);
-            }
-            if (price !== undefined) {
-                if (cost === undefined) {
-                    cost = price * filled;
-                }
-            }
-        }
-        const id = this.safeString (order, 'coid');
+        const cost = (avgFillPx || 0) * (filled || 0);
+        const id = this.safeString (order, 'orderId');
         let type = this.safeString (order, 'orderType');
         if (type !== undefined) {
             type = type.toLowerCase ();
@@ -718,10 +803,9 @@ module.exports = class bitmax extends Exchange {
         }
         const side = this.safeStringLower (order, 'side');
         const fee = {
-            'cost': this.safeFloat (order, 'fee'),
+            'cost': this.safeFloat (order, 'cumFee'),
             'currency': this.safeString (order, 'feeAsset'),
         };
-        const average = this.safeFloat (order, 'avgPrice');
         return {
             'info': order,
             'id': id,
@@ -734,7 +818,7 @@ module.exports = class bitmax extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'average': average,
+            'average': avgFillPx,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -748,35 +832,39 @@ module.exports = class bitmax extends Exchange {
         await this.loadAccounts ();
         const market = this.market (symbol);
         const request = {
-            'coid': this.coid (), // a unique identifier of length 32
+            'id': this.coid (), // optional, a unique identifier of length 32
             // 'time': this.milliseconds (), // milliseconds since UNIX epoch in UTC, this is filled in the private section of the sign() method below
             'symbol': market['id'],
-            // 'orderPrice': this.priceToPrecision (symbol, price), // optional, limit price of the order. This field is required for limit orders and stop limit orders
-            // 'stopPrice': '15.7', // optional, stopPrice of the order. This field is required for stop_market orders and stop limit orders
+            'orderPrice': this.priceToPrecision (symbol, price || 0), // optional, limit price of the order. This field is required for limit orders and stop limit orders
+            'stopPrice': this.priceToPrecision (symbol, this.safeValue (params, 'stopPrice', 0.0)), // optional, stopPrice of the order. This field is required for stop_market orders and stop limit orders
             'orderQty': this.amountToPrecision (symbol, amount),
             'orderType': type, // order type, you shall specify one of the following: "limit", "market", "stop_market", "stop_limit"
             'side': side, // "buy" or "sell"
-            // 'postOnly': true, // optional, if true, the order will either be posted to the limit order book or be cancelled, i.e. the order cannot take liquidity, default is false
-            // 'timeInForce': 'GTC', // optional, supports "GTC" good-till-canceled and "IOC" immediate-or-cancel
+            'postOnly': this.safeValue (params, 'postOnly', false), // optional, if true, the order will either be posted to the limit order book or be cancelled, i.e. the order cannot take liquidity, default is false
+            'timeInForce': this.safeString (params, 'timeInForce', 'GTC'), // optional, supports "GTC" good-till-canceled, "IOC" immediate-or-cancel, and "FOK" for fill-or-kill
         };
         if ((type === 'limit') || (type === 'stop_limit')) {
             request['orderPrice'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.privatePostOrder (this.extend (request, params));
+        const method = 'privatePost' + this.getAccount (params) + 'Order';
+        const response = await this[method] (this.extend (request, params));
         //
-        //     {
-        //         "code": 0,
-        //         "email": "foo@bar.com", // this field will be deprecated soon
-        //         "status": "success", // this field will be deprecated soon
-        //         "data": {
-        //             "coid": "xxx...xxx",
-        //             "action": "new",
-        //             "success": true, // success = true means the order has been submitted to the matching engine
-        //         }
-        //     }
+        //{
+        //'code': 0,
+        // 'data': {'ac': 'CASH',
+        //          'accountId': 'hongyu.wang',
+        //          'action': 'place-order',
+        //          'info': {'id': 'JhAAjOoTY6EINXC8QcOL18HoXw89FU0u',
+        //                   'orderId': 'a170d000346b5450276356oXw89FU0u',
+        //                   'orderType': 'Limit',
+        //                   'symbol': 'BTMX/USDT',
+        //                   'timestamp': 1584037640014},
+        //          'status': 'Ack'}
+        //          }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseOrder (data, market);
+        const info = this.extend (this.safeValue (data, 'info'), {'status': undefined});
+        return this.parseOrder (info, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -787,149 +875,39 @@ module.exports = class bitmax extends Exchange {
             market = this.market (symbol);
         }
         const request = {
-            'coid': id,
+            'orderId': id,
         };
-        const response = await this.privateGetOrderCoid (this.extend (request, params));
+
+        const method = 'privateGet' + this.getAccount (params) + 'OrderStatus';
+        const response = await this[method] (this.extend (request, params));
         //
-        //     {
-        //         'code': 0,
-        //         'status': 'success', // this field will be deprecated soon
-        //         'email': 'foo@bar.com', // this field will be deprecated soon
-        //         "data": {
-        //             "accountCategory": "CASH",
-        //             "accountId": "cshKAhmTHQNUKhR1pQyrDOdotE3Tsnz4",
-        //             "avgPrice": "0.000000000",
-        //             "baseAsset": "ETH",
-        //             "btmxCommission": "0.000000000",
-        //             "coid": "41g6wtPRFrJXgg6Y7vpIkcCyWhgcK0cF", // the unique identifier, you will need, this value to cancel this order
-        //             "errorCode": "NULL_VAL",
-        //             "execId": "12452288",
-        //             "execInst": "NULL_VAL",
-        //             "fee": "0.000000000", // cumulative fee paid for this order
-        //             "feeAsset": "", // the asset
-        //             "filledQty": "0.000000000", // filled quantity
-        //             "notional": "0.000000000",
-        //             "orderPrice": "0.310000000", // only available for limit and stop limit orders
-        //             "orderQty": "1.000000000",
-        //             "orderType": "StopLimit",
-        //             "quoteAsset": "BTC",
-        //             "side": "Buy",
-        //             "status": "PendingNew",
-        //             "stopPrice": "0.300000000", // only available for stop market and stop limit orders
-        //             "symbol": "ETH/BTC",
-        //             "time": 1566091628227, // The last execution time of the order
-        //             "sendingTime": 1566091503547, // The sending time of the order
-        //             "userId": "supEQeSJQllKkxYSgLOoVk7hJAX59WSz"
-        //         }
-        //     }
+        //{'code': 0,
+        // 'accountId': 'ABCDEFGHIJKLMNOPQRSTUVWXYZABC',
+        // 'ac': 'CASH',
+        // 'data': {'seqNum': 4208248561,
+        //          'orderId': 'r170adcc717eU123456789bbtmabc3P',
+        //          'symbol': 'BTMX/USDT',
+        //          'orderType': 'Limit',
+        //          'lastExecTime': 1583463823205,
+        //          'price': '0.06043',
+        //          'orderQty': '100',
+        //          'side': 'Buy',
+        //          'status': 'Filled',
+        //          'avgPx': '0.06043',
+        //          'cumFilledQty': '100',
+        //          'stopPrice': '',
+        //          'errorCode': '',
+        //          'cumFee': '0.006043',
+        //          'feeAsset': 'USDT',
+        //          'execInst': 'NULL_VAL'
+        //          }
+        // }
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
-    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        await this.loadAccounts ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        const request = {
-            'coid': id,
-        };
-        const response = await this.privateGetOrderFillsCoid (this.extend (request, params));
-        //
-        //     {
-        //         'code': 0,
-        //         'status': 'success', // this field will be deprecated soon
-        //         'email': 'foo@bar.com', // this field will be deprecated soon
-        //         "data": [
-        //             {
-        //                 "ap": "0.029062965", // average filled price
-        //                 "bb": "36851.981", // base asset total balance
-        //                 "bc": "0", // if possitive, this is the BTMX commission charged by reverse mining, if negative, this is the mining output of the current fill.
-        //                 "bpb": "36851.981", // base asset pending balance
-        //                 "btmxBal": "0.0", // optional, the BTMX balance of the current account. This field is only available when bc is non-zero.
-        //                 "cat": "CASH", // account category: CASH/MARGIN
-        //                 "coid": "41g6wtPRFrJXgg6YxjqI6Qoog139Dmoi", // client order id, (needed to cancel order)
-        //                 "ei": "NULL_VAL", // execution instruction
-        //                 "errorCode": "NULL_VAL", // if the order is rejected, this field explains why
-        //                 "execId": "12562285", // for each user, this is a strictly increasing long integer (represented as string)
-        //                 "f": "78.074", // filled quantity, this is the aggregated quantity executed by all past fills
-        //                 "fa": "BTC", // fee asset
-        //                 "fee": "0.000693608", // fee
-        //                 'lp': "0.029064", // last price, the price executed by the last fill
-        //                 "l": "11.932", // last quantity, the quantity executed by the last fill
-        //                 "m": "order", // message type
-        //                 "orderType": "Limit", // Limit, Market, StopLimit, StopMarket
-        //                 "p": "0.029066", // limit price, only available for limit and stop limit orders
-        //                 "q": "100.000", // order quantity
-        //                 "qb": "98878.642957097", // quote asset total balance
-        //                 "qpb": "98877.967247508", // quote asset pending balance
-        //                 "s": "ETH/BTC", // symbol
-        //                 "side": "Buy", // side
-        //                 "status": "PartiallyFilled", // order status
-        //                 "t": 1561131458389, // timestamp
-        //             },
-        //         ]
-        //     }
-        //
-        const data = this.safeValue (response, 'data', {});
-        return this.parseTrades (data, market, since, limit);
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        await this.loadAccounts ();
-        let market = undefined;
-        const request = {
-            // 'side': 'buy', // or 'sell', optional
-        };
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
-        const response = await this.privateGetOrderOpen (this.extend (request, params));
-        //
-        //     {
-        //         'code': 0,
-        //         'status': 'success', // this field will be deprecated soon
-        //         'email': 'foo@bar.com', // this field will be deprecated soon
-        //         "data": [
-        //             {
-        //                 "accountCategory": "CASH",
-        //                 "accountId": "cshKAhmTHQNUKhR1pQyrDOdotE3Tsnz4",
-        //                 "avgPrice": "0.000000000",
-        //                 "baseAsset": "ETH",
-        //                 "btmxCommission": "0.000000000",
-        //                 "coid": "41g6wtPRFrJXgg6Y7vpIkcCyWhgcK0cF", // the unique identifier, you will need, this value to cancel this order
-        //                 "errorCode": "NULL_VAL",
-        //                 "execId": "12452288",
-        //                 "execInst": "NULL_VAL",
-        //                 "fee": "0.000000000", // cumulative fee paid for this order
-        //                 "feeAsset": "", // the asset
-        //                 "filledQty": "0.000000000", // filled quantity
-        //                 "notional": "0.000000000",
-        //                 "orderPrice": "0.310000000", // only available for limit and stop limit orders
-        //                 "orderQty": "1.000000000",
-        //                 "orderType": "StopLimit",
-        //                 "quoteAsset": "BTC",
-        //                 "side": "Buy",
-        //                 "status": "PendingNew",
-        //                 "stopPrice": "0.300000000", // only available for stop market and stop limit orders
-        //                 "symbol": "ETH/BTC",
-        //                 "time": 1566091628227, // The last execution time of the order
-        //                 "sendingTime": 1566091503547, // The sending time of the order
-        //                 "userId": "supEQeSJQllKkxYSgLOoVk7hJAX59WSz"
-        //             },
-        //         ]
-        //     }
-        //
-        const data = this.safeValue (response, 'data', []);
-        return this.parseOrders (data, market, since, limit);
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
         let market = undefined;
@@ -954,48 +932,146 @@ module.exports = class bitmax extends Exchange {
         if (limit !== undefined) {
             request['n'] = limit; // default 15, max 50
         }
-        const response = await this.privateGetOrderHistory (this.extend (request, params));
+        request['executedOnly'] = this.safeValue (params, 'executedOnly', false);
+        const method = 'privateGet' + this.getAccount (params) + "OrderHistCurrent";
+        const response = await this[method] (this.extend (request, params));
         //
-        //     {
-        //         'code': 0,
-        //         'status': 'success', // this field will be deprecated soon
-        //         'email': 'foo@bar.com', // this field will be deprecated soon
-        //         'data': {
-        //             'page': 1,
-        //             'pageSize': 20,
-        //             'limit': 500,
-        //             'hasNext': False,
-        //             'data': [
-        //                 {
-        //                     'time': 1566091429000, // The last execution time of the order (This timestamp is in second level resolution)
-        //                     'coid': 'QgQIMJhPFrYfUf60ZTihmseTqhzzwOCx',
-        //                     'execId': '331',
-        //                     'symbol': 'BTMX/USDT',
-        //                     'orderType': 'Market',
-        //                     'baseAsset': 'BTMX',
-        //                     'quoteAsset': 'USDT',
-        //                     'side': 'Buy',
-        //                     'stopPrice': '0.000000000', // only meaningful for stop market and stop limit orders
-        //                     'orderPrice': '0.123000000', // only meaningful for limit and stop limit orders
-        //                     'orderQty': '9229.409000000',
-        //                     'filledQty': '9229.409000000',
-        //                     'avgPrice': '0.095500000',
-        //                     'fee': '0.352563424',
-        //                     'feeAsset': 'USDT',
-        //                     'btmxCommission': '0.000000000',
-        //                     'status': 'Filled',
-        //                     'notional': '881.408559500',
-        //                     'userId': '5DNEppWy33SayHjFQpgQUTjwNMSjEhD3',
-        //                     'accountId': 'ACPHERRWRIA3VQADMEAB2ZTLYAXNM3PJ',
-        //                     'accountCategory': 'CASH',
-        //                     'errorCode': 'NULL_VAL',
-        //                     'execInst': 'NULL_VAL',
-        //                     "sendingTime": 1566091382736, // The sending time of the order
-        //                },
-        //             ]
-        //         }
-        //     }
+        //{
+        //    'code': 0,
+        //    'accountId': 'test1@xxxxx.io',
+        //    'ac': 'CASH',
+        //    'data': [
+        //        {
+        //            'seqNum': 30181890,
+        //            'orderId': 'a170c4f6cae084186413483b0e984fe',
+        //            'symbol': 'BTC/USDT',
+        //            'orderType': 'Limit',
+        //            'lastExecTime': 1583852473185,
+        //            'price': '8500',
+        //            'orderQty': '0.01',
+        //            'side': 'Buy',
+        //            'status': 'Filled',
+        //            'avgPx': '8032.04',
+        //            'cumFilledQty': '0.01',
+        //            'stopPrice': '',
+        //            'errorCode': '',
+        //            'cumFee': '0.065862728',
+        //            'feeAsset': 'USDT',
+        //            'execInst': 'NULL_VAL'
+        //        }]
+        // }
         //
+
+        const orders = this.safeValue (response, 'data', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        let market = undefined;
+        const request = {
+            // 'symbol': 'symbol'  optional
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+
+        const method = 'privateGet' + this.getAccount (params) + 'OrderOpen';
+        const response = await this[method] (this.extend (request, params));
+        //
+        //{
+        //    'code': 0,
+        //    'accountId': 'MPXFNEYEJIJ93CREXT3LTCIDIJPCFNIX',
+        //    'ac': 'CASH',
+        //    'data':
+        //        [{
+        //            'seqNum': 4305977824,
+        //            'orderId': 'a170c9e191a7U9490877774397007e73',
+        //            'symbol': 'BTMX/USDT',
+        //            'orderType': 'Limit',
+        //            'lastExecTime': 1583934968446,
+        //            'price': '0.045',
+        //            'orderQty': '200',
+        //            'side': 'Buy',
+        //            'status': 'New',
+        //            'avgPx': '0',
+        //            'cumFilledQty': '0',
+        //            'stopPrice': '',
+        //            'errorCode': '',
+        //            'cumFee': '0',
+        //            'feeAsset': 'USDT',
+        //            'execInst': 'NULL_VAL'
+        //        }]
+        //}
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        let market = undefined;
+        const request = {
+            // 'symbol': 'ETH/BTC', // optional
+            // 'category': 'CASH'/'MARGIN'/"FUTURES', // optional, string
+            // 'orderType': 'Market', // optional, string
+            // 'page': 1, // optional, integer type, starts at 1
+            // 'pageSize': 100, // optional, integer type
+            // 'side': 'buy', // or 'sell', optional, case insensitive.
+            // 'startTime': 1566091628227, // optional, integer milliseconds since UNIX epoch representing the start of the range
+            // 'endTime': 1566091628227, // optional, integer milliseconds since UNIX epoch representing the end of the range
+            // 'status': 'Filled', // optional, can only be one of "Filled", "Canceled", "Rejected"
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['n'] = limit; // default 15, max 50
+        }
+        const response = await this.privateGetOrderHist (this.extend (request, params));
+
+        //
+        //{
+        //    'code': 0,
+        //    'data':
+        //        {
+        //            'page': 1,
+        //            'pageSize': 20,
+        //            'limit': 500,
+        //            'hasNext': True,
+        //            'data': [
+        //                {
+        //                    'ac': 'CASH',
+        //                    'accountId': 'ABCDEFGHIJKLMOPQRSTUVWXYZABC',
+        //                    'avgPx': '0',
+        //                    'cumFee': '0',
+        //                    'cumQty': '0',
+        //                    'errorCode': 'NULL_VAL',
+        //                    'feeAsset': 'USDT',
+        //                    'lastExecTime': 1583894311925,
+        //                    'orderId': 'r170c77528bdU9490877774bbtcu9DwL',
+        //                    'orderQty': '0.001', 'orderType': 'Limit',
+        //                    'price': '7912.88',
+        //                    'sendingTime': 1583894310880,
+        //                    'seqNum': 4297339552,
+        //                    'side': 'Buy',
+        //                    'status': 'Canceled',
+        //                    'stopPrice': '',
+        //                    'symbol': 'BTC/USDT',
+        //                    'execInst': 'NULL_VAL'
+        //                }
+        //            ]
+        //        }
+        //}
+        //
+
         const data = this.safeValue (response, 'data', {});
         const orders = this.safeValue (data, 'data', []);
         return this.parseOrders (orders, market, since, limit);
@@ -1010,22 +1086,29 @@ module.exports = class bitmax extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'coid': this.coid (),
-            'origCoid': id,
+            'id': this.coid (), // optional
+            'orderId': id,
             // 'time': this.milliseconds (), // this is filled in the private section of the sign() method below
         };
+        const method = 'privateDelete' + this.getAccount (params) + 'Order';
         const response = await this.privateDeleteOrder (this.extend (request, params));
         //
-        //     {
-        //         'code': 0,
-        //         'status': 'success', // this field will be deprecated soon
-        //         'email': 'foo@bar.com', // this field will be deprecated soon
-        //         'data': {
-        //             'action': 'cancel',
-        //             'coid': 'gaSRTi3o3Yo4PaXpVK0NSLP47vmJuLea',
-        //             'success': True,
-        //         }
-        //     }
+        //{
+        //    'code': 0,
+        //    'data':
+        //        {
+        //            'accountId': 'test1@xxxxx.io',
+        //            'ac': 'CASH',
+        //            'action': 'cancel-order',
+        //            'status': 'Ack',
+        //            'info': {
+        //                'symbol': 'BTC/USDT',
+        //                'orderType': '',
+        //                'timestamp': 1583868590663,
+        //                'id': 'de4f5a7c5df2433cbe427da14d8f84d5',
+        //                'orderId': 'a170c5136edb8418641348575f38457'}
+        //        }
+        //}
         //
         const order = this.safeValue (response, 'data', {});
         return this.parseOrder (order);
@@ -1035,14 +1118,14 @@ module.exports = class bitmax extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const request = {
-            // 'side': 'buy', // optional string field (case-insensitive), either "buy" or "sell"
         };
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id']; // optional
         }
-        const response = await this.privateDeleteOrderAll (this.extend (request, params));
+        const method = 'privateDelete' + this.getAccount (params) + 'OrderAll';
+        const response = await this[method] (this.extend (request, params));
         //
         //     ?
         //
@@ -1064,44 +1147,39 @@ module.exports = class bitmax extends Exchange {
         const request = {
             'requestId': this.coid (),
             // 'time': this.milliseconds (), // this is filled in the private section of the sign() method below
-            'assetCode': currency['id'],
+            'asset': currency['id'],
         };
-        // note: it is highly recommended to use V2 version of this route,
-        // especially for assets with multiple block chains such as USDT.
-        const response = await this.privateGetDeposit (this.extend (request, params));
+
+        const response = await this.privateGetWalletDepositAddress (this.extend (request, params));
         //
-        // v1
         //
-        //     {
-        //         "data": {
-        //             "address": "0x26a3CB49578F07000575405a57888681249c35Fd"
-        //         },
-        //         "email": "igor.kroitor@gmial.com",
-        //         "status": "success",
-        //     }
+        //{
+        //    'code': 0,
+        //    'data':
+        //        {
+        //            'asset': 'BTC',
+        //            'assetName': 'Bitcoin',
+        //            'address':
+        //                [
+        //                    {
+        //                        'address': '3P5e8M6nQaGPB6zYJ447uGJKCJN2ZkEDLB',
+        //                        'destTag': '',
+        //                        'tagType': '',
+        //                        'tagId': '',
+        //                        'chainName': 'Bitcoin',
+        //                        'numConfirmations': 3,
+        //                        'withdrawalFee': 0.0005,
+        //                        'nativeScale': 8,
+        //                        'tips': []
+        //                    }
+        //                ]
+        //        }
+        //}
         //
-        // v2
-        //
-        //     {
-        //         "code": 0,
-        //         "data": [
-        //             {
-        //                 "asset": "XRP",
-        //                 "blockChain": "Ripple",
-        //                 "addressData": {
-        //                     "address": "rpinhtY4p35bPmVXPbfWRUtZ1w1K1gYShB",
-        //                     "destTag": "54301"
-        //                 }
-        //             }
-        //         ],
-        //         "email": "xxx@xxx.com",
-        //         "status": "success" // the request has been submitted to the server
-        //     }
-        //
-        let addressData = this.safeValue (response, 'data');
+        let data = this.safeValue (response, 'data', {});
+        let addressData = this.safeValue (data, 'address', []);
         if (Array.isArray (addressData)) {
-            const firstElement = this.safeValue (addressData, 0, {});
-            addressData = this.safeValue (firstElement, 'addressData', {});
+            addressData = this.safeValue (addressData, 0, {});
         }
         const address = this.safeString (addressData, 'address');
         const tag = this.safeString (addressData, 'destTag');
@@ -1115,7 +1193,7 @@ module.exports = class bitmax extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = '/api/' + this.version + '/' + this.implodeParams (path, params);
+        let url = '/api/pro/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {
@@ -1123,27 +1201,26 @@ module.exports = class bitmax extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            let accountGroup = this.safeString (this.options, 'accountGroup');
-            if (accountGroup === undefined) {
-                if (this.accounts !== undefined) {
-                    accountGroup = this.accounts[0]['id'];
+            if (this.safeValue (params, 'isCommonApi', false) !== false) {
+                let accountGroup = this.safeString (this.options, 'accountGroup');
+                if (accountGroup === undefined) {
+                    if (this.accounts !== undefined) {
+                        accountGroup = this.accounts[0]['id'];
+                    }
+                }
+                if (accountGroup !== undefined) {
+                    url = '/' + accountGroup + url;
                 }
             }
-            if (accountGroup !== undefined) {
-                url = '/' + accountGroup + url;
-            }
-            const coid = this.safeString (query, 'coid');
+
             query['time'] = this.milliseconds ().toString ();
-            let auth = query['time'] + '+' + path.replace ('/{coid}', ''); // fix sign error
+            let auth = query['time'] + '+' + path.replace ('/{orderId}', ''); // fix sign error
             headers = {
                 'x-auth-key': this.apiKey,
                 'x-auth-timestamp': query['time'],
                 'Content-Type': 'application/json',
             };
-            if (coid !== undefined) {
-                auth += '+' + coid;
-                headers['x-auth-coid'] = coid;
-            }
+
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
             headers['x-auth-signature'] = signature;
             if (method === 'GET') {
