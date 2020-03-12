@@ -477,10 +477,10 @@ module.exports = class bybit extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat2 (ticker, 'high_price_24h'),
             'low': this.safeFloat2 (ticker, 'low_price_24h'),
-            'bid': this.safeFloat2 (ticker, 'bid_price'),
-            'bidVolume': this.safeFloat (ticker, 'best_bid_amount'),
-            'ask': this.safeFloat2 (ticker, 'ask_price'),
-            'askVolume': this.safeFloat (ticker, 'best_ask_amount'),
+            'bid': this.safeFloat (ticker, 'bid_price'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask_price'),
+            'askVolume': undefined,
             'vwap': vwap,
             'open': open,
             'close': last,
@@ -538,8 +538,13 @@ module.exports = class bybit extends Exchange {
         //         time_now: '1583948195.818255'
         //     }
         //
-        const result = this.safeValue (response, 'result');
-        return this.parseTicker (result, market);
+        const result = this.safeValue (response, 'result', []);
+        const first = this.safeValue (result, 0);
+        const timestamp = this.safeTimestamp (response, 'time_now');
+        const ticker = this.parseTicker (first, market);
+        ticker['timestamp'] = timestamp;
+        ticker['datetime'] = this.iso8601 (timestamp);
+        return ticker;
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
