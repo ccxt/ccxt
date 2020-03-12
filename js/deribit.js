@@ -1625,7 +1625,7 @@ module.exports = class deribit extends Exchange {
             'addressFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
-            'TagFrom': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': this.safeFloat (transaction, 'amount'),
             'currency': code,
