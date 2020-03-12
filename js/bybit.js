@@ -25,8 +25,8 @@ module.exports = class bybit extends Exchange {
                 'editOrder': true,
                 // 'fetchOrder': true,
                 'fetchOrders': true,
-                // 'fetchOpenOrders': true,
-                // 'fetchClosedOrders': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
                 // 'fetchMyTrades': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -1291,23 +1291,6 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // const statuses = [
-        //     // basic orders
-        //     'Created': 'open',
-        //     'Rejected': 'rejected', // order is triggered but failed upon being placed
-        //     'New': 'open',
-        //     'PartiallyFilled': 'open',
-        //     'Filled': 'filled',
-        //     'Cancelled': 'canceled',
-        //     'PendingCancel': 'canceling', // the engine has received the cancellation but there is no guarantee that it will be successful
-        //     // conditional orders
-        //     'Active': 'open', // order is triggered and placed successfully
-        //     'Untriggered': 'open', // order waits to be triggered
-        //     'Triggered': 'open', // order is triggered
-        //     // 'Cancelled': 'canceled', // order is cancelled
-        //     // 'Rejected': 'rejected', // order is triggered but fail to be placed
-        //     'Deactivated': 'canceled', // conditional order was cancelled before triggering
-        // ];
         const defaultStatuses = [
             'Rejected',
             'Filled',
@@ -1315,6 +1298,27 @@ module.exports = class bybit extends Exchange {
             'Deactivated',
         ];
         const options = this.safeValue (this.options, 'fetchClosedOrders', {});
+        let status = this.safeValue (options, 'order_status', defaultStatuses);
+        if (Array.isArray (status)) {
+            status = status.join (',');
+        }
+        const request = {
+            'order_status': status,
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const defaultStatuses = [
+            'Created',
+            'New',
+            'PartiallyFilled',
+            'PendingCancel',
+            'Active',
+            'Untriggered',
+            'Triggered',
+        ];
+        const options = this.safeValue (this.options, 'fetchOpenOrders', {});
         let status = this.safeValue (options, 'order_status', defaultStatuses);
         if (Array.isArray (status)) {
             status = status.join (',');
@@ -1602,7 +1606,7 @@ module.exports = class bybit extends Exchange {
         if (api === 'public') {
             request = '/' + this.version + '/' + api + '/' + request;
             if (Object.keys (params).length) {
-                request += '?' + this.urlencode (params);
+                request += '?' + this.rawencode (params);
             }
         } else {
             this.checkRequiredCredentials ();
@@ -1621,7 +1625,7 @@ module.exports = class bybit extends Exchange {
                 'recvWindow': this.options['recvWindow'],
                 'timestamp': timestamp,
             });
-            const auth = this.urlencode (this.keysort (query));
+            const auth = this.rawencode (this.keysort (query));
             const signature = this.hmac (this.encode (auth), this.encode (this.secret));
             if (method === 'POST') {
                 body = this.json (this.extend (query, {
