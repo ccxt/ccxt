@@ -27,10 +27,10 @@ module.exports = class bybit extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                // 'fetchMyTrades': true,
+                'fetchMyTrades': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                // 'fetchOrderTrades': true,
+                'fetchOrderTrades': true,
                 'createOrder': true,
                 // 'cancelOrder': true,
                 // 'cancelAllOrders': true,
@@ -664,27 +664,68 @@ module.exports = class bybit extends Exchange {
         //
         // fetchMyTrades, fetchOrderTrades (private)
         //
+        //     {
+        //         "closed_size": 0,
+        //         "cross_seq": 277136382,
+        //         "exec_fee": "0.0000001",
+        //         "exec_id": "256e5ef8-abfe-5772-971b-f944e15e0d68",
+        //         "exec_price": "8178.5",
+        //         "exec_qty": 1,
+        //         "exec_time": "1571676941.70682",
+        //         "exec_type": "Trade", //Exec Type Enum
+        //         "exec_value": "0.00012227",
+        //         "fee_rate": "0.00075",
+        //         "last_liquidity_ind": "RemovedLiquidity", //Liquidity Enum
+        //         "leaves_qty": 0,
+        //         "nth_fill": 2,
+        //         "order_id": "7ad50cb1-9ad0-4f74-804b-d82a516e1029",
+        //         "order_link_id": "",
+        //         "order_price": "8178",
+        //         "order_qty": 1,
+        //         "order_type": "Market", //Order Type Enum
+        //         "side": "Buy", //Side Enum
+        //         "symbol": "BTCUSD", //Symbol Enum
+        //         "user_id": 1
+        //     }
         //
-        //
-        const id = this.safeString (trade, 'id');
+        const id = this.safeString2 (trade, 'id', 'exec_id');
         let symbol = undefined;
+        let base = undefined;
         const marketId = this.safeString (trade, 'symbol');
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
             symbol = market['symbol'];
+            base = market['base'];
         }
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
+            base = market['base'];
         }
-        const timestamp = this.parse8601 (this.safeString (trade, 'time'));
+        let timestamp = this.parse8601 (this.safeString2 (trade, 'time'));
+        if (timestamp === undefined) {
+            timestamp = this.safeTimestamp (trade, 'exec_time');
+        }
         const side = this.safeStringLower (trade, 'side');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'qty');
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = amount * price;
+        const price = this.safeFloat2 (trade, 'price', 'exec_price');
+        const amount = this.safeFloat2 (trade, 'qty', 'exec_qty');
+        let cost = this.safeFloat (trade, 'exec_value');
+        if (cost === undefined) {
+            if (amount !== undefined) {
+                if (price !== undefined) {
+                    cost = amount * price;
+                }
             }
+        }
+        const lastLiquidityInd = this.safeString (trade, 'last_liquidity_ind');
+        const takerOrMaker = (lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
+        const feeCost = this.safeFloat (trade, 'exec_fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': base,
+                'rate': this.safeFloat (trade, 'fee_rate'),
+            };
         }
         return {
             'id': id,
@@ -692,14 +733,14 @@ module.exports = class bybit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'order': undefined,
-            'type': undefined,
+            'order': this.safeString (trade, 'order_id'),
+            'type': this.safeStringLower (trade, 'order_type'),
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -1337,47 +1378,10 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
         const request = {
             'order_id': id,
         };
-        const response = await this.privateGetGetUserTradesByOrder (this.extend (request, params));
-        //
-        //     {
-        //         "jsonrpc": "2.0",
-        //         "id": 9367,
-        //         "result": {
-        //             "trades": [
-        //                 {
-        //                     "trade_seq": 3,
-        //                     "trade_id": "ETH-34066",
-        //                     "timestamp": 1550219814585,
-        //                     "tick_direction": 1,
-        //                     "state": "open",
-        //                     "self_trade": false,
-        //                     "reduce_only": false,
-        //                     "price": 0.04,
-        //                     "post_only": false,
-        //                     "order_type": "limit",
-        //                     "order_id": "ETH-334607",
-        //                     "matching_id": null,
-        //                     "liquidity": "M",
-        //                     "iv": 56.83,
-        //                     "instrument_name": "ETH-22FEB19-120-C",
-        //                     "index_price": 121.37,
-        //                     "fee_currency": "ETH",
-        //                     "fee": 0.0011,
-        //                     "direction": "buy",
-        //                     "amount": 11
-        //                 },
-        //             ],
-        //             "has_more": true
-        //         }
-        //     }
-        //
-        const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue (result, 'trades', []);
-        return this.parseTrades (trades, undefined, since, limit);
+        return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
