@@ -1096,6 +1096,7 @@ module.exports = class binance extends Exchange {
             const quoteOrderQty = this.safeFloat (params, 'quoteOrderQty');
             if (quoteOrderQty !== undefined) {
                 request['quoteOrderQty'] = this.costToPrecision (symbol, quoteOrderQty);
+                params = this.omit (params, 'quoteOrderQty');
             } else if (price !== undefined) {
                 request['quoteOrderQty'] = this.costToPrecision (symbol, amount * price);
             } else {
