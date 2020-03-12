@@ -1703,6 +1703,126 @@ module.exports = class bybit extends Exchange {
         };
     }
 
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'coin': currency['id'],
+            // 'currency': currency['id'], // alias
+            // 'start_date': this.iso8601 (since),
+            // 'end_date': this.iso8601 (till),
+            // 'wallet_fund_type': 'Deposit', // Withdraw, RealisedPNL, Commission, Refund, Prize, ExchangeOrderWithdraw, ExchangeOrderDeposit
+            // 'page': 1,
+            // 'limit': 20, // max 50
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start_date'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.openapiGetWalletFundRecords (this.extend (request, params));
+        //
+        //     {
+        //         "ret_code": 0,
+        //         "ret_msg": "ok",
+        //         "ext_code": "",
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "id": 234467,
+        //                     "user_id": 1,
+        //                     "coin": "BTC",
+        //                     "wallet_id": 27913,
+        //                     "type": "Realized P&L",
+        //                     "amount": "-0.00000006",
+        //                     "tx_id": "",
+        //                     "address": "BTCUSD",
+        //                     "wallet_balance": "0.03000330",
+        //                     "exec_time": "2019-12-09T00:00:25.000Z",
+        //                     "cross_seq": 0
+        //                 }
+        //             ]
+        //         },
+        //         "ext_info": null,
+        //         "time_now": "1577481867.115552",
+        //         "rate_limit_status": 119,
+        //         "rate_limit_reset_ms": 1577481867122,
+        //         "rate_limit": 120
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const data = this.safeValue (result, 'data', []);
+        return this.parseLedger (data, currency, since, limit);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //     {
+        //         "id": 234467,
+        //         "user_id": 1,
+        //         "coin": "BTC",
+        //         "wallet_id": 27913,
+        //         "type": "Realized P&L",
+        //         "amount": "-0.00000006",
+        //         "tx_id": "",
+        //         "address": "BTCUSD",
+        //         "wallet_balance": "0.03000330",
+        //         "exec_time": "2019-12-09T00:00:25.000Z",
+        //         "cross_seq": 0
+        //     }
+        //
+        const currencyId = this.safeString (item, 'coin');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const amount = this.safeFloat (item, 'amount');
+        const after = this.safeFloat (item, 'wallet_balance');
+        const direction = (amount < 0) ? 'out' : 'in';
+        let before = undefined;
+        if (after !== undefined && amount !== undefined) {
+            const difference = (direction === 'out') ? amount : -amount;
+            before = this.sum (after, difference);
+        }
+        const timestamp = this.parse8601 (this.safeString (item, 'exec_time'));
+        const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
+        const id = this.safeString (item, 'id');
+        const referenceId = this.safeString (item, 'tx_id');
+        return {
+            'id': id,
+            'currency': code,
+            'account': this.safeString (item, 'wallet_id'),
+            'referenceAccount': undefined,
+            'referenceId': referenceId,
+            'status': undefined,
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'fee': undefined,
+            'direction': direction,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'type': type,
+            'info': item,
+        };
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            'Deposit': 'transaction',
+            'Withdraw': 'transaction',
+            'RealisedPNL': 'trade',
+            'Commission': 'fee',
+            'Refund': 'cashback',
+            'Prize': 'prize', // ?
+            'ExchangeOrderWithdraw': 'transaction',
+            'ExchangeOrderDeposit': 'transaction',
+        };
+        return this.safeString (types, type, type);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'];
         let request = path;
