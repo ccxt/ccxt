@@ -1579,40 +1579,55 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
-        }
         await this.loadMarkets ();
-        const currency = this.currency (code);
         const request = {
-            'currency': currency['id'],
+            // 'coin': currency['id'],
+            // 'start_date': this.iso8601 (since),
+            // 'end_date': this.iso8601 (till),
+            // 'status': 'Pending', // ToBeConfirmed, UnderReview, Pending, Success, CancelByUser, Reject, Expire
+            // 'page': 1,
+            // 'limit': 20, // max 50
         };
-        if (limit !== undefined) {
-            request['count'] = limit;
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
         }
-        const response = await this.privateGetGetWithdrawals (this.extend (request, params));
+        if (since !== undefined) {
+            request['start_date'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.openapiGetWalletWithdrawList (this.extend (request, params));
         //
         //     {
-        //         "jsonrpc": "2.0",
-        //         "id": 2745,
+        //         "ret_code": 0,
+        //         "ret_msg": "ok",
+        //         "ext_code": "",
         //         "result": {
-        //             "count": 1,
         //             "data": [
         //                 {
-        //                     "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBz",
-        //                     "amount": 0.5,
-        //                     "confirmed_timestamp": null,
-        //                     "created_timestamp": 1550571443070,
-        //                     "currency": "BTC",
-        //                     "fee": 0.0001,
-        //                     "id": 1,
-        //                     "priority": 0.15,
-        //                     "state": "unconfirmed",
-        //                     "transaction_id": null,
-        //                     "updated_timestamp": 1550571443070
-        //                 }
-        //             ]
-        //         }
+        //                     "id": 137,
+        //                     "user_id": 1,
+        //                     "coin": "XRP", // Coin Enum
+        //                     "status": "Pending", // Withdraw Status Enum
+        //                     "amount": "20.00000000",
+        //                     "fee": "0.25000000",
+        //                     "address": "rH7H595XYEVTEHU2FySYsWnmfACBnZS9zM",
+        //                     "tx_id": "",
+        //                     "submited_at": "2019-06-11T02:20:24.000Z",
+        //                     "updated_at": "2019-06-11T02:20:24.000Z"
+        //                 },
+        //             ],
+        //             "current_page": 1,
+        //             "last_page": 1
+        //         },
+        //         "ext_info": null,
+        //         "time_now": "1577482295.125488",
+        //         "rate_limit_status": 119,
+        //         "rate_limit_reset_ms": 1577482295132,
+        //         "rate_limit": 120
         //     }
         //
         const result = this.safeValue (response, 'result', {});
@@ -1622,8 +1637,13 @@ module.exports = class bybit extends Exchange {
 
     parseTransactionStatus (status) {
         const statuses = {
-            'completed': 'ok',
-            'unconfirmed': 'pending',
+            'ToBeConfirmed': 'pending',
+            'UnderReview': 'pending',
+            'Pending': 'pending',
+            'Success': 'ok',
+            'CancelByUser': 'canceled',
+            'Reject': 'rejected',
+            'Expire': 'expired',
         };
         return this.safeString (statuses, status, status);
     }
