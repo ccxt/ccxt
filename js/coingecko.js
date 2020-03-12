@@ -56,6 +56,7 @@ module.exports = class coingecko extends Exchange {
                 'public': {
                     'get': [
                         'ping',
+                        'simple/supported_vs_currencies',
                         'coins',
                         'coins/list',
                         'coins/markets',
@@ -67,62 +68,16 @@ module.exports = class coingecko extends Exchange {
                     ],
                 },
             },
-            'options': {
-                // hardcoding is deprecated, we should fetch this list from coingecko itself
-                'vsCurrencies': [
-                    'AED',
-                    'ARS',
-                    'AUD',
-                    'BRL',
-                    'BTC',
-                    'CAD',
-                    'CHF',
-                    'CLP',
-                    'CNY',
-                    'CZK',
-                    'DKK',
-                    'ETH',
-                    'EUR',
-                    'GBP',
-                    'HKD',
-                    'HUF',
-                    'IDR',
-                    'ILS',
-                    'INR',
-                    'JPY',
-                    'KRW',
-                    'KWD',
-                    'LKR',
-                    'MXN',
-                    'MYR',
-                    'NOK',
-                    'NZD',
-                    'PHP',
-                    'PKR',
-                    'PLN',
-                    'RUB',
-                    'SAR',
-                    'SEK',
-                    'SGD',
-                    'THB',
-                    'TRY',
-                    'TWD',
-                    'USD',
-                    'XAG',
-                    'XAU',
-                    'XDR',
-                    'ZAR',
-                ],
-            },
         });
     }
 
     async fetchMarkets () {
         const coins = await this.publicGetCoinsList ();
         let markets = [];
+        const supportedVsCurrencies = await this.publicGetSimpleSupportedVsCurrencies()
         for (let i = 0; i < coins.length; i++) {
             const coin = coins[i];
-            let vsCurrencies = this.options['vsCurrencies'];
+            let vsCurrencies = supportedVsCurrencies;
             for (let j = 0; j < vsCurrencies.length; j++) {
                 markets.push ({
                     'id': coin['id'] + '/' + vsCurrencies[j].toLowerCase (),
