@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -38,6 +38,7 @@ module.exports = class bybit extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchDeposits': false,
                 'fetchTransactions': false,
+                'fetchLedger': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -1856,7 +1857,7 @@ module.exports = class bybit extends Exchange {
                     'sign': signature,
                 }));
                 headers = {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 };
             } else {
                 request += '?' + auth + '&sign=' + signature;
