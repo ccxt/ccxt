@@ -33,7 +33,7 @@ module.exports = class bybit extends Exchange {
                 'fetchOrderTrades': true,
                 'createOrder': true,
                 'cancelOrder': true,
-                // 'cancelAllOrders': true,
+                'cancelAllOrders': true,
                 'fetchTime': true,
             },
             'timeframes': {
@@ -226,6 +226,9 @@ module.exports = class bybit extends Exchange {
                 'code': 'BTC',
                 'fetchBalance': {
                     'code': 'BTC',
+                },
+                'cancelAllOrders': {
+                    'method': 'privatePostOrderCancelAll', // privatePostStopOrderCancelAll
                 },
                 'recvWindow': 5 * 1000, // 5 sec default
                 'timeDifference': 0, // the difference between system clock and Binance clock
@@ -1282,18 +1285,19 @@ module.exports = class bybit extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        let method = undefined;
         if (symbol === undefined) {
-            method = 'privateGetCancelAll';
-        } else {
-            method = 'privateGetCancelAllByInstrument';
-            const market = this.market (symbol);
-            request['instrument_name'] = market['id'];
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a symbol argument');
         }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const options = this.safeValue (this.options, 'cancelAllOrders');
+        const method = this.safeString (options, 'method', 'privatePostOrderCancelAll');
         const response = await this[method] (this.extend (request, params));
-        return response;
+        const result = this.safeValue (response, 'result', []);
+        return this.parseOrders (result, market);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
