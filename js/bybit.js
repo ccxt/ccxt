@@ -35,6 +35,9 @@ module.exports = class bybit extends Exchange {
                 'cancelOrder': true,
                 'cancelAllOrders': true,
                 'fetchTime': true,
+                'fetchWithdrawals': true,
+                'fetchDeposits': false,
+                'fetchTransactions': false,
             },
             'timeframes': {
                 '1m': '1',
@@ -1653,42 +1656,27 @@ module.exports = class bybit extends Exchange {
         // fetchWithdrawals
         //
         //     {
-        //         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBz",
-        //         "amount": 0.5,
-        //         "confirmed_timestamp": null,
-        //         "created_timestamp": 1550571443070,
-        //         "currency": "BTC",
-        //         "fee": 0.0001,
-        //         "id": 1,
-        //         "priority": 0.15,
-        //         "state": "unconfirmed",
-        //         "transaction_id": null,
-        //         "updated_timestamp": 1550571443070
+        //         "id": 137,
+        //         "user_id": 1,
+        //         "coin": "XRP", // Coin Enum
+        //         "status": "Pending", // Withdraw Status Enum
+        //         "amount": "20.00000000",
+        //         "fee": "0.25000000",
+        //         "address": "rH7H595XYEVTEHU2FySYsWnmfACBnZS9zM",
+        //         "tx_id": "",
+        //         "submited_at": "2019-06-11T02:20:24.000Z",
+        //         "updated_at": "2019-06-11T02:20:24.000Z"
         //     }
         //
-        // fetchDeposits
-        //
-        //     {
-        //         "address": "2N35qDKDY22zmJq9eSyiAerMD4enJ1xx6ax",
-        //         "amount": 5,
-        //         "currency": "BTC",
-        //         "received_timestamp": 1549295017670,
-        //         "state": "completed",
-        //         "transaction_id": "230669110fdaf0a0dbcdc079b6b8b43d5af29cc73683835b9bc6b3406c065fda",
-        //         "updated_timestamp": 1549295130159
-        //     }
-        //
-        const currencyId = this.safeString (transaction, 'currency');
+        const currencyId = this.safeString (transaction, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const timestamp = this.safeInteger (transaction, 'created_timestamp', 'received_timestamp');
-        const updated = this.safeInteger (transaction, 'updated_timestamp');
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const timestamp = this.parse8601 (this.safeString (transaction, 'submited_at'));
+        const updated = this.parse8601 (this.safeString (transaction, 'updated_at'));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const address = this.safeString (transaction, 'address');
         const feeCost = this.safeFloat (transaction, 'fee');
-        let type = 'deposit';
         let fee = undefined;
         if (feeCost !== undefined) {
-            type = 'withdrawal';
             fee = {
                 'cost': feeCost,
                 'currency': code,
@@ -1697,16 +1685,16 @@ module.exports = class bybit extends Exchange {
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'id'),
-            'txid': this.safeString (transaction, 'transaction_id'),
+            'txid': this.safeString (transaction, 'tx_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': address,
-            'addressTo': address,
+            'addressTo': undefined,
             'addressFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
-            'TagFrom': undefined,
-            'type': type,
+            'tagFrom': undefined,
+            'type': 'withdrawal',
             'amount': this.safeFloat (transaction, 'amount'),
             'currency': code,
             'status': status,
