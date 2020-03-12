@@ -952,10 +952,24 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+        }
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'order_id': id,
+            'symbol': market['id'],
+            // 'order_id': id, // one of order_id or order_link_id is required for regular orders
+            // 'order_link_id': 'string', // one of order_id or order_link_id is required
+            // GET /v2/private/order
+            // conditional orders ---------------------------------------------
+            // GET /v2/private/stop-order
+            // 'stop_order_id': id, // one of stop_order_id or order_link_id is required for conditional orders
         };
+        const stopOrderId = this.safeString (params, 'stop_order_id');
+        if (stopOrderId !== undefined) {
+            method = ''
+        }
         const response = await this.privateGetGetOrderState (this.extend (request, params));
         //
         //     {
@@ -1029,12 +1043,12 @@ module.exports = class bybit extends Exchange {
         }
         const stopPx = this.safeValue (params, 'stop_px');
         const basePrice = this.safeValue (params, 'base_price');
-        let conditional = false;
+        let method = 'privatePostOrderCreate';
         if (stopPx !== undefined) {
             if (basePrice === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder requires both the stop_px and base_price params for a conditional ' + type + ' order');
             } else {
-                conditional = true;
+                method = 'openapiPostStopOrderCreate';
                 request['stop_px'] = this.priceToPrecision (symbol, stopPx);
                 request['base_price'] = this.priceToPrecision (symbol, basePrice);
                 params = this.omit (params, [ 'stop_px', 'base_price' ]);
@@ -1042,7 +1056,6 @@ module.exports = class bybit extends Exchange {
         } else if (basePrice !== undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder requires both the stop_px and base_price params for a conditional ' + type + ' order');
         }
-        const method = conditional ? 'openapiPostStopOrderCreate' : 'privatePostOrderCreate';
         const response = await this[method] (this.extend (request, params));
         //
         //     {
@@ -1141,10 +1154,10 @@ module.exports = class bybit extends Exchange {
             // 'stop_order_id': id, // only for conditional orders
             // 'p_r_trigger_price': 123.45, // new trigger price also known as stop_px
         };
-        let conditional = false;
         const stopOrderId = this.safeString (params, 'stop_order_id');
+        let method = 'openapiPostOrderReplace';
         if (stopOrderId !== undefined) {
-            conditional = true;
+            method = 'openapiPostStopOrderReplace';
             request['stop_order_id'] = stopOrderId;
             params = this.omit (params, [ 'stop_order_id' ]);
         } else {
@@ -1156,7 +1169,6 @@ module.exports = class bybit extends Exchange {
         if (price !== undefined) {
             request['p_r_price'] = this.priceToPrecision (symbol, amount);
         }
-        const method = conditional ? 'openapiPostStopOrderReplace' : 'openapiPostOrderReplace';
         const response = await this[method] (this.extend (request, params));
         //
         //     {
