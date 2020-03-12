@@ -73,11 +73,11 @@ module.exports = class coingecko extends Exchange {
 
     async fetchMarkets () {
         const coins = await this.publicGetCoinsList ();
-        let markets = [];
-        const supportedVsCurrencies = await this.publicGetSimpleSupportedVsCurrencies()
+        const markets = [];
+        const supportedVsCurrencies = await this.publicGetSimpleSupportedVsCurrencies ();
         for (let i = 0; i < coins.length; i++) {
             const coin = coins[i];
-            let vsCurrencies = supportedVsCurrencies;
+            const vsCurrencies = supportedVsCurrencies;
             for (let j = 0; j < vsCurrencies.length; j++) {
                 markets.push ({
                     'id': coin['id'] + '/' + vsCurrencies[j].toLowerCase (),
@@ -95,7 +95,7 @@ module.exports = class coingecko extends Exchange {
 
     async fetchCurrencies () {
         const coins = await this.publicGetCoins ();
-        let currencies = {};
+        const currencies = {};
         for (let i = 0; i < coins.length; i++) {
             const coin = coins[i];
             const symbol = coin['symbol'].toUpperCase ();
@@ -132,7 +132,7 @@ module.exports = class coingecko extends Exchange {
 
     async fetchTickers (currency = 'USD', params = {}) {
         const markets = await this.publicGetCoinsMarkets (this.extend (params, { 'vs_currency': currency }));
-        let tickers = {};
+        const tickers = {};
         const timestamp = this.milliseconds ();
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -178,9 +178,10 @@ module.exports = class coingecko extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
-        if (Object.keys (query).length)
+        const query = this.omit (params, this.extractParams (path));
+        if (Object.keys (query).length) {
             url += '?' + this.urlencode (query);
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
