@@ -1200,7 +1200,11 @@ module.exports = class bybit extends Exchange {
             request['limit'] = limit;
         }
         const options = this.safeValue (this.options, 'fetchOrders', {});
-        const method = this.safeString (options, 'method', 'openapiGetOrderList');
+        let defaultMethod = 'openapiGetOrderList';
+        if (('stop_order_id' in params) || ('stop_order_status' in params)) {
+            defaultMethod = 'openapiGetStopOrderList';
+        }
+        const method = this.safeString (options, 'method', defaultMethod);
         const response = await this[method] (this.extend (request, params));
         //
         //     {
@@ -1379,71 +1383,74 @@ module.exports = class bybit extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'include_old': true,
+            // 'order_id': 'f185806b-b801-40ff-adec-52289370ed62', // if not provided will return user's trading records
+            // 'symbol': market['id'],
+            // 'start_time': parseInt (since / 1000),
+            // 'page': 1,
+            // 'limit' 20, // max 50
         };
         let market = undefined;
-        let method = undefined;
         if (symbol === undefined) {
-            const defaultCode = this.safeValue (this.options, 'code', 'BTC');
-            const options = this.safeValue (this.options, 'fetchMyTrades', {});
-            const code = this.safeValue (options, 'code', defaultCode);
-            const currency = this.currency (code);
-            request['currency'] = currency['id'];
-            if (since === undefined) {
-                method = 'privateGetGetUserTradesByCurrency';
+            const orderId = this.safeString (params, 'order_id');
+            if (orderId === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument or an order_id param');
             } else {
-                method = 'privateGetGetUserTradesByCurrencyAndTime';
-                request['start_timestamp'] = since;
+                request['order_id'] = orderId;
+                params = this.omit (params, 'order_id');
             }
         } else {
             market = this.market (symbol);
-            request['instrument_name'] = market['id'];
-            if (since === undefined) {
-                method = 'privateGetGetUserTradesByInstrument';
-            } else {
-                method = 'privateGetGetUserTradesByInstrumentAndTime';
-                request['start_timestamp'] = since;
-            }
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = parseInt (since / 1000);
         }
         if (limit !== undefined) {
-            request['count'] = limit; // default 10
+            request['limit'] = limit; // default 20, max 50
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.privateGetExecutionList (this.extend (request, params));
         //
         //     {
-        //         "jsonrpc": "2.0",
-        //         "id": 9367,
+        //         "ret_code": 0,
+        //         "ret_msg": "OK",
+        //         "ext_code": "",
+        //         "ext_info": "",
         //         "result": {
-        //             "trades": [
+        //             "order_id": "Abandoned!!", // Abandoned!!
+        //             "trade_list": [
         //                 {
-        //                     "trade_seq": 3,
-        //                     "trade_id": "ETH-34066",
-        //                     "timestamp": 1550219814585,
-        //                     "tick_direction": 1,
-        //                     "state": "open",
-        //                     "self_trade": false,
-        //                     "reduce_only": false,
-        //                     "price": 0.04,
-        //                     "post_only": false,
-        //                     "order_type": "limit",
-        //                     "order_id": "ETH-334607",
-        //                     "matching_id": null,
-        //                     "liquidity": "M",
-        //                     "iv": 56.83,
-        //                     "instrument_name": "ETH-22FEB19-120-C",
-        //                     "index_price": 121.37,
-        //                     "fee_currency": "ETH",
-        //                     "fee": 0.0011,
-        //                     "direction": "buy",
-        //                     "amount": 11
-        //                 },
-        //             ],
-        //             "has_more": true
-        //         }
+        //                     "closed_size": 0,
+        //                     "cross_seq": 277136382,
+        //                     "exec_fee": "0.0000001",
+        //                     "exec_id": "256e5ef8-abfe-5772-971b-f944e15e0d68",
+        //                     "exec_price": "8178.5",
+        //                     "exec_qty": 1,
+        //                     "exec_time": "1571676941.70682",
+        //                     "exec_type": "Trade", //Exec Type Enum
+        //                     "exec_value": "0.00012227",
+        //                     "fee_rate": "0.00075",
+        //                     "last_liquidity_ind": "RemovedLiquidity", //Liquidity Enum
+        //                     "leaves_qty": 0,
+        //                     "nth_fill": 2,
+        //                     "order_id": "7ad50cb1-9ad0-4f74-804b-d82a516e1029",
+        //                     "order_link_id": "",
+        //                     "order_price": "8178",
+        //                     "order_qty": 1,
+        //                     "order_type": "Market", //Order Type Enum
+        //                     "side": "Buy", //Side Enum
+        //                     "symbol": "BTCUSD", //Symbol Enum
+        //                     "user_id": 1
+        //                 }
+        //             ]
+        //         },
+        //         "time_now": "1577483699.281488",
+        //         "rate_limit_status": 118,
+        //         "rate_limit_reset_ms": 1577483699244737,
+        //         "rate_limit": 120
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue (result, 'trades', []);
+        const trades = this.safeValue (result, 'trade_list', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
