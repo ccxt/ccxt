@@ -458,7 +458,6 @@ module.exports = class bitmax extends Exchange {
         //    'bid': ['7846.87', '3.9718']
         //}
         //
-
         let timestamp = this.milliseconds ();
         timestamp = timestamp - timestamp % 60000;
         let symbol = undefined;
@@ -532,7 +531,6 @@ module.exports = class bitmax extends Exchange {
         //        }
         //}
         //
-
         return this.parseTicker (this.safeValue (response, 'data', {}), market);
     }
 
@@ -877,7 +875,6 @@ module.exports = class bitmax extends Exchange {
         const request = {
             'orderId': id,
         };
-
         const method = 'privateGet' + this.getAccount (params) + 'OrderStatus';
         const response = await this[method] (this.extend (request, params));
         //
@@ -977,7 +974,6 @@ module.exports = class bitmax extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-
         const method = 'privateGet' + this.getAccount (params) + 'OrderOpen';
         const response = await this[method] (this.extend (request, params));
         //
@@ -1036,7 +1032,6 @@ module.exports = class bitmax extends Exchange {
             request['n'] = limit; // default 15, max 50
         }
         const response = await this.privateGetOrderHist (this.extend (request, params));
-
         //
         //{
         //    'code': 0,
@@ -1071,7 +1066,6 @@ module.exports = class bitmax extends Exchange {
         //        }
         //}
         //
-
         const data = this.safeValue (response, 'data', {});
         const orders = this.safeValue (data, 'data', []);
         return this.parseOrders (orders, market, since, limit);
@@ -1149,7 +1143,6 @@ module.exports = class bitmax extends Exchange {
             // 'time': this.milliseconds (), // this is filled in the private section of the sign() method below
             'asset': currency['id'],
         };
-
         const response = await this.privateGetWalletDepositAddress (this.extend (request, params));
         //
         //
@@ -1212,7 +1205,6 @@ module.exports = class bitmax extends Exchange {
                     url = '/' + accountGroup + url;
                 }
             }
-
             query['time'] = this.milliseconds ().toString ();
             let auth = query['time'] + '+' + path.replace ('/{orderId}', ''); // fix sign error
             headers = {
@@ -1220,7 +1212,6 @@ module.exports = class bitmax extends Exchange {
                 'x-auth-timestamp': query['time'],
                 'Content-Type': 'application/json',
             };
-
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
             headers['x-auth-signature'] = signature;
             if (method === 'GET') {
