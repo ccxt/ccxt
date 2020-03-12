@@ -32,7 +32,7 @@ module.exports = class bybit extends Exchange {
                 'fetchTickers': true,
                 'fetchOrderTrades': true,
                 'createOrder': true,
-                // 'cancelOrder': true,
+                'cancelOrder': true,
                 // 'cancelAllOrders': true,
                 'fetchTime': true,
             },
@@ -130,91 +130,96 @@ module.exports = class bybit extends Exchange {
                 '403': RateLimitExceeded, // Forbidden -- You request too many times
             },
             'exceptions': {
-                '10001': BadRequest, // parameter error
-                '10002': InvalidNonce, // request expired, check your timestamp and recv_window
-                '10003': AuthenticationError, // Invalid apikey
-                '10004': AuthenticationError, // invalid sign
-                '10005': PermissionDenied, // permission denied for current apikey
-                '10006': RateLimitExceeded, // too many requests
-                '10007': AuthenticationError, // api_key not found in your request parameters
-                '10010': PermissionDenied, // request ip mismatch
-                '10017': BadRequest, // request path not found or request method is invalid
-                '20001': OrderNotFound, // Order not exists
-                '20003': InvalidOrder, // missing parameter side
-                '20004': InvalidOrder, // invalid parameter side
-                '20005': InvalidOrder, // missing parameter symbol
-                '20006': InvalidOrder, // invalid parameter symbol
-                '20007': InvalidOrder, // missing parameter order_type
-                '20008': InvalidOrder, // invalid parameter order_type
-                '20009': InvalidOrder, // missing parameter qty
-                '20010': InvalidOrder, // qty must be greater than 0
-                '20011': InvalidOrder, // qty must be an integer
-                '20012': InvalidOrder, // qty must be greater than zero and less than 1 million
-                '20013': InvalidOrder, // missing parameter price
-                '20014': InvalidOrder, // price must be greater than 0
-                '20015': InvalidOrder, // missing parameter time_in_force
-                '20016': InvalidOrder, // invalid value for parameter time_in_force
-                '20017': InvalidOrder, // missing parameter order_id
-                '20018': InvalidOrder, // invalid date format
-                '20019': InvalidOrder, // missing parameter stop_px
-                '20020': InvalidOrder, // missing parameter base_price
-                '20021': InvalidOrder, // missing parameter stop_order_id
-                '20022': BadRequest, // missing parameter leverage
-                '20023': BadRequest, // leverage must be a number
-                '20031': BadRequest, // leverage must be greater than zero
-                '20070': BadRequest, // missing parameter margin
-                '20071': BadRequest, // margin must be greater than zero
-                '20084': BadRequest, // order_id or order_link_id is required
-                '30001': BadRequest, // order_link_id is repeated
-                '30003': InvalidOrder, // qty must be more than the minimum allowed
-                '30004': InvalidOrder, // qty must be less than the maximum allowed
-                '30005': InvalidOrder, // price exceeds maximum allowed
-                '30007': InvalidOrder, // price exceeds minimum allowed
-                '30008': InvalidOrder, // invalid order_type
-                '30009': ExchangeError, // no position found
-                '30010': InsufficientFunds, // insufficient wallet balance
-                '30011': PermissionDenied, // operation not allowed as position is undergoing liquidation
-                '30012': PermissionDenied, // operation not allowed as position is undergoing ADL
-                '30013': PermissionDenied, // position is in liq or adl status
-                '30014': InvalidOrder, // invalid closing order, qty should not greater than size
-                '30015': InvalidOrder, // invalid closing order, side should be opposite
-                '30016': ExchangeError, // TS and SL must be cancelled first while closing position
-                '30017': InvalidOrder, // estimated fill price cannot be lower than current Buy liq_price
-                '30018': InvalidOrder, // estimated fill price cannot be higher than current Sell liq_price
-                '30019': InvalidOrder, // cannot attach TP/SL params for non-zero position when placing non-opening position order
-                '30020': InvalidOrder, // position already has TP/SL params
-                '30021': InvalidOrder, // cannot afford estimated position_margin
-                '30022': InvalidOrder, // estimated buy liq_price cannot be higher than current mark_price
-                '30023': InvalidOrder, // estimated sell liq_price cannot be lower than current mark_price
-                '30024': InvalidOrder, // cannot set TP/SL/TS for zero-position
-                '30025': InvalidOrder, // trigger price should bigger than 10% of last price
-                '30026': InvalidOrder, // price too high
-                '30027': InvalidOrder, // price set for Take profit should be higher than Last Traded Price
-                '30028': InvalidOrder, // price set for Stop loss should be between Liquidation price and Last Traded Price
-                '30029': InvalidOrder, // price set for Stop loss should be between Last Traded Price and Liquidation price
-                '30030': InvalidOrder, // price set for Take profit should be lower than Last Traded Price
-                '30031': InsufficientFunds, // insufficient available balance for order cost
-                '30032': InvalidOrder, // order has been filled or cancelled
-                '30033': RateLimitExceeded, // The number of stop orders exceeds maximum limit allowed
-                '30034': OrderNotFound, // no order found
-                '30035': RateLimitExceeded, // too fast to cancel
-                '30036': ExchangeError, // the expected position value after order execution exceeds the current risk limit
-                '30037': InvalidOrder, // order already cancelled
-                '30041': ExchangeError, // no position found
-                '30042': InsufficientFunds, // insufficient wallet balance
-                '30043': PermissionDenied, // operation not allowed as position is undergoing liquidation
-                '30044': PermissionDenied, // operation not allowed as position is undergoing AD
-                '30045': PermissionDenied, // operation not allowed as position is not normal status
-                '30049': InsufficientFunds, // insufficient available balance
-                '30050': ExchangeError, // any adjustments made will trigger immediate liquidation
-                '30051': ExchangeError, // due to risk limit, cannot adjust leverage
-                '30052': ExchangeError, // leverage can not less than 1
-                '30054': ExchangeError, // position margin is invalid
-                '30057': ExchangeError, // requested quantity of contracts exceeds risk limit
-                '30063': ExchangeError, // reduce-only rule not satisfied
-                '30067': InsufficientFunds, // insufficient available balance
-                '30068': ExchangeError, // exit value must be positive
-                '34026': ExchangeError, // the limit is no change
+                'exact': {
+                    '10001': BadRequest, // parameter error
+                    '10002': InvalidNonce, // request expired, check your timestamp and recv_window
+                    '10003': AuthenticationError, // Invalid apikey
+                    '10004': AuthenticationError, // invalid sign
+                    '10005': PermissionDenied, // permission denied for current apikey
+                    '10006': RateLimitExceeded, // too many requests
+                    '10007': AuthenticationError, // api_key not found in your request parameters
+                    '10010': PermissionDenied, // request ip mismatch
+                    '10017': BadRequest, // request path not found or request method is invalid
+                    '20001': OrderNotFound, // Order not exists
+                    '20003': InvalidOrder, // missing parameter side
+                    '20004': InvalidOrder, // invalid parameter side
+                    '20005': InvalidOrder, // missing parameter symbol
+                    '20006': InvalidOrder, // invalid parameter symbol
+                    '20007': InvalidOrder, // missing parameter order_type
+                    '20008': InvalidOrder, // invalid parameter order_type
+                    '20009': InvalidOrder, // missing parameter qty
+                    '20010': InvalidOrder, // qty must be greater than 0
+                    '20011': InvalidOrder, // qty must be an integer
+                    '20012': InvalidOrder, // qty must be greater than zero and less than 1 million
+                    '20013': InvalidOrder, // missing parameter price
+                    '20014': InvalidOrder, // price must be greater than 0
+                    '20015': InvalidOrder, // missing parameter time_in_force
+                    '20016': InvalidOrder, // invalid value for parameter time_in_force
+                    '20017': InvalidOrder, // missing parameter order_id
+                    '20018': InvalidOrder, // invalid date format
+                    '20019': InvalidOrder, // missing parameter stop_px
+                    '20020': InvalidOrder, // missing parameter base_price
+                    '20021': InvalidOrder, // missing parameter stop_order_id
+                    '20022': BadRequest, // missing parameter leverage
+                    '20023': BadRequest, // leverage must be a number
+                    '20031': BadRequest, // leverage must be greater than zero
+                    '20070': BadRequest, // missing parameter margin
+                    '20071': BadRequest, // margin must be greater than zero
+                    '20084': BadRequest, // order_id or order_link_id is required
+                    '30001': BadRequest, // order_link_id is repeated
+                    '30003': InvalidOrder, // qty must be more than the minimum allowed
+                    '30004': InvalidOrder, // qty must be less than the maximum allowed
+                    '30005': InvalidOrder, // price exceeds maximum allowed
+                    '30007': InvalidOrder, // price exceeds minimum allowed
+                    '30008': InvalidOrder, // invalid order_type
+                    '30009': ExchangeError, // no position found
+                    '30010': InsufficientFunds, // insufficient wallet balance
+                    '30011': PermissionDenied, // operation not allowed as position is undergoing liquidation
+                    '30012': PermissionDenied, // operation not allowed as position is undergoing ADL
+                    '30013': PermissionDenied, // position is in liq or adl status
+                    '30014': InvalidOrder, // invalid closing order, qty should not greater than size
+                    '30015': InvalidOrder, // invalid closing order, side should be opposite
+                    '30016': ExchangeError, // TS and SL must be cancelled first while closing position
+                    '30017': InvalidOrder, // estimated fill price cannot be lower than current Buy liq_price
+                    '30018': InvalidOrder, // estimated fill price cannot be higher than current Sell liq_price
+                    '30019': InvalidOrder, // cannot attach TP/SL params for non-zero position when placing non-opening position order
+                    '30020': InvalidOrder, // position already has TP/SL params
+                    '30021': InvalidOrder, // cannot afford estimated position_margin
+                    '30022': InvalidOrder, // estimated buy liq_price cannot be higher than current mark_price
+                    '30023': InvalidOrder, // estimated sell liq_price cannot be lower than current mark_price
+                    '30024': InvalidOrder, // cannot set TP/SL/TS for zero-position
+                    '30025': InvalidOrder, // trigger price should bigger than 10% of last price
+                    '30026': InvalidOrder, // price too high
+                    '30027': InvalidOrder, // price set for Take profit should be higher than Last Traded Price
+                    '30028': InvalidOrder, // price set for Stop loss should be between Liquidation price and Last Traded Price
+                    '30029': InvalidOrder, // price set for Stop loss should be between Last Traded Price and Liquidation price
+                    '30030': InvalidOrder, // price set for Take profit should be lower than Last Traded Price
+                    '30031': InsufficientFunds, // insufficient available balance for order cost
+                    '30032': InvalidOrder, // order has been filled or cancelled
+                    '30033': RateLimitExceeded, // The number of stop orders exceeds maximum limit allowed
+                    '30034': OrderNotFound, // no order found
+                    '30035': RateLimitExceeded, // too fast to cancel
+                    '30036': ExchangeError, // the expected position value after order execution exceeds the current risk limit
+                    '30037': InvalidOrder, // order already cancelled
+                    '30041': ExchangeError, // no position found
+                    '30042': InsufficientFunds, // insufficient wallet balance
+                    '30043': PermissionDenied, // operation not allowed as position is undergoing liquidation
+                    '30044': PermissionDenied, // operation not allowed as position is undergoing AD
+                    '30045': PermissionDenied, // operation not allowed as position is not normal status
+                    '30049': InsufficientFunds, // insufficient available balance
+                    '30050': ExchangeError, // any adjustments made will trigger immediate liquidation
+                    '30051': ExchangeError, // due to risk limit, cannot adjust leverage
+                    '30052': ExchangeError, // leverage can not less than 1
+                    '30054': ExchangeError, // position margin is invalid
+                    '30057': ExchangeError, // requested quantity of contracts exceeds risk limit
+                    '30063': ExchangeError, // reduce-only rule not satisfied
+                    '30067': InsufficientFunds, // insufficient available balance
+                    '30068': ExchangeError, // exit value must be positive
+                    '34026': ExchangeError, // the limit is no change
+                },
+                'broad': {
+                    'unknown orderInfo': OrderNotFound, // {"ret_code":-1,"ret_msg":"unknown orderInfo","ext_code":"","ext_info":"","result":null,"time_now":"1584030414.005545","rate_limit_status":99,"rate_limit_reset_ms":1584030414003,"rate_limit":100}
+                },
             },
             'precisionMode': TICK_SIZE,
             'options': {
@@ -959,17 +964,19 @@ module.exports = class bybit extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
+            // 'order_link_id': 'string', // one of order_id, stop_order_id or order_link_id is required
+            // regular orders ---------------------------------------------
             // 'order_id': id, // one of order_id or order_link_id is required for regular orders
-            // 'order_link_id': 'string', // one of order_id or order_link_id is required
-            // GET /v2/private/order
             // conditional orders ---------------------------------------------
-            // GET /v2/private/stop-order
             // 'stop_order_id': id, // one of stop_order_id or order_link_id is required for conditional orders
         };
         let method = 'privateGetOrder';
         const stopOrderId = this.safeString (params, 'stop_order_id');
         if (stopOrderId === undefined) {
-            request['order_id'] = id;
+            const orderLinkId = this.safeString (params, 'order_link_id');
+            if (orderLinkId === undefined) {
+                request['order_id'] = id;
+            }
         } else {
             method = 'privateGetStopOrder';
         }
@@ -1246,13 +1253,32 @@ module.exports = class bybit extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+        }
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'order_id': id,
+            'symbol': market['id'],
+            // 'order_link_id': 'string', // one of order_id, stop_order_id or order_link_id is required
+            // regular orders ---------------------------------------------
+            // 'order_id': id, // one of order_id or order_link_id is required for regular orders
+            // conditional orders ---------------------------------------------
+            // 'stop_order_id': id, // one of stop_order_id or order_link_id is required for conditional orders
         };
-        const response = await this.privateGetCancel (this.extend (request, params));
+        let method = 'privatePostOrderCancel';
+        const stopOrderId = this.safeString (params, 'stop_order_id');
+        if (stopOrderId === undefined) {
+            const orderLinkId = this.safeString (params, 'order_link_id');
+            if (orderLinkId === undefined) {
+                request['order_id'] = id;
+            }
+        } else {
+            method = 'openapiPostStopOrderCancel';
+        }
+        const response = await this[method] (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
-        return this.parseOrder (result);
+        return this.parseOrder (result, market);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -1727,7 +1753,8 @@ module.exports = class bybit extends Exchange {
         const errorCode = this.safeValue (response, 'ret_code');
         if (errorCode !== 0) {
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }
