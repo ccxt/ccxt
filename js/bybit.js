@@ -24,7 +24,7 @@ module.exports = class bybit extends Exchange {
                 'fetchOHLCV': true,
                 'editOrder': true,
                 // 'fetchOrder': true,
-                // 'fetchOrders': false,
+                'fetchOrders': true,
                 // 'fetchOpenOrders': true,
                 // 'fetchClosedOrders': true,
                 // 'fetchMyTrades': true,
@@ -1285,8 +1285,9 @@ module.exports = class bybit extends Exchange {
         //         "rate_limit": 600
         //     }
         //
-        const result = this.safeValue (response, 'result', []);
-        return this.parseOrders (result, market, since, limit);
+        const result = this.safeValue (response, 'result', {});
+        const data = this.safeValue (result, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
