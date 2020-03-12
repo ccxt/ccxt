@@ -58,7 +58,7 @@ module.exports = class bybit extends Exchange {
             },
             'urls': {
                 'test': 'https://api-testnet.bybit.com',
-                'logo': 'https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
                 'api': 'https://api.bybit.com',
                 'www': 'https://www.bybit.com/',
                 'doc': [
