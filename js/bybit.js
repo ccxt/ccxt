@@ -1177,48 +1177,151 @@ module.exports = class bybit extends Exchange {
         return response;
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        const request = {
+            // 'order_id': 'string'
+            // 'order_link_id': 'string', // unique client order id, max 36 characters
+            // 'symbol': market['id'], // default BTCUSD
+            // 'order': 'desc', // asc
+            // 'page': 1,
+            // 'limit': 20, // max 50
+            // 'order_status': 'Created,New'
+        };
         let market = undefined;
-        let method = undefined;
-        if (symbol === undefined) {
-            const defaultCode = this.safeValue (this.options, 'code', 'BTC');
-            const options = this.safeValue (this.options, 'fetchOpenOrders', {});
-            const code = this.safeValue (options, 'code', defaultCode);
-            const currency = this.currency (code);
-            request['currency'] = currency['id'];
-            method = 'privateGetGetOpenOrdersByCurrency';
-        } else {
+        if (symbol !== undefined) {
             market = this.market (symbol);
-            request['instrument_name'] = market['id'];
-            method = 'privateGetGetOpenOrdersByInstrument';
+            request['symbol'] = market['id'];
         }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const options = this.safeValue (this.options, 'fetchOrders', {});
+        const method = this.safeString (options, 'method', 'openapiGetOrderList');
         const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "ret_code": 0,
+        //         "ret_msg": "ok",
+        //         "ext_code": "",
+        //         "result": {
+        //             "current_page": 1,
+        //             "last_page": 6,
+        //             "data": [
+        //                 {
+        //                     "user_id": 1,
+        //                     "symbol": "BTCUSD",
+        //                     "side": "Sell",
+        //                     "order_type": "Market",
+        //                     "price": 7074,
+        //                     "qty": 2,
+        //                     "time_in_force": "ImmediateOrCancel",
+        //                     "order_status": "Filled",
+        //                     "ext_fields": {
+        //                         "close_on_trigger": true,
+        //                         "orig_order_type": "BLimit",
+        //                         "prior_x_req_price": 5898.5,
+        //                         "op_from": "pc",
+        //                         "remark": "127.0.0.1",
+        //                         "o_req_num": -34799032763,
+        //                         "xreq_type": "x_create"
+        //                     },
+        //                     "last_exec_time": "1577448481.696421",
+        //                     "last_exec_price": 7070.5,
+        //                     "leaves_qty": 0,
+        //                     "leaves_value": 0,
+        //                     "cum_exec_qty": 2,
+        //                     "cum_exec_value": 0.00028283,
+        //                     "cum_exec_fee": 0.00002,
+        //                     "reject_reason": "NoError",
+        //                     "order_link_id": "",
+        //                     "created_at": "2019-12-27T12:08:01.000Z",
+        //                     "updated_at": "2019-12-27T12:08:01.000Z",
+        //                     "order_id": "f185806b-b801-40ff-adec-52289370ed62"
+        //                 }
+        //             ]
+        //         },
+        //         "ext_info": null,
+        //         "time_now": "1577448922.437871",
+        //         "rate_limit_status": 98,
+        //         "rate_limit_reset_ms": 1580885703683,
+        //         "rate_limit": 100
+        //     }
+        //
+        // conditional orders
+        //
+        //     {
+        //         "ret_code": 0,
+        //         "ret_msg": "ok",
+        //         "ext_code": "",
+        //         "result": {
+        //             "current_page": 1,
+        //             "last_page": 1,
+        //             "data": [
+        //                 {
+        //                     "user_id": 1,
+        //                     "stop_order_status": "Untriggered",
+        //                     "symbol": "BTCUSD",
+        //                     "side": "Buy",
+        //                     "order_type": "Limit",
+        //                     "price": 8000,
+        //                     "qty": 1,
+        //                     "time_in_force": "GoodTillCancel",
+        //                     "stop_order_type": "Stop",
+        //                     "trigger_by": "LastPrice",
+        //                     "base_price": 7000,
+        //                     "order_link_id": "",
+        //                     "created_at": "2019-12-27T12:48:24.000Z",
+        //                     "updated_at": "2019-12-27T12:48:24.000Z",
+        //                     "stop_px": 7500,
+        //                     "stop_order_id": "a85cd1c0-a9a4-49d3-a1bd-bab5ebe946d5"
+        //                 },
+        //             ]
+        //         },
+        //         "ext_info": null,
+        //         "time_now": "1577451658.755468",
+        //         "rate_limit_status": 599,
+        //         "rate_limit_reset_ms": 1577451658762,
+        //         "rate_limit": 600
+        //     }
+        //
         const result = this.safeValue (response, 'result', []);
         return this.parseOrders (result, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        let market = undefined;
-        let method = undefined;
-        if (symbol === undefined) {
-            const defaultCode = this.safeValue (this.options, 'code', 'BTC');
-            const options = this.safeValue (this.options, 'fetchClosedOrders', {});
-            const code = this.safeValue (options, 'code', defaultCode);
-            const currency = this.currency (code);
-            request['currency'] = currency['id'];
-            method = 'privateGetGetOrderHistoryByCurrency';
-        } else {
-            market = this.market (symbol);
-            request['instrument_name'] = market['id'];
-            method = 'privateGetGetOrderHistoryByInstrument';
+        // const statuses = [
+        //     // basic orders
+        //     'Created': 'open',
+        //     'Rejected': 'rejected', // order is triggered but failed upon being placed
+        //     'New': 'open',
+        //     'PartiallyFilled': 'open',
+        //     'Filled': 'filled',
+        //     'Cancelled': 'canceled',
+        //     'PendingCancel': 'canceling', // the engine has received the cancellation but there is no guarantee that it will be successful
+        //     // conditional orders
+        //     'Active': 'open', // order is triggered and placed successfully
+        //     'Untriggered': 'open', // order waits to be triggered
+        //     'Triggered': 'open', // order is triggered
+        //     // 'Cancelled': 'canceled', // order is cancelled
+        //     // 'Rejected': 'rejected', // order is triggered but fail to be placed
+        //     'Deactivated': 'canceled', // conditional order was cancelled before triggering
+        // ];
+        const defaultStatuses = [
+            'Rejected',
+            'Filled',
+            'Cancelled',
+            'Deactivated',
+        ];
+        const options = this.safeValue (this.options, 'fetchClosedOrders', {});
+        let status = this.safeValue (options, 'order_status', defaultStatuses);
+        if (Array.isArray (status)) {
+            status = status.join (',');
         }
-        const response = await this[method] (this.extend (request, params));
-        const result = this.safeValue (response, 'result', []);
-        return this.parseOrders (result, market, since, limit);
+        const request = {
+            'order_status': status,
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
