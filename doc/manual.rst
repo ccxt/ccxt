@@ -3860,7 +3860,7 @@ Troubleshooting
 In case you experience any difficulty connecting to a particular exchange, do the following in order of precedence:
 
 -  Make sure that you have the most recent version of ccxt.
--  Check the `CHANGELOG <https://github.com/ccxt/ccxt/blob/master/CHANGELOG.md>`__ for recent updates.
+-  Check the `Issues <https://github.com/ccxt/ccxt/issues>`__ for recent updates.
 -  Turn ``verbose = true`` to get more detail about it.
 -  Python people can turn on DEBUG logging level with a standard pythonic logger, by adding these two lines to the beginning of their code:
 
