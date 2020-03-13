@@ -8,7 +8,7 @@
   },
   "extends": ["eslint:recommended", "airbnb-base"],
   "rules": {
-    "strict": "error",
+    "strict": "off",
     "semi": "error",
     "indent": ["error", 4],
     "init-declarations": "error",

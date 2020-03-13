@@ -58,9 +58,9 @@
     "browserify": "14.5.0",
     "chai": "4.1.2",
     "chai-as-promised": "7.1.1",
-    "eslint": "^4.19.1",
-    "eslint-config-airbnb-base": "12.1.0",
-    "eslint-plugin-import": "2.16.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "14.1.0",
+    "eslint-plugin-import": "2.20.1",
     "mocha": "5.2.0",
     "ololog": "1.1.121"
   },
