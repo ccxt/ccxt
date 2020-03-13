@@ -1106,7 +1106,20 @@ class bitstamp extends Exchange {
         } else {
             $this->check_required_credentials();
             $authVersion = $this->safe_value($this->options, 'auth', 'v2');
-            if ($authVersion === 'v2') {
+            if (($authVersion === 'v1') || ($api === 'v1')) {
+                $nonce = (string) $this->nonce ();
+                $auth = $nonce . $this->uid . $this->apiKey;
+                $signature = $this->encode ($this->hmac ($this->encode ($auth), $this->encode ($this->secret)));
+                $query = array_merge(array(
+                    'key' => $this->apiKey,
+                    'signature' => strtoupper($signature),
+                    'nonce' => $nonce,
+                ), $query);
+                $body = $this->urlencode ($query);
+                $headers = array(
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                );
+            } else {
                 $xAuth = 'BITSTAMP ' . $this->apiKey;
                 $xAuthNonce = $this->uuid ();
                 $xAuthTimestamp = (string) $this->milliseconds ();
@@ -1129,19 +1142,6 @@ class bitstamp extends Exchange {
                 $auth = $xAuth . $method . str_replace('https://', '', $url) . $contentType . $xAuthNonce . $xAuthTimestamp . $xAuthVersion . $authBody;
                 $signature = $this->encode ($this->hmac ($this->encode ($auth), $this->encode ($this->secret)));
                 $headers['X-Auth-Signature'] = $signature;
-            } else {
-                $nonce = (string) $this->nonce ();
-                $auth = $nonce . $this->uid . $this->apiKey;
-                $signature = $this->encode ($this->hmac ($this->encode ($auth), $this->encode ($this->secret)));
-                $query = array_merge(array(
-                    'key' => $this->apiKey,
-                    'signature' => strtoupper($signature),
-                    'nonce' => $nonce,
-                ), $query);
-                $body = $this->urlencode ($query);
-                $headers = array(
-                    'Content-Type' => 'application/x-www-form-urlencoded',
-                );
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
