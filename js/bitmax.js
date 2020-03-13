@@ -3,19 +3,18 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol, NotSupported} = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
-const CASH = 'cash';
-const MARGIN = 'margin';
-const FUTURES = 'futures';
-
-const ALL_ACCOUNTS = [CASH, MARGIN, FUTURES];
-
 module.exports = class bitmax extends Exchange {
     describe () {
+        // There are cash/margin/futures accounts for each bitmax user.
+        // You could provide it when call the api: params = {'account': 'cash'/'margin'/'futures'};
+        // or you can set in advance by calling setAccount(account), where account is one of 'cash'/'margin'/'futures'.
+        // e.g.  bitmax.createOrder('BTC-PERP', 'limit', 'buy', 0.01, 7125, params = {'account':'futures'})
+        // or bitmax.setAccount('futures')
         return this.deepExtend (super.describe (), {
             'id': 'bitmax',
             'name': 'BitMax',
@@ -137,6 +136,7 @@ module.exports = class bitmax extends Exchange {
                 },
             },
             'options': {
+                'account': 'cash', // 'cash'/'margin'/'futures'
                 'accountGroup': undefined,
                 'parseOrderToPrecision': false,
             },
@@ -154,23 +154,35 @@ module.exports = class bitmax extends Exchange {
         });
     }
 
-    getAccount(params = {}) {
-        const account = safeValue (params, 'account', this.options['account']);
-        return account.charAt(0).toUpperCase() + account.slice(1).toLowerCase();
+    getValidAccounts () {
+        // Bitmax sub-account
+        return ['cash', 'margin', 'futures'];
     }
 
-    setAccount(account) {
-        this.options['account'] = account;
+    getAccount (params = {}) {
+        // get current or provided bitmax sub-account
+        const account = this.safeValue (params, 'account', this.options['account']);
+        return account.toLowerCase ().capitalize ();
     }
 
-    getFuturesCollateral(params={}):
-        response = await this.publicGetFuturesCollateral (params);
+    setAccount (account) {
+        // set default bitmax sub-account
+        const validAccounts = this.getValidAccounts ();
+        if (account in validAccounts) {
+            this.options['account'] = account;
+        }
+    }
+
+    getFuturesCollateral (params = {}) {
+        // futures collateral
+        const response = this.publicGetFuturesCollateral (params);
         return this.safeValue (response, 'data', []);
+    }
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetAssets (params);
         //
-        //{
+        // {
         //    "code": 0,
         //    "data": [
         //        {
@@ -183,15 +195,13 @@ module.exports = class bitmax extends Exchange {
         //            "status": "Normal"
         //        }
         //    ]
-        //}
+        // }
         //
         const result = {};
-
-        if (this.safeValue (response, 'code', -1) != 0)
+        if (this.safeValue (response, 'code', -1) !== 0) {
             return result;
-
+        }
         const records = this.safeValue (response, 'data', []);
-
         for (let i = 0; i < records.length; i++) {
             const currency = records[i];
             const id = this.safeString (currency, 'assetCode');
@@ -239,7 +249,7 @@ module.exports = class bitmax extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.publicGetProducts (params);
         //
-        //{
+        // {
         //    "code": 0,
         //    "data": [
         //        {
@@ -256,15 +266,13 @@ module.exports = class bitmax extends Exchange {
         //            "lotSize": "1"
         //        }
         //    ]
-        //}
+        // }
         //
         const result = [];
-
-        if (this.safeValue (response, 'code', -1) != 0)
+        if (this.safeValue (response, 'code', -1) !== 0) {
             return result;
-
+        }
         const records = this.safeValue (response, 'data', []);
-
         for (let i = 0; i < records.length; i++) {
             const market = records[i];
             const id = this.safeString (market, 'symbol');
@@ -272,7 +280,7 @@ module.exports = class bitmax extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = symbol // base + '/' + quote;
+            const symbol = id; // base + '/' + quote;
             const precision = {
                 'amount': this.precisionFromString (this.safeString (market, 'lotSize')),
                 'price': this.precisionFromString (this.safeString (market, 'tickSize')),
@@ -296,7 +304,7 @@ module.exports = class bitmax extends Exchange {
                     },
                     'price': {
                         'min': this.safeFloat (market, 'tickSize'),
-                        'max': undefined
+                        'max': undefined,
                     },
                     'cost': {
                         'min': this.safeFloat (market, 'minNotional'),
@@ -308,8 +316,8 @@ module.exports = class bitmax extends Exchange {
         return result;
     }
 
-    // TODO: fee calculation here is incorrect, we need to support tiered fee calculation.
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        // TODO: fee calculation here is incorrect, we need to support tiered fee calculation.
         const market = this.markets[symbol];
         let key = 'quote';
         const rate = market[takerOrMaker];
@@ -334,26 +342,30 @@ module.exports = class bitmax extends Exchange {
         let accountGroup = this.safeString (this.options, 'accountGroup');
         let records = undefined;
         if (accountGroup === undefined) {
-            response = await this.privateGetInfo (params);
+            const response = await this.privateGetInfo (params);
             //
-            //{'code': 0,
-            // 'data': {'email': 'xxxcc@gmail.com',
-            //          'accountGroup': 5,
-            //          'viewPermission': True,
-            //          'tradePermission': True,
-            //          'transferPermission': True,
-            //          'withdrawPermission': True,
-            //          'cashAccount': ['xxxxxxxxxxxxxxxxxxxxxxxxxx'],
-            //          'marginAccount': ['yyyyyyyyyyyyyyyyyyyyyyyyy'],
-            //          'futuresAccount': ['zzzzzzzzzzzzzzzzzzzzzzzzz'],
-            //          'userUID': 'U123456789'}
+            // {
+            //    'code': 0,
+            //    'data':
+            //        {
+            //            'email': 'xxxcc@gmail.com',
+            //            'accountGroup': 5,
+            //            'viewPermission': True,
+            //            'tradePermission': True,
+            //            'transferPermission': True,
+            //            'withdrawPermission': True,
+            //            'cashAccount': ['xxxxxxxxxxxxxxxxxxxxxxxxxx'],
+            //            'marginAccount': ['yyyyyyyyyyyyyyyyyyyyyyyyy'],
+            //            'futuresAccount': ['zzzzzzzzzzzzzzzzzzzzzzzzz'],
+            //            'userUID': 'U123456789'
+            //        }
             // }
             //
             if (response['code'] === 0) {
-                records = response['data']
-                accountGroup = this.safeString (records, 'accountGroup')
-                this.options['accountGroup'] = accountGroup
-             }
+                records = response['data'];
+                accountGroup = this.safeString (records, 'accountGroup');
+                this.options['accountGroup'] = accountGroup;
+            }
         }
         return [
             {
@@ -370,7 +382,7 @@ module.exports = class bitmax extends Exchange {
         await this.loadAccounts ();
         const response = await this.privateGetBalance (params);
         //
-        //{
+        // {
         //    'code': 0,
         //    'data':
         //        [
@@ -380,7 +392,7 @@ module.exports = class bitmax extends Exchange {
         //                'availableBalance': '64.298000048'
         //            },
         //         ]
-        //}
+        // }
         //
         const result = { 'info': response };
         const balances = this.safeValue (response, 'data', []);
@@ -407,7 +419,7 @@ module.exports = class bitmax extends Exchange {
         }
         const response = await this.publicGetDepth (this.extend (request, params));
         //
-        //{
+        // {
         //    "code": 0,
         //    "data": {
         //        "m": "depth-snapshot",
@@ -437,7 +449,7 @@ module.exports = class bitmax extends Exchange {
         //            ]
         //        }
         //    }
-        //}
+        // }
         //
         const timestamp = this.safeInteger (response, 'ts');
         const result = this.parseOrderBook (response, timestamp);
@@ -447,7 +459,7 @@ module.exports = class bitmax extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        //{
+        // {
         //    'symbol': 'BTC/USDT',
         //    'open': '8086.63',
         //    'close': '7846.16',
@@ -456,7 +468,7 @@ module.exports = class bitmax extends Exchange {
         //    'volume': '8100.10864',
         //    'ask': ['7847.7', '0.52882'],
         //    'bid': ['7846.87', '3.9718']
-        //}
+        // }
         //
         let timestamp = this.milliseconds ();
         timestamp = timestamp - timestamp % 60000;
@@ -516,7 +528,7 @@ module.exports = class bitmax extends Exchange {
         };
         const response = await this.publicGetTicker (this.extend (request, params));
         //
-        //{
+        // {
         //    'code': 0,
         //    'data':
         //        {
@@ -529,20 +541,29 @@ module.exports = class bitmax extends Exchange {
         //            'ask': ['7847.7', '0.52882'],
         //            'bid': ['7846.87', '3.9718']
         //        }
-        //}
+        // }
         //
         return this.parseTicker (this.safeValue (response, 'data', {}), market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetTicker (params);
-        return this.parseTickers (response, symbols);
+        const request = {};
+        if (symbols !== undefined && symbols.length > 0) {
+            let symbol = this.market (symbols[0])['id'];
+            for (let i = 1; i < symbols.length; i++) {
+                const market = this.market (symbols[i]);
+                symbol = symbol + ',' + market['id'];
+            }
+        }
+        const response = await this.publicGetTicker (this.extend (request, params));
+        const tickers = this.safeValue (response, 'data', []);
+        return this.parseTickers (tickers, symbols);
     }
 
-    parseOHLCV (ohlcvMsg, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcvRecord, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         //
-        //{
+        // {
         //    'm': 'bar',
         //    's': 'BTC/USDT',
         //    'data':
@@ -555,9 +576,9 @@ module.exports = class bitmax extends Exchange {
         //            'l': '7924.98',
         //            'v': '0.32144'
         //        }
-        //}
+        // }
         //
-        const ohlcv = this.safeValue (ohlcvMsg, 'data', {});
+        const ohlcv = this.safeValue (ohlcvRecord, 'data', {});
         return [
             this.safeInteger (ohlcv, 'ts'),
             this.safeFloat (ohlcv, 'o'),
@@ -588,7 +609,7 @@ module.exports = class bitmax extends Exchange {
             request['from'] = request['to'] - limit * duration * 1000 - 1;
         }
         const response = await this.publicGetBarhist (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (this.safeValue (response, 'data', []), market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -604,7 +625,7 @@ module.exports = class bitmax extends Exchange {
         //
         // privateGetCashOrderStatus / privateGetMarginOrderStatus / privateGetFuturesOrderStatus
         //
-        //{
+        // {
         //    'seqNum': 4208248561,
         //    'orderId': 'r170adcc717eU123456789bbtmabc3P',
         //    'symbol': 'BTMX/USDT',
@@ -621,7 +642,7 @@ module.exports = class bitmax extends Exchange {
         //    'cumFee': '0.006043',
         //    'feeAsset': 'USDT',
         //    'execInst': 'NULL_VAL'
-        //}
+        // }
         //
         const timestamp = this.safeInteger (trade, 'ts');
         const price = this.safeFloat (trade, 'price') || this.safeFloat (trade, 'p');
@@ -632,8 +653,7 @@ module.exports = class bitmax extends Exchange {
         }
         const buyerIsMaker = this.safeValue (trade, 'bm');
         let makerOrTaker = undefined;
-
-        if (buyerIsMaker != undefined){
+        if (buyerIsMaker !== undefined) {
             if (buyerIsMaker) {
                 makerOrTaker = 'maker';
             } else {
@@ -700,16 +720,19 @@ module.exports = class bitmax extends Exchange {
         }
         const response = await this.publicGetTrades (this.extend (request, params));
         //
-        //{'code': 0,
-        // 'data': {'m': 'trades',
-        //          'symbol': 'BTC/USDT',
-        //          'data': [{'p': '7812.61',
-        //                    'q': '0.01998',
-        //                    'ts': 1583760687790,
-        //                    'bm': False, # if True, the buyer is the market maker
-        //                    'seqnum': 72057603463162642}]
-        //          }
-        // }
+        //    {
+        //        'code': 0,
+        //        'data':
+        //            {
+        //                'm': 'trades',
+        //                'symbol': 'BTC/USDT',
+        //                'data': [{'p': '7812.61',
+        //                        'q': '0.01998',
+        //                        'ts': 1583760687790,
+        //                        'bm': False, # if True, the buyer is the market maker
+        //                        'seqnum': 72057603463162642}]
+        //              }
+        //     }
         //
         const records = this.safeValue (response, 'data', []);
         const trades = this.safeValue (records, 'data', []);
@@ -730,20 +753,20 @@ module.exports = class bitmax extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        //createOrder
+        // createOrder
         //
-        //{
+        // {
         //    'symbol': 'BTC/USDT',
         //    'orderType': 'Limit',
         //    'action': 'new',
         //    'timestamp': 1583812256973,
         //    'id': '0e602eb4337d4aebbe3c438f6cc41aee',
         //    'orderId': 'a170c29124378418641348f6cc41aee'
-        //}
+        // }
         //
-        //fetchOrder, fetchOpenOrders, fetchClosedOrders
+        // fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
-        //{
+        // {
         //    'avgPx': '9126.75',
         //    'cumFee': '0.002738025',
         //    'cumFilledQty': '0.0005',
@@ -760,7 +783,7 @@ module.exports = class bitmax extends Exchange {
         //    'status': 'Filled',
         //    'stopPrice': '',
         //    'symbol': 'BTC-PERP'
-        //}
+        // }
         //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
@@ -783,7 +806,13 @@ module.exports = class bitmax extends Exchange {
         const amount = this.safeFloat (order, 'orderQty');
         const avgFillPx = this.safeFloat (order, 'avgPx');
         const filled = this.safeFloat (order, 'cumFilledQty');
-        let remaining = undefined;
+        let remaining = (amount || 0) - (filled || 0);
+        if (remaining < 0) {
+            remaining = 0;
+        }
+        if (symbol !== undefined) {
+            remaining = this.amountToPrecision (symbol, remaining);
+        }
         const cost = (avgFillPx || 0) * (filled || 0);
         const id = this.safeString (order, 'orderId');
         let type = this.safeString (order, 'orderType');
@@ -847,21 +876,25 @@ module.exports = class bitmax extends Exchange {
         const method = 'privatePost' + this.getAccount (params) + 'Order';
         const response = await this[method] (this.extend (request, params));
         //
-        //{
-        //'code': 0,
-        // 'data': {'ac': 'CASH',
-        //          'accountId': 'hongyu.wang',
-        //          'action': 'place-order',
-        //          'info': {'id': 'JhAAjOoTY6EINXC8QcOL18HoXw89FU0u',
+        // {
+        //  'code': 0,
+        //  'data': {
+        //              'ac': 'CASH',
+        //              'accountId': 'hongyu.wang',
+        //              'action': 'place-order',
+        //              'info': {
+        //                   'id': 'JhAAjOoTY6EINXC8QcOL18HoXw89FU0u',
         //                   'orderId': 'a170d000346b5450276356oXw89FU0u',
         //                   'orderType': 'Limit',
         //                   'symbol': 'BTMX/USDT',
-        //                   'timestamp': 1584037640014},
-        //          'status': 'Ack'}
+        //                   'timestamp': 1584037640014
+        //                  },
+        //              'status': 'Ack'
         //          }
+        // }
         //
         const data = this.safeValue (response, 'data', {});
-        const info = this.extend (this.safeValue (data, 'info'), {'status': undefined});
+        const info = this.extend (this.safeValue (data, 'info'), { 'status': undefined });
         return this.parseOrder (info, market);
     }
 
@@ -875,13 +908,32 @@ module.exports = class bitmax extends Exchange {
         const request = {
             'orderId': id,
         };
-        const method = 'privateGet' + this.getAccount (params) + 'OrderStatus';
-        const response = await this[method] (this.extend (request, params));
+        let accounts = undefined;
+        if ('account' in params) {
+            accounts = [ this.safeValue (params, 'account') ];
+        } else {
+            accounts = this.getValidAccounts ();
+        }
+        let response = undefined;
+        for (let i = 0; i < accounts.length; i++) {
+            if (response === undefined) {
+                try {
+                    const account = this.getAccount ({ 'account': accounts[i] });
+                    const method = 'privateGet' + account + 'OrderStatus';
+                    response = await this[method] (this.extend (request, params));
+                } catch (error) {
+                    // log error
+                    response = undefined;
+                }
+            }
+        }
         //
-        //{'code': 0,
-        // 'accountId': 'ABCDEFGHIJKLMNOPQRSTUVWXYZABC',
-        // 'ac': 'CASH',
-        // 'data': {'seqNum': 4208248561,
+        //  {
+        //      'code': 0,
+        //      'accountId': 'ABCDEFGHIJKLMNOPQRSTUVWXYZABC',
+        //      'ac': 'CASH',
+        //      'data': {
+        //          'seqNum': 4208248561,
         //          'orderId': 'r170adcc717eU123456789bbtmabc3P',
         //          'symbol': 'BTMX/USDT',
         //          'orderType': 'Limit',
@@ -930,10 +982,10 @@ module.exports = class bitmax extends Exchange {
             request['n'] = limit; // default 15, max 50
         }
         request['executedOnly'] = this.safeValue (params, 'executedOnly', false);
-        const method = 'privateGet' + this.getAccount (params) + "OrderHistCurrent";
+        const method = 'privateGet' + this.getAccount (params) + 'OrderHistCurrent';
         const response = await this[method] (this.extend (request, params));
         //
-        //{
+        // {
         //    'code': 0,
         //    'accountId': 'test1@xxxxx.io',
         //    'ac': 'CASH',
@@ -958,7 +1010,6 @@ module.exports = class bitmax extends Exchange {
         //        }]
         // }
         //
-
         const orders = this.safeValue (response, 'data', []);
         return this.parseOrders (orders, market, since, limit);
     }
@@ -977,7 +1028,7 @@ module.exports = class bitmax extends Exchange {
         const method = 'privateGet' + this.getAccount (params) + 'OrderOpen';
         const response = await this[method] (this.extend (request, params));
         //
-        //{
+        // {
         //    'code': 0,
         //    'accountId': 'MPXFNEYEJIJ93CREXT3LTCIDIJPCFNIX',
         //    'ac': 'CASH',
@@ -1000,7 +1051,7 @@ module.exports = class bitmax extends Exchange {
         //            'feeAsset': 'USDT',
         //            'execInst': 'NULL_VAL'
         //        }]
-        //}
+        // }
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
@@ -1033,7 +1084,7 @@ module.exports = class bitmax extends Exchange {
         }
         const response = await this.privateGetOrderHist (this.extend (request, params));
         //
-        //{
+        // {
         //    'code': 0,
         //    'data':
         //        {
@@ -1064,7 +1115,7 @@ module.exports = class bitmax extends Exchange {
         //                }
         //            ]
         //        }
-        //}
+        // }
         //
         const data = this.safeValue (response, 'data', {});
         const orders = this.safeValue (data, 'data', []);
@@ -1085,9 +1136,9 @@ module.exports = class bitmax extends Exchange {
             // 'time': this.milliseconds (), // this is filled in the private section of the sign() method below
         };
         const method = 'privateDelete' + this.getAccount (params) + 'Order';
-        const response = await this.privateDeleteOrder (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
-        //{
+        // {
         //    'code': 0,
         //    'data':
         //        {
@@ -1102,9 +1153,10 @@ module.exports = class bitmax extends Exchange {
         //                'id': 'de4f5a7c5df2433cbe427da14d8f84d5',
         //                'orderId': 'a170c5136edb8418641348575f38457'}
         //        }
-        //}
+        // }
         //
-        const order = this.safeValue (response, 'data', {});
+        const order = this.safeValue (this.safeValue (response, 'data', {}), 'info', {});
+        order['status'] = undefined;
         return this.parseOrder (order);
     }
 
@@ -1121,9 +1173,31 @@ module.exports = class bitmax extends Exchange {
         const method = 'privateDelete' + this.getAccount (params) + 'OrderAll';
         const response = await this[method] (this.extend (request, params));
         //
-        //     ?
+        // {
+        //    'code': 0,
+        //    'data':
+        //        {
+        //            'accountId': 'test1@dengpan.io',
+        //            'ac': 'CASH',
+        //            'action': 'cancel-all',
+        //            'status': 'Ack',
+        //            'info':
+        //                {
+        //                    'symbol': '',
+        //                    'orderType': 'NULL_VAL',
+        //                    'timestamp': 1584057856765,
+        //                    'id': '',
+        //                    'orderId': ''
+        //                }
+        //             }
+        //    }
+        // }
         //
-        return response;
+        const order = this.safeValue (this.safeValue (response, 'data', {}), 'info', {});
+        order['status'] = undefined;
+        order['orderType'] = undefined;
+        order['symbol'] = symbol;
+        return this.parseOrder (order);
     }
 
     coid () {
@@ -1142,11 +1216,12 @@ module.exports = class bitmax extends Exchange {
             'requestId': this.coid (),
             // 'time': this.milliseconds (), // this is filled in the private section of the sign() method below
             'asset': currency['id'],
+            'isCommonApi': true, // not from request
         };
         const response = await this.privateGetWalletDepositAddress (this.extend (request, params));
         //
         //
-        //{
+        // {
         //    'code': 0,
         //    'data':
         //        {
@@ -1167,9 +1242,9 @@ module.exports = class bitmax extends Exchange {
         //                    }
         //                ]
         //        }
-        //}
+        // }
         //
-        let data = this.safeValue (response, 'data', {});
+        const data = this.safeValue (response, 'data', {});
         let addressData = this.safeValue (data, 'address', []);
         if (Array.isArray (addressData)) {
             addressData = this.safeValue (addressData, 0, {});
@@ -1194,7 +1269,7 @@ module.exports = class bitmax extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            if (this.safeValue (params, 'isCommonApi', false) !== false) {
+            if (!this.safeValue (params, 'isCommonApi', false)) {
                 let accountGroup = this.safeString (this.options, 'accountGroup');
                 if (accountGroup === undefined) {
                     if (this.accounts !== undefined) {
@@ -1206,7 +1281,7 @@ module.exports = class bitmax extends Exchange {
                 }
             }
             query['time'] = this.milliseconds ().toString ();
-            let auth = query['time'] + '+' + path.replace ('/{orderId}', ''); // fix sign error
+            const auth = query['time'] + '+' + path.replace ('/{orderId}', ''); // fix sign error
             headers = {
                 'x-auth-key': this.apiKey,
                 'x-auth-timestamp': query['time'],
