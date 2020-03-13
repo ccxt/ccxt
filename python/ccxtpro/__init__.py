@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.0.65'
+__version__ = '0.0.66'
 
 # -----------------------------------------------------------------------------
 
@@ -90,6 +90,7 @@ from ccxt.async_support.btctradeua import btctradeua                      # noqa
 from ccxt.async_support.btcturk import btcturk                            # noqa: F401
 from ccxt.async_support.buda import buda                                  # noqa: F401
 from ccxt.async_support.bw import bw                                      # noqa: F401
+from ccxt.async_support.bybit import bybit                                # noqa: F401
 from ccxt.async_support.bytetrade import bytetrade                        # noqa: F401
 from ccxt.async_support.cex import cex                                    # noqa: F401
 from ccxt.async_support.chilebit import chilebit                          # noqa: F401
