@@ -64,7 +64,7 @@ class bitmax(Exchange):
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/66820319-19710880-ef49-11e9-8fbe-16be62a11992.jpg',
-                'api': 'https://gdmexch.com',
+                'api': 'https://bitmax.io',
                 'test': 'https://bitmax-test.io/api',
                 'www': 'https://bitmax.io',
                 'doc': [
@@ -371,7 +371,8 @@ class bitmax(Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         self.load_accounts()
-        response = self.privateGetBalance(params)
+        method = 'privateGet' + self.get_account(params) + 'Balance'
+        response = getattr(self, method)(params)
         #
         # {
         #    'code': 0,
@@ -391,8 +392,8 @@ class bitmax(Exchange):
             balance = balances[i]
             code = self.safe_currency_code(self.safe_string(balance, 'asset'))
             account = self.account()
-            account['free'] = self.safe_float(balance, 'availableAmount')
-            account['total'] = self.safe_float(balance, 'totalAmount')
+            account['free'] = self.safe_float(balance, 'availableBalance')
+            account['total'] = self.safe_float(balance, 'totalBalance')
             account['used'] = account['total'] - account['free']
             result[code] = account
         return self.parse_balance(result)
@@ -425,7 +426,7 @@ class bitmax(Exchange):
         #                    "0.00342"
         #                ]
         #            ],
-        #            "bid": [
+        #            "bids": [
         #                [
         #                    "5532.27",
         #                    "0.00606"
@@ -439,9 +440,11 @@ class bitmax(Exchange):
         #    }
         # }
         #
-        timestamp = self.safe_integer(response, 'ts')
-        result = self.parse_order_book(response, timestamp)
-        result['nonce'] = self.safe_integer(response, 'seqnum')
+        data = self.safe_value(response, 'data', {})
+        records = self.safe_value(data, 'data', {})
+        timestamp = self.safe_integer(records, 'ts')
+        result = self.parse_order_book(records, timestamp)
+        result['nonce'] = self.safe_integer(records, 'seqnum')
         return result
 
     def parse_ticker(self, ticker, market=None):

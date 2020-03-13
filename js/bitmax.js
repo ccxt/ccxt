@@ -380,7 +380,8 @@ module.exports = class bitmax extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const response = await this.privateGetBalance (params);
+        const method = 'privateGet' + this.getAccount (params) + 'Balance';
+        const response = await this[method] (params);
         //
         // {
         //    'code': 0,
@@ -400,8 +401,8 @@ module.exports = class bitmax extends Exchange {
             const balance = balances[i];
             const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'availableAmount');
-            account['total'] = this.safeFloat (balance, 'totalAmount');
+            account['free'] = this.safeFloat (balance, 'availableBalance');
+            account['total'] = this.safeFloat (balance, 'totalBalance');
             account['used'] = account['total'] - account['free'];
             result[code] = account;
         }
@@ -437,7 +438,7 @@ module.exports = class bitmax extends Exchange {
         //                    "0.00342"
         //                ]
         //            ],
-        //            "bid": [
+        //            "bids": [
         //                [
         //                    "5532.27",
         //                    "0.00606"
@@ -451,9 +452,11 @@ module.exports = class bitmax extends Exchange {
         //    }
         // }
         //
-        const timestamp = this.safeInteger (response, 'ts');
-        const result = this.parseOrderBook (response, timestamp);
-        result['nonce'] = this.safeInteger (response, 'seqnum');
+        const data = this.safeValue (response, 'data', {});
+        const records = this.safeValue (data, 'data', {});
+        const timestamp = this.safeInteger (records, 'ts');
+        const result = this.parseOrderBook (records, timestamp);
+        result['nonce'] = this.safeInteger (records, 'seqnum');
         return result;
     }
 

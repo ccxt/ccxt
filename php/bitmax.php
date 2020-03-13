@@ -382,7 +382,8 @@ class bitmax extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $this->load_accounts();
-        $response = $this->privateGetBalance ($params);
+        $method = 'privateGet' . $this->get_account ($params) . 'Balance';
+        $response = $this->$method ($params);
         //
         // {
         //    'code' => 0,
@@ -402,8 +403,8 @@ class bitmax extends Exchange {
             $balance = $balances[$i];
             $code = $this->safe_currency_code($this->safe_string($balance, 'asset'));
             $account = $this->account ();
-            $account['free'] = $this->safe_float($balance, 'availableAmount');
-            $account['total'] = $this->safe_float($balance, 'totalAmount');
+            $account['free'] = $this->safe_float($balance, 'availableBalance');
+            $account['total'] = $this->safe_float($balance, 'totalBalance');
             $account['used'] = $account['total'] - $account['free'];
             $result[$code] = $account;
         }
@@ -423,10 +424,10 @@ class bitmax extends Exchange {
         //
         // {
         //    "code" => 0,
-        //    "data" => {
+        //    "$data" => {
         //        "m" => "depth-snapshot",
         //        "$symbol" => "BTC/USDT",
-        //        "data" => {
+        //        "$data" => {
         //            "ts" => 1583558793465,
         //            "seqnum" => 8273359781,
         //            "asks" => array(
@@ -439,7 +440,7 @@ class bitmax extends Exchange {
         //                    "0.00342"
         //                )
         //            ),
-        //            "bid" => array(
+        //            "bids" => array(
         //                array(
         //                    "5532.27",
         //                    "0.00606"
@@ -453,9 +454,11 @@ class bitmax extends Exchange {
         //    }
         // }
         //
-        $timestamp = $this->safe_integer($response, 'ts');
-        $result = $this->parse_order_book($response, $timestamp);
-        $result['nonce'] = $this->safe_integer($response, 'seqnum');
+        $data = $this->safe_value($response, 'data', array());
+        $records = $this->safe_value($data, 'data', array());
+        $timestamp = $this->safe_integer($records, 'ts');
+        $result = $this->parse_order_book($records, $timestamp);
+        $result['nonce'] = $this->safe_integer($records, 'seqnum');
         return $result;
     }
 
