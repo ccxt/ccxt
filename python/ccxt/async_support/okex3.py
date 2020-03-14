@@ -517,13 +517,14 @@ class okex3(Exchange):
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
-                'fetchMarkets': ['spot', 'futures', 'swap'],
-                'defaultType': 'spot',  # 'account', 'spot', 'margin', 'futures', 'swap'
+                'fetchMarkets': ['spot', 'futures', 'swap', 'option'],
+                'defaultType': 'spot',  # 'account', 'spot', 'margin', 'futures', 'swap', 'option'
                 'auth': {
                     'time': 'public',
                     'currencies': 'private',
                     'instruments': 'public',
                     'rate': 'public',
+                    'underlying': 'public',
                     'constituents/{ett}': 'public',
                     'define-price/{ett}': 'public',
                 },
@@ -567,81 +568,121 @@ class okex3(Exchange):
         #
         # spot markets
         #
-        #     [{  base_currency: "EOS",
-        #           instrument_id: "EOS-OKB",
-        #                min_size: "0.01",
-        #              product_id: "EOS-OKB",
-        #          quote_currency: "OKB",
-        #          size_increment: "0.000001",
-        #               tick_size: "0.0001"        },
+        #     {
+        #         base_currency: "EOS",
+        #         instrument_id: "EOS-OKB",
+        #         min_size: "0.01",
+        #         quote_currency: "OKB",
+        #         size_increment: "0.000001",
+        #         tick_size: "0.0001"
+        #     }
         #
         #       ...,  # the spot endpoint also returns ETT instruments
         #
-        #       {  base_currency: "OK06ETT",
-        #          base_increment: "0.00000001",
-        #           base_min_size: "0.01",
-        #           instrument_id: "OK06ETT-USDT",
-        #                min_size: "0.01",
-        #              product_id: "OK06ETT-USDT",
-        #          quote_currency: "USDT",
+        #     {
+        #         base_currency: "OK06ETT",
+        #         base_increment: "0.00000001",
+        #         base_min_size: "0.01",
+        #         instrument_id: "OK06ETT-USDT",
+        #         min_size: "0.01",
+        #         product_id: "OK06ETT-USDT",
+        #         quote_currency: "USDT",
         #         quote_increment: "0.0001",
-        #          size_increment: "0.00000001",
-        #               tick_size: "0.0001"        }]
+        #         size_increment: "0.00000001",
+        #         tick_size: "0.0001",
+        #     }
         #
         # futures markets
         #
-        #     [{   instrument_id: "BTG-USD-190329",
-        #         underlying_index: "BTG",
-        #           quote_currency: "USD",
-        #                tick_size: "0.01",
-        #             contract_val: "10",
-        #                  listing: "2018-12-14",
-        #                 delivery: "2019-03-29",
-        #          trade_increment: "1"               }  ]
+        #     {
+        #         instrument_id: "XRP-USD-200320",
+        #         underlying_index: "XRP",
+        #         quote_currency: "USD",
+        #         tick_size: "0.0001",
+        #         contract_val: "10",
+        #         listing: "2020-03-06",
+        #         delivery: "2020-03-20",
+        #         trade_increment: "1",
+        #         alias: "self_week",
+        #         underlying: "XRP-USD",
+        #         base_currency: "XRP",
+        #         settlement_currency: "XRP",
+        #         is_inverse: "true",
+        #         contract_val_currency: "USD",
+        #     }
         #
         # swap markets
         #
-        #     [{   instrument_id: "BTC-USD-SWAP",
-        #         underlying_index: "BTC",
-        #           quote_currency: "USD",
-        #                     coin: "BTC",
-        #             contract_val: "100",
-        #                  listing: "2018-10-23T20:11:00.443Z",
-        #                 delivery: "2018-10-24T20:11:00.443Z",
-        #           size_increment: "4",
-        #                tick_size: "4"                         }  ]
+        #     {
+        #         instrument_id: "BSV-USD-SWAP",
+        #         underlying_index: "BSV",
+        #         quote_currency: "USD",
+        #         coin: "BSV",
+        #         contract_val: "10",
+        #         listing: "2018-12-21T07:53:47.000Z",
+        #         delivery: "2020-03-14T08:00:00.000Z",
+        #         size_increment: "1",
+        #         tick_size: "0.01",
+        #         base_currency: "BSV",
+        #         underlying: "BSV-USD",
+        #         settlement_currency: "BSV",
+        #         is_inverse: "true",
+        #         contract_val_currency: "USD"
+        #     }
+        #
+        # options markets
+        #
+        #     {
+        #         instrument_id: 'BTC-USD-200327-4000-C',
+        #         underlying: 'BTC-USD',
+        #         settlement_currency: 'BTC',
+        #         contract_val: '0.1000',
+        #         option_type: 'C',
+        #         strike: '4000',
+        #         tick_size: '0.0005',
+        #         lot_size: '1.0000',
+        #         listing: '2019-12-25T08:30:36.302Z',
+        #         delivery: '2020-03-27T08:00:00.000Z',
+        #         state: '2',
+        #         trading_start_time: '2019-12-25T08:30:36.302Z',
+        #         timestamp: '2020-03-13T08:05:09.456Z',
+        #     }
         #
         id = self.safe_string(market, 'instrument_id')
         marketType = 'spot'
         spot = True
         future = False
         swap = False
+        option = False
         baseId = self.safe_string(market, 'base_currency')
+        quoteId = self.safe_string(market, 'quote_currency')
         contractVal = self.safe_float(market, 'contract_val')
         if contractVal is not None:
-            marketType = 'swap'
-            spot = False
-            swap = True
-            baseId = self.safe_string(market, 'coin')
-            futuresAlias = self.safe_string(market, 'alias')
-            if futuresAlias is not None:
-                swap = False
-                future = True
-                marketType = 'futures'
-                baseId = self.safe_string(market, 'underlying_index')
-        quoteId = self.safe_string(market, 'quote_currency')
+            if 'option_type' in market:
+                marketType = 'option'
+                spot = False
+                option = True
+                underlying = self.safe_string(market, 'underlying')
+                parts = underlying.split('-')
+                baseId = self.safe_string(parts, 0)
+                quoteId = self.safe_string(parts, 1)
+            else:
+                marketType = 'swap'
+                spot = False
+                swap = True
+                baseId = self.safe_string(market, 'coin')
+                futuresAlias = self.safe_string(market, 'alias')
+                if futuresAlias is not None:
+                    swap = False
+                    future = True
+                    marketType = 'futures'
+                    baseId = self.safe_string(market, 'underlying_index')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = (base + '/' + quote) if spot else id
-        amountPrecision = self.safe_string(market, 'size_increment')
-        if amountPrecision is not None:
-            amountPrecision = self.precision_from_string(amountPrecision)
-        pricePrecision = self.safe_string(market, 'tick_size')
-        if pricePrecision is not None:
-            pricePrecision = self.precision_from_string(pricePrecision)
         precision = {
-            'amount': amountPrecision,
-            'price': pricePrecision,
+            'amount': self.safe_float(market, 'size_increment'),
+            'price': self.safe_float(market, 'tick_size'),
         }
         minAmount = self.safe_float_2(market, 'min_size', 'base_min_size')
         minPrice = self.safe_float(market, 'tick_size')
@@ -664,6 +705,7 @@ class okex3(Exchange):
             'spot': spot,
             'futures': future,
             'swap': swap,
+            'option': option,
             'active': active,
             'precision': precision,
             'limits': {
@@ -683,46 +725,98 @@ class okex3(Exchange):
         })
 
     async def fetch_markets_by_type(self, type, params={}):
-        method = type + 'GetInstruments'
-        response = await getattr(self, method)(params)
-        #
-        # spot markets
-        #
-        #     [{  base_currency: "EOS",
-        #          base_increment: "0.000001",
-        #           base_min_size: "0.01",
-        #           instrument_id: "EOS-OKB",
-        #                min_size: "0.01",
-        #              product_id: "EOS-OKB",
-        #          quote_currency: "OKB",
-        #         quote_increment: "0.0001",
-        #          size_increment: "0.000001",
-        #               tick_size: "0.0001"    }      ]
-        #
-        # futures markets
-        #
-        #     [{   instrument_id: "BTG-USD-190329",
-        #         underlying_index: "BTG",
-        #           quote_currency: "USD",
-        #                tick_size: "0.01",
-        #             contract_val: "10",
-        #                  listing: "2018-12-14",
-        #                 delivery: "2019-03-29",
-        #          trade_increment: "1"               }  ]
-        #
-        # swap markets
-        #
-        #     [{   instrument_id: "BTC-USD-SWAP",
-        #         underlying_index: "BTC",
-        #           quote_currency: "USD",
-        #                     coin: "BTC",
-        #             contract_val: "100",
-        #                  listing: "2018-10-23T20:11:00.443Z",
-        #                 delivery: "2018-10-24T20:11:00.443Z",
-        #           size_increment: "4",
-        #                tick_size: "4"                         }  ]
-        #
-        return self.parse_markets(response)
+        if type == 'option':
+            underlying = await self.optionGetUnderlying(params)
+            result = []
+            for i in range(0, len(underlying)):
+                response = await self.optionGetInstrumentsUnderlying({
+                    'underlying': underlying[i],
+                })
+                #
+                # options markets
+                #
+                #     [
+                #         {
+                #             instrument_id: 'BTC-USD-200327-4000-C',
+                #             underlying: 'BTC-USD',
+                #             settlement_currency: 'BTC',
+                #             contract_val: '0.1000',
+                #             option_type: 'C',
+                #             strike: '4000',
+                #             tick_size: '0.0005',
+                #             lot_size: '1.0000',
+                #             listing: '2019-12-25T08:30:36.302Z',
+                #             delivery: '2020-03-27T08:00:00.000Z',
+                #             state: '2',
+                #             trading_start_time: '2019-12-25T08:30:36.302Z',
+                #             timestamp: '2020-03-13T08:05:09.456Z',
+                #         },
+                #     ]
+                #
+                result = self.array_concat(result, response)
+            return self.parse_markets(result)
+        elif (type == 'spot') or (type == 'futures') or (type == 'swap'):
+            method = type + 'GetInstruments'
+            response = await getattr(self, method)(params)
+            #
+            # spot markets
+            #
+            #     [
+            #         {
+            #             base_currency: "EOS",
+            #             instrument_id: "EOS-OKB",
+            #             min_size: "0.01",
+            #             quote_currency: "OKB",
+            #             size_increment: "0.000001",
+            #             tick_size: "0.0001"
+            #         }
+            #     ]
+            #
+            # futures markets
+            #
+            #     [
+            #         {
+            #             instrument_id: "XRP-USD-200320",
+            #             underlying_index: "XRP",
+            #             quote_currency: "USD",
+            #             tick_size: "0.0001",
+            #             contract_val: "10",
+            #             listing: "2020-03-06",
+            #             delivery: "2020-03-20",
+            #             trade_increment: "1",
+            #             alias: "self_week",
+            #             underlying: "XRP-USD",
+            #             base_currency: "XRP",
+            #             settlement_currency: "XRP",
+            #             is_inverse: "true",
+            #             contract_val_currency: "USD",
+            #         }
+            #     ]
+            #
+            # swap markets
+            #
+            #     [
+            #         {
+            #             instrument_id: "BSV-USD-SWAP",
+            #             underlying_index: "BSV",
+            #             quote_currency: "USD",
+            #             coin: "BSV",
+            #             contract_val: "10",
+            #             listing: "2018-12-21T07:53:47.000Z",
+            #             delivery: "2020-03-14T08:00:00.000Z",
+            #             size_increment: "1",
+            #             tick_size: "0.01",
+            #             base_currency: "BSV",
+            #             underlying: "BSV-USD",
+            #             settlement_currency: "BSV",
+            #             is_inverse: "true",
+            #             contract_val_currency: "USD"
+            #         }
+            #     ]
+            #
+            return self.parse_markets(response)
+        else:
+            raise NotSupported(self.id + ' fetchMarketsByType does not support market type ' + type)
 
     async def fetch_currencies(self, params={}):
         # has['fetchCurrencies'] is currently set to False
@@ -843,9 +937,9 @@ class okex3(Exchange):
             'high': self.safe_float(ticker, 'high_24h'),
             'low': self.safe_float(ticker, 'low_24h'),
             'bid': self.safe_float(ticker, 'best_bid'),
-            'bidVolume': None,
+            'bidVolume': self.safe_float(ticker, 'best_bid_size'),
             'ask': self.safe_float(ticker, 'best_ask'),
-            'askVolume': None,
+            'askVolume': self.safe_float(ticker, 'best_ask_size'),
             'vwap': None,
             'open': open,
             'close': last,
