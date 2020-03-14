@@ -497,13 +497,14 @@ class okex3 extends Exchange {
             ),
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
-                'fetchMarkets' => array( 'spot', 'futures', 'swap' ),
-                'defaultType' => 'spot', // 'account', 'spot', 'margin', 'futures', 'swap'
+                'fetchMarkets' => array( 'spot', 'futures', 'swap', 'option' ),
+                'defaultType' => 'spot', // 'account', 'spot', 'margin', 'futures', 'swap', 'option'
                 'auth' => array(
                     'time' => 'public',
                     'currencies' => 'private',
                     'instruments' => 'public',
                     'rate' => 'public',
+                    'underlying' => 'public',
                     'constituents/{ett}' => 'public',
                     'define-price/{ett}' => 'public',
                 ),
@@ -553,85 +554,124 @@ class okex3 extends Exchange {
         //
         // $spot markets
         //
-        //     array( array(   base_currency => "EOS",
-        //           instrument_id => "EOS-OKB",
-        //                min_size => "0.01",
-        //              product_id => "EOS-OKB",
-        //          quote_currency => "OKB",
-        //          size_increment => "0.000001",
-        //               tick_size => "0.0001"        ),
+        //     {
+        //         base_currency => "EOS",
+        //         instrument_id => "EOS-OKB",
+        //         min_size => "0.01",
+        //         quote_currency => "OKB",
+        //         size_increment => "0.000001",
+        //         tick_size => "0.0001"
+        //     }
         //
         //       ..., // the $spot endpoint also returns ETT instruments
         //
-        //       {   base_currency => "OK06ETT",
-        //          base_increment => "0.00000001",
-        //           base_min_size => "0.01",
-        //           instrument_id => "OK06ETT-USDT",
-        //                min_size => "0.01",
-        //              product_id => "OK06ETT-USDT",
-        //          quote_currency => "USDT",
+        //     {
+        //         base_currency => "OK06ETT",
+        //         base_increment => "0.00000001",
+        //         base_min_size => "0.01",
+        //         instrument_id => "OK06ETT-USDT",
+        //         min_size => "0.01",
+        //         product_id => "OK06ETT-USDT",
+        //         quote_currency => "USDT",
         //         quote_increment => "0.0001",
-        //          size_increment => "0.00000001",
-        //               tick_size => "0.0001"        } )
+        //         size_increment => "0.00000001",
+        //         tick_size => "0.0001",
+        //     }
         //
         // futures markets
         //
-        //     array( {    instrument_id => "BTG-USD-190329",
-        //         underlying_index => "BTG",
-        //           quote_currency => "USD",
-        //                tick_size => "0.01",
-        //             contract_val => "10",
-        //                  listing => "2018-12-14",
-        //                 delivery => "2019-03-29",
-        //          trade_increment => "1"               }  )
+        //     {
+        //         instrument_id => "XRP-USD-200320",
+        //         underlying_index => "XRP",
+        //         quote_currency => "USD",
+        //         tick_size => "0.0001",
+        //         contract_val => "10",
+        //         listing => "2020-03-06",
+        //         delivery => "2020-03-20",
+        //         trade_increment => "1",
+        //         alias => "this_week",
+        //         $underlying => "XRP-USD",
+        //         base_currency => "XRP",
+        //         settlement_currency => "XRP",
+        //         is_inverse => "true",
+        //         contract_val_currency => "USD",
+        //     }
         //
         // $swap markets
         //
-        //     array( {    instrument_id => "BTC-USD-SWAP",
-        //         underlying_index => "BTC",
-        //           quote_currency => "USD",
-        //                     coin => "BTC",
-        //             contract_val => "100",
-        //                  listing => "2018-10-23T20:11:00.443Z",
-        //                 delivery => "2018-10-24T20:11:00.443Z",
-        //           size_increment => "4",
-        //                tick_size => "4"                         }  )
+        //     {
+        //         instrument_id => "BSV-USD-SWAP",
+        //         underlying_index => "BSV",
+        //         quote_currency => "USD",
+        //         coin => "BSV",
+        //         contract_val => "10",
+        //         listing => "2018-12-21T07:53:47.000Z",
+        //         delivery => "2020-03-14T08:00:00.000Z",
+        //         size_increment => "1",
+        //         tick_size => "0.01",
+        //         base_currency => "BSV",
+        //         $underlying => "BSV-USD",
+        //         settlement_currency => "BSV",
+        //         is_inverse => "true",
+        //         contract_val_currency => "USD"
+        //     }
+        //
+        // options markets
+        //
+        //     {
+        //         instrument_id => 'BTC-USD-200327-4000-C',
+        //         $underlying => 'BTC-USD',
+        //         settlement_currency => 'BTC',
+        //         contract_val => '0.1000',
+        //         option_type => 'C',
+        //         strike => '4000',
+        //         tick_size => '0.0005',
+        //         lot_size => '1.0000',
+        //         listing => '2019-12-25T08:30:36.302Z',
+        //         delivery => '2020-03-27T08:00:00.000Z',
+        //         state => '2',
+        //         trading_start_time => '2019-12-25T08:30:36.302Z',
+        //         timestamp => '2020-03-13T08:05:09.456Z',
+        //     }
         //
         $id = $this->safe_string($market, 'instrument_id');
         $marketType = 'spot';
         $spot = true;
         $future = false;
         $swap = false;
+        $option = false;
         $baseId = $this->safe_string($market, 'base_currency');
+        $quoteId = $this->safe_string($market, 'quote_currency');
         $contractVal = $this->safe_float($market, 'contract_val');
         if ($contractVal !== null) {
-            $marketType = 'swap';
-            $spot = false;
-            $swap = true;
-            $baseId = $this->safe_string($market, 'coin');
-            $futuresAlias = $this->safe_string($market, 'alias');
-            if ($futuresAlias !== null) {
-                $swap = false;
-                $future = true;
-                $marketType = 'futures';
-                $baseId = $this->safe_string($market, 'underlying_index');
+            if (is_array($market) && array_key_exists('option_type', $market)) {
+                $marketType = 'option';
+                $spot = false;
+                $option = true;
+                $underlying = $this->safe_string($market, 'underlying');
+                $parts = explode('-', $underlying);
+                $baseId = $this->safe_string($parts, 0);
+                $quoteId = $this->safe_string($parts, 1);
+            } else {
+                $marketType = 'swap';
+                $spot = false;
+                $swap = true;
+                $baseId = $this->safe_string($market, 'coin');
+                $futuresAlias = $this->safe_string($market, 'alias');
+                if ($futuresAlias !== null) {
+                    $swap = false;
+                    $future = true;
+                    $marketType = 'futures';
+                    $baseId = $this->safe_string($market, 'underlying_index');
+                }
             }
         }
-        $quoteId = $this->safe_string($market, 'quote_currency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $spot ? ($base . '/' . $quote) : $id;
-        $amountPrecision = $this->safe_string($market, 'size_increment');
-        if ($amountPrecision !== null) {
-            $amountPrecision = $this->precision_from_string($amountPrecision);
-        }
-        $pricePrecision = $this->safe_string($market, 'tick_size');
-        if ($pricePrecision !== null) {
-            $pricePrecision = $this->precision_from_string($pricePrecision);
-        }
         $precision = array(
-            'amount' => $amountPrecision,
-            'price' => $pricePrecision,
+            'amount' => $this->safe_float($market, 'size_increment'),
+            'price' => $this->safe_float($market, 'tick_size'),
         );
         $minAmount = $this->safe_float_2($market, 'min_size', 'base_min_size');
         $minPrice = $this->safe_float($market, 'tick_size');
@@ -656,6 +696,7 @@ class okex3 extends Exchange {
             'spot' => $spot,
             'futures' => $future,
             'swap' => $swap,
+            'option' => $option,
             'active' => $active,
             'precision' => $precision,
             'limits' => array(
@@ -676,46 +717,100 @@ class okex3 extends Exchange {
     }
 
     public function fetch_markets_by_type ($type, $params = array ()) {
-        $method = $type . 'GetInstruments';
-        $response = $this->$method ($params);
-        //
-        // spot markets
-        //
-        //     array( {   base_currency => "EOS",
-        //          base_increment => "0.000001",
-        //           base_min_size => "0.01",
-        //           instrument_id => "EOS-OKB",
-        //                min_size => "0.01",
-        //              product_id => "EOS-OKB",
-        //          quote_currency => "OKB",
-        //         quote_increment => "0.0001",
-        //          size_increment => "0.000001",
-        //               tick_size => "0.0001"    }      )
-        //
-        // futures markets
-        //
-        //     array( {    instrument_id => "BTG-USD-190329",
-        //         underlying_index => "BTG",
-        //           quote_currency => "USD",
-        //                tick_size => "0.01",
-        //             contract_val => "10",
-        //                  listing => "2018-12-14",
-        //                 delivery => "2019-03-29",
-        //          trade_increment => "1"               }  )
-        //
-        // swap markets
-        //
-        //     array( {    instrument_id => "BTC-USD-SWAP",
-        //         underlying_index => "BTC",
-        //           quote_currency => "USD",
-        //                     coin => "BTC",
-        //             contract_val => "100",
-        //                  listing => "2018-10-23T20:11:00.443Z",
-        //                 delivery => "2018-10-24T20:11:00.443Z",
-        //           size_increment => "4",
-        //                tick_size => "4"                         }  )
-        //
-        return $this->parse_markets ($response);
+        if ($type === 'option') {
+            $underlying = $this->optionGetUnderlying ($params);
+            $result = array();
+            for ($i = 0; $i < count($underlying); $i++) {
+                $response = $this->optionGetInstrumentsUnderlying (array(
+                    'underlying' => $underlying[$i],
+                ));
+                //
+                // options markets
+                //
+                //     array(
+                //         array(
+                //             instrument_id => 'BTC-USD-200327-4000-C',
+                //             $underlying => 'BTC-USD',
+                //             settlement_currency => 'BTC',
+                //             contract_val => '0.1000',
+                //             option_type => 'C',
+                //             strike => '4000',
+                //             tick_size => '0.0005',
+                //             lot_size => '1.0000',
+                //             listing => '2019-12-25T08:30:36.302Z',
+                //             delivery => '2020-03-27T08:00:00.000Z',
+                //             state => '2',
+                //             trading_start_time => '2019-12-25T08:30:36.302Z',
+                //             timestamp => '2020-03-13T08:05:09.456Z',
+                //         ),
+                //     )
+                //
+                $result = $this->array_concat($result, $response);
+            }
+            return $this->parse_markets ($result);
+        } else if (($type === 'spot') || ($type === 'futures') || ($type === 'swap')) {
+            $method = $type . 'GetInstruments';
+            $response = $this->$method ($params);
+            //
+            // spot markets
+            //
+            //     array(
+            //         {
+            //             base_currency => "EOS",
+            //             instrument_id => "EOS-OKB",
+            //             min_size => "0.01",
+            //             quote_currency => "OKB",
+            //             size_increment => "0.000001",
+            //             tick_size => "0.0001"
+            //         }
+            //     )
+            //
+            // futures markets
+            //
+            //     array(
+            //         {
+            //             instrument_id => "XRP-USD-200320",
+            //             underlying_index => "XRP",
+            //             quote_currency => "USD",
+            //             tick_size => "0.0001",
+            //             contract_val => "10",
+            //             listing => "2020-03-06",
+            //             delivery => "2020-03-20",
+            //             trade_increment => "1",
+            //             alias => "this_week",
+            //             $underlying => "XRP-USD",
+            //             base_currency => "XRP",
+            //             settlement_currency => "XRP",
+            //             is_inverse => "true",
+            //             contract_val_currency => "USD",
+            //         }
+            //     )
+            //
+            // swap markets
+            //
+            //     array(
+            //         {
+            //             instrument_id => "BSV-USD-SWAP",
+            //             underlying_index => "BSV",
+            //             quote_currency => "USD",
+            //             coin => "BSV",
+            //             contract_val => "10",
+            //             listing => "2018-12-21T07:53:47.000Z",
+            //             delivery => "2020-03-14T08:00:00.000Z",
+            //             size_increment => "1",
+            //             tick_size => "0.01",
+            //             base_currency => "BSV",
+            //             $underlying => "BSV-USD",
+            //             settlement_currency => "BSV",
+            //             is_inverse => "true",
+            //             contract_val_currency => "USD"
+            //         }
+            //     )
+            //
+            return $this->parse_markets ($response);
+        } else {
+            throw new NotSupported($this->id . ' fetchMarketsByType does not support market $type ' . $type);
+        }
     }
 
     public function fetch_currencies ($params = array ()) {
@@ -844,9 +939,9 @@ class okex3 extends Exchange {
             'high' => $this->safe_float($ticker, 'high_24h'),
             'low' => $this->safe_float($ticker, 'low_24h'),
             'bid' => $this->safe_float($ticker, 'best_bid'),
-            'bidVolume' => null,
+            'bidVolume' => $this->safe_float($ticker, 'best_bid_size'),
             'ask' => $this->safe_float($ticker, 'best_ask'),
-            'askVolume' => null,
+            'askVolume' => $this->safe_float($ticker, 'best_ask_size'),
             'vwap' => null,
             'open' => $open,
             'close' => $last,
