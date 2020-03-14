@@ -12,9 +12,12 @@ module.exports = class okcoinusd extends okex3 {
             'id': 'okcoinusd',
             'name': 'OKCoin USD',
             'countries': [ 'CN', 'US' ],
-            'hostname': 'okcoin.com',
+            'hostname': 'www.okcoin.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
+                'www': 'https://www.okcoin.com',
+                'doc': 'https://www.okcoin.com/docs/en/',
+                'fees': 'https://www.okcoin.com/coin-fees',
                 'referral': 'https://www.okcoin.com/account/register?flag=activity&channelId=600001513',
             },
             'fees': {
