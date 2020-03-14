@@ -665,8 +665,9 @@ module.exports = class okex3 extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = spot ? (base + '/' + quote) : id;
+        const lotSize = this.safeFloat2 (market, 'lot_size', 'trade_increment')
         const precision = {
-            'amount': this.safeFloat2 (market, 'size_increment', 'lot_size'),
+            'amount': this.safeFloat (market, 'size_increment', lotSize),
             'price': this.safeFloat (market, 'tick_size'),
         };
         const minAmount = this.safeFloat2 (market, 'min_size', 'base_min_size');
