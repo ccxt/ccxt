@@ -1,3 +1,5 @@
+[&#8962; Home](ccxt.pro)
+
 # Manual
 
 The CCXT Pro stack is built upon [CCXT](https://ccxt.trade) and extends the core CCXT classes, using:
