@@ -292,22 +292,6 @@ class okex3(Exchange):
                         '{instrument_id}/constituents',
                     ],
                 },
-                # they have removed self part from public
-                'ett': {
-                    'get': [
-                        'accounts',
-                        'accounts/{currency}',
-                        'accounts/{currency}/ledger',
-                        'orders',  # fetchOrder, fetchOrders
-                        # public
-                        'constituents/{ett}',
-                        'define-price/{ett}',
-                    ],
-                    'post': [
-                        'orders',
-                        'orders/{order_id}',
-                    ],
-                },
             },
             'fees': {
                 'trading': {
@@ -527,8 +511,7 @@ class okex3(Exchange):
                     'instruments': 'public',
                     'rate': 'public',
                     'underlying': 'public',
-                    'constituents/{ett}': 'public',
-                    'define-price/{ett}': 'public',
+                    '{instrument_id}/constituents': 'public',
                 },
             },
             'commonCurrencies': {
@@ -577,21 +560,6 @@ class okex3(Exchange):
         #         quote_currency: "OKB",
         #         size_increment: "0.000001",
         #         tick_size: "0.0001"
-        #     }
-        #
-        #       ...,  # the spot endpoint also returns ETT instruments
-        #
-        #     {
-        #         base_currency: "OK06ETT",
-        #         base_increment: "0.00000001",
-        #         base_min_size: "0.01",
-        #         instrument_id: "OK06ETT-USDT",
-        #         min_size: "0.01",
-        #         product_id: "OK06ETT-USDT",
-        #         quote_currency: "USDT",
-        #         quote_increment: "0.0001",
-        #         size_increment: "0.00000001",
-        #         tick_size: "0.0001",
         #     }
         #
         # futures markets
