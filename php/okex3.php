@@ -55,9 +55,10 @@ class okex3 extends Exchange {
                 '1d' => '86400',
                 '1w' => '604800',
             ),
+            'hostname' => 'www.okex.com',
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg',
-                'api' => 'https://www.okex.com',
+                'api' => 'https://{hostname}',
                 'www' => 'https://www.okex.com',
                 'doc' => 'https://www.okex.com/docs/en/',
                 'fees' => 'https://www.okex.com/pages/products/fees.html',
@@ -2774,7 +2775,7 @@ class okex3 extends Exchange {
         $request = '/api/' . $api . '/' . $this->version . '/';
         $request .= $isArray ? $path : $this->implode_params($path, $params);
         $query = $isArray ? $params : $this->omit ($params, $this->extract_params($path));
-        $url = $this->urls['api'] . $request;
+        $url = $this->implode_params($this->urls['api'], array( 'hostname' => $this->hostname )) . $request;
         $type = $this->get_path_authentication_type ($path);
         if ($type === 'public') {
             if ($query) {
