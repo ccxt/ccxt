@@ -27,7 +27,7 @@ with open(package_json, encoding='utf-8') as f:
 
 setup(
 
-    name=package['name'],
+    name=package['name'].replace ('ccxt.pro', 'ccxtpro'),
     version=package['version'],
 
     description=package['description'],
