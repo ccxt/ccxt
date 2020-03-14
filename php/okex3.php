@@ -495,6 +495,7 @@ class okex3 extends Exchange {
                 'broad' => array(
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
                 'fetchMarkets' => array( 'spot', 'futures', 'swap', 'option' ),
@@ -669,8 +670,9 @@ class okex3 extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $spot ? ($base . '/' . $quote) : $id;
+        $lotSize = $this->safe_float_2($market, 'lot_size', 'trade_increment');
         $precision = array(
-            'amount' => $this->safe_float($market, 'size_increment'),
+            'amount' => $this->safe_float($market, 'size_increment', $lotSize),
             'price' => $this->safe_float($market, 'tick_size'),
         );
         $minAmount = $this->safe_float_2($market, 'min_size', 'base_min_size');

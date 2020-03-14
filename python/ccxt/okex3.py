@@ -30,6 +30,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class okex3(Exchange):
@@ -515,6 +516,7 @@ class okex3(Exchange):
                 'broad': {
                 },
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
                 'fetchMarkets': ['spot', 'futures', 'swap', 'option'],
@@ -680,8 +682,9 @@ class okex3(Exchange):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = (base + '/' + quote) if spot else id
+        lotSize = self.safe_float_2(market, 'lot_size', 'trade_increment')
         precision = {
-            'amount': self.safe_float(market, 'size_increment'),
+            'amount': self.safe_float(market, 'size_increment', lotSize),
             'price': self.safe_float(market, 'tick_size'),
         }
         minAmount = self.safe_float_2(market, 'min_size', 'base_min_size')
