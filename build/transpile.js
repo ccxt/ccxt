@@ -944,9 +944,7 @@ class Transpiler {
 
     // ========================================================================
 
-    exportTypeScriptDeclarations (classes) {
-
-        const file = './ccxt.d.ts'
+    exportTypeScriptDeclarations (file, classes) {
 
         log.bright.cyan ('Exporting TypeScript declarations →', file.yellow)
 
@@ -1275,7 +1273,7 @@ class Transpiler {
 
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
-        this.exportTypeScriptDeclarations (classes)
+        this.exportTypeScriptDeclarations ('./ccxt.d.ts', classes)
 
         //*/
 
