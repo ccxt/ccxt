@@ -61,7 +61,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The CCXT library currently supports the following 124 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 123 cryptocurrency exchange markets and trading APIs:
 
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 |        logo                                                                             | id                 | name                                                                                    | ver | doc                                                                                             | certified                                                            | pro                             |
@@ -268,8 +268,6 @@ The CCXT library currently supports the following 124 cryptocurrency exchange ma
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `okex <https://www.okex.com>`__                                                         | okex               | `OKEX <https://www.okex.com>`__                                                         | 3   | `API <https://www.okex.com/docs/en/>`__                                                         |                                                                      |                                 |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `okex3 <https://www.okex.com>`__                                                        | okex3              | `OKEX <https://www.okex.com>`__                                                         | 3   | `API <https://www.okex.com/docs/en/>`__                                                         |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `paymium <https://www.paymium.com>`__                                                   | paymium            | `Paymium <https://www.paymium.com>`__                                                   | 1   | `API <https://github.com/Paymium/api-documentation>`__                                          |                                                                      |                                 |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `poloniex <https://www.poloniex.com/?utm_source=ccxt&utm_medium=web>`__                 | poloniex           | `Poloniex <https://www.poloniex.com/?utm_source=ccxt&utm_medium=web>`__                 | \*  | `API <https://docs.poloniex.com>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
@@ -362,14 +360,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.24.24/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.24.24/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.24.25/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.24.25/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.24.24/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.24.25/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
