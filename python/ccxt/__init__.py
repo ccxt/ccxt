@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.24.21'
+__version__ = '1.24.22'
 
 # ----------------------------------------------------------------------------
 
@@ -166,6 +166,7 @@ from ccxt.lykke import lykke                                # noqa: F401
 from ccxt.mercado import mercado                            # noqa: F401
 from ccxt.mixcoins import mixcoins                          # noqa: F401
 from ccxt.oceanex import oceanex                            # noqa: F401
+from ccxt.okcoin import okcoin                              # noqa: F401
 from ccxt.okcoinusd import okcoinusd                        # noqa: F401
 from ccxt.okex import okex                                  # noqa: F401
 from ccxt.okex3 import okex3                                # noqa: F401
@@ -291,6 +292,7 @@ exchanges = [
     'mercado',
     'mixcoins',
     'oceanex',
+    'okcoin',
     'okcoinusd',
     'okex',
     'okex3',
