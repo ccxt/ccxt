@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.24.20'
+__version__ = '1.24.21'
 
 # -----------------------------------------------------------------------------
 
@@ -147,7 +147,6 @@ from ccxt.async_support.lykke import lykke                                # noqa
 from ccxt.async_support.mercado import mercado                            # noqa: F401
 from ccxt.async_support.mixcoins import mixcoins                          # noqa: F401
 from ccxt.async_support.oceanex import oceanex                            # noqa: F401
-from ccxt.async_support.okcoincny import okcoincny                        # noqa: F401
 from ccxt.async_support.okcoinusd import okcoinusd                        # noqa: F401
 from ccxt.async_support.okex import okex                                  # noqa: F401
 from ccxt.async_support.okex3 import okex3                                # noqa: F401
@@ -273,7 +272,6 @@ exchanges = [
     'mercado',
     'mixcoins',
     'oceanex',
-    'okcoincny',
     'okcoinusd',
     'okex',
     'okex3',

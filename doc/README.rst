@@ -61,7 +61,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The CCXT library currently supports the following 124 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 123 cryptocurrency exchange markets and trading APIs:
 
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 |        logo                                                                               | id                 | name                                                                                       | ver | doc                                                                                             | certified                                                            | pro                             |
@@ -264,8 +264,6 @@ The CCXT library currently supports the following 124 cryptocurrency exchange ma
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `oceanex <https://oceanex.pro/signup?referral=VE24QX>`__                                  | oceanex            | `OceanEx <https://oceanex.pro/signup?referral=VE24QX>`__                                   | 1   | `API <https://api.oceanex.pro/doc/v1>`__                                                        |                                                                      |                                 |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `okcoincny <https://www.okcoin.cn>`__                                                     | okcoincny          | `OKCoin CNY <https://www.okcoin.cn>`__                                                     | 3   | `API <https://www.okcoin.cn/docs/en/>`__                                                        |                                                                      |                                 |
-+-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `okcoinusd <https://www.okcoin.com/account/register?flag=activity&channelId=600001513>`__ | okcoinusd          | `OKCoin USD <https://www.okcoin.com/account/register?flag=activity&channelId=600001513>`__ | 3   | `API <https://www.okcoin.com/docs/en/>`__                                                       |                                                                      |                                 |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `okex <https://www.okex.com>`__                                                           | okex               | `OKEX <https://www.okex.com>`__                                                            | 3   | `API <https://github.com/okcoin-okex/API-docs-OKEx.com>`__                                      |                                                                      |                                 |
@@ -364,14 +362,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.24.20/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.24.20/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.24.21/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.24.21/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.24.20/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.24.21/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
