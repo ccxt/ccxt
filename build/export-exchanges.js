@@ -109,7 +109,7 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     // ----------------------------------------------------------------------------
     // list all supported exchanges
 
-    const exchangesNotListedInDocs = [ 'okcoinusd' ]
+    const exchangesNotListedInDocs = [ 'okcoinusd', 'okex3' ]
 
     function makeTableData (exchanges) {
         return (
