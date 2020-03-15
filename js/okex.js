@@ -31,7 +31,7 @@ module.exports = class okex extends okcoinusd {
                     'https://www.okex.com/docs/en/',
                 ],
                 'fees': 'https://www.okex.com/pages/products/fees.html',
-                'referral': 'https://www.okex.com',
+                'referral': 'https://www.okex.com/join/1888677',
             },
             'fees': {
                 'trading': {
