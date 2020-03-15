@@ -2,33 +2,16 @@
 
 // ---------------------------------------------------------------------------
 
-const okex3 = require ('./okex3.js');
+const okcoin = require ('./okcoin.js');
 
 // ---------------------------------------------------------------------------
 
-module.exports = class okcoinusd extends okex3 {
+module.exports = class okcoinusd extends okcoin {
     describe () {
         return this.deepExtend (super.describe (), {
+            // this is a stub file that will be removed before 2020 Q2
+            // it is placed here for temporary backward compatibility
             'id': 'okcoinusd',
-            'name': 'OKCoin USD',
-            'countries': [ 'CN', 'US' ],
-            'hostname': 'www.okcoin.com',
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
-                'www': 'https://www.okcoin.com',
-                'doc': 'https://www.okcoin.com/docs/en/',
-                'fees': 'https://www.okcoin.com/coin-fees',
-                'referral': 'https://www.okcoin.com/account/register?flag=activity&channelId=600001513',
-            },
-            'fees': {
-                'trading': {
-                    'taker': 0.002,
-                    'maker': 0.001,
-                },
-            },
-            'options': {
-                'fetchMarkets': [ 'spot' ],
-            },
         });
     }
 };
