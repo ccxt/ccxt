@@ -1085,7 +1085,7 @@ class bitmax(Exchange):
                 auth += '+' + coid
                 headers['x-auth-coid'] = coid
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
-            headers['x-auth-signature'] = signature
+            headers['x-auth-signature'] = self.decode(signature)
             if method == 'GET':
                 if query:
                     url += '?' + self.urlencode(query)
