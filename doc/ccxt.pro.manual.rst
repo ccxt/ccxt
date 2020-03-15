@@ -1,3 +1,5 @@
+`⌂ Home <ccxt.pro>`__
+
 Manual
 ======
 
@@ -265,6 +267,8 @@ In the latter case the CCXT Pro library has to keep a reasonable limit on the nu
 
 Linking
 -------
+
+See instructions on installing here: `CCXT Pro Install <ccxt.pro.install.md>`__.
 
 The process of including the CCXT Pro library into your script is pretty much the same as with the standard CCXT, the only difference is the name of the actual JavaScript module, Python package, or PHP namespace.
 

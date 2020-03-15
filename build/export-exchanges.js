@@ -109,31 +109,33 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     // ----------------------------------------------------------------------------
     // list all supported exchanges
 
-    const exchangesNotListedInDocs = []
+    const exchangesNotListedInDocs = [ 'okcoinusd', 'okex3' ]
 
     function makeTableData (exchanges) {
-        return (values (exchanges)
-        .filter (exchange => !exchangesNotListedInDocs.includes (exchange.id))
-        .map (exchange => {
-            let logo = exchange.urls['logo']
-            let website = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
-            let url = exchange.urls.referral || website
-            let doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
-            let version = exchange.version ? exchange.version : '\*'
-            let matches = version.match (/[^0-9]*([0-9].*)/)
-            if (matches) {
-                version = matches[1];
-            }
-            return [
-                '[![' + exchange.id + '](' + logo + ')](' + url + ')',
-                exchange.id,
-                '[' + exchange.name + '](' + url + ')',
-                version,
-                '[API](' + doc + ')',
-                exchange.certified ? ccxtCertifiedBadge : '',
-                exchange.pro ? ccxtProBadge : '',
-            ]
-        }))
+        return (
+            values (exchanges)
+                .filter (exchange => !exchangesNotListedInDocs.includes (exchange.id))
+                .map (exchange => {
+                    let logo = exchange.urls['logo']
+                    let website = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
+                    let url = exchange.urls.referral || website
+                    let doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
+                    let version = exchange.version ? exchange.version : '\*'
+                    let matches = version.match (/[^0-9]*([0-9].*)/)
+                    if (matches) {
+                        version = matches[1];
+                    }
+                    return [
+                        '[![' + exchange.id + '](' + logo + ')](' + url + ')',
+                        exchange.id,
+                        '[' + exchange.name + '](' + url + ')',
+                        version,
+                        '[API](' + doc + ')',
+                        exchange.certified ? ccxtCertifiedBadge : '',
+                        exchange.pro ? ccxtProBadge : '',
+                    ]
+                })
+        )
     }
 
 
@@ -150,11 +152,11 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
 
     if (allExchangesPaths) {
 
-        const tableData = makeTableData (values (exchanges))
+        const tableData = makeTableData (exchanges)
         // prepend the table header
         tableData.splice (0, 0, tableHeadings)
         const exchangesTable = makeTable (tableData)
-        const numExchanges = keys (exchanges).length
+        const numExchanges = tableData.length
         const beginning = "The CCXT library currently supports the following "
         const ending = " cryptocurrency exchange markets and trading APIs:\n\n"
         const totalString = beginning + numExchanges + ending

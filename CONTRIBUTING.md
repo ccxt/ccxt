@@ -134,7 +134,6 @@ The contents of the repository are structured as follows:
 /.gitignore                # ignore it
 /.npmignore                # files to exclude from the NPM package
 /.travis.yml               # a YAML config for travis-ci (continuous integration)
-/CHANGELOG.md              # self-explanatory
 /CONTRIBUTING.md           # this file
 /LICENSE.txt               # MIT
 /README.md                 # master markdown for GitHub, npmjs.com, npms.io, yarn and others

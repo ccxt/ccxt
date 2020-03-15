@@ -205,6 +205,7 @@ class kucoin(Exchange):
                 'HOT': 'HOTNOW',
                 'EDGE': 'DADI',  # https://github.com/ccxt/ccxt/issues/5756
                 'WAX': 'WAXP',
+                'TRY': 'Trias',
             },
             'options': {
                 'version': 'v1',

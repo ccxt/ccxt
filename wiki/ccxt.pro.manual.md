@@ -1,3 +1,5 @@
+[&#8962; Home](ccxt.pro)
+
 # Manual
 
 The CCXT Pro stack is built upon [CCXT](https://ccxt.trade) and extends the core CCXT classes, using:
@@ -237,6 +239,8 @@ The incremental structures returned from the unified methods of CCXT Pro is ofte
 In the latter case the CCXT Pro library has to keep a reasonable limit on the number of objects kept in memory. The allowed maximum can be configured by the user upon instantiation or later.
 
 ## Linking
+
+See instructions on installing here: [CCXT Pro Install](ccxt.pro.install.md).
 
 The process of including the CCXT Pro library into your script is pretty much the same as with the standard CCXT, the only difference is the name of the actual JavaScript module, Python package, or PHP namespace.
 
