@@ -510,6 +510,12 @@ class binance(Exchange):
                     'min': self.safe_float(filter, 'minQty'),
                     'max': self.safe_float(filter, 'maxQty'),
                 }
+            if 'MARKET_LOT_SIZE' in filters:
+                filter = self.safe_value(filters, 'MARKET_LOT_SIZE', {})
+                entry['limits']['market'] = {
+                    'min': self.safe_float(filter, 'minQty'),
+                    'max': self.safe_float(filter, 'maxQty'),
+                }
             if 'MIN_NOTIONAL' in filters:
                 entry['limits']['cost']['min'] = self.safe_float(filters['MIN_NOTIONAL'], 'minNotional')
             result.append(entry)

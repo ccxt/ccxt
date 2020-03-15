@@ -510,6 +510,13 @@ class binance extends Exchange {
                     'max' => $this->safe_float($filter, 'maxQty'),
                 );
             }
+            if (is_array($filters) && array_key_exists('MARKET_LOT_SIZE', $filters)) {
+                $filter = $this->safe_value($filters, 'MARKET_LOT_SIZE', array());
+                $entry['limits']['market'] = array(
+                    'min' => $this->safe_float($filter, 'minQty'),
+                    'max' => $this->safe_float($filter, 'maxQty'),
+                );
+            }
             if (is_array($filters) && array_key_exists('MIN_NOTIONAL', $filters)) {
                 $entry['limits']['cost']['min'] = $this->safe_float($filters['MIN_NOTIONAL'], 'minNotional');
             }
