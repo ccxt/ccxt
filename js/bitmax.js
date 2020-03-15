@@ -1149,7 +1149,7 @@ module.exports = class bitmax extends Exchange {
                 headers['x-auth-coid'] = coid;
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
-            headers['x-auth-signature'] = signature;
+            headers['x-auth-signature'] = this.decode (signature);
             if (method === 'GET') {
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
