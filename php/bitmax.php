@@ -1151,7 +1151,7 @@ class bitmax extends Exchange {
                 $headers['x-$auth-coid'] = $coid;
             }
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha256', 'base64');
-            $headers['x-$auth-signature'] = $signature;
+            $headers['x-$auth-signature'] = $this->decode ($signature);
             if ($method === 'GET') {
                 if ($query) {
                     $url .= '?' . $this->urlencode ($query);
