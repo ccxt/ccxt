@@ -27,4 +27,24 @@ declare module 'ccxt.pro' {
         // watchDeposits (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
         // watchWithdrawals (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
     }
+
+    /* tslint:disable */
+
+    export class binance extends Exchange {}
+    export class binanceje extends binance {}
+    export class binanceus extends binance {}
+    export class bitfinex extends Exchange {}
+    export class bitmex extends Exchange {}
+    export class bitstamp extends Exchange {}
+    export class bittrex extends Exchange {}
+    export class coinbaseprime extends coinbasepro {}
+    export class coinbasepro extends Exchange {}
+    export class gateio extends Exchange {}
+    export class huobipro extends Exchange {}
+    export class huobiru extends huobipro {}
+    export class kraken extends Exchange {}
+    export class kucoin extends Exchange {}
+    export class poloniex extends Exchange {}
+
+    /* tslint:enable */
 }
