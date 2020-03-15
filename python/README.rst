@@ -266,7 +266,7 @@ The CCXT library currently supports the following 124 cryptocurrency exchange ma
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | okcoin             | `OKCoin <https://www.okcoin.com/account/register?flag=activity&channelId=600001513>`__  | 3   | `API <https://www.okcoin.com/docs/en/>`__                                                       |                                                                      |                                 |
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| okex               | `OKEX <https://www.okex.com>`__                                                         | 3   | `API <https://github.com/okcoin-okex/API-docs-OKEx.com>`__                                      |                                                                      |                                 |
+| okex               | `OKEX <https://www.okex.com>`__                                                         | 3   | `API <https://www.okex.com/docs/en/>`__                                                         |                                                                      |                                 |
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | okex3              | `OKEX <https://www.okex.com>`__                                                         | 3   | `API <https://www.okex.com/docs/en/>`__                                                         |                                                                      |                                 |
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
@@ -362,14 +362,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.24.22/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.24.22/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.24.23/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.24.23/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.24.22/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.24.23/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
