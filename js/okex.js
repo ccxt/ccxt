@@ -57,6 +57,7 @@ module.exports = class okex extends Exchange {
                 'www': 'https://www.okex.com',
                 'doc': 'https://www.okex.com/docs/en/',
                 'fees': 'https://www.okex.com/pages/products/fees.html',
+                'referral': 'https://www.okex.com/join/1888677',
             },
             'api': {
                 'general': {
