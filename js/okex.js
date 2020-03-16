@@ -21,13 +21,16 @@ module.exports = class okex extends ccxt.okex {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://real.okex.com:8443/ws', // + v3 this.version
+                    'ws': 'wss://real.okex.com:8443/ws/v3',
                 },
             },
             'options': {
                 'watchOrderBook': {
                     'prec': 'P0',
                     'freq': 'F0',
+                },
+                'ws': {
+                    'inflate': true,
                 },
             },
         });
@@ -242,8 +245,8 @@ module.exports = class okex extends ccxt.okex {
         const name = 'depth';
         const channel = market['type'] + '/' + name + ':' + market['id'];
         const request = {
-            'event': 'subscribe',
-            'channel': channel,
+            'op': 'subscribe',
+            'args': [ channel ],
         };
         const url = this.urls['api']['ws'];
         const future = this.watch (url, channel, this.deepExtend (request, params), channel);
@@ -368,19 +371,10 @@ module.exports = class okex extends ccxt.okex {
 
     handleSubscriptionStatus (client, message) {
         //
-        //     {
-        //         event: 'subscribed',
-        //         channel: 'book',
-        //         chanId: 67473,
-        //         symbol: 'tBTCUSD',
-        //         prec: 'P0',
-        //         freq: 'F0',
-        //         len: '25',
-        //         pair: 'BTCUSD'
-        //     }
+        //     {"event":"subscribe","channel":"spot/depth:BTC-USDT"}
         //
-        const channelId = this.safeString (message, 'chanId');
-        client.subscriptions[channelId] = message;
+        // const channel = this.safeString (message, 'channel');
+        // client.subscriptions[channel] = message;
         return message;
     }
 
@@ -389,57 +383,74 @@ module.exports = class okex extends ccxt.okex {
         return message;
     }
 
+    handleErrorMessage (client, message) {
+        //
+        //     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
+        //
+        return message;
+    }
+
     handleMessage (client, message) {
-        console.log (message);
-        process.exit ();
-        if (Array.isArray (message)) {
-            const channelId = this.safeString (message, 0);
-            //
-            //     [
-            //         1231,
-            //         'hb',
-            //     ]
-            //
-            if (message[1] === 'hb') {
-                return message; // skip heartbeats within subscription channels for now
-            }
-            const subscription = this.safeValue (client.subscriptions, channelId, {});
-            const channel = this.safeString (subscription, 'channel');
-            const methods = {
-                'book': this.handleOrderBook,
-                // 'ohlc': this.handleOHLCV,
-                'ticker': this.handleTicker,
-                'trades': this.handleTrades,
-            };
-            const method = this.safeValue (methods, channel);
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message, subscription);
-            }
-        } else {
-            // todo add bitfinex handleErrorMessage
-            //
-            //     {
-            //         event: 'info',
-            //         version: 2,
-            //         serverId: 'e293377e-7bb7-427e-b28c-5db045b2c1d1',
-            //         platform: { status: 1 }, // 1 for operative, 0 for maintenance
-            //     }
-            //
+        if (!this.handleErrorMessage (client, message)) {
+            return;
+        }
+        //
+        //     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
+        //     {"event":"subscribe","channel":"spot/depth:BTC-USDT"}
+        //     {
+        //         table: "spot/depth",
+        //         action: "partial",
+        //         data: [
+        //             {
+        //                 instrument_id:   "BTC-USDT",
+        //                 asks: [
+        //                     ["5301.8", "0.03763319", "1"],
+        //                     ["5302.4", "0.00305", "2"],
+        //                 ],
+        //                 bids: [
+        //                     ["5301.7", "0.58911427", "6"],
+        //                     ["5301.6", "0.01222922", "4"],
+        //                 ],
+        //                 timestamp: "2020-03-16T03:25:00.440Z",
+        //                 checksum: -2088736623
+        //             }
+        //         ]
+        //     }
+        //
+        const table = this.safeString (message, 'table');
+        if (table === undefined) {
             const event = this.safeString (message, 'event');
             if (event !== undefined) {
                 const methods = {
-                    'info': this.handleSystemStatus,
+                    // 'info': this.handleSystemStatus,
                     // 'book': 'handleOrderBook',
-                    'subscribed': this.handleSubscriptionStatus,
+                    'subscribe': this.handleSubscriptionStatus,
                 };
                 const method = this.safeValue (methods, event);
                 if (method === undefined) {
+                    log (message);
+                    process.exit ();
                     return message;
                 } else {
                     return method.call (this, client, message);
                 }
+            }
+        } else {
+            const parts = table.split ('/');
+            const name = this.safeString (parts, 1);
+            console.log (name);
+            const methods = {
+                'depth': this.handleOrderBook,
+                'ticker': this.handleTicker,
+                // ...
+            }
+            const method = this.safeValue (methods, name);
+            if (method === undefined) {
+                console.log ('handleMessage', message);
+                process.exit ();
+                return message;
+            } else {
+                return method.call (this, client, message);
             }
         }
     }
