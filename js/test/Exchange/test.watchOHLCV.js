@@ -25,23 +25,23 @@ module.exports = async (exchange, symbol) => {
 
     let response = undefined
 
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 1000; i++) {
 
         response = await exchange[method] (symbol, timeframe)
 
         assert (response instanceof Array)
         // log (symbol.green, method, 'returned', Object.values (response).length.toString ().green, 'ohlcvs')
-        let now = Date.now ()
-        for (let i = 0; i < response.length; i++) {
-            testOHLCV (exchange, response[i], symbol, now)
+        const now = Date.now ()
+        for (let j = 0; j < response.length; j++) {
+            testOHLCV (exchange, response[j], symbol, now)
             if (i > 0) {
-                if (response[i][0] && response[i - 1][0]) {
-                    assert (response[i][0] >= response[i - 1][0])
+                if (response[j][0] && response[j - 1][0]) {
+                    assert (response[j][0] >= response[j - 1][0])
                 }
             }
         }
 
-        response = response.map (ohlcv => [
+        response = response.map ((ohlcv) => [
             exchange.iso8601 (ohlcv[0]),
             symbol,
             ohlcv[1],
