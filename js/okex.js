@@ -884,6 +884,7 @@ module.exports = class okex extends Exchange {
         const marketId = this.safeString (ticker, 'instrument_id');
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
         } else if (marketId !== undefined) {
             const parts = marketId.split ('-');
             const numParts = parts.length;
@@ -896,7 +897,7 @@ module.exports = class okex extends Exchange {
                 symbol = marketId;
             }
         }
-        if (market !== undefined) {
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
         const last = this.safeFloat (ticker, 'last');
@@ -1031,8 +1032,30 @@ module.exports = class okex extends Exchange {
         //         }
         //
         let symbol = undefined;
-        if (market !== undefined) {
+        const marketId = this.safeString (trade, 'instrument_id');
+        let base = undefined;
+        let quote = undefined;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
             symbol = market['symbol'];
+            base = market['base'];
+            quote = market['quote'];
+        } else if (marketId !== undefined) {
+            const parts = marketId.split ('-');
+            const numParts = parts.length;
+            if (numParts === 2) {
+                const [ baseId, quoteId ] = parts;
+                base = this.safeCurrencyCode (baseId);
+                quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            } else {
+                symbol = marketId;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+            base = market['base'];
+            quote = market['quote'];
         }
         const timestamp = this.parse8601 (this.safeString2 (trade, 'timestamp', 'created_at'));
         const price = this.safeFloat (trade, 'price');
@@ -1054,10 +1077,7 @@ module.exports = class okex extends Exchange {
         const feeCost = this.safeFloat (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
-            let feeCurrency = undefined;
-            if (market !== undefined) {
-                feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
-            }
+            const feeCurrency = (side === 'buy') ? base : quote;
             fee = {
                 // fee is either a positive number (invitation rebate)
                 // or a negative number (transaction fee deduction)
