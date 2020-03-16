@@ -41,8 +41,8 @@ class huobipro extends \ccxt\huobipro {
             'options' => array(
                 'tradesLimit' => 1000,
                 'OHLCVLimit' => 1000,
+                'api' => 'api', // or api-aws for clients hosted on AWS
                 'ws' => array(
-                    'api' => 'api', // or api-aws for clients hosted on AWS
                     'gunzip' => true,
                 ),
             ),
@@ -54,10 +54,9 @@ class huobipro extends \ccxt\huobipro {
         $market = $this->market ($symbol);
         // only supports a limit of 150 at this time
         $messageHash = 'market.' . $market['id'] . '.detail';
-        $options = $this->safe_value($this->options, 'ws', array());
-        $api = $this->safe_string($options, 'api', 'api');
-        $url = $this->urls['api']['ws'][$api]['public'];
-        $url = $this->implode_params($url, array( 'hostname' => $this->hostname ));
+        $api = $this->safe_string($this->options, 'api', 'api');
+        $hostname = array( 'hostname' => $this->hostname );
+        $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
         $requestId = (string) $this->milliseconds ();
         $request = array(
             'sub' => $messageHash,
@@ -112,10 +111,9 @@ class huobipro extends \ccxt\huobipro {
         $market = $this->market ($symbol);
         // only supports a $limit of 150 at this time
         $messageHash = 'market.' . $market['id'] . '.trade.detail';
-        $options = $this->safe_value($this->options, 'ws', array());
-        $api = $this->safe_string($options, 'api', 'api');
-        $url = $this->urls['api']['ws'][$api]['public'];
-        $url = $this->implode_params($url, array( 'hostname' => $this->hostname ));
+        $api = $this->safe_string($this->options, 'api', 'api');
+        $hostname = array( 'hostname' => $this->hostname );
+        $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
         $requestId = (string) $this->milliseconds ();
         $request = array(
             'sub' => $messageHash,
@@ -180,10 +178,9 @@ class huobipro extends \ccxt\huobipro {
         $market = $this->market ($symbol);
         $interval = $this->timeframes[$timeframe];
         $messageHash = 'market.' . $market['id'] . '.kline.' . $interval;
-        $options = $this->safe_value($this->options, 'ws', array());
-        $api = $this->safe_string($options, 'api', 'api');
-        $url = $this->urls['api']['ws'][$api]['public'];
-        $url = $this->implode_params($url, array( 'hostname' => $this->hostname ));
+        $api = $this->safe_string($this->options, 'api', 'api');
+        $hostname = array( 'hostname' => $this->hostname );
+        $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
         $requestId = (string) $this->milliseconds ();
         $request = array(
             'sub' => $messageHash,
@@ -265,10 +262,9 @@ class huobipro extends \ccxt\huobipro {
         // only supports a $limit of 150 at this time
         $limit = ($limit === null) ? 150 : $limit;
         $messageHash = 'market.' . $market['id'] . '.mbp.' . (string) $limit;
-        $options = $this->safe_value($this->options, 'ws', array());
-        $api = $this->safe_string($options, 'api', 'api');
-        $url = $this->urls['api']['ws'][$api]['public'];
-        $url = $this->implode_params($url, array( 'hostname' => $this->hostname ));
+        $api = $this->safe_string($this->options, 'api', 'api');
+        $hostname = array( 'hostname' => $this->hostname );
+        $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
         $requestId = (string) $this->milliseconds ();
         $request = array(
             'sub' => $messageHash,
@@ -333,10 +329,9 @@ class huobipro extends \ccxt\huobipro {
         $limit = $this->safe_integer($subscription, 'limit');
         $params = $this->safe_value($subscription, 'params');
         $messageHash = $this->safe_string($subscription, 'messageHash');
-        $options = $this->safe_value($this->options, 'ws', array());
-        $api = $this->safe_value($options, 'api');
-        $url = $this->urls['api']['ws'][$api]['public'];
-        $url = $this->implode_params($url, array( 'hostname' => $this->hostname ));
+        $api = $this->safe_string($this->options, 'api', 'api');
+        $hostname = array( 'hostname' => $this->hostname );
+        $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
         $requestId = (string) $this->milliseconds ();
         $request = array(
             'req' => $messageHash,

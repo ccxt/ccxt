@@ -37,8 +37,8 @@ module.exports = class huobipro extends ccxt.huobipro {
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
+                'api': 'api', // or api-aws for clients hosted on AWS
                 'ws': {
-                    'api': 'api', // or api-aws for clients hosted on AWS
                     'gunzip': true,
                 },
             },
@@ -50,10 +50,9 @@ module.exports = class huobipro extends ccxt.huobipro {
         const market = this.market (symbol);
         // only supports a limit of 150 at this time
         const messageHash = 'market.' + market['id'] + '.detail';
-        const options = this.safeValue (this.options, 'ws', {});
-        const api = this.safeString (options, 'api', 'api');
-        let url = this.urls['api']['ws'][api]['public'];
-        url = this.implodeParams (url, { 'hostname': this.hostname });
+        const api = this.safeString (this.options, 'api', 'api');
+        const hostname = { 'hostname': this.hostname };
+        const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
         const requestId = this.milliseconds ().toString ();
         const request = {
             'sub': messageHash,
@@ -108,10 +107,9 @@ module.exports = class huobipro extends ccxt.huobipro {
         const market = this.market (symbol);
         // only supports a limit of 150 at this time
         const messageHash = 'market.' + market['id'] + '.trade.detail';
-        const options = this.safeValue (this.options, 'ws', {});
-        const api = this.safeString (options, 'api', 'api');
-        let url = this.urls['api']['ws'][api]['public'];
-        url = this.implodeParams (url, { 'hostname': this.hostname });
+        const api = this.safeString (this.options, 'api', 'api');
+        const hostname = { 'hostname': this.hostname };
+        const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
         const requestId = this.milliseconds ().toString ();
         const request = {
             'sub': messageHash,
@@ -176,10 +174,9 @@ module.exports = class huobipro extends ccxt.huobipro {
         const market = this.market (symbol);
         const interval = this.timeframes[timeframe];
         const messageHash = 'market.' + market['id'] + '.kline.' + interval;
-        const options = this.safeValue (this.options, 'ws', {});
-        const api = this.safeString (options, 'api', 'api');
-        let url = this.urls['api']['ws'][api]['public'];
-        url = this.implodeParams (url, { 'hostname': this.hostname });
+        const api = this.safeString (this.options, 'api', 'api');
+        const hostname = { 'hostname': this.hostname };
+        const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
         const requestId = this.milliseconds ().toString ();
         const request = {
             'sub': messageHash,
@@ -261,10 +258,9 @@ module.exports = class huobipro extends ccxt.huobipro {
         // only supports a limit of 150 at this time
         limit = (limit === undefined) ? 150 : limit;
         const messageHash = 'market.' + market['id'] + '.mbp.' + limit.toString ();
-        const options = this.safeValue (this.options, 'ws', {});
-        const api = this.safeString (options, 'api', 'api');
-        let url = this.urls['api']['ws'][api]['public'];
-        url = this.implodeParams (url, { 'hostname': this.hostname });
+        const api = this.safeString (this.options, 'api', 'api');
+        const hostname = { 'hostname': this.hostname };
+        const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
         const requestId = this.milliseconds ().toString ();
         const request = {
             'sub': messageHash,
@@ -329,10 +325,9 @@ module.exports = class huobipro extends ccxt.huobipro {
         const limit = this.safeInteger (subscription, 'limit');
         const params = this.safeValue (subscription, 'params');
         const messageHash = this.safeString (subscription, 'messageHash');
-        const options = this.safeValue (this.options, 'ws', {});
-        const api = this.safeValue (options, 'api');
-        let url = this.urls['api']['ws'][api]['public'];
-        url = this.implodeParams (url, { 'hostname': this.hostname });
+        const api = this.safeString (this.options, 'api', 'api');
+        const hostname = { 'hostname': this.hostname };
+        const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
         const requestId = this.milliseconds ().toString ();
         const request = {
             'req': messageHash,
