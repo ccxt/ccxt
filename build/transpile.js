@@ -202,10 +202,10 @@ class CCXTProTranspiler extends Transpiler {
 
         log.bright.cyan ('Exporting TypeScript declarations →', file.yellow)
 
-        const regex = /\/[\n]{2}(?:    export declare class [^\s]+ extends [^\s]+ \{\}[\r]?[\n])+/
+        const regex = /\/[\n]{2}(?:    export class [^\s]+ extends [^\s]+ \{\}[\r]?[\n])+/
         const replacement = "/\n\n" + Object.keys (classes).map (className => {
-            const baseClass = classes[className]
-            return '    export declare class ' + className + ' extends ' + baseClass + " {}"
+            const baseClass = classes[className].replace (/ccxt\.[a-z]+/, 'Exchange')
+            return '    export class ' + className + ' extends ' + baseClass + " {}"
         }).join ("\n") + "\n"
 
         replaceInFile (file, regex, replacement)

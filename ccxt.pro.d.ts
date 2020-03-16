@@ -1,16 +1,16 @@
-import {
-    Balances,
-    Dictionary,
-    Exchange as BaseExchange,
-    OHLCV,
-    Order,
-    OrderBook,
-    Params,
-    Ticker,
-    Trade,
-} from 'ccxt';
+declare module 'ccxt.pro' {
 
-// declare module 'ccxt.pro' {
+    import {
+        Balances,
+        Dictionary,
+        Exchange as BaseExchange,
+        OHLCV,
+        Order,
+        OrderBook,
+        Params,
+        Ticker,
+        Trade,
+    } from 'ccxt'
 
     export class Exchange extends BaseExchange {
         watchTicker (symbol: string, params?: Params): Promise<Ticker>;
@@ -48,4 +48,5 @@ import {
     export class poloniex extends Exchange {}
 
     /* tslint:enable */
-// }
+
+}
