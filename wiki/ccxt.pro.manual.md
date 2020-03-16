@@ -282,7 +282,17 @@ const exchange = new ccxtpro.binance ({ enableRateLimit: true })
 ```Python
 # Python
 import ccxtpro
-exchange = ccxtpro.kraken({'enableRateLimit': True})
+import asyncio
+
+async def main(loop):
+    exchange = ccxtpro.kraken({'enableRateLimit': True, 'asyncio_loop': loop})
+    while True:
+        orderbook = await exchange.watch_order_book('BTC/USD')
+        print(orderbook['asks'][0], orderbook['bids'][0])
+    await exchange.close()
+
+loop = asyncio.new_event_loop()
+loop.run_until_complete(main(loop))
 ```
 
 In PHP the async primitives are borrowed from [ReactPHP](https://reactphp.org). The PHP implementation of CCXT Pro relies on [Promise](https://github.com/reactphp/promise) and [EventLoop](https://github.com/reactphp/event-loop) in particular. In PHP the user is required to supply a ReactPHP's event loop instance in the constructor arguments as shown below:
