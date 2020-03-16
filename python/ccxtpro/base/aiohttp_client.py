@@ -5,7 +5,7 @@ from asyncio import sleep, ensure_future
 from aiohttp import WSMsgType
 from ccxt.async_support import Exchange
 from ccxtpro.base.client import Client
-from ccxtpro.base.functions import gunzip
+from ccxtpro.base.functions import gunzip, inflate
 from ccxt import NetworkError, RequestTimeout
 
 
@@ -30,6 +30,7 @@ class AiohttpClient(Client):
             self.handle_text_or_binary_message(message.data)
         elif message.type == WSMsgType.BINARY:
             data = gunzip(message.data) if self.gunzip else message.data
+            data = inflate(message.data) if self.inflate else message.data
             self.handle_text_or_binary_message(data)
         # autoping is responsible for automatically replying with pong
         # to a ping incoming from a server, we have to disable autoping
