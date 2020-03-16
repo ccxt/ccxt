@@ -41,12 +41,12 @@ trait ClientTrait {
             $on_message = array($this, 'handle_message');
             $on_error = array($this, 'on_error');
             $on_close = array($this, 'on_close');
-            $options = $this->safe_value($this->options, 'ws', array());
-            $config = array_replace_recursive(array(
+            $ws_options = $this->safe_value($this->options, 'ws', array());
+            $options = array_replace_recursive(array(
                 'verbose' => $this->verbose,
                 'loop' => $this->loop, // reactphp-specific
-            ), $this->streaming, $options);
-            $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $config);
+            ), $this->streaming, $ws_options);
+            $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $options);
         }
         return $this->clients[$url];
     }
