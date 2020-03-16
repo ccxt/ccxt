@@ -11,6 +11,7 @@ const fs = require ('fs')
     , {
         createFolderRecursively,
         overwriteFile,
+        replaceInFile,
     } = require ('ccxt/build/fs.js')
     , errors = require ('ccxt/js/base/errors.js')
     , Transpiler = require ('ccxt/build/transpile.js')
@@ -197,6 +198,21 @@ class CCXTProTranspiler extends Transpiler {
 
     // ------------------------------------------------------------------------
 
+    exportTypeScriptDeclarations (file, classes) {
+
+        log.bright.cyan ('Exporting TypeScript declarations →', file.yellow)
+
+        const regex = /\/[\n]{2}(?:    export class [^\s]+ extends [^\s]+ \{\}[\r]?[\n])+/
+        const replacement = "/\n\n" + Object.keys (classes).map (className => {
+            const baseClass = classes[className].replace (/ccxt\.[a-z]+/, 'Exchange')
+            return '    export class ' + className + ' extends ' + baseClass + " {}"
+        }).join ("\n") + "\n"
+
+        replaceInFile (file, regex, replacement)
+    }
+
+    // ------------------------------------------------------------------------
+
     transpileEverything () {
 
         // default pattern is '.js'
@@ -220,7 +236,7 @@ class CCXTProTranspiler extends Transpiler {
 
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
-        // exportTypeScriptDeclarations (classes)
+        this.exportTypeScriptDeclarations ('./ccxt.pro.d.ts', classes)
 
         // transpileErrorHierarchy ()
 
