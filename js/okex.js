@@ -1611,6 +1611,10 @@ module.exports = class okex extends Exchange {
         //         ]
         //     }
         //
+        return this.parseBalanceByType (type, response);
+    }
+
+    parseBalanceByType (type, response) {
         if ((type === 'account') || (type === 'spot')) {
             return this.parseAccountBalance (response);
         } else if (type === 'margin') {
