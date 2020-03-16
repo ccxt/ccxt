@@ -15,7 +15,7 @@ module.exports = class okex extends ccxt.okex {
                 'watchTicker': true,
                 // 'watchTickers': false,
                 'watchOrderBook': true,
-                // 'watchTrades': true,
+                'watchTrades': true,
                 // 'watchBalance': false, // for now
                 // 'watchOHLCV': false, // missing on the exchange side in v1
             },
@@ -48,7 +48,7 @@ module.exports = class okex extends ccxt.okex {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const future = this.subscribe ('trades', symbol, params);
+        const future = this.subscribe ('trade', symbol, params);
         return await this.after (future, this.filterBySinceLimit, since, limit);
     }
 
@@ -56,56 +56,37 @@ module.exports = class okex extends ccxt.okex {
         return await this.subscribe ('ticker', symbol, params);
     }
 
-    handleTrades (client, message, subscription) {
+    handleTrade (client, message) {
         //
-        // initial snapshot
-        //
-        //     [
-        //         2,
-        //             [
-        //             [ null, 1580565020, 9374.9, 0.005 ],
-        //             [ null, 1580565004, 9374.9, 0.005 ],
-        //             [ null, 1580565003, 9374.9, 0.005 ],
+        //     {
+        //         table: 'spot/trade',
+        //         data: [
+        //             {
+        //                 side: 'buy',
+        //                 trade_id: '30770973',
+        //                 price: '4665.4',
+        //                 size: '0.019',
+        //                 instrument_id: 'BTC-USDT',
+        //                 timestamp: '2020-03-16T13:41:46.526Z'
+        //             }
         //         ]
-        //     ]
+        //     }
         //
-        // when a trade does not have an id yet
-        //
-        //     // channel id, update type, seq, time, price, amount
-        //     [ 2, 'te', '28462857-BTCUSD', 1580565041, 9374.9, 0.005 ],
-        //
-        // when a trade already has an id
-        //
-        //     // channel id, update type, seq, trade id, time, price, amount
-        //     [ 2, 'tu', '28462857-BTCUSD', 413357662, 1580565041, 9374.9, 0.005 ]
-        //
-        const messageHash = this.safeValue (subscription, 'messageHash');
-        const marketId = this.safeString (subscription, 'pair');
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            const symbol = market['symbol'];
-            const data = this.safeValue (message, 1);
+        const table = this.safeString (message, 'table');
+        const data = this.safeValue (message, 'data', []);
+        const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+        for (let i = 0; i < data.length; i++) {
+            const trade = this.parseTrade (data[i]);
+            console.log (trade);
+            process.exit ();
+            const symbol = trade['symbol'];
+            const marketId = this.safeString (trade['info'], 'instrument_id');
+            const messageHash = table + ':' + marketId;
             const stored = this.safeValue (this.trades, symbol, []);
-            if (Array.isArray (data)) {
-                const trades = this.parseTrades (data, market);
-                for (let i = 0; i < trades.length; i++) {
-                    stored.push (trades[i]);
-                    const storedLength = stored.length;
-                    if (storedLength > this.options['tradesLimit']) {
-                        stored.shift ();
-                    }
-                }
-            } else {
-                const second = this.safeString (message, 1);
-                if (second !== 'tu') {
-                    return;
-                }
-                const trade = this.parseTrade (message, market);
-                stored.push (trade);
-                const length = stored.length;
-                if (length > this.options['tradesLimit']) {
-                    stored.shift ();
-                }
+            stored.push (trade);
+            const length = stored.length;
+            if (length > tradesLimit) {
+                stored.shift ();
             }
             this.trades[symbol] = stored;
             client.resolve (stored, messageHash);
@@ -452,6 +433,7 @@ module.exports = class okex extends ccxt.okex {
             const methods = {
                 'depth': this.handleOrderBook,
                 'ticker': this.handleTicker,
+                'trade': this.handleTrade,
                 // ...
             }
             const method = this.safeValue (methods, name);
