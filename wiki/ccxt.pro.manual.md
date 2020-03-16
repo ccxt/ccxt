@@ -279,7 +279,7 @@ const ccxtpro = require ('ccxt.pro')
 const exchange = new ccxtpro.binance ({ enableRateLimit: true })
 ```
 
-In Python, the implementation of CCXT Pro relies on [asyncio](https://docs.python.org/3/library/asyncio.html) and [Event Loop](https://docs.python.org/3/library/asyncio-eventloop.html) in particular. In Python the user is required to supply a asyncio's event loop instance in the constructor arguments as shown below (identical to `ccxt.async support`):
+The Python implementation of CCXT Pro relies on builtin [asyncio](https://docs.python.org/3/library/asyncio.html) and [Event Loop](https://docs.python.org/3/library/asyncio-eventloop.html) in particular. In Python it is required to supply an asyncio's event loop instance in the constructor arguments as shown below (identical to `ccxt.async support`):
 
 ```Python
 # Python
