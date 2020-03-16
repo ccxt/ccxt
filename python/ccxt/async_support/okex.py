@@ -1448,11 +1448,11 @@ class okex(Exchange):
         return self.parse_balance(result)
 
     async def fetch_balance(self, params={}):
-        await self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType')
         type = self.safe_string(params, 'type', defaultType)
         if type is None:
             raise ArgumentsRequired(self.id + " fetchBalance requires a type parameter(one of 'account', 'spot', 'margin', 'futures', 'swap')")
+        await self.load_markets()
         suffix = 'Wallet' if (type == 'account') else 'Accounts'
         method = type + 'Get' + suffix
         query = self.omit(params, 'type')
