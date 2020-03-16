@@ -206,15 +206,15 @@ module.exports = class Client {
         this.onErrorCallback (this, this.error)
     }
 
-    onClose (message) {
+    onClose (event) {
         if (this.verbose) {
-            console.log (new Date (), 'onClose', message)
+            console.log (new Date (), 'onClose', event)
         }
         if (!this.error) {
             // todo: exception types for server-side disconnects
-            this.reset (new NetworkError (message))
+            this.reset (new NetworkError ('connection closed by remote server, closing code ' + String (event.code)))
         }
-        this.onCloseCallback (this, message)
+        this.onCloseCallback (this, event)
     }
 
     // this method is not used at this time
