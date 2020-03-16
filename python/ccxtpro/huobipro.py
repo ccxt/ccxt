@@ -39,8 +39,8 @@ class huobipro(Exchange, ccxt.huobipro):
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
+                'api': 'api',  # or api-aws for clients hosted on AWS
                 'ws': {
-                    'api': 'api',  # or api-aws for clients hosted on AWS
                     'gunzip': True,
                 },
             },
@@ -51,10 +51,9 @@ class huobipro(Exchange, ccxt.huobipro):
         market = self.market(symbol)
         # only supports a limit of 150 at self time
         messageHash = 'market.' + market['id'] + '.detail'
-        options = self.safe_value(self.options, 'ws', {})
-        api = self.safe_string(options, 'api', 'api')
-        url = self.urls['api']['ws'][api]['public']
-        url = self.implode_params(url, {'hostname': self.hostname})
+        api = self.safe_string(self.options, 'api', 'api')
+        hostname = {'hostname': self.hostname}
+        url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
         requestId = str(self.milliseconds())
         request = {
             'sub': messageHash,
@@ -106,10 +105,9 @@ class huobipro(Exchange, ccxt.huobipro):
         market = self.market(symbol)
         # only supports a limit of 150 at self time
         messageHash = 'market.' + market['id'] + '.trade.detail'
-        options = self.safe_value(self.options, 'ws', {})
-        api = self.safe_string(options, 'api', 'api')
-        url = self.urls['api']['ws'][api]['public']
-        url = self.implode_params(url, {'hostname': self.hostname})
+        api = self.safe_string(self.options, 'api', 'api')
+        hostname = {'hostname': self.hostname}
+        url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
         requestId = str(self.milliseconds())
         request = {
             'sub': messageHash,
@@ -169,10 +167,9 @@ class huobipro(Exchange, ccxt.huobipro):
         market = self.market(symbol)
         interval = self.timeframes[timeframe]
         messageHash = 'market.' + market['id'] + '.kline.' + interval
-        options = self.safe_value(self.options, 'ws', {})
-        api = self.safe_string(options, 'api', 'api')
-        url = self.urls['api']['ws'][api]['public']
-        url = self.implode_params(url, {'hostname': self.hostname})
+        api = self.safe_string(self.options, 'api', 'api')
+        hostname = {'hostname': self.hostname}
+        url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
         requestId = str(self.milliseconds())
         request = {
             'sub': messageHash,
@@ -245,10 +242,9 @@ class huobipro(Exchange, ccxt.huobipro):
         # only supports a limit of 150 at self time
         limit = 150 if (limit is None) else limit
         messageHash = 'market.' + market['id'] + '.mbp.' + str(limit)
-        options = self.safe_value(self.options, 'ws', {})
-        api = self.safe_string(options, 'api', 'api')
-        url = self.urls['api']['ws'][api]['public']
-        url = self.implode_params(url, {'hostname': self.hostname})
+        api = self.safe_string(self.options, 'api', 'api')
+        hostname = {'hostname': self.hostname}
+        url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
         requestId = str(self.milliseconds())
         request = {
             'sub': messageHash,
@@ -309,10 +305,9 @@ class huobipro(Exchange, ccxt.huobipro):
         limit = self.safe_integer(subscription, 'limit')
         params = self.safe_value(subscription, 'params')
         messageHash = self.safe_string(subscription, 'messageHash')
-        options = self.safe_value(self.options, 'ws', {})
-        api = self.safe_value(options, 'api')
-        url = self.urls['api']['ws'][api]['public']
-        url = self.implode_params(url, {'hostname': self.hostname})
+        api = self.safe_string(self.options, 'api', 'api')
+        hostname = {'hostname': self.hostname}
+        url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
         requestId = str(self.milliseconds())
         request = {
             'req': messageHash,
