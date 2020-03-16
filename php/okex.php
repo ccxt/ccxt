@@ -1481,12 +1481,12 @@ class okex extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
-        $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType');
         $type = $this->safe_string($params, 'type', $defaultType);
         if ($type === null) {
             throw new ArgumentsRequired($this->id . " fetchBalance requires a $type parameter (one of 'account', 'spot', 'margin', 'futures', 'swap')");
         }
+        $this->load_markets();
         $suffix = ($type === 'account') ? 'Wallet' : 'Accounts';
         $method = $type . 'Get' . $suffix;
         $query = $this->omit ($params, 'type');
