@@ -300,13 +300,15 @@ Instantiation
 
 CCXT Pro is designed for async/await style syntax and relies heavily on async primitives such as *promises* and *futures*.
 
-Creating a CCXT Pro exchange instance is pretty much identical to creating a CCXT exchange instance, as shown below.
+Creating a CCXT Pro exchange instance is pretty much identical to creating a CCXT exchange instance.
 
 .. code:: javascript
 
    // JavaScript
    const ccxtpro = require ('ccxt.pro')
    const exchange = new ccxtpro.binance ({ enableRateLimit: true })
+
+The Python implementation of CCXT Pro relies on builtin `asyncio <https://docs.python.org/3/library/asyncio.html>`__ and `Event Loop <https://docs.python.org/3/library/asyncio-eventloop.html>`__ in particular. In Python it is required to supply an asyncio’s event loop instance in the constructor arguments as shown below (identical to ``ccxt.async support``):
 
 .. code:: python
 

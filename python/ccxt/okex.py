@@ -891,6 +891,7 @@ class okex(Exchange):
         marketId = self.safe_string(ticker, 'instrument_id')
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
+            symbol = market['symbol']
         elif marketId is not None:
             parts = marketId.split('-')
             numParts = len(parts)
@@ -901,7 +902,7 @@ class okex(Exchange):
                 symbol = base + '/' + quote
             else:
                 symbol = marketId
-        if market is not None:
+        if (symbol is None) and (market is not None):
             symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
         open = self.safe_float(ticker, 'open_24h')
@@ -1030,8 +1031,28 @@ class okex(Exchange):
         #         }
         #
         symbol = None
-        if market is not None:
+        marketId = self.safe_string(trade, 'instrument_id')
+        base = None
+        quote = None
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
             symbol = market['symbol']
+            base = market['base']
+            quote = market['quote']
+        elif marketId is not None:
+            parts = marketId.split('-')
+            numParts = len(parts)
+            if numParts == 2:
+                baseId, quoteId = parts
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+            else:
+                symbol = marketId
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
+            base = market['base']
+            quote = market['quote']
         timestamp = self.parse8601(self.safe_string_2(trade, 'timestamp', 'created_at'))
         price = self.safe_float(trade, 'price')
         amount = self.safe_float_2(trade, 'size', 'qty')
@@ -1049,9 +1070,7 @@ class okex(Exchange):
         feeCost = self.safe_float(trade, 'fee')
         fee = None
         if feeCost is not None:
-            feeCurrency = None
-            if market is not None:
-                feeCurrency = market['base'] if (side == 'buy') else market['quote']
+            feeCurrency = base if (side == 'buy') else quote
             fee = {
                 # fee is either a positive number(invitation rebate)
                 # or a negative number(transaction fee deduction)

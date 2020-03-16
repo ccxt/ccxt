@@ -889,6 +889,7 @@ class okex extends Exchange {
         $marketId = $this->safe_string($ticker, 'instrument_id');
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
+            $symbol = $market['symbol'];
         } else if ($marketId !== null) {
             $parts = explode('-', $marketId);
             $numParts = is_array($parts) ? count($parts) : 0;
@@ -901,7 +902,7 @@ class okex extends Exchange {
                 $symbol = $marketId;
             }
         }
-        if ($market !== null) {
+        if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
         $last = $this->safe_float($ticker, 'last');
@@ -1036,8 +1037,30 @@ class okex extends Exchange {
         //         }
         //
         $symbol = null;
-        if ($market !== null) {
+        $marketId = $this->safe_string($trade, 'instrument_id');
+        $base = null;
+        $quote = null;
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
             $symbol = $market['symbol'];
+            $base = $market['base'];
+            $quote = $market['quote'];
+        } else if ($marketId !== null) {
+            $parts = explode('-', $marketId);
+            $numParts = is_array($parts) ? count($parts) : 0;
+            if ($numParts === 2) {
+                list($baseId, $quoteId) = $parts;
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            } else {
+                $symbol = $marketId;
+            }
+        }
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
+            $base = $market['base'];
+            $quote = $market['quote'];
         }
         $timestamp = $this->parse8601 ($this->safe_string_2($trade, 'timestamp', 'created_at'));
         $price = $this->safe_float($trade, 'price');
@@ -1059,10 +1082,7 @@ class okex extends Exchange {
         $feeCost = $this->safe_float($trade, 'fee');
         $fee = null;
         if ($feeCost !== null) {
-            $feeCurrency = null;
-            if ($market !== null) {
-                $feeCurrency = ($side === 'buy') ? $market['base'] : $market['quote'];
-            }
+            $feeCurrency = ($side === 'buy') ? $base : $quote;
             $fee = array(
                 // $fee is either a positive number (invitation rebate)
                 // or a negative number (transaction $fee deduction)
