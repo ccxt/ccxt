@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError } = require ('ccxt/js/base/errors');
+const { ExchangeError, ArgumentsRequired } = require ('ccxt/js/base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,7 +16,7 @@ module.exports = class okex extends ccxt.okex {
                 'watchTickers': false, // for now
                 'watchOrderBook': true,
                 'watchTrades': true,
-                'watchBalance': false, // for now
+                'watchBalance': true,
                 'watchOHLCV': true,
             },
             'urls': {
@@ -31,6 +31,11 @@ module.exports = class okex extends ccxt.okex {
                 'ws': {
                     'inflate': true,
                 },
+            },
+            'streaming': {
+                // okex does not support built-in ws protocol-level ping-pong
+                // instead it requires a custom text-based ping-pong
+                'ping': this.ping,
             },
         });
     }
@@ -338,30 +343,109 @@ module.exports = class okex extends ccxt.okex {
         return message;
     }
 
-    handleHeartbeat (client, message) {
-        //
-        // every second (approx) if no other updates are sent
-        //
-        //     { "event": "heartbeat" }
-        //
-        const event = this.safeString (message, 'event');
-        client.resolve (message, event);
+    async authenticate (params = {}) {
+        this.checkRequiredCredentials ();
+        const url = this.urls['api']['ws'];
+        const messageHash = 'login';
+        const client = this.client (url);
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
+            future = client.future ('authenticated');
+            const timestamp = this.seconds ().toString ();
+            const method = 'GET';
+            const path = '/users/self/verify';
+            const auth = timestamp + method + path;
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+            const request = {
+                'op': messageHash,
+                'args': [
+                    this.apiKey,
+                    this.password,
+                    timestamp,
+                    this.decode (signature),
+                ],
+            };
+            this.spawn (this.watch, url, messageHash, request, messageHash, future);
+        }
+        return await future;
     }
 
-    handleSystemStatus (client, message) {
-        //
-        // todo: answer the question whether handleSystemStatus should be renamed
-        // and unified as handleStatus for any usage pattern that
-        // involves system status and maintenance updates
-        //
-        //     {
-        //         event: 'info',
-        //         version: 2,
-        //         serverId: 'e293377e-7bb7-427e-b28c-5db045b2c1d1',
-        //         platform: { status: 1 }, // 1 for operative, 0 for maintenance
-        //     }
-        //
-        return message;
+    async watchBalance (params = {}) {
+        const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType');
+        const type = this.safeString (params, 'type', defaultType);
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + " watchBalance requires a type parameter (one of 'spot', 'margin', 'futures', 'swap')");
+        }
+        const query = this.omit (params, 'type');
+        const future = this.authenticate ();
+        return await this.afterAsync (future, this.subscribeToUserAccount, query);
+    }
+
+    async subscribeToUserAccount (negotiation, params = {}) {
+        const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType');
+        const type = this.safeString (params, 'type', defaultType);
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + " watchBalance requires a type parameter (one of 'spot', 'margin', 'futures', 'swap')");
+        }
+        await this.loadMarkets ();
+        const currencyId = this.safeString (params, 'currency');
+        const code = this.safeString (params, 'code', this.safeCurrencyCode (currencyId));
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const marketId = this.safeString (params, 'instrument_id');
+        const symbol = this.safeString (params, 'symbol');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        } else if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            }
+        }
+        const marketUndefined = (market === undefined);
+        const currencyUndefined = (currency === undefined);
+        if (type === 'spot') {
+            if (currencyUndefined) {
+                throw new ArgumentsRequired (this.id + " watchBalance requires a 'currency' (id) or a unified 'code' parameter for " + type + " accounts");
+            }
+        } else if ((type === 'margin') || (type === 'swap') || (type === 'option')) {
+            if (marketUndefined) {
+                throw new ArgumentsRequired (this.id + " watchBalance requires a 'instrument_id' (id) or a unified 'symbol' parameter for " + type + " accounts");
+            }
+        } else if (type === 'futures') {
+            if (currencyUndefined && marketUndefined) {
+                throw new ArgumentsRequired (this.id + " watchBalance requires a 'currency' (id), or unified 'code', or 'instrument_id' (id), or unified 'symbol' parameter for " + type + " accounts");
+            }
+        }
+        let suffix = undefined;
+        if (!currencyUndefined) {
+            suffix = currency['id'];
+        } else if (!marketUndefined) {
+            suffix = market['id'];
+        }
+        // OKEX supports
+        // spot/account:BTC
+        // spot/margin_account:BTC-USD
+        // futures/account:BTC
+        // futures/account:BTC-USD
+        // swap/account:XRP-USD-SWAP
+        // option/account:BTC-USD
+        const accountType = (type === 'margin') ? 'spot' : type;
+        const account = (type === 'margin') ? 'margin_account' : 'account';
+        const messageHash = accountType + '/' + account + ':' + suffix;
+        // const market = this.market (symbol);
+        const url = this.urls['api']['ws'];
+        // const messageHash = market['type'] + '/' + channel + ':' + market['id'];
+        const request = {
+            'op': 'subscribe',
+            'args': [ messageHash ],
+        };
+        const query = this.omit (params, [ 'currency', 'code', 'instrument_id', 'symbol' ]);
+        // console.log (request);
+        // process.exit ();
+        return await this.watch (url, messageHash, this.deepExtend (request, query), messageHash);
     }
 
     handleSubscriptionStatus (client, message) {
@@ -373,6 +457,14 @@ module.exports = class okex extends ccxt.okex {
         return message;
     }
 
+    handleAuthenticate (client, message) {
+        //
+        //     { event: 'login', success: true }
+        //
+        client.resolve (message, 'authenticated');
+        return message;
+    }
+
     signMessage (client, messageHash, message, params = {}) {
         // todo: bitfinex signMessage not implemented yet
         return message;
@@ -380,8 +472,18 @@ module.exports = class okex extends ccxt.okex {
 
     handleErrorMessage (client, message) {
         //
+        //     { event: 'error', message: 'Invalid sign', errorCode: 30013 }
         //     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
         //
+        const errorCode = this.safeValue (message, 'errorCode');
+        if (errorCode in this.exceptions['exact']) {
+            client.reject (message, 'authenticated');
+            const method = 'login';
+            if (method in client.subscriptions) {
+                delete client.subscriptions[method];
+            }
+            return false;
+        }
         return message;
     }
 
@@ -419,11 +521,12 @@ module.exports = class okex extends ccxt.okex {
                 const methods = {
                     // 'info': this.handleSystemStatus,
                     // 'book': 'handleOrderBook',
+                    'login': this.handleAuthenticate,
                     'subscribe': this.handleSubscriptionStatus,
                 };
                 const method = this.safeValue (methods, event);
                 if (method === undefined) {
-                    log (message);
+                    console.log (message);
                     process.exit ();
                     return message;
                 } else {
