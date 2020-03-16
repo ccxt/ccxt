@@ -21,10 +21,7 @@ module.exports = class okex extends ccxt.okex {
             },
             'urls': {
                 'api': {
-                    'ws': {
-                        'public': 'wss://api-pub.bitfinex.com/ws/1',
-                        'private': 'wss://api.bitfinex.com/ws/1',
-                    },
+                    'ws': 'wss://real.okex.com:8443/ws', // + v3 this.version
                 },
             },
             'options': {
@@ -240,23 +237,16 @@ module.exports = class okex extends ccxt.okex {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
-        if (limit !== undefined) {
-            if ((limit !== 25) && (limit !== 100)) {
-                throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 25 or 100');
-            }
-        }
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const prec = this.safeString (options, 'prec', 'P0');
-        const freq = this.safeString (options, 'freq', 'F0');
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const name = 'depth';
+        const channel = market['type'] + '/' + name + ':' + market['id'];
         const request = {
-            // 'event': 'subscribe', // added in subscribe()
-            // 'channel': channel, // added in subscribe()
-            // 'symbol': marketId, // added in subscribe()
-            'prec': prec, // string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
-            'freq': freq, // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
-            // 'len': '25', // string, number of price points, '25', '100', default = '25'
+            'event': 'subscribe',
+            'channel': channel,
         };
-        const future = this.subscribe ('book', symbol, this.deepExtend (request, params));
+        const url = this.urls['api']['ws'];
+        const future = this.watch (url, channel, this.deepExtend (request, params), channel);
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
@@ -400,6 +390,8 @@ module.exports = class okex extends ccxt.okex {
     }
 
     handleMessage (client, message) {
+        console.log (message);
+        process.exit ();
         if (Array.isArray (message)) {
             const channelId = this.safeString (message, 0);
             //
