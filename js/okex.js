@@ -77,8 +77,6 @@ module.exports = class okex extends ccxt.okex {
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
         for (let i = 0; i < data.length; i++) {
             const trade = this.parseTrade (data[i]);
-            console.log (trade);
-            process.exit ();
             const symbol = trade['symbol'];
             const marketId = this.safeString (trade['info'], 'instrument_id');
             const messageHash = table + ':' + marketId;
@@ -92,73 +90,6 @@ module.exports = class okex extends ccxt.okex {
             client.resolve (stored, messageHash);
         }
         return message;
-    }
-
-    parseTrade (trade, market = undefined) {
-        //
-        // snapshot trade
-        //
-        //     // null, time, price, amount
-        //     [ null, 1580565020, 9374.9, 0.005 ],
-        //
-        // when a trade does not have an id yet
-        //
-        //     // channel id, update type, seq, time, price, amount
-        //     [ 2, 'te', '28462857-BTCUSD', 1580565041, 9374.9, 0.005 ],
-        //
-        // when a trade already has an id
-        //
-        //     // channel id, update type, seq, trade id, time, price, amount
-        //     [ 2, 'tu', '28462857-BTCUSD', 413357662, 1580565041, 9374.9, 0.005 ]
-        //
-        if (!Array.isArray (trade)) {
-            return super.parseTrade (trade, market);
-        }
-        const tradeLength = trade.length;
-        const event = this.safeString (trade, 1);
-        let id = undefined;
-        if (event === 'tu') {
-            id = this.safeString (trade, tradeLength - 4);
-        }
-        const timestamp = this.safeTimestamp (trade, tradeLength - 3);
-        const price = this.safeFloat (trade, tradeLength - 2);
-        let amount = this.safeFloat (trade, tradeLength - 1);
-        let side = undefined;
-        if (amount !== undefined) {
-            side = (amount > 0) ? 'buy' : 'sell';
-            amount = Math.abs (amount);
-        }
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
-        }
-        const seq = this.safeString (trade, 2);
-        const parts = seq.split ('-');
-        const marketId = this.safeString (parts, 1);
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
-        const takerOrMaker = undefined;
-        const orderId = undefined;
-        return {
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'id': id,
-            'order': orderId,
-            'type': undefined,
-            'takerOrMaker': takerOrMaker,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': undefined,
-        };
     }
 
     handleTicker (client, message) {
