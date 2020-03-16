@@ -12,7 +12,7 @@ module.exports = class okex extends ccxt.okex {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                // 'watchTicker': true,
+                'watchTicker': true,
                 // 'watchTickers': false,
                 'watchOrderBook': true,
                 // 'watchTrades': true,
@@ -26,8 +26,7 @@ module.exports = class okex extends ccxt.okex {
             },
             'options': {
                 'watchOrderBook': {
-                    'prec': 'P0',
-                    'freq': 'F0',
+                    'limit': 400, // max
                 },
                 'ws': {
                     'inflate': true,
@@ -39,15 +38,11 @@ module.exports = class okex extends ccxt.okex {
     async subscribe (channel, symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketId = market['id'];
-        const url = this.urls['api']['ws']['public'];
-        const messageHash = channel + ':' + marketId;
-        // const channel = 'trades';
+        const url = this.urls['api']['ws'];
+        const messageHash = market['type'] + '/' + channel + ':' + market['id'];
         const request = {
-            'event': 'subscribe',
-            'channel': channel,
-            'symbol': marketId,
-            'messageHash': messageHash,
+            'op': 'subscribe',
+            'args': [ messageHash ],
         };
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
@@ -185,71 +180,44 @@ module.exports = class okex extends ccxt.okex {
         };
     }
 
-    handleTicker (client, message, subscription) {
+    handleTicker (client, message) {
         //
-        //     [
-        //         2,             // 0 CHANNEL_ID integer Channel ID
-        //         236.62,        // 1 BID float Price of last highest bid
-        //         9.0029,        // 2 BID_SIZE float Size of the last highest bid
-        //         236.88,        // 3 ASK float Price of last lowest ask
-        //         7.1138,        // 4 ASK_SIZE float Size of the last lowest ask
-        //         -1.02,         // 5 DAILY_CHANGE float Amount that the last price has changed since yesterday
-        //         0,             // 6 DAILY_CHANGE_PERC float Amount that the price has changed expressed in percentage terms
-        //         236.52,        // 7 LAST_PRICE float Price of the last trade.
-        //         5191.36754297, // 8 VOLUME float Daily volume
-        //         250.01,        // 9 HIGH float Daily high
-        //         220.05,        // 10 LOW float Daily low
-        //     ]
+        //     {
+        //         table: 'spot/ticker',
+        //         data: [
+        //             {
+        //                 last: '4634.1',
+        //                 open_24h: '5305.6',
+        //                 best_bid: '4631.6',
+        //                 high_24h: '5950',
+        //                 low_24h: '4448.8',
+        //                 base_volume_24h: '147913.11435388',
+        //                 quote_volume_24h: '756850119.99108082',
+        //                 best_ask: '4631.7',
+        //                 instrument_id: 'BTC-USDT',
+        //                 timestamp: '2020-03-16T13:16:25.677Z',
+        //                 best_bid_size: '0.12348942',
+        //                 best_ask_size: '0.00100014',
+        //                 last_qty: '0.00331822'
+        //             }
+        //         ]
+        //     }
         //
-        const timestamp = this.milliseconds ();
-        const marketId = this.safeString (subscription, 'pair');
-        const market = this.markets_by_id[marketId];
-        const symbol = market['symbol'];
-        const channel = 'ticker';
-        const messageHash = channel + ':' + marketId;
-        const last = this.safeFloat (message, 7);
-        const change = this.safeFloat (message, 5);
-        let open = undefined;
-        if ((last !== undefined) && (change !== undefined)) {
-            open = last - change;
+        const table = this.safeString (message, 'table');
+        const data = this.safeValue (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const ticker = this.parseTicker (data[i]);
+            const symbol = ticker['symbol'];
+            const marketId = this.safeString (ticker['info'], 'instrument_id');
+            const messageHash = table + ':' + marketId;
+            this.tickers[symbol] = ticker;
+            client.resolve (ticker, messageHash);
         }
-        const result = {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (message, 9),
-            'low': this.safeFloat (message, 10),
-            'bid': this.safeFloat (message, 1),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (message, 3),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': open,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': change,
-            'percentage': this.safeFloat (message, 6),
-            'average': undefined,
-            'baseVolume': this.safeFloat (message, 8),
-            'quoteVolume': undefined,
-            'info': message,
-        };
-        this.tickers[symbol] = result;
-        client.resolve (result, messageHash);
+        return message;
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const name = 'depth';
-        const channel = market['type'] + '/' + name + ':' + market['id'];
-        const request = {
-            'op': 'subscribe',
-            'args': [ channel ],
-        };
-        const url = this.urls['api']['ws'];
-        const future = this.watch (url, channel, this.deepExtend (request, params), channel);
+        const future = this.subscribe ('depth', symbol, params);
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
@@ -297,7 +265,7 @@ module.exports = class okex extends ccxt.okex {
         return orderbook;
     }
 
-    handleOrderBook (client, message, subscription) {
+    handleOrderBook (client, message) {
         //
         // first message (snapshot)
         //
