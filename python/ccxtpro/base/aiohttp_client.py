@@ -29,8 +29,11 @@ class AiohttpClient(Client):
         if message.type == WSMsgType.TEXT:
             self.handle_text_or_binary_message(message.data)
         elif message.type == WSMsgType.BINARY:
-            data = gunzip(message.data) if self.gunzip else message.data
-            data = inflate(data) if self.inflate else data
+            data = message.data
+            if self.gunzip:
+                data = gunzip(data)
+            elif self.inflate:
+                data = inflate(data)
             self.handle_text_or_binary_message(data)
         # autoping is responsible for automatically replying with pong
         # to a ping incoming from a server, we have to disable autoping
