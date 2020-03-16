@@ -17,9 +17,11 @@ module.exports = async (exchange) => {
 
     log ('watching balance...')
 
-    let balance = await exchange[method] ()
+    const balance = await exchange[method] ({
+        // 'code': 'BTC',
+    })
 
-    let currencies = [
+    const currencies = [
         'USD',
         'CNY',
         'EUR',
@@ -48,18 +50,17 @@ module.exports = async (exchange) => {
     }
 
     let result = currencies
-        .filter (currency => (currency in balance) &&
+        .filter ((currency) => (currency in balance) &&
             (balance[currency]['total'] !== undefined))
 
     if (result.length > 0) {
-        result = result.map (currency => currency + ': ' + balance[currency]['total'])
-        if (exchange.currencies.length > result.length)
+        result = result.map ((currency) => currency + ': ' + balance[currency]['total'])
+        if (exchange.currencies.length > result.length) {
             result = result.join (', ') + ' + more...'
-        else
+        } else {
             result = result.join (', ')
-
+        }
     } else {
-
         result = 'zero balance'
     }
 
