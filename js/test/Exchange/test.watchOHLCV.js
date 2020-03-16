@@ -25,7 +25,7 @@ module.exports = async (exchange, symbol) => {
 
     let response = undefined
 
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 3; i++) {
 
         response = await exchange[method] (symbol, timeframe)
 
@@ -34,7 +34,7 @@ module.exports = async (exchange, symbol) => {
         const now = Date.now ()
         for (let j = 0; j < response.length; j++) {
             testOHLCV (exchange, response[j], symbol, now)
-            if (i > 0) {
+            if (j > 0) {
                 if (response[j][0] && response[j - 1][0]) {
                     assert (response[j][0] >= response[j - 1][0])
                 }
