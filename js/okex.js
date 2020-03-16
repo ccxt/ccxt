@@ -53,7 +53,9 @@ module.exports = class okex extends Exchange {
             'hostname': 'www.okex.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg',
-                'api': 'https://{hostname}',
+                'api': {
+                    'rest': 'https://{hostname}',
+                },
                 'www': 'https://www.okex.com',
                 'doc': 'https://www.okex.com/docs/en/',
                 'fees': 'https://www.okex.com/pages/products/fees.html',
@@ -2771,7 +2773,7 @@ module.exports = class okex extends Exchange {
         let request = '/api/' + api + '/' + this.version + '/';
         request += isArray ? path : this.implodeParams (path, params);
         const query = isArray ? params : this.omit (params, this.extractParams (path));
-        let url = this.implodeParams (this.urls['api'], { 'hostname': this.hostname }) + request;
+        let url = this.implodeParams (this.urls['api']['rest'], { 'hostname': this.hostname }) + request;
         const type = this.getPathAuthenticationType (path);
         if (type === 'public') {
             if (Object.keys (query).length) {
