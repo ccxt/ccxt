@@ -13,11 +13,11 @@ module.exports = class okex extends ccxt.okex {
             'has': {
                 'ws': true,
                 'watchTicker': true,
-                // 'watchTickers': false,
+                'watchTickers': false, // for now
                 'watchOrderBook': true,
                 'watchTrades': true,
-                // 'watchBalance': false, // for now
-                // 'watchOHLCV': false, // missing on the exchange side in v1
+                'watchBalance': false, // for now
+                'watchOHLCV': true,
             },
             'urls': {
                 'api': {
@@ -126,6 +126,78 @@ module.exports = class okex extends ccxt.okex {
             client.resolve (ticker, messageHash);
         }
         return message;
+    }
+
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const interval = this.timeframes[timeframe];
+        const name = 'candle' + interval + 's';
+        const future = this.subscribe (name, symbol, params);
+        return await this.after (future, this.filterBySinceLimit, since, limit, 0);
+    }
+
+    findTimeframe (timeframe) {
+        // redo to use reverse lookups in a static map instead
+        const keys = Object.keys (this.timeframes);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.timeframes[key] === timeframe) {
+                return key;
+            }
+        }
+        return undefined;
+    }
+
+    handleOHLCV (client, message) {
+        //
+        //     {
+        //         table: "spot/candle60s",
+        //         data: [
+        //             {
+        //                 candle: [
+        //                     "2020-03-16T14:29:00.000Z",
+        //                     "4948.3",
+        //                     "4966.7",
+        //                     "4939.1",
+        //                     "4945.3",
+        //                     "238.36021657"
+        //                 ],
+        //                 instrument_id: "BTC-USDT"
+        //             }
+        //         ]
+        //     }
+        //
+        const table = this.safeString (message, 'table');
+        const data = this.safeValue (message, 'data', []);
+        const parts = table.split ('/');
+        const part1 = this.safeString (parts, 1);
+        let interval = part1.replace ('candle', '');
+        interval = interval.replace ('s', '');
+        // use a reverse lookup in a static map instead
+        const timeframe = this.findTimeframe (interval);
+        for (let i = 0; i < data.length; i++) {
+            const marketId = this.safeString (data[i], 'instrument_id');
+            if (marketId in this.markets_by_id) {
+                const candle = this.safeValue (data[i], 'candle');
+                const market = this.markets_by_id[marketId];
+                const symbol = market['symbol'];
+                const parsed = this.parseOHLCV (candle, market, timeframe);
+                this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+                const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
+                const length = stored.length;
+                if (length && parsed[0] === stored[length - 1][0]) {
+                    stored[length - 1] = parsed;
+                } else {
+                    stored.push (parsed);
+                    const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                    if (length >= limit) {
+                        stored.shift ();
+                    }
+                }
+                this.ohlcvs[symbol][timeframe] = stored;
+                const messageHash = table + ':' + marketId;
+                client.resolve (stored, messageHash);
+            }
+        }
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -366,8 +438,11 @@ module.exports = class okex extends ccxt.okex {
                 'ticker': this.handleTicker,
                 'trade': this.handleTrade,
                 // ...
+            };
+            let method = this.safeValue (methods, name);
+            if (name.indexOf ('candle') >= 0) {
+                method = this.handleOHLCV;
             }
-            const method = this.safeValue (methods, name);
             if (method === undefined) {
                 console.log ('handleMessage', message);
                 process.exit ();
