@@ -42,6 +42,7 @@ module.exports = class Client {
                 readyState: undefined,
             },
             gunzip: false,
+            inflate: false,
         }
         Object.assign (this, deepExtend (defaults, config))
         // connection-related Future
@@ -242,6 +243,8 @@ module.exports = class Client {
         message = message.data
         if (this.gunzip) {
             message = gunzip (message)
+        } else if (this.inflate) {
+            message = inflate (message)
         }
         try {
             message = isJsonEncodedObject (message) ? JSON.parse (message) : message

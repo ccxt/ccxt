@@ -26,6 +26,7 @@ class Client(object):
     ping = None  # ping-function if defined
     verbose = False  # verbose output
     gunzip = False
+    inflate = False
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
         defaults = {
@@ -42,6 +43,7 @@ class Client(object):
             'connectionTimeout': 10000,  # milliseconds, false to disable
             'keepAlive': 5000,  # ping-pong keep-alive frequency, ms
             'gunzip': False,
+            'inflate': False,
             # timeout is not used atm
             # timeout: 30000,  # ms, throw if a request is not satisfied, false to disable
         }
