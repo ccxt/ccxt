@@ -12,12 +12,12 @@ module.exports = class okex extends ccxt.okex {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchTicker': true,
-                'watchTickers': false,
+                // 'watchTicker': true,
+                // 'watchTickers': false,
                 'watchOrderBook': true,
-                'watchTrades': true,
-                'watchBalance': false, // for now
-                'watchOHLCV': false, // missing on the exchange side in v1
+                // 'watchTrades': true,
+                // 'watchBalance': false, // for now
+                // 'watchOHLCV': false, // missing on the exchange side in v1
             },
             'urls': {
                 'api': {
@@ -257,90 +257,133 @@ module.exports = class okex extends ccxt.okex {
         return orderbook.limit (limit);
     }
 
+    handleDelta (bookside, delta) {
+        const price = this.safeFloat (delta, 0);
+        const amount = this.safeFloat (delta, 1);
+        bookside.store (price, amount);
+    }
+
+    handleDeltas (bookside, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (bookside, deltas[i]);
+        }
+    }
+
+    handleOrderBookMessage (client, message, orderbook) {
+        //
+        //     {
+        //         instrument_id: "BTC-USDT",
+        //         asks: [
+        //             ["4568.5", "0.49723138", "2"],
+        //             ["4568.7", "0.5013", "1"],
+        //             ["4569.1", "0.4398", "1"],
+        //         ],
+        //         bids: [
+        //             ["4568.4", "0.84187666", "5"],
+        //             ["4568.3", "0.75661506", "6"],
+        //             ["4567.8", "2.01", "2"],
+        //         ],
+        //         timestamp: "2020-03-16T11:11:43.388Z",
+        //         checksum: 473370408
+        //     }
+        //
+        const asks = this.safeValue (message, 'asks', []);
+        const bids = this.safeValue (message, 'bids', []);
+        this.handleDeltas (orderbook['asks'], asks);
+        this.handleDeltas (orderbook['bids'], bids);
+        const timestamp = this.parse8601 (this.safeString (message, 'timestamp'));
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        return orderbook;
+    }
+
     handleOrderBook (client, message, subscription) {
         //
         // first message (snapshot)
         //
-        //     [
-        //         18691, // channel id
-        //         [
-        //             [ 7364.8, 10, 4.354802 ], // price, count, size > 0 = bid
-        //             [ 7364.7, 1, 0.00288831 ],
-        //             [ 7364.3, 12, 0.048 ],
-        //             [ 7364.9, 3, -0.42028976 ], // price, count, size < 0 = ask
-        //             [ 7365, 1, -0.25 ],
-        //             [ 7365.5, 1, -0.00371937 ],
+        //     {
+        //         table: "spot/depth",
+        //         action: "partial",
+        //         data: [
+        //             {
+        //                 instrument_id: "BTC-USDT",
+        //                 asks: [
+        //                     ["4568.5", "0.49723138", "2"],
+        //                     ["4568.7", "0.5013", "1"],
+        //                     ["4569.1", "0.4398", "1"],
+        //                 ],
+        //                 bids: [
+        //                     ["4568.4", "0.84187666", "5"],
+        //                     ["4568.3", "0.75661506", "6"],
+        //                     ["4567.8", "2.01", "2"],
+        //                 ],
+        //                 timestamp: "2020-03-16T11:11:43.388Z",
+        //                 checksum: 473370408
+        //             }
         //         ]
-        //     ]
+        //     }
         //
         // subsequent updates
         //
-        //     [
-        //         30,     // channel id
-        //         9339.9, // price
-        //         0,      // count
-        //         -1,     // size > 0 = bid, size < 0 = ask
-        //     ]
+        //     {
+        //         table: "spot/depth",
+        //         action: "update",
+        //         data: [
+        //             {
+        //                 instrument_id:   "BTC-USDT",
+        //                 asks: [
+        //                     ["4598.8", "0", "0"],
+        //                     ["4599.1", "0", "0"],
+        //                     ["4600.3", "0", "0"],
+        //                 ],
+        //                 bids: [
+        //                     ["4598.5", "0.08", "1"],
+        //                     ["4598.2", "0.0337323", "1"],
+        //                     ["4598.1", "0.12681801", "3"],
+        //                 ],
+        //                 timestamp: "2020-03-16T11:20:35.139Z",
+        //                 checksum: 740786981
+        //             }
+        //         ]
+        //     }
         //
-        const marketId = this.safeString (subscription, 'pair');
-        const market = this.markets_by_id[marketId];
-        const symbol = market['symbol'];
-        const channel = 'book';
-        const messageHash = channel + ':' + marketId;
-        const prec = this.safeString (subscription, 'prec', 'P0');
-        const isRaw = (prec === 'R0');
-        // if it is an initial snapshot
-        if (Array.isArray (message[1])) {
-            const limit = this.safeInteger (subscription, 'len');
-            if (isRaw) {
-                // raw order books
-                this.orderbooks[symbol] = this.indexedOrderBook ({}, limit);
-            } else {
-                // P0, P1, P2, P3, P4
-                this.orderbooks[symbol] = this.countedOrderBook ({}, limit);
-            }
-            const orderbook = this.orderbooks[symbol];
-            if (isRaw) {
-                const deltas = message[1];
-                for (let i = 0; i < deltas.length; i++) {
-                    const delta = deltas[i];
-                    const id = this.safeString (delta, 0);
-                    const price = this.safeFloat (delta, 1);
-                    const size = (delta[2] < 0) ? -delta[2] : delta[2];
-                    const side = (delta[2] < 0) ? 'asks' : 'bids';
-                    const bookside = orderbook[side];
-                    bookside.store (price, size, id);
-                }
-            } else {
-                const deltas = message[1];
-                for (let i = 0; i < deltas.length; i++) {
-                    const delta = deltas[i];
-                    const size = (delta[2] < 0) ? -delta[2] : delta[2];
-                    const side = (delta[2] < 0) ? 'asks' : 'bids';
-                    const bookside = orderbook[side];
-                    bookside.store (delta[0], size, delta[1]);
+        const action = this.safeString (message, 'action');
+        const data = this.safeValue (message, 'data', []);
+        const table = this.safeString (message, 'table');
+        if (action === 'partial') {
+            for (let i = 0; i < data.length; i++) {
+                const update = data[i];
+                const marketId = this.safeString (update, 'instrument_id');
+                if (marketId in this.markets_by_id) {
+                    const market = this.markets_by_id[marketId];
+                    const symbol = market['symbol'];
+                    const options = this.safeValue (this.options, 'watchOrderBook', {});
+                    // default limit is 400 bidasks
+                    const limit = this.safeInteger (options, 'limit', 400);
+                    const orderbook = this.orderBook ({}, limit);
+                    this.orderbooks[symbol] = orderbook;
+                    this.handleOrderBookMessage (client, update, orderbook);
+                    const messageHash = table + ':' + marketId;
+                    client.resolve (orderbook, messageHash);
                 }
             }
-            client.resolve (orderbook, messageHash);
         } else {
-            const orderbook = this.orderbooks[symbol];
-            if (isRaw) {
-                const id = this.safeString (message, 1);
-                const price = this.safeFloat (message, 2);
-                const size = (message[3] < 0) ? -message[3] : message[3];
-                const side = (message[3] < 0) ? 'asks' : 'bids';
-                const bookside = orderbook[side];
-                // price = 0 means that you have to remove the order from your book
-                const amount = (price > 0) ? size : 0;
-                bookside.store (price, amount, id);
-            } else {
-                const size = (message[3] < 0) ? -message[3] : message[3];
-                const side = (message[3] < 0) ? 'asks' : 'bids';
-                const bookside = orderbook[side];
-                bookside.store (message[1], size, message[2]);
+            for (let i = 0; i < data.length; i++) {
+                const update = data[i];
+                const marketId = this.safeString (update, 'instrument_id');
+                if (marketId in this.markets_by_id) {
+                    const market = this.markets_by_id[marketId];
+                    const symbol = market['symbol'];
+                    if (symbol in this.orderbooks) {
+                        const orderbook = this.orderbooks[symbol];
+                        this.handleOrderBookMessage (client, update, orderbook);
+                        const messageHash = table + ':' + marketId;
+                        client.resolve (orderbook, messageHash);
+                    }
+                }
             }
-            client.resolve (orderbook, messageHash);
         }
+        return message;
     }
 
     handleHeartbeat (client, message) {
@@ -438,7 +481,6 @@ module.exports = class okex extends ccxt.okex {
         } else {
             const parts = table.split ('/');
             const name = this.safeString (parts, 1);
-            console.log (name);
             const methods = {
                 'depth': this.handleOrderBook,
                 'ticker': this.handleTicker,
