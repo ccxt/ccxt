@@ -587,7 +587,9 @@ module.exports = class binance extends ccxt.binance {
         const time = this.seconds ();
         const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
         if (time - lastAuthenticatedTime > 1800) {
-            const response = await this.publicPostUserDataStream ();
+            const type = this.safeString2 (this.options, 'defaultType', 'spot');
+            const method = (type === 'future') ? 'fapiPrivatePostListenKey' : 'publicPostUserDataStream';
+            const response = await this[method] ();
             this.options['listenKey'] = this.safeString (response, 'listenKey');
             this.options['lastAuthenticatedTime'] = time;
         }
