@@ -609,7 +609,8 @@ module.exports = class bittrex extends ccxt.bittrex {
             //         ]
             //     }
             //
-            const response = JSON.parse (this.inflate64 (R));
+            const inflated = this.inflate64 (R);
+            const response = JSON.parse (inflated);
             const s = this.safeValue (response, 's', []);
             this.handleTickers (client, message, s);
         }
