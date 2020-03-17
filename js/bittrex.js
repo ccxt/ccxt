@@ -609,7 +609,7 @@ module.exports = class bittrex extends ccxt.bittrex {
             //         ]
             //     }
             //
-            const response = JSON.parse (this.inflate (R));
+            const response = JSON.parse (this.inflate64 (R));
             const s = this.safeValue (response, 's', []);
             this.handleTickers (client, message, s);
         }
@@ -908,7 +908,7 @@ module.exports = class bittrex extends ccxt.bittrex {
     }
 
     handleExchangeState (client, message, subscription) {
-        const inflated = this.inflate (this.safeValue (message, 'R'));
+        const inflated = this.inflate64 (this.safeValue (message, 'R'));
         const R = JSON.parse (inflated);
         //
         //     {
@@ -1054,7 +1054,10 @@ module.exports = class bittrex extends ccxt.bittrex {
             if (method !== undefined) {
                 const A = this.safeValue (M[i], 'A', []);
                 for (let k = 0; k < A.length; k++) {
-                    const inflated = this.inflate (A[k]);
+                    // const log = require ('ololog')
+                    // log.bright.blue (this.base64ToBinary (A[k]))
+                    // process.exit ()
+                    const inflated = this.inflate64 (A[k]);
                     const update = JSON.parse (inflated);
                     method.call (this, client, update);
                 }
