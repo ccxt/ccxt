@@ -18,6 +18,7 @@ module.exports = class coinmate extends Exchange {
                 'CORS': true,
                 'fetchBalance': true,
                 'fetchOrders': true,
+                'fetchOrder': true,
                 'fetchMyTrades': true,
                 'fetchTransactions': true,
                 'fetchOpenOrders': true,
