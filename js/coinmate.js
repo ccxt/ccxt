@@ -569,7 +569,7 @@ module.exports = class coinmate extends Exchange {
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
-            } else {                
+            } else {
                 const [ baseId, quoteId ] = marketId.split ('_');
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
@@ -626,7 +626,11 @@ module.exports = class coinmate extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostCancelOrder ({ 'orderId': id });
+        //   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
+        const res = await this.privatePostCancelOrderWithInfo ({ 'orderId': id });
+        return {
+            'info': res['data'],
+        };
     }
 
     nonce () {
