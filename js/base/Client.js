@@ -229,7 +229,8 @@ module.exports = class Client {
         if (this.verbose) {
             console.log (new Date (), 'sending', message)
         }
-        this.connection.send (JSON.stringify (message))
+        message = (typeof message === 'string') ? message : JSON.stringify (message)
+        this.connection.send (message)
     }
 
     close () {
