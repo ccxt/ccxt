@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -100,6 +100,14 @@ module.exports = class coinmate extends Exchange {
                     'taker': 0.15 / 100,
                 },
             },
+            'exceptions': {
+                'exact': {
+                },
+                'broad': {
+                    'Minimum Order Size ': InvalidOrder,
+                },
+            },
+
         });
     }
 
@@ -552,14 +560,14 @@ module.exports = class coinmate extends Exchange {
         };
         if (type === 'market') {
             if (side === 'buy') {
-                request['total'] = amount; // amount in fiat
+                request['total'] = this.amountToPrecision (symbol, amount); // amount in fiat
             } else {
-                request['amount'] = amount; // amount in fiat
+                request['amount'] = this.amountToPrecision (symbol, amount); // amount in fiat
             }
             method += 'Instant';
         } else {
-            request['amount'] = amount; // amount in crypto
-            request['price'] = price;
+            request['amount'] = this.amountToPrecision (symbol, amount); // amount in crypto
+            request['price'] = this.priceToPrecision (symbol, amount);
             method += this.capitalize (type);
         }
         const response = await this[method] (this.extend (request, params));
@@ -604,7 +612,12 @@ module.exports = class coinmate extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const response = await this.fetch2 (path, api, method, params, headers, body);
         if ('error' in response) {
+            // {"error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null}
             if (response['error']) {
+                const message = this.safeString (response, 'errorMessage');
+                const feedback = this.id + ' ' + message;
+                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
                 throw new ExchangeError (this.id + ' ' + this.json (response));
             }
         }
