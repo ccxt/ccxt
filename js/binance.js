@@ -507,7 +507,6 @@ module.exports = class binance extends ccxt.binance {
     async watchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // console.log ('\n\n\n\n', market, '\n\n\n\n\n');
         const marketId = market['lowercaseId'];
         const name = 'ticker';
         const messageHash = marketId + '@' + name;
