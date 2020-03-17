@@ -480,11 +480,11 @@ module.exports = class coinmate extends Exchange {
     }
 
     parseOrderType (type) {
-        if (type === 'LIMIT') {
-            return 'limit';
-        } else {
-            return 'market';
-        }
+        const types = {
+            'LIMIT': 'limit',
+            'MARKET': 'market',
+        };
+        return this.safeString (types, type, type);
     }
 
     parseOrder (order, market = undefined) {
