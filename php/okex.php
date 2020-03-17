@@ -312,6 +312,10 @@ class okex extends Exchange {
                     'failure to get a peer from the ring-balancer' => '\\ccxt\\ExchangeNotAvailable', // array( "message" => "failure to get a peer from the ring-balancer" )
                     '4010' => '\\ccxt\\PermissionDenied', // array( "code" => 4010, "message" => "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings " )
                     // common
+                    '0' => '\\ccxt\\ExchangeError', // 200 successful,when the order placement / cancellation / operation is successful
+                    '4001' => '\\ccxt\\ExchangeError', // no data received in 30s
+                    '4002' => '\\ccxt\\ExchangeError', // Buffer full. cannot write data
+                    // --------------------------------------------------------
                     '30001' => '\\ccxt\\AuthenticationError', // array( "code" => 30001, "message" => 'request header "OK_ACCESS_KEY" cannot be blank')
                     '30002' => '\\ccxt\\AuthenticationError', // array( "code" => 30002, "message" => 'request header "OK_ACCESS_SIGN" cannot be blank')
                     '30003' => '\\ccxt\\AuthenticationError', // array( "code" => 30003, "message" => 'request header "OK_ACCESS_TIMESTAMP" cannot be blank')
@@ -377,10 +381,51 @@ class okex extends Exchange {
                     '32024' => '\\ccxt\\ExchangeError', // array( "code" => 32024, "message" => "order cannot be placed during delivery" )
                     '32025' => '\\ccxt\\ExchangeError', // array( "code" => 32025, "message" => "order cannot be placed during settlement" )
                     '32026' => '\\ccxt\\ExchangeError', // array( "code" => 32026, "message" => "your account is restricted from opening positions" )
-                    '32029' => '\\ccxt\\ExchangeError', // array( "code" => 32029, "message" => "order info does not exist" )
-                    '32028' => '\\ccxt\\ExchangeError', // array( "code" => 32028, "message" => "account is suspended and liquidated" )
                     '32027' => '\\ccxt\\ExchangeError', // array( "code" => 32027, "message" => "cancelled over 20 orders" )
+                    '32028' => '\\ccxt\\ExchangeError', // array( "code" => 32028, "message" => "account is suspended and liquidated" )
+                    '32029' => '\\ccxt\\ExchangeError', // array( "code" => 32029, "message" => "order info does not exist" )
+                    '32030' => '\\ccxt\\InvalidOrder', // The order cannot be cancelled
+                    '32031' => '\\ccxt\\ArgumentsRequired', // client_oid or order_id is required.
+                    '32038' => '\\ccxt\\AuthenticationError', // User does not exist
+                    '32040' => '\\ccxt\\ExchangeError', // User have open contract orders or position
                     '32044' => '\\ccxt\\ExchangeError', // array( "code" => 32044, "message" => "The margin ratio after submitting this order is lower than the minimum requirement ({0}) for your tier." )
+                    '32045' => '\\ccxt\\ExchangeError', // String of commission over 1 million
+                    '32046' => '\\ccxt\\ExchangeError', // Each user can hold up to 10 trade plans at the same time
+                    '32047' => '\\ccxt\\ExchangeError', // system error
+                    '32048' => '\\ccxt\\InvalidOrder', // Order strategy track range error
+                    '32049' => '\\ccxt\\ExchangeError', // Each user can hold up to 10 track plans at the same time
+                    '32050' => '\\ccxt\\InvalidOrder', // Order strategy rang error
+                    '32051' => '\\ccxt\\InvalidOrder', // Order strategy ice depth error
+                    '32052' => '\\ccxt\\ExchangeError', // String of commission over 100 thousand
+                    '32053' => '\\ccxt\\ExchangeError', // Each user can hold up to 6 ice plans at the same time
+                    '32057' => '\\ccxt\\ExchangeError', // The order price is zero. Market-close-all function cannot be executed
+                    '32054' => '\\ccxt\\ExchangeError', // Trade not allow
+                    '32055' => '\\ccxt\\InvalidOrder', // cancel order error
+                    '32056' => '\\ccxt\\ExchangeError', // iceberg per order average should between {0}-{1} contracts
+                    '32058' => '\\ccxt\\ExchangeError', // Each user can hold up to 6 initiative plans at the same time
+                    '32059' => '\\ccxt\\InvalidOrder', // Total amount should exceed per order amount
+                    '32060' => '\\ccxt\\InvalidOrder', // Order strategy type error
+                    '32061' => '\\ccxt\\InvalidOrder', // Order strategy initiative limit error
+                    '32062' => '\\ccxt\\InvalidOrder', // Order strategy initiative range error
+                    '32063' => '\\ccxt\\InvalidOrder', // Order strategy initiative rate error
+                    '32064' => '\\ccxt\\ExchangeError', // Time Stringerval of orders should set between 5-120s
+                    '32065' => '\\ccxt\\ExchangeError', // Close amount exceeds the limit of Market-close-all (999 for BTC, and 9999 for the rest tokens)
+                    '32066' => '\\ccxt\\ExchangeError', // You have open orders. Please cancel all open orders before changing your leverage level.
+                    '32067' => '\\ccxt\\ExchangeError', // Account equity < required margin in this setting. Please adjust your leverage level again.
+                    '32068' => '\\ccxt\\ExchangeError', // The margin for this position will fall short of the required margin in this setting. Please adjust your leverage level or increase your margin to proceed.
+                    '32069' => '\\ccxt\\ExchangeError', // Target leverage level too low. Your account balance is insufficient to cover the margin required. Please adjust the leverage level again.
+                    '32070' => '\\ccxt\\ExchangeError', // Please check open position or unfilled order
+                    '32071' => '\\ccxt\\ExchangeError', // Your current liquidation mode does not support this action.
+                    '32072' => '\\ccxt\\ExchangeError', // The highest available margin for your order’s tier is {0}. Please edit your margin and place a new order.
+                    '32073' => '\\ccxt\\ExchangeError', // The action does not apply to the token
+                    '32074' => '\\ccxt\\ExchangeError', // The number of contracts of your position, open orders, and the current order has exceeded the maximum order limit of this asset.
+                    '32075' => '\\ccxt\\ExchangeError', // Account risk rate breach
+                    '32076' => '\\ccxt\\ExchangeError', // Liquidation of the holding position(s) at market price will require cancellation of all pending close orders of the contracts.
+                    '32077' => '\\ccxt\\ExchangeError', // Your margin for this asset in futures account is insufficient and the position has been taken over for liquidation. (You will not be able to place orders, close positions, transfer funds, or add margin during this period of time. Your account will be restored after the liquidation is complete.)
+                    '32078' => '\\ccxt\\ExchangeError', // Please cancel all open orders before switching the liquidation mode(Please cancel all open orders before switching the liquidation mode)
+                    '32079' => '\\ccxt\\ExchangeError', // Your open positions are at high risk.(Please add margin or reduce positions before switching the mode)
+                    '32080' => '\\ccxt\\ExchangeError', // Funds cannot be transferred out within 30 minutes after futures settlement
+                    '32083' => '\\ccxt\\ExchangeError', // The number of contracts should be a positive multiple of %%. Please place your order again
                     // token and margin trading
                     '33001' => '\\ccxt\\PermissionDenied', // array( "code" => 33001, "message" => "margin account for this pair is not enabled yet" )
                     '33002' => '\\ccxt\\AccountSuspended', // array( "code" => 33002, "message" => "margin account for this pair is suspended" )
@@ -411,9 +456,32 @@ class okex extends Exchange {
                     '33028' => '\\ccxt\\InvalidOrder', // array( "code" => 33028, "message" => "the decimal places of the trading price exceeded the limit" )
                     '33029' => '\\ccxt\\InvalidOrder', // array( "code" => 33029, "message" => "the decimal places of the trading size exceeded the limit" )
                     '33034' => '\\ccxt\\ExchangeError', // array( "code" => 33034, "message" => "You can only place limit order after Call Auction has started" )
+                    '33035' => '\\ccxt\\ExchangeError', // This type of order cannot be canceled(This type of order cannot be canceled)
+                    '33036' => '\\ccxt\\ExchangeError', // Exceeding the limit of entrust order
+                    '33037' => '\\ccxt\\ExchangeError', // The buy order price should be lower than 130% of the trigger price
+                    '33038' => '\\ccxt\\ExchangeError', // The sell order price should be higher than 70% of the trigger price
+                    '33039' => '\\ccxt\\ExchangeError', // The limit of callback rate is 0 < x <= 5%
+                    '33040' => '\\ccxt\\ExchangeError', // The trigger price of a buy order should be lower than the latest transaction price
+                    '33041' => '\\ccxt\\ExchangeError', // The trigger price of a sell order should be higher than the latest transaction price
+                    '33042' => '\\ccxt\\ExchangeError', // The limit of price variance is 0 < x <= 1%
+                    '33043' => '\\ccxt\\ExchangeError', // The total amount must be larger than 0
+                    '33044' => '\\ccxt\\ExchangeError', // The average amount should be 1/1000 * total amount <= x <= total amount
+                    '33045' => '\\ccxt\\ExchangeError', // The price should not be 0, including trigger price, order price, and price limit
+                    '33046' => '\\ccxt\\ExchangeError', // Price variance should be 0 < x <= 1%
+                    '33047' => '\\ccxt\\ExchangeError', // Sweep ratio should be 0 < x <= 100%
+                    '33048' => '\\ccxt\\ExchangeError', // Per order limit => Total amount/1000 < x <= Total amount
+                    '33049' => '\\ccxt\\ExchangeError', // Total amount should be X > 0
+                    '33050' => '\\ccxt\\ExchangeError', // Time interval should be 5 <= x <= 120s
+                    '33051' => '\\ccxt\\ExchangeError', // cancel order number not higher limit => plan and track entrust no more than 10, ice and time entrust no more than 6
                     '33059' => '\\ccxt\\BadRequest', // array( "code" => 33059, "message" => "client_oid or order_id is required" )
                     '33060' => '\\ccxt\\BadRequest', // array( "code" => 33060, "message" => "Only fill in either parameter client_oid or order_id" )
+                    '33061' => '\\ccxt\\ExchangeError', // Value of a single market price order cannot exceed 100,000 USD
+                    '33062' => '\\ccxt\\ExchangeError', // The leverage ratio is too high. The borrowed position has exceeded the maximum position of this leverage ratio. Please readjust the leverage ratio
+                    '33063' => '\\ccxt\\ExchangeError', // Leverage multiple is too low, there is insufficient margin in the account, please readjust the leverage ratio
+                    '33064' => '\\ccxt\\ExchangeError', // The setting of the leverage ratio cannot be less than 2, please readjust the leverage ratio
+                    '33065' => '\\ccxt\\ExchangeError', // Leverage ratio exceeds maximum leverage ratio, please readjust leverage ratio
                     // account
+                    '21009' => '\\ccxt\\ExchangeError', // Funds cannot be transferred out within 30 minutes after swap settlement(Funds cannot be transferred out within 30 minutes after swap settlement)
                     '34001' => '\\ccxt\\PermissionDenied', // array( "code" => 34001, "message" => "withdrawal suspended" )
                     '34002' => '\\ccxt\\InvalidAddress', // array( "code" => 34002, "message" => "please add a withdrawal address" )
                     '34003' => '\\ccxt\\ExchangeError', // array( "code" => 34003, "message" => "sorry, this token cannot be withdrawn to xx at the moment" )
@@ -437,6 +505,11 @@ class okex extends Exchange {
                     '34021' => '\\ccxt\\InvalidAddress', // array( "code" => 34021, "message" => "Not verified address" )
                     '34022' => '\\ccxt\\ExchangeError', // array( "code" => 34022, "message" => "Withdrawals are not available for sub accounts" )
                     '34023' => '\\ccxt\\PermissionDenied', // array( "code" => 34023, "message" => "Please enable futures trading before transferring your funds" )
+                    '34026' => '\\ccxt\\ExchangeError', // transfer too frequently(transfer too frequently)
+                    '34036' => '\\ccxt\\ExchangeError', // Parameter is incorrect, please refer to API documentation
+                    '34037' => '\\ccxt\\ExchangeError', // Get the sub-account balance interface, account type is not supported
+                    '34038' => '\\ccxt\\ExchangeError', // Since your C2C transaction is unusual, you are restricted from fund transfer. Please contact our customer support to cancel the restriction
+                    '34039' => '\\ccxt\\ExchangeError', // You are now restricted from transferring out your funds due to abnormal trades on C2C Market. Please transfer your fund on our website or app instead to verify your identity
                     // swap
                     '35001' => '\\ccxt\\ExchangeError', // array( "code" => 35001, "message" => "Contract does not exist" )
                     '35002' => '\\ccxt\\ExchangeError', // array( "code" => 35002, "message" => "Contract settling" )
@@ -460,6 +533,7 @@ class okex extends Exchange {
                     '35030' => '\\ccxt\\InvalidOrder', // array( "code" => 35030, "message" => "Order size too large" )
                     '35031' => '\\ccxt\\InvalidOrder', // array( "code" => 35031, "message" => "Cancel order size too large" )
                     '35032' => '\\ccxt\\ExchangeError', // array( "code" => 35032, "message" => "Invalid user status" )
+                    '35037' => '\\ccxt\\ExchangeError', // No last traded price in cache
                     '35039' => '\\ccxt\\ExchangeError', // array( "code" => 35039, "message" => "Open order quantity exceeds limit" )
                     '35040' => '\\ccxt\\InvalidOrder', // array("error_message":"Invalid order type","result":"true","error_code":"35040","order_id":"-1")
                     '35044' => '\\ccxt\\ExchangeError', // array( "code" => 35044, "message" => "Invalid order status" )
@@ -479,6 +553,82 @@ class okex extends Exchange {
                     '35062' => '\\ccxt\\InvalidOrder', // array( "code" => 35062, "message" => "Invalid match_price" )
                     '35063' => '\\ccxt\\InvalidOrder', // array( "code" => 35063, "message" => "Invalid order_size" )
                     '35064' => '\\ccxt\\InvalidOrder', // array( "code" => 35064, "message" => "Invalid client_oid" )
+                    '35066' => '\\ccxt\\InvalidOrder', // Order interval error
+                    '35067' => '\\ccxt\\InvalidOrder', // Time-weighted order ratio error
+                    '35068' => '\\ccxt\\InvalidOrder', // Time-weighted order range error
+                    '35069' => '\\ccxt\\InvalidOrder', // Time-weighted single transaction limit error
+                    '35070' => '\\ccxt\\InvalidOrder', // Algo order type error
+                    '35071' => '\\ccxt\\InvalidOrder', // Order total must be larger than single order limit
+                    '35072' => '\\ccxt\\InvalidOrder', // Maximum 6 unfulfilled time-weighted orders can be held at the same time
+                    '35073' => '\\ccxt\\InvalidOrder', // Order price is 0. Market-close-all not available
+                    '35074' => '\\ccxt\\InvalidOrder', // Iceberg order single transaction average error
+                    '35075' => '\\ccxt\\InvalidOrder', // Failed to cancel order
+                    '35076' => '\\ccxt\\InvalidOrder', // LTC 20x leverage. Not allowed to open position
+                    '35077' => '\\ccxt\\InvalidOrder', // Maximum 6 unfulfilled iceberg orders can be held at the same time
+                    '35078' => '\\ccxt\\InvalidOrder', // Order amount exceeded 100,000
+                    '35079' => '\\ccxt\\InvalidOrder', // Iceberg order price variance error
+                    '35080' => '\\ccxt\\InvalidOrder', // Callback rate error
+                    '35081' => '\\ccxt\\InvalidOrder', // Maximum 10 unfulfilled trail orders can be held at the same time
+                    '35082' => '\\ccxt\\InvalidOrder', // Trail order callback rate error
+                    '35083' => '\\ccxt\\InvalidOrder', // Each user can only hold a maximum of 10 unfulfilled stop-limit orders at the same time
+                    '35084' => '\\ccxt\\InvalidOrder', // Order amount exceeded 1 million
+                    '35085' => '\\ccxt\\InvalidOrder', // Order amount is not in the correct range
+                    '35086' => '\\ccxt\\InvalidOrder', // Price exceeds 100 thousand
+                    '35087' => '\\ccxt\\InvalidOrder', // Price exceeds 100 thousand
+                    '35088' => '\\ccxt\\InvalidOrder', // Average amount error
+                    '35089' => '\\ccxt\\InvalidOrder', // Price exceeds 100 thousand
+                    '35090' => '\\ccxt\\ExchangeError', // No stop-limit orders available for cancelation
+                    '35091' => '\\ccxt\\ExchangeError', // No trail orders available for cancellation
+                    '35092' => '\\ccxt\\ExchangeError', // No iceberg orders available for cancellation
+                    '35093' => '\\ccxt\\ExchangeError', // No trail orders available for cancellation
+                    '35094' => '\\ccxt\\ExchangeError', // Stop-limit order last traded price error
+                    '35095' => '\\ccxt\\BadRequest', // Instrument_id error
+                    '35096' => '\\ccxt\\ExchangeError', // Algo order status error
+                    '35097' => '\\ccxt\\ExchangeError', // Order status and order ID cannot exist at the same time
+                    '35098' => '\\ccxt\\ExchangeError', // An order status or order ID must exist
+                    '35099' => '\\ccxt\\ExchangeError', // Algo order ID error
+                    // option
+                    '36001' => '\\ccxt\\BadRequest', // Invalid underlying index.
+                    '36002' => '\\ccxt\\BadRequest', // Instrument does not exist.
+                    '36005' => '\\ccxt\\ExchangeError', // Instrument status is invalid.
+                    '36101' => '\\ccxt\\AuthenticationError', // Account does not exist.
+                    '36102' => '\\ccxt\\PermissionDenied', // Account status is invalid.
+                    '36103' => '\\ccxt\\PermissionDenied', // Account is suspended due to ongoing liquidation.
+                    '36104' => '\\ccxt\\PermissionDenied', // Account is not enabled for options trading.
+                    '36105' => '\\ccxt\\PermissionDenied', // Please enable the account for option contract.
+                    '36106' => '\\ccxt\\PermissionDenied', // Funds cannot be transferred in or out, as account is suspended.
+                    '36107' => '\\ccxt\\PermissionDenied', // Funds cannot be transferred out within 30 minutes after option exercising or settlement.
+                    '36108' => '\\ccxt\\InsufficientFunds', // Funds cannot be transferred in or out, as equity of the account is less than zero.
+                    '36109' => '\\ccxt\\PermissionDenied', // Funds cannot be transferred in or out during option exercising or settlement.
+                    '36201' => '\\ccxt\\PermissionDenied', // New order function is blocked.
+                    '36202' => '\\ccxt\\PermissionDenied', // Account does not have permission to short option.
+                    '36203' => '\\ccxt\\InvalidOrder', // Invalid format for client_oid.
+                    '36204' => '\\ccxt\\ExchangeError', // Invalid format for request_id.
+                    '36205' => '\\ccxt\\BadRequest', // Instrument id does not match underlying index.
+                    '36206' => '\\ccxt\\BadRequest', // Order_id and client_oid can not be used at the same time.
+                    '36207' => '\\ccxt\\InvalidOrder', // Either order price or fartouch price must be present.
+                    '36208' => '\\ccxt\\InvalidOrder', // Either order price or size must be present.
+                    '36209' => '\\ccxt\\InvalidOrder', // Either order_id or client_oid must be present.
+                    '36210' => '\\ccxt\\InvalidOrder', // Either order_ids or client_oids must be present.
+                    '36211' => '\\ccxt\\InvalidOrder', // Exceeding max batch size for order submission.
+                    '36212' => '\\ccxt\\InvalidOrder', // Exceeding max batch size for oder cancellation.
+                    '36213' => '\\ccxt\\InvalidOrder', // Exceeding max batch size for order amendment.
+                    '36214' => '\\ccxt\\ExchangeError', // Instrument does not have valid bid/ask quote.
+                    '36216' => '\\ccxt\\OrderNotFound', // Order does not exist.
+                    '36217' => '\\ccxt\\InvalidOrder', // Order submission failed.
+                    '36218' => '\\ccxt\\InvalidOrder', // Order cancellation failed.
+                    '36219' => '\\ccxt\\InvalidOrder', // Order amendment failed.
+                    '36220' => '\\ccxt\\InvalidOrder', // Order is pending cancel.
+                    '36221' => '\\ccxt\\InvalidOrder', // Order qty is not valid multiple of lot size.
+                    '36222' => '\\ccxt\\InvalidOrder', // Order price is breaching highest buy limit.
+                    '36223' => '\\ccxt\\InvalidOrder', // Order price is breaching lowest sell limit.
+                    '36224' => '\\ccxt\\InvalidOrder', // Exceeding max order size.
+                    '36225' => '\\ccxt\\InvalidOrder', // Exceeding max open order count for instrument.
+                    '36226' => '\\ccxt\\InvalidOrder', // Exceeding max open order count for underlying.
+                    '36227' => '\\ccxt\\InvalidOrder', // Exceeding max open size across all orders for underlying
+                    '36228' => '\\ccxt\\InvalidOrder', // Exceeding max available qty for instrument.
+                    '36229' => '\\ccxt\\InvalidOrder', // Exceeding max available qty for underlying.
+                    '36230' => '\\ccxt\\InvalidOrder', // Exceeding max position limit for underlying.
                 ),
                 'broad' => array(
                 ),
