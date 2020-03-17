@@ -16,8 +16,12 @@ module.exports = class coinmate extends Exchange {
             'rateLimit': 1000,
             'has': {
                 'CORS': true,
+                'fetchBalance': true,
+                'fetchOrders': true,
                 'fetchMyTrades': true,
                 'fetchTransactions': true,
+                'createOrder': true,
+                'cancelOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
