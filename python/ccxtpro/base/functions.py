@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from zlib import decompress, MAX_WBITS
+from zlib import decompress, MAX_WBITS, decompressobj
 from base64 import b64decode
 from gzip import GzipFile
 from io import BytesIO
 
 
-def inflate(string):
-    return decompress(b64decode(string), -MAX_WBITS)
+def inflate(data):
+    return decompress(data, -MAX_WBITS).decode ('utf-8')
+
+
+def inflate64(data):
+    return inflate(b64decode(data))
 
 
 def gunzip(data):
