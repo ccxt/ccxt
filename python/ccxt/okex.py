@@ -1582,6 +1582,9 @@ class okex(Exchange):
         #         ]
         #     }
         #
+        return self.parse_balance_by_type(type, response)
+
+    def parse_balance_by_type(self, type, response):
         if (type == 'account') or (type == 'spot'):
             return self.parse_account_balance(response)
         elif type == 'margin':

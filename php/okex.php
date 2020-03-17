@@ -1616,6 +1616,10 @@ class okex extends Exchange {
         //         )
         //     }
         //
+        return $this->parse_balance_by_type ($type, $response);
+    }
+
+    public function parse_balance_by_type ($type, $response) {
         if (($type === 'account') || ($type === 'spot')) {
             return $this->parse_account_balance ($response);
         } else if ($type === 'margin') {
