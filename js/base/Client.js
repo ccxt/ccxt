@@ -153,7 +153,7 @@ module.exports = class Client {
     onPingInterval () {
         if (this.keepAlive && this.isOpen ()) {
             const now = milliseconds ()
-            this.lastPong = this.lastPoing || now
+            this.lastPong = this.lastPong || now
             if ((this.lastPong + this.keepAlive * this.maxPingPongMisses) < now) {
                 this.onError (new RequestTimeout ('Connection to ' + this.url + ' timed out due to a ping-pong keepalive missing on time'))
             } else {
