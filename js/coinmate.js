@@ -505,7 +505,7 @@ module.exports = class coinmate extends Exchange {
         //     avgPrice: null,
         //     trailing: false }
         const id = this.safeString (order, 'id');
-        const timestamp = this.safeTimestamp (order, 'timestamp');
+        const timestamp = this.safeInteger (order, 'timestamp');
         const side = this.safeString (order, 'type').toLowerCase ();
         const price = this.safeFloat (order, 'price');
         const remaining = this.safeFloat (order, 'remainingAmount');
