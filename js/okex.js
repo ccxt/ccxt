@@ -307,6 +307,10 @@ module.exports = class okex extends Exchange {
                     'failure to get a peer from the ring-balancer': ExchangeNotAvailable, // { "message": "failure to get a peer from the ring-balancer" }
                     '4010': PermissionDenied, // { "code": 4010, "message": "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings " }
                     // common
+                    '0': ExchangeError, // 200 successful,when the order placement / cancellation / operation is successful
+                    '4001': ExchangeError, // no data received in 30s
+                    '4002': ExchangeError, // Buffer full. cannot write data
+                    // --------------------------------------------------------
                     '30001': AuthenticationError, // { "code": 30001, "message": 'request header "OK_ACCESS_KEY" cannot be blank'}
                     '30002': AuthenticationError, // { "code": 30002, "message": 'request header "OK_ACCESS_SIGN" cannot be blank'}
                     '30003': AuthenticationError, // { "code": 30003, "message": 'request header "OK_ACCESS_TIMESTAMP" cannot be blank'}
@@ -372,10 +376,51 @@ module.exports = class okex extends Exchange {
                     '32024': ExchangeError, // { "code": 32024, "message": "order cannot be placed during delivery" }
                     '32025': ExchangeError, // { "code": 32025, "message": "order cannot be placed during settlement" }
                     '32026': ExchangeError, // { "code": 32026, "message": "your account is restricted from opening positions" }
-                    '32029': ExchangeError, // { "code": 32029, "message": "order info does not exist" }
-                    '32028': ExchangeError, // { "code": 32028, "message": "account is suspended and liquidated" }
                     '32027': ExchangeError, // { "code": 32027, "message": "cancelled over 20 orders" }
+                    '32028': ExchangeError, // { "code": 32028, "message": "account is suspended and liquidated" }
+                    '32029': ExchangeError, // { "code": 32029, "message": "order info does not exist" }
+                    '32030': InvalidOrder, // The order cannot be cancelled
+                    '32031': ArgumentsRequired, // client_oid or order_id is required.
+                    '32038': AuthenticationError, // User does not exist
+                    '32040': ExchangeError, // User have open contract orders or position
                     '32044': ExchangeError, // { "code": 32044, "message": "The margin ratio after submitting this order is lower than the minimum requirement ({0}) for your tier." }
+                    '32045': ExchangeError, // String of commission over 1 million
+                    '32046': ExchangeError, // Each user can hold up to 10 trade plans at the same time
+                    '32047': ExchangeError, // system error
+                    '32048': InvalidOrder, // Order strategy track range error
+                    '32049': ExchangeError, // Each user can hold up to 10 track plans at the same time
+                    '32050': InvalidOrder, // Order strategy rang error
+                    '32051': InvalidOrder, // Order strategy ice depth error
+                    '32052': ExchangeError, // String of commission over 100 thousand
+                    '32053': ExchangeError, // Each user can hold up to 6 ice plans at the same time
+                    '32057': ExchangeError, // The order price is zero. Market-close-all function cannot be executed
+                    '32054': ExchangeError, // Trade not allow
+                    '32055': InvalidOrder, // cancel order error
+                    '32056': ExchangeError, // iceberg per order average should between {0}-{1} contracts
+                    '32058': ExchangeError, // Each user can hold up to 6 initiative plans at the same time
+                    '32059': InvalidOrder, // Total amount should exceed per order amount
+                    '32060': InvalidOrder, // Order strategy type error
+                    '32061': InvalidOrder, // Order strategy initiative limit error
+                    '32062': InvalidOrder, // Order strategy initiative range error
+                    '32063': InvalidOrder, // Order strategy initiative rate error
+                    '32064': ExchangeError, // Time Stringerval of orders should set between 5-120s
+                    '32065': ExchangeError, // Close amount exceeds the limit of Market-close-all (999 for BTC, and 9999 for the rest tokens)
+                    '32066': ExchangeError, // You have open orders. Please cancel all open orders before changing your leverage level.
+                    '32067': ExchangeError, // Account equity < required margin in this setting. Please adjust your leverage level again.
+                    '32068': ExchangeError, // The margin for this position will fall short of the required margin in this setting. Please adjust your leverage level or increase your margin to proceed.
+                    '32069': ExchangeError, // Target leverage level too low. Your account balance is insufficient to cover the margin required. Please adjust the leverage level again.
+                    '32070': ExchangeError, // Please check open position or unfilled order
+                    '32071': ExchangeError, // Your current liquidation mode does not support this action.
+                    '32072': ExchangeError, // The highest available margin for your order’s tier is {0}. Please edit your margin and place a new order.
+                    '32073': ExchangeError, // The action does not apply to the token
+                    '32074': ExchangeError, // The number of contracts of your position, open orders, and the current order has exceeded the maximum order limit of this asset.
+                    '32075': ExchangeError, // Account risk rate breach
+                    '32076': ExchangeError, // Liquidation of the holding position(s) at market price will require cancellation of all pending close orders of the contracts.
+                    '32077': ExchangeError, // Your margin for this asset in futures account is insufficient and the position has been taken over for liquidation. (You will not be able to place orders, close positions, transfer funds, or add margin during this period of time. Your account will be restored after the liquidation is complete.)
+                    '32078': ExchangeError, // Please cancel all open orders before switching the liquidation mode(Please cancel all open orders before switching the liquidation mode)
+                    '32079': ExchangeError, // Your open positions are at high risk.(Please add margin or reduce positions before switching the mode)
+                    '32080': ExchangeError, // Funds cannot be transferred out within 30 minutes after futures settlement
+                    '32083': ExchangeError, // The number of contracts should be a positive multiple of %%. Please place your order again
                     // token and margin trading
                     '33001': PermissionDenied, // { "code": 33001, "message": "margin account for this pair is not enabled yet" }
                     '33002': AccountSuspended, // { "code": 33002, "message": "margin account for this pair is suspended" }
@@ -406,9 +451,32 @@ module.exports = class okex extends Exchange {
                     '33028': InvalidOrder, // { "code": 33028, "message": "the decimal places of the trading price exceeded the limit" }
                     '33029': InvalidOrder, // { "code": 33029, "message": "the decimal places of the trading size exceeded the limit" }
                     '33034': ExchangeError, // { "code": 33034, "message": "You can only place limit order after Call Auction has started" }
+                    '33035': ExchangeError, // This type of order cannot be canceled(This type of order cannot be canceled)
+                    '33036': ExchangeError, // Exceeding the limit of entrust order
+                    '33037': ExchangeError, // The buy order price should be lower than 130% of the trigger price
+                    '33038': ExchangeError, // The sell order price should be higher than 70% of the trigger price
+                    '33039': ExchangeError, // The limit of callback rate is 0 < x <= 5%
+                    '33040': ExchangeError, // The trigger price of a buy order should be lower than the latest transaction price
+                    '33041': ExchangeError, // The trigger price of a sell order should be higher than the latest transaction price
+                    '33042': ExchangeError, // The limit of price variance is 0 < x <= 1%
+                    '33043': ExchangeError, // The total amount must be larger than 0
+                    '33044': ExchangeError, // The average amount should be 1/1000 * total amount <= x <= total amount
+                    '33045': ExchangeError, // The price should not be 0, including trigger price, order price, and price limit
+                    '33046': ExchangeError, // Price variance should be 0 < x <= 1%
+                    '33047': ExchangeError, // Sweep ratio should be 0 < x <= 100%
+                    '33048': ExchangeError, // Per order limit: Total amount/1000 < x <= Total amount
+                    '33049': ExchangeError, // Total amount should be X > 0
+                    '33050': ExchangeError, // Time interval should be 5 <= x <= 120s
+                    '33051': ExchangeError, // cancel order number not higher limit: plan and track entrust no more than 10, ice and time entrust no more than 6
                     '33059': BadRequest, // { "code": 33059, "message": "client_oid or order_id is required" }
                     '33060': BadRequest, // { "code": 33060, "message": "Only fill in either parameter client_oid or order_id" }
+                    '33061': ExchangeError, // Value of a single market price order cannot exceed 100,000 USD
+                    '33062': ExchangeError, // The leverage ratio is too high. The borrowed position has exceeded the maximum position of this leverage ratio. Please readjust the leverage ratio
+                    '33063': ExchangeError, // Leverage multiple is too low, there is insufficient margin in the account, please readjust the leverage ratio
+                    '33064': ExchangeError, // The setting of the leverage ratio cannot be less than 2, please readjust the leverage ratio
+                    '33065': ExchangeError, // Leverage ratio exceeds maximum leverage ratio, please readjust leverage ratio
                     // account
+                    '21009': ExchangeError, // Funds cannot be transferred out within 30 minutes after swap settlement(Funds cannot be transferred out within 30 minutes after swap settlement)
                     '34001': PermissionDenied, // { "code": 34001, "message": "withdrawal suspended" }
                     '34002': InvalidAddress, // { "code": 34002, "message": "please add a withdrawal address" }
                     '34003': ExchangeError, // { "code": 34003, "message": "sorry, this token cannot be withdrawn to xx at the moment" }
@@ -432,6 +500,11 @@ module.exports = class okex extends Exchange {
                     '34021': InvalidAddress, // { "code": 34021, "message": "Not verified address" }
                     '34022': ExchangeError, // { "code": 34022, "message": "Withdrawals are not available for sub accounts" }
                     '34023': PermissionDenied, // { "code": 34023, "message": "Please enable futures trading before transferring your funds" }
+                    '34026': ExchangeError, // transfer too frequently(transfer too frequently)
+                    '34036': ExchangeError, // Parameter is incorrect, please refer to API documentation
+                    '34037': ExchangeError, // Get the sub-account balance interface, account type is not supported
+                    '34038': ExchangeError, // Since your C2C transaction is unusual, you are restricted from fund transfer. Please contact our customer support to cancel the restriction
+                    '34039': ExchangeError, // You are now restricted from transferring out your funds due to abnormal trades on C2C Market. Please transfer your fund on our website or app instead to verify your identity
                     // swap
                     '35001': ExchangeError, // { "code": 35001, "message": "Contract does not exist" }
                     '35002': ExchangeError, // { "code": 35002, "message": "Contract settling" }
@@ -455,6 +528,7 @@ module.exports = class okex extends Exchange {
                     '35030': InvalidOrder, // { "code": 35030, "message": "Order size too large" }
                     '35031': InvalidOrder, // { "code": 35031, "message": "Cancel order size too large" }
                     '35032': ExchangeError, // { "code": 35032, "message": "Invalid user status" }
+                    '35037': ExchangeError, // No last traded price in cache
                     '35039': ExchangeError, // { "code": 35039, "message": "Open order quantity exceeds limit" }
                     '35040': InvalidOrder, // {"error_message":"Invalid order type","result":"true","error_code":"35040","order_id":"-1"}
                     '35044': ExchangeError, // { "code": 35044, "message": "Invalid order status" }
@@ -474,6 +548,82 @@ module.exports = class okex extends Exchange {
                     '35062': InvalidOrder, // { "code": 35062, "message": "Invalid match_price" }
                     '35063': InvalidOrder, // { "code": 35063, "message": "Invalid order_size" }
                     '35064': InvalidOrder, // { "code": 35064, "message": "Invalid client_oid" }
+                    '35066': InvalidOrder, // Order interval error
+                    '35067': InvalidOrder, // Time-weighted order ratio error
+                    '35068': InvalidOrder, // Time-weighted order range error
+                    '35069': InvalidOrder, // Time-weighted single transaction limit error
+                    '35070': InvalidOrder, // Algo order type error
+                    '35071': InvalidOrder, // Order total must be larger than single order limit
+                    '35072': InvalidOrder, // Maximum 6 unfulfilled time-weighted orders can be held at the same time
+                    '35073': InvalidOrder, // Order price is 0. Market-close-all not available
+                    '35074': InvalidOrder, // Iceberg order single transaction average error
+                    '35075': InvalidOrder, // Failed to cancel order
+                    '35076': InvalidOrder, // LTC 20x leverage. Not allowed to open position
+                    '35077': InvalidOrder, // Maximum 6 unfulfilled iceberg orders can be held at the same time
+                    '35078': InvalidOrder, // Order amount exceeded 100,000
+                    '35079': InvalidOrder, // Iceberg order price variance error
+                    '35080': InvalidOrder, // Callback rate error
+                    '35081': InvalidOrder, // Maximum 10 unfulfilled trail orders can be held at the same time
+                    '35082': InvalidOrder, // Trail order callback rate error
+                    '35083': InvalidOrder, // Each user can only hold a maximum of 10 unfulfilled stop-limit orders at the same time
+                    '35084': InvalidOrder, // Order amount exceeded 1 million
+                    '35085': InvalidOrder, // Order amount is not in the correct range
+                    '35086': InvalidOrder, // Price exceeds 100 thousand
+                    '35087': InvalidOrder, // Price exceeds 100 thousand
+                    '35088': InvalidOrder, // Average amount error
+                    '35089': InvalidOrder, // Price exceeds 100 thousand
+                    '35090': ExchangeError, // No stop-limit orders available for cancelation
+                    '35091': ExchangeError, // No trail orders available for cancellation
+                    '35092': ExchangeError, // No iceberg orders available for cancellation
+                    '35093': ExchangeError, // No trail orders available for cancellation
+                    '35094': ExchangeError, // Stop-limit order last traded price error
+                    '35095': BadRequest, // Instrument_id error
+                    '35096': ExchangeError, // Algo order status error
+                    '35097': ExchangeError, // Order status and order ID cannot exist at the same time
+                    '35098': ExchangeError, // An order status or order ID must exist
+                    '35099': ExchangeError, // Algo order ID error
+                    // option
+                    '36001': BadRequest, // Invalid underlying index.
+                    '36002': BadRequest, // Instrument does not exist.
+                    '36005': ExchangeError, // Instrument status is invalid.
+                    '36101': AuthenticationError, // Account does not exist.
+                    '36102': PermissionDenied, // Account status is invalid.
+                    '36103': PermissionDenied, // Account is suspended due to ongoing liquidation.
+                    '36104': PermissionDenied, // Account is not enabled for options trading.
+                    '36105': PermissionDenied, // Please enable the account for option contract.
+                    '36106': PermissionDenied, // Funds cannot be transferred in or out, as account is suspended.
+                    '36107': PermissionDenied, // Funds cannot be transferred out within 30 minutes after option exercising or settlement.
+                    '36108': InsufficientFunds, // Funds cannot be transferred in or out, as equity of the account is less than zero.
+                    '36109': PermissionDenied, // Funds cannot be transferred in or out during option exercising or settlement.
+                    '36201': PermissionDenied, // New order function is blocked.
+                    '36202': PermissionDenied, // Account does not have permission to short option.
+                    '36203': InvalidOrder, // Invalid format for client_oid.
+                    '36204': ExchangeError, // Invalid format for request_id.
+                    '36205': BadRequest, // Instrument id does not match underlying index.
+                    '36206': BadRequest, // Order_id and client_oid can not be used at the same time.
+                    '36207': InvalidOrder, // Either order price or fartouch price must be present.
+                    '36208': InvalidOrder, // Either order price or size must be present.
+                    '36209': InvalidOrder, // Either order_id or client_oid must be present.
+                    '36210': InvalidOrder, // Either order_ids or client_oids must be present.
+                    '36211': InvalidOrder, // Exceeding max batch size for order submission.
+                    '36212': InvalidOrder, // Exceeding max batch size for oder cancellation.
+                    '36213': InvalidOrder, // Exceeding max batch size for order amendment.
+                    '36214': ExchangeError, // Instrument does not have valid bid/ask quote.
+                    '36216': OrderNotFound, // Order does not exist.
+                    '36217': InvalidOrder, // Order submission failed.
+                    '36218': InvalidOrder, // Order cancellation failed.
+                    '36219': InvalidOrder, // Order amendment failed.
+                    '36220': InvalidOrder, // Order is pending cancel.
+                    '36221': InvalidOrder, // Order qty is not valid multiple of lot size.
+                    '36222': InvalidOrder, // Order price is breaching highest buy limit.
+                    '36223': InvalidOrder, // Order price is breaching lowest sell limit.
+                    '36224': InvalidOrder, // Exceeding max order size.
+                    '36225': InvalidOrder, // Exceeding max open order count for instrument.
+                    '36226': InvalidOrder, // Exceeding max open order count for underlying.
+                    '36227': InvalidOrder, // Exceeding max open size across all orders for underlying
+                    '36228': InvalidOrder, // Exceeding max available qty for instrument.
+                    '36229': InvalidOrder, // Exceeding max available qty for underlying.
+                    '36230': InvalidOrder, // Exceeding max position limit for underlying.
                 },
                 'broad': {
                 },
