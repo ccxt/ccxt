@@ -108,7 +108,6 @@ module.exports = class coinmate extends Exchange {
                     'Minimum Order Size ': InvalidOrder,
                 },
             },
-
         });
     }
 
