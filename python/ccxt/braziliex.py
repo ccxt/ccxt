@@ -567,7 +567,7 @@ class braziliex(Exchange):
             headers = {
                 'Content-type': 'application/x-www-form-urlencoded',
                 'Key': self.apiKey,
-                'Sign': self.decode(signature),
+                'Sign': signature,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
