@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,8 +16,13 @@ module.exports = class coinmate extends Exchange {
             'rateLimit': 1000,
             'has': {
                 'CORS': true,
+                'fetchBalance': true,
+                'fetchOrders': true,
                 'fetchMyTrades': true,
                 'fetchTransactions': true,
+                'fetchOpenOrders': true,
+                'createOrder': true,
+                'cancelOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
@@ -96,6 +101,14 @@ module.exports = class coinmate extends Exchange {
                     'taker': 0.15 / 100,
                 },
             },
+            'exceptions': {
+                'exact': {
+                },
+                'broad': {
+                    'Minimum Order Size ': InvalidOrder,
+                },
+            },
+
         });
     }
 
@@ -453,6 +466,11 @@ module.exports = class coinmate extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const response = await this.privatePostOpenOrders (this.extend ({}, params));
+        return this.parseOrders (response['data'], undefined, since, limit);
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
@@ -474,6 +492,7 @@ module.exports = class coinmate extends Exchange {
         const statuses = {
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
+            'OPEN': 'open',
         };
         return this.safeString (statuses, status, status);
     }
@@ -487,32 +506,63 @@ module.exports = class coinmate extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        //   { id: 67527001,
-        //     timestamp: 1517931722613,
+        //     {
+        //     id: 781246605,
+        //     timestamp: 1584480015133,
         //     trailingUpdatedTimestamp: null,
-        //     type: 'BUY',
-        //     price: 5897.24,
-        //     remainingAmount: 0.002367,
-        //     originalAmount: 0.1,
+        //     type: 'SELL',
+        //     currencyPair: 'ETH_BTC',
+        //     price: 0.0345,
+        //     amount: 0.01,
         //     stopPrice: null,
         //     originalStopPrice: null,
         //     marketPriceAtLastUpdate: null,
         //     marketPriceAtOrderCreation: null,
-        //     status: 'CANCELLED',
         //     orderTradeType: 'LIMIT',
         //     hidden: false,
-        //     avgPrice: null,
-        //     trailing: false }
+        //     trailing: false,
+        //     clientOrderId: null
+        //     }
+        //
+        //     {
+        //         id: 67527001,
+        //         timestamp: 1517931722613,
+        //         trailingUpdatedTimestamp: null,
+        //         type: 'BUY',
+        //         price: 5897.24,
+        //         remainingAmount: 0.002367,
+        //         originalAmount: 0.1,
+        //         stopPrice: null,
+        //         originalStopPrice: null,
+        //         marketPriceAtLastUpdate: null,
+        //         marketPriceAtOrderCreation: null,
+        //         status: 'CANCELLED',
+        //         orderTradeType: 'LIMIT',
+        //         hidden: false,
+        //         avgPrice: null,
+        //         trailing: false,
+        //     }
+        //
         const id = this.safeString (order, 'id');
         const timestamp = this.safeInteger (order, 'timestamp');
-        const side = this.safeString (order, 'type').toLowerCase ();
+        const side = this.safeStringLower (order, 'type');
         const price = this.safeFloat (order, 'price');
-        const remaining = this.safeFloat (order, 'remainingAmount');
-        const amount = this.safeFloat (order, 'originalAmount');
+        let amount = undefined;
+        if ('originalAmount' in order) {
+            amount = this.safeFloat (order, 'originalAmount');
+        } else {
+            amount = this.safeFloat (order, 'amount');
+        }
+        const remaining = this.safeFloat (order, 'remainingAmount', amount);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.parseOrderType (this.safeString (order, 'orderTradeType'));
         const filled = amount - remaining;
+        const average = this.safeFloat (order, 'avgPrice');
         let symbol = undefined;
+        if (market === undefined) {
+            const marketId = this.safeString (order, 'currencyPair');
+            market = this.marketsById[marketId];
+        }
         if (market !== undefined) {
             symbol = market['symbol'];
         }
@@ -525,7 +575,7 @@ module.exports = class coinmate extends Exchange {
             'type': type,
             'side': side,
             'price': price,
-            'average': undefined,
+            'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -543,14 +593,14 @@ module.exports = class coinmate extends Exchange {
         };
         if (type === 'market') {
             if (side === 'buy') {
-                request['total'] = amount; // amount in fiat
+                request['total'] = this.amountToPrecision (symbol, amount); // amount in fiat
             } else {
-                request['amount'] = amount; // amount in fiat
+                request['amount'] = this.amountToPrecision (symbol, amount); // amount in fiat
             }
             method += 'Instant';
         } else {
-            request['amount'] = amount; // amount in crypto
-            request['price'] = price;
+            request['amount'] = this.amountToPrecision (symbol, amount); // amount in crypto
+            request['price'] = this.priceToPrecision (symbol, price);
             method += this.capitalize (type);
         }
         const response = await this[method] (this.extend (request, params));
@@ -595,7 +645,12 @@ module.exports = class coinmate extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const response = await this.fetch2 (path, api, method, params, headers, body);
         if ('error' in response) {
+            // {"error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null}
             if (response['error']) {
+                const message = this.safeString (response, 'errorMessage');
+                const feedback = this.id + ' ' + message;
+                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
                 throw new ExchangeError (this.id + ' ' + this.json (response));
             }
         }
