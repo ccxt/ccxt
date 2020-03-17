@@ -567,7 +567,7 @@ module.exports = class coinmate extends Exchange {
             method += 'Instant';
         } else {
             request['amount'] = this.amountToPrecision (symbol, amount); // amount in crypto
-            request['price'] = this.priceToPrecision (symbol, amount);
+            request['price'] = this.priceToPrecision (symbol, price);
             method += this.capitalize (type);
         }
         const response = await this[method] (this.extend (request, params));
