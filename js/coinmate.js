@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -18,6 +18,7 @@ module.exports = class coinmate extends Exchange {
                 'CORS': true,
                 'fetchBalance': true,
                 'fetchOrders': true,
+                'fetchOrder': true,
                 'fetchMyTrades': true,
                 'fetchTransactions': true,
                 'fetchOpenOrders': true,
@@ -71,6 +72,7 @@ module.exports = class coinmate extends Exchange {
                         'openOrders',
                         'order',
                         'orderHistory',
+                        'orderById',
                         'pusherAuth',
                         'redeemVoucher',
                         'replaceByBuyLimit',
@@ -103,12 +105,12 @@ module.exports = class coinmate extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    'No order with given ID': OrderNotFound,
                 },
                 'broad': {
                     'Minimum Order Size ': InvalidOrder,
                 },
             },
-
         });
     }
 
@@ -506,23 +508,28 @@ module.exports = class coinmate extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // limit sell
+        //
         //     {
-        //     id: 781246605,
-        //     timestamp: 1584480015133,
-        //     trailingUpdatedTimestamp: null,
-        //     type: 'SELL',
-        //     currencyPair: 'ETH_BTC',
-        //     price: 0.0345,
-        //     amount: 0.01,
-        //     stopPrice: null,
-        //     originalStopPrice: null,
-        //     marketPriceAtLastUpdate: null,
-        //     marketPriceAtOrderCreation: null,
-        //     orderTradeType: 'LIMIT',
-        //     hidden: false,
-        //     trailing: false,
-        //     clientOrderId: null
+        //         id: 781246605,
+        //         timestamp: 1584480015133,
+        //         trailingUpdatedTimestamp: null,
+        //         type: 'SELL',
+        //         currencyPair: 'ETH_BTC',
+        //         price: 0.0345,
+        //         amount: 0.01,
+        //         stopPrice: null,
+        //         originalStopPrice: null,
+        //         marketPriceAtLastUpdate: null,
+        //         marketPriceAtOrderCreation: null,
+        //         orderTradeType: 'LIMIT',
+        //         hidden: false,
+        //         trailing: false,
+        //         clientOrderId: null
         //     }
+        //
+        // limit buy
         //
         //     {
         //         id: 67527001,
@@ -547,23 +554,32 @@ module.exports = class coinmate extends Exchange {
         const timestamp = this.safeInteger (order, 'timestamp');
         const side = this.safeStringLower (order, 'type');
         const price = this.safeFloat (order, 'price');
-        let amount = undefined;
-        if ('originalAmount' in order) {
-            amount = this.safeFloat (order, 'originalAmount');
-        } else {
-            amount = this.safeFloat (order, 'amount');
-        }
+        const amount = this.safeFloat2 (order, 'originalAmount', 'amount');
         const remaining = this.safeFloat (order, 'remainingAmount', amount);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.parseOrderType (this.safeString (order, 'orderTradeType'));
-        const filled = amount - remaining;
+        let filled = undefined;
+        let cost = undefined;
+        if ((amount !== undefined) && (remaining !== undefined)) {
+            filled = amount - remaining;
+            if (price !== undefined) {
+                cost = filled * price;
+            }
+        }
         const average = this.safeFloat (order, 'avgPrice');
         let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (order, 'currencyPair');
-            market = this.marketsById[marketId];
+        const marketId = this.safeString (order, 'currencyPair');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
         }
-        if (market !== undefined) {
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
         return {
@@ -575,8 +591,9 @@ module.exports = class coinmate extends Exchange {
             'type': type,
             'side': side,
             'price': price,
-            'average': average,
             'amount': amount,
+            'cost': cost,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -604,14 +621,29 @@ module.exports = class coinmate extends Exchange {
             method += this.capitalize (type);
         }
         const response = await this[method] (this.extend (request, params));
+        const id = this.safeString (response, 'data');
         return {
             'info': response,
-            'id': response['data'].toString (),
+            'id': id,
         };
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'orderId': id,
+        };
+        const res = await this.privatePostOrderById (this.extend (request, params));
+        return this.parseOrder (res['data']);
+    }
+
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostCancelOrder ({ 'orderId': id });
+        //   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
+        const request = { 'orderId': id };
+        const response = await this.privatePostCancelOrderWithInfo (this.extend (request, params));
+        return {
+            'info': response,
+        };
     }
 
     nonce () {
