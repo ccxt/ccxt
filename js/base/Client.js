@@ -1,6 +1,7 @@
 'use strict';
 
 const ccxt = require ('ccxt')
+    // , util = require ('util')
     , {
         isNode,
         isJsonEncodedObject,
@@ -251,6 +252,8 @@ module.exports = class Client {
             message = isJsonEncodedObject (message) ? JSON.parse (message) : message
             if (this.verbose) {
                 console.log (new Date (), 'onMessage', message)
+                // unlimited depth
+                // console.log (new Date (), 'onMessage', util.inspect (message, false, null, true))
             }
         } catch (e) {
             console.log (new Date (), 'onMessage JSON.parse', e)
