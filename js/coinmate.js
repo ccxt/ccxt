@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -104,6 +104,7 @@ module.exports = class coinmate extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    'No order with given ID': OrderNotFound,
                 },
                 'broad': {
                     'Minimum Order Size ': InvalidOrder,
