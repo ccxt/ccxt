@@ -45,6 +45,7 @@ declare module 'ccxt.pro' {
     export class huobiru extends huobipro {}
     export class kraken extends Exchange {}
     export class kucoin extends Exchange {}
+    export class okex extends Exchange {}
     export class poloniex extends Exchange {}
 
     /* tslint:enable */

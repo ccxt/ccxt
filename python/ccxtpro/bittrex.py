@@ -569,7 +569,8 @@ class bittrex(Exchange, ccxt.bittrex):
             #         ]
             #     }
             #
-            response = json.loads(self.inflate(R))
+            inflated = self.inflate64(R)
+            response = json.loads(inflated)
             s = self.safe_value(response, 's', [])
             self.handle_tickers(client, message, s)
         return R
@@ -850,7 +851,7 @@ class bittrex(Exchange, ccxt.bittrex):
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
     def handle_exchange_state(self, client, message, subscription):
-        inflated = self.inflate(self.safe_value(message, 'R'))
+        inflated = self.inflate64(self.safe_value(message, 'R'))
         R = json.loads(inflated)
         #
         #     {
@@ -982,7 +983,7 @@ class bittrex(Exchange, ccxt.bittrex):
             if method is not None:
                 A = self.safe_value(M[i], 'A', [])
                 for k in range(0, len(A)):
-                    inflated = self.inflate(A[k])
+                    inflated = self.inflate64(A[k])
                     update = json.loads(inflated)
                     method(client, update)
         # resolve invocations by request id

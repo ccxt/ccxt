@@ -613,7 +613,8 @@ class bittrex extends \ccxt\bittrex {
             //         )
             //     }
             //
-            $response = json_decode($this->inflate ($R, $as_associative_array = true));
+            $inflated = $this->inflate64 ($R);
+            $response = json_decode($inflated, $as_associative_array = true);
             $s = $this->safe_value($response, 's', array());
             $this->handle_tickers ($client, $message, $s);
         }
@@ -912,7 +913,7 @@ class bittrex extends \ccxt\bittrex {
     }
 
     public function handle_exchange_state ($client, $message, $subscription) {
-        $inflated = $this->inflate ($this->safe_value($message, 'R'));
+        $inflated = $this->inflate64 ($this->safe_value($message, 'R'));
         $R = json_decode($inflated, $as_associative_array = true);
         //
         //     {
@@ -1058,7 +1059,7 @@ class bittrex extends \ccxt\bittrex {
             if ($method !== null) {
                 $A = $this->safe_value($M[$i], 'A', array());
                 for ($k = 0; $k < count($A); $k++) {
-                    $inflated = $this->inflate ($A[$k]);
+                    $inflated = $this->inflate64 ($A[$k]);
                     $update = json_decode($inflated, $as_associative_array = true);
                     $method($client, $update);
                 }

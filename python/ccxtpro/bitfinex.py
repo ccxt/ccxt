@@ -84,6 +84,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
         #
         messageHash = self.safe_value(subscription, 'messageHash')
         marketId = self.safe_string(subscription, 'pair')
+        tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
             symbol = market['symbol']
@@ -94,7 +95,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
                 for i in range(0, len(trades)):
                     stored.append(trades[i])
                     storedLength = len(stored)
-                    if storedLength > self.options['tradesLimit']:
+                    if storedLength > tradesLimit:
                         stored.pop(0)
             else:
                 second = self.safe_string(message, 1)
@@ -103,7 +104,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
                 trade = self.parse_trade(message, market)
                 stored.append(trade)
                 length = len(stored)
-                if length > self.options['tradesLimit']:
+                if length > tradesLimit:
                     stored.pop(0)
             self.trades[symbol] = stored
             client.resolve(stored, messageHash)
