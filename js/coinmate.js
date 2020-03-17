@@ -506,6 +506,23 @@ module.exports = class coinmate extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //     {
+        //     id: 781246605,
+        //     timestamp: 1584480015133,
+        //     trailingUpdatedTimestamp: null,
+        //     type: 'SELL',
+        //     currencyPair: 'ETH_BTC',
+        //     price: 0.0345,
+        //     amount: 0.01,
+        //     stopPrice: null,
+        //     originalStopPrice: null,
+        //     marketPriceAtLastUpdate: null,
+        //     marketPriceAtOrderCreation: null,
+        //     orderTradeType: 'LIMIT',
+        //     hidden: false,
+        //     trailing: false,
+        //     clientOrderId: null
+        //     }
         //
         //     {
         //         id: 67527001,
@@ -530,8 +547,13 @@ module.exports = class coinmate extends Exchange {
         const timestamp = this.safeInteger (order, 'timestamp');
         const side = this.safeStringLower (order, 'type');
         const price = this.safeFloat (order, 'price');
-        const remaining = this.safeFloat (order, 'remainingAmount');
-        const amount = this.safeFloat (order, 'originalAmount');
+        let amount = undefined;
+        if ('originalAmount' in order) {
+            amount = this.safeFloat (order, 'originalAmount');
+        } else {
+            amount = this.safeFloat (order, 'amount');
+        }
+        const remaining = this.safeFloat (order, 'remainingAmount', amount);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.parseOrderType (this.safeString (order, 'orderTradeType'));
         const filled = amount - remaining;
