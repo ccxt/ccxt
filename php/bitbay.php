@@ -159,6 +159,8 @@ class bitbay extends Exchange {
                 'FUNDS_NOT_SUFFICIENT' => '\\ccxt\\InsufficientFunds',
                 'OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS' => '\\ccxt\\InvalidOrder',
                 'OFFER_NOT_FOUND' => '\\ccxt\\OrderNotFound',
+                'OFFER_WOULD_HAVE_BEEN_PARTIALLY_FILLED' => '\\ccxt\\OrderImmediatelyFillable',
+                'ACTION_LIMIT_EXCEEDED' => '\\ccxt\\RateLimitExceeded',
             ),
         ));
     }

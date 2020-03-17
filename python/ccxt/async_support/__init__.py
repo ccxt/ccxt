@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.23.35'
+__version__ = '1.24.39'
 
 # -----------------------------------------------------------------------------
 
@@ -89,6 +89,7 @@ from ccxt.async_support.btctradeua import btctradeua                      # noqa
 from ccxt.async_support.btcturk import btcturk                            # noqa: F401
 from ccxt.async_support.buda import buda                                  # noqa: F401
 from ccxt.async_support.bw import bw                                      # noqa: F401
+from ccxt.async_support.bybit import bybit                                # noqa: F401
 from ccxt.async_support.bytetrade import bytetrade                        # noqa: F401
 from ccxt.async_support.cex import cex                                    # noqa: F401
 from ccxt.async_support.chilebit import chilebit                          # noqa: F401
@@ -124,6 +125,7 @@ from ccxt.async_support.gateio import gateio                              # noqa
 from ccxt.async_support.gemini import gemini                              # noqa: F401
 from ccxt.async_support.hitbtc import hitbtc                              # noqa: F401
 from ccxt.async_support.hitbtc2 import hitbtc2                            # noqa: F401
+from ccxt.async_support.hollaex import hollaex                            # noqa: F401
 from ccxt.async_support.huobipro import huobipro                          # noqa: F401
 from ccxt.async_support.huobiru import huobiru                            # noqa: F401
 from ccxt.async_support.ice3x import ice3x                                # noqa: F401
@@ -145,7 +147,7 @@ from ccxt.async_support.lykke import lykke                                # noqa
 from ccxt.async_support.mercado import mercado                            # noqa: F401
 from ccxt.async_support.mixcoins import mixcoins                          # noqa: F401
 from ccxt.async_support.oceanex import oceanex                            # noqa: F401
-from ccxt.async_support.okcoincny import okcoincny                        # noqa: F401
+from ccxt.async_support.okcoin import okcoin                              # noqa: F401
 from ccxt.async_support.okcoinusd import okcoinusd                        # noqa: F401
 from ccxt.async_support.okex import okex                                  # noqa: F401
 from ccxt.async_support.okex3 import okex3                                # noqa: F401
@@ -213,6 +215,7 @@ exchanges = [
     'btcturk',
     'buda',
     'bw',
+    'bybit',
     'bytetrade',
     'cex',
     'chilebit',
@@ -248,6 +251,7 @@ exchanges = [
     'gemini',
     'hitbtc',
     'hitbtc2',
+    'hollaex',
     'huobipro',
     'huobiru',
     'ice3x',
@@ -269,7 +273,7 @@ exchanges = [
     'mercado',
     'mixcoins',
     'oceanex',
-    'okcoincny',
+    'okcoin',
     'okcoinusd',
     'okex',
     'okex3',

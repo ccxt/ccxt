@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.23.35'
+__version__ = '1.24.39'
 
 # -----------------------------------------------------------------------------
 
@@ -189,6 +189,7 @@ class Exchange(object):
         '429': RateLimitExceeded,
         '404': ExchangeNotAvailable,
         '409': ExchangeNotAvailable,
+        '410': ExchangeNotAvailable,
         '500': ExchangeNotAvailable,
         '501': ExchangeNotAvailable,
         '502': ExchangeNotAvailable,
@@ -215,6 +216,8 @@ class Exchange(object):
     transactions = None
     ohlcvs = None
     tickers = None
+    base_currencies = None
+    quote_currencies = None
     currencies = None
     options = None  # Python does not allow to define properties in run-time with setattr
     accounts = None
@@ -570,9 +573,9 @@ class Exchange(object):
         except RequestException as e:  # base exception class
             error_string = str(e)
             if ('ECONNRESET' in error_string) or ('Connection aborted.' in error_string):
-                raise NetworkError(method + ' ' + url)
+                raise NetworkError(method + ' ' + url + ' ' + error_string)
             else:
-                raise ExchangeError(method + ' ' + url)
+                raise ExchangeError(method + ' ' + url + ' ' + error_string)
 
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
         self.handle_rest_response(http_response, json_response, url, method)
@@ -1254,6 +1257,10 @@ class Exchange(object):
                     )
                 ) if 'precision' in market else 8,
             } for market in values if 'quote' in market]
+            base_currencies = self.sort_by(base_currencies, 'code')
+            quote_currencies = self.sort_by(quote_currencies, 'code')
+            self.base_currencies = self.index_by(base_currencies, 'code')
+            self.quote_currencies = self.index_by(quote_currencies, 'code')
             currencies = self.sort_by(base_currencies + quote_currencies, 'code')
             self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
         self.currencies_by_id = self.index_by(list(self.currencies.values()), 'id')
@@ -1498,35 +1505,34 @@ class Exchange(object):
         result = self.convert_trading_view_to_ohlcv(ohlcvs)
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
-    def convert_trading_view_to_ohlcv(self, ohlcvs):
+    def convert_trading_view_to_ohlcv(self, ohlcvs, t='t', o='o', h='h', l='l', c='c', v='v', ms=False):  # noqa E741
         result = []
-        for i in range(0, len(ohlcvs['t'])):
+        for i in range(0, len(ohlcvs[t])):
             result.append([
-                ohlcvs['t'][i] * 1000,
-                ohlcvs['o'][i],
-                ohlcvs['h'][i],
-                ohlcvs['l'][i],
-                ohlcvs['c'][i],
-                ohlcvs['v'][i],
+                ohlcvs[t][i] if ms else (ohlcvs[t][i] * 1000),
+                ohlcvs[o][i],
+                ohlcvs[h][i],
+                ohlcvs[l][i],
+                ohlcvs[c][i],
+                ohlcvs[v][i],
             ])
         return result
 
-    def convert_ohlcv_to_trading_view(self, ohlcvs):
-        result = {
-            't': [],
-            'o': [],
-            'h': [],
-            'l': [],
-            'c': [],
-            'v': [],
-        }
+    def convert_ohlcv_to_trading_view(self, ohlcvs, t='t', o='o', h='h', l='l', c='c', v='v', ms=False):  # noqa E741
+        result = {}
+        result[t] = []
+        result[o] = []
+        result[h] = []
+        result[l] = []
+        result[c] = []
+        result[v] = []
         for i in range(0, len(ohlcvs)):
-            result['t'].append(int(ohlcvs[i][0] / 1000))
-            result['o'].append(ohlcvs[i][1])
-            result['h'].append(ohlcvs[i][2])
-            result['l'].append(ohlcvs[i][3])
-            result['c'].append(ohlcvs[i][4])
-            result['v'].append(ohlcvs[i][5])
+            result[t].append(ohlcvs[i][0] if ms else int(ohlcvs[i][0] / 1000))
+            result[o].append(ohlcvs[i][1])
+            result[h].append(ohlcvs[i][2])
+            result[l].append(ohlcvs[i][3])
+            result[c].append(ohlcvs[i][4])
+            result[v].append(ohlcvs[i][5])
         return result
 
     def build_ohlcv(self, trades, timeframe='1m', since=None, limit=None):

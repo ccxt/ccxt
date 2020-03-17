@@ -73,6 +73,7 @@ class gateio extends Exchange {
                         'pairs',
                         'marketinfo',
                         'marketlist',
+                        'coininfo',
                         'tickers',
                         'ticker/{id}',
                         'orderBook/{id}',
@@ -94,6 +95,7 @@ class gateio extends Exchange {
                         'getOrder',
                         'openOrders',
                         'tradeHistory',
+                        'feelist',
                         'withdraw',
                     ),
                 ),
@@ -378,6 +380,18 @@ class gateio extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
+        // array(
+        //     "tradeID" => 3175762,
+        //     "date" => "2017-08-25 07:24:28",
+        //     "$type" => "sell",
+        //     "rate" => 29011,
+        //     "$amount" => 0.0019,
+        //     "total" => 55.1209,
+        //     "$fee" => "0",
+        //     "fee_coin" => "btc",
+        //     "gt_fee":"0",
+        //     "point_fee":"0.1213",
+        // ),
         $timestamp = $this->safe_timestamp_2($trade, 'timestamp', 'time_unix');
         $timestamp = $this->safe_timestamp($trade, 'time', $timestamp);
         $id = $this->safe_string_2($trade, 'tradeID', 'id');
@@ -386,6 +400,7 @@ class gateio extends Exchange {
         $price = $this->safe_float_2($trade, 'rate', 'price');
         $amount = $this->safe_float($trade, 'amount');
         $type = $this->safe_string($trade, 'type');
+        $takerOrMaker = $this->safe_string($trade, 'role');
         $cost = null;
         if ($price !== null) {
             if ($amount !== null) {
@@ -396,6 +411,25 @@ class gateio extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
+        $fee = null;
+        $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee_coin'));
+        $feeCost = $this->safe_float($trade, 'point_fee');
+        if (($feeCost === null) || ($feeCost === 0)) {
+            $feeCost = $this->safe_float($trade, 'gt_fee');
+            if (($feeCost === null) || ($feeCost === 0)) {
+                $feeCost = $this->safe_float($trade, 'fee');
+            } else {
+                $feeCurrency = $this->safe_currency_code('GT');
+            }
+        } else {
+            $feeCurrency = $this->safe_currency_code('POINT');
+        }
+        if ($feeCost !== null) {
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+            );
+        }
         return array(
             'id' => $id,
             'info' => $trade,
@@ -405,11 +439,11 @@ class gateio extends Exchange {
             'order' => $orderId,
             'type' => null,
             'side' => $type,
-            'takerOrMaker' => null,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
-            'fee' => null,
+            'fee' => $fee,
         );
     }
 

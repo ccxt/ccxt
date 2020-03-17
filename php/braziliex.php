@@ -595,7 +595,7 @@ class braziliex extends Exchange {
             $headers = array(
                 'Content-type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
-                'Sign' => $this->decode ($signature),
+                'Sign' => $signature,
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

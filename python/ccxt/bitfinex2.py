@@ -564,8 +564,16 @@ class bitfinex2(bitfinex):
             feeCost = trade[9]
             feeCurrency = self.safe_currency_code(trade[10])
             if feeCost is not None:
+                feeCost = -feeCost
+                if symbol in self.markets:
+                    feeCost = self.fee_to_precision(symbol, feeCost)
+                else:
+                    currencyId = 'f' + feeCurrency
+                    if currencyId in self.currencies_by_id:
+                        currency = self.currencies_by_id[currencyId]
+                        feeCost = self.currency_to_precision(currency['code'], feeCost)
                 fee = {
-                    'cost': float(self.fee_to_precision(symbol, abs(feeCost))),
+                    'cost': float(feeCost),
                     'currency': feeCurrency,
                 }
             orderType = trade[6]

@@ -20,6 +20,7 @@ class bitstamp extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v2',
             'userAgent' => $this->userAgents['chrome'],
+            'pro' => true,
             'has' => array(
                 'CORS' => true,
                 'fetchDepositAddress' => true,
@@ -238,8 +239,27 @@ class bitstamp extends Exchange {
             'pair' => $this->market_id($symbol),
         );
         $response = $this->publicGetOrderBookPair (array_merge($request, $params));
-        $timestamp = $this->safe_timestamp($response, 'timestamp');
-        return $this->parse_order_book($response, $timestamp);
+        //
+        //     {
+        //         "$timestamp" => "1583652948",
+        //         "$microtimestamp" => "1583652948955826",
+        //         "bids" => array(
+        //             array( "8750.00", "1.33685271" ),
+        //             array( "8749.39", "0.07700000" ),
+        //             array( "8746.98", "0.07400000" ),
+        //         )
+        //         "asks" => array(
+        //             array( "8754.10", "1.51995636" ),
+        //             array( "8754.71", "1.40000000" ),
+        //             array( "8754.72", "2.50000000" ),
+        //         )
+        //     }
+        //
+        $microtimestamp = $this->safe_integer($response, 'microtimestamp');
+        $timestamp = intval ($microtimestamp / 1000);
+        $orderbook = $this->parse_order_book($response, $timestamp);
+        $orderbook['nonce'] = $microtimestamp;
+        return $orderbook;
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
@@ -1085,18 +1105,44 @@ class bitstamp extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
-            $auth = $nonce . $this->uid . $this->apiKey;
-            $signature = $this->encode ($this->hmac ($this->encode ($auth), $this->encode ($this->secret)));
-            $query = array_merge(array(
-                'key' => $this->apiKey,
-                'signature' => strtoupper($signature),
-                'nonce' => $nonce,
-            ), $query);
-            $body = $this->urlencode ($query);
-            $headers = array(
-                'Content-Type' => 'application/x-www-form-urlencoded',
-            );
+            $authVersion = $this->safe_value($this->options, 'auth', 'v2');
+            if (($authVersion === 'v1') || ($api === 'v1')) {
+                $nonce = (string) $this->nonce ();
+                $auth = $nonce . $this->uid . $this->apiKey;
+                $signature = $this->encode ($this->hmac ($this->encode ($auth), $this->encode ($this->secret)));
+                $query = array_merge(array(
+                    'key' => $this->apiKey,
+                    'signature' => strtoupper($signature),
+                    'nonce' => $nonce,
+                ), $query);
+                $body = $this->urlencode ($query);
+                $headers = array(
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                );
+            } else {
+                $xAuth = 'BITSTAMP ' . $this->apiKey;
+                $xAuthNonce = $this->uuid ();
+                $xAuthTimestamp = (string) $this->milliseconds ();
+                $xAuthVersion = 'v2';
+                $contentType = '';
+                $headers = array(
+                    'X-Auth' => $xAuth,
+                    'X-Auth-Nonce' => $xAuthNonce,
+                    'X-Auth-Timestamp' => $xAuthTimestamp,
+                    'X-Auth-Version' => $xAuthVersion,
+                );
+                if ($method === 'POST') {
+                    if ($query) {
+                        $body = $this->urlencode ($query);
+                        $contentType = 'application/x-www-form-urlencoded';
+                        $headers['Content-Type'] = $contentType;
+                    }
+                }
+                $authBody = $body ? $body : '';
+                $auth = $xAuth . $method . str_replace('https://', '', $url) . $contentType . $xAuthNonce . $xAuthTimestamp . $xAuthVersion . $authBody;
+                $signature = $this->encode ($this->hmac ($this->encode ($auth), $this->encode ($this->secret)));
+                $headers['X-Auth-Signature'] = $signature;
+            }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

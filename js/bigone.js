@@ -922,7 +922,7 @@ module.exports = class bigone extends Exchange {
         //     }
         //
         const trades = this.safeValue (response, 'data', []);
-        return this.parseTrades (trades, market, since, limit, params);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     parseOrderStatus (status) {

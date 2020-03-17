@@ -590,7 +590,7 @@ module.exports = class braziliex extends Exchange {
             headers = {
                 'Content-type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.decode (signature),
+                'Sign': signature,
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

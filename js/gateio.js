@@ -69,6 +69,7 @@ module.exports = class gateio extends Exchange {
                         'pairs',
                         'marketinfo',
                         'marketlist',
+                        'coininfo',
                         'tickers',
                         'ticker/{id}',
                         'orderBook/{id}',
@@ -90,6 +91,7 @@ module.exports = class gateio extends Exchange {
                         'getOrder',
                         'openOrders',
                         'tradeHistory',
+                        'feelist',
                         'withdraw',
                     ],
                 },
@@ -374,6 +376,18 @@ module.exports = class gateio extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        // {
+        //     "tradeID": 3175762,
+        //     "date": "2017-08-25 07:24:28",
+        //     "type": "sell",
+        //     "rate": 29011,
+        //     "amount": 0.0019,
+        //     "total": 55.1209,
+        //     "fee": "0",
+        //     "fee_coin": "btc",
+        //     "gt_fee":"0",
+        //     "point_fee":"0.1213",
+        // },
         let timestamp = this.safeTimestamp2 (trade, 'timestamp', 'time_unix');
         timestamp = this.safeTimestamp (trade, 'time', timestamp);
         const id = this.safeString2 (trade, 'tradeID', 'id');
@@ -382,6 +396,7 @@ module.exports = class gateio extends Exchange {
         const price = this.safeFloat2 (trade, 'rate', 'price');
         const amount = this.safeFloat (trade, 'amount');
         const type = this.safeString (trade, 'type');
+        const takerOrMaker = this.safeString (trade, 'role');
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
@@ -392,6 +407,25 @@ module.exports = class gateio extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
+        let fee = undefined;
+        let feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'fee_coin'));
+        let feeCost = this.safeFloat (trade, 'point_fee');
+        if ((feeCost === undefined) || (feeCost === 0)) {
+            feeCost = this.safeFloat (trade, 'gt_fee');
+            if ((feeCost === undefined) || (feeCost === 0)) {
+                feeCost = this.safeFloat (trade, 'fee');
+            } else {
+                feeCurrency = this.safeCurrencyCode ('GT');
+            }
+        } else {
+            feeCurrency = this.safeCurrencyCode ('POINT');
+        }
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
         return {
             'id': id,
             'info': trade,
@@ -401,11 +435,11 @@ module.exports = class gateio extends Exchange {
             'order': orderId,
             'type': undefined,
             'side': type,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
