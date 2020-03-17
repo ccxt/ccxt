@@ -1055,9 +1055,6 @@ module.exports = class bittrex extends ccxt.bittrex {
             if (method !== undefined) {
                 const A = this.safeValue (M[i], 'A', []);
                 for (let k = 0; k < A.length; k++) {
-                    // const log = require ('ololog')
-                    // log.bright.blue (this.base64ToBinary (A[k]))
-                    // process.exit ()
                     const inflated = this.inflate64 (A[k]);
                     const update = JSON.parse (inflated);
                     method.call (this, client, update);
