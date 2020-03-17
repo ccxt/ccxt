@@ -16,9 +16,12 @@ module.exports = class coinmate extends Exchange {
             'rateLimit': 1000,
             'has': {
                 'CORS': true,
+                'fetchBalance': true,
+                'fetchOrders': true,
                 'fetchMyTrades': true,
                 'fetchTransactions': true,
-                'fetchOrders': true,
+                'createOrder': true,
+                'cancelOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
@@ -488,31 +491,36 @@ module.exports = class coinmate extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        //   { id: 67527001,
-        //     timestamp: 1517931722613,
-        //     trailingUpdatedTimestamp: null,
-        //     type: 'BUY',
-        //     price: 5897.24,
-        //     remainingAmount: 0.002367,
-        //     originalAmount: 0.1,
-        //     stopPrice: null,
-        //     originalStopPrice: null,
-        //     marketPriceAtLastUpdate: null,
-        //     marketPriceAtOrderCreation: null,
-        //     status: 'CANCELLED',
-        //     orderTradeType: 'LIMIT',
-        //     hidden: false,
-        //     avgPrice: null,
-        //     trailing: false }
+        //
+        //     {
+        //         id: 67527001,
+        //         timestamp: 1517931722613,
+        //         trailingUpdatedTimestamp: null,
+        //         type: 'BUY',
+        //         price: 5897.24,
+        //         remainingAmount: 0.002367,
+        //         originalAmount: 0.1,
+        //         stopPrice: null,
+        //         originalStopPrice: null,
+        //         marketPriceAtLastUpdate: null,
+        //         marketPriceAtOrderCreation: null,
+        //         status: 'CANCELLED',
+        //         orderTradeType: 'LIMIT',
+        //         hidden: false,
+        //         avgPrice: null,
+        //         trailing: false,
+        //     }
+        //
         const id = this.safeString (order, 'id');
         const timestamp = this.safeInteger (order, 'timestamp');
-        const side = this.safeString (order, 'type').toLowerCase ();
+        const side = this.safeStringLower (order, 'type');
         const price = this.safeFloat (order, 'price');
         const remaining = this.safeFloat (order, 'remainingAmount');
         const amount = this.safeFloat (order, 'originalAmount');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.parseOrderType (this.safeString (order, 'orderTradeType'));
         const filled = amount - remaining;
+        const average = this.safeFloat (order, 'avgPrice');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -526,7 +534,7 @@ module.exports = class coinmate extends Exchange {
             'type': type,
             'side': side,
             'price': price,
-            'average': undefined,
+            'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
