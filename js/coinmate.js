@@ -569,7 +569,7 @@ module.exports = class coinmate extends Exchange {
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
-            } else {                
+            } else {
                 const [ baseId, quoteId ] = marketId.split ('_');
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
