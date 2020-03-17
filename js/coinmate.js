@@ -71,6 +71,7 @@ module.exports = class coinmate extends Exchange {
                         'openOrders',
                         'order',
                         'orderHistory',
+                        'orderById',
                         'pusherAuth',
                         'redeemVoucher',
                         'replaceByBuyLimit',
@@ -623,6 +624,15 @@ module.exports = class coinmate extends Exchange {
             'info': response,
             'id': id,
         };
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'orderId': id,
+        };
+        const res = await this.privatePostOrderById (this.extend (request, params));
+        return this.parseOrder (res['data']);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
