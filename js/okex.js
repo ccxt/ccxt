@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, ArgumentsRequired } = require ('ccxt/js/base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError } = require ('ccxt/js/base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -27,7 +27,9 @@ module.exports = class okex extends ccxt.okex {
             'options': {
                 'watchOrderBook': {
                     'limit': 400, // max
+                    'type': 'margin',
                 },
+                'watchBalance': 'spot',
                 'ws': {
                     'inflate': true,
                 },
@@ -36,6 +38,7 @@ module.exports = class okex extends ccxt.okex {
                 // okex does not support built-in ws protocol-level ping-pong
                 // instead it requires a custom text-based ping-pong
                 'ping': this.ping,
+                'keepAlive': 20000,
             },
         });
     }
@@ -376,9 +379,9 @@ module.exports = class okex extends ccxt.okex {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + " watchBalance requires a type parameter (one of 'spot', 'margin', 'futures', 'swap')");
         }
-        const query = this.omit (params, 'type');
+        // const query = this.omit (params, 'type');
         const future = this.authenticate ();
-        return await this.afterAsync (future, this.subscribeToUserAccount, query);
+        return await this.afterAsync (future, this.subscribeToUserAccount, params);
     }
 
     async subscribeToUserAccount (negotiation, params = {}) {
@@ -434,18 +437,72 @@ module.exports = class okex extends ccxt.okex {
         // option/account:BTC-USD
         const accountType = (type === 'margin') ? 'spot' : type;
         const account = (type === 'margin') ? 'margin_account' : 'account';
-        const messageHash = accountType + '/' + account + ':' + suffix;
+        const messageHash = accountType + '/' + account;
+        const subscriptionHash = messageHash + ':' + suffix;
         // const market = this.market (symbol);
         const url = this.urls['api']['ws'];
         // const messageHash = market['type'] + '/' + channel + ':' + market['id'];
         const request = {
             'op': 'subscribe',
-            'args': [ messageHash ],
+            'args': [ subscriptionHash ],
         };
-        const query = this.omit (params, [ 'currency', 'code', 'instrument_id', 'symbol' ]);
+        const query = this.omit (params, [ 'currency', 'code', 'instrument_id', 'symbol', 'type' ]);
         // console.log (request);
         // process.exit ();
-        return await this.watch (url, messageHash, this.deepExtend (request, query), messageHash);
+        return await this.watch (url, messageHash, this.deepExtend (request, query), subscriptionHash);
+    }
+
+    handleBalance (client, message) {
+        const log = require ('ololog').unlimited;
+        //
+        // spot
+        //
+        //     {
+        //         table: 'spot/account',
+        //         data: [
+        //             {
+        //                 available: '11.044827320825',
+        //                 currency: 'USDT',
+        //                 id: '',
+        //                 balance: '11.044827320825',
+        //                 hold: '0'
+        //             }
+        //         ]
+        //     }
+        //
+        // margin
+        //
+        //     {
+        //         table: "spot/margin_account",
+        //         data: [
+        //             {
+        //                 maint_margin_ratio: "0.08",
+        //                 liquidation_price: "0",
+        //                 'currency:USDT': { available: "0", balance: "0", borrowed: "0", hold: "0", lending_fee: "0" },
+        //                 tiers: "1",
+        //                 instrument_id:   "ETH-USDT",
+        //                 'currency:ETH': { available: "0", balance: "0", borrowed: "0", hold: "0", lending_fee: "0" }
+        //             }
+        //         ]
+        //     }
+        //
+        const table = this.safeString (message, 'table');
+        const parts = table.split ('/');
+        let type = this.safeString (parts, 0);
+        if (type === 'spot') {
+            const part1 = this.safeString (parts, 1);
+            if (part1 === 'margin_account') {
+                type = 'margin';
+            }
+        }
+        const data = this.safeValue (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const balance = this.parseBalanceByType (type, data);
+            const oldBalance = this.safeValue (this.balance, type, {});
+            const newBalance = this.deepExtend (oldBalance, balance);
+            this.balance[type] = this.parseBalance (newBalance);
+            client.resolve (this.balance[type], table);
+        }
     }
 
     handleSubscriptionStatus (client, message) {
@@ -466,7 +523,18 @@ module.exports = class okex extends ccxt.okex {
     }
 
     signMessage (client, messageHash, message, params = {}) {
-        // todo: bitfinex signMessage not implemented yet
+        // okex uses login requests instead of message signing
+        return message;
+    }
+
+    ping (client) {
+        // okex does not support built-in ws protocol-level ping-pong
+        // instead it requires custom text-based ping-pong
+        return 'ping';
+    }
+
+    handlePong (client, message) {
+        client.lastPong = this.milliseconds ();
         return message;
     }
 
@@ -476,13 +544,23 @@ module.exports = class okex extends ccxt.okex {
         //     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
         //
         const errorCode = this.safeValue (message, 'errorCode');
-        if (errorCode in this.exceptions['exact']) {
-            client.reject (message, 'authenticated');
-            const method = 'login';
-            if (method in client.subscriptions) {
-                delete client.subscriptions[method];
+        try {
+            if (errorCode !== undefined) {
+                this.throwExactlyMatchedException (this.exceptions['ws']['exact'], errorCode);
+                const messageString = this.safeValue (message, 'message');
+                if (messageString !== undefined) {
+                    this.throwBroadlyMatchedException (this.exceptions['ws']['broad'],  messageString);
+                }
             }
-            return false;
+        } catch (e) {
+            if (e instanceof AuthenticationError) {
+                client.reject (e, 'authenticated');
+                const method = 'login';
+                if (method in client.subscriptions) {
+                    delete client.subscriptions[method];
+                }
+                return false;
+            }
         }
         return message;
     }
@@ -526,7 +604,8 @@ module.exports = class okex extends ccxt.okex {
                 };
                 const method = this.safeValue (methods, event);
                 if (method === undefined) {
-                    console.log (message);
+                    const log = require ('ololog').unlimited;
+                    log (message);
                     process.exit ();
                     return message;
                 } else {
@@ -540,6 +619,8 @@ module.exports = class okex extends ccxt.okex {
                 'depth': this.handleOrderBook,
                 'ticker': this.handleTicker,
                 'trade': this.handleTrade,
+                'account': this.handleBalance,
+                'margin_account': this.handleBalance,
                 // ...
             };
             let method = this.safeValue (methods, name);
@@ -547,7 +628,8 @@ module.exports = class okex extends ccxt.okex {
                 method = this.handleOHLCV;
             }
             if (method === undefined) {
-                console.log ('handleMessage', message);
+                const log = require ('ololog').unlimited;
+                log ('handleMessage', name, message);
                 process.exit ();
                 return message;
             } else {
