@@ -462,11 +462,10 @@ module.exports = class coinmate extends Exchange {
         const request = {
             'currencyPair': market['id'],
         };
-        if (limit === undefined) {
-            limit = 1000;
-        }
         // offset param that appears in other parts of the API doesn't appear to be supported here
-        request['limit'] = limit;
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const response = await this.privatePostOrderHistory (this.extend (request, params));
         return this.parseOrders (response['data'], market, since, limit);
     }
@@ -480,16 +479,32 @@ module.exports = class coinmate extends Exchange {
     }
 
     parseOrderType (type) {
-        if (type === 'LIMIT') {
-            return 'limit';
-        } else {
-            return 'market';
-        }
+        const types = {
+            'LIMIT': 'limit',
+            'MARKET': 'market',
+        };
+        return this.safeString (types, type, type);
     }
 
     parseOrder (order, market = undefined) {
+        //   { id: 67527001,
+        //     timestamp: 1517931722613,
+        //     trailingUpdatedTimestamp: null,
+        //     type: 'BUY',
+        //     price: 5897.24,
+        //     remainingAmount: 0.002367,
+        //     originalAmount: 0.1,
+        //     stopPrice: null,
+        //     originalStopPrice: null,
+        //     marketPriceAtLastUpdate: null,
+        //     marketPriceAtOrderCreation: null,
+        //     status: 'CANCELLED',
+        //     orderTradeType: 'LIMIT',
+        //     hidden: false,
+        //     avgPrice: null,
+        //     trailing: false }
         const id = this.safeString (order, 'id');
-        const timestamp = this.safeTimestamp (order, 'timestamp');
+        const timestamp = this.safeInteger (order, 'timestamp');
         const side = this.safeString (order, 'type').toLowerCase ();
         const price = this.safeFloat (order, 'price');
         const remaining = this.safeFloat (order, 'remainingAmount');
@@ -497,12 +512,16 @@ module.exports = class coinmate extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.parseOrderType (this.safeString (order, 'orderTradeType'));
         const filled = amount - remaining;
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': market.symbol,
+            'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
