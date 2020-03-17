@@ -505,23 +505,28 @@ module.exports = class coinmate extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // limit sell
+        //
         //     {
-        //     id: 781246605,
-        //     timestamp: 1584480015133,
-        //     trailingUpdatedTimestamp: null,
-        //     type: 'SELL',
-        //     currencyPair: 'ETH_BTC',
-        //     price: 0.0345,
-        //     amount: 0.01,
-        //     stopPrice: null,
-        //     originalStopPrice: null,
-        //     marketPriceAtLastUpdate: null,
-        //     marketPriceAtOrderCreation: null,
-        //     orderTradeType: 'LIMIT',
-        //     hidden: false,
-        //     trailing: false,
-        //     clientOrderId: null
+        //         id: 781246605,
+        //         timestamp: 1584480015133,
+        //         trailingUpdatedTimestamp: null,
+        //         type: 'SELL',
+        //         currencyPair: 'ETH_BTC',
+        //         price: 0.0345,
+        //         amount: 0.01,
+        //         stopPrice: null,
+        //         originalStopPrice: null,
+        //         marketPriceAtLastUpdate: null,
+        //         marketPriceAtOrderCreation: null,
+        //         orderTradeType: 'LIMIT',
+        //         hidden: false,
+        //         trailing: false,
+        //         clientOrderId: null
         //     }
+        //
+        // limit buy
         //
         //     {
         //         id: 67527001,
