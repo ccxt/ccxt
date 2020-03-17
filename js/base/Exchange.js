@@ -11,8 +11,12 @@ const ccxt = require ('ccxt')
 
 module.exports = class Exchange extends ccxt.Exchange {
 
-    inflate (string) {
-        return functions.inflate (string)
+    inflate (data) {
+        return functions.inflate (data)
+    }
+
+    inflate64 (data) {
+        return functions.inflate64 (data)
     }
 
     gunzip (data) {

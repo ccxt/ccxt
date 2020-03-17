@@ -2,8 +2,12 @@
 
 namespace ccxtpro;
 
-function inflate($string) {
-    return zlib_decode(base64_decode($string));
+function inflate($data) {
+    return zlib_decode($data);
+}
+
+function inflate64($data) {
+    return inflate(base64_decode($data));
 }
 
 function gunzip($data) {

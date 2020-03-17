@@ -86,6 +86,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         //
         const messageHash = this.safeValue (subscription, 'messageHash');
         const marketId = this.safeString (subscription, 'pair');
+        const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
         if (marketId in this.markets_by_id) {
             const market = this.markets_by_id[marketId];
             const symbol = market['symbol'];
@@ -96,7 +97,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
                 for (let i = 0; i < trades.length; i++) {
                     stored.push (trades[i]);
                     const storedLength = stored.length;
-                    if (storedLength > this.options['tradesLimit']) {
+                    if (storedLength > tradesLimit) {
                         stored.shift ();
                     }
                 }
@@ -108,7 +109,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
                 const trade = this.parseTrade (message, market);
                 stored.push (trade);
                 const length = stored.length;
-                if (length > this.options['tradesLimit']) {
+                if (length > tradesLimit) {
                     stored.shift ();
                 }
             }
