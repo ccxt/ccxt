@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, ArgumentsRequired, AuthenticationError } = require ('ccxt/js/base/errors');
+const { ArgumentsRequired, AuthenticationError } = require ('ccxt/js/base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -411,15 +411,15 @@ module.exports = class okex extends ccxt.okex {
         const currencyUndefined = (currency === undefined);
         if (type === 'spot') {
             if (currencyUndefined) {
-                throw new ArgumentsRequired (this.id + " watchBalance requires a 'currency' (id) or a unified 'code' parameter for " + type + " accounts");
+                throw new ArgumentsRequired (this.id + " watchBalance requires a 'currency' (id) or a unified 'code' parameter for " + type + ' accounts');
             }
         } else if ((type === 'margin') || (type === 'swap') || (type === 'option')) {
             if (marketUndefined) {
-                throw new ArgumentsRequired (this.id + " watchBalance requires a 'instrument_id' (id) or a unified 'symbol' parameter for " + type + " accounts");
+                throw new ArgumentsRequired (this.id + " watchBalance requires a 'instrument_id' (id) or a unified 'symbol' parameter for " + type + ' accounts');
             }
         } else if (type === 'futures') {
             if (currencyUndefined && marketUndefined) {
-                throw new ArgumentsRequired (this.id + " watchBalance requires a 'currency' (id), or unified 'code', or 'instrument_id' (id), or unified 'symbol' parameter for " + type + " accounts");
+                throw new ArgumentsRequired (this.id + " watchBalance requires a 'currency' (id), or unified 'code', or 'instrument_id' (id), or unified 'symbol' parameter for " + type + ' accounts');
             }
         }
         let suffix = undefined;
@@ -428,32 +428,20 @@ module.exports = class okex extends ccxt.okex {
         } else if (!marketUndefined) {
             suffix = market['id'];
         }
-        // OKEX supports
-        // spot/account:BTC
-        // spot/margin_account:BTC-USD
-        // futures/account:BTC
-        // futures/account:BTC-USD
-        // swap/account:XRP-USD-SWAP
-        // option/account:BTC-USD
         const accountType = (type === 'margin') ? 'spot' : type;
         const account = (type === 'margin') ? 'margin_account' : 'account';
         const messageHash = accountType + '/' + account;
         const subscriptionHash = messageHash + ':' + suffix;
-        // const market = this.market (symbol);
         const url = this.urls['api']['ws'];
-        // const messageHash = market['type'] + '/' + channel + ':' + market['id'];
         const request = {
             'op': 'subscribe',
             'args': [ subscriptionHash ],
         };
         const query = this.omit (params, [ 'currency', 'code', 'instrument_id', 'symbol', 'type' ]);
-        // console.log (request);
-        // process.exit ();
         return await this.watch (url, messageHash, this.deepExtend (request, query), subscriptionHash);
     }
 
     handleBalance (client, message) {
-        const log = require ('ololog').unlimited;
         //
         // spot
         //
@@ -543,13 +531,14 @@ module.exports = class okex extends ccxt.okex {
         //     { event: 'error', message: 'Invalid sign', errorCode: 30013 }
         //     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
         //
-        const errorCode = this.safeValue (message, 'errorCode');
+        const errorCode = this.safeString (message, 'errorCode');
         try {
             if (errorCode !== undefined) {
-                this.throwExactlyMatchedException (this.exceptions['ws']['exact'], errorCode);
+                const feedback = this.id + ' ' + this.json (message);
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
                 const messageString = this.safeValue (message, 'message');
                 if (messageString !== undefined) {
-                    this.throwBroadlyMatchedException (this.exceptions['ws']['broad'],  messageString);
+                    this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
                 }
             }
         } catch (e) {
@@ -592,6 +581,9 @@ module.exports = class okex extends ccxt.okex {
         //         ]
         //     }
         //
+        if (message === 'pong') {
+            return this.handlePong (client, message);
+        }
         const table = this.safeString (message, 'table');
         if (table === undefined) {
             const event = this.safeString (message, 'event');
@@ -604,9 +596,6 @@ module.exports = class okex extends ccxt.okex {
                 };
                 const method = this.safeValue (methods, event);
                 if (method === undefined) {
-                    const log = require ('ololog').unlimited;
-                    log (message);
-                    process.exit ();
                     return message;
                 } else {
                     return method.call (this, client, message);
@@ -628,9 +617,6 @@ module.exports = class okex extends ccxt.okex {
                 method = this.handleOHLCV;
             }
             if (method === undefined) {
-                const log = require ('ololog').unlimited;
-                log ('handleMessage', name, message);
-                process.exit ();
                 return message;
             } else {
                 return method.call (this, client, message);
