@@ -20,6 +20,7 @@ module.exports = class coinmate extends Exchange {
                 'fetchOrders': true,
                 'fetchMyTrades': true,
                 'fetchTransactions': true,
+                'fetchOpenOrders': true,
                 'createOrder': true,
                 'cancelOrder': true,
             },
@@ -465,6 +466,11 @@ module.exports = class coinmate extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const response = await this.privatePostOpenOrders (this.extend ({}, params));
+        return this.parseOrders (response['data'], undefined, since, limit);
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
@@ -531,6 +537,10 @@ module.exports = class coinmate extends Exchange {
         const filled = amount - remaining;
         const average = this.safeFloat (order, 'avgPrice');
         let symbol = undefined;
+        if (market === undefined) {
+            const marketId = this.safeString (order, 'currencyPair');
+            market = this.marketsById[marketId];
+        }
         if (market !== undefined) {
             symbol = market['symbol'];
         }
