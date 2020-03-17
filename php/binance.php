@@ -510,6 +510,13 @@ class binance extends Exchange {
                     'max' => $this->safe_float($filter, 'maxQty'),
                 );
             }
+            if (is_array($filters) && array_key_exists('MARKET_LOT_SIZE', $filters)) {
+                $filter = $this->safe_value($filters, 'MARKET_LOT_SIZE', array());
+                $entry['limits']['market'] = array(
+                    'min' => $this->safe_float($filter, 'minQty'),
+                    'max' => $this->safe_float($filter, 'maxQty'),
+                );
+            }
             if (is_array($filters) && array_key_exists('MIN_NOTIONAL', $filters)) {
                 $entry['limits']['cost']['min'] = $this->safe_float($filters['MIN_NOTIONAL'], 'minNotional');
             }
@@ -684,7 +691,7 @@ class binance extends Exchange {
     }
 
     public function fetch_status ($params = array ()) {
-        $response = $this->wapiGetSystemStatus ();
+        $response = $this->wapiGetSystemStatus ($params);
         $status = $this->safe_value($response, 'status');
         if ($status !== null) {
             $status = ($status === 0) ? 'ok' : 'maintenance';
@@ -1102,6 +1109,7 @@ class binance extends Exchange {
             $quoteOrderQty = $this->safe_float($params, 'quoteOrderQty');
             if ($quoteOrderQty !== null) {
                 $request['quoteOrderQty'] = $this->cost_to_precision($symbol, $quoteOrderQty);
+                $params = $this->omit ($params, 'quoteOrderQty');
             } else if ($price !== null) {
                 $request['quoteOrderQty'] = $this->cost_to_precision($symbol, $amount * $price);
             } else {

@@ -69,6 +69,7 @@ class bittrex extends Exchange {
                     'https://bittrex.zendesk.com/hc/en-us/articles/115003684371-BITTREX-SERVICE-FEES-AND-WITHDRAWAL-LIMITATIONS',
                     'https://bittrex.zendesk.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-',
                 ),
+                'referral' => 'https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B',
             ),
             'api' => array(
                 'v3' => array(

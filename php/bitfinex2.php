@@ -582,8 +582,18 @@ class bitfinex2 extends bitfinex {
             $feeCost = $trade[9];
             $feeCurrency = $this->safe_currency_code($trade[10]);
             if ($feeCost !== null) {
+                $feeCost = -$feeCost;
+                if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+                    $feeCost = $this->fee_to_precision($symbol, $feeCost);
+                } else {
+                    $currencyId = 'f' . $feeCurrency;
+                    if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                        $currency = $this->currencies_by_id[$currencyId];
+                        $feeCost = $this->currency_to_precision($currency['code'], $feeCost);
+                    }
+                }
                 $fee = array(
-                    'cost' => floatval ($this->fee_to_precision($symbol, abs($feeCost))),
+                    'cost' => floatval ($feeCost),
                     'currency' => $feeCurrency,
                 );
             }

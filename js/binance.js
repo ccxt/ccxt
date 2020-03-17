@@ -504,6 +504,13 @@ module.exports = class binance extends Exchange {
                     'max': this.safeFloat (filter, 'maxQty'),
                 };
             }
+            if ('MARKET_LOT_SIZE' in filters) {
+                const filter = this.safeValue (filters, 'MARKET_LOT_SIZE', {});
+                entry['limits']['market'] = {
+                    'min': this.safeFloat (filter, 'minQty'),
+                    'max': this.safeFloat (filter, 'maxQty'),
+                };
+            }
             if ('MIN_NOTIONAL' in filters) {
                 entry['limits']['cost']['min'] = this.safeFloat (filters['MIN_NOTIONAL'], 'minNotional');
             }
@@ -678,7 +685,7 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        const response = await this.wapiGetSystemStatus ();
+        const response = await this.wapiGetSystemStatus (params);
         let status = this.safeValue (response, 'status');
         if (status !== undefined) {
             status = (status === 0) ? 'ok' : 'maintenance';
@@ -1096,6 +1103,7 @@ module.exports = class binance extends Exchange {
             const quoteOrderQty = this.safeFloat (params, 'quoteOrderQty');
             if (quoteOrderQty !== undefined) {
                 request['quoteOrderQty'] = this.costToPrecision (symbol, quoteOrderQty);
+                params = this.omit (params, 'quoteOrderQty');
             } else if (price !== undefined) {
                 request['quoteOrderQty'] = this.costToPrecision (symbol, amount * price);
             } else {

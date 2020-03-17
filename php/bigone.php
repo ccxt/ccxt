@@ -925,7 +925,7 @@ class bigone extends Exchange {
         //     }
         //
         $trades = $this->safe_value($response, 'data', array());
-        return $this->parse_trades($trades, $market, $since, $limit, $params);
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function parse_order_status ($status) {

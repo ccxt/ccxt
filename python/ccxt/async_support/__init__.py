@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.23.85'
+__version__ = '1.24.38'
 
 # -----------------------------------------------------------------------------
 
@@ -89,6 +89,7 @@ from ccxt.async_support.btctradeua import btctradeua                      # noqa
 from ccxt.async_support.btcturk import btcturk                            # noqa: F401
 from ccxt.async_support.buda import buda                                  # noqa: F401
 from ccxt.async_support.bw import bw                                      # noqa: F401
+from ccxt.async_support.bybit import bybit                                # noqa: F401
 from ccxt.async_support.bytetrade import bytetrade                        # noqa: F401
 from ccxt.async_support.cex import cex                                    # noqa: F401
 from ccxt.async_support.chilebit import chilebit                          # noqa: F401
@@ -146,7 +147,7 @@ from ccxt.async_support.lykke import lykke                                # noqa
 from ccxt.async_support.mercado import mercado                            # noqa: F401
 from ccxt.async_support.mixcoins import mixcoins                          # noqa: F401
 from ccxt.async_support.oceanex import oceanex                            # noqa: F401
-from ccxt.async_support.okcoincny import okcoincny                        # noqa: F401
+from ccxt.async_support.okcoin import okcoin                              # noqa: F401
 from ccxt.async_support.okcoinusd import okcoinusd                        # noqa: F401
 from ccxt.async_support.okex import okex                                  # noqa: F401
 from ccxt.async_support.okex3 import okex3                                # noqa: F401
@@ -214,6 +215,7 @@ exchanges = [
     'btcturk',
     'buda',
     'bw',
+    'bybit',
     'bytetrade',
     'cex',
     'chilebit',
@@ -271,7 +273,7 @@ exchanges = [
     'mercado',
     'mixcoins',
     'oceanex',
-    'okcoincny',
+    'okcoin',
     'okcoinusd',
     'okex',
     'okex3',
