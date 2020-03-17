@@ -488,6 +488,22 @@ module.exports = class coinmate extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //   { id: 67527001,
+        //     timestamp: 1517931722613,
+        //     trailingUpdatedTimestamp: null,
+        //     type: 'BUY',
+        //     price: 5897.24,
+        //     remainingAmount: 0.002367,
+        //     originalAmount: 0.1,
+        //     stopPrice: null,
+        //     originalStopPrice: null,
+        //     marketPriceAtLastUpdate: null,
+        //     marketPriceAtOrderCreation: null,
+        //     status: 'CANCELLED',
+        //     orderTradeType: 'LIMIT',
+        //     hidden: false,
+        //     avgPrice: null,
+        //     trailing: false }
         const id = this.safeString (order, 'id');
         const timestamp = this.safeTimestamp (order, 'timestamp');
         const side = this.safeString (order, 'type').toLowerCase ();
