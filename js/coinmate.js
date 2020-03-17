@@ -326,6 +326,10 @@ module.exports = class coinmate extends Exchange {
         const request = {
             'limit': limit,
         };
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['currencyPair'] = market['id'];
+        }
         if (since !== undefined) {
             request['timestampFrom'] = since;
         }
@@ -459,8 +463,9 @@ module.exports = class coinmate extends Exchange {
             'currencyPair': market['id'],
         };
         if (limit === undefined) {
-            limit = 100;
+            limit = 1000;
         }
+        // offset param that appears in other parts of the API doesn't appear to be supported here
         request['limit'] = limit;
         const response = await this.privatePostOrderHistory (this.extend (request, params));
         return this.parseOrders (response['data'], market, since, limit);
