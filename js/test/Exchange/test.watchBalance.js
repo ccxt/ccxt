@@ -3,6 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const log = require ('ololog')
+    , assert = require ('assert')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -20,6 +21,8 @@ module.exports = async (exchange) => {
     const balance = await exchange[method] ({
         // 'code': 'BTC',
     })
+
+    /*
 
     const currencies = [
         'USD',
@@ -65,6 +68,8 @@ module.exports = async (exchange) => {
     }
 
     log (result)
+
+    */
 
     return balance
 }
