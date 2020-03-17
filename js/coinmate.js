@@ -560,14 +560,28 @@ module.exports = class coinmate extends Exchange {
         const remaining = this.safeFloat (order, 'remainingAmount', amount);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.parseOrderType (this.safeString (order, 'orderTradeType'));
-        const filled = amount - remaining;
+        let filled = undefined;
+        let cost = undefined;
+        if ((amount !== undefined) && (remaining !== undefined)) {
+            filled = amount - remaining;
+            if (price !== undefined) {
+                cost = filled * price;
+            }
+        }
         const average = this.safeFloat (order, 'avgPrice');
         let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (order, 'currencyPair');
-            market = this.marketsById[marketId];
+        const marketId = this.safeString (order, 'currencyPair');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {                
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
         }
-        if (market !== undefined) {
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
         return {
@@ -579,8 +593,9 @@ module.exports = class coinmate extends Exchange {
             'type': type,
             'side': side,
             'price': price,
-            'average': average,
             'amount': amount,
+            'cost': cost,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
