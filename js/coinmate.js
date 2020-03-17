@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -447,6 +447,68 @@ module.exports = class coinmate extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'currencyPair': market['id'],
+        };
+        if (limit === undefined) {
+            limit = 100;
+        }
+        request['limit'] = limit;
+        const response = await this.privatePostOrderHistory (this.extend (request, params));
+        return this.parseOrders (response['data'], market, since, limit);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'FILLED': 'closed',
+            'CANCELLED': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (type) {
+        if (type === 'LIMIT') {
+            return 'limit';
+        } else {
+            return 'market';
+        }
+    }
+
+    parseOrder (order, market = undefined) {
+        const id = this.safeString (order, 'id');
+        const timestamp = this.safeTimestamp (order, 'timestamp');
+        const side = this.safeString (order, 'type').toLowerCase ();
+        const price = this.safeFloat (order, 'price');
+        const remaining = this.safeFloat (order, 'remainingAmount');
+        const amount = this.safeFloat (order, 'originalAmount');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const type = this.parseOrderType (this.safeString (order, 'orderTradeType'));
+        const filled = amount - remaining;
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': market.symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'average': undefined,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'trades': undefined,
+            'info': order,
+        };
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
