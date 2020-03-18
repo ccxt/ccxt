@@ -77,11 +77,11 @@ class okex(Exchange):
                 '1d': '86400',
                 '1w': '604800',
             },
-            'hostname': 'www.okex.com',
+            'hostname': 'okex.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg',
                 'api': {
-                    'rest': 'https://{hostname}',
+                    'rest': 'https://www.{hostname}',
                 },
                 'www': 'https://www.okex.com',
                 'doc': 'https://www.okex.com/docs/en/',
