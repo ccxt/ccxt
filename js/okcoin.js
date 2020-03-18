@@ -12,7 +12,7 @@ module.exports = class okcoin extends okex {
             'id': 'okcoin',
             'name': 'OKCoin',
             'countries': [ 'CN', 'US' ],
-            'hostname': 'www.okcoin.com',
+            'hostname': 'okcoin.com',
             'pro': true,
             'urls': {
                 'api': {
