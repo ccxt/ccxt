@@ -8,6 +8,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import RateLimitExceeded
 
 
 class coinmate(Exchange):
@@ -112,7 +113,9 @@ class coinmate(Exchange):
                     'No order with given ID': OrderNotFound,
                 },
                 'broad': {
+                    'Incorrect order ID': InvalidOrder,
                     'Minimum Order Size ': InvalidOrder,
+                    'TOO MANY REQUESTS': RateLimitExceeded,
                 },
             },
         })
@@ -600,8 +603,9 @@ class coinmate(Exchange):
         market = None
         if symbol:
             market = self.market(symbol)
-        res = await self.privatePostOrderById(self.extend(request, params))
-        return self.parse_order(res['data'], market)
+        response = await self.privatePostOrderById(self.extend(request, params))
+        data = self.safe_value(response, 'data')
+        return self.parse_order(data, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         #   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
@@ -635,14 +639,20 @@ class coinmate(Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        if 'error' in response:
-            # {"error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null}
-            if response['error']:
-                message = self.safe_string(response, 'errorMessage')
-                feedback = self.id + ' ' + message
-                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
-                self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-                raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is not None:
+            if 'error' in response:
+                # {"error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null}
+                if response['error']:
+                    message = self.safe_string(response, 'errorMessage')
+                    feedback = self.id + ' ' + message
+                    self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+                    self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+                    raise ExchangeError(self.id + ' ' + self.json(response))
+        if code > 400:
+            if body:
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions['exact'], body, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
+                raise ExchangeError(feedback)  # unknown message
+            raise ExchangeError(self.id + ' ' + body)
