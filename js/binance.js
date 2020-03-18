@@ -722,7 +722,62 @@ module.exports = class binance extends ccxt.binance {
         //   "Y": "0.00000000"              // Last quote asset transacted quantity (i.e. lastPrice * lastQty),
         //   "Q": "0.00000000"              // Quote Order Qty
         // }
-        return message;
+        const messageHash = this.safeString (message, 'e');
+        const orderId = this.safeString (message, 'i');
+        const marketId = this.safeString (message, 's');
+        let symbol = marketId;
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        }
+        const timestamp = this.safeString (message, 'O');
+        const lastTradeTimestamp = this.safeString (message, 'T');
+        const feeAmount = this.safeFloat (message, 'n');
+        const feeCurrency = this.safeCurrencyCode (this.safeString (message, 'N'));
+        const fee = {
+            'cost': feeAmount,
+            'currency': feeCurrency,
+        };
+        const price = this.safeFloat (message, 'p');
+        const amount = this.safeFloat (message, 'q');
+        const side = this.safeStringLower (message, 'S');
+        const type = this.safeStringLower (message, 'o');
+        const filled = this.safeFloat (message, 'z');
+        const cumulativeQuote = this.safeFloat (message, 'Z');
+        let remaining = amount;
+        let average = undefined;
+        if (filled !== undefined && filled > 0) {
+            if (amount !== undefined) {
+                remaining = amount - filled;
+            }
+            if (cumulativeQuote !== undefined) {
+                average = cumulativeQuote / filled;
+            }
+        }
+        const cost = amount * price;
+        const rawStatus = this.safeString (message, 'X');
+        const status = this.parseOrderStatus (rawStatus);
+        const trades = undefined;
+        const parsed = {
+            'info': message,
+            'symbol': symbol,
+            'id': orderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+            'trades': trades,
+        };
+        client.resolve (parsed, messageHash);
     }
 
     handleMessage (client, message) {
