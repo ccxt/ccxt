@@ -671,9 +671,7 @@ class Exchange(object):
         value = dictionary[key]
         if isinstance(value, Number):
             return int(value * factor)
-        elif isinstance(value, basestring) and value.isdecimal():
-            return int(float(value) * factor)
-        else:
+        elif isinstance(value, basestring):
             try:
                 return int(float(value) * factor)
             except ValueError:
