@@ -689,40 +689,95 @@ class binance extends \ccxt\binance {
 
     public function handle_order ($client, $message) {
         // {
-        //   "e" => "executionReport",        // Event type
+        //   "e" => "executionReport",        // Event $type
         //   "E" => 1499405658658,            // Event time
         //   "s" => "ETHBTC",                 // Symbol
         //   "c" => "mUvoqJxFIILMdfAW5iGSOW", // Client order ID
         //   "S" => "BUY",                    // Side
-        //   "o" => "LIMIT",                  // Order type
+        //   "o" => "LIMIT",                  // Order $type
         //   "f" => "GTC",                    // Time in force
         //   "q" => "1.00000000",             // Order quantity
-        //   "p" => "0.10264410",             // Order price
-        //   "P" => "0.00000000",             // Stop price
+        //   "p" => "0.10264410",             // Order $price
+        //   "P" => "0.00000000",             // Stop $price
         //   "F" => "0.00000000",             // Iceberg quantity
         //   "g" => -1,                       // OrderListId
         //   "C" => null,                     // Original $client order ID; This is the ID of the order being canceled
-        //   "x" => "NEW",                    // Current execution type
-        //   "X" => "NEW",                    // Current order status
+        //   "x" => "NEW",                    // Current execution $type
+        //   "X" => "NEW",                    // Current order $status
         //   "r" => "NONE",                   // Order reject reason; will be an error code.
         //   "i" => 4293153,                  // Order ID
         //   "l" => "0.00000000",             // Last executed quantity
-        //   "z" => "0.00000000",             // Cumulative filled quantity
-        //   "L" => "0.00000000",             // Last executed price
-        //   "n" => "0",                      // Commission amount
+        //   "z" => "0.00000000",             // Cumulative $filled quantity
+        //   "L" => "0.00000000",             // Last executed $price
+        //   "n" => "0",                      // Commission $amount
         //   "N" => null,                     // Commission asset
         //   "T" => 1499405658657,            // Transaction time
         //   "t" => -1,                       // Trade ID
         //   "I" => 8641984,                  // Ignore
         //   "w" => true,                     // Is the order on the book?
-        //   "m" => false,                    // Is this trade the maker side?
+        //   "m" => false,                    // Is this trade the maker $side?
         //   "M" => false,                    // Ignore
         //   "O" => 1499405658657,            // Order creation time
         //   "Z" => "0.00000000",             // Cumulative quote asset transacted quantity
         //   "Y" => "0.00000000"              // Last quote asset transacted quantity (i.e. lastPrice * lastQty),
         //   "Q" => "0.00000000"              // Quote Order Qty
         // }
-        return $message;
+        $messageHash = $this->safe_string($message, 'e');
+        $orderId = $this->safe_string($message, 'i');
+        $marketId = $this->safe_string($message, 's');
+        $symbol = $marketId;
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+            $symbol = $market['symbol'];
+        }
+        $timestamp = $this->safe_string($message, 'O');
+        $lastTradeTimestamp = $this->safe_string($message, 'T');
+        $feeAmount = $this->safe_float($message, 'n');
+        $feeCurrency = $this->safe_currency_code($this->safe_string($message, 'N'));
+        $fee = array(
+            'cost' => $feeAmount,
+            'currency' => $feeCurrency,
+        );
+        $price = $this->safe_float($message, 'p');
+        $amount = $this->safe_float($message, 'q');
+        $side = $this->safe_string_lower($message, 'S');
+        $type = $this->safe_string_lower($message, 'o');
+        $filled = $this->safe_float($message, 'z');
+        $cumulativeQuote = $this->safe_float($message, 'Z');
+        $remaining = $amount;
+        $average = null;
+        if ($filled !== null && $filled > 0) {
+            if ($amount !== null) {
+                $remaining = $amount - $filled;
+            }
+            if ($cumulativeQuote !== null) {
+                $average = $cumulativeQuote / $filled;
+            }
+        }
+        $cost = $amount * $price;
+        $rawStatus = $this->safe_string($message, 'X');
+        $status = $this->parse_order_status($rawStatus);
+        $trades = null;
+        $parsed = array(
+            'info' => $message,
+            'symbol' => $symbol,
+            'id' => $orderId,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => $lastTradeTimestamp,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'average' => $average,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'status' => $status,
+            'fee' => $fee,
+            'trades' => $trades,
+        );
+        $client->resolve ($parsed, $messageHash);
     }
 
     public function handle_message ($client, $message) {
