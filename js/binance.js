@@ -311,7 +311,7 @@ module.exports = class binance extends ccxt.binance {
         const name = 'trade';
         const messageHash = market['lowercaseId'] + '@' + name;
         const future = this.watchPublic (messageHash, params);
-        return await this.after (future, this.filterArrayBySinceLimit, since, limit);
+        return await this.after (future, this.filterArrayBySinceLimit, since, limit, 'timestamp', true);
     }
 
     filterArrayBySinceLimit (array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
@@ -410,7 +410,7 @@ module.exports = class binance extends ccxt.binance {
         const name = 'kline';
         const messageHash = marketId + '@' + name + '_' + interval;
         const future = this.watchPublic (messageHash, params);
-        return await this.after (future, this.filterArrayBySinceLimit, since, limit, 0);
+        return await this.after (future, this.filterArrayBySinceLimit, since, limit, 0, true);
     }
 
     findTimeframe (timeframe) {

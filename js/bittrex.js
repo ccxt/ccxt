@@ -223,7 +223,7 @@ module.exports = class bittrex extends ccxt.bittrex {
             'params': params,
         };
         const future = this.subscribeToExchangeDeltas ('trade', negotiation, symbol, subscription);
-        return await this.after (future, this.filterArrayBySinceLimit, since, limit);
+        return await this.after (future, this.filterArrayBySinceLimit, since, limit, 'timestamp', true);
     }
 
     filterArrayBySinceLimit (array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {

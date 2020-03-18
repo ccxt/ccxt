@@ -57,7 +57,7 @@ module.exports = class okex extends ccxt.okex {
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const future = this.subscribe ('trade', symbol, params);
-        return await this.after (future, this.filterArrayBySinceLimit, since, limit);
+        return await this.after (future, this.filterArrayBySinceLimit, since, limit, 'timestamp', true);
     }
 
     filterArrayBySinceLimit (array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {

@@ -167,7 +167,7 @@ module.exports = class poloniex extends ccxt.poloniex {
             'channel': numericId,
         };
         const future = this.watch (url, messageHash, subscribe, numericId);
-        return await this.after (future, this.filterArrayBySinceLimit, since, limit);
+        return await this.after (future, this.filterArrayBySinceLimit, since, limit, 'timestamp', true);
     }
 
     filterArrayBySinceLimit (array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
