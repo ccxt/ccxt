@@ -411,7 +411,7 @@ class bitmex extends \ccxt\bitmex {
             ),
         );
         $future = $this->watch ($url, $messageHash, array_merge($request, $params), $messageHash);
-        return $this->after ($future, array($this, 'filter_array_by_since_limit'), $since, $limit);
+        return $this->after ($future, array($this, 'filter_array_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function filter_array_by_since_limit ($array, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
@@ -460,7 +460,7 @@ class bitmex extends \ccxt\bitmex {
             ),
         );
         $future = $this->watch ($url, $messageHash, array_merge($request, $params), $messageHash);
-        return $this->after ($future, array($this, 'filter_array_by_since_limit'), $since, $limit, 0);
+        return $this->after ($future, array($this, 'filter_array_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function find_timeframe ($timeframe) {

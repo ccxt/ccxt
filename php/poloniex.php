@@ -160,7 +160,7 @@ class poloniex extends \ccxt\poloniex {
         return $markets;
     }
 
-    public function watch_trades ($symbol, $params = array ()) {
+    public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $numericId = $this->safe_string($market, 'numericId');
@@ -170,7 +170,12 @@ class poloniex extends \ccxt\poloniex {
             'command' => 'subscribe',
             'channel' => $numericId,
         );
-        return $this->watch ($url, $messageHash, $subscribe, $numericId);
+        $future = $this->watch ($url, $messageHash, $subscribe, $numericId);
+        return $this->after ($future, array($this, 'filter_array_by_since_limit'), $since, $limit, 'timestamp', true);
+    }
+
+    public function filter_array_by_since_limit ($array, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
+        return $this->filter_by_since_limit($array, $since, $limit, $key, $tail);
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {

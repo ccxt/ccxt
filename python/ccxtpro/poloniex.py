@@ -148,7 +148,7 @@ class poloniex(Exchange, ccxt.poloniex):
             self.options['marketsByNumericId'] = marketsByNumericId
         return markets
 
-    async def watch_trades(self, symbol, params={}):
+    async def watch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         numericId = self.safe_string(market, 'numericId')
@@ -158,7 +158,11 @@ class poloniex(Exchange, ccxt.poloniex):
             'command': 'subscribe',
             'channel': numericId,
         }
-        return await self.watch(url, messageHash, subscribe, numericId)
+        future = self.watch(url, messageHash, subscribe, numericId)
+        return await self.after(future, self.filter_array_by_since_limit, since, limit, 'timestamp', True)
+
+    def filter_array_by_since_limit(self, array, since=None, limit=None, key='timestamp', tail=False):
+        return self.filter_by_since_limit(array, since, limit, key, tail)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

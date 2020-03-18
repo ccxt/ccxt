@@ -315,7 +315,7 @@ class binance extends \ccxt\binance {
         $name = 'trade';
         $messageHash = $market['lowercaseId'] . '@' . $name;
         $future = $this->watch_public ($messageHash, $params);
-        return $this->after ($future, array($this, 'filter_array_by_since_limit'), $since, $limit);
+        return $this->after ($future, array($this, 'filter_array_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function filter_array_by_since_limit ($array, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
@@ -414,7 +414,7 @@ class binance extends \ccxt\binance {
         $name = 'kline';
         $messageHash = $marketId . '@' . $name . '_' . $interval;
         $future = $this->watch_public ($messageHash, $params);
-        return $this->after ($future, array($this, 'filter_array_by_since_limit'), $since, $limit, 0);
+        return $this->after ($future, array($this, 'filter_array_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function find_timeframe ($timeframe) {

@@ -213,7 +213,7 @@ class bittrex(Exchange, ccxt.bittrex):
             'params': params,
         }
         future = self.subscribe_to_exchange_deltas('trade', negotiation, symbol, subscription)
-        return await self.after(future, self.filter_array_by_since_limit, since, limit)
+        return await self.after(future, self.filter_array_by_since_limit, since, limit, 'timestamp', True)
 
     def filter_array_by_since_limit(self, array, since=None, limit=None, key='timestamp', tail=False):
         return self.filter_by_since_limit(array, since, limit, key, tail)

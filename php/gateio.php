@@ -185,7 +185,11 @@ class gateio extends \ccxt\gateio {
         );
         $messageHash = 'trades.update' . ':' . $marketId;
         $future = $this->watch ($url, $messageHash, $subscribeMessage, $messageHash, $subscription);
-        return $this->after ($future, $this->filterBySinceLimit, $since, $limit);
+        return $this->after ($future, array($this, 'filter_array_by_since_limit'), $since, $limit, 'timestamp', true);
+    }
+
+    public function filter_array_by_since_limit ($array, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
+        return $this->filter_by_since_limit($array, $since, $limit, $key, $tail);
     }
 
     public function handle_trades ($client, $message) {
@@ -275,7 +279,7 @@ class gateio extends \ccxt\gateio {
         // thus the exchange API is limited to one $timeframe per $symbol
         $messageHash = 'kline.update' . ':' . $marketId;
         $future = $this->watch ($url, $messageHash, $subscribeMessage, $messageHash, $subscription);
-        return $this->after ($future, $this->filterBySinceLimit, $since, $limit, 0);
+        return $this->after ($future, array($this, 'filter_array_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function handle_ohlcv ($client, $message) {

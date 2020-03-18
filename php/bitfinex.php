@@ -58,7 +58,7 @@ class bitfinex extends \ccxt\bitfinex {
 
     public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $future = $this->subscribe ('trades', $symbol, $params);
-        return $this->after ($future, array($this, 'filter_array_by_since_limit'), $since, $limit);
+        return $this->after ($future, array($this, 'filter_array_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function filter_array_by_since_limit ($array, $since = null, $limit = null, $key = 'timestamp', $tail = false) {

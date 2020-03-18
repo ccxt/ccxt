@@ -170,7 +170,10 @@ class gateio(Exchange, ccxt.gateio):
         }
         messageHash = 'trades.update' + ':' + marketId
         future = self.watch(url, messageHash, subscribeMessage, messageHash, subscription)
-        return await self.after(future, self.filterBySinceLimit, since, limit)
+        return await self.after(future, self.filter_array_by_since_limit, since, limit, 'timestamp', True)
+
+    def filter_array_by_since_limit(self, array, since=None, limit=None, key='timestamp', tail=False):
+        return self.filter_by_since_limit(array, since, limit, key, tail)
 
     def handle_trades(self, client, message):
         #
@@ -252,7 +255,7 @@ class gateio(Exchange, ccxt.gateio):
         # thus the exchange API is limited to one timeframe per symbol
         messageHash = 'kline.update' + ':' + marketId
         future = self.watch(url, messageHash, subscribeMessage, messageHash, subscription)
-        return await self.after(future, self.filterBySinceLimit, since, limit, 0)
+        return await self.after(future, self.filter_array_by_since_limit, since, limit, 0, True)
 
     def handle_ohlcv(self, client, message):
         #

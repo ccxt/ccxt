@@ -254,7 +254,11 @@ class kraken extends \ccxt\kraken {
     public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $name = 'trade';
         $future = $this->watch_public ($name, $symbol, $params);
-        return $this->after ($future, $this->filterBySinceLimit, $since, $limit);
+        return $this->after ($future, array($this, 'filter_array_by_since_limit'), $since, $limit, 'timestamp', true);
+    }
+
+    public function filter_array_by_since_limit ($array, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
+        return $this->filter_by_since_limit($array, $since, $limit, $key, $tail);
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
@@ -294,7 +298,7 @@ class kraken extends \ccxt\kraken {
         );
         $request = array_replace_recursive($subscribe, $params);
         $future = $this->watch ($url, $messageHash, $request, $messageHash);
-        return $this->after ($future, $this->filterBySinceLimit, $since, $limit, 0);
+        return $this->after ($future, array($this, 'filter_array_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function load_markets ($reload = false, $params = array ()) {
