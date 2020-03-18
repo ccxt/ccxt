@@ -281,7 +281,10 @@ class binance(Exchange, ccxt.binance):
         name = 'trade'
         messageHash = market['lowercaseId'] + '@' + name
         future = self.watch_public(messageHash, params)
-        return await self.after(future, self.filterBySinceLimit, since, limit)
+        return await self.after(future, self.filter_array_by_since_limit, since, limit)
+
+    def filter_array_by_since_limit(self, array, since=None, limit=None, key='timestamp', tail=False):
+        return self.filter_by_since_limit(array, since, limit, key, tail)
 
     def parse_trade(self, trade, market=None):
         #
@@ -366,7 +369,7 @@ class binance(Exchange, ccxt.binance):
         name = 'kline'
         messageHash = marketId + '@' + name + '_' + interval
         future = self.watch_public(messageHash, params)
-        return await self.after(future, self.filterBySinceLimit, since, limit, 0)
+        return await self.after(future, self.filter_array_by_since_limit, since, limit, 0)
 
     def find_timeframe(self, timeframe):
         # redo to use reverse lookups in a static map instead

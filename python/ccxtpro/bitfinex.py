@@ -54,7 +54,10 @@ class bitfinex(Exchange, ccxt.bitfinex):
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         future = self.subscribe('trades', symbol, params)
-        return await self.after(future, self.filterBySinceLimit, since, limit)
+        return await self.after(future, self.filter_array_by_since_limit, since, limit)
+
+    def filter_array_by_since_limit(self, array, since=None, limit=None, key='timestamp', tail=False):
+        return self.filter_by_since_limit(array, since, limit, key, tail)
 
     async def watch_ticker(self, symbol, params={}):
         return await self.subscribe('ticker', symbol, params)
