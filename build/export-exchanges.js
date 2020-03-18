@@ -153,10 +153,10 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     if (allExchangesPaths) {
 
         const tableData = makeTableData (exchanges)
+        const numExchanges = tableData.length
         // prepend the table header
         tableData.splice (0, 0, tableHeadings)
         const exchangesTable = makeTable (tableData)
-        const numExchanges = tableData.length
         const beginning = "The CCXT library currently supports the following "
         const ending = " cryptocurrency exchange markets and trading APIs:\n\n"
         const totalString = beginning + numExchanges + ending
@@ -175,10 +175,10 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     if (proExchangesPaths) {
         const pro = values (exchanges).filter (exchange => exchange.pro)
         const tableData = makeTableData (pro)
+        const numExchanges = tableData.length
         // prepend the table header
         tableData.splice (0, 0, tableHeadings)
         const exchangesTable = makeTable (tableData)
-        const numExchanges = tableData.length
         const beginning = "The CCXT Pro library currently supports the following "
         const ending = " cryptocurrency exchange markets and WebSocket trading APIs:\n\n"
         const totalString = beginning + numExchanges + ending
