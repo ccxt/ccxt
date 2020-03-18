@@ -678,7 +678,7 @@ module.exports = class coinmate extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if ('error' in response) {
+        if (response !== undefined && 'error' in response) {
             // {"error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null}
             if (response['error']) {
                 const message = this.safeString (response, 'errorMessage');
