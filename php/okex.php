@@ -32,9 +32,9 @@ class okex extends \ccxt\okex {
             'options' => array(
                 'watchOrderBook' => array(
                     'limit' => 400, // max
-                    'type' => 'margin',
+                    'type' => 'spot', // margin
                 ),
-                'watchBalance' => 'spot',
+                'watchBalance' => 'spot', // margin, futures, swap
                 'ws' => array(
                     'inflate' => true,
                 ),

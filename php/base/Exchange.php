@@ -31,6 +31,7 @@ Exchange::$exchanges = array(
     'huobiru',
     'kraken',
     'kucoin',
+    'okcoin',
     'okex',
     'poloniex',
 );
