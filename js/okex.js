@@ -27,9 +27,9 @@ module.exports = class okex extends ccxt.okex {
             'options': {
                 'watchOrderBook': {
                     'limit': 400, // max
-                    'type': 'margin',
+                    'type': 'spot', // margin
                 },
-                'watchBalance': 'spot',
+                'watchBalance': 'spot', // margin, futures, swap
                 'ws': {
                     'inflate': true,
                 },
