@@ -448,7 +448,8 @@ class coinmate(Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         response = self.privatePostOpenOrders(self.extend({}, params))
-        return self.parse_orders(response['data'], None, since, limit)
+        extension = {'status': 'open'}
+        return self.parse_orders(response['data'], None, since, limit, extension)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
