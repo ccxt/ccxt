@@ -473,7 +473,8 @@ class coinmate extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $response = $this->privatePostOpenOrders (array_merge(array(), $params));
-        return $this->parse_orders($response['data'], null, $since, $limit);
+        $extension = array( 'status' => 'open' );
+        return $this->parse_orders($response['data'], null, $since, $limit, $extension);
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -636,8 +637,12 @@ class coinmate extends Exchange {
         $request = array(
             'orderId' => $id,
         );
+        $market = null;
+        if ($symbol) {
+            $market = $this->market ($symbol);
+        }
         $res = $this->privatePostOrderById (array_merge($request, $params));
-        return $this->parse_order($res['data']);
+        return $this->parse_order($res['data'], $market);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {

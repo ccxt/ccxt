@@ -171,7 +171,7 @@ const printHumanReadable = (exchange, result) => {
             })
 
         if (!no_table)
-            if (arrayOfObjects || table) {
+            if (arrayOfObjects || table && Array.isArray (result)) {
                 log (result.length > 0 ? asTable (result.map (element => {
                     let keys = Object.keys (element)
                     delete element['info']

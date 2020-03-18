@@ -32,7 +32,7 @@ module.exports = class dsx extends Exchange {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/76909626-cb2bb100-68bc-11ea-99e0-28ba54f04792.jpg',
                 'api': {
                     'public': 'https://dsx.uk/mapi', // market data
                     'private': 'https://dsx.uk/tapi', // trading

@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.24.41';
+$version = '1.24.51';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.24.41';
+    const VERSION = '1.24.51';
 
     public static $exchanges = array(
         '_1btcxe',
@@ -1710,22 +1710,29 @@ class Exchange {
         return $this->markets;
     }
 
-    public function filter_by_since_limit($array, $since = null, $limit = null, $key = 'timestamp') {
+    public function filter_by_since_limit($array, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
         $result = array();
         $array = array_values($array);
-        foreach ($array as $entry) {
-            if ($entry[$key] > $since) {
-                $result[] = $entry;
+        $since_is_set = isset($since);
+        if ($since_is_set) {
+            foreach ($array as $entry) {
+                if ($entry[$key] > $since) {
+                    $result[] = $entry;
+                }
             }
+        } else {
+            $result = $array;
         }
-        if ($limit) {
-            $result = array_slice($result, 0, $limit);
+        if (isset($limit)) {
+            $result = ($tail && !$since_is_set) ?
+                array_slice($result, -$limit) :
+                array_slice($result, 0, $limit);
         }
         return $result;
     }
 
-    public function filterBySinceLimit($array, $since = null, $limit = null, $key = 'timestamp') {
-        return $this->filter_by_since_limit($array, $since, $limit, $key);
+    public function filterBySinceLimit($array, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
+        return $this->filter_by_since_limit($array, $since, $limit, $key, $tail);
     }
 
     public function parse_trades($trades, $market = null, $since = null, $limit = null, $params = array()) {
@@ -1829,15 +1836,20 @@ class Exchange {
         return $this->filter_by_symbol($orders, $symbol);
     }
 
-    public function filter_by_value_since_limit($array, $field, $value = null, $since = null, $limit = null) {
+    public function filter_by_value_since_limit($array, $field, $value = null, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
         $array = array_values($array);
         $valueIsSet = isset($value);
         $sinceIsSet = isset($since);
         $array = array_filter($array, function ($element) use ($valueIsSet, $value, $sinceIsSet, $since, $field) {
             return ($valueIsSet ? ($element[$field] === $value) : true) &&
-                    ($sinceIsSet ? ($element['timestamp'] >= $since) : true);
+                    ($sinceIsSet ? ($element[$key] >= $since) : true);
         });
-        return array_slice($array, 0, isset($limit) ? $limit : count($array));
+        if (isset($limit)) {
+            return ($tail && !$sinceIsSet) ?
+                array_slice($array, -$limit) :
+                array_slice($array, 0, $limit);
+        }
+        return $array;
     }
 
     public function filter_by_symbol_since_limit($array, $symbol = null, $since = null, $limit = null) {

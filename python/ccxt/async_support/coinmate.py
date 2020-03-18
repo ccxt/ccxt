@@ -448,7 +448,8 @@ class coinmate(Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         response = await self.privatePostOpenOrders(self.extend({}, params))
-        return self.parse_orders(response['data'], None, since, limit)
+        extension = {'status': 'open'}
+        return self.parse_orders(response['data'], None, since, limit, extension)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
@@ -596,8 +597,11 @@ class coinmate(Exchange):
         request = {
             'orderId': id,
         }
+        market = None
+        if symbol:
+            market = self.market(symbol)
         res = await self.privatePostOrderById(self.extend(request, params))
-        return self.parse_order(res['data'])
+        return self.parse_order(res['data'], market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         #   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
