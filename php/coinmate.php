@@ -111,7 +111,9 @@ class coinmate extends Exchange {
                     'No order with given ID' => '\\ccxt\\OrderNotFound',
                 ),
                 'broad' => array(
+                    'Incorrect order ID' => '\\ccxt\\InvalidOrder',
                     'Minimum Order Size ' => '\\ccxt\\InvalidOrder',
+                    'TOO MANY REQUESTS' => '\\ccxt\\RateLimitExceeded',
                 ),
             ),
         ));
@@ -641,8 +643,9 @@ class coinmate extends Exchange {
         if ($symbol) {
             $market = $this->market ($symbol);
         }
-        $res = $this->privatePostOrderById (array_merge($request, $params));
-        return $this->parse_order($res['data'], $market);
+        $response = $this->privatePostOrderById (array_merge($request, $params));
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_order($data, $market);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -682,18 +685,27 @@ class coinmate extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array($response) && array_key_exists('error', $response)) {
-            // array("error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null)
-            if ($response['error']) {
-                $message = $this->safe_string($response, 'errorMessage');
-                $feedback = $this->id . ' ' . $message;
-                $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
-                $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
-                throw new ExchangeError($this->id . ' ' . $this->json ($response));
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response !== null) {
+            if (is_array($response) && array_key_exists('error', $response)) {
+                // array("error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null)
+                if ($response['error']) {
+                    $message = $this->safe_string($response, 'errorMessage');
+                    $feedback = $this->id . ' ' . $message;
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+                    $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+                    throw new ExchangeError($this->id . ' ' . $this->json ($response));
+                }
             }
         }
-        return $response;
+        if ($code > 400) {
+            if ($body) {
+                $feedback = $this->id . ' ' . $body;
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $body, $feedback);
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
+                throw new ExchangeError($feedback); // unknown $message
+            }
+            throw new ExchangeError($this->id . ' ' . $body);
+        }
     }
 }
