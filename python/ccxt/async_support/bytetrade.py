@@ -560,7 +560,8 @@ class bytetrade(Exchange):
         datetime = datetime.split('.')[0]
         expirationDatetime = self.iso8601(expiration)
         expirationDatetime = expirationDatetime.split('.')[0]
-        chainName = 'Sagittarius'
+        defaultDappId = 'Sagittarius'
+        dappId = self.safe_string(params, 'dappId', defaultDappId)
         defaultFee = self.safe_string(self.options, 'fee', '300000000000000')
         fee = self.safe_string(params, 'fee', defaultFee)
         eightBytes = self.integer_pow('2', '64')
@@ -591,8 +592,8 @@ class bytetrade(Exchange):
             self.numberToLE(int(baseId), 4),
             self.numberToLE(0, 1),
             self.numberToLE(1, 1),
-            self.numberToLE(len(chainName), 1),
-            self.encode(chainName),
+            self.numberToLE(len(dappId), 1),
+            self.encode(dappId),
             self.numberToLE(0, 1),
         ]
         txByteStringArray = [
@@ -621,8 +622,8 @@ class bytetrade(Exchange):
             self.numberToLE(int(baseId), 4),
             self.numberToLE(0, 1),
             self.numberToLE(1, 1),
-            self.numberToLE(len(chainName), 1),
-            self.encode(chainName),
+            self.numberToLE(len(dappId), 1),
+            self.encode(dappId),
             self.numberToLE(0, 1),
         ]
         txbytestring = self.binary_concat_array(txByteStringArray)
@@ -665,7 +666,7 @@ class bytetrade(Exchange):
                 ],
             ],
             'validate_type': 0,
-            'dapp': 'Sagittarius',
+            'dapp': dappId,
             'signatures': [
                 mySignature,
             ],
@@ -776,7 +777,8 @@ class bytetrade(Exchange):
         datetime = datetime.split('.')[0]
         expirationDatetime = self.iso8601(expiration)
         expirationDatetime = expirationDatetime.split('.')[0]
-        chainName = 'Sagittarius'
+        defaultDappId = 'Sagittarius'
+        dappId = self.safe_string(params, 'dappId', defaultDappId)
         byteStringArray = [
             self.numberToBE(1, 32),
             self.numberToLE(int(math.floor(now / 1000)), 4),
@@ -795,8 +797,8 @@ class bytetrade(Exchange):
             self.numberToLE(int(baseId), 4),
             self.numberToLE(0, 1),
             self.numberToLE(1, 1),
-            self.numberToLE(len(chainName), 1),
-            self.encode(chainName),
+            self.numberToLE(len(dappId), 1),
+            self.encode(dappId),
             self.numberToLE(0, 1),
         ]
         bytestring = self.binary_concat_array(byteStringArray)
@@ -822,7 +824,7 @@ class bytetrade(Exchange):
                 ],
             ],
             'validate_type': 0,
-            'dapp': 'Sagittarius',
+            'dapp': dappId,
             'signatures': [
                 mySignature,
             ],
@@ -869,7 +871,8 @@ class bytetrade(Exchange):
         expirationDatetime = self.iso8601(expiration)
         expirationDatetime = expirationDatetime.split('.')[0]
         feeAmount = '300000000000000'
-        chainName = 'Sagittarius'
+        defaultDappId = 'Sagittarius'
+        dappId = self.safe_string(params, 'dappId', defaultDappId)
         eightBytes = self.integer_pow('2', '64')
         byteStringArray = [
             self.numberToBE(1, 32),
@@ -892,8 +895,8 @@ class bytetrade(Exchange):
             self.encode(message),
             self.numberToLE(0, 1),
             self.numberToLE(1, 1),
-            self.numberToLE(len(chainName), 1),
-            self.encode(chainName),
+            self.numberToLE(len(dappId), 1),
+            self.encode(dappId),
             self.numberToLE(0, 1),
         ]
         bytestring = self.binary_concat_array(byteStringArray)
@@ -919,7 +922,7 @@ class bytetrade(Exchange):
                 ],
             ],
             'validate_type': 0,
-            'dapp': 'Sagittarius',
+            'dapp': dappId,
             'signatures': [
                 mySignature,
             ],
@@ -1106,7 +1109,8 @@ class bytetrade(Exchange):
         datetime = datetime.split('.')[0]
         expirationDatetime = self.iso8601(expiration)
         expirationDatetime = expirationDatetime.split('.')[0]
-        chainName = 'Sagittarius'
+        defaultDappId = 'Sagittarius'
+        dappId = self.safe_string(params, 'dappId', defaultDappId)
         feeAmount = '300000000000000'
         currency = self.currency(code)
         coinId = currency['id']
@@ -1138,8 +1142,8 @@ class bytetrade(Exchange):
                 self.numberToLE(self.integer_modulo(assetFee, eightBytes), 8),
                 self.numberToLE(0, 1),
                 self.numberToLE(1, 1),
-                self.numberToLE(len(chainName), 1),
-                self.encode(chainName),
+                self.numberToLE(len(dappId), 1),
+                self.encode(dappId),
                 self.numberToLE(0, 1),
             ]
         else:
@@ -1168,8 +1172,8 @@ class bytetrade(Exchange):
                 self.numberToLE(self.integer_modulo(amountChain, eightBytes), 8),
                 self.numberToLE(0, 1),
                 self.numberToLE(1, 1),
-                self.numberToLE(len(chainName), 1),
-                self.encode(chainName),
+                self.numberToLE(len(dappId), 1),
+                self.encode(dappId),
                 self.numberToLE(0, 1),
             ]
         bytestring = self.binary_concat_array(byteStringArray)
@@ -1200,7 +1204,7 @@ class bytetrade(Exchange):
                     ],
                 ],
                 'validate_type': 0,
-                'dapp': 'Sagittarius',
+                'dapp': dappId,
                 'signatures': [
                     mySignature,
                 ],
@@ -1237,7 +1241,7 @@ class bytetrade(Exchange):
                     ],
                 ],
                 'validate_type': 0,
-                'dapp': 'Sagittarius',
+                'dapp': dappId,
                 'signatures': [
                     mySignature,
                 ],

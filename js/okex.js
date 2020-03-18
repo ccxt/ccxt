@@ -16,6 +16,7 @@ module.exports = class okex extends Exchange {
             'countries': [ 'CN', 'US' ],
             'version': 'v3',
             'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
+            'pro': true,
             'has': {
                 'CORS': false,
                 'fetchOHLCV': true,
@@ -50,11 +51,11 @@ module.exports = class okex extends Exchange {
                 '1d': '86400',
                 '1w': '604800',
             },
-            'hostname': 'www.okex.com',
+            'hostname': 'okex.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg',
                 'api': {
-                    'rest': 'https://{hostname}',
+                    'rest': 'https://www.{hostname}',
                 },
                 'www': 'https://www.okex.com',
                 'doc': 'https://www.okex.com/docs/en/',

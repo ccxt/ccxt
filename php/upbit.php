@@ -54,7 +54,10 @@ class upbit extends Exchange {
             'hostname' => 'api.upbit.com',
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg',
-                'api' => 'https://{hostname}',
+                'api' => array(
+                    'public' => 'https://{hostname}',
+                    'private' => 'https://{hostname}',
+                ),
                 'www' => 'https://upbit.com',
                 'doc' => 'https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C',
                 'fees' => 'https://upbit.com/service_center/guide',
@@ -543,7 +546,7 @@ class upbit extends Exchange {
         //                     $timestamp =>  1542883543813  }
         //
         $timestamp = $this->safe_integer($ticker, 'trade_timestamp');
-        $symbol = $this->get_symbol_from_market_id ($this->safe_string($ticker, 'market'), $market);
+        $symbol = $this->get_symbol_from_market_id ($this->safe_string_2($ticker, 'market', 'code'), $market);
         $previous = $this->safe_float($ticker, 'prev_closing_price');
         $last = $this->safe_float($ticker, 'trade_price');
         $change = $this->safe_float($ticker, 'signed_change_price');
@@ -684,8 +687,8 @@ class upbit extends Exchange {
                 }
             }
         }
-        $marketId = $this->safe_string($trade, 'market');
-        $market = $this->safe_value($this->markets_by_id, $marketId);
+        $marketId = $this->safe_string_2($trade, 'market', 'code');
+        $market = $this->safe_value($this->markets_by_id, $marketId, $market);
         $fee = null;
         $feeCurrency = null;
         $symbol = null;
@@ -1463,7 +1466,7 @@ class upbit extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->implode_params($this->urls['api'], array(
+        $url = $this->implode_params($this->urls['api'][$api], array(
             'hostname' => $this->hostname,
         ));
         $url .= '/' . $this->version . '/' . $this->implode_params($path, $params);

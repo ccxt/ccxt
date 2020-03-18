@@ -470,7 +470,8 @@ module.exports = class coinmate extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const response = await this.privatePostOpenOrders (this.extend ({}, params));
-        return this.parseOrders (response['data'], undefined, since, limit);
+        const extension = { 'status': 'open' };
+        return this.parseOrders (response['data'], undefined, since, limit, extension);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -633,8 +634,12 @@ module.exports = class coinmate extends Exchange {
         const request = {
             'orderId': id,
         };
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+        }
         const res = await this.privatePostOrderById (this.extend (request, params));
-        return this.parseOrder (res['data']);
+        return this.parseOrder (res['data'], market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {

@@ -597,7 +597,8 @@ class bytetrade extends Exchange {
         $datetime = explode('.', $datetime)[0];
         $expirationDatetime = $this->iso8601 ($expiration);
         $expirationDatetime = explode('.', $expirationDatetime)[0];
-        $chainName = 'Sagittarius';
+        $defaultDappId = 'Sagittarius';
+        $dappId = $this->safe_string($params, 'dappId', $defaultDappId);
         $defaultFee = $this->safe_string($this->options, 'fee', '300000000000000');
         $fee = $this->safe_string($params, 'fee', $defaultFee);
         $eightBytes = $this->integer_pow ('2', '64');
@@ -628,8 +629,8 @@ class bytetrade extends Exchange {
             $this->numberToLE (intval ($baseId), 4),
             $this->numberToLE (0, 1),
             $this->numberToLE (1, 1),
-            $this->numberToLE (strlen($chainName), 1),
-            $this->encode ($chainName),
+            $this->numberToLE (strlen($dappId), 1),
+            $this->encode ($dappId),
             $this->numberToLE (0, 1),
         );
         $txByteStringArray = array(
@@ -658,8 +659,8 @@ class bytetrade extends Exchange {
             $this->numberToLE (intval ($baseId), 4),
             $this->numberToLE (0, 1),
             $this->numberToLE (1, 1),
-            $this->numberToLE (strlen($chainName), 1),
-            $this->encode ($chainName),
+            $this->numberToLE (strlen($dappId), 1),
+            $this->encode ($dappId),
             $this->numberToLE (0, 1),
         );
         $txbytestring = $this->binary_concat_array($txByteStringArray);
@@ -702,7 +703,7 @@ class bytetrade extends Exchange {
                 ),
             ),
             'validate_type' => 0,
-            'dapp' => 'Sagittarius',
+            'dapp' => $dappId,
             'signatures' => array(
                 $mySignature,
             ),
@@ -831,7 +832,8 @@ class bytetrade extends Exchange {
         $datetime = explode('.', $datetime)[0];
         $expirationDatetime = $this->iso8601 ($expiration);
         $expirationDatetime = explode('.', $expirationDatetime)[0];
-        $chainName = 'Sagittarius';
+        $defaultDappId = 'Sagittarius';
+        $dappId = $this->safe_string($params, 'dappId', $defaultDappId);
         $byteStringArray = array(
             $this->numberToBE (1, 32),
             $this->numberToLE ((int) floor($now / 1000), 4),
@@ -850,8 +852,8 @@ class bytetrade extends Exchange {
             $this->numberToLE (intval ($baseId), 4),
             $this->numberToLE (0, 1),
             $this->numberToLE (1, 1),
-            $this->numberToLE (strlen($chainName), 1),
-            $this->encode ($chainName),
+            $this->numberToLE (strlen($dappId), 1),
+            $this->encode ($dappId),
             $this->numberToLE (0, 1),
         );
         $bytestring = $this->binary_concat_array($byteStringArray);
@@ -877,7 +879,7 @@ class bytetrade extends Exchange {
                 ),
             ),
             'validate_type' => 0,
-            'dapp' => 'Sagittarius',
+            'dapp' => $dappId,
             'signatures' => array(
                 $mySignature,
             ),
@@ -926,7 +928,8 @@ class bytetrade extends Exchange {
         $expirationDatetime = $this->iso8601 ($expiration);
         $expirationDatetime = explode('.', $expirationDatetime)[0];
         $feeAmount = '300000000000000';
-        $chainName = 'Sagittarius';
+        $defaultDappId = 'Sagittarius';
+        $dappId = $this->safe_string($params, 'dappId', $defaultDappId);
         $eightBytes = $this->integer_pow ('2', '64');
         $byteStringArray = array(
             $this->numberToBE (1, 32),
@@ -949,8 +952,8 @@ class bytetrade extends Exchange {
             $this->encode ($message),
             $this->numberToLE (0, 1),
             $this->numberToLE (1, 1),
-            $this->numberToLE (strlen($chainName), 1),
-            $this->encode ($chainName),
+            $this->numberToLE (strlen($dappId), 1),
+            $this->encode ($dappId),
             $this->numberToLE (0, 1),
         );
         $bytestring = $this->binary_concat_array($byteStringArray);
@@ -976,7 +979,7 @@ class bytetrade extends Exchange {
                 ),
             ),
             'validate_type' => 0,
-            'dapp' => 'Sagittarius',
+            'dapp' => $dappId,
             'signatures' => array(
                 $mySignature,
             ),
@@ -1188,7 +1191,8 @@ class bytetrade extends Exchange {
         $datetime = explode('.', $datetime)[0];
         $expirationDatetime = $this->iso8601 ($expiration);
         $expirationDatetime = explode('.', $expirationDatetime)[0];
-        $chainName = 'Sagittarius';
+        $defaultDappId = 'Sagittarius';
+        $dappId = $this->safe_string($params, 'dappId', $defaultDappId);
         $feeAmount = '300000000000000';
         $currency = $this->currency ($code);
         $coinId = $currency['id'];
@@ -1220,8 +1224,8 @@ class bytetrade extends Exchange {
                 $this->numberToLE ($this->integer_modulo ($assetFee, $eightBytes), 8),
                 $this->numberToLE (0, 1),
                 $this->numberToLE (1, 1),
-                $this->numberToLE (strlen($chainName), 1),
-                $this->encode ($chainName),
+                $this->numberToLE (strlen($dappId), 1),
+                $this->encode ($dappId),
                 $this->numberToLE (0, 1),
             );
         } else {
@@ -1250,8 +1254,8 @@ class bytetrade extends Exchange {
                 $this->numberToLE ($this->integer_modulo ($amountChain, $eightBytes), 8),
                 $this->numberToLE (0, 1),
                 $this->numberToLE (1, 1),
-                $this->numberToLE (strlen($chainName), 1),
-                $this->encode ($chainName),
+                $this->numberToLE (strlen($dappId), 1),
+                $this->encode ($dappId),
                 $this->numberToLE (0, 1),
             );
         }
@@ -1283,7 +1287,7 @@ class bytetrade extends Exchange {
                     ),
                 ),
                 'validate_type' => 0,
-                'dapp' => 'Sagittarius',
+                'dapp' => $dappId,
                 'signatures' => array(
                     $mySignature,
                 ),
@@ -1320,7 +1324,7 @@ class bytetrade extends Exchange {
                     ),
                 ),
                 'validate_type' => 0,
-                'dapp' => 'Sagittarius',
+                'dapp' => $dappId,
                 'signatures' => array(
                     $mySignature,
                 ),

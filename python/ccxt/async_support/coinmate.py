@@ -5,6 +5,9 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 
 
 class coinmate(Exchange):
@@ -17,8 +20,14 @@ class coinmate(Exchange):
             'rateLimit': 1000,
             'has': {
                 'CORS': True,
+                'fetchBalance': True,
+                'fetchOrders': True,
+                'fetchOrder': True,
                 'fetchMyTrades': True,
                 'fetchTransactions': True,
+                'fetchOpenOrders': True,
+                'createOrder': True,
+                'cancelOrder': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
@@ -67,6 +76,7 @@ class coinmate(Exchange):
                         'openOrders',
                         'order',
                         'orderHistory',
+                        'orderById',
                         'pusherAuth',
                         'redeemVoucher',
                         'replaceByBuyLimit',
@@ -95,6 +105,14 @@ class coinmate(Exchange):
                 'trading': {
                     'maker': 0.05 / 100,
                     'taker': 0.15 / 100,
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'No order with given ID': OrderNotFound,
+                },
+                'broad': {
+                    'Minimum Order Size ': InvalidOrder,
                 },
             },
         })
@@ -313,6 +331,9 @@ class coinmate(Exchange):
         request = {
             'limit': limit,
         }
+        if symbol is not None:
+            market = self.market(symbol)
+            request['currencyPair'] = market['id']
         if since is not None:
             request['timestampFrom'] = since
         response = await self.privatePostTradeHistory(self.extend(request, params))
@@ -425,6 +446,129 @@ class coinmate(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        response = await self.privatePostOpenOrders(self.extend({}, params))
+        extension = {'status': 'open'}
+        return self.parse_orders(response['data'], None, since, limit, extension)
+
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currencyPair': market['id'],
+        }
+        # offset param that appears in other parts of the API doesn't appear to be supported here
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privatePostOrderHistory(self.extend(request, params))
+        return self.parse_orders(response['data'], market, since, limit)
+
+    def parse_order_status(self, status):
+        statuses = {
+            'FILLED': 'closed',
+            'CANCELLED': 'canceled',
+            'OPEN': 'open',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_order_type(self, type):
+        types = {
+            'LIMIT': 'limit',
+            'MARKET': 'market',
+        }
+        return self.safe_string(types, type, type)
+
+    def parse_order(self, order, market=None):
+        #
+        # limit sell
+        #
+        #     {
+        #         id: 781246605,
+        #         timestamp: 1584480015133,
+        #         trailingUpdatedTimestamp: null,
+        #         type: 'SELL',
+        #         currencyPair: 'ETH_BTC',
+        #         price: 0.0345,
+        #         amount: 0.01,
+        #         stopPrice: null,
+        #         originalStopPrice: null,
+        #         marketPriceAtLastUpdate: null,
+        #         marketPriceAtOrderCreation: null,
+        #         orderTradeType: 'LIMIT',
+        #         hidden: False,
+        #         trailing: False,
+        #         clientOrderId: null
+        #     }
+        #
+        # limit buy
+        #
+        #     {
+        #         id: 67527001,
+        #         timestamp: 1517931722613,
+        #         trailingUpdatedTimestamp: null,
+        #         type: 'BUY',
+        #         price: 5897.24,
+        #         remainingAmount: 0.002367,
+        #         originalAmount: 0.1,
+        #         stopPrice: null,
+        #         originalStopPrice: null,
+        #         marketPriceAtLastUpdate: null,
+        #         marketPriceAtOrderCreation: null,
+        #         status: 'CANCELLED',
+        #         orderTradeType: 'LIMIT',
+        #         hidden: False,
+        #         avgPrice: null,
+        #         trailing: False,
+        #     }
+        #
+        id = self.safe_string(order, 'id')
+        timestamp = self.safe_integer(order, 'timestamp')
+        side = self.safe_string_lower(order, 'type')
+        price = self.safe_float(order, 'price')
+        amount = self.safe_float_2(order, 'originalAmount', 'amount')
+        remaining = self.safe_float(order, 'remainingAmount', amount)
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        type = self.parse_order_type(self.safe_string(order, 'orderTradeType'))
+        filled = None
+        cost = None
+        if (amount is not None) and (remaining is not None):
+            filled = amount - remaining
+            if price is not None:
+                cost = filled * price
+        average = self.safe_float(order, 'avgPrice')
+        symbol = None
+        marketId = self.safe_string(order, 'currencyPair')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'trades': None,
+            'info': order,
+        }
+
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         method = 'privatePost' + self.capitalize(side)
@@ -433,22 +577,39 @@ class coinmate(Exchange):
         }
         if type == 'market':
             if side == 'buy':
-                request['total'] = amount  # amount in fiat
+                request['total'] = self.amount_to_precision(symbol, amount)  # amount in fiat
             else:
-                request['amount'] = amount  # amount in fiat
+                request['amount'] = self.amount_to_precision(symbol, amount)  # amount in fiat
             method += 'Instant'
         else:
-            request['amount'] = amount  # amount in crypto
-            request['price'] = price
+            request['amount'] = self.amount_to_precision(symbol, amount)  # amount in crypto
+            request['price'] = self.price_to_precision(symbol, price)
             method += self.capitalize(type)
         response = await getattr(self, method)(self.extend(request, params))
+        id = self.safe_string(response, 'data')
         return {
             'info': response,
-            'id': str(response['data']),
+            'id': id,
         }
 
+    async def fetch_order(self, id, symbol=None, params={}):
+        await self.load_markets()
+        request = {
+            'orderId': id,
+        }
+        market = None
+        if symbol:
+            market = self.market(symbol)
+        res = await self.privatePostOrderById(self.extend(request, params))
+        return self.parse_order(res['data'], market)
+
     async def cancel_order(self, id, symbol=None, params={}):
-        return await self.privatePostCancelOrder({'orderId': id})
+        #   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
+        request = {'orderId': id}
+        response = await self.privatePostCancelOrderWithInfo(self.extend(request, params))
+        return {
+            'info': response,
+        }
 
     def nonce(self):
         return self.milliseconds()
@@ -477,6 +638,11 @@ class coinmate(Exchange):
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
         if 'error' in response:
+            # {"error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null}
             if response['error']:
+                message = self.safe_string(response, 'errorMessage')
+                feedback = self.id + ' ' + message
+                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response

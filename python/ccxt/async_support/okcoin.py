@@ -13,7 +13,8 @@ class okcoin(okex3):
             'id': 'okcoin',
             'name': 'OKCoin',
             'countries': ['CN', 'US'],
-            'hostname': 'www.okcoin.com',
+            'hostname': 'okcoin.com',
+            'pro': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'www': 'https://www.okcoin.com',
