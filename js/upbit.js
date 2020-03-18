@@ -21,7 +21,7 @@ module.exports = class upbit extends ccxt.upbit {
                 },
             },
             'options': {
-                'tradesLimit': 3,
+                'tradesLimit': 1000,
             },
         });
     }
@@ -158,6 +158,21 @@ module.exports = class upbit extends ccxt.upbit {
         client.resolve (orderBook, messageHash);
     }
 
+    getSymbolFromMarketId (marketId, market = undefined) {
+        // duplicated from base class because of php underscore case
+        if (marketId === undefined) {
+            return undefined;
+        }
+        market = this.safeValue (this.markets_by_id, marketId, market);
+        if (market !== undefined) {
+            return market['symbol'];
+        }
+        const [ baseId, quoteId ] = marketId.split (this.options['symbolSeparator']);
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        return base + '/' + quote;
+    }
+
     handleTrades (client, message) {
         // { type: 'trade',
         //   code: 'KRW-BTC',
@@ -191,9 +206,6 @@ module.exports = class upbit extends ccxt.upbit {
     }
 
     handleMessage (client, message) {
-        message = this.decode (message);
-        message = message.toString ();
-        message = JSON.parse (message);
         const methods = {
             'ticker': this.handleTicker,
             'orderbook': this.handleOrderBook,
