@@ -15,7 +15,7 @@ if (!exchangeId) {
     process.exit ()
 }
 
-log.bright ('\nTESTING', { exchange: exchangeId, symbol: exchangeSymbol || 'all' }, '\n')
+log.bright ('\nTESTING', { exchangeId, symbol: exchangeSymbol || 'all' }, '\n')
 
 // ----------------------------------------------------------------------------
 
@@ -23,16 +23,12 @@ const enableRateLimit = true
 
 const { Agent } = require ('https')
 
-const agent = new Agent ({
-    ecdhCurve: 'auto',
-})
+const ecdhCurve = 'auto'
+const agent = new Agent ({ ecdhCurve })
 
-const exchange = new (ccxtpro)[exchangeId] ({
-    agent,
-    verbose,
-    enableRateLimit,
-    timeout: 20000,
-})
+const timeout = 20000
+const exchangeOptions = { agent, verbose, enableRateLimit, timeout }
+const exchange = new (ccxtpro)[exchangeId] (exchangeOptions)
 
 // ----------------------------------------------------------------------------
 
@@ -40,8 +36,8 @@ const tests = {}
 
 const pathToExchangeTests = __dirname + '/Exchange/'
 fs.readdirSync (pathToExchangeTests)
-    .filter (file => file.match (/test.[a-zA-Z0-9_-]+.js$/))
-    .forEach (file => {
+    .filter ((file) => file.match (/test.[a-zA-Z0-9_-]+.js$/))
+    .forEach ((file) => {
         const key = file.slice (5, -3)
         // eslint-disable-next-line import/no-dynamic-require
         tests[key] = require (pathToExchangeTests + file)

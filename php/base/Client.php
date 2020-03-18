@@ -7,6 +7,7 @@ use React\Promise\Timer\TimeoutException;
 
 use ccxt\RequestTimeout;
 use ccxt\NetworkError;
+use ccxt\Exchange;
 
 use Ratchet\RFC6455\Messaging\Frame;
 use Ratchet\RFC6455\Messaging\Message;
@@ -187,7 +188,7 @@ class Client {
     }
 
     public function send($data) {
-        $message = Exchange::json($data);
+        $message = is_string($data) ? $data : Exchange::json($data);
         if ($this->verbose) {
             echo date('c'), ' sending ', $message, "\n";
         }
@@ -231,13 +232,12 @@ class Client {
         } else if ($this->inflate) {
             $message = \ccxtpro\inflate($message);
         }
-        if ($this->verbose) {
-            echo date('c'), ' on_message ', (string) $message, "\n";
-        }
         try {
-            // todo: add json detection in php
-            $message = json_decode($message, true);
-            // message = isJsonEncodedObject (message) ? JSON.parse (message) : message
+            $message = (string) $message;
+            if ($this->verbose) {
+                echo date('c'), ' on_message ', $message, "\n";
+            }
+            $message = Exchange::is_json_encoded_object($message) ? json_decode($message, true) : $message;
         } catch (Exception $e) {
             if ($this->verbose) {
                 echo date('c'), ' on_message json_decode ', $e->getMessage(), "\n";

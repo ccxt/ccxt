@@ -16,8 +16,12 @@ trait ClientTrait {
 
     public $loop = null; // reactphp's loop
 
-    public function inflate($string) {
-        return \ccxtpro\inflate($string); // zlib_decode(base64_decode($string));
+    public function inflate($data) {
+        return \ccxtpro\inflate($data); // zlib_decode($data);
+    }
+
+    public function inflate64($data) {
+        return \ccxtpro\inflate64($data); // zlib_decode(base64_decode($data));
     }
 
     public function gunzip($data) {

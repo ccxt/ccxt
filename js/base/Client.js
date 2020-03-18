@@ -1,6 +1,7 @@
 'use strict';
 
 const ccxt = require ('ccxt')
+    // , util = require ('util')
     , {
         isNode,
         isJsonEncodedObject,
@@ -153,7 +154,7 @@ module.exports = class Client {
     onPingInterval () {
         if (this.keepAlive && this.isOpen ()) {
             const now = milliseconds ()
-            this.lastPong = this.lastPoing || now
+            this.lastPong = this.lastPong || now
             if ((this.lastPong + this.keepAlive * this.maxPingPongMisses) < now) {
                 this.onError (new RequestTimeout ('Connection to ' + this.url + ' timed out due to a ping-pong keepalive missing on time'))
             } else {
@@ -206,15 +207,15 @@ module.exports = class Client {
         this.onErrorCallback (this, this.error)
     }
 
-    onClose (message) {
+    onClose (event) {
         if (this.verbose) {
-            console.log (new Date (), 'onClose', message)
+            console.log (new Date (), 'onClose', event)
         }
         if (!this.error) {
             // todo: exception types for server-side disconnects
-            this.reset (new NetworkError (message))
+            this.reset (new NetworkError ('connection closed by remote server, closing code ' + String (event.code)))
         }
-        this.onCloseCallback (this, message)
+        this.onCloseCallback (this, event)
     }
 
     // this method is not used at this time
@@ -229,7 +230,8 @@ module.exports = class Client {
         if (this.verbose) {
             console.log (new Date (), 'sending', message)
         }
-        this.connection.send (JSON.stringify (message))
+        message = (typeof message === 'string') ? message : JSON.stringify (message)
+        this.connection.send (message)
     }
 
     close () {
@@ -250,6 +252,8 @@ module.exports = class Client {
             message = isJsonEncodedObject (message) ? JSON.parse (message) : message
             if (this.verbose) {
                 console.log (new Date (), 'onMessage', message)
+                // unlimited depth
+                // console.log (new Date (), 'onMessage', util.inspect (message, false, null, true))
             }
         } catch (e) {
             console.log (new Date (), 'onMessage JSON.parse', e)

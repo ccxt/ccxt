@@ -72,7 +72,7 @@ class AiohttpClient(Client):
     def send(self, message):
         if self.verbose:
             print(Exchange.iso8601(Exchange.milliseconds()), 'sending', message)
-        return self.connection.send_str(json.dumps(message, separators=(',', ':')))
+        return self.connection.send_str(message if isinstance(message, str) else json.dumps(message, separators=(',', ':')))
 
     async def close(self, code=1000):
         if self.verbose:

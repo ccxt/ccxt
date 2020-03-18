@@ -511,7 +511,6 @@ class binance extends \ccxt\binance {
     public function watch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        // var_dump ('\n\n\n\n', $market, '\n\n\n\n\n');
         $marketId = $market['lowercaseId'];
         $name = 'ticker';
         $messageHash = $marketId . '@' . $name;
@@ -591,7 +590,9 @@ class binance extends \ccxt\binance {
         $time = $this->seconds ();
         $lastAuthenticatedTime = $this->safe_integer($this->options, 'lastAuthenticatedTime', 0);
         if ($time - $lastAuthenticatedTime > 1800) {
-            $response = $this->publicPostUserDataStream ();
+            $type = $this->safe_string_2($this->options, 'defaultType', 'spot');
+            $method = ($type === 'future') ? 'fapiPrivatePostListenKey' : 'publicPostUserDataStream';
+            $response = $this->$method ();
             $this->options['listenKey'] = $this->safe_string($response, 'listenKey');
             $this->options['lastAuthenticatedTime'] = $time;
         }
@@ -660,9 +661,9 @@ class binance extends \ccxt\binance {
             $account['used'] = $this->safe_float($balance, 'l');
             $this->balance[$code] = $account;
         }
-        $parsed = $this->parse_balance($this->balance);
-        $messageHash = $message['e'];
-        $client->resolve ($parsed, $messageHash);
+        $this->balance = $this->parse_balance($this->balance);
+        $messageHash = $this->safe_string($message, 'e');
+        $client->resolve ($this->balance, $messageHash);
     }
 
     public function watch_orders ($params = array ()) {

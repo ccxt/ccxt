@@ -2,11 +2,11 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.0.78'
+__version__ = '0.0.80'
 
 # -----------------------------------------------------------------------------
 
-from ccxtpro.base.functions import inflate, gunzip
+from ccxtpro.base.functions import inflate, inflate64, gunzip
 from asyncio import ensure_future
 from ccxtpro.base.aiohttp_client import AiohttpClient
 from ccxt.async_support import Exchange as BaseExchange
@@ -36,8 +36,12 @@ class Exchange(BaseExchange):
     }
 
     @staticmethod
-    def inflate(string):
-        return inflate(string)
+    def inflate(data):
+        return inflate(data)
+
+    @staticmethod
+    def inflate64(data):
+        return inflate64(data)
 
     @staticmethod
     def gunzip(data):

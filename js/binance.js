@@ -507,7 +507,6 @@ module.exports = class binance extends ccxt.binance {
     async watchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // console.log ('\n\n\n\n', market, '\n\n\n\n\n');
         const marketId = market['lowercaseId'];
         const name = 'ticker';
         const messageHash = marketId + '@' + name;
@@ -587,7 +586,9 @@ module.exports = class binance extends ccxt.binance {
         const time = this.seconds ();
         const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
         if (time - lastAuthenticatedTime > 1800) {
-            const response = await this.publicPostUserDataStream ();
+            const type = this.safeString2 (this.options, 'defaultType', 'spot');
+            const method = (type === 'future') ? 'fapiPrivatePostListenKey' : 'publicPostUserDataStream';
+            const response = await this[method] ();
             this.options['listenKey'] = this.safeString (response, 'listenKey');
             this.options['lastAuthenticatedTime'] = time;
         }
@@ -656,9 +657,9 @@ module.exports = class binance extends ccxt.binance {
             account['used'] = this.safeFloat (balance, 'l');
             this.balance[code] = account;
         }
-        const parsed = this.parseBalance (this.balance);
-        const messageHash = message['e'];
-        client.resolve (parsed, messageHash);
+        this.balance = this.parseBalance (this.balance);
+        const messageHash = this.safeString (message, 'e');
+        client.resolve (this.balance, messageHash);
     }
 
     async watchOrders (params = {}) {

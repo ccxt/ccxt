@@ -2,8 +2,12 @@
 
 const { inflateRawSync, gunzipSync } = require ('zlib')
 
-function inflate (string) {
-    return inflateRawSync (Buffer.from (string, 'base64')).toString ()
+function inflate (data) {
+    return inflateRawSync (data).toString ()
+}
+
+function inflate64 (data) {
+    return inflate (Buffer.from (data, 'base64'))
 }
 
 function gunzip (data) {
@@ -12,5 +16,6 @@ function gunzip (data) {
 
 module.exports = {
     inflate,
+    inflate64,
     gunzip,
 }

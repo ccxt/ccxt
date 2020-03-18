@@ -458,7 +458,6 @@ class binance(Exchange, ccxt.binance):
     async def watch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        # print('\n\n\n\n', market, '\n\n\n\n\n')
         marketId = market['lowercaseId']
         name = 'ticker'
         messageHash = marketId + '@' + name
@@ -535,7 +534,9 @@ class binance(Exchange, ccxt.binance):
         time = self.seconds()
         lastAuthenticatedTime = self.safe_integer(self.options, 'lastAuthenticatedTime', 0)
         if time - lastAuthenticatedTime > 1800:
-            response = await self.publicPostUserDataStream()
+            type = self.safe_string_2(self.options, 'defaultType', 'spot')
+            method = 'fapiPrivatePostListenKey' if (type == 'future') else 'publicPostUserDataStream'
+            response = await getattr(self, method)()
             self.options['listenKey'] = self.safe_string(response, 'listenKey')
             self.options['lastAuthenticatedTime'] = time
 
@@ -600,9 +601,9 @@ class binance(Exchange, ccxt.binance):
             account['free'] = self.safe_float(balance, 'f')
             account['used'] = self.safe_float(balance, 'l')
             self.balance[code] = account
-        parsed = self.parse_balance(self.balance)
-        messageHash = message['e']
-        client.resolve(parsed, messageHash)
+        self.balance = self.parse_balance(self.balance)
+        messageHash = self.safe_string(message, 'e')
+        client.resolve(self.balance, messageHash)
 
     async def watch_orders(self, params={}):
         await self.load_markets()
