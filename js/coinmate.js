@@ -636,8 +636,9 @@ module.exports = class coinmate extends Exchange {
         const request = {
             'orderId': id,
         };
-        const res = await this.privatePostOrderById (this.extend (request, params));
-        return this.parseOrder (res['data']);
+        const response = await this.privatePostOrderById (this.extend (request, params));
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -678,14 +679,16 @@ module.exports = class coinmate extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (response !== undefined && 'error' in response) {
-            // {"error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null}
-            if (response['error']) {
-                const message = this.safeString (response, 'errorMessage');
-                const feedback = this.id + ' ' + message;
-                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+        if (response !== undefined) {
+            if ('error' in response) {
+                // {"error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null}
+                if (response['error']) {
+                    const message = this.safeString (response, 'errorMessage');
+                    const feedback = this.id + ' ' + message;
+                    this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                    this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+                    throw new ExchangeError (this.id + ' ' + this.json (response));
+                }
             }
         }
         if (code > 400) {
