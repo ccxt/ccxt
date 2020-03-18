@@ -1045,7 +1045,7 @@ module.exports = class Exchange {
         return array
     }
 
-    filterByValueSinceLimit (array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp') {
+    filterByValueSinceLimit (array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
 
         const valueIsDefined = value !== undefined && value !== null
         const sinceIsDefined = since !== undefined && since !== null
@@ -1058,7 +1058,9 @@ module.exports = class Exchange {
         }
 
         if (limit !== undefined && limit !== null) {
-            array = Object.values (array).slice (0, limit)
+            array = ((tail && !sinceIsDefined) ?
+                Object.values (array).slice (-limit) :
+                Object.values (array).slice (0, limit))
         }
 
         return array
