@@ -1640,14 +1640,14 @@ class Exchange(object):
             code = currency['code']
         return code
 
-    def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None):
+    def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None, key='timestamp', tail=False):
         array = self.to_array(array)
-        if value:
+        if value is not None:
             array = [entry for entry in array if entry[field] == value]
-        if since:
-            array = [entry for entry in array if entry['timestamp'] >= since]
-        if limit:
-            array = array[0:limit]
+        if since is not None:
+            array = [entry for entry in array if entry[key] >= since]
+        if limit is not None:
+            array = array[-limit:0] if tail and (since is None) else array[0:limit]
         return array
 
     def filter_by_symbol_since_limit(self, array, symbol=None, since=None, limit=None):
@@ -1656,12 +1656,12 @@ class Exchange(object):
     def filter_by_currency_since_limit(self, array, code=None, since=None, limit=None):
         return self.filter_by_value_since_limit(array, 'currency', code, since, limit)
 
-    def filter_by_since_limit(self, array, since=None, limit=None, key='timestamp'):
+    def filter_by_since_limit(self, array, since=None, limit=None, key='timestamp', tail=False):
         array = self.to_array(array)
-        if since:
+        if since is not None:
             array = [entry for entry in array if entry[key] >= since]
-        if limit:
-            array = array[0:limit]
+        if limit is not None:
+            array = array[-limit:0] if tail and (since is None) else array[0:limit]
         return array
 
     def filter_by_symbol(self, array, symbol=None):
