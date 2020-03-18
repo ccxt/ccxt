@@ -407,7 +407,11 @@ module.exports = class bitmex extends ccxt.bitmex {
             ],
         };
         const future = this.watch (url, messageHash, this.extend (request, params), messageHash);
-        return await this.after (future, this.filterBySinceLimit, since, limit);
+        return await this.after (future, this.filterArrayBySinceLimit, since, limit);
+    }
+
+    filterArrayBySinceLimit (array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
+        return this.filterBySinceLimit (array, since, limit, key, tail);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -452,7 +456,7 @@ module.exports = class bitmex extends ccxt.bitmex {
             ],
         };
         const future = this.watch (url, messageHash, this.extend (request, params), messageHash);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 0);
+        return await this.after (future, this.filterArrayBySinceLimit, since, limit, 0);
     }
 
     findTimeframe (timeframe) {
