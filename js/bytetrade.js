@@ -592,7 +592,8 @@ module.exports = class bytetrade extends Exchange {
         datetime = datetime.split ('.')[0];
         let expirationDatetime = this.iso8601 (expiration);
         expirationDatetime = expirationDatetime.split ('.')[0];
-        const chainName = 'Sagittarius';
+        const defaultDappId = 'Sagittarius';
+        const dappId = this.safeString (params, 'dappId', defaultDappId);
         const defaultFee = this.safeString (this.options, 'fee', '300000000000000');
         const fee = this.safeString (params, 'fee', defaultFee);
         const eightBytes = this.integerPow ('2', '64');
@@ -623,8 +624,8 @@ module.exports = class bytetrade extends Exchange {
             this.numberToLE (parseInt (baseId), 4),
             this.numberToLE (0, 1),
             this.numberToLE (1, 1),
-            this.numberToLE (chainName.length, 1),
-            this.stringToBinary (this.encode (chainName)),
+            this.numberToLE (dappId.length, 1),
+            this.stringToBinary (this.encode (dappId)),
             this.numberToLE (0, 1),
         ];
         const txByteStringArray = [
@@ -653,8 +654,8 @@ module.exports = class bytetrade extends Exchange {
             this.numberToLE (parseInt (baseId), 4),
             this.numberToLE (0, 1),
             this.numberToLE (1, 1),
-            this.numberToLE (chainName.length, 1),
-            this.stringToBinary (this.encode (chainName)),
+            this.numberToLE (dappId.length, 1),
+            this.stringToBinary (this.encode (dappId)),
             this.numberToLE (0, 1),
         ];
         const txbytestring = this.binaryConcatArray (txByteStringArray);
@@ -697,7 +698,7 @@ module.exports = class bytetrade extends Exchange {
                 ],
             ],
             'validate_type': 0,
-            'dapp': 'Sagittarius',
+            'dapp': dappId,
             'signatures': [
                 mySignature,
             ],
@@ -826,7 +827,8 @@ module.exports = class bytetrade extends Exchange {
         datetime = datetime.split ('.')[0];
         let expirationDatetime = this.iso8601 (expiration);
         expirationDatetime = expirationDatetime.split ('.')[0];
-        const chainName = 'Sagittarius';
+        const defaultDappId = 'Sagittarius';
+        const dappId = this.safeString (params, 'dappId', defaultDappId);
         const byteStringArray = [
             this.numberToBE (1, 32),
             this.numberToLE (Math.floor (now / 1000), 4),
@@ -845,8 +847,8 @@ module.exports = class bytetrade extends Exchange {
             this.numberToLE (parseInt (baseId), 4),
             this.numberToLE (0, 1),
             this.numberToLE (1, 1),
-            this.numberToLE (chainName.length, 1),
-            this.stringToBinary (this.encode (chainName)),
+            this.numberToLE (dappId.length, 1),
+            this.stringToBinary (this.encode (dappId)),
             this.numberToLE (0, 1),
         ];
         const bytestring = this.binaryConcatArray (byteStringArray);
@@ -872,7 +874,7 @@ module.exports = class bytetrade extends Exchange {
                 ],
             ],
             'validate_type': 0,
-            'dapp': 'Sagittarius',
+            'dapp': dappId,
             'signatures': [
                 mySignature,
             ],
@@ -921,7 +923,8 @@ module.exports = class bytetrade extends Exchange {
         let expirationDatetime = this.iso8601 (expiration);
         expirationDatetime = expirationDatetime.split ('.')[0];
         const feeAmount = '300000000000000';
-        const chainName = 'Sagittarius';
+        const defaultDappId = 'Sagittarius';
+        const dappId = this.safeString (params, 'dappId', defaultDappId);
         const eightBytes = this.integerPow ('2', '64');
         const byteStringArray = [
             this.numberToBE (1, 32),
@@ -944,8 +947,8 @@ module.exports = class bytetrade extends Exchange {
             this.stringToBinary (this.encode (message)),
             this.numberToLE (0, 1),
             this.numberToLE (1, 1),
-            this.numberToLE (chainName.length, 1),
-            this.stringToBinary (this.encode (chainName)),
+            this.numberToLE (dappId.length, 1),
+            this.stringToBinary (this.encode (dappId)),
             this.numberToLE (0, 1),
         ];
         const bytestring = this.binaryConcatArray (byteStringArray);
@@ -971,7 +974,7 @@ module.exports = class bytetrade extends Exchange {
                 ],
             ],
             'validate_type': 0,
-            'dapp': 'Sagittarius',
+            'dapp': dappId,
             'signatures': [
                 mySignature,
             ],
@@ -1183,7 +1186,8 @@ module.exports = class bytetrade extends Exchange {
         datetime = datetime.split ('.')[0];
         let expirationDatetime = this.iso8601 (expiration);
         expirationDatetime = expirationDatetime.split ('.')[0];
-        const chainName = 'Sagittarius';
+        const defaultDappId = 'Sagittarius';
+        const dappId = this.safeString (params, 'dappId', defaultDappId);
         const feeAmount = '300000000000000';
         const currency = this.currency (code);
         const coinId = currency['id'];
@@ -1215,8 +1219,8 @@ module.exports = class bytetrade extends Exchange {
                 this.numberToLE (this.integerModulo (assetFee, eightBytes), 8),
                 this.numberToLE (0, 1),
                 this.numberToLE (1, 1),
-                this.numberToLE (chainName.length, 1),
-                this.stringToBinary (this.encode (chainName)),
+                this.numberToLE (dappId.length, 1),
+                this.stringToBinary (this.encode (dappId)),
                 this.numberToLE (0, 1),
             ];
         } else {
@@ -1245,8 +1249,8 @@ module.exports = class bytetrade extends Exchange {
                 this.numberToLE (this.integerModulo (amountChain, eightBytes), 8),
                 this.numberToLE (0, 1),
                 this.numberToLE (1, 1),
-                this.numberToLE (chainName.length, 1),
-                this.stringToBinary (this.encode (chainName)),
+                this.numberToLE (dappId.length, 1),
+                this.stringToBinary (this.encode (dappId)),
                 this.numberToLE (0, 1),
             ];
         }
@@ -1278,7 +1282,7 @@ module.exports = class bytetrade extends Exchange {
                     ],
                 ],
                 'validate_type': 0,
-                'dapp': 'Sagittarius',
+                'dapp': dappId,
                 'signatures': [
                     mySignature,
                 ],
@@ -1315,7 +1319,7 @@ module.exports = class bytetrade extends Exchange {
                     ],
                 ],
                 'validate_type': 0,
-                'dapp': 'Sagittarius',
+                'dapp': dappId,
                 'signatures': [
                     mySignature,
                 ],
