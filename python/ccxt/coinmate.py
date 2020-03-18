@@ -596,8 +596,11 @@ class coinmate(Exchange):
         request = {
             'orderId': id,
         }
+        market = None
+        if symbol:
+            market = self.market(symbol)
         res = self.privatePostOrderById(self.extend(request, params))
-        return self.parse_order(res['data'])
+        return self.parse_order(res['data'], market)
 
     def cancel_order(self, id, symbol=None, params={}):
         #   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
