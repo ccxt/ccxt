@@ -358,7 +358,9 @@ class Exchange(object):
         for name in dir(self):
             if name[0] != '_' and name[-1] != '_' and '_' in name:
                 parts = name.split('_')
-                camelcase = parts[0] + ''.join(self.capitalize(i) for i in parts[1:])
+                # watch_ohlcv → watchOHLCV (not watchOhlcv!)
+                exceptions = {'ohlcv': 'OHLCV'}
+                camelcase = parts[0] + ''.join(exceptions.get(i, self.capitalize(i)) for i in parts[1:])
                 attr = getattr(self, name)
                 if isinstance(attr, types.MethodType):
                     setattr(cls, camelcase, getattr(cls, name))
