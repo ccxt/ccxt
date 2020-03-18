@@ -156,7 +156,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         return markets;
     }
 
-    async watchTrades (symbol, params = {}) {
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const numericId = this.safeString (market, 'numericId');
@@ -166,7 +166,12 @@ module.exports = class poloniex extends ccxt.poloniex {
             'command': 'subscribe',
             'channel': numericId,
         };
-        return await this.watch (url, messageHash, subscribe, numericId);
+        const future = this.watch (url, messageHash, subscribe, numericId);
+        return await this.after (future, this.filterArrayBySinceLimit, since, limit);
+    }
+
+    filterArrayBySinceLimit (array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
+        return this.filterBySinceLimit (array, since, limit, key, tail);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
