@@ -636,8 +636,12 @@ class coinmate extends Exchange {
         $request = array(
             'orderId' => $id,
         );
+        $market = null;
+        if ($symbol) {
+            $market = $this->market ($symbol);
+        }
         $res = $this->privatePostOrderById (array_merge($request, $params));
-        return $this->parse_order($res['data']);
+        return $this->parse_order($res['data'], $market);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
