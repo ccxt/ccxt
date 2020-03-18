@@ -636,9 +636,13 @@ module.exports = class coinmate extends Exchange {
         const request = {
             'orderId': id,
         };
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+        }
         const response = await this.privatePostOrderById (this.extend (request, params));
         const data = this.safeValue (response, 'data');
-        return this.parseOrder (data);
+        return this.parseOrder (data, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
