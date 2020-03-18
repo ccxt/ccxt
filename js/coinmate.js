@@ -470,7 +470,8 @@ module.exports = class coinmate extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const response = await this.privatePostOpenOrders (this.extend ({}, params));
-        return this.parseOrders (response['data'], undefined, since, limit);
+        const extend = { 'status': 'open' };
+        return this.parseOrders (response['data'], undefined, since, limit, extend);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
