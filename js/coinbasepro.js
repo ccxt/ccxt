@@ -53,7 +53,11 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const name = 'matches';
         const future = this.subscribe (name, symbol, params);
-        return await this.after (future, this.filterBySinceLimit, since, limit);
+        return await this.after (future, this.filterArrayBySinceLimit, since, limit);
+    }
+
+    filterArrayBySinceLimit (array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
+        return this.filterBySinceLimit (array, since, limit, key, tail);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
