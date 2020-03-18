@@ -60,7 +60,7 @@ Python
 Python Dependency
 ~~~~~~~~~~~~~~~~~
 
-Adding CCXT Pro as a dependency to your Python package can be done by listing it in ``setup.py`` if you’re using `setuptools <https://setuptools.readthedocs.io/en/latest/>`__ via your `Requirements Files <https://pip.pypa.io/en/latest/user_guide/#requirements-files>`__
+With `setuptools <https://setuptools.readthedocs.io/en/latest/>`__ adding CCXT Pro as a dependency to your Python package can be done by listing it in ``setup.py`` or in your `Requirements Files <https://pip.pypa.io/en/latest/user_guide/#requirements-files>`__:
 
 .. code:: python
 
