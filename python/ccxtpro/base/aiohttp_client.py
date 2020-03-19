@@ -21,6 +21,8 @@ class AiohttpClient(Client):
     def handle_text_or_binary_message(self, data):
         if self.verbose:
             print(Exchange.iso8601(Exchange.milliseconds()), 'message', data)
+        if isinstance(data, bytes):
+            data = data.decode()
         decoded = json.loads(data) if Exchange.is_json_encoded_object(data) else data
         self.on_message_callback(self, decoded)
 

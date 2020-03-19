@@ -61,6 +61,7 @@ function test_exchange($exchange) {
     $delay = $exchange->rateLimit * 1000;
     $symbol = is_array($exchange->symbols) ? current($exchange->symbols) : '';
     $symbols = array(
+        'BTC/KRW',
         'BTC/USD',
         'BTC/USDT',
         'BTC/CNY',

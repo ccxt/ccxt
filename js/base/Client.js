@@ -249,6 +249,9 @@ module.exports = class Client {
             message = inflate (message)
         }
         try {
+            if (message instanceof Buffer) {
+                message = message.toString ()
+            }
             message = isJsonEncodedObject (message) ? JSON.parse (message) : message
             if (this.verbose) {
                 console.log (new Date (), 'onMessage', message)

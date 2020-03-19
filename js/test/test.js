@@ -82,7 +82,7 @@ async function testPublic (exchange, symbol) {
 
 async function testPrivate (exchange, symbol, code) {
     if (exchange.checkRequiredCredentials (false)) {
-        // await tests['watchBalance']      (exchange)
+        await tests['watchBalance']      (exchange)
         // await tests['watchOrders']       (exchange, symbol)
         // await tests['watchOpenOrders']   (exchange, symbol)
         // await tests['watchClosedOrders'] (exchange, symbol)
@@ -140,6 +140,7 @@ async function testExchange (exchange) {
 
     let symbol = exchange.symbols[0]
     const symbols = [
+        'BTC/KRW',
         'BTC/USD',
         'BTC/USDT',
         'BTC/CNY',
