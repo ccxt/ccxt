@@ -517,6 +517,26 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.parseTicker (ticker, market);
     }
 
+    parseSymbol (marketId) {
+        if (marketId === undefined) {
+            return marketId;
+        }
+        marketId = marketId.replace ('t', '');
+        let baseId = undefined;
+        let quoteId = undefined;
+        if (marketId.indexOf (':') >= 0) {
+            const parts = marketId.split (':');
+            baseId = parts[0];
+            quoteId = parts[1];
+        } else {
+            baseId = marketId.slice (0, 3);
+            quoteId = marketId.slice (3, 6);
+        }
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        return base + '/' + quote;
+    }
+
     parseTrade (trade, market = undefined) {
         //
         // fetchTrades (public)
@@ -563,13 +583,11 @@ module.exports = class bitfinex2 extends bitfinex {
         const timestamp = trade[timestampIndex];
         if (isPrivate) {
             const marketId = trade[1];
-            if (marketId !== undefined) {
-                if (marketId in this.markets_by_id) {
-                    market = this.markets_by_id[marketId];
-                    symbol = market['symbol'];
-                } else {
-                    symbol = marketId;
-                }
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                symbol = this.parseSymbol (marketId);
             }
             orderId = trade[3].toString ();
             takerOrMaker = (trade[8] === 1) ? 'maker' : 'taker';
@@ -694,8 +712,10 @@ module.exports = class bitfinex2 extends bitfinex {
         const marketId = this.safeString (order, 3);
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
+        } else {
+            symbol = this.parseSymbol (marketId);
         }
-        if (market !== undefined) {
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
         const timestamp = this.safeTimestamp (order, 5);
