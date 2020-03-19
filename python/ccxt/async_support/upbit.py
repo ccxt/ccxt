@@ -25,6 +25,7 @@ class upbit(Exchange):
             'version': 'v1',
             'rateLimit': 1000,
             'certified': True,
+            'pro': True,
             # new metainfo interface
             'has': {
                 'CORS': True,

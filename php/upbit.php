@@ -20,6 +20,7 @@ class upbit extends Exchange {
             'version' => 'v1',
             'rateLimit' => 1000,
             'certified' => true,
+            'pro' => true,
             // new metainfo interface
             'has' => array(
                 'CORS' => true,
