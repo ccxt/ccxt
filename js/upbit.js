@@ -38,6 +38,8 @@ module.exports = class upbit extends ccxt.upbit {
             {
                 'type': channel,
                 'codes': [ marketId ],
+                // 'isOnlySnapshot': false,
+                // 'isOnlyRealtime': false,
             },
         ];
         const messageHash = channel + ':' + marketId;
@@ -134,8 +136,10 @@ module.exports = class upbit extends ccxt.upbit {
         const marketId = this.safeString (message, 'code');
         const symbol = this.getSymbolFromMarketId (marketId);
         const type = this.safeString (message, 'stream_type');
+        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const limit = this.safeInteger (options, 'limit', 15);
         if (type === 'SNAPSHOT') {
-            this.orderbooks[symbol] = this.orderBook ();
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
         const orderBook = this.orderbooks[symbol];
         const bids = orderBook['bids'];
