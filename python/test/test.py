@@ -12,6 +12,7 @@ from traceback import format_tb
 # from ccxt import NetworkError, RequestTimeout
 from exchange.test_watch_order_book import test_watch_order_book
 from exchange.test_watch_ticker import test_watch_ticker
+# from exchange.test_watch_ohlcv import test_watch_ohlcv
 
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(root)
@@ -116,6 +117,7 @@ async def test_exchange(exchange):
     keys = list(exchange.markets.keys())
     symbol = keys[0]
     symbols = [
+        'BTC/KRW',
         'BTC/USD',
         'BTC/USDT',
         'BTC/CNY',

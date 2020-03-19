@@ -1,8 +1,8 @@
 <?php
 
-function print_orderbook($orderbook) {
+function print_orderbook($orderbook, ... $args) {
     $id = isset($orderbook['nonce']) ? $orderbook['nonce'] : $orderbook['datetime'];
-    echo $id, ' ',
+    echo $id, ' ', $args[0], ' ',
         count($orderbook['asks']), ' asks ', json_encode($orderbook['asks'][0]), ' ',
         count($orderbook['bids']), ' bids ', json_encode($orderbook['bids'][0]), "\n";
 }
@@ -15,9 +15,9 @@ function test_watch_order_book($exchange, $symbol) {
 
         function tick_order_book($iteration, $maxIterations, $future, $method, ... $args) {
             $method(... $args)->then(function($result) use ($iteration, $maxIterations, $future, $method, $args) {
-                print_orderbook($result);
+                print_orderbook($result, ... $args);
                 if ($iteration < $maxIterations) {
-                    tick_order_book(++$iteration, $maxIterations, $future, $method, ...$args);
+                    tick_order_book(++$iteration, $maxIterations, $future, $method, ... $args);
                 } else {
                     $future->resolve($result);
                 }
