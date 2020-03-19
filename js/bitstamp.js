@@ -209,27 +209,26 @@ module.exports = class bitstamp extends ccxt.bitstamp {
     parseTrade (trade, market = undefined) {
         //
         //     {
-        //         e: 'trade',       // event type
-        //         E: 1579481530911, // event time
-        //         s: 'ETHBTC',      // symbol
-        //         t: 158410082,     // trade id
-        //         p: '0.01914100',  // price
-        //         q: '0.00700000',  // quantity
-        //         b: 586187049,     // buyer order id
-        //         a: 586186710,     // seller order id
-        //         T: 1579481530910, // trade time
-        //         m: false,         // is the buyer the market maker
-        //         M: true           // binance docs say it should be ignored
+        //         buy_order_id: 1211625836466176,
+        //         amount_str: '1.08000000',
+        //         timestamp: '1584642064',
+        //         microtimestamp: '1584642064685000',
+        //         id: 108637852,
+        //         amount: 1.08,
+        //         sell_order_id: 1211625840754689,
+        //         price_str: '6294.77',
+        //         type: 1,
+        //         price: 6294.77
         //     }
         //
-        const event = this.safeString (trade, 'e');
-        if (event === undefined) {
+        const microtimestamp = this.safeInteger (trade, 'microtimestamp');
+        if (microtimestamp === undefined) {
             return super.parseTrade (trade, market);
         }
-        const id = this.safeString (trade, 't');
-        const timestamp = this.safeInteger (trade, 'T');
-        const price = this.safeFloat (trade, 'p');
-        const amount = this.safeFloat (trade, 'q');
+        const id = this.safeString (trade, 'id');
+        const timestamp = parseInt (microtimestamp / 1000);
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
         if ((price !== undefined) && (amount !== undefined)) {
             cost = price * amount;
@@ -242,22 +241,17 @@ module.exports = class bitstamp extends ccxt.bitstamp {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        let side = undefined;
-        let takerOrMaker = undefined;
-        const orderId = undefined;
-        if ('m' in trade) {
-            side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
-            takerOrMaker = trade['m'] ? 'maker' : 'taker';
-        }
+        let side = this.safeInteger (trade, 'type');
+        side = (side === 0) ? 'buy' : 'sell';
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id,
-            'order': orderId,
+            'order': undefined,
             'type': undefined,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'side': side,
             'price': price,
             'amount': amount,
