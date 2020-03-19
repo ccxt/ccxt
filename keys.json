@@ -28,7 +28,7 @@
     "bter":          { "skip": true },
     "bxinth":        { "skip": true },
     "bytetrade":     { "skip": true },
-    "ccex":          { "skip": true },
+    "cex":           { "skip": true },
     "chbtc":         { "skip": true },
     "chilebit":      { "skip": true },
     "cobinhood":     { "skip": true },
