@@ -34,5 +34,6 @@ Exchange::$exchanges = array(
     'okcoin',
     'okex',
     'poloniex',
+    'upbit',
 );
 
