@@ -5,10 +5,16 @@
 "use strict";
 
 const fs = require ('fs')
-    , log = require ('ololog')
+    , log = require ('ololog').unlimited
     , _ = require ('ansicolor').nice
     , errors = require ('../js/base/errors.js')
-    , { unCamelCase, precisionConstants, safeString } = require ('../js/base/functions.js')
+    , functions = require ('../js/base/functions.js')
+    , {
+        unCamelCase,
+        precisionConstants,
+        safeString,
+        unique,
+    } = functions
     , { basename } = require ('path')
     , {
         createFolderRecursively,
@@ -590,10 +596,10 @@ class Transpiler {
         methods = methods.concat (this.getPHPBaseMethods ())
 
         for (let method of methods) {
-            const regex = new RegExp ('\\$this->(' + method + ')(\\s\\(|[^a-zA-Z0-9_])', 'g')
+            const regex = new RegExp ('\\$this->(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
             bodyAsString = bodyAsString.replace (regex,
                 (match, p1, p2) => {
-                    return ((p2 === ' (') ?
+                    return ((p2 === '(') ?
                         ('$this->' + unCamelCase (p1) + p2) : // support direct php calls
                         ("array($this, '" + unCamelCase (p1) + "')" + p2)) // as well as passing instance methods as callables
                 })
@@ -749,7 +755,7 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
-    transpileDerivedExchangeClass (contents) {
+    transpileDerivedExchangeClass (contents, methodNames = undefined) {
 
         let exchangeClassDeclarationMatches = contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^};*/m)
 
@@ -764,7 +770,7 @@ class Transpiler {
         let python3 = []
         let php = []
 
-        let methodNames = []
+        methodNames = [] // methodNames || []
 
         // run through all methods
         for (let i = 0; i < methods.length; i++) {
@@ -867,8 +873,25 @@ class Transpiler {
         try {
 
             const { python2Folder, python3Folder, phpFolder } = options
-            const contents = fs.readFileSync (jsFolder + filename, 'utf8')
-            const { python2, python3, php, className, baseClass } = this.transpileDerivedExchangeClass (contents)
+            const path = jsFolder + filename
+            const contents = fs.readFileSync (path, 'utf8')
+
+            // function getMethodNames (object) {
+            //     let functions = []
+            //     let o = object
+            //     do {
+            //         functions = functions.concat (Object.getOwnPropertyNames (o))
+            //     } while (o = Object.getPrototypeOf (o))
+            //     return unique (functions.filter (f => (typeof object[f] === 'function')))
+            // }
+            // const exchangeClass = require ('.' + path)
+            // const exchange = new exchangeClass ()
+            // const methodNames = getMethodNames (exchange)
+            // const { python2, python3, php, className, baseClass } =
+            //     this.transpileDerivedExchangeClass (contents, methodNames)
+
+            const { python2, python3, php, className, baseClass } =
+                this.transpileDerivedExchangeClass (contents)
 
             log.cyan ('Transpiling from', filename.yellow)
 
