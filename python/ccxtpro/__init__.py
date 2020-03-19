@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.0.86'
+__version__ = '0.0.87'
 
 # -----------------------------------------------------------------------------
 
@@ -155,7 +155,6 @@ from ccxt.async_support.tidebit import tidebit                            # noqa
 from ccxt.async_support.tidex import tidex                                # noqa: F401
 from ccxt.async_support.timex import timex                                # noqa: F401
 from ccxt.async_support.topq import topq                                  # noqa: F401
-from ccxt.async_support.upbit import upbit                                # noqa: F401
 from ccxt.async_support.vaultoro import vaultoro                          # noqa: F401
 from ccxt.async_support.vbtc import vbtc                                  # noqa: F401
 from ccxt.async_support.whitebit import whitebit                          # noqa: F401
@@ -183,5 +182,6 @@ from ccxtpro.kucoin import kucoin                                         # noqa
 from ccxtpro.okcoin import okcoin                                         # noqa: F401
 from ccxtpro.okex import okex                                             # noqa: F401
 from ccxtpro.poloniex import poloniex                                     # noqa: F401
+from ccxtpro.upbit import upbit                                           # noqa: F401
 
 __all__ = ccxt.__all__
