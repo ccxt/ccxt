@@ -180,11 +180,7 @@ module.exports = class gateio extends ccxt.gateio {
         };
         const messageHash = 'trades.update' + ':' + marketId;
         const future = this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
-        return await this.after (future, this.filterArrayBySinceLimit, since, limit, 'timestamp', true);
-    }
-
-    filterArrayBySinceLimit (array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
-        return this.filterBySinceLimit (array, since, limit, key, tail);
+        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
     }
 
     handleTrades (client, message) {
@@ -274,7 +270,7 @@ module.exports = class gateio extends ccxt.gateio {
         // thus the exchange API is limited to one timeframe per symbol
         const messageHash = 'kline.update' + ':' + marketId;
         const future = this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
-        return await this.after (future, this.filterArrayBySinceLimit, since, limit, 0, true);
+        return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
     }
 
     handleOHLCV (client, message) {

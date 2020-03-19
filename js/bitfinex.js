@@ -54,11 +54,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const future = this.subscribe ('trades', symbol, params);
-        return await this.after (future, this.filterArrayBySinceLimit, since, limit, 'timestamp', true);
-    }
-
-    filterArrayBySinceLimit (array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
-        return this.filterBySinceLimit (array, since, limit, key, tail);
+        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
     }
 
     async watchTicker (symbol, params = {}) {

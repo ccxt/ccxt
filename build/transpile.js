@@ -22,6 +22,7 @@ class CCXTProTranspiler extends Transpiler {
 
     getBaseMethods () {
         return [
+            'filterBySinceLimit',
             'orderBook',
             'limitedOrderBook',
             'indexedOrderBook',
