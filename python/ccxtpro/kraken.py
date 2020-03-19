@@ -237,7 +237,7 @@ class kraken(Exchange, ccxt.kraken):
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         name = 'trade'
         future = self.watch_public(name, symbol, params)
-        return await self.after(future, self.filterBySinceLimit, since, limit)
+        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         name = 'book'
@@ -273,7 +273,7 @@ class kraken(Exchange, ccxt.kraken):
         }
         request = self.deep_extend(subscribe, params)
         future = self.watch(url, messageHash, request, messageHash)
-        return await self.after(future, self.filterBySinceLimit, since, limit, 0)
+        return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
 
     async def load_markets(self, reload=False, params={}):
         markets = await super(kraken, self).load_markets(reload, params)

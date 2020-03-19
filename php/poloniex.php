@@ -114,7 +114,7 @@ class poloniex extends \ccxt\poloniex {
         );
         $messageHash = $channelId . ':b:e';
         $url = $this->urls['api']['ws'];
-        return $this->watch ($url, $messageHash, $subscribe, $channelId);
+        return $this->watch($url, $messageHash, $subscribe, $channelId);
     }
 
     public function watch_ticker ($symbol, $params = array ()) {
@@ -128,7 +128,7 @@ class poloniex extends \ccxt\poloniex {
             'command' => 'subscribe',
             'channel' => $channelId,
         );
-        return $this->watch ($url, $messageHash, $subscribe, $channelId);
+        return $this->watch($url, $messageHash, $subscribe, $channelId);
     }
 
     public function watch_tickers ($symbols = null, $params = array ()) {
@@ -140,7 +140,7 @@ class poloniex extends \ccxt\poloniex {
             'command' => 'subscribe',
             'channel' => $channelId,
         );
-        $future = $this->watch ($url, $messageHash, $subscribe, $channelId);
+        $future = $this->watch($url, $messageHash, $subscribe, $channelId);
         return $this->after ($future, $this->filterByArray, 'symbol', $symbols);
     }
 
@@ -160,7 +160,7 @@ class poloniex extends \ccxt\poloniex {
         return $markets;
     }
 
-    public function watch_trades ($symbol, $params = array ()) {
+    public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $numericId = $this->safe_string($market, 'numericId');
@@ -170,7 +170,8 @@ class poloniex extends \ccxt\poloniex {
             'command' => 'subscribe',
             'channel' => $numericId,
         );
-        return $this->watch ($url, $messageHash, $subscribe, $numericId);
+        $future = $this->watch($url, $messageHash, $subscribe, $numericId);
+        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
@@ -183,7 +184,7 @@ class poloniex extends \ccxt\poloniex {
             'command' => 'subscribe',
             'channel' => $numericId,
         );
-        $future = $this->watch ($url, $messageHash, $subscribe, $numericId);
+        $future = $this->watch($url, $messageHash, $subscribe, $numericId);
         return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
@@ -195,7 +196,7 @@ class poloniex extends \ccxt\poloniex {
         $this->load_markets();
         $channelId = '1010';
         $url = $this->urls['api']['ws'];
-        return $this->watch ($url, $channelId);
+        return $this->watch($url, $channelId);
     }
 
     public function sign_message ($client, $messageHash, $message, $params = array ()) {
@@ -311,7 +312,7 @@ class poloniex extends \ccxt\poloniex {
             if ($delta[0] === 'i') {
                 $snapshot = $this->safe_value($delta[1], 'orderBook', array());
                 $sides = array( 'asks', 'bids' );
-                $this->orderbooks[$symbol] = $this->order_book ();
+                $this->orderbooks[$symbol] = $this->order_book();
                 $orderbook = $this->orderbooks[$symbol];
                 for ($j = 0; $j < count($snapshot); $j++) {
                     $side = $sides[$j];
@@ -336,7 +337,7 @@ class poloniex extends \ccxt\poloniex {
                 $orderbookUpdatesCount = $this->sum ($orderbookUpdatesCount, 1);
                 $orderbook['nonce'] = $nonce;
             } else if ($delta[0] === 't') {
-                $trade = $this->handle_trade ($client, $delta, $market);
+                $trade = $this->handle_trade($client, $delta, $market);
                 $stored[] = $trade;
                 $storedLength = is_array($stored) ? count($stored) : 0;
                 if ($storedLength > $this->options['tradesLimit']) {
@@ -380,7 +381,7 @@ class poloniex extends \ccxt\poloniex {
             if ($market === null) {
                 return $message;
             } else {
-                return $this->handle_order_book_and_trades ($client, $message);
+                return $this->handle_order_book_and_trades($client, $message);
             }
         } else {
             $method($client, $message);

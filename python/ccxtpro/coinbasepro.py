@@ -52,7 +52,7 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         name = 'matches'
         future = self.subscribe(name, symbol, params)
-        return await self.after(future, self.filterBySinceLimit, since, limit)
+        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         name = 'level2'

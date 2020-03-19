@@ -166,7 +166,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         const negotiate = this.negotiate ();
         const topic = '/market/match';
         const future = this.afterAsync (negotiate, this.subscribe, topic, undefined, symbol, since, params);
-        return await this.after (future, this.filterBySinceLimit, since, limit);
+        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
     }
 
     handleTrade (client, message) {

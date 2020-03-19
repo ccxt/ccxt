@@ -108,14 +108,14 @@ class kucoin extends \ccxt\kucoin {
             'method' => $method,
         );
         $request = array_merge($subscribe, $params);
-        return $this->watch ($url, $messageHash, $request, $messageHash, $subscription);
+        return $this->watch($url, $messageHash, $request, $messageHash, $subscription);
     }
 
     public function watch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $negotiate = $this->negotiate ();
+        $negotiate = $this->negotiate();
         $topic = '/market/snapshot';
-        return $this->after_async ($negotiate, array($this, 'subscribe'), $topic, null, $symbol, $params);
+        return $this->after_async($negotiate, array($this, 'subscribe'), $topic, null, $symbol, $params);
     }
 
     public function handle_ticker ($client, $message) {
@@ -167,10 +167,10 @@ class kucoin extends \ccxt\kucoin {
 
     public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $negotiate = $this->negotiate ();
+        $negotiate = $this->negotiate();
         $topic = '/market/match';
-        $future = $this->after_async ($negotiate, array($this, 'subscribe'), $topic, null, $symbol, $since, $params);
-        return $this->after ($future, $this->filterBySinceLimit, $since, $limit);
+        $future = $this->after_async($negotiate, array($this, 'subscribe'), $topic, null, $symbol, $since, $params);
+        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function handle_trade ($client, $message) {
@@ -230,9 +230,9 @@ class kucoin extends \ccxt\kucoin {
             }
         }
         $this->load_markets();
-        $negotiate = $this->negotiate ();
+        $negotiate = $this->negotiate();
         $topic = '/market/level2';
-        $future = $this->after_async ($negotiate, array($this, 'subscribe'), $topic, array($this, 'handle_order_book_subscription'), $symbol, $params);
+        $future = $this->after_async($negotiate, array($this, 'subscribe'), $topic, array($this, 'handle_order_book_subscription'), $symbol, $params);
         return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
@@ -254,7 +254,7 @@ class kucoin extends \ccxt\kucoin {
         // 3. Playback the cached Level 2 data flow.
         for ($i = 0; $i < count($messages); $i++) {
             $message = $messages[$i];
-            $this->handle_order_book_message ($client, $message, $orderbook);
+            $this->handle_order_book_message($client, $message, $orderbook);
         }
         $this->orderbooks[$symbol] = $orderbook;
         $client->resolve ($orderbook, $messageHash);
@@ -273,7 +273,7 @@ class kucoin extends \ccxt\kucoin {
 
     public function handle_deltas ($bookside, $deltas, $nonce) {
         for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta ($bookside, $deltas[$i], $nonce);
+            $this->handle_delta($bookside, $deltas[$i], $nonce);
         }
     }
 
@@ -315,8 +315,8 @@ class kucoin extends \ccxt\kucoin {
             // size. If the price is 0, ignore the messages and update the sequence.
             // If the size=0, update the sequence and remove the price of which the
             // size is 0 out of level 2. For other cases, please update the price.
-            $this->handle_deltas ($orderbook['asks'], $asks, $orderbook['nonce']);
-            $this->handle_deltas ($orderbook['bids'], $bids, $orderbook['nonce']);
+            $this->handle_deltas($orderbook['asks'], $asks, $orderbook['nonce']);
+            $this->handle_deltas($orderbook['bids'], $bids, $orderbook['nonce']);
             $orderbook['nonce'] = $sequenceEnd;
             $orderbook['timestamp'] = null;
             $orderbook['datetime'] = null;
@@ -360,7 +360,7 @@ class kucoin extends \ccxt\kucoin {
             // 1. After receiving the websocket Level 2 $data flow, cache the $data->
             $orderbook->cache[] = $message;
         } else {
-            $this->handle_order_book_message ($client, $message, $orderbook);
+            $this->handle_order_book_message($client, $message, $orderbook);
             $client->resolve ($orderbook, $messageHash);
         }
     }
@@ -376,7 +376,7 @@ class kucoin extends \ccxt\kucoin {
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
-        $this->orderbooks[$symbol] = $this->order_book (array(), $limit);
+        $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         // fetch the snapshot in a separate async call
         $this->spawn (array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
     }
@@ -465,7 +465,7 @@ class kucoin extends \ccxt\kucoin {
     }
 
     public function handle_message ($client, $message) {
-        if ($this->handle_error_message ($client, $message)) {
+        if ($this->handle_error_message($client, $message)) {
             $type = $this->safe_string($message, 'type');
             $methods = array(
                 // 'heartbeat' => $this->handleHeartbeat,

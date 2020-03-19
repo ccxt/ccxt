@@ -160,7 +160,7 @@ class kucoin(Exchange, ccxt.kucoin):
         negotiate = self.negotiate()
         topic = '/market/match'
         future = self.after_async(negotiate, self.subscribe, topic, None, symbol, since, params)
-        return await self.after(future, self.filterBySinceLimit, since, limit)
+        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
 
     def handle_trade(self, client, message):
         #

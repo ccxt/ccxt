@@ -59,7 +59,7 @@ class bitmex extends \ccxt\bitmex {
                 $messageHash,
             ),
         );
-        return $this->watch ($url, $messageHash, array_merge($request, $params), $messageHash);
+        return $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
     }
 
     public function handle_ticker ($client, $message) {
@@ -410,8 +410,8 @@ class bitmex extends \ccxt\bitmex {
                 $messageHash,
             ),
         );
-        $future = $this->watch ($url, $messageHash, array_merge($request, $params), $messageHash);
-        return $this->after ($future, $this->filterBySinceLimit, $since, $limit);
+        $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
+        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
@@ -435,7 +435,7 @@ class bitmex extends \ccxt\bitmex {
                 $messageHash,
             ),
         );
-        $future = $this->watch ($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
+        $future = $this->watch($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
         return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
@@ -455,8 +455,8 @@ class bitmex extends \ccxt\bitmex {
                 $messageHash,
             ),
         );
-        $future = $this->watch ($url, $messageHash, array_merge($request, $params), $messageHash);
-        return $this->after ($future, $this->filterBySinceLimit, $since, $limit, 0);
+        $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
+        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function find_timeframe ($timeframe) {
@@ -539,7 +539,7 @@ class bitmex extends \ccxt\bitmex {
         // --------------------------------------------------------------------
         $table = $this->safe_string($message, 'table');
         $interval = str_replace('tradeBin', '', $table);
-        $timeframe = $this->find_timeframe ($interval);
+        $timeframe = $this->find_timeframe($interval);
         $duration = $this->parse_timeframe($timeframe);
         $candles = $this->safe_value($message, 'data', array());
         $results = array();
@@ -585,7 +585,7 @@ class bitmex extends \ccxt\bitmex {
         $this->load_markets();
         $event = 'heartbeat';
         $url = $this->urls['api']['ws'];
-        return $this->watch ($url, $event);
+        return $this->watch($url, $event);
     }
 
     public function sign_message ($client, $messageHash, $message, $params = array ()) {
@@ -643,11 +643,11 @@ class bitmex extends \ccxt\bitmex {
                 $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
                 if ($table === 'orderBookL2') {
-                    $this->orderbooks[$symbol] = $this->indexed_order_book ();
+                    $this->orderbooks[$symbol] = $this->indexed_order_book();
                 } else if ($table === 'orderBookL2_25') {
-                    $this->orderbooks[$symbol] = $this->indexed_order_book (array(), 25);
+                    $this->orderbooks[$symbol] = $this->indexed_order_book(array(), 25);
                 } else if ($table === 'orderBook10') {
-                    $this->orderbooks[$symbol] = $this->indexed_order_book (array(), 10);
+                    $this->orderbooks[$symbol] = $this->indexed_order_book(array(), 10);
                 }
                 $orderbook = $this->orderbooks[$symbol];
                 for ($i = 0; $i < count($data); $i++) {
@@ -797,7 +797,7 @@ class bitmex extends \ccxt\bitmex {
         //         )
         //     }
         //
-        if ($this->handle_error_message ($client, $message)) {
+        if ($this->handle_error_message($client, $message)) {
             $table = $this->safe_string($message, 'table');
             $methods = array(
                 'orderBookL2' => array($this, 'handle_order_book'),

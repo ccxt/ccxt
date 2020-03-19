@@ -58,7 +58,7 @@ class bitstamp extends \ccxt\bitstamp {
             'params' => $params,
         );
         $message = array_merge($request, $params);
-        $future = $this->watch ($url, $messageHash, $message, $messageHash, $subscription);
+        $future = $this->watch($url, $messageHash, $message, $messageHash, $subscription);
         return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
@@ -80,7 +80,7 @@ class bitstamp extends \ccxt\bitstamp {
             $messages = $orderbook->cache;
             for ($i = 0; $i < count($messages); $i++) {
                 $message = $messages[$i];
-                $this->handle_order_book_message ($client, $message, $orderbook);
+                $this->handle_order_book_message($client, $message, $orderbook);
             }
             $this->orderbooks[$symbol] = $orderbook;
             $client->resolve ($orderbook, $messageHash);
@@ -100,7 +100,7 @@ class bitstamp extends \ccxt\bitstamp {
 
     public function handle_deltas ($bookside, $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta ($bookside, $deltas[$i]);
+            $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
@@ -110,8 +110,8 @@ class bitstamp extends \ccxt\bitstamp {
         if (($nonce !== null) && ($microtimestamp <= $nonce)) {
             return $orderbook;
         }
-        $this->handle_deltas ($orderbook['asks'], $this->safe_value($data, 'asks', array()));
-        $this->handle_deltas ($orderbook['bids'], $this->safe_value($data, 'bids', array()));
+        $this->handle_deltas($orderbook['asks'], $this->safe_value($data, 'asks', array()));
+        $this->handle_deltas($orderbook['bids'], $this->safe_value($data, 'bids', array()));
         $orderbook['nonce'] = $microtimestamp;
         $timestamp = intval ($microtimestamp / 1000);
         $orderbook['timestamp'] = $timestamp;
@@ -153,12 +153,12 @@ class bitstamp extends \ccxt\bitstamp {
         }
         if ($type === 'order_book') {
             $orderbook->reset (array());
-            $this->handle_order_book_message ($client, $message, $orderbook);
+            $this->handle_order_book_message($client, $message, $orderbook);
             $client->resolve ($orderbook, $channel);
             // replace top bids and asks
         } else if ($type === 'detail_order_book') {
             $orderbook->reset (array());
-            $this->handle_order_book_message ($client, $message, $orderbook);
+            $this->handle_order_book_message($client, $message, $orderbook);
             $client->resolve ($orderbook, $channel);
             // replace top bids and asks
         } else if ($type === 'diff_order_book') {
@@ -169,7 +169,7 @@ class bitstamp extends \ccxt\bitstamp {
                 $orderbook->cache[] = $message;
             } else {
                 try {
-                    $this->handle_order_book_message ($client, $message, $orderbook, $nonce);
+                    $this->handle_order_book_message($client, $message, $orderbook, $nonce);
                     $client->resolve ($orderbook, $channel);
                 } catch (Exception $e) {
                     if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
@@ -206,8 +206,8 @@ class bitstamp extends \ccxt\bitstamp {
             'params' => $params,
         );
         $message = array_merge($request, $params);
-        $future = $this->watch ($url, $messageHash, $message, $messageHash, $subscription);
-        return $this->after ($future, $this->filterBySinceLimit, $since, $limit);
+        $future = $this->watch($url, $messageHash, $message, $messageHash, $subscription);
+        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function parse_trade ($trade, $market = null) {
@@ -320,13 +320,13 @@ class bitstamp extends \ccxt\bitstamp {
         }
         if ($type === 'order_book') {
             $limit = $this->safe_integer($subscription, 'limit', 100);
-            $this->orderbooks[$symbol] = $this->order_book (array(), $limit);
+            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         } else if ($type === 'detail_order_book') {
             $limit = $this->safe_integer($subscription, 'limit', 100);
-            $this->orderbooks[$symbol] = $this->indexed_order_book (array(), $limit);
+            $this->orderbooks[$symbol] = $this->indexed_order_book(array(), $limit);
         } else if ($type === 'diff_order_book') {
             $limit = $this->safe_integer($subscription, 'limit');
-            $this->orderbooks[$symbol] = $this->order_book (array(), $limit);
+            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             // fetch the snapshot in a separate async call
             $this->spawn (array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
         }
@@ -393,7 +393,7 @@ class bitstamp extends \ccxt\bitstamp {
     }
 
     public function handle_message ($client, $message) {
-        if (!$this->handle_error_message ($client, $message)) {
+        if (!$this->handle_error_message($client, $message)) {
             return;
         }
         //
@@ -424,9 +424,9 @@ class bitstamp extends \ccxt\bitstamp {
         //
         $event = $this->safe_string($message, 'event');
         if ($event === 'bts:subscription_succeeded') {
-            return $this->handle_subscription_status ($client, $message);
+            return $this->handle_subscription_status($client, $message);
         } else {
-            return $this->handle_subject ($client, $message);
+            return $this->handle_subject($client, $message);
         }
     }
 }

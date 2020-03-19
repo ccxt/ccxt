@@ -187,7 +187,7 @@ class kraken extends \ccxt\kraken {
         $wsName = $this->safe_string($message, 3);
         $market = $this->safe_value($this->options['marketsByWsName'], $wsName);
         $symbol = $market['symbol'];
-        $timeframe = $this->find_timeframe ($interval);
+        $timeframe = $this->find_timeframe($interval);
         $duration = $this->parse_timeframe($timeframe);
         if ($timeframe !== null) {
             $candle = $this->safe_value($message, 1);
@@ -232,7 +232,7 @@ class kraken extends \ccxt\kraken {
         $wsName = $this->safe_value($market['info'], 'wsname');
         $messageHash = $name . ':' . $wsName;
         $url = $this->urls['api']['ws']['public'];
-        $requestId = $this->reqid ();
+        $requestId = $this->reqid();
         $subscribe = array(
             'event' => 'subscribe',
             'reqid' => $requestId,
@@ -244,17 +244,17 @@ class kraken extends \ccxt\kraken {
             ),
         );
         $request = array_replace_recursive($subscribe, $params);
-        return $this->watch ($url, $messageHash, $request, $messageHash);
+        return $this->watch($url, $messageHash, $request, $messageHash);
     }
 
     public function watch_ticker ($symbol, $params = array ()) {
-        return $this->watch_public ('ticker', $symbol, $params);
+        return $this->watch_public('ticker', $symbol, $params);
     }
 
     public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $name = 'trade';
-        $future = $this->watch_public ($name, $symbol, $params);
-        return $this->after ($future, $this->filterBySinceLimit, $since, $limit);
+        $future = $this->watch_public($name, $symbol, $params);
+        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
@@ -265,7 +265,7 @@ class kraken extends \ccxt\kraken {
                 'depth' => $limit, // default 10, valid options 10, 25, 100, 500, 1000
             );
         }
-        $future = $this->watch_public ($name, $symbol, array_merge($request, $params));
+        $future = $this->watch_public($name, $symbol, array_merge($request, $params));
         return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
@@ -280,7 +280,7 @@ class kraken extends \ccxt\kraken {
         $wsName = $this->safe_value($market['info'], 'wsname');
         $messageHash = $name . ':' . $timeframe . ':' . $wsName;
         $url = $this->urls['api']['ws']['public'];
-        $requestId = $this->reqid ();
+        $requestId = $this->reqid();
         $subscribe = array(
             'event' => 'subscribe',
             'reqid' => $requestId,
@@ -293,8 +293,8 @@ class kraken extends \ccxt\kraken {
             ),
         );
         $request = array_replace_recursive($subscribe, $params);
-        $future = $this->watch ($url, $messageHash, $request, $messageHash);
-        return $this->after ($future, $this->filterBySinceLimit, $since, $limit, 0);
+        $future = $this->watch($url, $messageHash, $request, $messageHash);
+        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function load_markets ($reload = false, $params = array ()) {
@@ -320,7 +320,7 @@ class kraken extends \ccxt\kraken {
         $this->load_markets();
         $event = 'heartbeat';
         $url = $this->urls['api']['ws']['public'];
-        return $this->watch ($url, $event);
+        return $this->watch($url, $event);
     }
 
     public function handle_heartbeat ($client, $message) {
@@ -386,7 +386,7 @@ class kraken extends \ccxt\kraken {
         // if this is $a snapshot
         if (is_array($message[1]) && array_key_exists('as', $message[1])) {
             // todo get $depth from marketsByWsName
-            $this->orderbooks[$symbol] = $this->order_book (array(), $depth);
+            $this->orderbooks[$symbol] = $this->order_book(array(), $depth);
             $orderbook = $this->orderbooks[$symbol];
             $sides = array(
                 'as' => 'asks',
@@ -398,7 +398,7 @@ class kraken extends \ccxt\kraken {
                 $side = $sides[$key];
                 $bookside = $orderbook[$side];
                 $deltas = $this->safe_value($message[1], $key, array());
-                $timestamp = $this->handle_deltas ($bookside, $deltas, $timestamp);
+                $timestamp = $this->handle_deltas($bookside, $deltas, $timestamp);
             }
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601 ($timestamp);
@@ -419,10 +419,10 @@ class kraken extends \ccxt\kraken {
                 }
             }
             if ($a !== null) {
-                $timestamp = $this->handle_deltas ($orderbook['asks'], $a, $timestamp);
+                $timestamp = $this->handle_deltas($orderbook['asks'], $a, $timestamp);
             }
             if ($b !== null) {
-                $timestamp = $this->handle_deltas ($orderbook['bids'], $b, $timestamp);
+                $timestamp = $this->handle_deltas($orderbook['bids'], $b, $timestamp);
             }
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601 ($timestamp);
@@ -531,7 +531,7 @@ class kraken extends \ccxt\kraken {
                 return $method($client, $message, $subscription);
             }
         } else {
-            if ($this->handle_error_message ($client, $message)) {
+            if ($this->handle_error_message($client, $message)) {
                 $event = $this->safe_string($message, 'event');
                 $methods = array(
                     'heartbeat' => array($this, 'handle_heartbeat'),

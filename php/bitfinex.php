@@ -53,16 +53,16 @@ class bitfinex extends \ccxt\bitfinex {
             'symbol' => $marketId,
             'messageHash' => $messageHash,
         );
-        return $this->watch ($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
+        return $this->watch($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
     }
 
     public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
-        $future = $this->subscribe ('trades', $symbol, $params);
-        return $this->after ($future, $this->filterBySinceLimit, $since, $limit);
+        $future = $this->subscribe('trades', $symbol, $params);
+        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function watch_ticker ($symbol, $params = array ()) {
-        return $this->subscribe ('ticker', $symbol, $params);
+        return $this->subscribe('ticker', $symbol, $params);
     }
 
     public function handle_trades ($client, $message, $subscription) {
@@ -261,7 +261,7 @@ class bitfinex extends \ccxt\bitfinex {
             'freq' => $freq, // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
             // 'len' => '25', // string, number of price points, '25', '100', default = '25'
         );
-        $future = $this->subscribe ('book', $symbol, array_replace_recursive($request, $params));
+        $future = $this->subscribe('book', $symbol, array_replace_recursive($request, $params));
         return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
@@ -306,10 +306,10 @@ class bitfinex extends \ccxt\bitfinex {
             $limit = $this->safe_integer($subscription, 'len');
             if ($isRaw) {
                 // raw order books
-                $this->orderbooks[$symbol] = $this->indexed_order_book (array(), $limit);
+                $this->orderbooks[$symbol] = $this->indexed_order_book(array(), $limit);
             } else {
                 // P0, P1, P2, P3, P4
-                $this->orderbooks[$symbol] = $this->counted_order_book (array(), $limit);
+                $this->orderbooks[$symbol] = $this->counted_order_book(array(), $limit);
             }
             $orderbook = $this->orderbooks[$symbol];
             if ($isRaw) {

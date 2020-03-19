@@ -281,7 +281,7 @@ class binance(Exchange, ccxt.binance):
         name = 'trade'
         messageHash = market['lowercaseId'] + '@' + name
         future = self.watch_public(messageHash, params)
-        return await self.after(future, self.filterBySinceLimit, since, limit)
+        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
 
     def parse_trade(self, trade, market=None):
         #
@@ -366,7 +366,7 @@ class binance(Exchange, ccxt.binance):
         name = 'kline'
         messageHash = marketId + '@' + name + '_' + interval
         future = self.watch_public(messageHash, params)
-        return await self.after(future, self.filterBySinceLimit, since, limit, 0)
+        return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
 
     def find_timeframe(self, timeframe):
         # redo to use reverse lookups in a static map instead
@@ -660,7 +660,58 @@ class binance(Exchange, ccxt.binance):
         #   "Y": "0.00000000"              # Last quote asset transacted quantity(i.e. lastPrice * lastQty),
         #   "Q": "0.00000000"              # Quote Order Qty
         # }
-        return message
+        messageHash = self.safe_string(message, 'e')
+        orderId = self.safe_string(message, 'i')
+        marketId = self.safe_string(message, 's')
+        symbol = marketId
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+            symbol = market['symbol']
+        timestamp = self.safe_string(message, 'O')
+        lastTradeTimestamp = self.safe_string(message, 'T')
+        feeAmount = self.safe_float(message, 'n')
+        feeCurrency = self.safe_currency_code(self.safe_string(message, 'N'))
+        fee = {
+            'cost': feeAmount,
+            'currency': feeCurrency,
+        }
+        price = self.safe_float(message, 'p')
+        amount = self.safe_float(message, 'q')
+        side = self.safe_string_lower(message, 'S')
+        type = self.safe_string_lower(message, 'o')
+        filled = self.safe_float(message, 'z')
+        cumulativeQuote = self.safe_float(message, 'Z')
+        remaining = amount
+        average = None
+        if filled is not None and filled > 0:
+            if amount is not None:
+                remaining = amount - filled
+            if cumulativeQuote is not None:
+                average = cumulativeQuote / filled
+        cost = amount * price
+        rawStatus = self.safe_string(message, 'X')
+        status = self.parse_order_status(rawStatus)
+        trades = None
+        parsed = {
+            'info': message,
+            'symbol': symbol,
+            'id': orderId,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+            'trades': trades,
+        }
+        client.resolve(parsed, messageHash)
 
     def handle_message(self, client, message):
         methods = {

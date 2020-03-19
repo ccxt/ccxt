@@ -57,16 +57,16 @@ class okex extends \ccxt\okex {
             'op' => 'subscribe',
             'args' => array( $messageHash ),
         );
-        return $this->watch ($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
+        return $this->watch($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
     }
 
     public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
-        $future = $this->subscribe ('trade', $symbol, $params);
-        return $this->after ($future, $this->filterBySinceLimit, $since, $limit);
+        $future = $this->subscribe('trade', $symbol, $params);
+        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function watch_ticker ($symbol, $params = array ()) {
-        return $this->subscribe ('ticker', $symbol, $params);
+        return $this->subscribe('ticker', $symbol, $params);
     }
 
     public function handle_trade ($client, $message) {
@@ -144,8 +144,8 @@ class okex extends \ccxt\okex {
     public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $interval = $this->timeframes[$timeframe];
         $name = 'candle' . $interval . 's';
-        $future = $this->subscribe ($name, $symbol, $params);
-        return $this->after ($future, $this->filterBySinceLimit, $since, $limit, 0);
+        $future = $this->subscribe($name, $symbol, $params);
+        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function find_timeframe ($timeframe) {
@@ -186,7 +186,7 @@ class okex extends \ccxt\okex {
         $interval = str_replace('candle', '', $part1);
         $interval = str_replace('s', '', $interval);
         // use a reverse lookup in a static map instead
-        $timeframe = $this->find_timeframe ($interval);
+        $timeframe = $this->find_timeframe($interval);
         for ($i = 0; $i < count($data); $i++) {
             $marketId = $this->safe_string($data[$i], 'instrument_id');
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
@@ -214,7 +214,7 @@ class okex extends \ccxt\okex {
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
-        $future = $this->subscribe ('depth', $symbol, $params);
+        $future = $this->subscribe('depth', $symbol, $params);
         return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
@@ -230,7 +230,7 @@ class okex extends \ccxt\okex {
 
     public function handle_deltas ($bookside, $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta ($bookside, $deltas[$i]);
+            $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
@@ -254,8 +254,8 @@ class okex extends \ccxt\okex {
         //
         $asks = $this->safe_value($message, 'asks', array());
         $bids = $this->safe_value($message, 'bids', array());
-        $this->handle_deltas ($orderbook['asks'], $asks);
-        $this->handle_deltas ($orderbook['bids'], $bids);
+        $this->handle_deltas($orderbook['asks'], $asks);
+        $this->handle_deltas($orderbook['bids'], $bids);
         $timestamp = $this->parse8601 ($this->safe_string($message, 'timestamp'));
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601 ($timestamp);
@@ -325,9 +325,9 @@ class okex extends \ccxt\okex {
                     $options = $this->safe_value($this->options, 'watchOrderBook', array());
                     // default $limit is 400 bidasks
                     $limit = $this->safe_integer($options, 'limit', 400);
-                    $orderbook = $this->order_book (array(), $limit);
+                    $orderbook = $this->order_book(array(), $limit);
                     $this->orderbooks[$symbol] = $orderbook;
-                    $this->handle_order_book_message ($client, $update, $orderbook);
+                    $this->handle_order_book_message($client, $update, $orderbook);
                     $messageHash = $table . ':' . $marketId;
                     $client->resolve ($orderbook, $messageHash);
                 }
@@ -341,7 +341,7 @@ class okex extends \ccxt\okex {
                     $symbol = $market['symbol'];
                     if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
                         $orderbook = $this->orderbooks[$symbol];
-                        $this->handle_order_book_message ($client, $update, $orderbook);
+                        $this->handle_order_book_message($client, $update, $orderbook);
                         $messageHash = $table . ':' . $marketId;
                         $client->resolve ($orderbook, $messageHash);
                     }
@@ -385,8 +385,8 @@ class okex extends \ccxt\okex {
             throw new ArgumentsRequired($this->id . " watchBalance requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap')");
         }
         // $query = $this->omit ($params, 'type');
-        $future = $this->authenticate ();
-        return $this->after_async ($future, array($this, 'subscribe_to_user_account'), $params);
+        $future = $this->authenticate();
+        return $this->after_async($future, array($this, 'subscribe_to_user_account'), $params);
     }
 
     public function subscribe_to_user_account ($negotiation, $params = array ()) {
@@ -443,7 +443,7 @@ class okex extends \ccxt\okex {
             'args' => array( $subscriptionHash ),
         );
         $query = $this->omit ($params, array( 'currency', 'code', 'instrument_id', 'symbol', 'type' ));
-        return $this->watch ($url, $messageHash, array_replace_recursive($request, $query), $subscriptionHash);
+        return $this->watch($url, $messageHash, array_replace_recursive($request, $query), $subscriptionHash);
     }
 
     public function handle_balance ($client, $message) {
@@ -560,7 +560,7 @@ class okex extends \ccxt\okex {
     }
 
     public function handle_message ($client, $message) {
-        if (!$this->handle_error_message ($client, $message)) {
+        if (!$this->handle_error_message($client, $message)) {
             return;
         }
         //
@@ -587,7 +587,7 @@ class okex extends \ccxt\okex {
         //     }
         //
         if ($message === 'pong') {
-            return $this->handle_pong ($client, $message);
+            return $this->handle_pong($client, $message);
         }
         $table = $this->safe_string($message, 'table');
         if ($table === null) {

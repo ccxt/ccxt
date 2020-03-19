@@ -122,7 +122,7 @@ module.exports = class huobipro extends ccxt.huobipro {
             'params': params,
         };
         const future = this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        return await this.after (future, this.filterBySinceLimit, since, limit);
+        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
     }
 
     handleTrades (client, message) {
@@ -190,7 +190,7 @@ module.exports = class huobipro extends ccxt.huobipro {
             'params': params,
         };
         const future = this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        return await this.after (future, this.filterBySinceLimit, since, limit);
+        return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
     }
 
     findTimeframe (timeframe) {
