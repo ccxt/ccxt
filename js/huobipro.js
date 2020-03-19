@@ -251,7 +251,7 @@ module.exports = class huobipro extends ccxt.huobipro {
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         if ((limit !== undefined) && (limit !== 150)) {
-            throw ExchangeError (this.id + ' watchOrderBook accepts limit = 150 only');
+            throw new ExchangeError (this.id + ' watchOrderBook accepts limit = 150 only');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
