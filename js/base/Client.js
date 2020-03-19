@@ -11,7 +11,7 @@ const ccxt = require ('ccxt')
         deepExtend,
         milliseconds,
     } = ccxt
-    , { inflate, gunzip, isBuffer } = require ('./functions')
+    , { inflate, gunzip } = require ('./functions')
     , Future = require ('./Future')
 
 module.exports = class Client {
@@ -249,7 +249,7 @@ module.exports = class Client {
             message = inflate (message)
         }
         try {
-            if (isBuffer (message)) {
+            if (message instanceof Buffer) {
                 message = message.toString ()
             }
             message = isJsonEncodedObject (message) ? JSON.parse (message) : message
